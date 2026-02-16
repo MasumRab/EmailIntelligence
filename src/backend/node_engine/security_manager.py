@@ -8,8 +8,11 @@ execution sandboxing, and resource management.
 import asyncio
 import json
 import logging
+import os
+import re
 from dataclasses import dataclass
 from datetime import datetime
+from enum import Enum
 from typing import Any, Callable, Dict, List, Optional
 
 # Try to import bleach for HTML sanitization, fallback if not available
@@ -17,6 +20,18 @@ try:
     import bleach
 except ImportError:
     bleach = None
+
+# Try to import defusedxml for XML sanitization
+try:
+    import defusedxml.ElementTree as DefusedET
+except ImportError:
+    DefusedET = None
+
+# Try to import lxml for XML schema validation
+try:
+    from lxml import etree as LxmlEtree
+except ImportError:
+    LxmlEtree = None
 
 
 @dataclass
@@ -28,6 +43,63 @@ class ResourceLimits:
     max_concurrent_nodes: int = 10
 
 
+from .enums import SecurityLevel
+
+
+class SanitizationLevel(Enum):
+    """Security levels for input sanitization policies."""
+    STRICT = "strict"
+    STANDARD = "standard"
+    PERMISSIVE = "permissive"
+
+
+@dataclass
+class SanitizationPolicy:
+    """Defines rules for input sanitization."""
+    level: SanitizationLevel
+    allowed_tags: List[str]
+    allowed_attributes: Dict[str, List[str]]
+    strip: bool = True
+
+
+# Define sanitization policies for each level
+SANITIZATION_POLICIES = {
+    SanitizationLevel.STRICT: SanitizationPolicy(
+        level=SanitizationLevel.STRICT,
+        allowed_tags=[],  # No tags allowed, plain text only
+        allowed_attributes={},
+        strip=True
+    ),
+    SanitizationLevel.STANDARD: SanitizationPolicy(
+        level=SanitizationLevel.STANDARD,
+        allowed_tags=[
+            "p", "br", "strong", "em", "u", "ol", "ul", "li",
+            "h1", "h2", "h3", "h4", "h5", "h6", "blockquote", "code", "pre"
+        ],
+        allowed_attributes={
+            "a": ["href", "title"],
+            "img": ["src", "alt", "title", "width", "height"],
+            "*": ["class", "id"],
+        },
+        strip=True
+    ),
+    SanitizationLevel.PERMISSIVE: SanitizationPolicy(
+        level=SanitizationLevel.PERMISSIVE,
+        allowed_tags=[
+            "p", "br", "strong", "em", "u", "ol", "ul", "li",
+            "h1", "h2", "h3", "h4", "h5", "h6", "blockquote", "code", "pre",
+            "div", "span", "table", "thead", "tbody", "tr", "th", "td",
+            "img", "a", "hr", "sub", "sup", "iframe"
+        ],
+        allowed_attributes={
+            "a": ["href", "title", "target", "rel"],
+            "img": ["src", "alt", "title", "width", "height", "style"],
+            "iframe": ["src", "width", "height", "frameborder", "allowfullscreen"],
+            "*": ["class", "id", "style"],
+        },
+        strip=True
+    ),
+}
 
 
 class SecurityManager:
@@ -37,8 +109,13 @@ class SecurityManager:
 
     def __init__(self, user_roles: Dict[str, List[str]] = None):
         self.user_roles = user_roles or {}
+        self.trusted_nodes = set()
         self._api_call_counts: Dict[str, int] = {}
         self.logger = logging.getLogger(f"{self.__class__.__module__}.{self.__class__.__name__}")
+
+    def is_trusted_node(self, node_type: str) -> bool:
+        """Check if a node type is trusted."""
+        return node_type in self.trusted_nodes
 
     def has_permission(self, user: Any, action: str, resource: Any) -> bool:
         """
@@ -165,47 +242,39 @@ class SecurityManager:
 
     def register_trusted_node_type(self, node_type: str):
         """Register a node type as trusted."""
-        # This is a placeholder method - in a real implementation,
-        # this would update the trusted nodes list
-        pass
+        self.trusted_nodes.add(node_type)
 
 
 class InputSanitizer:
     """Sanitizes inputs to prevent injection attacks."""
 
     @staticmethod
-    def sanitize_string(value: str) -> str:
-        """Sanitize a string input using proper HTML sanitization."""
+    def get_policy(level: SanitizationLevel) -> SanitizationPolicy:
+        """Get the sanitization policy for a specific level."""
+        return SANITIZATION_POLICIES.get(level, SANITIZATION_POLICIES[SanitizationLevel.STANDARD])
+
+    @staticmethod
+    def sanitize_string(value: str, level: SanitizationLevel = SanitizationLevel.STANDARD) -> str:
+        """
+        Sanitize a string input using proper HTML sanitization.
+
+        Args:
+            value: The string to sanitize.
+            level: The security level to apply (Strict, Standard, Permissive).
+        """
         if not isinstance(value, str):
             raise ValueError("Expected string input")
 
+        policy = InputSanitizer.get_policy(level)
+
         # If bleach is available, use it for proper HTML sanitization
         if bleach is not None:
-            # Allow only safe HTML tags and attributes
-            allowed_tags = [
-                "p",
-                "br",
-                "strong",
-                "em",
-                "u",
-                "ol",
-                "ul",
-                "li",
-                "h1",
-                "h2",
-                "h3",
-                "h4",
-                "h5",
-                "h6",
-            ]
-            allowed_attributes = {
-                "a": ["href", "title"],
-                "img": ["src", "alt", "title"],
-                "*": ["class", "id"],
-            }
-            # Clean HTML and strip malicious content
+            # Clean HTML and strip malicious content based on policy
             sanitized = bleach.clean(
-                value, tags=allowed_tags, attributes=allowed_attributes, strip=True
+                value,
+                tags=policy.allowed_tags,
+                attributes=policy.allowed_attributes,
+                strip=policy.strip
             )
         else:
             # Fallback to basic implementation if bleach is not available
@@ -216,38 +285,129 @@ class InputSanitizer:
             sanitized = sanitized.replace("onerror", "onerror&#58;").replace(
                 "onload", "onload&#58;"
             )
+
             sanitized = sanitized.replace("<iframe", "&lt;iframe").replace("<object", "&lt;object")
             sanitized = sanitized.replace("<embed", "&lt;embed").replace("<form", "&lt;form")
 
         return sanitized
 
-    # TODO(P1, 4h): Enhance sanitization to support additional content types (Markdown, etc.)
-    # Pseudo code for additional content type sanitization:
-    # - Add Markdown sanitization with allowed elements (headers, links, lists)
-    # - Implement CSV sanitization to prevent formula injection
-    # - Add XML sanitization with schema validation
-    # - Support YAML sanitization with type safety checks
-    # - Implement binary data sanitization for file uploads
+    @staticmethod
+    def sanitize_markdown(value: str) -> str:
+        """
+        Sanitize Markdown content.
 
-    # TODO(P2, 2h): Add configurable sanitization policies based on security levels
-    # Pseudo code for configurable sanitization policies:
-    # - Create SanitizationPolicy class with different security levels
-    # - Level 1 (Strict): Minimal allowed content, maximum security
-    # - Level 2 (Standard): Balanced security and functionality
-    # - Level 3 (Permissive): Maximum functionality, reduced security
-    # - Allow per-user or per-operation policy selection
+        Removes dangerous HTML tags and checks for malicious links.
+        """
+        if not isinstance(value, str):
+            raise ValueError("Expected string input")
+
+        # First, sanitize any HTML embedded in the markdown
+        sanitized = InputSanitizer.sanitize_string(value)
+
+        # Check for dangerous links in Markdown syntax: [text](scheme:...)
+        # We target javascript:, vbscript:, and data: schemes
+        def replace_unsafe_link(match):
+            text = match.group(1)
+            scheme = match.group(2)
+            content = match.group(3)
+            return f"[{text}](unsafe-link:{scheme}:{content})"
+
+        # Pattern: [text](scheme:content)
+        # This regex is non-exhaustive but catches common patterns
+        link_pattern = re.compile(
+            r"\[([^\]]+)\]\s*\((javascript|vbscript|data):([^\)]+)\)", re.IGNORECASE
+        )
+        sanitized = link_pattern.sub(replace_unsafe_link, sanitized)
+
+        return sanitized
 
     @staticmethod
-    def sanitize_json(value: str) -> Dict[str, Any]:
+    def sanitize_csv(value: str) -> str:
+        """
+        Sanitize a value for CSV export to prevent formula injection.
+
+        If the value starts with =, +, -, or @, it is escaped with a single quote.
+        """
+        if not isinstance(value, str):
+            # Convert non-string values to string to check, or just return as is?
+            # Assuming the caller expects a string back for CSV writing.
+            return str(value)
+
+        if value.startswith(("=", "+", "-", "@")):
+            return f"'{value}"
+
+        return value
+
+    @staticmethod
+    def sanitize_xml(value: str, schema_path: Optional[str] = None) -> str:
+        """
+        Sanitize XML content using defusedxml.
+
+        Args:
+            value: The XML string to sanitize.
+            schema_path: Optional path to an XSD schema for validation.
+
+        Returns:
+            The sanitized (parsed and re-serialized) XML string.
+        """
+        if not isinstance(value, str):
+            raise ValueError("Expected string input")
+
+        if DefusedET is None:
+            # Fallback if defusedxml is not installed
+            # Perform basic check for DOCTYPE/ENTITY which are vectors for XXE
+            if "<!DOCTYPE" in value or "<!ENTITY" in value:
+                raise ValueError("Potentially unsafe XML: DOCTYPE/ENTITY detected and defusedxml not available")
+            return InputSanitizer.sanitize_string(value)
+
+        try:
+            # Parse with defusedxml to check for XXE/Billion Laughs
+            root = DefusedET.fromstring(value)
+
+            # Schema validation if requested and lxml is available
+            if schema_path:
+                if LxmlEtree is None:
+                    logging.getLogger(__name__).warning(
+                        "XML schema validation requested but lxml is not installed"
+                    )
+                else:
+                    if not os.path.exists(schema_path):
+                        raise ValueError(f"Schema file not found: {schema_path}")
+
+                    try:
+                        schema_doc = LxmlEtree.parse(schema_path)
+                        schema = LxmlEtree.XMLSchema(schema_doc)
+
+                        # Validate the string
+                        doc = LxmlEtree.fromstring(value.encode("utf-8"))
+                        schema.assertValid(doc)
+                    except (LxmlEtree.XMLSchemaError, LxmlEtree.DocumentInvalid) as e:
+                        raise ValueError(f"XML validation failed: {str(e)}")
+
+            # Re-serialize to ensure output is clean
+            # default encoding is unicode (str)
+            return DefusedET.tostring(root, encoding="unicode")
+
+        except Exception as e:
+            # Catch parse errors and validation errors that weren't caught specifically
+            if isinstance(e, ValueError):
+                raise e
+            raise ValueError(f"Invalid XML: {str(e)}")
+
+    # TODO(P1, 4h): Support YAML sanitization with type safety checks
+    # - Implement binary data sanitization for file uploads
+
+    @staticmethod
+    def sanitize_json(value: str, level: SanitizationLevel = SanitizationLevel.STANDARD) -> Dict[str, Any]:
         """Sanitize and parse JSON input."""
         try:
             parsed = json.loads(value)
-            return InputSanitizer._sanitize_dict(parsed)
+            return InputSanitizer._sanitize_dict(parsed, level)
         except json.JSONDecodeError:
             raise ValueError("Invalid JSON input")
 
     @staticmethod
-    def _sanitize_dict(obj: Dict[str, Any]) -> Dict[str, Any]:
+    def _sanitize_dict(obj: Dict[str, Any], level: SanitizationLevel = SanitizationLevel.STANDARD) -> Dict[str, Any]:
         """Recursively sanitize a dictionary."""
         if not isinstance(obj, dict):
             return obj
@@ -255,25 +415,25 @@ class InputSanitizer:
         sanitized = {}
         for key, value in obj.items():
             if isinstance(value, str):
-                sanitized[key] = InputSanitizer.sanitize_string(value)
+                sanitized[key] = InputSanitizer.sanitize_string(value, level)
             elif isinstance(value, dict):
-                sanitized[key] = InputSanitizer._sanitize_dict(value)
+                sanitized[key] = InputSanitizer._sanitize_dict(value, level)
             elif isinstance(value, list):
-                sanitized[key] = [InputSanitizer._sanitize_item(item) for item in value]
+                sanitized[key] = [InputSanitizer._sanitize_item(item, level) for item in value]
             else:
                 sanitized[key] = value
 
         return sanitized
 
     @staticmethod
-    def _sanitize_item(item: Any) -> Any:
+    def _sanitize_item(item: Any, level: SanitizationLevel = SanitizationLevel.STANDARD) -> Any:
         """Sanitize an item in a list."""
         if isinstance(item, str):
-            return InputSanitizer.sanitize_string(item)
+            return InputSanitizer.sanitize_string(item, level)
         elif isinstance(item, dict):
-            return InputSanitizer._sanitize_dict(item)
+            return InputSanitizer._sanitize_dict(item, level)
         elif isinstance(item, list):
-            return [InputSanitizer._sanitize_item(i) for i in item]
+            return [InputSanitizer._sanitize_item(i, level) for i in item]
         return item
 
 
