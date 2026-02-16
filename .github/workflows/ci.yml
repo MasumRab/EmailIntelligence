@@ -2,6 +2,7 @@ name: CI
 
 on:
   push:
+<<<<<<< HEAD
     branches:
       - main
       - scientific
@@ -243,3 +244,50 @@ jobs:
           echo "Build artifacts are available for download."
           echo "Coverage reports have been uploaded to Codecov."
           echo "All quality checks have passed."
+=======
+    branches: [ main, scientific ]
+  pull_request:
+    branches: [ main, scientific ]
+
+jobs:
+  test:
+    if: "!contains(github.event.head_commit.message, '[skip ci]')"
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          version: "latest"
+
+      - name: Install dependencies
+        run: |
+          uv sync --all-extras
+
+      - name: Run tests
+        run: |
+          uv run pytest tests/ src/ modules/ -v --tb=short --cov=src --cov=modules --cov-report=xml --cov-report=term-missing --cov-fail-under=80
+
+      - name: Run Security Scans
+        run: |
+          uv run bandit -r src/ modules/
+          # uv run safety check (temporarily disabled as it might not be installed or configured)
+
+      - name: Run linting
+        run: |
+          uv run flake8 src/ modules/
+          uv run black --check src/ modules/
+          uv run isort --check-only src/ modules/
+
+      - name: Type checking
+        run: |
+          uv run mypy src/ modules/ --show-error-codes --no-strict-optional
+>>>>>>> origin/main

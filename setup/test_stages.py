@@ -14,10 +14,14 @@ from pathlib import Path
 logger = logging.getLogger(__name__)
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 # Assuming the script is at /app/setup/test_stages.py
 =======
 # Assuming the script is at /app/deployment/test_stages.py
 >>>>>>> a7da61cf1f697de3c8c81f536bf579d36d88e613
+=======
+# Assuming the script is at /app/setup/test_stages.py
+>>>>>>> origin/main
 # ROOT_DIR will be /app
 ROOT_DIR = Path(__file__).resolve().parent.parent
 
@@ -39,11 +43,16 @@ def get_python_executable() -> str:
 def _run_pytest(test_path: str, coverage: bool, debug: bool) -> bool:
     """Helper function to run pytest."""
 <<<<<<< HEAD
+<<<<<<< HEAD
     python_exe = get_python_executable()
     cmd = [python_exe, "-m", "pytest"] + test_path.split()
 =======
     cmd = ["uv", "run", "python", "-m", "pytest"] + test_path.split()
 >>>>>>> a7da61cf1f697de3c8c81f536bf579d36d88e613
+=======
+    python_exe = get_python_executable()
+    cmd = [python_exe, "-m", "pytest"] + test_path.split()
+>>>>>>> origin/main
     if coverage:
         cmd.extend(["--cov=src", "--cov-report=term-missing"])
     if debug:
@@ -64,10 +73,14 @@ def _run_pytest(test_path: str, coverage: bool, debug: bool) -> bool:
         return False
     except FileNotFoundError:
 <<<<<<< HEAD
+<<<<<<< HEAD
         print(f"Error: Python executable not found at {python_exe}")
 =======
         print("Error: uv command not found")
 >>>>>>> a7da61cf1f697de3c8c81f536bf579d36d88e613
+=======
+        print(f"Error: Python executable not found at {python_exe}")
+>>>>>>> origin/main
         return False
 
 
@@ -78,12 +91,17 @@ class TestStages:
         """Runs unit tests."""
         print("\n--- Running Unit Tests ---")
 <<<<<<< HEAD
+<<<<<<< HEAD
         # Run unit tests in tests/core and tests/modules
         success = _run_pytest("tests/core tests/modules", coverage, debug)
 =======
         # Run unit tests in tests directory
         success = _run_pytest("tests/", coverage, debug)
 >>>>>>> a7da61cf1f697de3c8c81f536bf579d36d88e613
+=======
+        # Run unit tests in tests/core and tests/modules
+        success = _run_pytest("tests/core tests/modules", coverage, debug)
+>>>>>>> origin/main
         print(f"--- Unit Test Result: {'SUCCESS' if success else 'FAILURE'} ---")
         return success
 

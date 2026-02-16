@@ -9,7 +9,11 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 import pytest
 
+<<<<<<< HEAD
 from launch import (
+=======
+from setup.launch import (
+>>>>>>> origin/main
     PYTHON_MAX_VERSION,
     PYTHON_MIN_VERSION,
     ROOT_DIR,
@@ -21,6 +25,10 @@ from launch import (
     setup_dependencies,
     start_backend,
     start_gradio_ui,
+<<<<<<< HEAD
+=======
+    install_nodejs_dependencies,
+>>>>>>> origin/main
 )
 
 

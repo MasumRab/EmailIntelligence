@@ -58,18 +58,30 @@ class MFASetupResponse(BaseModel):
 async def login(user_credentials: UserLogin, db: DataSource = Depends(get_data_source)):
     """Login endpoint to get access token"""
     user = await authenticate_user(user_credentials.username, user_credentials.password, db)
+<<<<<<< HEAD
     
+=======
+
+>>>>>>> origin/main
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect username or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
+<<<<<<< HEAD
     
     # Check if user has MFA enabled
     if user.get("mfa_enabled", False):
         mfa_service = get_mfa_service()
         
+=======
+
+    # Check if user has MFA enabled
+    if user.get("mfa_enabled", False):
+        mfa_service = get_mfa_service()
+
+>>>>>>> origin/main
         # If MFA token was not provided, return a special response indicating MFA is required
         if not user_credentials.mfa_token:
             raise HTTPException(
@@ -77,7 +89,11 @@ async def login(user_credentials: UserLogin, db: DataSource = Depends(get_data_s
                 detail="MFA token required",
                 headers={"WWW-Authenticate": "Bearer", "X-MFA-Required": "true"},
             )
+<<<<<<< HEAD
         
+=======
+
+>>>>>>> origin/main
         # Verify the MFA token
         secret = user.get("mfa_secret")
         if not secret:
@@ -86,17 +102,28 @@ async def login(user_credentials: UserLogin, db: DataSource = Depends(get_data_s
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="Server configuration error",
             )
+<<<<<<< HEAD
         
         # First, try to verify with TOTP
         token_verified = mfa_service.verify_token(secret, user_credentials.mfa_token)
         
+=======
+
+        # First, try to verify with TOTP
+        token_verified = mfa_service.verify_token(secret, user_credentials.mfa_token)
+
+>>>>>>> origin/main
         # If TOTP failed, try backup codes
         if not token_verified:
             backup_codes = user.get("mfa_backup_codes", [])
             is_backup_code, updated_codes = mfa_service.verify_backup_code(
                 backup_codes, user_credentials.mfa_token
             )
+<<<<<<< HEAD
             
+=======
+
+>>>>>>> origin/main
             if is_backup_code:
                 # Update the user's backup codes to remove the used one
                 for i, u in enumerate(db.users_data):
@@ -105,7 +132,11 @@ async def login(user_credentials: UserLogin, db: DataSource = Depends(get_data_s
                         await db._save_data("users")
                         break
                 token_verified = True
+<<<<<<< HEAD
         
+=======
+
+>>>>>>> origin/main
         # If neither TOTP nor backup code worked, deny access
         if not token_verified:
             raise HTTPException(
@@ -113,19 +144,31 @@ async def login(user_credentials: UserLogin, db: DataSource = Depends(get_data_s
                 detail="Invalid MFA token",
                 headers={"WWW-Authenticate": "Bearer"},
             )
+<<<<<<< HEAD
     
+=======
+
+>>>>>>> origin/main
     access_token_expires = timedelta(minutes=settings.access_token_expire_minutes)
     access_token = create_access_token(
         data={"sub": user_credentials.username, "role": user.get("role", "user")}, expires_delta=access_token_expires
     )
+<<<<<<< HEAD
     
+=======
+
+>>>>>>> origin/main
     return {"access_token": access_token, "token_type": "bearer"}
 
 
 @router.post("/mfa/setup", response_model=MFASetupResponse)
 async def setup_mfa(current_user: TokenData = Depends(get_current_active_user), db: DataSource = Depends(get_data_source)):
     """Setup MFA for the current user"""
+<<<<<<< HEAD
     
+=======
+
+>>>>>>> origin/main
     # Get the user from database
     user = await db.get_user_by_username(current_user.username)
     if not user:
@@ -133,6 +176,7 @@ async def setup_mfa(current_user: TokenData = Depends(get_current_active_user), 
             status_code=status.HTTP_404_NOT_FOUND,
             detail="User not found"
         )
+<<<<<<< HEAD
     
     mfa_service = get_mfa_service()
     
@@ -145,13 +189,31 @@ async def setup_mfa(current_user: TokenData = Depends(get_current_active_user), 
     # Generate backup codes
     backup_codes = mfa_service.generate_backup_codes()
     
+=======
+
+    mfa_service = get_mfa_service()
+
+    # Generate a new secret
+    secret = mfa_service.generate_secret()
+
+    # Generate QR code
+    qr_code = mfa_service.generate_qr_code(current_user.username, secret)
+
+    # Generate backup codes
+    backup_codes = mfa_service.generate_backup_codes()
+
+>>>>>>> origin/main
     # Update the user record with MFA data (but don't enable MFA yet)
     user_index = None
     for i, u in enumerate(db.users_data):
         if u.get("username") == current_user.username:
             user_index = i
             break
+<<<<<<< HEAD
     
+=======
+
+>>>>>>> origin/main
     if user_index is not None:
         # Update the user record
         db.users_data[user_index]["mfa_secret"] = secret
@@ -159,7 +221,11 @@ async def setup_mfa(current_user: TokenData = Depends(get_current_active_user), 
         # db.users_data[user_index]["mfa_enabled"] = True
         db.users_data[user_index]["mfa_backup_codes"] = backup_codes
         await db._save_data("users")
+<<<<<<< HEAD
     
+=======
+
+>>>>>>> origin/main
     return MFASetupResponse(
         secret=secret,
         qr_code=qr_code,
@@ -174,7 +240,11 @@ async def enable_mfa(
     db: DataSource = Depends(get_data_source)
 ):
     """Enable MFA after user has verified the setup"""
+<<<<<<< HEAD
     
+=======
+
+>>>>>>> origin/main
     # Get the user from database
     user = await db.get_user_by_username(current_user.username)
     if not user:
@@ -182,37 +252,61 @@ async def enable_mfa(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="User not found"
         )
+<<<<<<< HEAD
     
+=======
+
+>>>>>>> origin/main
     # Check if MFA is already enabled
     if user.get("mfa_enabled", False):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="MFA is already enabled for this user"
         )
+<<<<<<< HEAD
     
     # Verify the token provided by user against their stored secret
     mfa_service = get_mfa_service()
     secret = user.get("mfa_secret")
     
+=======
+
+    # Verify the token provided by user against their stored secret
+    mfa_service = get_mfa_service()
+    secret = user.get("mfa_secret")
+
+>>>>>>> origin/main
     if not secret:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="MFA not properly set up for this user"
         )
+<<<<<<< HEAD
     
+=======
+
+>>>>>>> origin/main
     if not mfa_service.verify_token(secret, mfa_request.token):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Invalid MFA token. Please try again."
         )
+<<<<<<< HEAD
     
+=======
+
+>>>>>>> origin/main
     # Find and update the user record to enable MFA
     for i, u in enumerate(db.users_data):
         if u.get("username") == current_user.username:
             db.users_data[i]["mfa_enabled"] = True
             await db._save_data("users")
             break
+<<<<<<< HEAD
     
+=======
+
+>>>>>>> origin/main
     return {"message": "MFA enabled successfully"}
 
 
@@ -222,7 +316,11 @@ async def disable_mfa(
     db: DataSource = Depends(get_data_source)
 ):
     """Disable MFA for the current user"""
+<<<<<<< HEAD
     
+=======
+
+>>>>>>> origin/main
     # Get the user from database
     user = await db.get_user_by_username(current_user.username)
     if not user:
@@ -230,7 +328,11 @@ async def disable_mfa(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="User not found"
         )
+<<<<<<< HEAD
     
+=======
+
+>>>>>>> origin/main
     # Find and update the user record to disable MFA
     for i, u in enumerate(db.users_data):
         if u.get("username") == current_user.username:
@@ -239,7 +341,11 @@ async def disable_mfa(
             db.users_data[i]["mfa_backup_codes"] = []
             await db._save_data("users")
             break
+<<<<<<< HEAD
     
+=======
+
+>>>>>>> origin/main
     return {"message": "MFA disabled successfully"}
 
 
@@ -256,18 +362,30 @@ async def register(user_data: UserCreate, db: DataSource = Depends(get_data_sour
         "mfa_backup_codes": []
     }
     success = await create_user(user_data.username, user_data.password, db)
+<<<<<<< HEAD
     
+=======
+
+>>>>>>> origin/main
     if not success:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="User already exists",
         )
+<<<<<<< HEAD
     
+=======
+
+>>>>>>> origin/main
     access_token_expires = timedelta(minutes=settings.access_token_expire_minutes)
     access_token = create_access_token(
         data={"sub": user_data.username, "role": user_data.role}, expires_delta=access_token_expires
     )
+<<<<<<< HEAD
     
+=======
+
+>>>>>>> origin/main
     return {"access_token": access_token, "token_type": "bearer"}
 
 

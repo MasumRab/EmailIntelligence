@@ -283,7 +283,11 @@ Maintainability Issue (10 issues)
 --------------------------------------------------
   MEDIUM Risk (10 issues):
     • Code duplication (6 occurrences)
+<<<<<<< HEAD
       File: 
+=======
+      File:
+>>>>>>> origin/main
       Impact: Maintenance overhead
       Remediation: Extract common code into reusable functions/classes
       Timeline: 2-4 weeks

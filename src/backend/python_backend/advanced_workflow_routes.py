@@ -15,10 +15,17 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel
 
 # Use the new node-based workflow system instead of non-existent src.core module
+<<<<<<< HEAD
 from src.backend.node_engine.node_base import Connection
 from src.backend.node_engine.node_base import Workflow as AdvancedWorkflow
 from src.backend.node_engine.workflow_engine import WorkflowEngine
 from src.backend.node_engine.workflow_manager import workflow_manager
+=======
+from backend.node_engine.node_base import Connection
+from backend.node_engine.node_base import Workflow as AdvancedWorkflow
+from backend.node_engine.workflow_engine import WorkflowEngine
+from backend.node_engine.workflow_manager import workflow_manager
+>>>>>>> origin/main
 
 from ..python_nlp.smart_filters import SmartFilterManager
 from .ai_engine import AdvancedAIEngine

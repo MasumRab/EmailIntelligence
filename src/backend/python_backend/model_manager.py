@@ -19,7 +19,10 @@ class ModelManager:
     def check_health(self) -> bool:
         """Check model manager health. Stub implementation."""
         return True
+<<<<<<< HEAD
 
 
 # Create a global instance for backward compatibility
 model_manager = ModelManager()
+=======
+>>>>>>> origin/main

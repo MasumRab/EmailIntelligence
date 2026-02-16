@@ -6,8 +6,15 @@ from fastapi.testclient import TestClient
 from fastapi import FastAPI
 from fastapi.security import HTTPAuthorizationCredentials
 from src.core.auth import get_current_active_user, verify_token
+<<<<<<< HEAD
 from src.main import app
 
+=======
+from src.main import create_app
+
+# Create the app instance for testing
+app = create_app()
+>>>>>>> origin/main
 
 def test_auth_token_endpoint():
     """Test the token endpoint for authentication"""
@@ -17,7 +24,11 @@ def test_auth_token_endpoint():
         assert response.status_code == 200
         assert "access_token" in response.json()
         assert response.json()["token_type"] == "bearer"
+<<<<<<< HEAD
         
+=======
+
+>>>>>>> origin/main
         # Test with invalid credentials
         response = client.post("/token", data={"username": "invalid", "password": "invalid"})
         assert response.status_code == 401
@@ -29,6 +40,10 @@ def test_protected_endpoint_requires_auth():
         # Try to access a protected endpoint without authentication
         response = client.get("/api/emails")
         assert response.status_code == 401  # Unauthorized
+<<<<<<< HEAD
         
+=======
+
+>>>>>>> origin/main
         # Should work with valid token (after proper setup)
         # This test would require a valid token which is complex to set up in this context

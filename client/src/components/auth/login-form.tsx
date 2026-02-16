@@ -14,9 +14,15 @@ export function LoginForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+<<<<<<< HEAD
     
     const result = await login(username, password, showMfaInput ? mfaToken : undefined);
     
+=======
+
+    const result = await login(username, password, showMfaInput ? mfaToken : undefined);
+
+>>>>>>> origin/main
     if (result.success) {
       if (result.mfaRequired) {
         setShowMfaInput(true);
@@ -31,9 +37,15 @@ export function LoginForm() {
 
   const handleMfaSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+<<<<<<< HEAD
     
     const result = await login(username, password, mfaToken);
     
+=======
+
+    const result = await login(username, password, mfaToken);
+
+>>>>>>> origin/main
     if (result.success) {
       window.location.href = '/dashboard'; // Redirect to dashboard after successful MFA verification
     } else {
@@ -63,7 +75,11 @@ export function LoginForm() {
                 placeholder="Enter your username"
               />
             </div>
+<<<<<<< HEAD
             
+=======
+
+>>>>>>> origin/main
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
                 Password
@@ -77,7 +93,11 @@ export function LoginForm() {
                 placeholder="Enter your password"
               />
             </div>
+<<<<<<< HEAD
             
+=======
+
+>>>>>>> origin/main
             <Button type="submit" className="w-full">
               Login
             </Button>
@@ -97,6 +117,7 @@ export function LoginForm() {
                 placeholder="Enter your authenticator code"
               />
             </div>
+<<<<<<< HEAD
             
             <Button type="submit" className="w-full">
               Verify MFA
@@ -105,6 +126,16 @@ export function LoginForm() {
             <Button 
               type="button" 
               variant="outline" 
+=======
+
+            <Button type="submit" className="w-full">
+              Verify MFA
+            </Button>
+
+            <Button
+              type="button"
+              variant="outline"
+>>>>>>> origin/main
               className="w-full"
               onClick={() => setShowMfaInput(false)}
             >

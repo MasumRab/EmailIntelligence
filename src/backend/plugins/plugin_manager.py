@@ -14,7 +14,11 @@ import os
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Type
 
+<<<<<<< HEAD
 from src.backend.plugins.base_plugin import BasePlugin, ProcessingNode, UIComponentPlugin
+=======
+from backend.plugins.base_plugin import BasePlugin, ProcessingNode, UIComponentPlugin
+>>>>>>> origin/main
 
 logger = logging.getLogger(__name__)
 
@@ -22,7 +26,11 @@ logger = logging.getLogger(__name__)
 class PluginManager:
     """Manages all plugins in the system"""
 
+<<<<<<< HEAD
     def __init__(self, plugins_dir: str = "src/backend/plugins"):
+=======
+    def __init__(self, plugins_dir: str = "backend/plugins"):
+>>>>>>> origin/main
         self.plugins_dir = Path(plugins_dir)
         self._plugins: Dict[str, BasePlugin] = {}
         self._ui_plugins: Dict[str, UIComponentPlugin] = {}

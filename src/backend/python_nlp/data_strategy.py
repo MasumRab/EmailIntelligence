@@ -197,7 +197,11 @@ class DataCollectionStrategy:
     def _generate_sample_id(self, subject: str, sender: str) -> str:
         """Generates a unique ID for an email sample using a hash."""
         content = f"{subject}_{sender}_{datetime.now().isoformat()}"
+<<<<<<< HEAD
         return hashlib.md5(content.encode()).hexdigest()[:12]
+=======
+        return hashlib.sha256(content.encode()).hexdigest()[:12]
+>>>>>>> origin/main
 
     def preprocess_email(self, email: EmailSample) -> EmailSample:
         """

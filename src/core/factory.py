@@ -7,6 +7,9 @@ from .database import DatabaseManager
 from .ai_engine import ModernAIEngine
 from .data.repository import DatabaseEmailRepository, CachingEmailRepository, EmailRepository
 from .caching import init_cache_manager, CacheConfig, CacheBackend
+from .dynamic_model_manager import DynamicModelManager
+from .model_registry import ModelRegistry
+from .smart_filter_manager import SmartFilterManager
 
 # Optional import for NotmuchDataSource
 try:
@@ -23,39 +26,38 @@ _email_repository_instance = None
 @asynccontextmanager
 async def get_ai_engine() -> AsyncGenerator[ModernAIEngine, None]:
     """
-    Provides a ModernAIEngine instance with SOTA async generator pattern.
-
-    This implementation provides:
-    - Automatic resource management
-    - Request-scoped engine instances
-    - Proper cleanup and error handling
-    - FastAPI dependency injection compatibility
+    Provides a ModernAIEngine instance with proper dependency injection.
     """
-    engine = None
+    # Create required dependencies
+    model_registry = ModelRegistry()
+    model_manager = DynamicModelManager(registry=model_registry)
+
+    # Create the engine with injected dependencies
+    engine = ModernAIEngine(model_manager=model_manager)
+
     try:
-        # Create and initialize the AI engine
-        engine = ModernAIEngine()
-        engine.initialize()
-
-        # Yield the engine for use in route handlers
+        # Initialize and yield
+        await engine.initialize()
         yield engine
-
     except Exception as e:
-        # Log initialization errors
         import logging
         logger = logging.getLogger(__name__)
         logger.error(f"Failed to provide AI engine: {e}")
         raise
-
     finally:
-        # Ensure cleanup happens
-        if engine:
-            try:
-                engine.cleanup()
-            except Exception as e:
-                import logging
-                logger = logging.getLogger(__name__)
-                logger.warning(f"Error during AI engine cleanup: {e}")
+        engine.cleanup()
+
+
+@asynccontextmanager
+async def get_smart_filter_manager() -> AsyncGenerator[SmartFilterManager, None]:
+    """
+    Provides a SmartFilterManager instance.
+    """
+    manager = SmartFilterManager()
+    try:
+        yield manager
+    finally:
+        await manager.close()
 
 
 async def get_data_source() -> DataSource:
