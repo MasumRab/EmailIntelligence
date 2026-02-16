@@ -13,7 +13,7 @@ from abc import ABC, abstractmethod
 from collections import OrderedDict
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Dict, List, Optional, Set, Union
+from typing import Any, Dict, List, Optional, Set
 
 try:
     import redis.asyncio as redis
@@ -127,9 +127,9 @@ class MemoryCacheBackend(CacheBackendInterface):
 
             self._stats.hits += 1
             return entry["value"]
-        else:
-            self._stats.misses += 1
-            return None
+
+        self._stats.misses += 1
+        return None
 
     async def set(self, key: str, value: Any, ttl: Optional[int] = None) -> bool:
         """Set value in memory cache"""
