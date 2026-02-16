@@ -22,7 +22,7 @@ class TestNotmuchDataSourceInitialization:
         # Mock the notmuch database
         mock_db = MagicMock()
         mock_notmuch.Database.return_value = mock_db
-        
+
         ds = NotmuchDataSource(db_manager=AsyncMock(spec=DatabaseManager))
         assert ds is not None
         assert isinstance(ds, NotmuchDataSource)
@@ -31,7 +31,7 @@ class TestNotmuchDataSourceInitialization:
     def test_notmuch_data_source_inherits_from_data_source(self, mock_notmuch):
         """Test that NotmuchDataSource properly inherits from DataSource."""
         from src.core.data_source import DataSource
-        
+
         # Mock the notmuch database
         mock_db = MagicMock()
         mock_notmuch.Database.return_value = mock_db
@@ -66,7 +66,7 @@ class TestNotmuchDataSourceEmailOperations:
         # Mock the notmuch database
         mock_db = MagicMock()
         mock_notmuch.Database.return_value = mock_db
-        
+
         data_source = NotmuchDataSource(db_manager=AsyncMock(spec=DatabaseManager))
         email_data = {
             "subject": "Test Email",
@@ -86,7 +86,7 @@ class TestNotmuchDataSourceEmailOperations:
         # Mock the notmuch database
         mock_db = MagicMock()
         mock_notmuch.Database.return_value = mock_db
-        
+
         data_source = NotmuchDataSource(db_manager=AsyncMock(spec=DatabaseManager))
         result = await data_source.get_email_by_id(123)
 
@@ -99,7 +99,7 @@ class TestNotmuchDataSourceEmailOperations:
         # Mock the notmuch database
         mock_db = MagicMock()
         mock_notmuch.Database.return_value = mock_db
-        
+
         data_source = NotmuchDataSource(db_manager=AsyncMock(spec=DatabaseManager))
         result = await data_source.get_email_by_id(123, include_content=False)
 
@@ -113,7 +113,7 @@ class TestNotmuchDataSourceEmailOperations:
         mock_db = MagicMock()
         mock_query = MagicMock()
         mock_message = MagicMock()
-        
+
         mock_message.get_message_id.return_value = "test@example.com"
         mock_message.get_header.side_effect = lambda x: {
             "subject": "Test Subject",
@@ -121,11 +121,11 @@ class TestNotmuchDataSourceEmailOperations:
         }.get(x, "")
         mock_message.get_date.return_value = 1234567890
         mock_message.get_tags.return_value = ["inbox", "unread"]
-        
+
         mock_query.search_messages.return_value = [mock_message]
         mock_db.create_query.return_value = mock_query
         mock_notmuch.Database.return_value = mock_db
-        
+
         data_source = NotmuchDataSource(db_manager=AsyncMock(spec=DatabaseManager))
         result = await data_source.get_all_emails()
 
@@ -140,7 +140,7 @@ class TestNotmuchDataSourceEmailOperations:
         mock_db = MagicMock()
         mock_query = MagicMock()
         mock_message = MagicMock()
-        
+
         mock_message.get_message_id.return_value = "test2@example.com"
         mock_message.get_header.side_effect = lambda x: {
             "subject": "Test Subject 2",
@@ -148,11 +148,11 @@ class TestNotmuchDataSourceEmailOperations:
         }.get(x, "")
         mock_message.get_date.return_value = 1234567891
         mock_message.get_tags.return_value = ["inbox"]
-        
+
         mock_query.search_messages.return_value = [mock_message]
         mock_db.create_query.return_value = mock_query
         mock_notmuch.Database.return_value = mock_db
-        
+
         data_source = NotmuchDataSource(db_manager=AsyncMock(spec=DatabaseManager))
         result = await data_source.get_all_emails(limit=25, offset=10)
 
@@ -165,7 +165,7 @@ class TestNotmuchDataSourceEmailOperations:
         # Mock the notmuch database
         mock_db = MagicMock()
         mock_notmuch.Database.return_value = mock_db
-        
+
         data_source = NotmuchDataSource(db_manager=AsyncMock(spec=DatabaseManager))
         update_data = {"is_read": True, "tags": ["important"]}
         result = await data_source.update_email(123, update_data)
@@ -179,7 +179,7 @@ class TestNotmuchDataSourceEmailOperations:
         # Mock the notmuch database
         mock_db = MagicMock()
         mock_notmuch.Database.return_value = mock_db
-        
+
         data_source = NotmuchDataSource(db_manager=AsyncMock(spec=DatabaseManager))
         result = await data_source.delete_email(123)
 
@@ -213,7 +213,7 @@ class TestNotmuchDataSourceSearchOperations:
         mock_db = MagicMock()
         mock_query = MagicMock()
         mock_message = MagicMock()
-        
+
         mock_message.get_message_id.return_value = "search@example.com"
         mock_message.get_header.side_effect = lambda x: {
             "subject": "Search Result",
@@ -221,12 +221,12 @@ class TestNotmuchDataSourceSearchOperations:
         }.get(x, "")
         mock_message.get_date.return_value = 1234567892
         mock_message.get_tags.return_value = ["search", "result"]
-        
+
         mock_query.search_messages.return_value = [mock_message]
         mock_query.count_messages.return_value = 1
         mock_db.create_query.return_value = mock_query
         mock_notmuch.Database.return_value = mock_db
-        
+
         data_source = NotmuchDataSource(db_manager=AsyncMock(spec=DatabaseManager))
         result = await data_source.search_emails("important meeting")
 
@@ -243,7 +243,7 @@ class TestNotmuchDataSourceSearchOperations:
         mock_query.search_messages.return_value = []
         mock_db.create_query.return_value = mock_query
         mock_notmuch.Database.return_value = mock_db
-        
+
         data_source = NotmuchDataSource(db_manager=AsyncMock(spec=DatabaseManager))
         result = await data_source.search_emails("")
 
@@ -257,7 +257,7 @@ class TestNotmuchDataSourceSearchOperations:
         # Mock the notmuch database
         mock_db = MagicMock()
         mock_notmuch.Database.return_value = mock_db
-        
+
         data_source = NotmuchDataSource(db_manager=AsyncMock(spec=DatabaseManager))
         result = await data_source.get_emails_by_category("work")
 
@@ -272,7 +272,7 @@ class TestNotmuchDataSourceSearchOperations:
         mock_db = MagicMock()
         mock_query = MagicMock()
         mock_message = MagicMock()
-        
+
         mock_message.get_message_id.return_value = "filtered@example.com"
         mock_message.get_header.side_effect = lambda x: {
             "subject": "Filtered Email",
@@ -280,11 +280,11 @@ class TestNotmuchDataSourceSearchOperations:
         }.get(x, "")
         mock_message.get_date.return_value = 1234567893
         mock_message.get_tags.return_value = ["inbox", "unread"]
-        
+
         mock_query.search_messages.return_value = [mock_message]
         mock_db.create_query.return_value = mock_query
         mock_notmuch.Database.return_value = mock_db
-        
+
         data_source = NotmuchDataSource(db_manager=AsyncMock(spec=DatabaseManager))
         result = await data_source.get_emails(
             limit=20,
@@ -323,7 +323,7 @@ class TestNotmuchDataSourceCategoryOperations:
         mock_db = MagicMock()
         mock_db.get_all_tags.return_value = ["inbox", "work", "personal"]
         mock_notmuch.Database.return_value = mock_db
-        
+
         data_source = NotmuchDataSource(db_manager=AsyncMock(spec=DatabaseManager))
         result = await data_source.get_all_categories()
 
@@ -337,7 +337,7 @@ class TestNotmuchDataSourceCategoryOperations:
         # Mock the notmuch database
         mock_db = MagicMock()
         mock_notmuch.Database.return_value = mock_db
-        
+
         data_source = NotmuchDataSource(db_manager=AsyncMock(spec=DatabaseManager))
         category_data = {
             "name": "Important",
@@ -377,7 +377,7 @@ class TestNotmuchDataSourceMessageOperations:
         mock_db = MagicMock()
         mock_query = MagicMock()
         mock_message = MagicMock()
-        
+
         mock_message.get_message_id.return_value = "<abc123@example.com>"
         mock_message.get_header.side_effect = lambda x: {
             "subject": "Test Message",
@@ -387,11 +387,11 @@ class TestNotmuchDataSourceMessageOperations:
         mock_message.get_date.return_value = 1234567894
         mock_message.get_tags.return_value = ["inbox"]
         mock_message.get_filename.return_value = "/tmp/test.eml"
-        
+
         mock_query.search_messages.return_value = [mock_message]
         mock_db.create_query.return_value = mock_query
         mock_notmuch.Database.return_value = mock_db
-        
+
         # Mock the email file reading
         import builtins
         original_open = builtins.open
@@ -403,7 +403,7 @@ class TestNotmuchDataSourceMessageOperations:
                 mock_file.read.return_value = "Subject: Test Message\n\nThis is the content."
                 return mock_file
             return original_open(filename, *args, **kwargs)
-        
+
         with patch('builtins.open', side_effect=mock_open):
             data_source = NotmuchDataSource(db_manager=AsyncMock(spec=DatabaseManager))
             message_id = "<abc123@example.com>"
@@ -420,7 +420,7 @@ class TestNotmuchDataSourceMessageOperations:
         mock_db = MagicMock()
         mock_query = MagicMock()
         mock_message = MagicMock()
-        
+
         mock_message.get_message_id.return_value = "<abc123@example.com>"
         mock_message.get_header.side_effect = lambda x: {
             "subject": "Test Message",
@@ -430,11 +430,11 @@ class TestNotmuchDataSourceMessageOperations:
         mock_message.get_date.return_value = 1234567894
         mock_message.get_tags.return_value = ["inbox"]
         mock_message.get_filename.return_value = "/tmp/test.eml"
-        
+
         mock_query.search_messages.return_value = [mock_message]
         mock_db.create_query.return_value = mock_query
         mock_notmuch.Database.return_value = mock_db
-        
+
         # Mock the email file reading
         import builtins
         original_open = builtins.open
@@ -446,7 +446,7 @@ class TestNotmuchDataSourceMessageOperations:
                 mock_file.read.return_value = "Subject: Test Message\n\nThis is the content."
                 return mock_file
             return original_open(filename, *args, **kwargs)
-        
+
         with patch('builtins.open', side_effect=mock_open):
             data_source = NotmuchDataSource(db_manager=AsyncMock(spec=DatabaseManager))
             message_id = "<abc123@example.com>"
@@ -461,7 +461,7 @@ class TestNotmuchDataSourceMessageOperations:
         # Mock the notmuch database
         mock_db = MagicMock()
         mock_notmuch.Database.return_value = mock_db
-        
+
         data_source = NotmuchDataSource(db_manager=AsyncMock(spec=DatabaseManager))
         message_id = "<abc123@example.com>"
         update_data = {"tags": ["replied"], "is_read": True}
@@ -498,13 +498,13 @@ class TestNotmuchDataSourceDashboard:
         # Mock the notmuch database with query results
         mock_db = MagicMock()
         mock_query = MagicMock()
-        
+
         # Mock query counts
         mock_query.count_messages.side_effect = [100, 20, 15, 5]  # total, unread, auto-labeled, categories
         mock_db.create_query.return_value = mock_query
         mock_db.get_all_tags.return_value = ["inbox", "work", "personal", "unread", "sent"]
         mock_notmuch.Database.return_value = mock_db
-        
+
         data_source = NotmuchDataSource(db_manager=AsyncMock(spec=DatabaseManager))
         result = await data_source.get_dashboard_aggregates()
 
@@ -522,13 +522,13 @@ class TestNotmuchDataSourceDashboard:
         # Mock the notmuch database with tags and query results
         mock_db = MagicMock()
         mock_query = MagicMock()
-        
+
         # Mock tags and query counts
         mock_db.get_all_tags.return_value = ["work", "personal", "inbox", "unread", "project"]
         mock_query.count_messages.side_effect = [30, 20, 15, 10, 5]  # Counts for each tag
         mock_db.create_query.return_value = mock_query
         mock_notmuch.Database.return_value = mock_db
-        
+
         data_source = NotmuchDataSource(db_manager=AsyncMock(spec=DatabaseManager))
         result = await data_source.get_category_breakdown(limit=5)
 
@@ -541,7 +541,7 @@ class TestNotmuchDataSourceDashboard:
         """Test get_dashboard_aggregates method when database is not available."""
         # Mock the notmuch database as None
         mock_notmuch.Database.return_value = None
-        
+
         data_source = NotmuchDataSource(db_manager=AsyncMock(spec=DatabaseManager))
         result = await data_source.get_dashboard_aggregates()
 
@@ -555,7 +555,7 @@ class TestNotmuchDataSourceDashboard:
         """Test get_category_breakdown method when database is not available."""
         # Mock the notmuch database as None
         mock_notmuch.Database.return_value = None
-        
+
         data_source = NotmuchDataSource(db_manager=AsyncMock(spec=DatabaseManager))
         result = await data_source.get_category_breakdown(limit=5)
 

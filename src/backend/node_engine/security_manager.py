@@ -10,6 +10,7 @@ import json
 import logging
 from dataclasses import dataclass
 from datetime import datetime
+from enum import Enum
 from typing import Any, Callable, Dict, List, Optional
 
 # Try to import bleach for HTML sanitization, fallback if not available
@@ -17,6 +18,15 @@ try:
     import bleach
 except ImportError:
     bleach = None
+
+
+class SecurityLevel(Enum):
+    """Security levels for different operations and data access"""
+
+    PUBLIC = "public"
+    INTERNAL = "internal"
+    CONFIDENTIAL = "confidential"
+    RESTRICTED = "restricted"
 
 
 @dataclass
@@ -28,6 +38,7 @@ class ResourceLimits:
     max_concurrent_nodes: int = 10
 
 
+from .enums import SecurityLevel
 
 
 class SecurityManager:
@@ -37,8 +48,13 @@ class SecurityManager:
 
     def __init__(self, user_roles: Dict[str, List[str]] = None):
         self.user_roles = user_roles or {}
+        self.trusted_nodes = set()
         self._api_call_counts: Dict[str, int] = {}
         self.logger = logging.getLogger(f"{self.__class__.__module__}.{self.__class__.__name__}")
+
+    def is_trusted_node(self, node_type: str) -> bool:
+        """Check if a node type is trusted."""
+        return node_type in self.trusted_nodes
 
     def has_permission(self, user: Any, action: str, resource: Any) -> bool:
         """
@@ -165,9 +181,7 @@ class SecurityManager:
 
     def register_trusted_node_type(self, node_type: str):
         """Register a node type as trusted."""
-        # This is a placeholder method - in a real implementation,
-        # this would update the trusted nodes list
-        pass
+        self.trusted_nodes.add(node_type)
 
 
 class InputSanitizer:
