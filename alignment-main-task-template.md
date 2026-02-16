@@ -25,7 +25,7 @@ Systematically align feature branch `feature/NAME` with the main branch based on
 
 ## Target Branch
 - Base: `main` (source of stable improvements)
-- Feature branch to align: `feature/NAME` 
+- Feature branch to align: `feature/NAME`
 
 ## Alignment Approach
 Following the documented merge direction strategy where the main branch contains stable architectural implementations:

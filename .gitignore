@@ -1,28 +1,13 @@
-<<<<<<< HEAD
-# Byte-compiled / optimized / DLL files
-__pycache__/
-*.py[cod]
-*$py.class
-
-# C extensions
-*.so
-
-# Distribution / packaging
-.Python
-build/
-develop-eggs/
-=======
 # Node.js
-**/node_modules/
+node_modules/
 dist/
-**/*.DS_Store
+.DS_Store
 server/public/
 vite.config.ts.*
 *.tar.gz
 
 # Python virtual environment
 venv/
-.venv/
 .env
 .env.*
 *.env
@@ -37,27 +22,9 @@ jsons/*
 
 # Build / packaging artifacts
 build/
->>>>>>> parent of ab35f4ef (Merge branch 'orchestration-tools' of https://github.com/MasumRab/EmailIntelligence into orchestration-tools)
-dist/
 *.egg-info/
 pip-wheel-metadata/
 *.egg
-<<<<<<< HEAD
-MANIFEST
-
-# PyInstaller
-*.manifest
-*.spec
-
-# Installer logs
-pip-log.txt
-pip-delete-this-directory.txt
-
-# Unit test / coverage reports
-htmlcov/
-.tox/
-.nox/
-=======
 *.whl
 
 # Databases
@@ -66,93 +33,14 @@ htmlcov/
 *.db-journal
 
 # Test and coverage reports
->>>>>>> parent of ab35f4ef (Merge branch 'orchestration-tools' of https://github.com/MasumRab/EmailIntelligence into orchestration-tools)
 .coverage
 .coverage.*
 coverage.xml
 coverage/
 *.cover
 .pytest_cache/
-<<<<<<< HEAD
-
-# Translations
-*.mo
-*.pot
-
-# Django stuff:
-*.log
-local_settings.py
-db.sqlite3
-db.sqlite3-journal
-
-# Flask stuff:
-instance/
-.webassets-cache
-
-# Scrapy stuff:
-.scrapy
-
-# Sphinx documentation
-docs/_build/
-
-# PyBuilder
-target/
-
-# Jupyter Notebook
-.ipynb_checkpoints
-
-# IPython
-profile_default/
-ipython_config.py
-
-# pyenv
-.python-version
-
-# pipenv
-Pipfile.lock
-
-# PEP 582
-__pypackages__/
-
-# Celery stuff
-celerybeat-schedule
-celerybeat.pid
-
-# SageMath parsed files
-*.sage.py
-
-# Environments
-.env
-.venv
-env/
-venv/
-ENV/
-env.bak/
-venv.bak/
-
-# Spyder project settings
-.spyderproject
-.spyproject
-
-# Rope project settings
-.ropeproject
-
-# mkdocs documentation
-/site
-
-# mypy
-.mypy_cache/
-.dmypy.json
-dmypy.json
-
-# Pyre type checker
-.pyre/
-
-# IDE settings
-=======
 
 # IDEs / editor-specific
->>>>>>> parent of ab35f4ef (Merge branch 'orchestration-tools' of https://github.com/MasumRab/EmailIntelligence into orchestration-tools)
 .vscode/
 .idea/
 *.iml
@@ -160,27 +48,7 @@ dmypy.json
 *.sublime-workspace
 .history
 
-<<<<<<< HEAD
-# Project-specific ignores
-.orchestration-disabled
-.taskmaster/
-worktrees/
-.merge-notes/
-.context-control/
-.rules
-.rulesync/
-.rulesyncignore
-.cursorignore
-.validation_cache.json
-.emailintelligence/
-#QWEN.md
-#AGENTS.md
-#GEMINI.md
-#CRUSH.md
-#IFLOW.md
-=======
 # Misc
-diagnosis_message.txt
 logs/
 
 # Ignore configuration and local environment files
@@ -188,59 +56,45 @@ logs/
 *.local.json
 *.local.yaml
 *.local.yml
-jsons/client_id.json
-credentials.json
-jsons/apikey.json
 config.local.*
 config/llm_guidelines.local.json
 
+<<<<<<< HEAD
 # Ignore hidden files and directories, with exceptions
+.*
 !docs/.gitkeep
 !.semgrep/
 !.gitignore
 !.git/hooks/
-<<<<<<< HEAD
-=======
-!.git/info/exclude
-!.flake8
-!.pylintrc
-!.github/
-!.specify/**
-!.gemini/**
-!.qwen/**
-!.claude/
->>>>>>> a7da61cf1f697de3c8c81f536bf579d36d88e613
 
 # Python cache
-**/__pycache__/
+__pycache__/
 
 # Miscellaneous
-diagnosis_message.txt
 performance_metrics_log.jsonl
-config/llm_guidelines.local.json
 models/*.pkl
 worktrees/
 
-<<<<<<< HEAD
 # Backup files
 *.bak
 *~
 *.backup
 backlog/config.yml.bak
 original_readme.md
-=======
+scripts/hooks/
 
-# Centralized Agent Markdown Files
-!docs/agents/
-#AGENTS.md
-#CLAUDE.md
-#GEMINI.md
-#QWEN.md
-!docs/agents/OPENCODE.md
-!docs/agents/AIDER.md
-!docs/agents/CURSOR.md
->>>>>>> parent of ab35f4ef (Merge branch 'orchestration-tools' of https://github.com/MasumRab/EmailIntelligence into orchestration-tools)
-!docs/agents/AMP.md
-terminal-jarvis_AGENTS.md
-cognee-AGENTS.md
->>>>>>> a7da61cf1f697de3c8c81f536bf579d36d88e613
+# Hidden files/directories (exceptions below)
+.aider.tags.cache.v4/
+.aider.chat.history.md
+.aider.conf.yml
+.aider.input.history
+.curl/
+.npm/
+.npm-*
+.python-version
+.ruby-version
+.tool-versions
+models/
+client/logs/
+__pycache__/
+node_modules/

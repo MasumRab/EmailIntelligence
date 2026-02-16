@@ -1,0 +1,8 @@
+{
+    "name": "sentiment-default",
+    "type": "sentiment",
+    "class": "SentimentModel",
+    "module": "backend.python_nlp.analysis_components.sentiment_model",
+    "description": "A default sentiment analysis model.",
+    "memory_req": "128MB"
+}
