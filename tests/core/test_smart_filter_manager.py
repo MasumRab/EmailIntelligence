@@ -73,11 +73,11 @@ async def test_apply_filters_to_email_optimized_behavior():
 
         # Verify cache invalidation
         # Count how many times "active_filters_sorted" was deleted
-        # Should be called exactly once
+        # Should be called exactly 0 times (optimization: we don't invalidate on usage update)
         delete_calls = [
             call for call in manager.caching_manager.delete.call_args_list
             if call[0][0] == "active_filters_sorted"
         ]
-        assert len(delete_calls) == 1, f"Expected 1 cache invalidation, got {len(delete_calls)}"
+        assert len(delete_calls) == 0, f"Expected 0 cache invalidation, got {len(delete_calls)}"
 
     await manager.cleanup()
