@@ -14,13 +14,8 @@ warnings.warn(
     stacklevel=2,
 )
 
-<<<<<<< HEAD
 from src.backend.python_nlp.gmail_service import GmailAIService
 from src.backend.python_nlp.smart_filters import EmailFilter, SmartFilterManager
-=======
-from backend.python_nlp.gmail_service import GmailAIService
-from backend.python_nlp.smart_filters import EmailFilter, SmartFilterManager
->>>>>>> origin/main
 
 from .ai_engine import AdvancedAIEngine, AIAnalysisResult
 from .database import DatabaseManager, get_db

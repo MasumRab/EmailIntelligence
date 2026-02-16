@@ -115,7 +115,6 @@ class SmartFilterManager:
             db_path = os.path.join(DATA_DIR, filename)
 
         # Validate the final path
-<<<<<<< HEAD
         self.db_path = str(PathValidator.validate_and_resolve_db_path(db_path, DATA_DIR))
         self.logger = logging.getLogger(__name__)
         self.conn = None
@@ -138,20 +137,6 @@ class SmartFilterManager:
     def _get_db_connection(self) -> sqlite3.Connection:
         """Establishes and returns a database connection."""
         self._ensure_db_initialized()  # Ensure DB is initialized before getting connection
-=======
-        self.db_path = str(PathValidator.validate_database_path(db_path, DATA_DIR))
-        self.logger = logging.getLogger(__name__)
-        self.conn = None
-        if self.db_path == ":memory:":
-            self.conn = sqlite3.connect(":memory:")
-            self.conn.row_factory = sqlite3.Row
-        self._init_filter_db()
-        self.filter_templates = self._load_filter_templates()
-        self.pruning_criteria = self._load_pruning_criteria()
-
-    def _get_db_connection(self) -> sqlite3.Connection:
-        """Establishes and returns a database connection."""
->>>>>>> origin/main
         if self.conn:
             return self.conn
         conn = sqlite3.connect(self.db_path)
@@ -476,7 +461,6 @@ class SmartFilterManager:
                 summary["filters_matched"].append(filter_obj.name)
         return summary
 
-<<<<<<< HEAD
     def _ensure_templates_loaded(self):
         """Ensure templates are loaded, but only when needed."""
         if self._filter_templates is None:
@@ -497,8 +481,6 @@ class SmartFilterManager:
         self._ensure_criteria_loaded()
         return self._pruning_criteria
 
-=======
->>>>>>> origin/main
 
 def main():
     """Demonstrates the usage of the SmartFilterManager."""

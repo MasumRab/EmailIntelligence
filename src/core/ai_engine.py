@@ -1,8 +1,6 @@
 import logging
 from abc import ABC, abstractmethod
 from typing import Any, Dict, List, Optional
-from .dynamic_model_manager import DynamicModelManager
-import asyncio
 
 logger = logging.getLogger(__name__)
 
@@ -92,6 +90,23 @@ class BaseAIEngine(ABC):
         pass
 
 
+# A placeholder for the active AI engine. In a real application, this would
+# be managed by a service locator or dependency injection system.
+_active_ai_engine: Optional[BaseAIEngine] = None
+
+
+def set_active_ai_engine(engine: BaseAIEngine):
+    """Sets the active AI engine for the application."""
+    global _active_ai_engine
+    logger.info(f"Setting active AI engine to: {type(engine).__name__}")
+    _active_ai_engine = engine
+
+
+def get_active_ai_engine() -> BaseAIEngine:
+    """Gets the currently active AI engine."""
+    if _active_ai_engine is None:
+        raise RuntimeError("No AI engine has been set as active.")
+    return _active_ai_engine
 
 
 class ModernAIEngine(BaseAIEngine):
@@ -105,34 +120,38 @@ class ModernAIEngine(BaseAIEngine):
     - Performance monitoring
     """
 
-    def __init__(self, model_manager: DynamicModelManager):
+    def __init__(self):
         self._initialized = False
-        self._model_manager = model_manager
-        logger.info("ModernAIEngine initialized with DynamicModelManager")
+        self._model_manager = None
+        logger.info("ModernAIEngine initialized")
 
-    async def initialize(self):
+    def initialize(self):
         """Initialize the AI engine with required resources."""
         if self._initialized:
             return
 
         try:
-            # The model manager is now injected, so we just need to initialize it
-            if self._model_manager:
-                await self._model_manager.initialize()
+            # Import here to avoid circular dependencies
+            from .model_manager import ModelManager
+
+            self._model_manager = ModelManager()
+            # Note: ModelManager.discover_models() may not exist, handle gracefully
+            if hasattr(self._model_manager, "discover_models"):
+                self._model_manager.discover_models()
 
             self._initialized = True
             logger.info("ModernAIEngine fully initialized with model manager")
 
         except (ImportError, AttributeError, RuntimeError) as e:
             logger.error(f"Failed to initialize ModernAIEngine: {e}")
-            # Injected model manager might fail to initialize
+            # Continue without model manager - use fallback methods
             self._model_manager = None
             self._initialized = True
             logger.warning(
-                "ModernAIEngine initialized without a functional model manager"
+                "ModernAIEngine initialized without model manager - using fallback methods"
             )
 
-    async def health_check(self) -> Dict[str, Any]:
+    def health_check(self) -> Dict[str, Any]:
         """Perform a comprehensive health check of the AI engine."""
         health_status = {
             "engine": "ModernAIEngine",
@@ -145,7 +164,7 @@ class ModernAIEngine(BaseAIEngine):
         # Check model manager
         if self._model_manager:
             try:
-                models_info = await self._model_manager.get_available_models()
+                models_info = self._model_manager.get_available_models()
                 health_status["components"]["model_manager"] = {
                     "status": "healthy",
                     "models_available": len(models_info) if models_info else 0,
@@ -166,7 +185,7 @@ class ModernAIEngine(BaseAIEngine):
         # Check if basic analysis works
         try:
             # Quick test with simple text
-            test_result = await self.analyze_email("test", "test content")
+            test_result = asyncio.run(self.analyze_email("test", "test content"))
             health_status["components"]["analysis_engine"] = {
                 "status": "healthy",
                 "test_result": "passed",
@@ -254,7 +273,7 @@ class ModernAIEngine(BaseAIEngine):
             logger.debug(f"Sentiment model analysis failed: {e}")
 
         # Fallback to simple keyword-based analysis
-        return await self._simple_sentiment_analysis(text)
+        return self._simple_sentiment_analysis(text)
 
     async def _analyze_topics(self, text: str) -> List[str]:
         """Analyze topics using available models."""
@@ -268,7 +287,7 @@ class ModernAIEngine(BaseAIEngine):
             logger.debug(f"Topic model analysis failed: {e}")
 
         # Fallback to rule-based topic detection
-        return await self._rule_based_topics(text)
+        return self._rule_based_topics(text)
 
     async def _analyze_intent(self, text: str) -> Optional[Dict[str, Any]]:
         """Analyze intent using available models."""
@@ -280,7 +299,7 @@ class ModernAIEngine(BaseAIEngine):
         except Exception as e:
             logger.debug(f"Intent model analysis failed: {e}")
 
-        return await self._simple_intent_analysis(text)
+        return self._simple_intent_analysis(text)
 
     async def _analyze_urgency(self, text: str) -> Optional[Dict[str, Any]]:
         """Analyze urgency using available models."""
@@ -292,9 +311,9 @@ class ModernAIEngine(BaseAIEngine):
         except Exception as e:
             logger.debug(f"Urgency model analysis failed: {e}")
 
-        return await self._simple_urgency_analysis(text)
+        return self._simple_urgency_analysis(text)
 
-    async def _simple_sentiment_analysis(self, text: str) -> Dict[str, Any]:
+    def _simple_sentiment_analysis(self, text: str) -> Dict[str, Any]:
         """Simple keyword-based sentiment analysis."""
         positive_words = ["good", "great", "excellent", "happy", "love", "like", "thank"]
         negative_words = ["bad", "terrible", "hate", "dislike", "sorry", "problem", "issue"]
@@ -312,7 +331,7 @@ class ModernAIEngine(BaseAIEngine):
 
         return {"label": sentiment, "confidence": 0.5}
 
-    async def _rule_based_topics(self, text: str) -> List[str]:
+    def _rule_based_topics(self, text: str) -> List[str]:
         """Rule-based topic detection."""
         text_lower = text.lower()
         topics = []
@@ -331,7 +350,7 @@ class ModernAIEngine(BaseAIEngine):
 
         return topics[:3] if topics else ["general"]
 
-    async def _simple_intent_analysis(self, text: str) -> Dict[str, Any]:
+    def _simple_intent_analysis(self, text: str) -> Dict[str, Any]:
         """Simple intent analysis based on keywords."""
         text_lower = text.lower()
 
@@ -348,7 +367,7 @@ class ModernAIEngine(BaseAIEngine):
 
         return {"type": intent_type, "confidence": 0.6}
 
-    async def _simple_urgency_analysis(self, text: str) -> Dict[str, Any]:
+    def _simple_urgency_analysis(self, text: str) -> Dict[str, Any]:
         """Simple urgency analysis."""
         text_lower = text.lower()
         urgency_indicators = ["urgent", "asap", "emergency", "immediately", "deadline", "critical"]

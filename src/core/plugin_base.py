@@ -238,7 +238,6 @@ class SecuritySandbox:
         globals_dict["__builtins__"] = safe_builtins
 
         # Execute with restrictions based on security level
-<<<<<<< HEAD
         try:
             if security_level == PluginSecurityLevel.SANDBOXED:
                 # Very restrictive execution
@@ -246,17 +245,6 @@ class SecuritySandbox:
             else:
                 # Standard execution with some restrictions
                 exec(code, globals_dict)
-=======
-        from RestrictedPython import compile_restricted, safe_globals
-        from RestrictedPython.PrintCollector import PrintCollector
-
-        globals_dict.update(safe_globals)
-        globals_dict['_print_'] = PrintCollector
-
-        try:
-            byte_code = compile_restricted(code, '<string>', 'exec')
-            exec(byte_code, globals_dict)  # nosec
->>>>>>> origin/main
         except Exception as e:
             logger.error(f"Sandbox execution failed: {e}")
             raise

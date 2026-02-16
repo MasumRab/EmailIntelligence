@@ -11,38 +11,23 @@ import logging
 from typing import TYPE_CHECKING, Optional
 from fastapi import Depends
 # Updated to use the new src architecture where available
-<<<<<<< HEAD
 from src.backend.python_backend.services.email_service import EmailService
 from src.backend.python_backend.services.category_service import CategoryService
-=======
-from backend.python_backend.services.email_service import EmailService
-from backend.python_backend.services.category_service import CategoryService
->>>>>>> origin/main
 from src.core.database import get_db, DatabaseManager
 from .model_manager import ModelManager  # Assuming this is in the same package for now
 from .ai_engine import AdvancedAIEngine  # This might need to be updated to src version
 from .smart_filters import SmartFilterManager  # This might need to be updated to src version
 from .workflow_engine import WorkflowEngine  # This might need to be updated to src version
-<<<<<<< HEAD
 from src.backend.plugins.plugin_manager import PluginManager
 from src.backend.python_nlp.gmail_service import GmailAIService  # This might be backend-specific
-=======
-from src.plugins.plugin_manager import PluginManager
-from .gmail_service import GmailAIService  # This might be backend-specific
->>>>>>> origin/main
 
 if TYPE_CHECKING:
     from .model_manager import ModelManager
     from .ai_engine import AdvancedAIEngine
     from .smart_filters import SmartFilterManager
     from .workflow_engine import WorkflowEngine
-<<<<<<< HEAD
     from src.backend.plugins.plugin_manager import PluginManager
     from src.backend.python_nlp.gmail_service import GmailAIService
-=======
-    from src.plugins.plugin_manager import PluginManager
-    from .gmail_service import GmailAIService
->>>>>>> origin/main
 
 logger = logging.getLogger(__name__)
 

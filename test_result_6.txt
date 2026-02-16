@@ -1,9 +1,0 @@
-ImportError while loading conftest '/app/tests/conftest.py'.
-tests/conftest.py:67: in <module>
-    from src.core.factory import get_data_source
-src/core/factory.py:6: in <module>
-    from .database import DatabaseManager
-E     File "/app/src/core/database.py", line 478
-E       <<<<<<< HEAD
-E       ^^
-E   SyntaxError: invalid syntax

@@ -7,6 +7,7 @@ from fastapi.testclient import TestClient
 from src.backend.python_backend.dependencies import _workflow_engine_instance, initialize_services
 from src.backend.python_backend.main import app
 
+
 # Create a single mock for each manager, scoped to the entire test session.
 @pytest.fixture(scope="session")
 def mock_db_manager():

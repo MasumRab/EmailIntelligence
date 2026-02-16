@@ -127,22 +127,11 @@ jobs:
       
       - name: Validate orchestration scripts
         run: |
-<<<<<<< HEAD
           echo "Validating orchestration scripts..."
           bash scripts/validate-orchestration-context.sh
           bash scripts/validate-branch-propagation.sh || true
       
       - name: Check hook configuration
-=======
-          uv run pytest backend/ src/ modules/ -v --tb=short --cov=backend --cov=src --cov=modules --cov-report=xml --cov-report=term-missing --cov-fail-under=80
-
-      - name: Run Security Scans
-        run: |
-          uv run bandit -r backend/ src/ modules/
-          uv run safety check
-
-      - name: Run linting
->>>>>>> origin/main
         run: |
           echo "Checking git hook configuration..."
           bash scripts/install-hooks.sh --dry-run || true

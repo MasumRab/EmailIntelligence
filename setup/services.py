@@ -1,27 +1,18 @@
 """
 <<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> origin/main
 Service management for the launch system.
 
 This module handles starting, stopping, and managing various services
 (Python backend, Node.js frontend, TypeScript backend, etc.).
-<<<<<<< HEAD
 =======
 Service management utilities for EmailIntelligence launcher
 >>>>>>> a7da61cf1f697de3c8c81f536bf579d36d88e613
-=======
->>>>>>> origin/main
 """
 
 import logging
 import os
 import subprocess
 <<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> origin/main
 import sys
 from pathlib import Path
 from typing import Dict
@@ -43,11 +34,7 @@ def check_uvicorn_installed() -> bool:
         if not validate_path_safety(python_exe):
             logger.error(f"Unsafe Python executable path: {python_exe}")
             return False
-<<<<<<< HEAD
             
-=======
-
->>>>>>> origin/main
         result = subprocess.run([python_exe, "-c", "import uvicorn"], capture_output=True)
         return result.returncode == 0
     except Exception:
@@ -182,20 +169,12 @@ def get_python_executable() -> str:
 def start_backend(host: str, port: int, debug: bool = False):
     """Start the Python backend server."""
     python_exe = get_python_executable()
-<<<<<<< HEAD
     
-=======
-
->>>>>>> origin/main
     # Validate the python executable path to prevent command injection
     if not validate_path_safety(python_exe):
         logger.error(f"Unsafe Python executable path: {python_exe}")
         return
-<<<<<<< HEAD
     
-=======
-
->>>>>>> origin/main
     # Sanitize host parameter to prevent command injection
     import re
     if not re.match(r'^[a-zA-Z0-9.-]+
@@ -280,20 +259,12 @@ def setup_node_dependencies(service_path: Path, service_name: str):
 def start_gradio_ui(host, port, share, debug):
     """Start the Gradio UI."""
     python_exe = get_python_executable()
-<<<<<<< HEAD
     
-=======
-
->>>>>>> origin/main
     # Validate the python executable path to prevent command injection
     if not validate_path_safety(python_exe):
         logger.error(f"Unsafe Python executable path: {python_exe}")
         return
-<<<<<<< HEAD
     
-=======
-
->>>>>>> origin/main
     # Sanitize host parameter to prevent command injection
     import re
     if not re.match(r'^[a-zA-Z0-9.-]+$', host):
@@ -381,7 +352,6 @@ def start_services(args):
             start_node_service(frontend_path, "Frontend Client", args.frontend_port, api_url), host):
         logger.error(f"Invalid host parameter: {host}")
         return
-<<<<<<< HEAD
     
 =======
 from pathlib import Path
@@ -435,9 +405,6 @@ def start_backend(host: str, port: int, debug: bool = False):
     """Start the FastAPI backend server."""
     python_exe = get_python_executable()
 >>>>>>> a7da61cf1f697de3c8c81f536bf579d36d88e613
-=======
-
->>>>>>> origin/main
     cmd = [
         python_exe,
         "-m",
@@ -450,9 +417,6 @@ def start_backend(host: str, port: int, debug: bool = False):
         str(port),
     ]
 <<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> origin/main
 
     if debug:
         cmd.append("--reload")
@@ -469,7 +433,6 @@ def start_backend(host: str, port: int, debug: bool = False):
         process_manager.add_process(process)
     except Exception as e:
         logger.error(f"Failed to start backend: {e}")
-<<<<<<< HEAD
 =======
     if debug:
         cmd.append("--reload")
@@ -478,16 +441,11 @@ def start_backend(host: str, port: int, debug: bool = False):
     if process_manager:
         process_manager.add_process(process)
 >>>>>>> a7da61cf1f697de3c8c81f536bf579d36d88e613
-=======
->>>>>>> origin/main
 
 
 def start_node_service(service_path: Path, service_name: str, port: int, api_url: str):
     """Start a Node.js service."""
 <<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> origin/main
     logger.info(f"Starting {service_name} on port {port}...")
 
     if not service_path.exists():
@@ -624,7 +582,6 @@ def start_services(args):
         if available_services.get("frontend", False):
             frontend_config = config.get_service_config("frontend")
             frontend_path = config.get_service_path("frontend")
-<<<<<<< HEAD
             start_node_service(frontend_path, "Frontend Client", args.frontend_port, api_url)
 =======
     if not service_path.exists():
@@ -672,6 +629,3 @@ def validate_services():
 
     return True
 >>>>>>> a7da61cf1f697de3c8c81f536bf579d36d88e613
-=======
-            start_node_service(frontend_path, "Frontend Client", args.frontend_port, api_url)
->>>>>>> origin/main

@@ -11,13 +11,8 @@ import logging
 from fastapi import APIRouter, Depends, Request
 
 from src.core.models import CategoryResponse, CategoryCreate
-<<<<<<< HEAD
 from src.backend.python_backend.services.category_service import CategoryService
 from src.backend.python_backend.dependencies import get_category_service
-=======
-from backend.python_backend.services.category_service import CategoryService
-from backend.python_backend.dependencies import get_category_service
->>>>>>> origin/main
 from src.core.performance_monitor import log_performance
 
 logger = logging.getLogger(__name__)
