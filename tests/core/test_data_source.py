@@ -66,7 +66,7 @@ class TestNotmuchDataSource:
         """Test create_email method."""
         email_data = {"subject": "Test", "content": "Test content"}
         result = await notmuch_ds.create_email(email_data)
-        assert result is None  # Mock implementation returns None
+        assert isinstance(result, dict)  # Mock implementation returns mock data
 
     @pytest.mark.asyncio
     async def test_get_email_by_id(self, notmuch_ds):
@@ -130,13 +130,13 @@ class TestNotmuchDataSource:
         """Test update_email method."""
         update_data = {"is_read": True}
         result = await notmuch_ds.update_email(1, update_data)
-        assert result is None
+        assert isinstance(result, dict)
 
     @pytest.mark.asyncio
     async def test_delete_email(self, notmuch_ds):
         """Test delete_email method."""
         result = await notmuch_ds.delete_email(1)
-        assert result is False
+        assert result is True
 
     @pytest.mark.asyncio
     async def test_interface_compliance(self, notmuch_ds):
