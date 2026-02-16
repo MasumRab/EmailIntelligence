@@ -66,10 +66,11 @@ class TestPathValidation:
 
     def test_sanitize_path_safe(self):
         """Test path sanitization for safe paths."""
-        with tempfile.TemporaryDirectory() as temp_dir:
-            safe_path = pathlib.Path(temp_dir) / "test.db"
-            result = sanitize_path(str(safe_path))
-            assert result == safe_path.resolve()
+        # Use a relative path to test confinement to CWD (default base_dir)
+        safe_path = "test.db"
+        result = sanitize_path(safe_path)
+        expected = (pathlib.Path.cwd() / safe_path).resolve()
+        assert result == expected
 
     def test_sanitize_path_unsafe(self):
         """Test path sanitization for unsafe paths."""

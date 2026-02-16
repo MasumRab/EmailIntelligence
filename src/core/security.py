@@ -166,7 +166,16 @@ def sanitize_path(
         return None
 
     base_path = (pathlib.Path(base_dir) if base_dir else pathlib.Path.cwd()).resolve()
-    return (base_path / path).resolve()
+    resolved_path = (base_path / path).resolve()
+
+    # Ensure the resolved path is within the base directory
+    try:
+        if not resolved_path.is_relative_to(base_path):
+            return None
+    except ValueError:
+        return None
+
+    return resolved_path
 
 
 
