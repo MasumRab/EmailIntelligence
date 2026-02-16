@@ -29,8 +29,6 @@ dependencies = [
     # Basic data handling (always needed)
     "aiosqlite>=0.20.0",
     "RestrictedPython>=8.0",
-<<<<<<< HEAD
-=======
 
     # Core Logic
     "pyjwt>=2.8.0",
@@ -43,7 +41,6 @@ dependencies = [
     # Compatibility fixes
     # markupsafe 3.0.2 lacks wheels for Python 3.11/3.12 on some platforms
     "markupsafe<3.0.0",
->>>>>>> origin/main
 ]
 
 [project.optional-dependencies]
@@ -129,8 +126,4 @@ build-backend = "setuptools.build_meta"
 include-package-data = false
 
 [tool.setuptools.packages.find]
-<<<<<<< HEAD
 where = ["src"]
-=======
-where = ["src"]
->>>>>>> origin/main
