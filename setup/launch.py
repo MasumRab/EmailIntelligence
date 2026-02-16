@@ -17,6 +17,7 @@ Features:
 # Import launch system modules
 import sys
 from pathlib import Path
+# Ensure project root is in path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from setup.validation import (
@@ -29,7 +30,9 @@ from setup.services import (
 from setup.environment import (
     handle_setup, prepare_environment, setup_wsl_environment, check_wsl_requirements
 )
-from setup.utils import print_system_info, process_manager
+from setup.utils import (
+    print_system_info, process_manager, get_conda_env_info, activate_conda_env, is_conda_available
+)
 
 # Import test stages
 from setup.test_stages import test_stages
@@ -41,11 +44,9 @@ import os
 import platform
 import shutil
 import subprocess
-import sys
 import threading
 import time
 import venv
-from pathlib import Path
 from typing import List
 
 # Import project configuration
@@ -82,9 +83,6 @@ logger = logging.getLogger("launcher")
 # --- Global state ---
 ROOT_DIR = get_project_config().root_dir
 
-# Import process manager from utils
-from setup.utils import process_manager
-
 # --- Constants ---
 PYTHON_MIN_VERSION = (3, 12)
 PYTHON_MAX_VERSION = (3, 13)
@@ -92,369 +90,128 @@ VENV_DIR = "venv"
 CONDA_ENV_NAME = os.getenv("CONDA_ENV_NAME", "base")
 
 
-# --- Helper Functions ---
-def get_venv_executable(venv_path: Path, executable: str) -> Path:
-    """Get the path to a specific executable in the virtual environment."""
-    scripts_dir = "Scripts" if platform.system() == "Windows" else "bin"
-    return (
-        venv_path
-        / scripts_dir
-        / (f"{executable}.exe" if platform.system() == "Windows" else executable)
-    )
+def check_critical_files() -> bool:
+    """Check for critical files that must exist in the orchestration-tools branch."""
+    # Critical files that are essential for orchestration
+    critical_files = [
+        # Core orchestration scripts
+        "scripts/install-hooks.sh",
+        "scripts/cleanup_orchestration.sh",
+        "scripts/sync_setup_worktrees.sh",
+        "scripts/reverse_sync_orchestration.sh",
 
+        # Git hooks
+        "scripts/hooks/pre-commit",
+        "scripts/hooks/post-commit",
+        "scripts/hooks/post-commit-setup-sync",
+        "scripts/hooks/post-merge",
+        "scripts/hooks/post-checkout",
+        "scripts/hooks/post-push",
 
-def run_command(cmd: List[str], description: str, **kwargs) -> bool:
-    """Run a command and log its output."""
-    logger.info(f"{description}...")
-    try:
-        proc = subprocess.run(cmd, check=True, text=True, capture_output=True, **kwargs)
-        if proc.stdout:
-            logger.debug(proc.stdout)
-        if proc.stderr:
-            logger.warning(proc.stderr)
-        return True
-    except (subprocess.CalledProcessError, FileNotFoundError) as e:
-        logger.error(f"Failed: {description}")
-        if isinstance(e, subprocess.CalledProcessError):
-            logger.error(f"Stderr: {e.stderr}")
+        # Shared libraries
+        "scripts/lib/common.sh",
+        "scripts/lib/error_handling.sh",
+        "scripts/lib/git_utils.sh",
+        "scripts/lib/logging.sh",
+        "scripts/lib/validation.sh",
+
+        # Setup files
+        "setup/launch.py",
+        "setup/pyproject.toml",
+        "setup/requirements.txt",
+        "setup/requirements-dev.txt",
+        "setup/setup_environment_system.sh",
+        "setup/setup_environment_wsl.sh",
+        "setup/setup_python.sh",
+
+        # Configuration files
+        ".flake8",
+        ".pylintrc",
+        ".gitignore",
+        ".gitattributes",
+
+        # Root wrapper
+        "launch.py",
+
+        # Deployment files
+        "deployment/deploy.py",
+        "deployment/test_stages.py",
+        "deployment/docker-compose.yml",
+    ]
+
+    # Critical directories that must exist
+    critical_directories = [
+        "scripts/",
+        "scripts/hooks/",
+        "scripts/lib/",
+        "setup/",
+        "deployment/",
+        "docs/",
+    ]
+
+    # Orchestration documentation files
+    orchestration_docs = [
+        "docs/orchestration_summary.md",
+        "docs/orchestration_validation_tests.md",
+        "docs/orchestration_hook_management.md",
+        "docs/orchestration_branch_scope.md",
+        "docs/env_management.md",
+        "docs/git_workflow_plan.md",
+        "docs/current_orchestration_docs/",
+        "docs/guides/",
+    ]
+
+    missing_files = []
+    missing_dirs = []
+
+    # Check for missing critical files
+    for file_path in critical_files:
+        full_path = ROOT_DIR / file_path
+        if not full_path.exists():
+            missing_files.append(file_path)
+
+    # Check for missing critical directories
+    for dir_path in critical_directories:
+        full_path = ROOT_DIR / dir_path
+        if not full_path.exists():
+            missing_dirs.append(dir_path)
+
+    # Check for missing orchestration documentation
+    for doc_path in orchestration_docs:
+        full_path = ROOT_DIR / doc_path
+        if not full_path.exists():
+            missing_files.append(doc_path)
+
+    if missing_files or missing_dirs:
+        if missing_files:
+            logger.error("Missing critical files:")
+            for file_path in missing_files:
+                logger.error(f"  - {file_path}")
+        if missing_dirs:
+            logger.error("Missing critical directories:")
+            for dir_path in missing_dirs:
+                logger.error(f"  - {dir_path}")
+        logger.error("Please restore these critical files for proper orchestration functionality.")
         return False
 
-
-# --- Setup Functions ---
-def create_venv(venv_path: Path, recreate: bool = False):
-    if venv_path.exists() and recreate:
-        logger.info("Removing existing virtual environment.")
-        shutil.rmtree(venv_path)
-    if not venv_path.exists():
-        logger.info("Creating virtual environment.")
-        venv.create(venv_path, with_pip=True, upgrade_deps=True)
-
-
-def install_package_manager(venv_path: Path, manager: str):
-    python_exe = get_venv_executable(venv_path, "python")
-    run_command([python_exe, "-m", "pip", "install", manager], f"Installing {manager}")
-
-
-def setup_dependencies(venv_path: Path, use_poetry: bool = False):
-    python_exe = get_python_executable()
-
-    if use_poetry:
-        # Ensure pip is up-to-date before installing other packages
-        run_command([python_exe, "-m", "pip", "install", "--upgrade", "pip"], "Upgrading pip")
-        # For poetry, we need to install it first if not available
-        try:
-            subprocess.run([python_exe, "-c", "import poetry"], check=True, capture_output=True)
-        except subprocess.CalledProcessError:
-            run_command([python_exe, "-m", "pip", "install", "poetry"], "Installing Poetry")
-
-        run_command(
-            [python_exe, "-m", "poetry", "install", "--with", "dev"],
-            "Installing dependencies with Poetry",
-            cwd=ROOT_DIR,
-        )
-    else:
-        # Ensure pip is up-to-date before installing other packages
-        run_command([python_exe, "-m", "pip", "install", "--upgrade", "pip"], "Upgrading pip")
-        # For uv, install if not available
-        try:
-            subprocess.run([python_exe, "-c", "import uv"], check=True, capture_output=True)
-        except subprocess.CalledProcessError:
-            run_command([python_exe, "-m", "pip", "install", "uv"], "Installing uv")
-
-        run_command(
-            [python_exe, "-m", "uv", "pip", "install", "-e", ".[dev]", "--exclude", "notmuch"],
-            "Installing dependencies with uv (excluding notmuch)",
-            cwd=ROOT_DIR,
-        )
-
-        # Install notmuch with version matching system
-        install_notmuch_matching_system()
-
-
-def install_notmuch_matching_system():
-    try:
-        result = subprocess.run(
-            ["notmuch", "--version"], capture_output=True, text=True, check=True
-        )
-        version_line = result.stdout.strip()
-        # Parse version, e.g., "notmuch 0.38.3"
-        version = version_line.split()[1]
-        major_minor = ".".join(version.split(".")[:2])  # e.g., 0.38
-        python_exe = get_python_executable()
-        run_command(
-            [python_exe, "-m", "pip", "install", f"notmuch=={major_minor}"],
-            f"Installing notmuch {major_minor} to match system",
-        )
-    except (subprocess.CalledProcessError, FileNotFoundError):
-        logger.warning("notmuch not found on system, skipping version-specific install")
-
-def get_python_executable() -> str:
-    """Get the appropriate Python executable (conda > venv > system)."""
-    # Check if we're in a conda environment
-    conda_info = get_conda_env_info()
-    if conda_info["is_active"] and conda_info["python_exe"]:
-        python_exe = conda_info["python_exe"]
-        if platform.system() == "Windows":
-            python_exe += ".exe"
-        if os.path.exists(python_exe):
-            logger.info(f"Using conda Python: {python_exe}")
-            return python_exe
-
-    # Check for venv
-    venv_path = ROOT_DIR / VENV_DIR
-    if venv_path.exists():
-        python_exe = get_venv_executable(venv_path, "python")
-        if python_exe.exists():
-            logger.info(f"Using venv Python: {python_exe}")
-            return str(python_exe)
-
-    # Fall back to system Python
-    logger.info("Using system Python")
-    return sys.executable
-
-def download_nltk_data(venv_path=None):
-    python_exe = get_python_executable()
-
-    # Updated NLTK download script with better error handling and more packages
-    nltk_download_script = """
-try:
-    import nltk
-    # Download essential NLTK packages
-    packages = ['punkt', 'punkt_tab', 'stopwords', 'wordnet', 'averaged_perceptron_tagger', 'vader_lexicon', 'omw-1.4']
-    for package in packages:
-        try:
-            nltk.download(package, quiet=True)
-            print(f"Downloaded NLTK package: {package}")
-        except Exception as e:
-            print(f"Failed to download {package}: {e}")
-    print("NLTK data download completed.")
-except ImportError:
-    print("NLTK not available, skipping download.")
-except Exception as e:
-    print(f"NLTK download failed: {e}")
-"""
-
-    logger.info("Downloading NLTK data...")
-    result = subprocess.run(
-        [python_exe, "-c", nltk_download_script], cwd=ROOT_DIR, capture_output=True, text=True
-    )
-    if result.returncode != 0:
-        logger.error(f"Failed to download NLTK data: {result.stderr}")
-        # This might fail in some environments but it's not critical for basic operation
-        logger.warning("NLTK data download failed, but continuing setup...")
-    else:
-        logger.info("NLTK data downloaded successfully.")
-
-    # Download TextBlob corpora with improved error handling
-    textblob_download_script = """
-try:
-    from textblob import download_corpora
-    download_corpora()
-    print("TextBlob corpora download completed.")
-except ImportError:
-    print("TextBlob not available, skipping corpora download.")
-except Exception as e:
-    print(f"TextBlob corpora download failed: {e}")
-"""
-
-    logger.info("Downloading TextBlob corpora...")
-    result = subprocess.run(
-        [python_exe, "-c", textblob_download_script],
-        cwd=ROOT_DIR,
-        capture_output=True,
-        text=True,
-        timeout=120,
-    )
-    if result.returncode != 0:
-        logger.warning(f"TextBlob corpora download failed: {result.stderr}")
-        logger.warning("Continuing setup without TextBlob corpora...")
-    else:
-        logger.info("TextBlob corpora downloaded successfully.")
-
-
-def check_uvicorn_installed() -> bool:
-    """Check if uvicorn is installed."""
-    python_exe = get_python_executable()
-    try:
-        result = subprocess.run(
-            [python_exe, "-c", "import uvicorn"], capture_output=True, text=True
-        )
-        if result.returncode == 0:
-            logger.info("uvicorn is available.")
-            return True
-        else:
-            logger.error("uvicorn is not installed.")
-            return False
-    except FileNotFoundError:
-        logger.error("Python executable not found.")
-        return False
-
-
-def check_node_npm_installed() -> bool:
-    """Check if Node.js and npm are installed and available."""
-    if not shutil.which("node"):
-        logger.error("Node.js is not installed. Please install it to continue.")
-        return False
-    if not shutil.which("npm"):
-        logger.error("npm is not installed. Please install it to continue.")
-        return False
+    logger.info("All critical files are present.")
     return True
 
 
-def install_nodejs_dependencies(directory: str, update: bool = False) -> bool:
-    """Install Node.js dependencies in a given directory."""
-    pkg_json_path = ROOT_DIR / directory / "package.json"
-    if not pkg_json_path.exists():
-        logger.debug(f"No package.json in '{directory}/', skipping npm install.")
-        return True
+def validate_orchestration_environment() -> bool:
+    """Run comprehensive validation for the orchestration-tools branch."""
+    logger.info("Running orchestration environment validation...")
 
-    if not check_node_npm_installed():
+    # Check for merge conflicts first
+    if not check_for_merge_conflicts():
         return False
 
-    cmd = ["npm", "update" if update else "install"]
-    desc = f"{'Updating' if update else 'Installing'} Node.js dependencies for '{directory}/'"
-    return run_command(cmd, desc, cwd=ROOT_DIR / directory, shell=(os.name == "nt"))
+    # Check critical files
+    if not check_critical_files():
+        return False
 
-
-def start_client():
-    """Start the Node.js frontend."""
-    logger.info("Starting Node.js frontend...")
-    if not install_nodejs_dependencies("client"):
-        return None
-
-    # Install Node.js dependencies if node_modules doesn't exist
-    node_modules_path = ROOT_DIR / "client" / "node_modules"
-    if not node_modules_path.exists():
-        logger.info("Installing Node.js dependencies...")
-
-
-def start_server_ts():
-    """Start the TypeScript backend server."""
-    logger.info("Starting TypeScript backend server...")
-    # Check if npm is available
-    if not shutil.which("npm"):
-        logger.warning("npm not found. Skipping TypeScript backend server startup.")
-        return None
-
-    # Check if package.json exists
-    pkg_json_path = ROOT_DIR / "backend" / "server-ts" / "package.json"
-    if not pkg_json_path.exists():
-        logger.debug(
-            "No package.json in 'backend/server-ts/', skipping TypeScript backend server startup."
-        )
-        return None
-
-    # Install Node.js dependencies if node_modules doesn't exist
-    node_modules_path = ROOT_DIR / "backend" / "server-ts" / "node_modules"
-    if not node_modules_path.exists():
-        logger.info("Installing TypeScript server dependencies...")
-
-
-# --- Service Startup Functions ---
-def start_backend(host: str, port: int, debug: bool = False):
-    python_exe = get_python_executable()
-    cmd = [
-        python_exe,
-        "-m",
-        "uvicorn",
-        "src.main:create_app",
-        "--factory",
-        "--host",
-        host,
-        "--port",
-        str(port),
-    ]
-    if debug:
-        cmd.append("--reload")
-    logger.info(f"Starting backend on {host}:{port}")
-    process = subprocess.Popen(cmd, cwd=ROOT_DIR)
-    process_manager.add_process(process)
-
-
-def start_node_service(service_path: Path, service_name: str, port: int, api_url: str):
-    """Start a Node.js service."""
-    if not service_path.exists():
-        logger.warning(f"{service_name} path not found at {service_path}, skipping.")
-        return
-    logger.info(f"Starting {service_name} on port {port}...")
-    env = os.environ.copy()
-    env["PORT"] = str(port)
-    env["VITE_API_URL"] = api_url
-    process = subprocess.Popen(["npm", "start"], cwd=service_path, env=env)
-    process_manager.add_process(process)
-
-
-def setup_node_dependencies(service_path: Path, service_name: str):
-    """Install npm dependencies for a Node.js service."""
-    if not (service_path / "package.json").exists():
-        logger.warning(
-            f"package.json not found for {service_name}, skipping dependency installation."
-        )
-        return
-    logger.info(f"Installing npm dependencies for {service_name}...")
-    run_command(["npm", "install"], f"Installing {service_name} dependencies", cwd=service_path)
-
-
-def start_gradio_ui(host, port, share, debug):
-    logger.info("Starting Gradio UI...")
-    python_exe = get_python_executable()
-    cmd = [python_exe, "-m", "src.main"]  # Assuming Gradio is launched from main
-    if share:
-        cmd.append("--share")
-    if debug:
-        cmd.append("--debug")
-    env = os.environ.copy()
-    env["PYTHONPATH"] = str(ROOT_DIR)
-    process = subprocess.Popen(cmd, cwd=ROOT_DIR, env=env)
-    process_manager.add_process(process)
-
-
-def handle_setup(args, venv_path):
-    """Handles the complete setup process."""
-    logger.info("Starting environment setup...")
-
-    if args.use_conda:
-        # For Conda, we assume the environment is already set up
-        # Could add Conda environment creation here in the future
-        logger.info("Using Conda environment - assuming dependencies are already installed")
-    else:
-        # Use venv
-        create_venv(venv_path, args.force_recreate_venv)
-        install_package_manager(venv_path, "uv")
-        setup_dependencies(venv_path, False)
-        if not args.no_download_nltk:
-            download_nltk_data(venv_path)
-
-        # Setup Node.js dependencies
-        setup_node_dependencies(ROOT_DIR / "client", "Frontend Client")
-        setup_node_dependencies(ROOT_DIR / "backend" / "server-ts", "TypeScript Backend")
-    logger.info("Setup complete.")
-
-
-def prepare_environment(args):
-    """Prepares the environment for running the application."""
-    if not args.no_venv:
-        # Try conda first
-        if not activate_conda_env():
-            venv_path = ROOT_DIR / VENV_DIR
-            create_venv(venv_path)
-        if args.update_deps:
-            setup_dependencies(ROOT_DIR / VENV_DIR, False)
-    if not args.no_download_nltk:
-        download_nltk_data()
-
-
-def start_services(args):
-    """Starts the required services based on arguments."""
-    api_url = args.api_url or f"http://{args.host}:{args.port}"
-
-    if not args.frontend_only:
-        start_backend(args.host, args.port, args.debug)
-        start_node_service(ROOT_DIR / "backend" / "server-ts", "TypeScript Backend", 8001, api_url)
-
-    if not args.api_only:
-        start_gradio_ui(args.host, 7860, args.share, args.debug)
-        start_node_service(ROOT_DIR / "client", "Frontend Client", args.frontend_port, api_url)
+    logger.info("Orchestration environment validation passed.")
+    return True
 
 
 def handle_test_stage(args):
@@ -488,56 +245,6 @@ def handle_test_stage(args):
     else:
         logger.error("Some tests failed.")
         sys.exit(1)
-
-
-def print_system_info():
-    """Print detailed system, Python, and project configuration information."""
-    import platform
-    import sys
-
-    print("=== System Information ===")
-    print(f"OS: {platform.system()} {platform.release()}")
-    print(f"Architecture: {platform.machine()}")
-    print(f"Python Version: {sys.version}")
-    print(f"Python Executable: {sys.executable}")
-
-    print("\n=== Project Information ===")
-    print(f"Project Root: {ROOT_DIR}")
-    print(f"Python Path: {os.environ.get('PYTHONPATH', 'Not set')}")
-
-    print("\n=== Environment Status ===")
-    venv_path = ROOT_DIR / VENV_DIR
-    if venv_path.exists():
-        print(f"Virtual Environment: {venv_path} (exists)")
-        python_exe = get_venv_executable(venv_path, "python")
-        if python_exe.exists():
-            print(f"Venv Python: {python_exe}")
-        else:
-            print("Venv Python: Not found")
-    else:
-        print(f"Virtual Environment: {venv_path} (not created)")
-
-    conda_available = is_conda_available()
-    print(f"Conda Available: {conda_available}")
-    if conda_available:
-        conda_env = os.environ.get("CONDA_DEFAULT_ENV", "None")
-        print(f"Current Conda Env: {conda_env}")
-
-    node_available = check_node_npm_installed()
-    print(f"Node.js/npm Available: {node_available}")
-
-    print("\n=== Configuration Files ===")
-    config_files = [
-        "pyproject.toml",
-        "requirements.txt",
-        "requirements-dev.txt",
-        "package.json",
-        "launch-user.env",
-        ".env",
-    ]
-    for cf in config_files:
-        exists = (ROOT_DIR / cf).exists()
-        print(f"{cf}: {'Found' if exists else 'Not found'}")
 
 
 def main():
@@ -658,7 +365,6 @@ def _execute_check_command(args) -> int:
 def _handle_legacy_args(args) -> int:
     """Handle legacy argument parsing for backward compatibility."""
     # Setup WSL environment if applicable (early setup)
-    from setup.environment import setup_wsl_environment, check_wsl_requirements
     setup_wsl_environment()
     check_wsl_requirements()
 
@@ -714,7 +420,6 @@ def _handle_legacy_args(args) -> int:
         return 0
 
     # Handle Conda environment if requested
-    from setup.environment import is_conda_available, get_conda_env_info, activate_conda_env
     if args.use_conda:
         if not is_conda_available():
             logger.error("Conda is not available. Please install Conda or use venv.")
@@ -735,7 +440,6 @@ def _handle_legacy_args(args) -> int:
 
     # Handle test stage
     if hasattr(args, "stage") and args.stage == "test":
-        from setup.test_stages import handle_test_stage
         handle_test_stage(args)
         return 0
 
@@ -745,7 +449,6 @@ def _handle_legacy_args(args) -> int:
         or getattr(args, "integration", False)
         or getattr(args, "coverage", False)
     ):
-        from setup.test_stages import handle_test_stage
         handle_test_stage(args)
         return 0
 
