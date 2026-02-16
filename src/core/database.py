@@ -28,14 +28,13 @@ from .security import validate_path_safety, sanitize_path
 logger = logging.getLogger(__name__)
 
 # Globalized data directory at the project root
-DATA_DIR = "data"
+DATA_DIR = os.getenv("DATA_DIR", "data")
 EMAIL_CONTENT_DIR = os.path.join(DATA_DIR, "email_content")
 EMAILS_FILE = os.path.join(DATA_DIR, "emails.json.gz")
 CATEGORIES_FILE = os.path.join(DATA_DIR, "categories.json.gz")
 USERS_FILE = os.path.join(DATA_DIR, "users.json.gz")
 
 # TODO(P1, 6h): Refactor global state management to use dependency injection
-# TODO(P2, 4h): Make data directory configurable via environment variables or settings
 
 # Data types
 DATA_TYPE_EMAILS = "emails"
@@ -78,7 +77,8 @@ class DatabaseConfig:
         email_content_dir: Optional[str] = None,
     ):
         # Make data directory configurable via environment variable
-        self.data_dir = data_dir or os.getenv("DATA_DIR", "data")
+        raw_data_dir = data_dir or os.getenv("DATA_DIR", "data")
+        self.data_dir = os.path.abspath(raw_data_dir)
 
         # Validate data directory path
         if not validate_path_safety(self.data_dir):
