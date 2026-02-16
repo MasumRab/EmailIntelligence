@@ -47,16 +47,8 @@ git checkout sqlite
 
 ### 3. Install Dependencies
 ```bash
-<<<<<<< HEAD
-# Install/update Python dependencies
-pip install -r requirements.txt
-
-# Install/update Node.js dependencies
-npm install
-=======
 # Install/update all dependencies using launch.py
 python launch.py --update-deps
->>>>>>> a7da61cf1f697de3c8c81f536bf579d36d88e613
 ```
 
 ### 4. Set Up Environment
@@ -73,11 +65,7 @@ If you want to preserve data from the scientific branch:
 
 ```bash
 # Use the data migration utility to convert JSON data to SQLite
-<<<<<<< HEAD
-python deployment/data_migration.py json-to-sqlite --data-dir ./data --db-path sqlite.db
-=======
 python old_workflow_docs/data_migration.py json-to-sqlite --data-dir ./data --db-path sqlite.db
->>>>>>> a7da61cf1f697de3c8c81f536bf579d36d88e613
 ```
 
 ### 6. Initialize Database
@@ -111,16 +99,8 @@ git checkout scientific
 
 ### 3. Install Dependencies
 ```bash
-<<<<<<< HEAD
-# Install/update Python dependencies
-pip install -r requirements.txt
-
-# Install/update Node.js dependencies
-npm install
-=======
 # Install/update all dependencies using launch.py
 python launch.py --update-deps
->>>>>>> a7da61cf1f697de3c8c81f536bf579d36d88e613
 ```
 
 ### 4. Set Up Environment
@@ -137,11 +117,7 @@ If you want to preserve data from the SQLite branch:
 
 ```bash
 # Use the data migration utility to export SQLite data to JSON
-<<<<<<< HEAD
-python deployment/data_migration.py sqlite-to-json --db-path sqlite.db --data-dir ./data
-=======
 python old_workflow_docs/data_migration.py sqlite-to-json --db-path sqlite.db --data-dir ./data
->>>>>>> a7da61cf1f697de3c8c81f536bf579d36d88e613
 ```
 
 ### 6. Run Tests
@@ -157,37 +133,22 @@ The project includes a data migration utility to help convert data between forma
 ### JSON to SQLite Migration
 ```bash
 # Convert JSON data to SQLite database
-<<<<<<< HEAD
-python deployment/data_migration.py json-to-sqlite --data-dir ./data --db-path sqlite.db
-=======
 python old_workflow_docs/data_migration.py json-to-sqlite --data-dir ./data --db-path sqlite.db
->>>>>>> a7da61cf1f697de3c8c81f536bf579d36d88e613
 ```
 
 ### SQLite to JSON Export
 ```bash
 # Export SQLite data to JSON files
-<<<<<<< HEAD
-python deployment/data_migration.py sqlite-to-json --db-path sqlite.db --data-dir ./data
-=======
 python old_workflow_docs/data_migration.py sqlite-to-json --db-path sqlite.db --data-dir ./data
->>>>>>> a7da61cf1f697de3c8c81f536bf579d36d88e613
 ```
 
 ### Data Validation
 ```bash
 # Validate JSON data files
-<<<<<<< HEAD
-python deployment/data_migration.py validate-json --data-dir ./data
-
-# Validate SQLite database
-python deployment/data_migration.py validate-sqlite --db-path sqlite.db
-=======
 python old_workflow_docs/data_migration.py validate-json --data-dir ./data
 
 # Validate SQLite database
 python old_workflow_docs/data_migration.py validate-sqlite --db-path sqlite.db
->>>>>>> a7da61cf1f697de3c8c81f536bf579d36d88e613
 ```
 
 ## Common Issues and Solutions

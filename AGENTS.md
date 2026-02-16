@@ -1,13 +1,7 @@
-<<<<<<< HEAD
-# Task Master AI - Agent Integration Guide
-=======
-<<<<<<< HEAD
 # EmailIntelligence Agent Guidelines
->>>>>>> a7da61cf1f697de3c8c81f536bf579d36d88e613
 
 ## Essential Commands
 
-<<<<<<< HEAD
 ### Core Workflow Commands
 
 ```bash
@@ -962,7 +956,6 @@ These commands make AI calls and may take up to a minute:
 - Use `update-task --id=<id>` for single task updates
 - Use `update-subtask --id=<id>` for implementation logging
 
->>>>>>> a7da61cf1f697de3c8c81f536bf579d36d88e613
 ### Research Mode
 
 - Add `--research` flag for research-based AI enhancement
@@ -970,7 +963,6 @@ These commands make AI calls and may take up to a minute:
 - Provides more informed task creation and updates
 - Recommended for complex technical tasks
 
-<<<<<<< HEAD
 ---
 
 _This guide ensures Claude Code has immediate access to Task Master's essential functionality for agentic development workflows._
@@ -1034,5 +1026,3 @@ You MUST read the overview resource to understand the complete workflow. The inf
 </CRITICAL_INSTRUCTION>
 
 <!-- BACKLOG.MD MCP GUIDELINES END -->
->>>>>>> parent of ab35f4ef (Merge branch 'orchestration-tools' of https://github.com/MasumRab/EmailIntelligence into orchestration-tools)
->>>>>>> a7da61cf1f697de3c8c81f536bf579d36d88e613
