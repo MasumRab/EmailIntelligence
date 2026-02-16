@@ -6,8 +6,10 @@ from fastapi.testclient import TestClient
 from fastapi import FastAPI
 from fastapi.security import HTTPAuthorizationCredentials
 from src.core.auth import get_current_active_user, verify_token
-from src.main import app
+from src.main import create_app
 
+# Create the app instance for testing
+app = create_app()
 
 def test_auth_token_endpoint():
     """Test the token endpoint for authentication"""

@@ -109,3 +109,45 @@ async def test_apply_filter_backward_compatibility(mock_db_manager):
     }
     result_fail = await mock_db_manager._apply_filter_to_email(filter_obj, email_fail)
     assert result_fail is False
+
+@pytest.mark.asyncio
+async def test_batch_update_filter_usage(mock_db_manager):
+    """Verify that _batch_update_filter_usage uses _db_executemany."""
+    # Mock _db_executemany
+    mock_db_manager._db_executemany = MagicMock()
+
+    filters = [
+        EmailFilter(
+            filter_id=f"f{i}",
+            name=f"Filter {i}",
+            description="Test",
+            criteria={},
+            actions={},
+            priority=5,
+            effectiveness_score=0.0,
+            created_at=datetime.now(timezone.utc),
+            last_used=datetime.now(timezone.utc),
+            usage_count=0,
+            false_positive_rate=0.0,
+            performance_metrics={},
+            is_active=True
+        ) for i in range(3)
+    ]
+
+    await mock_db_manager._batch_update_filter_usage(filters)
+
+    # Verify _db_executemany was called once
+    mock_db_manager._db_executemany.assert_called_once()
+
+    # Verify arguments
+    call_args = mock_db_manager._db_executemany.call_args
+    query, params = call_args[0]
+
+    assert "UPDATE email_filters" in query
+    assert len(params) == 3
+    assert params[0][1] == "f0"
+    assert params[1][1] == "f1"
+    assert params[2][1] == "f2"
+
+    # Verify cache invalidation
+    assert mock_db_manager.caching_manager.delete.call_count == 3
