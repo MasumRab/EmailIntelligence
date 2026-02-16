@@ -37,8 +37,11 @@ jsons/*
 
 # Build / packaging artifacts
 build/
+<<<<<<< HEAD
 >>>>>>> parent of ab35f4ef (Merge branch 'orchestration-tools' of https://github.com/MasumRab/EmailIntelligence into orchestration-tools)
 dist/
+=======
+>>>>>>> origin/main
 *.egg-info/
 pip-wheel-metadata/
 *.egg
@@ -180,7 +183,6 @@ worktrees/
 #IFLOW.md
 =======
 # Misc
-diagnosis_message.txt
 logs/
 
 # Ignore configuration and local environment files
@@ -188,12 +190,10 @@ logs/
 *.local.json
 *.local.yaml
 *.local.yml
-jsons/client_id.json
-credentials.json
-jsons/apikey.json
 config.local.*
 config/llm_guidelines.local.json
 
+<<<<<<< HEAD
 # Ignore hidden files and directories, with exceptions
 !docs/.gitkeep
 !.semgrep/
@@ -215,19 +215,21 @@ config/llm_guidelines.local.json
 **/__pycache__/
 
 # Miscellaneous
-diagnosis_message.txt
 performance_metrics_log.jsonl
-config/llm_guidelines.local.json
 models/*.pkl
 worktrees/
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> origin/main
 # Backup files
 *.bak
 *~
 *.backup
 backlog/config.yml.bak
 original_readme.md
+<<<<<<< HEAD
 =======
 
 # Centralized Agent Markdown Files
@@ -244,3 +246,18 @@ original_readme.md
 terminal-jarvis_AGENTS.md
 cognee-AGENTS.md
 >>>>>>> a7da61cf1f697de3c8c81f536bf579d36d88e613
+=======
+scripts/hooks/
+
+# Hidden files/directories (exceptions below)
+.aider.tags.cache.v4/
+.aider.chat.history.md
+.aider.conf.yml
+.aider.input.history
+.curl/
+.npm/
+.npm-*
+.python-version
+.ruby-version
+.tool-versions
+>>>>>>> origin/main

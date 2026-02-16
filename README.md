@@ -1,8 +1,12 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 # EmailIntelligence - Unified Development Environment
 =======
 # Orchestration Tools Branch
 >>>>>>> a7da61cf1f697de3c8c81f536bf579d36d88e613
+=======
+# EmailIntelligence - Unified Development Environment
+>>>>>>> origin/main
 
 This branch (`orchestration-tools`) serves as the **central source of truth** for development environment tooling, configuration management, scripts, and Git hooks that ensure consistency across all project branches.
 
@@ -11,7 +15,13 @@ This branch (`orchestration-tools`) serves as the **central source of truth** fo
 The primary goal is to keep the core email intelligence codebase clean by separating orchestration concerns from application code. This branch will **NOT** be merged with other branches, but instead provides essential tools and configurations that are synchronized to other branches via Git hooks.
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 EmailIntelligence is a full-stack application designed to provide intelligent email analysis and management capabilities. The project combines a Python FastAPI backend for AI/NLP tasks with a React frontend and a Gradio-based UI for scientific exploration, offering features such as sentiment analysis, topic classification, intent recognition, urgency detection, and smart filtering.
+=======
+EmailIntelligence is a full-stack application designed to provide intelligent email analysis and management capabilities. The project combines a Python FastAPI backend for AI/NLP tasks with a React frontend and a Gradio-based UI for scientific exploration, offering features such as sentiment analysis, topic classification, intent recognition, urgency detection, and smart filtering.
+
+The application uses a modular architecture with a unified launcher system (`launch.py`), comprehensive environment management, and an extensions framework for customization. It supports multiple interfaces including a standard web interface, a Gradio-based UI for scientific exploration, and a node-based workflow system for creating complex email processing pipelines.
+>>>>>>> origin/main
 
 The application uses a modular architecture with a unified launcher system (`launch.py`), comprehensive environment management, and an extensions framework for customization. It supports multiple interfaces including a standard web interface, a Gradio-based UI for scientific exploration, and a node-based workflow system for creating complex email processing pipelines.
 =======
@@ -199,6 +209,7 @@ You can run any combination of services by using the launcher scripts:
 - `.specify/` - Agent specification and rule files
 - `.taskmaster/` - Task Master configuration and task management
 
+<<<<<<< HEAD
 ### Orchestration Documentation
 - `docs/orchestration_summary.md` - Summary of orchestration workflow
 - `docs/orchestration_validation_tests.md` - Validation tests for orchestration
@@ -251,6 +262,38 @@ The following files are NOT needed in this orchestration-focused branch and can 
 
 2.  **Run the Launcher Script:**
     This script automates the entire setup and launch process.
+=======
+-   **Python Environment:** The launcher automatically creates and manages a virtual environment in the `./venv` directory. You do not need to activate it manually.
+-   **Dependencies:** All Python dependencies are defined in `pyproject.toml` and installed with `uv`. All Node.js dependencies are defined in the `package.json` file of the respective `client/` or `server/` directory.
+-   **IDE Configuration:** For the best IDE support (e.g., in VS Code), point your Python interpreter to the one inside the `./venv` directory.
+-   **Data Storage:** This version uses local file-based storage, primarily located in `backend/python_backend/data/`. SQLite databases (`.db` files) are created in the project root.
+-   **Node-based Workflows:** The new node engine in `backend/node_engine/` provides a modular, extensible architecture for creating complex email processing workflows. Nodes can be chained together to create sophisticated processing pipelines with security and scalability features.
+
+## Troubleshooting
+
+2.  **Run the Launcher Script:**
+    This script automates the entire setup and launch process.
+
+    *   For Linux/macOS:
+        ```bash
+        ./launch.sh
+        ```
+    *   For Windows:
+        ```bash
+        python launch.py
+        ```
+
+    The `launch.py` script will perform the following steps:
+    *   Check your Python version and find a compatible interpreter.
+    *   Create a Python virtual environment in the `./venv` directory.
+    *   Install the required Python dependencies from `requirements.txt`.
+    *   Download necessary NLTK data files for text processing.
+    *   Install Node.js dependencies for the client application by running `npm install` in the `client/` directory.
+    *   Start the Python backend server (FastAPI/Uvicorn), which by default runs on `http://127.0.0.1:8000`.
+    *   Start the Vite development server for the frontend, which by default runs on `http://127.0.0.1:5173`.
+
+## Data Storage
+>>>>>>> origin/main
 
     *   For Linux/macOS:
         ```bash

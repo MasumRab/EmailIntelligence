@@ -1,0 +1,11 @@
+ImportError while loading conftest '/app/tests/conftest.py'.
+tests/conftest.py:67: in <module>
+    from src.core.factory import get_data_source
+src/core/factory.py:6: in <module>
+    from .database import DatabaseManager
+src/core/database.py:19: in <module>
+    from .enhanced_error_reporting import (
+E     File "/app/src/core/enhanced_error_reporting.py", line 45
+E       <<<<<<< HEAD
+E       ^^
+E   SyntaxError: invalid syntax

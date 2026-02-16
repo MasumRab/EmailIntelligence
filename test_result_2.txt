@@ -1,0 +1,6 @@
+error: Failed to parse `uv.lock`
+  Caused by: TOML parse error at line 6, column 5
+  |
+6 |     "python_full_version >= '3.14' and sys_platform != 'darwin'",
+  |     ^
+missing comma between array elements, expected `,`

@@ -1,0 +1,11 @@
+ImportError while loading conftest '/app/tests/conftest.py'.
+tests/conftest.py:67: in <module>
+    from src.core.factory import get_data_source
+src/core/factory.py:8: in <module>
+    from .data.repository import DatabaseEmailRepository, CachingEmailRepository, EmailRepository
+src/core/data/repository.py:4: in <module>
+    from src.core.caching import get_cache_manager, CacheConfig, CacheBackend
+E     File "/app/src/core/caching.py", line 13
+E       <<<<<<< HEAD
+E       ^^
+E   SyntaxError: invalid syntax

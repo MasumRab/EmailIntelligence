@@ -1,5 +1,8 @@
 """
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> origin/main
 Project Configuration System
 
 This module provides a centralized configuration system for the EmailIntelligence project
@@ -234,6 +237,7 @@ def get_project_config() -> ProjectConfig:
 def reload_config() -> None:
     """Reload the project configuration."""
     global _project_config
+<<<<<<< HEAD
     _project_config = ProjectConfig()
 =======
 Project configuration utilities
@@ -257,3 +261,6 @@ def get_project_config():
         _project_config = ProjectConfig()
     return _project_config
 >>>>>>> a7da61cf1f697de3c8c81f536bf579d36d88e613
+=======
+    _project_config = ProjectConfig()
+>>>>>>> origin/main

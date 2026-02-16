@@ -1,0 +1,9 @@
+ImportError while loading conftest '/app/tests/conftest.py'.
+tests/conftest.py:67: in <module>
+    from src.core.factory import get_data_source
+src/core/factory.py:7: in <module>
+    from .ai_engine import ModernAIEngine
+E     File "/app/src/core/ai_engine.py", line 4
+E       <<<<<<< HEAD
+E       ^^
+E   SyntaxError: invalid syntax

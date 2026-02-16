@@ -419,9 +419,8 @@ def _create_decorator(func, op_name):
 
         return sync_wrapper
 
+
 # Convenience functions
-
-
 def record_metric(*args, **kwargs):
     """Convenience function to record metrics."""
     performance_monitor.record_metric(*args, **kwargs)

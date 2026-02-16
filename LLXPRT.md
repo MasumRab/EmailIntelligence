@@ -1,4 +1,7 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> origin/main
 # LLXPRT – EmailIntelligenceGem Project Overview
 
 ---
@@ -36,6 +39,7 @@ Key capabilities include:
 - **Extension system** for plug‑and‑play custom functionality.
 - **Gradio UI** for scientific exploration and model debugging.
 
+<<<<<<< HEAD
 ---
 =======
 # LLxPRT Assistant-Specific Instructions
@@ -144,3 +148,6 @@ As an LLxPRT assistant with Task Master:
 
 *See AGENTS.md for complete Task Master commands, workflows, and best practices.*
 >>>>>>> a7da61cf1f697de3c8c81f536bf579d36d88e613
+=======
+---
+>>>>>>> origin/main

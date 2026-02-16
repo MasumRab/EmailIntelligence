@@ -1,0 +1,11 @@
+ImportError while loading conftest '/app/tests/conftest.py'.
+tests/conftest.py:67: in <module>
+    from src.core.factory import get_data_source
+src/core/factory.py:6: in <module>
+    from .database import DatabaseManager
+src/core/database.py:26: in <module>
+    from .security import validate_path_safety, sanitize_path
+E     File "/app/src/core/security.py", line 10
+E       <<<<<<< HEAD
+E       ^^
+E   SyntaxError: invalid syntax
