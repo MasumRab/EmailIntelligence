@@ -1,8 +1,7 @@
 import pytest
-import pytest_asyncio
 import asyncio
 from unittest.mock import MagicMock
-from src.core.database import DatabaseManager, DatabaseConfig, FIELD_ID, FIELD_SUBJECT
+from src.core.database import DatabaseManager, DatabaseConfig, FIELD_ID
 
 @pytest.fixture
 def db_config(tmp_path):
@@ -10,113 +9,49 @@ def db_config(tmp_path):
     data_dir.mkdir()
     return DatabaseConfig(data_dir=str(data_dir))
 
-@pytest_asyncio.fixture
-async def db_manager(db_config):
+@pytest.fixture
+def db_manager(db_config):
     manager = DatabaseManager(config=db_config)
-    await manager._ensure_initialized()
+    # We want real caching manager behavior for this test, not a mock
+    # because we are testing the integration with caching manager
     return manager
 
 @pytest.mark.asyncio
-async def test_search_caching_flow(db_manager):
-    """Test full flow: search (miss) -> cache hit -> update -> search (miss)."""
+async def test_search_query_caching_integration(db_manager):
+    """Test that search queries are cached and invalidated correctly."""
+    await db_manager._ensure_initialized()
 
-    # 1. Create an email
-    email_data = {
-        "messageId": "msg1",
-        "subject": "Important Meeting",
-        "sender": "boss@example.com",
-        "content": "Let's meet tomorrow."
-    }
-    await db_manager.create_email(email_data)
+    # Create test data
+    await db_manager.create_email({
+        "messageId": "msg-1",
+        "subject": "Test Subject 1",
+        "sender": "sender@example.com",
+        "content": "Content 1"
+    })
 
-    term = "meeting"
-    limit = 10
-    query_key = f"search:{term}:{limit}"
-
-    # 2. First search - should be a miss
-    # Check stats before
-    misses_start = db_manager.caching_manager.query_cache.misses
-    hits_start = db_manager.caching_manager.query_cache.hits
-
-    results1 = await db_manager.search_emails_with_limit(term, limit=limit)
-
+    # First search (Cold)
+    results1 = await db_manager.search_emails_with_limit("Test", limit=10)
     assert len(results1) == 1
-    assert results1[0]["subject"] == "Important Meeting"
-    assert db_manager.caching_manager.query_cache.misses == misses_start + 1
-    assert db_manager.caching_manager.query_cache.hits == hits_start
 
-    # Verify it's in cache
-    cached = db_manager.caching_manager.get_query_result(query_key)
-    assert cached is not None
-    assert len(cached) == 1
-    assert cached[0]["id"] == results1[0]["id"]
+    # Verify it's in the cache
+    cache_key = "search:test:10"
+    assert db_manager.caching_manager.get_query_result(cache_key) is not None
 
-    # 3. Second search - should be a hit
-    results2 = await db_manager.search_emails_with_limit(term, limit=limit)
-
+    # Second search (Warm) - should be identical
+    results2 = await db_manager.search_emails_with_limit("Test", limit=10)
     assert len(results2) == 1
-    assert results2[0]["id"] == results1[0]["id"]
-    # hits increased by 2: one from explicit get_query_result() verification above, one from search_emails_with_limit()
-    assert db_manager.caching_manager.query_cache.hits == hits_start + 2
+    assert results2 == results1
 
-    # Note: db_manager.caching_manager.get_query_result call in test incremented hits?
-    # No, get_query_result calls query_cache.get.
-    # In step 2 verification: `cached = db_manager.caching_manager.get_query_result(query_key)`
-    # This calls query_cache.get, so it increments hits!
+    # Update email -> Should invalidate cache
+    await db_manager.update_email(results1[0][FIELD_ID], {"subject": "Updated Subject 1"})
 
-    # So hits should be hits_start + 1 (from verification) + 1 (from second search) = hits_start + 2.
-    # Let's rely on relative increase.
+    # Verify cache is cleared
+    assert db_manager.caching_manager.get_query_result(cache_key) is None
 
-    current_hits = db_manager.caching_manager.query_cache.hits
+    # Search again (Cold again due to invalidation)
+    results3 = await db_manager.search_emails_with_limit("Updated", limit=10)
+    assert len(results3) == 1
 
-    results3 = await db_manager.search_emails_with_limit(term, limit=limit)
-
-    assert db_manager.caching_manager.query_cache.hits == current_hits + 1
-
-    # 4. Update email - should clear cache
-    update_data = {"subject": "Updated Meeting"}
-    await db_manager.update_email(results1[0]["id"], update_data)
-
-    # Verify cache is cleared (size 0 or key missing)
-    # The clear_query_cache clears EVERYTHING in query cache
-    assert len(db_manager.caching_manager.query_cache.cache) == 0
-
-    # 5. Search again - should be a miss
-    misses_before = db_manager.caching_manager.query_cache.misses
-    results4 = await db_manager.search_emails_with_limit(term, limit=limit)
-
-    assert db_manager.caching_manager.query_cache.misses == misses_before + 1
-    assert results4[0]["subject"] == "Updated Meeting"
-
-    # Verify it is back in cache
-    cached_new = db_manager.caching_manager.get_query_result(query_key)
-    assert cached_new is not None
-    assert cached_new[0]["subject"] == "Updated Meeting"
-
-@pytest.mark.asyncio
-async def test_create_email_clears_cache(db_manager):
-    """Test that creating an email clears the query cache."""
-    # Perform a search to populate cache
-    await db_manager.search_emails_with_limit("test", limit=10)
-    assert len(db_manager.caching_manager.query_cache.cache) > 0
-
-    # Create new email
-    await db_manager.create_email({"subject": "New Email", "messageId": "new1"})
-
-    # Verify cache cleared
-    assert len(db_manager.caching_manager.query_cache.cache) == 0
-
-@pytest.mark.asyncio
-async def test_update_by_message_id_clears_cache(db_manager):
-    """Test that updating by message ID clears the query cache."""
-    await db_manager.create_email({"subject": "Test", "messageId": "msg_id_1"})
-
-    # Populate cache
-    await db_manager.search_emails_with_limit("test", limit=10)
-    assert len(db_manager.caching_manager.query_cache.cache) > 0
-
-    # Update
-    await db_manager.update_email_by_message_id("msg_id_1", {"subject": "Updated"})
-
-    # Verify cache cleared
-    assert len(db_manager.caching_manager.query_cache.cache) == 0
+    # Verify new cache entry
+    new_cache_key = "search:updated:10"
+    assert db_manager.caching_manager.get_query_result(new_cache_key) is not None

@@ -5,6 +5,7 @@ JSON file storage implementation with in-memory caching and indexing.
 
 import asyncio
 import gzip
+import itertools
 import json
 import logging
 import os
@@ -172,7 +173,11 @@ class DatabaseManager(DataSource):
     def _read_content_sync(self, content_path: str) -> Dict[str, Any]:
         """Synchronously reads and parses the content file. Helper for asyncio.to_thread."""
         with gzip.open(content_path, "rt", encoding="utf-8") as f:
-            return json.load(f)
+            data = json.load(f)
+            if not isinstance(data, dict):
+                logger.warning(f"File {content_path} contains invalid data format (expected dict).")
+                return {}
+            return data
 
     async def _load_and_merge_content(self, email_light: Dict[str, Any]) -> Dict[str, Any]:
         """Loads heavy content for a given light email record and merges them."""
@@ -472,11 +477,9 @@ class DatabaseManager(DataSource):
         if heavy_data:
             self.caching_manager.put_email_content(new_id, heavy_data)
 
-        # Clear query cache as data has changed
-        self.caching_manager.clear_query_cache()
-
-        # Invalidate sorted cache
+        # Invalidate sorted cache and query cache
         self._sorted_emails_cache = None
+        self.caching_manager.clear_query_cache()
 
         return self._add_category_details(light_email_record)
 
@@ -613,19 +616,24 @@ class DatabaseManager(DataSource):
         category_id: Optional[int] = None,
         is_unread: Optional[bool] = None,
     ) -> List[Dict[str, Any]]:
-        """Get emails with pagination and filtering. Optimized to use cached sorted list."""
+        """Get emails with pagination and filtering. Optimized to use generator for memory efficiency."""
         # Use cached sorted list to avoid sorting on every request
         source_emails = self._get_sorted_emails()
 
-        # Apply filters on the already sorted list (preserves order)
-        if category_id is not None:
-            source_emails = [
-                e for e in source_emails if e.get(FIELD_CATEGORY_ID) == category_id
-            ]
-        if is_unread is not None:
-            source_emails = [e for e in source_emails if e.get(FIELD_IS_UNREAD) == is_unread]
+        # Use iterator to filter lazily
+        email_iter = iter(source_emails)
 
-        paginated_emails = source_emails[offset : offset + limit]
+        # Apply filters lazily (generator expressions)
+        if category_id is not None:
+            email_iter = (e for e in email_iter if e.get(FIELD_CATEGORY_ID) == category_id)
+
+        if is_unread is not None:
+            email_iter = (e for e in email_iter if e.get(FIELD_IS_UNREAD) == is_unread)
+
+        # Apply pagination using islice. We consume only what we need.
+        # islice(iter, start, stop). stop is offset + limit.
+        paginated_emails = list(itertools.islice(email_iter, offset, offset + limit))
+
         return [self._add_category_details(email) for email in paginated_emails]
 
     async def update_email_by_message_id(
@@ -683,11 +691,9 @@ class DatabaseManager(DataSource):
             # Invalidate cache for this email
             self.caching_manager.invalidate_email_record(email_id)
             
-            # Clear query cache
-            self.caching_manager.clear_query_cache()
-
-            # Invalidate sorted cache
+            # Invalidate sorted cache and query cache
             self._sorted_emails_cache = None
+            self.caching_manager.clear_query_cache()
 
         return self._add_category_details(email_to_update)
 
@@ -736,14 +742,15 @@ class DatabaseManager(DataSource):
         if not search_term:
             return await self.get_emails(limit=limit, offset=0)
 
-        search_term_lower = search_term.lower()
-
         # Check query cache
-        query_key = f"search:{search_term_lower}:{limit}"
-        cached_result = self.caching_manager.get_query_result(query_key)
+        # Normalize search term to lower case for consistent caching
+        cache_key = f"search:{search_term.lower()}:{limit}"
+        cached_result = self.caching_manager.get_query_result(cache_key)
         if cached_result is not None:
+            logger.info(f"Query cache hit for term: '{search_term}'")
             return cached_result
 
+        search_term_lower = search_term.lower()
         filtered_emails = []
 
         # Optimization: Iterate over sorted emails and stop once we reach the limit.
@@ -795,12 +802,11 @@ class DatabaseManager(DataSource):
                     logger.error(f"Could not search content for email {email_id}: {e}")
 
         # Results are already sorted because we iterated source_emails (which is sorted)
-        result_emails = [self._add_category_details(email) for email in filtered_emails]
+        results = [self._add_category_details(email) for email in filtered_emails]
 
-        # Cache the result
-        self.caching_manager.put_query_result(query_key, result_emails)
-
-        return result_emails
+        # Cache the results
+        self.caching_manager.put_query_result(cache_key, results)
+        return results
 
     # TODO(P1, 6h): Optimize search performance to avoid disk I/O per STATIC_ANALYSIS_REPORT.md
     # TODO(P2, 4h): Implement search indexing to improve query performance
@@ -880,11 +886,9 @@ class DatabaseManager(DataSource):
 
         self.caching_manager.invalidate_email_record(email_id)
 
-        # Clear query cache
-        self.caching_manager.clear_query_cache()
-
-        # Invalidate sorted cache
+        # Invalidate sorted cache and query cache
         self._sorted_emails_cache = None
+        self.caching_manager.clear_query_cache()
 
         return self._add_category_details(email_to_update)
 
