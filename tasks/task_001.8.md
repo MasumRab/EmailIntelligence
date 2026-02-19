@@ -1,4 +1,4 @@
-# Task UNKNOWN: Untitled Task
+# Task 001.8: Untitled Task
 
 **Status:** pending
 **Priority:** high
@@ -14,7 +14,7 @@ Define backup, validation, and rollback procedures to ensure safe branch alignme
 
 ## Success Criteria
 
-- [ ] - [ ] Backup procedures documented
+- [ ] Backup procedures documented
 - [ ] Validation procedures specified
 - [ ] Regression testing approach defined
 - [ ] Rollback procedures clear
@@ -59,7 +59,7 @@ Define backup, validation, and rollback procedures to ensure safe branch alignme
 ## Specification Details
 
 ### Task Interface
-- **ID**: UNKNOWN
+- **ID**: 001.8
 - **Title**: Untitled Task
 - **Status**: pending
 - **Priority**: high

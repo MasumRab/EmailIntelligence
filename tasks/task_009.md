@@ -940,7 +940,7 @@ Task 009 is done when:
 **Priority:** High
 **Effort:** 28-40 hours
 **Complexity:** 8/10
-**Dependencies:** 004, 006, 007, 012, 013, 014, 015, 022
+**Dependencies:** 004, 006, 007, 27, 28, 26, 27, 28
 
 ---
 
@@ -1583,7 +1583,7 @@ Task 009 is done when:
 6. **Week 2:** Ready for Task 010 (Complex alignment)
 
 **Reference:** See IMPLEMENTATION_INDEX.md for team coordination
-**Dependencies:** 004, 006, 007, 012, 013, 014, 015, 022
+**Dependencies:** 004, 006, 007, 27, 28, 26, 27, 28
 
 ---
 
@@ -2903,7 +2903,7 @@ Task 009 is done when:
 **Priority:** High
 **Effort:** 28-40 hours
 **Complexity:** 8/10
-**Dependencies:** 004, 006, 007, 012, 013, 014, 015, 022
+**Dependencies:** 004, 006, 007, 27, 28, 26, 27, 28
 
 ---
 
@@ -3550,7 +3550,7 @@ Task 009 is done when:
 **Priority:** High
 **Effort:** 28-40 hours
 **Complexity:** 8/10
-**Dependencies:** 004, 006, 007, 012, 013, 014, 015, 022
+**Dependencies:** 004, 006, 007, 27, 28, 26, 27, 28
 
 ---
 
@@ -4196,7 +4196,7 @@ Task 009 is done when:
 - **Priority**: High
 **Effort:** 28-40 hours
 **Complexity:** 8/10
-**Dependencies:** 004, 006, 007, 012, 013, 014, 015, 022
+**Dependencies:** 004, 006, 007, 27, 28, 26, 27, 28
 
 ---
 

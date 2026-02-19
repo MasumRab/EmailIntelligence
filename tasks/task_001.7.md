@@ -1,4 +1,4 @@
-# Task UNKNOWN: Untitled Task
+# Task 001.7: Untitled Task
 
 **Status:** pending
 **Priority:** medium
@@ -14,7 +14,7 @@ Define how to handle architectural differences between feature branches and inte
 
 ## Success Criteria
 
-- [ ] - [ ] Architectural prioritization framework documented
+- [ ] Architectural prioritization framework documented
 - [ ] Clear guidelines for preferring advanced architectures
 - [ ] Documentation format specified
 - [ ] Examples provided
@@ -42,7 +42,7 @@ Define how to handle architectural differences between feature branches and inte
 ## Specification Details
 
 ### Task Interface
-- **ID**: UNKNOWN
+- **ID**: 001.7
 - **Title**: Untitled Task
 - **Status**: pending
 - **Priority**: medium

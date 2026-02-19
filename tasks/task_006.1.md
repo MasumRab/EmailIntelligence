@@ -1,4 +1,4 @@
-# Task UNKNOWN: Untitled Task
+# Task 006.1: Untitled Task
 
 **Status:** pending
 **Priority:** high
@@ -14,7 +14,7 @@ Create backup and restore functionality for feature branches before alignment op
 
 ## Success Criteria
 
-- [ ] - [ ] Backup created with timestamp
+- [ ] Backup created with timestamp
 - [ ] Restore restores to original state
 - [ ] Multiple backups supported
 - [ ] Error handling robust
@@ -40,7 +40,7 @@ Create backup and restore functionality for feature branches before alignment op
 ## Specification Details
 
 ### Task Interface
-- **ID**: UNKNOWN
+- **ID**: 006.1
 - **Title**: Untitled Task
 - **Status**: pending
 - **Priority**: high

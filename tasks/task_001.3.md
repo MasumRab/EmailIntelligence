@@ -1,4 +1,4 @@
-# Task UNKNOWN: Untitled Task
+# Task 001.3: Untitled Task
 
 **Status:** pending
 **Priority:** high
@@ -14,7 +14,7 @@ Define explicit, reproducible criteria for selecting integration targets (main, 
 
 ## Success Criteria
 
-- [ ] - [ ] All target selection criteria documented
+- [ ] All target selection criteria documented
 - [ ] Criteria measurable and reproducible
 - [ ] Decision tree clear and unambiguous
 - [ ] Examples provided for each target type
@@ -42,7 +42,7 @@ Define explicit, reproducible criteria for selecting integration targets (main, 
 ## Specification Details
 
 ### Task Interface
-- **ID**: UNKNOWN
+- **ID**: 001.3
 - **Title**: Untitled Task
 - **Status**: pending
 - **Priority**: high

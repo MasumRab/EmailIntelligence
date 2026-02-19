@@ -4,7 +4,7 @@
 **Priority:** high
 **Effort:** TBD
 **Complexity:** TBD
-**Dependencies:** 11, 12, 13 ✓
+**Dependencies:** None
 
 ---
 
@@ -263,7 +263,7 @@ Create clear and concise documentation explaining the purpose, scope, functional
 **Details:**
 
 Update existing developer guidelines (e.g., `CONTRIBUTING.md`) or create a new document in `docs/dev_guides/pre_merge_checks.md` outlining the critical file checks. Include the full list of critical files being validated, an explanation of how the script operates, common scenarios for validation failures, and steps for developers to troubleshoot and rectify issues. Conduct a team announcement or brief meeting to ensure all developers are aware of and understand the new mandatory pre-merge checks.
-**Dependencies:** 11, 12, 13 ✓
+**Dependencies:** 26, 27, 28 ✓
 
 **Priority:** high
 
@@ -473,7 +473,7 @@ Update existing developer guidelines (e.g., `CONTRIBUTING.md`) or create a new d
 
 **Status:** pending
 
-**Dependencies:** 11, 12, 13 ✓
+**Dependencies:** 26, 27, 28 ✓
 
 **Priority:** high
 
@@ -555,7 +555,7 @@ Create clear and concise documentation explaining the purpose, scope, functional
 Update existing developer guidelines (e.g., `CONTRIBUTING.md`) or create a new document in `docs/dev_guides/pre_merge_checks.md` outlining the critical file checks. Include the full list of critical files being validated, an explanation of how the script operates, common scenarios for validation failures, and steps for developers to troubleshoot and rectify issues. Conduct a team announcement or brief meeting to ensure all developers are aware of and understand the new mandatory pre-merge checks.
 - **Status**: pending
 
-**Dependencies:** 11, 12, 13 ✓
+**Dependencies:** 26, 27, 28 ✓
 
 **Priority:** high
 

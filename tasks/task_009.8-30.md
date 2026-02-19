@@ -1,4 +1,4 @@
-# Task UNKNOWN: Untitled Task
+# Task 009.8-30: Untitled Task
 
 **Status:** pending
 **Priority:** high
@@ -14,7 +14,7 @@ Complete advanced alignment logic, error handling, and integration.
 
 ## Success Criteria
 
-- [ ] - [ ] Complex branches handled
+- [ ] Complex branches handled
 - [ ] Iterative rebase working
 - [ ] Conflict resolution guided
 - [ ] Full orchestration complete
@@ -47,7 +47,7 @@ Complete advanced alignment logic, error handling, and integration.
 ## Specification Details
 
 ### Task Interface
-- **ID**: UNKNOWN
+- **ID**: 009.8-30
 - **Title**: Untitled Task
 - **Status**: pending
 - **Priority**: high

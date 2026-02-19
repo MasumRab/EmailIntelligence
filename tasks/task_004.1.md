@@ -1,4 +1,4 @@
-# Task UNKNOWN: Untitled Task
+# Task 004.1: Define Local Hook Structure and Installation
 
 **Status:** pending
 **Priority:** high
@@ -14,10 +14,6 @@ Define structure for local branch alignment framework and identify appropriate G
 
 ## Success Criteria
 
-- [ ] - [ ] Git hooks identified and documented
-- [ ] Directory structure created
-- [ ] Installation script working
-- [ ] Hooks can be triggered manually
 - [ ] Git hooks identified and documented
 - [ ] Directory structure created
 - [ ] Installation script working
@@ -40,8 +36,8 @@ Define structure for local branch alignment framework and identify appropriate G
 ## Specification Details
 
 ### Task Interface
-- **ID**: UNKNOWN
-- **Title**: Untitled Task
+- **ID**: 004.1
+- **Title**: Define Local Hook Structure and Installation
 - **Status**: pending
 - **Priority**: high
 - **Effort**: 3-4 hours

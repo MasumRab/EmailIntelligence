@@ -1,4 +1,4 @@
-# Task UNKNOWN: Untitled Task
+# Task 001.1: Untitled Task
 
 **Status:** pending
 **Priority:** high
@@ -14,7 +14,7 @@ Identify and catalog all active feature branches that need alignment analysis.
 
 ## Success Criteria
 
-- [ ] - [ ] Complete list of active feature branches created
+- [ ] Complete list of active feature branches created
 - [ ] All branches documented with branch names and creation dates
 - [ ] Excluded merged branches identified
 - [ ] List ready for assessment phase
@@ -40,7 +40,7 @@ Identify and catalog all active feature branches that need alignment analysis.
 ## Specification Details
 
 ### Task Interface
-- **ID**: UNKNOWN
+- **ID**: 001.1
 - **Title**: Untitled Task
 - **Status**: pending
 - **Priority**: high

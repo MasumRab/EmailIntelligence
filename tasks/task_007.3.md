@@ -1,4 +1,4 @@
-# Task UNKNOWN: Untitled Task
+# Task 007.3: Untitled Task
 
 **Status:** pending
 **Priority:** medium
@@ -14,7 +14,7 @@ Analyze backend-to-src migration status for each feature branch.
 
 ## Success Criteria
 
-- [ ] - [ ] Migration status analyzed
+- [ ] Migration status analyzed
 - [ ] Branches categorized correctly
 - [ ] Output includes migration field
 - [ ] Statuses accurate
@@ -45,7 +45,7 @@ Analyze backend-to-src migration status for each feature branch.
 ## Specification Details
 
 ### Task Interface
-- **ID**: UNKNOWN
+- **ID**: 007.3
 - **Title**: Untitled Task
 - **Status**: pending
 - **Priority**: medium

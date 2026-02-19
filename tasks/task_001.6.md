@@ -1,4 +1,4 @@
-# Task UNKNOWN: Untitled Task
+# Task 001.6: Untitled Task
 
 **Status:** pending
 **Priority:** medium
@@ -14,7 +14,7 @@ Document the strategy for choosing between `git merge` and `git rebase` based on
 
 ## Success Criteria
 
-- [ ] - [ ] Merge vs rebase decision criteria defined
+- [ ] Merge vs rebase decision criteria defined
 - [ ] Strategy documented for each branch type
 - [ ] Conflict resolution procedures specified
 - [ ] Visual merge tool usage documented
@@ -42,7 +42,7 @@ Document the strategy for choosing between `git merge` and `git rebase` based on
 ## Specification Details
 
 ### Task Interface
-- **ID**: UNKNOWN
+- **ID**: 001.6
 - **Title**: Untitled Task
 - **Status**: pending
 - **Priority**: medium

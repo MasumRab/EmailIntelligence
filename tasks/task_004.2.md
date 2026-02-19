@@ -1,4 +1,4 @@
-# Task UNKNOWN: Untitled Task
+# Task 004.2: Integrate Validation Hooks Locally
 
 **Status:** pending
 **Priority:** high
@@ -14,10 +14,6 @@ Adapt and integrate Task 008 and Task 003 validation components into local Git h
 
 ## Success Criteria
 
-- [ ] - [ ] Task 003 scripts executable via hooks
-- [ ] Task 008 framework callable locally
-- [ ] Clear error messages on failure
-- [ ] Integration tested
 - [ ] Task 003 scripts executable via hooks
 - [ ] Task 008 framework callable locally
 - [ ] Clear error messages on failure
@@ -40,8 +36,8 @@ Adapt and integrate Task 008 and Task 003 validation components into local Git h
 ## Specification Details
 
 ### Task Interface
-- **ID**: UNKNOWN
-- **Title**: Untitled Task
+- **ID**: 004.2
+- **Title**: Integrate Validation Hooks Locally
 - **Status**: pending
 - **Priority**: high
 - **Effort**: 4-5 hours

@@ -1,4 +1,4 @@
-# Task UNKNOWN: Untitled Task
+# Task 010.1-10: Untitled Task
 
 **Status:** pending
 **Priority:** medium
@@ -14,7 +14,7 @@ Handle complex branches with specialized alignment strategies.
 
 ## Success Criteria
 
-- [ ] - [ ] Complexity metrics defined
+- [ ] Complexity metrics defined
 - [ ] Thresholds established
 - [ ] Detection automated
 - [ ] Recommendations generated
@@ -40,7 +40,7 @@ Handle complex branches with specialized alignment strategies.
 ## Specification Details
 
 ### Task Interface
-- **ID**: UNKNOWN
+- **ID**: 010.1-10
 - **Title**: Untitled Task
 - **Status**: pending
 - **Priority**: medium

@@ -1,4 +1,4 @@
-# Task UNKNOWN: Untitled Task
+# Task 008.9: Untitled Task
 
 **Status:** pending
 **Priority:** high
@@ -14,7 +14,7 @@ Configure branch protection to require validation checks.
 
 ## Success Criteria
 
-- [ ] - [ ] Branch protection enabled
+- [ ] Branch protection enabled
 - [ ] Validation checks required
 - [ ] PR reviews required
 - [ ] Force push disabled
@@ -45,7 +45,7 @@ Configure branch protection to require validation checks.
 ## Specification Details
 
 ### Task Interface
-- **ID**: UNKNOWN
+- **ID**: 008.9
 - **Title**: Untitled Task
 - **Status**: pending
 - **Priority**: high

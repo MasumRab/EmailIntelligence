@@ -1,4 +1,4 @@
-# Task UNKNOWN: Untitled Task
+# Task 001.2: Untitled Task
 
 **Status:** pending
 **Priority:** high
@@ -14,7 +14,7 @@ Analyze Git history and codebase structure for each branch to support target det
 
 ## Success Criteria
 
-- [ ] - [ ] Git history analysis complete for all branches
+- [ ] Git history analysis complete for all branches
 - [ ] Shared commit counts documented
 - [ ] Codebase similarity metrics calculated
 - [ ] Architectural assessment recorded
@@ -42,7 +42,7 @@ Analyze Git history and codebase structure for each branch to support target det
 ## Specification Details
 
 ### Task Interface
-- **ID**: UNKNOWN
+- **ID**: 001.2
 - **Title**: Untitled Task
 - **Status**: pending
 - **Priority**: high

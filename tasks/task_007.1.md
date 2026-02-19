@@ -1,4 +1,4 @@
-# Task UNKNOWN: Untitled Task
+# Task 007.1: Untitled Task
 
 **Status:** pending
 **Priority:** medium
@@ -14,7 +14,7 @@ Detect merge conflict markers in feature branches to identify broken or poorly m
 
 ## Success Criteria
 
-- [ ] - [ ] Merge markers detected
+- [ ] Merge markers detected
 - [ ] Branches flagged appropriately
 - [ ] Confidence scores reduced
 - [ ] Output includes artifact flags
@@ -40,7 +40,7 @@ Detect merge conflict markers in feature branches to identify broken or poorly m
 ## Specification Details
 
 ### Task Interface
-- **ID**: UNKNOWN
+- **ID**: 007.1
 - **Title**: Untitled Task
 - **Status**: pending
 - **Priority**: medium

@@ -1,4 +1,4 @@
-# Task UNKNOWN: Untitled Task
+# Task 008.3: Untitled Task
 
 **Status:** pending
 **Priority:** high
@@ -14,7 +14,7 @@ Integrate static analysis tools to enforce architectural rules.
 
 ## Success Criteria
 
-- [ ] - [ ] Static analysis configured
+- [ ] Static analysis configured
 - [ ] Module boundaries enforced
 - [ ] Import rules defined
 - [ ] CI integration working
@@ -40,7 +40,7 @@ Integrate static analysis tools to enforce architectural rules.
 ## Specification Details
 
 ### Task Interface
-- **ID**: UNKNOWN
+- **ID**: 008.3
 - **Title**: Untitled Task
 - **Status**: pending
 - **Priority**: high

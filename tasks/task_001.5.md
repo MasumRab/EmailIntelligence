@@ -1,4 +1,4 @@
-# Task UNKNOWN: Untitled Task
+# Task 001.5: Untitled Task
 
 **Status:** pending
 **Priority:** high
@@ -14,7 +14,7 @@ Create the central tracking document that consolidates all branch alignment info
 
 ## Success Criteria
 
-- [ ] - [ ] ALIGNMENT_CHECKLIST.md created in project root
+- [ ] ALIGNMENT_CHECKLIST.md created in project root
 - [ ] All branches listed with targets
 - [ ] Justifications documented
 - [ ] Format clear and maintainable
@@ -42,7 +42,7 @@ Create the central tracking document that consolidates all branch alignment info
 ## Specification Details
 
 ### Task Interface
-- **ID**: UNKNOWN
+- **ID**: 001.5
 - **Title**: Untitled Task
 - **Status**: pending
 - **Priority**: high

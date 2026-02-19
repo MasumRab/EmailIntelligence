@@ -1,4 +1,4 @@
-# Task UNKNOWN: Untitled Task
+# Task 005.2: Untitled Task
 
 **Status:** pending
 **Priority:** high
@@ -14,7 +14,7 @@ Detect encoding issues and extract import statements from Python files.
 
 ## Success Criteria
 
-- [ ] - [ ] Encoding issues detected
+- [ ] Encoding issues detected
 - [ ] Imports extracted from Python files
 - [ ] Backend imports flagged
 - [ ] Clear error reporting
@@ -40,7 +40,7 @@ Detect encoding issues and extract import statements from Python files.
 ## Specification Details
 
 ### Task Interface
-- **ID**: UNKNOWN
+- **ID**: 005.2
 - **Title**: Untitled Task
 - **Status**: pending
 - **Priority**: high

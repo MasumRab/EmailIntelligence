@@ -1,4 +1,4 @@
-# Task UNKNOWN: Untitled Task
+# Task 003.1: Define Critical Files and Validation Criteria
 
 **Status:** pending
 **Priority:** high
@@ -14,10 +14,6 @@ Identify all critical files and directories whose absence or corruption would ca
 
 ## Success Criteria
 
-- [ ] - [ ] Complete list of critical files created
-- [ ] Validation criteria defined for each file
-- [ ] Documentation ready for script implementation
-- [ ] List covers all regression-prone files
 - [ ] Complete list of critical files created
 - [ ] Validation criteria defined for each file
 - [ ] Documentation ready for script implementation
@@ -40,8 +36,8 @@ Identify all critical files and directories whose absence or corruption would ca
 ## Specification Details
 
 ### Task Interface
-- **ID**: UNKNOWN
-- **Title**: Untitled Task
+- **ID**: 003.1
+- **Title**: Define Critical Files and Validation Criteria
 - **Status**: pending
 - **Priority**: high
 - **Effort**: 2-3 hours

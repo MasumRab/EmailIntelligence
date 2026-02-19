@@ -1,4 +1,4 @@
-# Task UNKNOWN: Untitled Task
+# Task 007.2: Untitled Task
 
 **Status:** pending
 **Priority:** medium
@@ -14,7 +14,7 @@ Detect when branch content doesn't match its naming convention's expected target
 
 ## Success Criteria
 
-- [ ] - [ ] Similarity calculations working
+- [ ] Similarity calculations working
 - [ ] Mismatches detected
 - [ ] Alerts generated with rationale
 - [ ] False positives minimized
@@ -40,7 +40,7 @@ Detect when branch content doesn't match its naming convention's expected target
 ## Specification Details
 
 ### Task Interface
-- **ID**: UNKNOWN
+- **ID**: 007.2
 - **Title**: Untitled Task
 - **Status**: pending
 - **Priority**: medium

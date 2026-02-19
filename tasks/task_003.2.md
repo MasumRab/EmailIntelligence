@@ -1,4 +1,4 @@
-# Task UNKNOWN: Untitled Task
+# Task 003.2: Develop Core Validation Script
 
 **Status:** pending
 **Priority:** high
@@ -14,10 +14,6 @@ Implement the validation script that checks critical files for existence, integr
 
 ## Success Criteria
 
-- [ ] - [ ] Script checks all critical files
-- [ ] Returns correct exit codes
-- [ ] Provides detailed error messages
-- [ ] Handles missing files gracefully
 - [ ] Script checks all critical files
 - [ ] Returns correct exit codes
 - [ ] Provides detailed error messages
@@ -40,8 +36,8 @@ Implement the validation script that checks critical files for existence, integr
 ## Specification Details
 
 ### Task Interface
-- **ID**: UNKNOWN
-- **Title**: Untitled Task
+- **ID**: 003.2
+- **Title**: Develop Core Validation Script
 - **Status**: pending
 - **Priority**: high
 - **Effort**: 3-4 hours

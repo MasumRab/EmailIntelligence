@@ -1,4 +1,4 @@
-# Task UNKNOWN: Untitled Task
+# Task 008.7: Untitled Task
 
 **Status:** pending
 **Priority:** high
@@ -14,7 +14,7 @@ Add security scanning to CI pipeline.
 
 ## Success Criteria
 
-- [ ] - [ ] SAST integrated
+- [ ] SAST integrated
 - [ ] Dependency scanning integrated
 - [ ] Critical issues block merge
 - [ ] Reports generated
@@ -40,7 +40,7 @@ Add security scanning to CI pipeline.
 ## Specification Details
 
 ### Task Interface
-- **ID**: UNKNOWN
+- **ID**: 008.7
 - **Title**: Untitled Task
 - **Status**: pending
 - **Priority**: high

@@ -1,4 +1,4 @@
-# Task UNKNOWN: Untitled Task
+# Task 010.11-30: Untitled Task
 
 **Status:** pending
 **Priority:** medium
@@ -14,7 +14,7 @@ Complete all complex branch handling functionality.
 
 ## Success Criteria
 
-- [ ] - [ ] Testing integrated per chunk
+- [ ] Testing integrated per chunk
 - [ ] Review workflow complete
 - [ ] Rollback working
 - [ ] CLI fully functional
@@ -47,7 +47,7 @@ Complete all complex branch handling functionality.
 ## Specification Details
 
 ### Task Interface
-- **ID**: UNKNOWN
+- **ID**: 010.11-30
 - **Title**: Untitled Task
 - **Status**: pending
 - **Priority**: medium

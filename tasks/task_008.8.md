@@ -1,4 +1,4 @@
-# Task UNKNOWN: Untitled Task
+# Task 008.8: Untitled Task
 
 **Status:** pending
 **Priority:** high
@@ -14,7 +14,7 @@ Aggregate results from all validation layers into unified report.
 
 ## Success Criteria
 
-- [ ] - [ ] Results consolidated
+- [ ] Results consolidated
 - [ ] Unified report generated
 - [ ] Clear pass/fail status
 - [ ] GitHub summary updated
@@ -40,7 +40,7 @@ Aggregate results from all validation layers into unified report.
 ## Specification Details
 
 ### Task Interface
-- **ID**: UNKNOWN
+- **ID**: 008.8
 - **Title**: Untitled Task
 - **Status**: pending
 - **Priority**: high

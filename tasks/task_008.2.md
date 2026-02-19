@@ -1,4 +1,4 @@
-# Task UNKNOWN: Untitled Task
+# Task 008.2: Untitled Task
 
 **Status:** pending
 **Priority:** high
@@ -14,7 +14,7 @@ Set up GitHub Actions workflow to trigger validation on PRs.
 
 ## Success Criteria
 
-- [ ] - [ ] Workflow file created
+- [ ] Workflow file created
 - [ ] Triggers on PR to main
 - [ ] Python environment configured
 - [ ] Placeholder for validation steps
@@ -40,7 +40,7 @@ Set up GitHub Actions workflow to trigger validation on PRs.
 ## Specification Details
 
 ### Task Interface
-- **ID**: UNKNOWN
+- **ID**: 008.2
 - **Title**: Untitled Task
 - **Status**: pending
 - **Priority**: high

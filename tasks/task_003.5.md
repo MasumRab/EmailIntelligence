@@ -1,4 +1,4 @@
-# Task UNKNOWN: Untitled Task
+# Task 003.5: Document and Communicate Validation Process
 
 **Status:** pending
 **Priority:** medium
@@ -14,18 +14,10 @@ Create documentation and communicate the pre-merge validation process to the dev
 
 ## Success Criteria
 
-- [ ] - [ ] Documentation created and accurate
-- [ ] Contributing guidelines updated
-- [ ] Team notified of changes
-- [ ] Troubleshooting guide available
 - [ ] Documentation created and accurate
 - [ ] Contributing guidelines updated
 - [ ] Team notified of changes
 - [ ] Troubleshooting guide available
-- [ ] All 5 subtasks complete
-- [ ] Validation script integrated in CI
-- [ ] Documentation created
-- [ ] Team notified
 
 ## Prerequisites & Dependencies
 
@@ -44,8 +36,8 @@ Create documentation and communicate the pre-merge validation process to the dev
 ## Specification Details
 
 ### Task Interface
-- **ID**: UNKNOWN
-- **Title**: Untitled Task
+- **ID**: 003.5
+- **Title**: Document and Communicate Validation Process
 - **Status**: pending
 - **Priority**: medium
 - **Effort**: 2-3 hours

@@ -1,4 +1,4 @@
-# Task UNKNOWN: Untitled Task
+# Task 003.4: Integrate Validation Into CI Pipeline
 
 **Status:** pending
 **Priority:** high
@@ -14,10 +14,6 @@ Add validation script as a mandatory pre-merge check in the CI/CD pipeline.
 
 ## Success Criteria
 
-- [ ] - [ ] CI runs validation on every PR
-- [ ] Failed validation blocks merge
-- [ ] Branch protection enforced
-- [ ] Clear error messages in CI output
 - [ ] CI runs validation on every PR
 - [ ] Failed validation blocks merge
 - [ ] Branch protection enforced
@@ -40,8 +36,8 @@ Add validation script as a mandatory pre-merge check in the CI/CD pipeline.
 ## Specification Details
 
 ### Task Interface
-- **ID**: UNKNOWN
-- **Title**: Untitled Task
+- **ID**: 003.4
+- **Title**: Integrate Validation Into CI Pipeline
 - **Status**: pending
 - **Priority**: high
 - **Effort**: 2-3 hours

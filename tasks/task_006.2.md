@@ -1,4 +1,4 @@
-# Task UNKNOWN: Untitled Task
+# Task 006.2: Untitled Task
 
 **Status:** pending
 **Priority:** high
@@ -14,7 +14,7 @@ Extend backup mechanism for primary branches with comprehensive backup options.
 
 ## Success Criteria
 
-- [ ] - [ ] Mirror backup working
+- [ ] Mirror backup working
 - [ ] Remote backup working
 - [ ] Integrity verification implemented
 - [ ] Critical branches can be backed up
@@ -40,7 +40,7 @@ Extend backup mechanism for primary branches with comprehensive backup options.
 ## Specification Details
 
 ### Task Interface
-- **ID**: UNKNOWN
+- **ID**: 006.2
 - **Title**: Untitled Task
 - **Status**: pending
 - **Priority**: high

@@ -1,4 +1,4 @@
-# Task UNKNOWN: Untitled Task
+# Task 005.3: Untitled Task
 
 **Status:** pending
 **Priority:** high
@@ -14,7 +14,7 @@ Integrate all error detection into a single comprehensive script with AST-based 
 
 ## Success Criteria
 
-- [ ] - [ ] All detection mechanisms integrated
+- [ ] All detection mechanisms integrated
 - [ ] AST validation working
 - [ ] Backend imports flagged with fixes
 - [ ] Comprehensive report generated
@@ -45,7 +45,7 @@ Integrate all error detection into a single comprehensive script with AST-based 
 ## Specification Details
 
 ### Task Interface
-- **ID**: UNKNOWN
+- **ID**: 005.3
 - **Title**: Untitled Task
 - **Status**: pending
 - **Priority**: high

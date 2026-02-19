@@ -1,441 +1,286 @@
 # Task 002.6: PipelineIntegration
 
-**Status:** pending
-**Priority:** high
+**Status:** Ready for Implementation
+**Priority:** High
 **Effort:** 20-28 hours
 **Complexity:** 6/10
-**Dependencies:** 002.5
+**Dependencies:** 002.1, 002.2, 002.3, 002.4, 002.5
 
 ---
 
 ## Overview/Purpose
 
-Integrate clustering system with the alignment pipeline (Tasks 016-017) for automated branch processing.
+Implement the `BranchClusteringPipeline` class that orchestrates all Stage One and Stage Two components into a unified execution workflow. This module ties together the three analyzers (002.1-002.3), the clusterer (002.4), and the target assigner (002.5) into a single pipeline that produces three JSON output files, manages caching, and supports parallel execution.
 
-## Success Criteria
-
-- [ ] Reads Task 002.5 output format
-- [ ] Integrates with Task 016 execution framework
-- [ ] Implements Task 007 feature branch ID mode
-- [ ] Reports processing status
-- [ ] Handles incremental updates
+**Scope:** BranchClusteringPipeline class and output generation
+**Depends on:** All five preceding components (002.1 through 002.5)
 
 ---
 
-<!-- IMPORTED_FROM: backup_task75/task-002.6.md -->
+## Success Criteria
+
 Task 002.6 is complete when:
 
-**Core Functionality:**
-- [ ] `BranchClusteringEngine` orchestrates all prior tasks
-- [ ] Executes 002.1, 002.2, 002.3 analyzers in parallel
-- [ ] Feeds outputs to 002.4 (BranchClusterer)
-- [ ] Feeds clustering to 002.5 (IntegrationTargetAssigner)
-- [ ] Generates three JSON output files (specification format)
-- [ ] Implements caching for performance optimization
-- [ ] Output JSON files match schema exactly
+### Core Functionality
+- [ ] `BranchClusteringPipeline` class accepts `repo_path` and optional `config`
+- [ ] `run()` method orchestrates all five components in correct order
+- [ ] Stage One analyzers (002.1-002.3) run in parallel via ThreadPoolExecutor when enabled
+- [ ] `get_branch_tags()` returns tags for a single branch
+- [ ] `export_json_outputs()` writes three JSON files to output directory
+- [ ] Caching layer stores/retrieves intermediate analyzer results
+- [ ] Output files match schemas exactly
 
-**Quality Assurance:**
-- [ ] Unit tests pass (minimum 6 test cases with >90% coverage)
-- [ ] No exceptions raised for valid inputs
-- [ ] Performance: <2 minutes for 13+ branches
-- [ ] Code quality: PEP 8 compliant, comprehensive docstrings
+### Quality Assurance
+- [ ] Unit tests pass (minimum 5 test scenarios with >95% coverage)
+- [ ] Parallel execution produces same results as serial execution
+- [ ] Cache invalidation works correctly for new/changed branches
+- [ ] No exceptions for valid inputs including edge cases
+- [ ] Code quality: PEP 8 compliant, Google-style docstrings
 
-**Integration Readiness:**
-- [ ] Compatible with Task 002.7 (VisualizationReporting) input
-- [ ] Compatible with Task 002.8 (TestingSuite) input
-- [ ] Generates downstream-compatible output files
+### Integration Readiness
+- [ ] Output JSON files consumable by Tasks 79, 80, 83, 101
+- [ ] Logging output matches expected format
 - [ ] Configuration externalized and validated
-- [ ] Documentation complete and accurate
+- [ ] Pipeline version tracked in output metadata
 
 ---
 
 ## Prerequisites & Dependencies
 
 ### Required Before Starting
-- [ ] No external prerequisites
+- [ ] Task 002.1 (CommitHistoryAnalyzer) complete and importable
+- [ ] Task 002.2 (CodebaseStructureAnalyzer) complete and importable
+- [ ] Task 002.3 (DiffDistanceCalculator) complete and importable
+- [ ] Task 002.4 (BranchClusterer) complete and importable
+- [ ] Task 002.5 (IntegrationTargetAssigner) complete and importable
 
 ### Blocks (What This Task Unblocks)
-- [ ] No specific blocks defined
+- Task 79 (Execution Control)
+- Task 80 (Validation Intensity Selection)
+- Task 83 (Test Suite Selection)
+- Task 101 (Orchestration Filter)
 
 ### External Dependencies
-- [ ] No external dependencies
+- Python built-in: `json`, `logging`, `pathlib`, `concurrent.futures`, `datetime`
+- Optional: `plotly` for dendrogram HTML generation
+
+---
 
 ## Sub-subtasks Breakdown
 
-### 002.6.1: Design Pipeline Architecture
-**Purpose:** Define the orchestration flow and caching strategy for the pipeline
+### 002.6.1: Pipeline Class Skeleton and Configuration
 **Effort:** 2-3 hours
+**Depends on:** None (within this task)
 
 **Steps:**
-1. Define the 5-stage pipeline flow (002.1-002.5 → integration → output)
-2. Document dependency relationships between stages
-3. Design caching mechanism with invalidation strategy
-4. Define error isolation approach for partial failures
-5. Create pipeline monitoring and status reporting structure
+1. Create BranchClusteringPipeline class with __init__
+2. Load and validate configuration with defaults
+3. Instantiate all five component classes
+4. Set up logging
 
 **Success Criteria:**
-- [ ] 5-stage pipeline flow clearly defined
-- [ ] Dependency relationships documented
-- [ ] Caching strategy specified with invalidation rules
-- [ ] Error isolation approach documented
-- [ ] Monitoring structure defined
-
-**Blocks:** 002.6.2, 002.6.3, 002.6.4, 002.6.5
+- [ ] Class initializes without errors
+- [ ] Config merges user values with defaults
+- [ ] All five components instantiated
+- [ ] Logger configured with standard format
 
 ---
 
-### 002.6.2: Implement Stage One Analyzer Orchestration
-**Purpose:** Execute Tasks 002.1, 002.2, 002.3 in parallel with proper error handling
-**Effort:** 4-5 hours
+### 002.6.2: Serial Execution Pipeline
+**Effort:** 3-4 hours
 **Depends on:** 002.6.1
 
 **Steps:**
-1. Create parallel execution framework for Stage One analyzers
-2. Implement input validation for analyzer parameters
-3. Add error isolation for individual branch failures
-4. Implement result aggregation and validation
-5. Add performance monitoring for parallel execution
+1. Implement run() with serial execution flow
+2. Call analyzers for each branch sequentially
+3. Pass combined metrics to BranchClusterer
+4. Pass cluster data to IntegrationTargetAssigner
+5. Return complete pipeline results
 
 **Success Criteria:**
-- [ ] All three analyzers execute in parallel successfully
-- [ ] Individual branch failures don't stop entire stage
-- [ ] Results properly aggregated and validated
-- [ ] Performance: 3x faster than sequential execution
-- [ ] Error isolation prevents cascade failures
-
-**Blocks:** 002.6.3
+- [ ] Pipeline executes all components in correct order
+- [ ] Data flows correctly between components
+- [ ] Results include all component outputs
 
 ---
 
-### 002.6.3: Implement Stage Two Clustering Integration
-**Purpose:** Feed analyzer outputs to Task 002.4 (BranchClusterer) with validation
+### 002.6.3: Parallel Execution with ThreadPoolExecutor
 **Effort:** 3-4 hours
 **Depends on:** 002.6.2
 
 **Steps:**
-1. Validate analyzer outputs from Stage One
-2. Format outputs for BranchClusterer consumption
-3. Execute clustering with proper error handling
-4. Validate clustering results before proceeding
-5. Handle clustering failures gracefully
+1. Implement run_analyzers_parallel() using ThreadPoolExecutor
+2. Submit all three analyzers per branch concurrently
+3. Collect results with future.result()
+4. Verify identical output to serial execution
 
 **Success Criteria:**
-- [ ] Analyzer outputs validated successfully
-- [ ] Proper formatting for BranchClusterer input
-- [ ] Clustering executes without errors
-- [ ] Results validated before proceeding
-- [ ] Failures handled gracefully with fallback
-
-**Blocks:** 002.6.4
+- [ ] Parallel results match serial results exactly
+- [ ] max_workers is configurable
+- [ ] Graceful handling of analyzer failures in parallel mode
 
 ---
 
-### 002.6.4: Implement Stage Three Assignment Integration
-**Purpose:** Feed clustering results to Task 002.5 (IntegrationTargetAssigner)
+### 002.6.4: Caching Layer
 **Effort:** 3-4 hours
-**Depends on:** 002.6.3
+**Depends on:** 002.6.2
 
 **Steps:**
-1. Validate clustering outputs from Stage Two
-2. Format outputs for IntegrationTargetAssigner consumption
-3. Execute target assignment with proper error handling
-4. Validate assignment results before proceeding
-5. Generate comprehensive tagging system
+1. Create cache directory structure
+2. Save analyzer results per branch to JSON files
+3. Check cache on run, skip analysis for cached branches
+4. Implement cache_retention_days expiration
+5. Force refresh option (use_cache=False)
 
 **Success Criteria:**
-- [ ] Clustering outputs validated successfully
-- [ ] Proper formatting for IntegrationTargetAssigner input
-- [ ] Target assignment executes without errors
-- [ ] Results validated before proceeding
-- [ ] 30+ tags generated per branch correctly
-
-**Blocks:** 002.6.5
+- [ ] Cache hit skips analyzer re-execution
+- [ ] Cache miss triggers fresh analysis
+- [ ] Expired cache entries are re-analyzed
+- [ ] use_cache=False forces full re-analysis
 
 ---
 
-### 002.6.5: Implement Caching & Performance Optimization
-**Purpose:** Add caching layer and optimize pipeline performance
+### 002.6.5: JSON Output Generation
 **Effort:** 4-5 hours
-**Depends on:** 002.6.4
+**Depends on:** 002.6.2
 
 **Steps:**
-1. Implement result caching with proper keys
-2. Create cache invalidation strategy based on repo changes
-3. Add performance monitoring and metrics
-4. Optimize for repeated executions and incremental updates
-5. Test performance improvements with benchmarks
+1. Generate categorized_branches.json with metadata and summary
+2. Generate clustered_branches.json with cluster details and quality metrics
+3. Generate enhanced_orchestration_branches.json filtered for orchestration targets
+4. Implement export_json_outputs() method
 
 **Success Criteria:**
-- [ ] Caching implemented with proper key generation
-- [ ] Cache invalidation works correctly
-- [ ] Performance metrics available
-- [ ] Incremental updates work efficiently
-- [ ] Benchmarks show improvement over uncached execution
-
-**Blocks:** 002.6.6
+- [ ] All three JSON files match schemas exactly
+- [ ] Metadata includes timestamp, version, counts
+- [ ] enhanced_orchestration_branches.json filters correctly
+- [ ] Files written atomically (temp + rename)
 
 ---
 
-### 002.6.6: Implement Output Generation & Validation
-**Purpose:** Format results into 3 JSON files matching downstream specifications
-**Effort:** 3-4 hours
+### 002.6.6: Utility Methods and Logging
+**Effort:** 2-3 hours
 **Depends on:** 002.6.5
 
 **Steps:**
-1. Create output file structure matching specifications
-2. Format results for Task 016 consumption
-3. Validate outputs against JSON schemas
-4. Implement error handling for validation failures
-5. Add timestamp and metadata to outputs
+1. Implement get_branch_tags(branch_name) utility
+2. Add progress logging throughout pipeline
+3. Add timing information to logs
+4. Add error handling and recovery
 
 **Success Criteria:**
-- [ ] Output files match specification exactly
-- [ ] Task 016 compatibility validated
-- [ ] JSON schema validation passes
-- [ ] Error handling catches validation issues
-- [ ] Metadata included in outputs
-
-**Blocks:** 002.6.7
+- [ ] get_branch_tags returns correct tags for any branch
+- [ ] Log output matches expected format (see Logging section)
+- [ ] Pipeline failures produce actionable error messages
 
 ---
 
-### 002.6.7: Implement Task 007 Feature Branch ID Mode
-**Purpose:** Add special mode for Task 007 feature branch identification
-**Effort:** 2-3 hours
-**Depends on:** 002.6.6
-
-**Steps:**
-1. Implement feature branch identification mode
-2. Modify pipeline for Task 007-specific output format
-3. Add branch classification based on feature patterns
-4. Validate Task 007 compatibility
-5. Test with feature branch fixtures
-
-**Success Criteria:**
-- [ ] Feature branch ID mode implemented
-- [ ] Task 007-specific output format available
-- [ ] Branch classification works correctly
-- [ ] Task 007 compatibility validated
-- [ ] Feature branch fixtures processed correctly
-
-**Blocks:** 002.6.8
-
----
-
-### 002.6.8: Write Unit Tests & Validation
-**Purpose:** Verify PipelineIntegration works correctly with comprehensive tests
+### 002.6.7: Integration Testing
 **Effort:** 3-4 hours
-**Depends on:** 002.6.7
+**Depends on:** 002.6.3, 002.6.4, 002.6.5, 002.6.6
 
 **Steps:**
-1. Create test fixtures with various repository characteristics
-2. Implement minimum 6 test cases covering all pipeline aspects
-3. Mock analyzer outputs for reliable testing
-4. Add performance and integration tests
-5. Generate coverage report (>95%)
+1. Test fresh run (no cache, 10 branches)
+2. Test incremental run (2 new branches, cached others)
+3. Test single branch mode
+4. Test large batch (50+ branches with parallelization)
+5. Test cache refresh (force re-analysis)
 
 **Success Criteria:**
-- [ ] Minimum 6 comprehensive test cases implemented
-- [ ] All tests pass on CI/CD
-- [ ] Code coverage >95%
-- [ ] Edge cases covered (partial failures, large repos)
-- [ ] Performance tests meet <2 minute requirement
+- [ ] All 5 test scenarios pass
+- [ ] Parallel and serial produce identical results
+- [ ] Cache correctly handles all scenarios
 
 ---
 
 ## Specification Details
 
-### Task Interface
-- **ID**: 002.6
-- **Title**: PipelineIntegration
-- **Status**: pending
-- **Priority**: high
-- **Effort**: 20-28 hours
-- **Complexity**: 6/10
+### Class Interface
 
-### Requirements
-**Core Requirements:**
-- Python 3.8+ runtime environment
-- Access to outputs from Tasks 002.1-002.5
-- Integration with Task 016 execution framework
-- YAML parser for configuration files
-- Memory sufficient to hold intermediate pipeline data
-
-**Functional Requirements:**
-- Must accept analyzer outputs from Tasks 002.1-002.5 as input
-- Must orchestrate execution in proper dependency order (1,2,3 → 4 → 5 → 6)
-- Must implement caching mechanism for performance optimization
-- Must generate 3 JSON output files matching downstream specifications
-- Must handle incremental updates and partial pipeline execution
-
-**Non-functional Requirements:**
-- Performance: Complete pipeline execution for 13+ branches in under 2 minutes
-- Reliability: Handle all error conditions gracefully without pipeline interruption
-- Scalability: Support up to 200 branches in single pipeline execution
-- Maintainability: Follow PEP 8 standards with comprehensive docstrings
-- Testability: Achieve >95% code coverage with unit tests
-
-### Task Interface
-- **ID**: 002.6
-- **Title**: PipelineIntegration
-- **Status**: pending
-- **Priority**: high
-- **Effort**: 20-28 hours
-- **Complexity**: 6/10
-
-### Requirements
-
-**Core Requirements:**
-- Python 3.8+ runtime environment
-- Access to outputs from Tasks 002.1-002.5
-- Integration with Task 016 execution framework
-- YAML parser for configuration files
-- Memory sufficient to hold intermediate pipeline data
-
-**Functional Requirements:**
-- Must accept analyzer outputs from Tasks 002.1-002.5 as input
-- Must orchestrate execution in proper dependency order (1,2,3 → 4 → 5 → 6)
-- Must implement caching mechanism for performance optimization
-- Must generate 3 JSON output files matching downstream specifications
-- Must handle incremental updates and partial pipeline execution
-
-**Non-functional Requirements:**
-- Performance: Complete pipeline execution for 13+ branches in under 2 minutes
-- Reliability: Handle all error conditions gracefully without pipeline interruption
-- Scalability: Support up to 200 branches in single pipeline execution
-- Maintainability: Follow PEP 8 standards with comprehensive docstrings
-- Testability: Achieve >95% code coverage with unit tests
-
-## Implementation Guide
-
-### Phase 1: Setup and Architecture (Days 1-2)
-1. Create the basic class structure for `BranchClusteringEngine`
-2. Implement input validation for analyzer outputs
-3. Set up configuration loading from YAML
-4. Create the basic method signatures for pipeline orchestration
-
-### Phase 2: Pipeline Orchestration (Days 2-3)
-1. Implement parallel execution of Stage One analyzers (002.1, 002.2, 002.3)
-2. Implement dependency validation and execution sequencing
-3. Create intermediate data storage and validation
-4. Add error handling for partial pipeline failures
-
-### Phase 3: Caching and Optimization (Days 3-4)
-1. Implement result caching with proper invalidation
-2. Add performance monitoring and metrics
-3. Optimize for repeated executions and incremental updates
-4. Implement cache persistence and retrieval
-
-### Phase 4: Output Generation and Integration (Days 4-5)
-1. Format outputs according to downstream specifications
-2. Validate outputs against JSON schemas
-3. Implement integration with Task 016 execution framework
-4. Write comprehensive unit tests (6+ test cases) and perform performance testing
-
-### Key Implementation Notes:
-- Use ThreadPoolExecutor for parallel analyzer execution
-- Implement proper error handling for all pipeline stages
-- Ensure all outputs match downstream specifications exactly
-- Follow the configuration parameters specified in the Configuration section
-- Add comprehensive logging and pipeline monitoring
-
-<!-- IMPORTED_FROM: /home/masum/github/PR/.taskmaster/enhanced_improved_tasks/task-002-6.md -->
-
-<!-- IMPORTED_FROM: /home/masum/github/PR/.taskmaster/task_data/archived/backups_archive_task002/task-002.6.md -->
-
-# Task 002.6: PipelineIntegration
-
-<!-- IMPORTED_FROM: /home/masum/github/PR/.taskmaster/task_data/archived/handoff_archive_task002/HANDOFF_002.6_PipelineIntegration.md -->
-
-# Task 002.6: Pipeline Integration Module
-
-## Quick Summary
-Implement the pipeline orchestration module that integrates all Stage One and Stage Two components into a unified execution workflow. This is a Stage Two component—depends on Tasks 002.1-002.5.
-
-**Effort:** 20-28 hours | **Complexity:** 6/10 | **Parallelizable:** No (depends on all Stage One)
-
----
-
-## What to Build
-
-A Python module `BranchClusteringPipeline` that:
-1. Orchestrates execution of all five analyzers
-2. Handles data flow between components
-3. Manages caching and incremental updates
-4. Generates final JSON outputs
-5. Integrates with downstream tasks (79, 80, 83, 101)
-
-### Class Signature
 ```python
 class BranchClusteringPipeline:
-    def __init__(self, repo_path: str, config: dict = None)
-    def run(self, branches: list = None, use_cache: bool = True) -> dict
-    def get_branch_tags(self, branch_name: str) -> list
-    def export_json_outputs(self, output_dir: str) -> dict
+    def __init__(self, repo_path: str, config: dict = None):
+        """Initialize pipeline with all components.
+
+        Args:
+            repo_path: Path to the git repository.
+            config: Optional configuration overrides.
+        """
+
+    def run(self, branches: list = None, use_cache: bool = True) -> dict:
+        """Execute full pipeline for given branches.
+
+        Args:
+            branches: List of branch names. If None, discovers all branches.
+            use_cache: Whether to use cached analyzer results.
+
+        Returns:
+            Complete pipeline results dict.
+        """
+
+    def get_branch_tags(self, branch_name: str) -> list:
+        """Get tags for a specific branch from last pipeline run.
+
+        Args:
+            branch_name: Name of the branch.
+
+        Returns:
+            List of tag strings.
+        """
+
+    def export_json_outputs(self, output_dir: str) -> dict:
+        """Export pipeline results as three JSON files.
+
+        Args:
+            output_dir: Directory to write output files.
+
+        Returns:
+            Dict with paths to generated files.
+        """
 ```
 
----
-
-## Execution Flow
+### Execution Flow Diagram
 
 ```
 Input: List of branches
-  ↓
-┌─────────────────────────────────────┐
-│ Parallelize (if use_cache=True):    │
-│  • CommitHistoryAnalyzer            │ → Task 002.1 output
-│  • CodebaseStructureAnalyzer        │ → Task 002.2 output
-│  • DiffDistanceCalculator           │ → Task 002.3 output
-└─────────────────────────────────────┘
-  ↓
-  Combine metrics (weighted 35/35/30)
-  ↓
-┌─────────────────────────────────────┐
-│ BranchClusterer                     │ → Task 002.4 output
-└─────────────────────────────────────┘
-  ↓
-┌─────────────────────────────────────┐
-│ IntegrationTargetAssigner           │ → Task 002.5 output
-└─────────────────────────────────────┘
-  ↓
-Output: Three JSON files
-  • categorized_branches.json
-  • clustered_branches.json
-  • enhanced_orchestration_branches.json
+  │
+  ▼
+┌─────────────────────────────────────────┐
+│  Stage One (Parallel if use_parallel):  │
+│                                         │
+│  ┌─────────────────────────────────┐    │
+│  │ CommitHistoryAnalyzer (002.1)   │────│──▶ commit_history scores
+│  └─────────────────────────────────┘    │
+│  ┌─────────────────────────────────┐    │
+│  │ CodebaseStructureAnalyzer(002.2)│────│──▶ codebase_structure scores
+│  └─────────────────────────────────┘    │
+│  ┌─────────────────────────────────┐    │
+│  │ DiffDistanceCalculator (002.3)  │────│──▶ diff_distance scores
+│  └─────────────────────────────────┘    │
+└─────────────────────────────────────────┘
+  │
+  ▼ Combined metrics (weighted 35/35/30)
+  │
+┌─────────────────────────────────────────┐
+│  BranchClusterer (002.4)                │
+│  → clusters, assignments, quality       │
+└─────────────────────────────────────────┘
+  │
+  ▼
+┌─────────────────────────────────────────┐
+│  IntegrationTargetAssigner (002.5)      │
+│  → targets, tags, confidence            │
+└─────────────────────────────────────────┘
+  │
+  ▼ Output: Three JSON files
+  │
+  ├──▶ categorized_branches.json
+  ├──▶ clustered_branches.json
+  └──▶ enhanced_orchestration_branches.json
 ```
 
----
+### Output Schema 1: categorized_branches.json
 
-## Input Specification
-
-### Input 1: Branch List
-```python
-branches = [
-    "feature/auth-system",
-    "feature/api-refactor",
-    "feature/data-pipeline",
-    ...
-]
-```
-
-### Input 2: Optional Configuration
-```python
-config = {
-    "commit_history_weight": 0.35,
-    "codebase_structure_weight": 0.35,
-    "diff_distance_weight": 0.30,
-    "clustering_threshold": 0.5,
-    "cache_dir": ".taskmaster/cache/",
-    "use_parallel": True,
-    "max_workers": 4
-}
-```
-
----
-
-## Output Specification
-
-### Output 1: categorized_branches.json
 ```json
 {
   "metadata": {
@@ -450,32 +295,24 @@ config = {
       "integration_target": "main",
       "cluster_id": 0,
       "confidence": 0.92,
-      "tags": ["core-feature", "security-sensitive", ...],
+      "tags": ["core-feature", "security-sensitive", "low-risk"],
       "metrics": {
         "commit_history_aggregate": 0.749,
         "codebase_structure_aggregate": 0.794,
         "diff_distance_aggregate": 0.750,
         "combined_score": 0.764
       }
-    },
-    ...
+    }
   },
   "summary": {
-    "by_target": {
-      "main": 8,
-      "scientific": 3,
-      "orchestration-tools": 2
-    },
-    "by_risk": {
-      "low-risk": 7,
-      "medium-risk": 5,
-      "high-risk": 1
-    }
+    "by_target": {"main": 8, "scientific": 3, "orchestration-tools": 2},
+    "by_risk": {"low-risk": 7, "medium-risk": 5, "high-risk": 1}
   }
 }
 ```
 
-### Output 2: clustered_branches.json
+### Output Schema 2: clustered_branches.json
+
 ```json
 {
   "metadata": {
@@ -489,7 +326,7 @@ config = {
     {
       "cluster_id": 0,
       "size": 8,
-      "branches": ["feature/auth-system", ...],
+      "branches": ["feature/auth-system"],
       "center": {
         "commit_history_weight": 0.749,
         "codebase_structure_weight": 0.794,
@@ -498,8 +335,7 @@ config = {
       },
       "cohesion": 0.92,
       "silhouette_score": 0.68
-    },
-    ...
+    }
   ],
   "quality_metrics": {
     "silhouette_avg": 0.71,
@@ -510,7 +346,8 @@ config = {
 }
 ```
 
-### Output 3: enhanced_orchestration_branches.json
+### Output Schema 3: enhanced_orchestration_branches.json
+
 ```json
 {
   "metadata": {
@@ -524,151 +361,142 @@ config = {
       "integration_target": "orchestration-tools",
       "cluster_id": 2,
       "confidence": 0.81,
-      "tags": ["orchestration-branch", "authentication", ...],
-      "metrics": {...},
+      "tags": ["orchestration-branch", "authentication"],
+      "metrics": {},
       "execution_context": {
         "parallel_capability": true,
         "test_intensity": "high",
         "validation_suites": ["unit", "integration", "orchestration"]
       }
-    },
-    ...
+    }
   ],
   "orchestration_summary": {
     "total_branches": 24,
-    "by_capability": {
-      "parallelizable": 18,
-      "serial": 6
-    },
-    "validation_distribution": {
-      "high_intensity": 8,
-      "medium_intensity": 12,
-      "low_intensity": 4
-    }
+    "by_capability": {"parallelizable": 18, "serial": 6},
+    "validation_distribution": {"high_intensity": 8, "medium_intensity": 12, "low_intensity": 4}
   }
 }
 ```
 
 ---
 
-## Implementation Checklist
+## Implementation Guide
 
-- [ ] Create `BranchClusteringPipeline` class
-- [ ] Initialize with repo_path and optional config
-- [ ] Implement `run()` method with orchestration logic
-- [ ] Implement parallelization for Tasks 002.1-002.3 (if use_parallel=True)
-- [ ] Instantiate and call CommitHistoryAnalyzer for each branch
-- [ ] Instantiate and call CodebaseStructureAnalyzer for each branch
-- [ ] Instantiate and call DiffDistanceCalculator for each branch
-- [ ] Combine metrics (35/35/30 weighting)
-- [ ] Instantiate and call BranchClusterer
-- [ ] Instantiate and call IntegrationTargetAssigner
-- [ ] Generate categorized_branches.json
-- [ ] Generate clustered_branches.json
-- [ ] Generate enhanced_orchestration_branches.json (filter for orchestration-tools)
-- [ ] Implement caching layer (save intermediate outputs)
-- [ ] Implement `get_branch_tags(branch_name)` utility method
-- [ ] Implement `export_json_outputs(output_dir)` method
-- [ ] Add logging and progress reporting
-- [ ] Return pipeline results dict
-- [ ] Add docstrings (Google style)
-
----
-
-## Caching Strategy
+### Step 1: Pipeline Initialization
 
 ```python
-# Cache structure
-.taskmaster/cache/
-├── branch_metrics/
-│   ├── feature__auth-system__commit_history.json
-│   ├── feature__auth-system__codebase_structure.json
-│   ├── feature__auth-system__diff_distance.json
-│   └── ...
-├── pipeline_results/
-│   ├── last_run.json
-│   └── history.log
-└── dendrograms/
-    └── dendrogram_2025-12-22.html
+class BranchClusteringPipeline:
+    def __init__(self, repo_path: str, config: dict = None):
+        self.repo_path = repo_path
+        self.config = {**CONFIG_DEFAULTS, **(config or {})}
+        self.logger = logging.getLogger(__name__)
 
-# On run():
-# 1. Check cache for branch metrics
-# 2. Re-run analyzers only for cache misses
-# 3. Save new metrics to cache
-# 4. Always re-run clustering/assignment (combines metrics)
+        self.commit_analyzer = CommitHistoryAnalyzer(repo_path)
+        self.structure_analyzer = CodebaseStructureAnalyzer(repo_path)
+        self.diff_calculator = DiffDistanceCalculator(repo_path)
+        self.clusterer = BranchClusterer(repo_path, self.config['clustering_threshold'])
+        self.assigner = IntegrationTargetAssigner(repo_path)
+
+        self._last_results = None
 ```
 
----
-
-## Parallelization Strategy
-
-Use `concurrent.futures.ThreadPoolExecutor`:
+### Step 2: Parallel Analyzer Execution
 
 ```python
-def run_analyzers_parallel(self, branches: list):
-    with ThreadPoolExecutor(max_workers=self.max_workers) as executor:
+def _run_analyzers_parallel(self, branches: list) -> dict:
+    results = {}
+    with ThreadPoolExecutor(max_workers=self.config['max_workers']) as executor:
         futures = {}
-        
-        # Submit commit history analyzer tasks
+
         for branch in branches:
-            future = executor.submit(
-                self.commit_history_analyzer.analyze, branch
+            futures[('commit', branch)] = executor.submit(
+                self.commit_analyzer.analyze, branch
             )
-            futures[('commit', branch)] = future
-        
-        # Submit codebase structure analyzer tasks
-        for branch in branches:
-            future = executor.submit(
-                self.codebase_structure_analyzer.analyze, branch
+            futures[('codebase', branch)] = executor.submit(
+                self.structure_analyzer.analyze, branch
             )
-            futures[('codebase', branch)] = future
-        
-        # Submit diff distance analyzer tasks
-        for branch in branches:
-            future = executor.submit(
-                self.diff_distance_calculator.analyze, branch
+            futures[('diff', branch)] = executor.submit(
+                self.diff_calculator.analyze, branch
             )
-            futures[('diff', branch)] = future
-        
-        # Collect results
-        results = {}
-        for key, future in futures.items():
-            results[key] = future.result()
-        
-        return results
+
+        for (analyzer_type, branch), future in futures.items():
+            if branch not in results:
+                results[branch] = {}
+            key_map = {'commit': 'commit_history', 'codebase': 'codebase_structure',
+                       'diff': 'diff_distance'}
+            results[branch][key_map[analyzer_type]] = future.result()
+
+    return results
+```
+
+### Step 3: Main Pipeline Orchestration
+
+```python
+def run(self, branches: list = None, use_cache: bool = True) -> dict:
+    self.logger.info(f"BranchClusteringPipeline initialized ({len(branches)} branches)")
+
+    # Check cache
+    cached, uncached = self._partition_cached(branches) if use_cache else ([], branches)
+    self.logger.info(f"Using cache for {len(cached)} branches, analyzing {len(uncached)} new")
+
+    # Run analyzers
+    if self.config['use_parallel']:
+        new_results = self._run_analyzers_parallel(uncached)
+    else:
+        new_results = self._run_analyzers_serial(uncached)
+
+    # Merge with cached results
+    all_results = {**self._load_cached(cached), **new_results}
+
+    # Save to cache
+    self._save_to_cache(new_results)
+
+    # Cluster
+    cluster_data = self.clusterer.cluster(all_results)
+    self.logger.info(
+        f"BranchClusterer: {len(branches)} branches → "
+        f"{cluster_data['quality_metrics']['total_clusters']} clusters"
+    )
+
+    # Assign targets
+    assignment_data = self.assigner.assign(cluster_data)
+    self.logger.info(f"IntegrationTargetAssigner: {len(branches)} branches assigned")
+
+    self._last_results = {
+        "analyzer_outputs": all_results,
+        "cluster_data": cluster_data,
+        "assignment_data": assignment_data
+    }
+
+    return self._last_results
+```
+
+### Step 4: JSON Export
+
+```python
+def export_json_outputs(self, output_dir: str) -> dict:
+    output_path = Path(output_dir)
+    output_path.mkdir(parents=True, exist_ok=True)
+
+    files = {}
+    for name, data in [
+        ("categorized_branches.json", self._build_categorized()),
+        ("clustered_branches.json", self._build_clustered()),
+        ("enhanced_orchestration_branches.json", self._build_orchestration())
+    ]:
+        path = output_path / name
+        with open(path, 'w') as f:
+            json.dump(data, f, indent=2)
+        files[name] = str(path)
+        self.logger.info(f"Generated {name}")
+
+    self.logger.info(f"Pipeline complete. Results saved to {output_dir}")
+    return files
 ```
 
 ---
 
-## Downstream Integration Points
-
-### Task 79 (Execution Control)
-Uses execution context tags:
-- `parallel_capability`: true/false (Task 002 provides via tags)
-- `serial_dependency_count`: inferred from tag analysis
-
-### Task 80 (Validation Intensity Selection)
-Uses complexity tags:
-- `simple` → low intensity
-- `moderate` → medium intensity
-- `complex` → high intensity
-
-### Task 83 (Test Suite Selection)
-Uses validation tags:
-- `testing-required-high` → full test suite
-- `testing-required-medium` → integration tests
-- `testing-optional` → smoke tests only
-
-### Task 101 (Orchestration Filter)
-Uses orchestration tags:
-- `orchestration-branch` → passes filter
-- Others → filtered out
-
----
-
-## Configuration
-
-Accept these parameters in `__init__` or config file:
+## Configuration & Defaults
 
 ```python
 CONFIG_DEFAULTS = {
@@ -686,30 +514,48 @@ CONFIG_DEFAULTS = {
 }
 ```
 
----
+### Cache File Structure
 
-## Test Cases
-
-1. **Fresh run**: No cache, analyze 10 branches, export all outputs
-2. **Incremental run**: 2 new branches added, use cache for others
-3. **Single branch**: Run pipeline for single branch (e.g., debugging)
-4. **Large batch**: 50+ branches (test parallelization)
-5. **Cache refresh**: Force re-analysis of all branches
-
----
-
-## Dependencies
-
-- All Stage One components: Task 002.1-002.3 (classes must be importable)
-- Stage One clustering: Task 002.4 (BranchClusterer)
-- Stage Two assignment: Task 002.5 (IntegrationTargetAssigner)
-- Python built-in: `json`, `logging`, `pathlib`, `concurrent.futures`
-- Optional: `plotly` for dendrogram HTML generation
-- Feeds into **Task 002.7 (Visualization & Reporting)**
+```
+.taskmaster/cache/
+├── branch_metrics/
+│   ├── feature__auth-system__commit_history.json
+│   ├── feature__auth-system__codebase_structure.json
+│   ├── feature__auth-system__diff_distance.json
+│   └── ...
+├── pipeline_results/
+│   ├── last_run.json
+│   └── history.log
+└── dendrograms/
+    └── dendrogram_2025-12-22.html
+```
 
 ---
 
-## Logging Output
+## Typical Development Workflow
+
+1. **Day 1:** Pipeline skeleton, config loading, component instantiation (002.6.1)
+2. **Day 2:** Serial execution pipeline with full data flow (002.6.2)
+3. **Day 3:** Parallel execution with ThreadPoolExecutor (002.6.3)
+4. **Day 4:** Caching layer with expiration and invalidation (002.6.4)
+5. **Day 5-6:** JSON output generation for all three files (002.6.5)
+6. **Day 6:** Utility methods, logging, progress reporting (002.6.6)
+7. **Day 7:** Integration testing across all scenarios (002.6.7)
+
+---
+
+## Integration Handoff
+
+### Downstream Integration Points
+
+| Downstream Task | JSON File Consumed | Tags/Fields Used |
+|-----------------|-------------------|------------------|
+| **Task 79** (Execution Control) | enhanced_orchestration_branches.json | `parallel_capability`, `execution_context` |
+| **Task 80** (Validation Intensity) | categorized_branches.json | `simple`/`moderate`/`complex` tags |
+| **Task 83** (Test Suite Selection) | categorized_branches.json | `testing-required-high`/`medium`/`optional` tags |
+| **Task 101** (Orchestration Filter) | enhanced_orchestration_branches.json | `orchestration-branch` tag filters |
+
+### Logging Output Example
 
 ```
 [2025-12-22 10:55:00] INFO: BranchClusteringPipeline initialized (13 branches)
@@ -725,1118 +571,109 @@ CONFIG_DEFAULTS = {
 
 ---
 
-## Next Steps After Completion
+## Common Gotchas & Solutions
 
-1. Unit test with 5-10 branch fixtures
-2. Integration test with real repo (13 branches)
-3. Verify JSON output schema validation
-4. Test caching and incremental updates
-5. Pass outputs to Task 002.7 (Visualization & Reporting)
+**Gotcha 1: ThreadPoolExecutor swallows exceptions**
+```python
+# WRONG: Exception in thread lost silently
+future = executor.submit(analyzer.analyze, branch)
+results[branch] = future.result()  # May raise, but only when .result() called
 
-**Blocked by:** 002.1, 002.2, 002.3, 002.4, 002.5 (all must complete first)
-**Enables:** 002.7, 002.8, 002.9 (Stage Three)
-
-## Purpose
-Orchestrate all Stage One and Stage Two components into a production pipeline. This Stage Two task integrates analyzers, clustering, and assignment into a cohesive system with caching, performance optimization, and output generation.
-
-**Scope:** BranchClusteringEngine orchestrator  
-**Effort:** 20-28 hours | **Complexity:** 6/10  
-**Status:** Ready when 002.1-002.5 complete  
-**Blocks:** Tasks 002.7, 002.8
-
----
-
-## Success Criteria
-
-Task 002.6 is complete when:
-
-**Core Functionality:**
-- [ ] `BranchClusteringEngine` orchestrates all prior tasks
-- [ ] Executes 002.1, 002.2, 002.3 analyzers in parallel
-- [ ] Feeds outputs to 002.4 (BranchClusterer)
-- [ ] Feeds clustering to 002.5 (IntegrationTargetAssigner)
-- [ ] Generates three JSON output files (specification format)
-- [ ] Implements caching for performance optimization
-- [ ] Output JSON files match schema exactly
-
-**Quality Assurance:**
-- [ ] Unit tests pass (minimum 6 test cases with >90% coverage)
-- [ ] No exceptions raised for valid inputs
-- [ ] Performance: <2 minutes for 13+ branches
-- [ ] Code quality: PEP 8 compliant, comprehensive docstrings
-
-**Integration Readiness:**
-- [ ] Compatible with Task 002.7 (VisualizationReporting) input
-- [ ] Compatible with Task 002.8 (TestingSuite) input
-- [ ] Generates downstream-compatible output files
-- [ ] Configuration externalized and validated
-- [ ] Documentation complete and accurate
-
----
-
-## Output Files
-
-### 1. categorized_branches.json
-Target assignments with tags and confidence scores
-
-```json
-{
-  "branches": [
-    {
-      "branch_name": "orchestration-tools",
-      "target_assignment": "main",
-      "confidence_score": 0.95,
-      "reasoning": "High stability, core framework changes",
-      "tags": ["tag:main_branch", "tag:sequential_required", ...],
-      "affinity_score": 0.87,
-      "cluster_id": 1
-    }
-  ],
-  "summary": {
-    "total_branches": 13,
-    "main_target_count": 4,
-    "science_target_count": 5,
-    "orchestration_target_count": 4
-  }
-}
+# RIGHT: Wrap with explicit error handling
+try:
+    results[branch] = future.result(timeout=60)
+except Exception as e:
+    self.logger.error(f"Analyzer failed for {branch}: {e}")
+    raise
 ```
 
-### 2. clustered_branches.json
-Cluster analysis with quality metrics
+**Gotcha 2: Cache file naming with slashes**
+```python
+# WRONG: Branch name "feature/auth" creates nested directories
+cache_path = cache_dir / f"{branch_name}_commit.json"  # Creates feature/ subdirectory
 
-```json
-{
-  "clusters": [
-    {
-      "cluster_id": 0,
-      "member_branches": ["branch1", "branch2", ...],
-      "cluster_center": {...},
-      "cluster_size": 4,
-      "quality_metrics": {
-        "silhouette_score": 0.65,
-        "davies_bouldin_index": 1.2,
-        "calinski_harabasz_score": 15.3
-      }
-    }
-  ],
-  "overall_quality": {
-    "silhouette_score": 0.62,
-    "davies_bouldin_index": 1.3,
-    "calinski_harabasz_score": 14.8
-  }
-}
+# RIGHT: Replace slashes with double underscores
+safe_name = branch_name.replace("/", "__")
+cache_path = cache_dir / f"{safe_name}_commit.json"
 ```
 
-### 3. enhanced_orchestration_branches.json
-Special handling for orchestration-tools branches
+**Gotcha 3: Stale cache after branch force-push**
+```python
+# WRONG: Cache based only on branch name
+if cache_file.exists():
+    return load_cache(cache_file)
 
-```json
-{
-  "orchestration_branches": [
-    {
-      "branch_name": "orchestration-tools",
-      "classification": "core",
-      "tags": ["tag:task_101_orchestration", ...],
-      "integration_target": "main",
-      "execution_strategy": "sequential_required"
-    }
-  ],
-  "summary": {
-    "total_orchestration_branches": 4,
-    "core_branches": 2,
-    "extension_branches": 2
-  }
-}
+# RIGHT: Include branch HEAD SHA in cache key
+branch_sha = get_branch_head_sha(branch)
+cache_key = f"{safe_name}_{branch_sha[:8]}"
 ```
 
----
+**Gotcha 4: JSON output not atomic**
+```python
+# WRONG: Partial write if interrupted
+with open(output_path, 'w') as f:
+    json.dump(data, f)
 
-## Subtasks
-
-### 002.6.1: Design Pipeline Architecture
-**Purpose:** Design overall orchestration flow  
-**Effort:** 2-3 hours
-
-**Steps:**
-1. Document end-to-end pipeline flow
-2. Define dependency graph
-3. Design parallelization strategy
-4. Plan caching strategy
-5. Define output specifications
-
-**Success Criteria:**
-- [ ] Pipeline flow clearly documented
-- [ ] Dependencies identified
-- [ ] Parallelization approach specified
-- [ ] Caching strategy designed
-
----
-
-### 002.6.2: Implement Pipeline Orchestration
-**Purpose:** Create BranchClusteringEngine orchestrator  
-**Effort:** 4-5 hours
-
-**Steps:**
-1. Create engine class with initialization
-2. Implement sequential/parallel execution logic
-3. Implement error handling and recovery
-4. Add progress tracking/logging
-5. Implement timeout handling
-
-**Success Criteria:**
-- [ ] Executes all components correctly
-- [ ] Handles errors gracefully
-- [ ] Provides useful progress feedback
-- [ ] Completes within time limits
-
----
-
-### 002.6.3: Implement Caching Strategy
-**Purpose:** Optimize performance through caching  
-**Effort:** 3-4 hours
-
-**Steps:**
-1. Design cache key strategy
-2. Implement file-based caching
-3. Add cache invalidation logic
-4. Implement cache size limits
-5. Add cache statistics tracking
-
-**Success Criteria:**
-- [ ] Caches analyzer outputs
-- [ ] Invalidates when needed
-- [ ] Respects size limits
-- [ ] Provides cache hit statistics
-
----
-
-### 002.6.4: Implement Output Generation
-**Purpose:** Generate three JSON output files  
-**Effort:** 3-4 hours
-
-**Steps:**
-1. Implement categorized_branches.json generation
-2. Implement clustered_branches.json generation
-3. Implement enhanced_orchestration_branches.json generation
-4. Add output validation
-5. Add output formatting/prettification
-
-**Success Criteria:**
-- [ ] All three files generated correctly
-- [ ] Files match JSON schema
-- [ ] Output is valid JSON
-- [ ] Formatting is consistent
-
----
-
-### 002.6.5: Implement Performance Optimization
-**Purpose:** Optimize for speed and resource usage  
-**Effort:** 3-4 hours
-
-**Steps:**
-1. Profile execution to identify bottlenecks
-2. Implement parallelization where possible
-3. Optimize data structures
-4. Implement streaming for large datasets
-5. Monitor memory usage
-
-**Success Criteria:**
-- [ ] Meets <2 minute target for 13 branches
-- [ ] Memory usage reasonable (<100MB)
-- [ ] CPU usage efficient
-- [ ] Parallelization working
-
----
-
-### 002.6.6: Implement Error Handling & Recovery
-**Purpose:** Ensure robust operation  
-**Effort:** 2-3 hours
-
-**Steps:**
-1. Implement comprehensive error handling
-2. Add logging at all stages
-3. Implement retry logic for transient errors
-4. Add graceful degradation
-5. Document error codes and recovery
-
-**Success Criteria:**
-- [ ] All error paths handled
-- [ ] Errors logged with context
-- [ ] Graceful degradation working
-- [ ] Recovery logic tested
-
----
-
-### 002.6.7: Implement Configuration Management
-**Purpose:** Externalize all configuration  
-**Effort:** 2-3 hours
-
-**Steps:**
-1. Define configuration schema
-2. Implement config file loading
-3. Implement config validation
-4. Add defaults and overrides
-5. Document all parameters
-
-**Success Criteria:**
-- [ ] All parameters configurable
-- [ ] Config file format simple
-- [ ] Validation working
-- [ ] Documentation complete
-
----
-
-### 002.6.8: Write Integration Tests
-**Purpose:** Comprehensive integration testing  
-**Effort:** 3-4 hours
-
-**Steps:**
-1. Create test fixtures with sample branches
-2. Implement 6+ integration test cases
-3. Test end-to-end pipeline
-4. Test output file generation
-5. Generate coverage report
-
-**Success Criteria:**
-- [ ] 6+ integration tests pass
-- [ ] End-to-end flow verified
-- [ ] Output files validated
-- [ ] Coverage >90%
-
----
-
-## Configuration Parameters
-
-- `ENABLE_PARALLELIZATION` = true
-- `NUM_PARALLEL_WORKERS` = 3
-- `ENABLE_CACHING` = true
-- `CACHE_DIR` = "./cache"
-- `CACHE_MAX_SIZE_MB` = 500
-- `EXECUTION_TIMEOUT_SECONDS` = 300
-- `OUTPUT_DIR` = "./output"
-- `PRETTY_PRINT_JSON` = true
+# RIGHT: Write to temp, then rename
+tmp_path = output_path.with_suffix('.tmp')
+with open(tmp_path, 'w') as f:
+    json.dump(data, f, indent=2)
+tmp_path.rename(output_path)
+```
 
 ---
 
 ## Integration Checkpoint
 
-**When to move to 002.7 & 002.8:**
-- [ ] All 8 subtasks complete
-- [ ] Integration tests passing (>90% coverage)
-- [ ] Accepts outputs from Tasks 002.1-002.5
-- [ ] Generates all three JSON files
-- [ ] Output files match specification
-- [ ] Performance meets targets (<2 minutes)
-- [ ] Ready for visualization and testing
+**When pipeline is ready for downstream consumption:**
 
----
-
-## Performance Targets
-
-- **End-to-end execution:** <2 minutes for 13+ branches
-- **Analyzer execution:** <30 seconds each (parallel)
-- **Clustering:** <10 seconds
-- **Assignment:** <5 seconds
-- **Output generation:** <5 seconds
-- **Memory usage:** <100MB peak
+- [ ] All 7 sub-subtasks complete (002.6.1 through 002.6.7)
+- [ ] All 5 test scenarios pass (fresh, incremental, single, large, cache refresh)
+- [ ] Three JSON output files generated and schema-validated
+- [ ] Parallel and serial execution produce identical results
+- [ ] Caching works correctly (hit, miss, expiration, force refresh)
+- [ ] Logging output matches expected format
+- [ ] All downstream tasks (79, 80, 83, 101) can consume outputs
+- [ ] Code review approved
+- [ ] Commit message: `feat: complete Task 002.6 PipelineIntegration`
 
 ---
 
 ## Done Definition
 
 Task 002.6 is done when:
-1. All 8 subtasks marked complete
-2. Integration tests pass (>90% coverage)
-3. End-to-end pipeline working
-4. All output files generated correctly
-5. Performance targets met
-6. Ready for visualization (002.7) and testing (002.8)
 
-## Purpose
-
-Integrate clustering system with the alignment pipeline (Tasks 016-017) for automated branch processing.
-
----
-
-## Details
-
-Implement integration points:
-- Read categorized_branches.json from Task 002.5 output
-- Feed branch assignments to Task 016 orchestrator
-- Handle Task 007 (Feature Branch Identification) as execution mode
-- Report status and results back to pipeline
-- Support incremental updates as new branches appear
+1. All 7 sub-subtasks marked complete
+2. Unit and integration tests pass (>95% coverage)
+3. Code review approved
+4. Three JSON files generated matching schemas exactly
+5. Pipeline runs end-to-end without errors
+6. Parallel execution verified equivalent to serial
+7. Caching layer functional with proper invalidation
+8. Logging provides clear execution visibility
+9. Documentation complete (Google-style docstrings)
+10. Commit: `feat: complete Task 002.6 PipelineIntegration`
 
 ---
 
-## Guidance & Standards
+## Provenance
 
-- **Architecture:** [Comprehensive Guide](../guidance/COMPREHENSIVE_CLI_ARCHITECTURE_GUIDE.md)
-- **Merging:** [Merge Guidance](../guidance/MERGE_GUIDANCE_DOCUMENTATION.md)
-- **Patterns:** [Factory Pattern](../guidance/FACTORY_PATTERN_IMPLEMENTATION_GUIDE.md)
-- **General:** [Project Guidance](../guidance/README.md)
-
----
-
-## Success Criteria
-
-- [ ] Reads Task 002.5 output format
-- [ ] Integrates with Task 016 execution framework
-- [ ] Implements Task 007 feature branch ID mode
-- [ ] Reports processing status
-- [ ] Handles incremental updates
+- **Primary source:** HANDOFF_75.6_PipelineIntegration.md (archived in task_data/migration_backup_20260129/)
+- **Task ID mapping:** Original Task 75.6 → Current Task 002.6
+- **Structure standard:** TASK_STRUCTURE_STANDARD.md (14-section format, approved January 6, 2026)
+- **Upstream dependencies:** Tasks 002.1, 002.2, 002.3, 002.4, 002.5
+- **Downstream consumers:** Task 79 (Execution Control), Task 80 (Validation Intensity), Task 83 (Test Suite Selection), Task 101 (Orchestration Filter)
 
 ---
-
-## Test Strategy
-
-- Test with sample categorized_branches.json
-- Verify integration with Task 016
-- Test Task 007 mode operation
-- Validate status reporting
-
----
-
----
-
-## Implementation Notes
-
-_Add implementation notes here as work progresses_
-
----
-
-## Progress Log
-
-### 2026-01-12
-- Subtask file created from main task template
-- Ready for implementation
-**Priority:** high
-**Effort:** 20-28 hours
-**Complexity:** 6/10
-**Dependencies:** 002.5
-**Created:** 2026-01-12
-**Parent:** Task 002: Branch Clustering System
-
----
-
-## Purpose
-
-Integrate clustering system with the alignment pipeline (Tasks 016-017) for automated branch processing.
-
----
-
-## Details
-
-Implement integration points:
-- Read categorized_branches.json from Task 002.5 output
-- Feed branch assignments to Task 016 orchestrator
-- Handle Task 007 (Feature Branch Identification) as execution mode
-- Report status and results back to pipeline
-- Support incremental updates as new branches appear
-
----
-
-## Guidance & Standards
-
-- **Architecture:** [Comprehensive Guide](../guidance/COMPREHENSIVE_CLI_ARCHITECTURE_GUIDE.md)
-- **Merging:** [Merge Guidance](../guidance/MERGE_GUIDANCE_DOCUMENTATION.md)
-- **Patterns:** [Factory Pattern](../guidance/FACTORY_PATTERN_IMPLEMENTATION_GUIDE.md)
-- **General:** [Project Guidance](../guidance/README.md)
-
----
-
-## Success Criteria
-
-- [ ] Reads Task 002.5 output format
-- [ ] Integrates with Task 016 execution framework
-- [ ] Implements Task 007 feature branch ID mode
-- [ ] Reports processing status
-- [ ] Handles incremental updates
-
----
-
-## Test Strategy
-
-- Test with sample categorized_branches.json
-- Verify integration with Task 016
-- Test Task 007 mode operation
-- Validate status reporting
-
----
-
----
-
-## Implementation Notes
-
-_Add implementation notes here as work progresses_
-
----
-
-## Progress Log
-
-### 2026-01-12
-- Subtask file created from main task template
-- Ready for implementation
-**Dependencies:** 002.5
-**Created:** 2026-01-12
-**Parent:** Task 002: Branch Clustering System
-
----
-
-## Purpose
-
-Integrate clustering system with the alignment pipeline (Tasks 016-017) for automated branch processing.
-
----
-
-## Details
-
-Implement integration points:
-- Read categorized_branches.json from Task 002.5 output
-- Feed branch assignments to Task 016 orchestrator
-- Handle Task 007 (Feature Branch Identification) as execution mode
-- Report status and results back to pipeline
-- Support incremental updates as new branches appear
-
----
-
-## Guidance & Standards
-
-- **Architecture:** [Comprehensive Guide](../guidance/COMPREHENSIVE_CLI_ARCHITECTURE_GUIDE.md)
-- **Merging:** [Merge Guidance](../guidance/MERGE_GUIDANCE_DOCUMENTATION.md)
-- **Patterns:** [Factory Pattern](../guidance/FACTORY_PATTERN_IMPLEMENTATION_GUIDE.md)
-- **General:** [Project Guidance](../guidance/README.md)
-
----
-
-## Success Criteria
-
-- [ ] Reads Task 002.5 output format
-- [ ] Integrates with Task 016 execution framework
-- [ ] Implements Task 007 feature branch ID mode
-- [ ] Reports processing status
-- [ ] Handles incremental updates
-
----
-
-## Test Strategy
-
-- Test with sample categorized_branches.json
-- Verify integration with Task 016
-- Test Task 007 mode operation
-- Validate status reporting
-
----
-
----
-
-## Implementation Notes
-
-_Add implementation notes here as work progresses_
-
----
-
-## Progress Log
-
-### 2026-01-12
-- Subtask file created from main task template
-- Ready for implementation
-**Effort:** TBD
-**Complexity:** TBD
-
-## Overview/Purpose
-Implement integration points:
-- Read categorized_branches.json from Task 002.5 output
-- Feed branch assignments to Task 016 orchestrator
-- Handle Task 007 (Feature Branch Identification) as execution ...
-
-## Success Criteria
-
-- [ ] [Success criteria to be defined]
-
-## Prerequisites & Dependencies
-
-### Required Before Starting
-- [ ] 002.5
-**Created:** 2026-01-12
-**Parent:** Task 002: Branch Clustering System
-
----
-
-## Purpose
-
-Integrate clustering system with the alignment pipeline (Tasks 016-017) for automated branch processing.
-
----
-
-## Details
-
-Implement integration points:
-- Read categorized_branches.json from Task 002.5 output
-- Feed branch assignments to Task 016 orchestrator
-- Handle Task 007 (Feature Branch Identification) as execution mode
-- Report status and results back to pipeline
-- Support incremental updates as new branches appear
-
----
-
-## Guidance & Standards
-
-- **Architecture:** [Comprehensive Guide](../guidance/COMPREHENSIVE_CLI_ARCHITECTURE_GUIDE.md)
-- **Merging:** [Merge Guidance](../guidance/MERGE_GUIDANCE_DOCUMENTATION.md)
-- **Patterns:** [Factory Pattern](../guidance/FACTORY_PATTERN_IMPLEMENTATION_GUIDE.md)
-- **General:** [Project Guidance](../guidance/README.md)
-
----
-
-## Success Criteria
-
-- [ ] Reads Task 002.5 output format
-- [ ] Integrates with Task 016 execution framework
-- [ ] Implements Task 007 feature branch ID mode
-- [ ] Reports processing status
-- [ ] Handles incremental updates
-
----
-
-## Test Strategy
-
-- Test with sample categorized_branches.json
-- Verify integration with Task 016
-- Test Task 007 mode operation
-- Validate status reporting
-
----
-
----
-
-## Implementation Notes
-
-_Add implementation notes here as work progresses_
-
----
-
-## Progress Log
-
-### 2026-01-12
-- Subtask file created from main task template
-- Ready for implementation
-
-### Blocks (What This Task Unblocks)
-- [ ] None specified
-
-### External Dependencies
-- [ ] None
-
-## Sub-subtasks Breakdown
-
-# No subtasks defined
-
-## Specification Details
-
-### Task Interface
-- **ID**: 
-- **Title**: 
-- **Status**: pending
-**Priority:** high
-**Effort:** 20-28 hours
-**Complexity:** 6/10
-**Dependencies:** 002.5
-**Created:** 2026-01-12
-**Parent:** Task 002: Branch Clustering System
-
----
-
-## Purpose
-
-Integrate clustering system with the alignment pipeline (Tasks 016-017) for automated branch processing.
-
----
-
-## Details
-
-Implement integration points:
-- Read categorized_branches.json from Task 002.5 output
-- Feed branch assignments to Task 016 orchestrator
-- Handle Task 007 (Feature Branch Identification) as execution mode
-- Report status and results back to pipeline
-- Support incremental updates as new branches appear
-
----
-
-## Guidance & Standards
-
-- **Architecture:** [Comprehensive Guide](../guidance/COMPREHENSIVE_CLI_ARCHITECTURE_GUIDE.md)
-- **Merging:** [Merge Guidance](../guidance/MERGE_GUIDANCE_DOCUMENTATION.md)
-- **Patterns:** [Factory Pattern](../guidance/FACTORY_PATTERN_IMPLEMENTATION_GUIDE.md)
-- **General:** [Project Guidance](../guidance/README.md)
-
----
-
-## Success Criteria
-
-- [ ] Reads Task 002.5 output format
-- [ ] Integrates with Task 016 execution framework
-- [ ] Implements Task 007 feature branch ID mode
-- [ ] Reports processing status
-- [ ] Handles incremental updates
-
----
-
-## Test Strategy
-
-- Test with sample categorized_branches.json
-- Verify integration with Task 016
-- Test Task 007 mode operation
-- Validate status reporting
-
----
-
----
-
-## Implementation Notes
-
-_Add implementation notes here as work progresses_
-
----
-
-## Progress Log
-
-### 2026-01-12
-- Subtask file created from main task template
-- Ready for implementation
-- **Priority**: high
-**Effort:** 20-28 hours
-**Complexity:** 6/10
-**Dependencies:** 002.5
-**Created:** 2026-01-12
-**Parent:** Task 002: Branch Clustering System
-
----
-
-## Purpose
-
-Integrate clustering system with the alignment pipeline (Tasks 016-017) for automated branch processing.
-
----
-
-## Details
-
-Implement integration points:
-- Read categorized_branches.json from Task 002.5 output
-- Feed branch assignments to Task 016 orchestrator
-- Handle Task 007 (Feature Branch Identification) as execution mode
-- Report status and results back to pipeline
-- Support incremental updates as new branches appear
-
----
-
-## Guidance & Standards
-
-- **Architecture:** [Comprehensive Guide](../guidance/COMPREHENSIVE_CLI_ARCHITECTURE_GUIDE.md)
-- **Merging:** [Merge Guidance](../guidance/MERGE_GUIDANCE_DOCUMENTATION.md)
-- **Patterns:** [Factory Pattern](../guidance/FACTORY_PATTERN_IMPLEMENTATION_GUIDE.md)
-- **General:** [Project Guidance](../guidance/README.md)
-
----
-
-## Success Criteria
-
-- [ ] Reads Task 002.5 output format
-- [ ] Integrates with Task 016 execution framework
-- [ ] Implements Task 007 feature branch ID mode
-- [ ] Reports processing status
-- [ ] Handles incremental updates
-
----
-
-## Test Strategy
-
-- Test with sample categorized_branches.json
-- Verify integration with Task 016
-- Test Task 007 mode operation
-- Validate status reporting
-
----
-
----
-
-## Implementation Notes
-
-_Add implementation notes here as work progresses_
-
----
-
-## Progress Log
-
-### 2026-01-12
-- Subtask file created from main task template
-- Ready for implementation
-- **Effort**: N/A
-- **Complexity**: N/A
-
-## Implementation Guide
-
-Implement integration points:
-- Read categorized_branches.json from Task 002.5 output
-- Feed branch assignments to Task 016 orchestrator
-- Handle Task 007 (Feature Branch Identification) as execution mode
-- Report status and results back to pipeline
-- Support incremental updates as new branches appear
-
-## Configuration Parameters
-
-- **Owner**: TBD
-- **Initiative**: TBD
-- **Scope**: TBD
-- **Focus**: TBD
-
-## Performance Targets
-
-- **Effort Range**: TBD
-- **Complexity Level**: TBD
-
-## Testing Strategy
-
-### Unit Tests
-- [ ] Tests cover core functionality
-- [ ] Edge cases handled appropriately
-- [ ] Performance benchmarks met
-
-### Integration Tests
-- [ ] Integration with dependent components verified
-- [ ] End-to-end workflow tested
-- [ ] Error handling verified
-
-### Test Strategy Notes
-- Test with sample categorized_branches.json
-- Verify integration with Task 016
-- Test Task 007 mode operation
-- Validate status reporting
-
-## Common Gotchas & Solutions
-
-- [ ] [Common issues and solutions to be documented]
-
-## Integration Checkpoint
-
-### Criteria for Moving Forward
-- [ ] All success criteria met
-- [ ] Code reviewed and approved
-- [ ] Tests passing
-- [ ] Documentation updated
-- [ ] No critical or high severity issues
-
-## Done Definition
-
-### Completion Criteria
-- [ ] All success criteria checkboxes marked complete
-- [ ] Code quality standards met (PEP 8, documentation)
-- [ ] Performance targets achieved
-- [ ] All subtasks completed
-- [ ] Integration checkpoint criteria satisfied
 
 ## Next Steps
 
-1. **Implementation Phase**: Begin with Phase 1 implementation focusing on class structure and pipeline architecture
-2. **Unit Testing**: Develop comprehensive test suite with 6+ test cases covering all pipeline aspects
-3. **Integration Testing**: Verify output compatibility with downstream tasks (002.7, 002.8) input requirements
-4. **Performance Validation**: Confirm pipeline completes for 13+ branches in under 2 minutes
-5. **Code Review**: Submit for peer review ensuring PEP 8 compliance and comprehensive documentation
-6. **Handoff Preparation**: Prepare for integration with downstream tasks once implementation is complete
-7. **Documentation**: Complete any remaining documentation gaps identified during implementation
-
-
-<!-- EXTENDED_METADATA
-END_EXTENDED_METADATA -->
-
-## Configuration Parameters
-
-- **Owner**: TBD
-- **Initiative**: TBD
-- **Scope**: TBD
-- **Focus**: TBD
-
----
-
-<!-- IMPORTED_FROM: backup_task75/task-002.6.md -->
-- `ENABLE_PARALLELIZATION` = true
-- `NUM_PARALLEL_WORKERS` = 3
-- `ENABLE_CACHING` = true
-- `CACHE_DIR` = "./cache"
-- `CACHE_MAX_SIZE_MB` = 500
-- `EXECUTION_TIMEOUT_SECONDS` = 300
-- `OUTPUT_DIR` = "./output"
-- `PRETTY_PRINT_JSON` = true
-
----
-
-## Performance Targets
-
-- **Effort Range**: 20-28 hours
-- **Complexity Level**: 6/10
-
----
-
-<!-- IMPORTED_FROM: backup_task75/task-002.6.md -->
-- **End-to-end execution:** <2 minutes for 13+ branches
-- **Analyzer execution:** <30 seconds each (parallel)
-- **Clustering:** <10 seconds
-- **Assignment:** <5 seconds
-- **Output generation:** <5 seconds
-- **Memory usage:** <100MB peak
-
----
-
-## Testing Strategy
-
-### Unit Testing Approach
-- **Minimum 6 test cases** covering all pipeline stages
-- **Edge case testing** for partial failures, empty branches, repository errors
-- **Performance testing** to ensure <2 minute execution time for 13+ branches
-- **Code coverage** >95% across all functions and branches
-
-### Test Cases to Implement
-
-**Test Case 1: Complete Pipeline Execution**
-- Input: Repository with 13 feature branches of varied characteristics
-- Expected: All 5 stages execute successfully, 3 JSON output files generated
-- Validation: Output files match schema specifications exactly
-
-**Test Case 2: Partial Pipeline Failure**
-- Input: Repository with 1 branch that causes analyzer failure
-- Expected: Pipeline continues, error logged, other branches processed normally
-- Validation: Error isolation works, results contain error markers
-
-**Test Case 3: Caching Functionality**
-- Input: Same repository run twice consecutively
-- Expected: Second run uses cached results where valid
-- Validation: Performance improvement, cache invalidation when needed
-
-**Test Case 4: Large Repository Performance**
-- Input: Repository with 50+ branches
-- Expected: Performance under 2 minutes, memory usage <500MB
-- Validation: No timeouts or memory issues
-
-**Test Case 5: Task 016 Integration Compatibility**
-- Input: Pipeline output from various branch types
-- Expected: Output matches Task 016 input requirements exactly
-- Validation: Schema validation passes for downstream consumption
-
-**Test Case 6: Incremental Update Mode**
-- Input: Repository with 5 new branches added to previous run
-- Expected: Only new branches processed, cached results reused
-- Validation: Correct incremental processing, complete results returned
-
-### Integration Testing
-- Test with real repository fixtures with known characteristics
-- Verify output compatibility with Task 016 execution framework
-- End-to-end pipeline validation with performance benchmarks
-- Cross-validation with manual pipeline execution
-
-## Common Gotchas & Solutions
-
-### Gotcha 1: Pipeline Dependency Management ⚠️
-**Problem:** Pipeline stages execute out of order or dependencies not properly validated
-**Symptom:** Stage 2 (clustering) executes before Stage 1 (analysis) completes
-**Root Cause:** Not properly implementing dependency validation and sequencing
-**Solution:** Implement explicit dependency checking with proper sequencing
-```python
-def execute_pipeline(self, repo_path: str, branches: list):
-    # Stage 1: Execute analyzers in parallel
-    analyzer_outputs = self._execute_stage_one_analyzers(repo_path, branches)
-
-    # Validate all analyzer outputs exist before proceeding
-    for branch in branches:
-        if branch not in analyzer_outputs:
-            raise PipelineError(f"Missing analyzer output for branch {branch}")
-
-    # Stage 2: Execute clustering with analyzer outputs
-    cluster_results = self._execute_stage_two_clustering(analyzer_outputs)
-
-    # Stage 3: Execute target assignment with cluster results
-    assignment_results = self._execute_stage_three_assignment(cluster_results)
-
-    return assignment_results
-```
-
-### Gotcha 2: Caching Invalidation ⚠️
-**Problem:** Cached results become stale but pipeline continues using invalid data
-**Symptom:** Pipeline returns outdated results after repository changes
-**Root Cause:** Not properly invalidating cache when source data changes
-**Solution:** Implement proper cache invalidation based on repository state
-```python
-def _get_cache_key(self, repo_path: str, branches: list, config_hash: str):
-    """Generate cache key based on repo state and configuration."""
-    import hashlib
-    import os
-
-    # Include last modified time of relevant files
-    repo_mtime = max(os.path.getmtime(os.path.join(repo_path, '.git')),
-                     os.path.getmtime(os.path.join(repo_path, '.')))
-
-    cache_input = f"{repo_path}:{sorted(branches)}:{config_hash}:{repo_mtime}"
-    return hashlib.md5(cache_input.encode()).hexdigest()
-
-def _is_cache_valid(self, cache_key: str, repo_path: str):
-    """Check if cached results are still valid."""
-    cache_file = f".cache/{cache_key}.json"
-    if not os.path.exists(cache_file):
-        return False
-
-    # Check if repo has changed since cache was created
-    cache_time = os.path.getmtime(cache_file)
-    repo_time = max(os.path.getmtime(os.path.join(repo_path, '.git')),
-                    os.path.getmtime(os.path.join(repo_path, '.')))
-
-    return cache_time > repo_time
-```
-
-### Gotcha 3: Memory Management with Large Branch Sets ⚠️
-**Problem:** Pipeline consumes excessive memory with 100+ branches
-**Symptom:** Process killed by OS due to memory limits during pipeline execution
-**Root Cause:** Loading all branch data into memory simultaneously
-**Solution:** Implement streaming/batch processing for large branch sets
-```python
-def _execute_pipeline_in_batches(self, repo_path: str, all_branches: list, batch_size: int = 20):
-    """Execute pipeline in batches to manage memory usage."""
-    results = {}
-
-    for i in range(0, len(all_branches), batch_size):
-        batch = all_branches[i:i+batch_size]
-
-        # Execute pipeline for batch
-        batch_results = self.execute_pipeline(repo_path, batch)
-
-        # Add to overall results
-        results.update(batch_results)
-
-        # Clear intermediate objects to free memory
-        del batch_results
-        import gc
-        gc.collect()
-
-    return results
-```
-
-### Gotcha 4: Partial Pipeline Failure Handling ⚠️
-**Problem:** When one branch fails, entire pipeline stops or produces incomplete results
-**Symptom:** Pipeline terminates when single branch analysis fails
-**Root Cause:** Not implementing proper error isolation and continuation
-**Solution:** Implement error isolation with detailed failure reporting
-```python
-def _execute_with_error_isolation(self, func, branch_name, *args, **kwargs):
-    """Execute function with error isolation and detailed reporting."""
-    try:
-        return func(*args, **kwargs)
-    except Exception as e:
-        error_info = {
-            'branch': branch_name,
-            'error_type': type(e).__name__,
-            'error_message': str(e),
-            'timestamp': datetime.now().isoformat(),
-            'stage': func.__name__ if hasattr(func, '__name__') else 'unknown'
-        }
-
-        # Log error but continue processing
-        self.logger.warning(f"Error processing branch {branch_name}: {e}")
-
-        # Return error marker for downstream handling
-        return {'error': error_info}
-
-def execute_pipeline(self, repo_path: str, branches: list):
-    """Execute pipeline with error isolation for each branch."""
-    results = {}
-
-    for branch in branches:
-        result = self._execute_with_error_isolation(
-            self._execute_single_branch_pipeline,
-            branch,
-            repo_path,
-            branch
-        )
-        results[branch] = result
-
-    return results
-```
-
-### Gotcha 5: Integration with Task 016 Framework ⚠️
-**Problem:** Pipeline output format doesn't match Task 016 input requirements
-**Symptom:** Integration failures when connecting to Task 016 execution framework
-**Root Cause:** Not validating output format against downstream requirements
-**Solution:** Implement output validation against Task 016 schema
-```python
-def _validate_output_compatibility(self, pipeline_output: dict):
-    """Validate pipeline output against Task 016 requirements."""
-    required_fields = [
-        'branch_name',
-        'integration_target',
-        'confidence_score',
-        'assignment_reasoning',
-        'tags',
-        'analysis_timestamp'
-    ]
-
-    for branch, data in pipeline_output.items():
-        if isinstance(data, dict) and 'error' not in data:
-            for field in required_fields:
-                if field not in data:
-                    raise ValidationError(
-                        f"Branch {branch} missing required field: {field} "
-                        f"for Task 016 compatibility"
-                    )
-
-    return True
-```
-
-## Integration Checkpoint
-
-### Criteria for Moving Forward
-- [ ] All success criteria met
-- [ ] Code reviewed and approved
-- [ ] Tests passing
-- [ ] Documentation updated
-- [ ] No critical or high severity issues
-
----
-
-<!-- IMPORTED_FROM: backup_task75/task-002.6.md -->
-**When to move to 002.7 & 002.8:**
-- [ ] All 8 subtasks complete
-- [ ] Integration tests passing (>90% coverage)
-- [ ] Accepts outputs from Tasks 002.1-002.5
-- [ ] Generates all three JSON files
-- [ ] Output files match specification
-- [ ] Performance meets targets (<2 minutes)
-- [ ] Ready for visualization and testing
-
----
-
-## Done Definition
-
-### Completion Criteria
-- [ ] All success criteria met
-- [ ] Code reviewed and approved
-- [ ] Tests passing
-- [ ] Documentation updated
-
----
-
-<!-- IMPORTED_FROM: backup_task75/task-002.6.md -->
-Task 002.6 is done when:
-1. All 8 subtasks marked complete
-2. Integration tests pass (>90% coverage)
-3. End-to-end pipeline working
-4. All output files generated correctly
-5. Performance targets met
-6. Ready for visualization (002.7) and testing (002.8)
-
-## Next Steps
-
-1. **Implementation Phase**: Begin with Phase 1 implementation focusing on pipeline architecture and orchestration
-2. **Unit Testing**: Develop comprehensive test suite with 6+ test cases covering all pipeline stages
-3. **Integration Testing**: Verify output compatibility with Task 016 execution framework requirements
-4. **Performance Validation**: Confirm pipeline completes for 13+ branches in under 2 minutes
-5. **Code Review**: Submit for peer review ensuring PEP 8 compliance and comprehensive documentation
-6. **Handoff Preparation**: Prepare for integration with downstream tasks once implementation is complete
-7. **Documentation**: Complete any remaining documentation gaps identified during implementation
+1. **Immediate:** Begin with sub-subtask 002.6.1 (Design Pipeline Architecture and Execution Flow)
+2. **Week 1:** Complete all 7 sub-subtasks with proper orchestration logic
+3. **Week 1-2:** Implement parallel execution framework for Stage One analyzers
+4. **Week 2:** Create caching layer with proper invalidation strategy
+5. **Week 2:** Write comprehensive tests for all 7 pipeline scenarios
+6. **Week 2-3:** Performance validation and optimization for large repositories
+7. **Week 3:** Code review and documentation completion
+8. **Upon completion:** Ready for hand-off to downstream tasks (79, 80, 83, 101)
+9. **Parallel tasks:** Task 002.7 (VisualizationReporting), Task 002.8 (TestingSuite) can proceed in parallel

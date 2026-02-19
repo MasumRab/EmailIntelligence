@@ -1,4 +1,4 @@
-# Task UNKNOWN: Untitled Task
+# Task 008.4: Untitled Task
 
 **Status:** pending
 **Priority:** high
@@ -14,7 +14,7 @@ Configure CI to execute full test suite and block on failures.
 
 ## Success Criteria
 
-- [ ] - [ ] Tests run in CI
+- [ ] Tests run in CI
 - [ ] Coverage reported
 - [ ] Failures block merge
 - [ ] Coverage threshold enforced
@@ -40,7 +40,7 @@ Configure CI to execute full test suite and block on failures.
 ## Specification Details
 
 ### Task Interface
-- **ID**: UNKNOWN
+- **ID**: 008.4
 - **Title**: Untitled Task
 - **Status**: pending
 - **Priority**: high

@@ -72,7 +72,7 @@ Implementation guide to be defined
 
 ## Subtasks
 
-### 010.1. Define complexity criteria for Git branches
+### 013.1. Define complexity criteria for Git branches
 
 **Status:** pending  
 **Dependencies:** 005, 006, 007
@@ -83,7 +83,7 @@ Establish clear, quantifiable metrics to automatically identify 'complex' Git br
 
 Analyze existing repository data to determine thresholds for 'large history', 'many files changed', 'long development time', and 'multiple contributors'. Propose a scoring mechanism or classification rules based on these metrics. This will inform when to engage specialized handling.
 
-### 010.2. Design iterative rebase logic for complex branches
+### 013.2. Design iterative rebase logic for complex branches
 
 **Status:** pending  
 **Dependencies:** 010.1  
@@ -94,7 +94,7 @@ Develop an algorithm or script that can perform `git rebase` or `git cherry-pick
 
 Investigate programmatic usage of `git rebase -i` or `git cherry-pick` to rebase batches of N commits, or commits within specific date ranges/directories. The solution should be integrated into the main alignment script.
 
-### 010.3. Define dedicated integration branch strategies
+### 013.3. Define dedicated integration branch strategies
 
 **Status:** pending  
 **Dependencies:** 010.1, 010.2  
@@ -105,7 +105,7 @@ Outline strategies for handling highly divergent complex branches by temporarily
 
 Explore patterns like 'rebase onto integration branch, resolve conflicts, then rebase integration branch onto target'. This involves defining conventions for naming, lifecycle, and cleanup of these temporary integration branches within the alignment workflow.
 
-### 010.4. Implement focused conflict resolution workflows for complex branches
+### 013.4. Implement focused conflict resolution workflows for complex branches
 
 **Status:** pending  
 **Dependencies:** 010.2  
@@ -116,7 +116,7 @@ Develop a workflow that provides granular prompts and integrates with visual dif
 
 The script should detect conflicts during iterative rebase, offer clear instructions, allow invocation of a user-configured `git mergetool`, and guide the developer through `git add` and `git rebase --continue` steps. Implement interactive prompts for user input.
 
-### 010.5. Design targeted testing hooks for iterative alignment steps
+### 013.5. Design targeted testing hooks for iterative alignment steps
 
 **Status:** pending  
 **Dependencies:** 010.2, 010.4  
@@ -127,7 +127,7 @@ Define and implement automated mechanisms to suggest or run a subset of relevant
 
 Integrate with the project's testing framework (e.g., Pytest) to execute tests based on changed files or modules. The script should be configurable to select specific tests or subsets (e.g., unit tests for modified components). Leverage Task 011 for validation integration.
 
-### 010.6. Develop architectural review integration for rebase steps
+### 013.6. Develop architectural review integration for rebase steps
 
 **Status:** pending  
 **Dependencies:** 010.2, 010.4, 010.5  
@@ -138,7 +138,7 @@ Implement a process that prompts developers to perform a quick architectural rev
 
 After a batch of commits is successfully rebased and optionally tested, the script should pause, present a summarized `git diff` of the rebased changes, and explicitly ask the developer for confirmation/review before proceeding to the next batch.
 
-### 010.7. Define rollback and recovery procedures for complex branch failures
+### 013.7. Define rollback and recovery procedures for complex branch failures
 
 **Status:** pending  
 **Dependencies:** 010.2, 010.4, 010.6  
@@ -149,7 +149,7 @@ Establish clear and robust rollback strategies for cases where complex branch al
 
 Document the usage of `git reflog`, `git reset`, and `git revert` in the context of iterative rebasing. Provide script capabilities to automatically suggest or execute rollback commands to a known good state or before the last failed rebase batch.
 
-### 010.8. Implement logging and monitoring for complex branch operations
+### 013.8. Implement logging and monitoring for complex branch operations
 
 **Status:** pending  
 **Dependencies:** 010.2, 010.4, 010.5  
@@ -160,7 +160,7 @@ Integrate detailed logging and monitoring capabilities into the complex branch a
 
 Utilize standard logging frameworks to record each step of the iterative rebase, conflict resolution attempts, test execution results, and user interactions. Consider integrating with existing monitoring dashboards if applicable.
 
-### 010.9. Create documentation templates for complex branch workflows
+### 013.9. Create documentation templates for complex branch workflows
 
 **Status:** pending  
 **Dependencies:** 010.1, 010.3, 010.7  
@@ -171,7 +171,7 @@ Develop standardized templates for documenting the handling of complex branches,
 
 Design Markdown or Confluence templates covering sections like 'Branch Complexity Assessment', 'Alignment Strategy', 'Iterative Rebase Log', 'Conflict Resolution Notes', 'Testing Results', and 'Rollback History'.
 
-### 010.10. Define thresholds for required expert intervention
+### 013.10. Define thresholds for required expert intervention
 
 **Status:** pending  
 **Dependencies:** 010.1, 010.8  
@@ -182,7 +182,7 @@ Establish criteria based on complexity metrics and number of failed automated st
 
 For example, if more than X conflict resolution attempts fail, or if a branch exceeds a certain complexity score and automated tools struggle, an alert should be sent to a designated team or individual. This could be integrated with the monitoring system (Subtask 8).
 
-### 010.11. Evaluate parallel vs. sequential processing for complex branch integration
+### 013.11. Evaluate parallel vs. sequential processing for complex branch integration
 
 **Status:** pending  
 **Dependencies:** 010.3  
@@ -193,7 +193,7 @@ Analyze and design strategies for whether multiple complex branches can be proce
 
 This involves assessing the dependencies between complex branches and the target branch. For instance, if branches have overlapping changes, sequential processing might be required. For independent branches, parallel processing could speed up the overall integration cycle.
 
-### 010.12. Integrate complex branch handling with centralized error detection
+### 013.12. Integrate complex branch handling with centralized error detection
 
 **Status:** pending  
 **Dependencies:** 010.8  
@@ -204,7 +204,7 @@ Ensure that any errors or issues encountered during the complex branch alignment
 
 Map specific failure scenarios (e.g., unresolvable conflicts, failed tests post-rebase, script errors) to appropriate error codes and messages defined in Task 005. Use the established error handling mechanism to log and report these issues.
 
-### 010.13. Analyze and optimize performance of complex branch operations
+### 013.13. Analyze and optimize performance of complex branch operations
 
 **Status:** pending  
 **Dependencies:** 010.2, 010.4, 010.8  
@@ -215,7 +215,7 @@ Investigate and address potential performance bottlenecks in the iterative rebas
 
 Measure the execution time of different phases (e.g., `git rebase`, `git cherry-pick`, test execution). Explore optimizations like partial clones, shallow fetches, or using `--sparse-checkout` if applicable for very large repositories and histories.
 
-### 010.013. Design and implement specialized UI/CLI for complex branch tooling
+### 013.013. Design and implement specialized UI/CLI for complex branch tooling
 
 **Status:** pending  
 **Dependencies:** 010.2, 010.4, 010.6  
@@ -226,10 +226,10 @@ Develop an intuitive command-line interface (CLI) or a basic user interface (UI)
 
 This UI/CLI should present status updates, prompt for actions (e.g., resolve conflict, architectural review, proceed to next batch), display relevant diffs, and offer options for rollback or expert intervention.
 
-### 010.15. Compile comprehensive documentation for complex branch handling
+### 013.15. Compile comprehensive documentation for complex branch handling
 
 **Status:** pending  
-**Dependencies:** 010.1, 010.2, 010.3, 010.4, 010.5, 010.6, 010.7, 010.8, 010.9, 010.10, 010.11, 010.12, 010.13, 010.013  
+**Dependencies:** 010.1, 010.2, 010.3, 010.4, 010.5, 010.6, 010.7, 010.8, 010.9, 010.10, 010.26, 010.27, 010.28, 010.28  
 
 Consolidate all procedures, strategies, and tools developed for handling complex branches into a comprehensive documentation set.
 
@@ -237,7 +237,7 @@ Consolidate all procedures, strategies, and tools developed for handling complex
 
 Create a comprehensive guide that covers everything from identifying complex branches, using the iterative rebase script, resolving conflicts, performing architectural reviews, understanding rollback procedures, and knowing when to escalate for expert intervention. This should leverage templates from Task 010.9.
 
-### 010.16. Implement Complex Branch Identification Logic
+### 013.16. Implement Complex Branch Identification Logic
 
 **Status:** pending  
 **Dependencies:** None  
@@ -248,10 +248,10 @@ Develop and implement algorithms to classify branches as 'complex' based on metr
 
 Extend the existing branch analysis tools (from Task 009) to incorporate new metrics for complexity. Utilize Git commands such as 'git rev-list --count', 'git diff --numstat', and 'git merge-base' to gather necessary data. Define configurable thresholds for each complexity metric to allow for flexible classification.
 
-### 010.016. Develop Iterative Rebase Procedure for Shared History
+### 013.016. Develop Iterative Rebase Procedure for Shared History
 
 **Status:** pending  
-**Dependencies:** 010.16  
+**Dependencies:** 010.28  
 
 Create a specialized procedure for handling branches with large shared histories, focusing on iterative rebase or cherry-picking to manage complexity and reduce conflict burden.
 
@@ -259,10 +259,10 @@ Create a specialized procedure for handling branches with large shared histories
 
 Implement a script or a sequence of Git commands that guides the user through rebasing a few commits at a time. This can involve scripting 'git rebase -i' for interactive rebase or automating 'git cherry-pick' in small, manageable batches. This procedure should be automatically engaged when a complex branch with large shared history is detected by Task 16.
 
-### 010.017. Implement Enhanced Integration Branch Strategies
+### 013.017. Implement Enhanced Integration Branch Strategies
 
 **Status:** pending  
-**Dependencies:** 010.16, 010.016  
+**Dependencies:** 010.28, 010.28  
 
 Develop and implement specific strategies for integration branches, focusing on careful conflict resolution and staged merges for complex features to ensure stability.
 
@@ -270,10 +270,10 @@ Develop and implement specific strategies for integration branches, focusing on 
 
 Define a structured workflow that might involve creating a temporary 'integration branch', merging the complex feature branch into it, carefully resolving conflicts on this temporary branch, and then performing a clean merge of the integration branch into the final target branch. This entire process should be guided and automated by the alignment script.
 
-### 010.003. Develop Enhanced Conflict Resolution Workflow with Visual Tools
+### 013.003. Develop Enhanced Conflict Resolution Workflow with Visual Tools
 
 **Status:** pending  
-**Dependencies:** 010.016, 010.017  
+**Dependencies:** 010.28, 010.26  
 
 Establish focused conflict resolution workflows that provide enhanced visual tools and step-by-step guidance for resolving complex conflicts effectively.
 
@@ -281,10 +281,10 @@ Establish focused conflict resolution workflows that provide enhanced visual too
 
 Integrate the alignment script with popular visual diff and merge tools (e.g., 'git mergetool' configurable with 'meld', 'kdiff3', 'vscode diff'). Provide clear, guided prompts to the user during conflict resolution, explaining common strategies, identifying conflict types, and suggesting optimal tools.
 
-### 010.20. Implement Targeted Testing for Complex Branch Integrations
+### 013.20. Implement Targeted Testing for Complex Branch Integrations
 
 **Status:** pending  
-**Dependencies:** 010.016, 010.017  
+**Dependencies:** 010.28, 010.26  
 
 Develop and implement targeted testing strategies that can validate functionality preservation immediately after iterative steps in complex branch integrations.
 
@@ -292,10 +292,10 @@ Develop and implement targeted testing strategies that can validate functionalit
 
 Integrate with the existing validation system (Task 011). After each iterative rebase step, or upon integration into an integration branch, automatically identify and run a subset of relevant tests. This could involve tests specifically related to changed files, modules, or components affected by the rebase, using tools like 'pytest --last-failed' or custom change-detection logic.
 
-### 010.21. Create Specialized Verification Procedures for Complex Alignments
+### 013.21. Create Specialized Verification Procedures for Complex Alignments
 
 **Status:** pending  
-**Dependencies:** 010.16, 010.20  
+**Dependencies:** 010.28, 010.26  
 
 Design and implement specialized verification procedures for complex branch alignments that go beyond standard validation checks, ensuring architectural integrity and quality.
 
@@ -303,10 +303,10 @@ Design and implement specialized verification procedures for complex branch alig
 
 Beyond automated unit and integration tests, this could include checks for code style adherence, architectural pattern consistency, security best practices, or specific performance metrics that are critical for the affected components. This might involve generating a 'git diff' to facilitate a quick architectural review after each significant rebase step.
 
-### 010.22. Design Intelligent Rollback Strategies for Complex Branches
+### 013.22. Design Intelligent Rollback Strategies for Complex Branches
 
 **Status:** pending  
-**Dependencies:** 010.016, 010.017  
+**Dependencies:** 010.28, 010.26  
 
 Develop and implement intelligent rollback strategies specific to complex branches that minimize disruption to other development work and restore a stable state upon failure.
 
@@ -314,10 +314,10 @@ Develop and implement intelligent rollback strategies specific to complex branch
 
 Implement mechanisms to automatically or manually revert to a known good state if an iterative rebase or integration operation fails catastrophically. Utilize Git features like 'git reflog', 'git reset --hard', and potentially 'git revert' with clear user guidance. Integrate with the centralized error detection system (Task 005) for trigger points.
 
-### 010.019. Implement Enhanced Monitoring for Complex Branch Operations
+### 013.019. Implement Enhanced Monitoring for Complex Branch Operations
 
 **Status:** pending  
-**Dependencies:** 010.016, 010.017  
+**Dependencies:** 010.28, 010.26  
 
 Develop and implement enhanced monitoring capabilities during complex branch operations to detect and alert on potential issues early in the process, providing better visibility.
 
@@ -325,10 +325,10 @@ Develop and implement enhanced monitoring capabilities during complex branch ope
 
 Integrate detailed logging (using the Python 'logging' module) for each step of the iterative rebase and conflict resolution process. Report progress, warnings, and errors to a central logging system. Potentially provide real-time feedback and status updates directly to the user. Leverage the centralized error handling (Task 005) for consistency.
 
-### 010.020. Create Documentation Templates for Complex Branch Handling
+### 013.020. Create Documentation Templates for Complex Branch Handling
 
 **Status:** pending  
-**Dependencies:** 010.16  
+**Dependencies:** 010.28  
 
 Develop comprehensive documentation templates specific to complex branch handling that capture special considerations, procedures, and best practices for future reference.
 
@@ -336,10 +336,10 @@ Develop comprehensive documentation templates specific to complex branch handlin
 
 Create Markdown-based templates for documenting the complexity assessment of a branch, the chosen rebase/integration strategy, detailed conflict resolution logs, and post-alignment verification results. These templates should be integrated into the workflow and prompt the developer to fill them out as part of the complex alignment process.
 
-### 010.25. Establish Expert Intervention Thresholds and Approval Workflow
+### 013.25. Establish Expert Intervention Thresholds and Approval Workflow
 
 **Status:** pending  
-**Dependencies:** 010.16, 010.020  
+**Dependencies:** 010.28, 010.26  
 
 Define and implement expert intervention thresholds for complex branches that require senior developer review and approval before proceeding with critical alignment steps.
 
@@ -347,10 +347,10 @@ Define and implement expert intervention thresholds for complex branches that re
 
 Based on the complexity metrics (Task 16), if a branch exceeds certain predefined thresholds, the alignment script should pause execution and require explicit approval (e.g., via a command-line prompt or integration with a Pull Request review system) from a designated expert or team lead before executing potentially disruptive operations. Documentation templates (Task 24) should be part of this approval process.
 
-### 010.26. Develop Parallel/Sequential Processing for Complex Branches
+### 013.26. Develop Parallel/Sequential Processing for Complex Branches
 
 **Status:** pending  
-**Dependencies:** 010.16, 010.016  
+**Dependencies:** 010.28, 010.28  
 
 Implement strategies for parallel versus sequential processing specifically for complex branches to prevent resource contention and ensure alignment stability during operations.
 
@@ -358,10 +358,10 @@ Implement strategies for parallel versus sequential processing specifically for 
 
 For very large and complex branches, evaluate if certain tasks (e.g., running specific test suites, linting, static analysis) can be parallelized during iterative steps while ensuring that core 'git' operations remain strictly sequential to maintain repository integrity. This might involve orchestrating integration with CI/CD pipelines to manage parallel execution.
 
-### 010.27. Implement Enhanced Error Detection and Reporting for Complex Alignments
+### 013.27. Implement Enhanced Error Detection and Reporting for Complex Alignments
 
 **Status:** pending  
-**Dependencies:** 010.019  
+**Dependencies:** 010.28  
 
 Create enhanced error detection and reporting systems that can identify subtle issues and edge cases in complex alignments, providing detailed diagnostics.
 
@@ -369,10 +369,10 @@ Create enhanced error detection and reporting systems that can identify subtle i
 
 Build upon Task 005 (error detection) and Task 005 (centralized error handling) by implementing custom error types specifically for complex alignment scenarios (e.g., unresolvable cyclic dependencies, unexpected merge base changes, inconsistent history states). Provide detailed stack traces, relevant Git command outputs, and contextual information in error reports to aid debugging. Leverage monitoring (Task 011).
 
-### 010.28. Implement Performance Optimization for Complex Branch Processing
+### 013.28. Implement Performance Optimization for Complex Branch Processing
 
 **Status:** pending  
-**Dependencies:** 010.16, 010.016  
+**Dependencies:** 010.28, 010.28  
 
 Develop and implement performance optimization strategies for complex branch processing to reduce execution time and resource usage of alignment operations.
 
@@ -380,10 +380,10 @@ Develop and implement performance optimization strategies for complex branch pro
 
 Optimize underlying 'git' commands by utilizing efficient flags (e.g., '--depth' for fetching, 'git repack', 'git gc'). Implement caching mechanisms for frequently accessed Git objects, branch analysis results, or intermediate states. Profile script execution to identify and eliminate bottlenecks in the complex alignment workflow.
 
-### 010.29. Design Specialized UI/CLI for Complex Branch Operations
+### 013.29. Design Specialized UI/CLI for Complex Branch Operations
 
 **Status:** pending  
-**Dependencies:** 010.016, 010.003, 010.019, 010.27  
+**Dependencies:** 010.28, 010.003, 010.28, 010.27  
 
 Design and implement specialized user interfaces or command-line patterns that provide enhanced visibility, interactive guidance, and feedback during complex branch operations.
 
@@ -391,10 +391,10 @@ Design and implement specialized user interfaces or command-line patterns that p
 
 Develop an interactive command-line interface (CLI) that guides the user through each step of the iterative rebase, conflict resolution, and verification process. Provide clear status updates, progress bars, and interactive prompts for decisions. Integrate with the enhanced logging (Task 23) and error reporting (Task 27) to provide real-time, actionable feedback.
 
-### 010.30. Document Complex Branch Handling Procedures and Create Training
+### 013.30. Document Complex Branch Handling Procedures and Create Training
 
 **Status:** pending  
-**Dependencies:** 010.16, 010.016, 010.017, 010.003, 010.20, 010.21, 010.22, 010.019, 010.020, 010.25, 010.26, 010.27, 010.28, 010.29  
+**Dependencies:** 010.28, 010.28, 010.26, 010.003, 010.26, 010.27, 010.28, 010.28, 010.26, 010.28, 010.26, 010.27, 010.28, 010.29  
 
 Create comprehensive documentation of all complex branch handling procedures and develop specialized training materials for developers dealing with challenging alignment scenarios.
 
@@ -903,7 +903,7 @@ Task 013 is done when:
 **Priority:** High
 **Effort:** 48-64 hours
 **Complexity:** 7/10
-**Dependencies:** 006, 022
+**Dependencies:** 006, 28
 
 ---
 
@@ -1405,7 +1405,7 @@ Task 013 is done when:
 6. **Week 2:** Ready for Task 010 (Core alignment logic)
 
 **Reference:** See IMPLEMENTATION_INDEX.md for team coordination
-**Dependencies:** 006, 022
+**Dependencies:** 006, 28
 
 ---
 
@@ -2442,7 +2442,7 @@ Task 013 is done when:
 **Priority:** High
 **Effort:** 48-64 hours
 **Complexity:** 7/10
-**Dependencies:** 006, 022
+**Dependencies:** 006, 28
 
 ---
 
@@ -2947,7 +2947,7 @@ Task 013 is done when:
 - **Priority**: High
 **Effort:** 48-64 hours
 **Complexity:** 7/10
-**Dependencies:** 006, 022
+**Dependencies:** 006, 28
 
 ---
 

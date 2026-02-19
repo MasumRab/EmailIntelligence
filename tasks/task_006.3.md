@@ -1,4 +1,4 @@
-# Task UNKNOWN: Untitled Task
+# Task 006.3: Untitled Task
 
 **Status:** pending
 **Priority:** high
@@ -14,7 +14,7 @@ Create central orchestration script that integrates backup/restore into alignmen
 
 ## Success Criteria
 
-- [ ] - [ ] Central orchestration working
+- [ ] Central orchestration working
 - [ ] Backup before alignment
 - [ ] Automatic restore on failure
 - [ ] Cleanup of old backups
@@ -47,7 +47,7 @@ Create central orchestration script that integrates backup/restore into alignmen
 ## Specification Details
 
 ### Task Interface
-- **ID**: UNKNOWN
+- **ID**: 006.3
 - **Title**: Untitled Task
 - **Status**: pending
 - **Priority**: high

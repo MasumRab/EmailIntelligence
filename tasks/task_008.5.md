@@ -1,4 +1,4 @@
-# Task UNKNOWN: Untitled Task
+# Task 008.5: Untitled Task
 
 **Status:** pending
 **Priority:** high
@@ -14,7 +14,7 @@ Create smoke tests that verify core application functionality.
 
 ## Success Criteria
 
-- [ ] - [ ] Smoke tests created
+- [ ] Smoke tests created
 - [ ] Core endpoints covered
 - [ ] CI integration working
 - [ ] Tests pass on clean build
@@ -40,7 +40,7 @@ Create smoke tests that verify core application functionality.
 ## Specification Details
 
 ### Task Interface
-- **ID**: UNKNOWN
+- **ID**: 008.5
 - **Title**: Untitled Task
 - **Status**: pending
 - **Priority**: high

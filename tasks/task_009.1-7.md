@@ -1,4 +1,4 @@
-# Task UNKNOWN: Untitled Task
+# Task 009.1-7: Untitled Task
 
 **Status:** pending
 **Priority:** high
@@ -14,7 +14,7 @@ Implement core Git operations for primary-to-feature branch alignment.
 
 ## Success Criteria
 
-- [ ] - [ ] Target validation working
+- [ ] Target validation working
 - [ ] Safety checks preventing data loss
 - [ ] Backup enabling rollback
 - [ ] Rebase executing correctly
@@ -42,7 +42,7 @@ Implement core Git operations for primary-to-feature branch alignment.
 ## Specification Details
 
 ### Task Interface
-- **ID**: UNKNOWN
+- **ID**: 009.1-7
 - **Title**: Untitled Task
 - **Status**: pending
 - **Priority**: high

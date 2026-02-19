@@ -1,4 +1,4 @@
-# Task UNKNOWN: Untitled Task
+# Task 008.6: Untitled Task
 
 **Status:** pending
 **Priority:** high
@@ -14,7 +14,7 @@ Set up performance benchmarking to detect regressions.
 
 ## Success Criteria
 
-- [ ] - [ ] Performance tests created
+- [ ] Performance tests created
 - [ ] Baselines established
 - [ ] Regressions detected
 - [ ] Threshold enforcement working
@@ -40,7 +40,7 @@ Set up performance benchmarking to detect regressions.
 ## Specification Details
 
 ### Task Interface
-- **ID**: UNKNOWN
+- **ID**: 008.6
 - **Title**: Untitled Task
 - **Status**: pending
 - **Priority**: high

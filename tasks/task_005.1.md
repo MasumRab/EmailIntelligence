@@ -1,4 +1,4 @@
-# Task UNKNOWN: Untitled Task
+# Task 005.1: Untitled Task
 
 **Status:** pending
 **Priority:** high
@@ -14,7 +14,7 @@ Create scripts to detect uncleaned merge markers and accidentally deleted module
 
 ## Success Criteria
 
-- [ ] - [ ] Merge markers detected in changed files
+- [ ] Merge markers detected in changed files
 - [ ] Deleted files identified
 - [ ] Module dependency check working
 - [ ] Report generated
@@ -40,7 +40,7 @@ Create scripts to detect uncleaned merge markers and accidentally deleted module
 ## Specification Details
 
 ### Task Interface
-- **ID**: UNKNOWN
+- **ID**: 005.1
 - **Title**: Untitled Task
 - **Status**: pending
 - **Priority**: high

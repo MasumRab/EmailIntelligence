@@ -1,4 +1,4 @@
-# Task UNKNOWN: Untitled Task
+# Task 001.4: Untitled Task
 
 **Status:** pending
 **Priority:** high
@@ -14,7 +14,7 @@ Apply criteria to each branch and propose optimal integration targets with expli
 
 ## Success Criteria
 
-- [ ] - [ ] Optimal target proposed for each branch
+- [ ] Optimal target proposed for each branch
 - [ ] Justification explicit for each choice
 - [ ] No default assignments (each justified)
 - [ ] Branches needing rename identified
@@ -42,7 +42,7 @@ Apply criteria to each branch and propose optimal integration targets with expli
 ## Specification Details
 
 ### Task Interface
-- **ID**: UNKNOWN
+- **ID**: 001.4
 - **Title**: Untitled Task
 - **Status**: pending
 - **Priority**: high

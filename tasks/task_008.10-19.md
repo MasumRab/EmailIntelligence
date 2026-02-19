@@ -1,4 +1,4 @@
-# Task UNKNOWN: Untitled Task
+# Task 008.10-19: Untitled Task
 
 **Status:** pending
 **Priority:** medium
@@ -36,7 +36,7 @@ Additional validation framework components.
 ## Specification Details
 
 ### Task Interface
-- **ID**: UNKNOWN
+- **ID**: 008.10-19
 - **Title**: Untitled Task
 - **Status**: pending
 - **Priority**: medium

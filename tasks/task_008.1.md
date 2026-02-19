@@ -1,4 +1,4 @@
-# Task UNKNOWN: Untitled Task
+# Task 008.1: Untitled Task
 
 **Status:** pending
 **Priority:** high
@@ -14,7 +14,7 @@ Define validation layers and select appropriate tools for the merge validation f
 
 ## Success Criteria
 
-- [ ] - [ ] Tools selected for all layers
+- [ ] Tools selected for all layers
 - [ ] Configuration documented
 - [ ] Thresholds defined
 - [ ] Design document complete
@@ -40,7 +40,7 @@ Define validation layers and select appropriate tools for the merge validation f
 ## Specification Details
 
 ### Task Interface
-- **ID**: UNKNOWN
+- **ID**: 008.1
 - **Title**: Untitled Task
 - **Status**: pending
 - **Priority**: high
