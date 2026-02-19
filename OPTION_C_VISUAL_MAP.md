@@ -1,9 +1,54 @@
 # Option C: Task Restructuring Visual Map
 
-**Date:** January 28, 2026  
+**Date:** January 28, 2026
 **Purpose:** Complete visual representation of Option C (+3 shift) task structure
 
 ---
+
+## Current Task Framework Map (2026-02-19)
+
+This section reflects the current task files (001-028) as they exist now. It is added above the legacy Option C map to preserve historical reference.
+
+### Task Inventory
+| Task ID | Title | Dependencies (Normalized) | Outputs |
+| --- | --- | --- | --- |
+| 001 | Align and Architecturally Integrate Feature Branches with Justified Targets | None | `task-001-1.md`, `task-001-2.md`, `task-001-3.md`, `task-001-4.md`, `task-001-5.md` (+3 more) |
+| 002 | Branch Clustering System | Task 001 (can run parallel) | `tasks/task_002.md`, `tasks/task_002-clustering.md`, `TASK_002_MIGRATION_COMPLETE.md`, `TASK_75_CLEANUP_AND_RENUMBERING_PLAN.md`, `.agent_memory/session_log.json` (+16 more) |
+| 003 | Develop and Integrate Pre-merge Validation Scripts | None | `docs/dev_guides/pre_merge_checks.md`, `CONTRIBUTING.md`, `data/processed/email_data.json`, `AGENTS.md`, `.github/workflows/pull_request.yml` |
+| 004 | Establish Core Branch Alignment Framework | None | None listed |
+| 005 | Develop Automated Error Detection Scripts for Merges | 004 | `task-002-1.md`, `task-002-2.md`, `task-002-3.md`, `task-002-4.md`, `task-002-5.md` (+5 more) |
+| 006 | Implement Robust Branch Backup and Restore Mechanism | 004 | None listed |
+| 007 | Develop Feature Branch Identification and Categorization Tool | 004 | None listed |
+| 008 | Create Comprehensive Merge Validation Framework | None | `backlog/tasks/alignment/create-merge-validation-framework.md`, `validation_framework_design.md`, `.github/workflows/merge-validation.yml`, `requirements.txt`, `.github/workflows/ci.yml` (+1 more) |
+| 009 | Core Multistage Primary-to-Feature Branch Alignment | 004, 006, 007, 012, 013, 014, 015, 022 | `config/task_009_alignment_orchestration.yaml` |
+| 010 | Implement Multilevel Strategies for Complex Branches | 005, 009, 012, 013, 014, 015, 016, 022, 002.1, 002.2, 002.3, 002.4 | None listed |
+| 011 | Integrate Validation Framework into Multistage Alignment Workflow | 005, 009, 010, 002.1, 002.3, 002.4 | `validation_framework_design.md` |
+| 012 | Orchestrate Sequential Branch Alignment Workflow | 007, 008, 009, 010, 011, 022 | `CHANGES_SUMMARY.md`, `README.md` |
+| 013 | Branch Backup and Safety | 006, 022 | `config/task_013_backup_safety.yaml` |
+| 014 | Conflict Detection and Resolution | 010, 013 | `config/task_014_conflict_resolution.yaml` |
+| 015 | Validation and Verification | 005, 010, 014 | `CHANGES_SUMMARY.md`, `README.md`, `config/task_015_validation_verification.yaml` |
+| 016 | Rollback and Recovery | 006, 013, 010 | `config/task_016_rollback_recovery.yaml` |
+| 017 | Validation Integration Framework | 005, 010, 015 | `config/task_017_validation_integration.yaml` |
+| 018 | End-to-End Testing and Reporting | 010, 017, 016, 015 | `config/task_018_e2e_testing.yaml` |
+| 019 | Deployment and Release Management | 018, 010 | `config/task_019_deployment_management.yaml` |
+| 020 | Documentation and Knowledge Management | 019, 010 | `config/task_020_documentation_management.yaml` |
+| 021 | Maintenance and Monitoring | 020, 010 | `config/task_021_maintenance_monitoring.yaml` |
+| 022 | Improvements and Enhancements Framework | 021, 010 | `config/task_022_improvements_enhancements.yaml` |
+| 023 | Optimization and Performance Tuning Framework | 022, 010 | `config/task_023_optimization_tuning.yaml` |
+| 024 | Future Development and Roadmap Framework | 023, 010 | `config/task_024_future_development.yaml` |
+| 025 | Scaling and Advanced Features Framework | 024, 010 | `config/task_025_scaling_advanced.yaml` |
+| 026 | Optimization and Performance Tuning | 025, 013 | `config/task_023_optimization_tuning.yaml` |
+| 027 | Future Development and Roadmap | 026, 013 | `config/task_024_future_development.yaml` |
+| 028 | Scaling and Advanced Features | 027, 013 | `config/task_025_scaling_advanced.yaml` |
+
+### Drift Summary
+- Tasks with missing titles: None.
+- Output artifacts remain unevenly specified; 4 tasks list none while Task 002 references extensive legacy artifacts.
+
+### Notes
+- Dependency values are taken from the task headers and may be stale where tasks still reference older IDs.
+- Output values list the first few named artifacts or note when an output section exists; many tasks still lack explicit output definitions.
+- Use the dependency/output audit to identify missing or inconsistent references before aligning the map.
 
 ## 1. ASCII Dependency Map
 
