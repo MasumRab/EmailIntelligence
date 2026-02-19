@@ -19,6 +19,7 @@ from backend.node_engine.node_base import (
     Connection,
     DataType,
     ExecutionContext,
+    GenericType,
     SecurityContext,
     Workflow,
 )
@@ -341,6 +342,10 @@ class WorkflowEngine:
         self, source_type: "DataType", target_type: "DataType"
     ) -> bool:
         """Validate if source and target types are compatible."""
+        # Handle GenericType comparisons
+        if isinstance(source_type, GenericType) or isinstance(target_type, GenericType):
+            return self._validate_generic_compatibility(source_type, target_type)
+
         if target_type == DataType.ANY:
             return True
         if source_type == target_type:
@@ -357,6 +362,49 @@ class WorkflowEngine:
             return True  # Primitive types can be serialized to JSON
 
         # Add more type compatibility rules as needed
+        return False
+
+    def _validate_generic_compatibility(
+        self,
+        source_type: "DataType | GenericType",
+        target_type: "DataType | GenericType",
+    ) -> bool:
+        """Helper to validate compatibility involving generic types."""
+        # If target is ANY, it accepts anything
+        if target_type == DataType.ANY:
+            return True
+
+        # If both are GenericType
+        if isinstance(source_type, GenericType) and isinstance(target_type, GenericType):
+            if source_type.base_type != target_type.base_type:
+                return False
+
+            if len(source_type.type_parameters) != len(target_type.type_parameters):
+                return False
+
+            # Recursively check parameters
+            for src_param, tgt_param in zip(
+                source_type.type_parameters, target_type.type_parameters
+            ):
+                if not self._validate_type_compatibility(src_param, tgt_param):
+                    return False
+            return True
+
+        # Handle backward compatibility: EMAIL_LIST is equivalent to List[Email]
+        if source_type == DataType.EMAIL_LIST:
+             if isinstance(target_type, GenericType) and target_type.base_type == DataType.LIST:
+                 if len(target_type.type_parameters) > 0 and target_type.type_parameters[0] == DataType.EMAIL:
+                     return True
+
+        if target_type == DataType.EMAIL_LIST:
+             if isinstance(source_type, GenericType) and source_type.base_type == DataType.LIST:
+                 if len(source_type.type_parameters) > 0 and source_type.type_parameters[0] == DataType.EMAIL:
+                     return True
+
+        # Direct match check (though should be handled by earlier checks if not generic)
+        if source_type == target_type:
+            return True
+
         return False
 
     # TODO(P1, 4h): Expand type compatibility rules to support all defined DataType combinations
