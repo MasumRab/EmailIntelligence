@@ -18,11 +18,14 @@ class SecurityValidator:
     """Centralized security validation for all scripts"""
 
     @staticmethod
-    def validate_path_security(filepath: str, base_dir: str = None) -> bool:
+    def validate_path_security(filepath: Union[str, Path], base_dir: str = None) -> bool:
         """Validate that a path is safe and within allowed boundaries."""
         try:
+            # Ensure filepath is a string for character checking
+            filepath_str = str(filepath)
+
             # Check for null bytes and other dangerous characters
-            if "\x00" in filepath:
+            if "\x00" in filepath_str:
                 return False
 
             # Use Path.resolve() to normalize the path

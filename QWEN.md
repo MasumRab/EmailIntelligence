@@ -2,126 +2,257 @@
 
 ## Project Overview
 
-Taskmaster is an AI-powered task management system designed to facilitate agentic development workflows. It provides a structured approach to managing complex software development projects through automated task generation, analysis, and tracking. The system integrates with AI tools like Claude Code and supports MCP (Model Context Protocol) integration for enhanced development capabilities.
+Taskmaster is an AI-powered task management system designed for specification-driven development workflows. It provides automated task generation, analysis, and tracking with deep integration into Git workflows and AI assistants.
 
-The project combines several key components:
-- **Task Management**: Automated generation and tracking of development tasks
-- **AI Integration**: Support for multiple AI providers (Anthropic, OpenAI, Gemini, etc.)
-- **Git Workflows**: Advanced git worktree-based conflict resolution and management
-- **Specification-Driven Development**: Constitutional/specification-based analysis and development
+**Current Project Focus:** Branch Alignment Tooling - Git branch clustering, merge automation, and validation systems.
 
-## Core Architecture
+**⚠️ CRITICAL:** This is NOT an EmailIntelligence project. EmailIntelligence materials exist separately in `tasks/mvp/` only. See [PROJECT_IDENTITY.md](PROJECT_IDENTITY.md) for details.
 
-### Directory Structure
+### Core Capabilities
+
+- **AI-Powered Task Generation:** Parse PRD documents into structured, actionable tasks
+- **Task Expansion:** Break high-level tasks into detailed subtasks with AI assistance
+- **Git Integration:** Advanced conflict detection and resolution using worktrees
+- **Constitutional Analysis:** Specification-driven development and compliance checking
+- **Session Management:** Documented development sessions with full state tracking
+- **MCP Integration:** Model Context Protocol support for AI assistant integration
+
+---
+
+## Quick Start
+
+### Setup
+
+```bash
+# Install dependencies
+pip install poetry
+poetry install
+
+# Configure API keys (at least one required)
+echo "ANTHROPIC_API_KEY=your_key_here" >> .env
+echo "PERPLEXITY_API_KEY=your_key_here" >> .env
+
+# Initialize Taskmaster (if not already done)
+task-master init
+```
+
+### Daily Workflow
+
+```bash
+# Get next task to work on
+task-master next
+
+# View task details
+task-master show <id>
+
+# Mark task complete
+task-master set-status --id=<id> --status=done
+
+# List all tasks
+task-master list
+```
+
+---
+
+## Project Structure
+
 ```
 .taskmaster/
-├── archive/              # Archived tasks and data
-├── backups/              # Backup files
-├── complexity_reports/   # Task complexity analysis reports
-├── docs/                # Documentation including PRD
-├── guidance/            # Guidance and instruction files
-├── implement/           # Implementation-related files
-├── refactor/            # Refactoring tools and scripts
-├── reports/             # Analysis reports
-├── scripts/             # Automation scripts
-├── src/                 # Main source code
-│   ├── analysis/        # Conflict and constitutional analysis modules
-│   ├── core/            # Core interfaces, models, and exception handling
-│   ├── git/             # Git operations and conflict detection
-│   ├── resolution/      # Auto-resolution and semantic merging
-│   ├── strategy/        # Strategy generation and risk assessment
-│   ├── utils/           # Utility functions and logging
-│   └── validation/      # Validation components
-├── task_data/           # Task-related data files
-├── task_scripts/        # Task-specific scripts
-├── tasks/               # Task database and individual task files
-├── templates/           # Task templates
-├── tests/               # Test files
-├── .env                 # API keys (not committed)
-├── .mcp.json            # MCP configuration
-├── AGENT.md             # Agent integration guide
-├── CLAUDE.md            # Claude Code integration
-├── config.json          # AI model configuration
-├── emailintelligence_cli.py # Main CLI application
-├── execute_phases_2_4.py # Execution scripts
-├── pyproject.toml       # Python project configuration
-└── README.md            # Project documentation
+├── tasks/                    # Task specifications (14-section standard)
+│   ├── tasks.json           # Task database (auto-managed)
+│   ├── task_001.md          # Individual task files
+│   ├── task_002.1.md        # Subtask files (ID.subtask format)
+│   └── mvp/                 # Separate EmailIntelligence project
+├── docs/                     # Documentation
+│   ├── prd.md               # Product Requirements Document
+│   ├── master-prd.txt       # Master PRD
+│   └── branch-alignment-framework-prd.txt
+├── src/                      # Source code
+│   ├── analysis/            # Constitutional & conflict analysis
+│   ├── core/                # Core interfaces & models
+│   ├── git/                 # Git operations & conflict detection
+│   ├── resolution/          # Auto-resolution & semantic merging
+│   ├── strategy/            # Strategy generation & risk assessment
+│   ├── validation/          # Validation components
+│   └── main.py              # FastAPI application
+├── scripts/                  # Automation utilities
+├── archive/                  # Archived documentation (historical)
+├── backups/                  # Backup files
+├── complexity_reports/       # Task complexity analysis
+├── guidance/                 # Implementation guidance
+├── templates/                # Task templates
+├── tests/                    # Test suite
+├── .qwen/                    # Session management
+│   ├── session_manager.py   # Session state management
+│   └── session_cli.py       # CLI for sessions
+├── CLAUDE.md                # Auto-loaded agent context
+├── AGENT.md                 # Agent integration guide
+├── taskmaster_cli.py        # Main CLI tool
+├── emailintelligence_cli.py # Git worktree conflict resolution CLI
+└── QWEN.md                  # This file
 ```
 
-### Key Components
-
-1. **EmailIntelligence CLI** (`emailintelligence_cli.py`): The main CLI application for git worktree-based conflict resolution using constitutional/specification-driven analysis.
-
-2. **Task Management System**: Automated generation and tracking of development tasks following a standardized 14-section format.
-
-3. **Constitutional Engine**: Framework for specification-driven analysis and compliance checking.
-
-4. **Git Operations**: Advanced conflict detection and resolution using worktrees and semantic merging.
+---
 
 ## Building and Running
 
 ### Prerequisites
+
 - Python 3.8+
 - Git with worktree support
-- API keys for selected AI providers (Anthropic, OpenAI, Gemini, etc.)
+- API keys for AI providers (Anthropic, OpenAI, Gemini, Perplexity, etc.)
 
-### Setup
-1. Install dependencies:
-   ```bash
-   pip install poetry
-   poetry install
-   ```
+### Installation
 
-2. Configure API keys in `.env`:
-   ```
-   ANTHROPIC_API_KEY=your_key_here
-   OPENAI_API_KEY=your_key_here
-   GEMINI_API_KEY=${GEMINI_API_KEY}
-   # Add other provider keys as needed
-   ```
-
-3. Initialize Taskmaster in your project:
-   ```bash
-   task-master init
-   ```
-
-### Core Commands
 ```bash
-# Project Setup
-task-master init                                    # Initialize Task Master in current project
-task-master parse-prd .taskmaster/docs/prd.md       # Generate tasks from PRD document
-task-master models --setup                          # Configure AI models interactively
+# Using Poetry (recommended)
+pip install poetry
+poetry install
 
-# Daily Development Workflow
-task-master list                                    # Show all tasks with status
-task-master next                                    # Get next available task to work on
-task-master show <id>                              # View detailed task information
-task-master set-status --id=<id> --status=done     # Mark task complete
-
-# Task Management
-task-master add-task --prompt="description" --research        # Add new task with AI assistance
-task-master expand --id=<id> --research --force              # Break task into subtasks
-task-master update-task --id=<id> --prompt="changes"         # Update specific task
-task-master update --from=<id> --prompt="changes"            # Update multiple tasks from ID onwards
-task-master update-subtask --id=<id> --prompt="notes"        # Add implementation notes to subtask
-
-# Analysis & Planning
-task-master analyze-complexity --research          # Analyze task complexity
-task-master complexity-report                      # View complexity analysis
-task-master expand --all --research               # Expand all eligible tasks
+# Or with pip
+pip install -r requirements.txt
 ```
 
-### Running the Service
+### Running the Application
+
 ```bash
-# Using the FastAPI application
-python -m src.main
+# Run FastAPI application
+python src/main.py
 
 # Or with uvicorn
 uvicorn src.main:create_app --factory --host 0.0.0.0 --port 8000
+
+# Run CLI tool
+python taskmaster_cli.py --help
+
+# Run EmailIntelligence CLI (git conflict resolution)
+python emailintelligence_cli.py --help
 ```
 
-### MCP Integration
-Taskmaster provides an MCP server that can be integrated with Claude Code. Configure in `.mcp.json`:
+### Session Management
+
+```bash
+# Start a new session with goals
+python .qwen/session_cli.py start --goals "Implement feature X,Fix bug Y"
+
+# Show current session
+python .qwen/session_cli.py show
+
+# View project context
+python .qwen/session_cli.py context
+
+# End session
+python .qwen/session_cli.py end
+```
+
+---
+
+## Core Commands Reference
+
+### Project Setup
+
+```bash
+task-master init                                    # Initialize Task Master
+task-master parse-prd .taskmaster/docs/prd.md       # Generate tasks from PRD
+task-master models --setup                          # Configure AI models
+```
+
+### Task Management
+
+```bash
+task-master list                                    # Show all tasks
+task-master next                                    # Get next task
+task-master show <id>                               # View task details
+task-master set-status --id=<id> --status=done     # Mark complete
+task-master add-task --prompt="desc" --research     # Add task with AI
+task-master expand --id=<id> --research             # Expand to subtasks
+task-master update-subtask --id=<id> --prompt=".."  # Log implementation notes
+```
+
+### Analysis & Planning
+
+```bash
+task-master analyze-complexity --research           # Analyze complexity
+task-master complexity-report                       # View complexity report
+task-master expand --all --research                 # Expand all tasks
+task-master validate-dependencies                   # Check dependencies
+```
+
+### Git Worktree Operations (EmailIntelligence CLI)
+
+```bash
+eai setup-resolution --pr 123 --source-branch feature --target-branch main
+eai analyze-constitutional --pr 123 --constitution ./constitutions/auth.yaml
+eai develop-spec-kit-strategy --pr 123 --worktrees --interactive
+eai align-content --pr 123 --interactive --checkpoint-each-step
+eai validate-resolution --pr 123 --comprehensive
+eai auto-resolve --pr 123
+```
+
+---
+
+## Task Structure Standard
+
+All tasks follow a **14-section standard format** (see [TASK_STRUCTURE_STANDARD.md](TASK_STRUCTURE_STANDARD.md)):
+
+1. **Task Header** - ID, title, status, priority, effort, complexity, dependencies
+2. **Overview/Purpose** - What this task accomplishes and why
+3. **Success Criteria** - Detailed, complete checklist of done conditions
+4. **Prerequisites & Dependencies** - What must be done before starting
+5. **Sub-subtasks Breakdown** - Detailed breakdown with effort estimates
+6. **Specification Details** - Technical specification (interfaces, schemas)
+7. **Implementation Guide** - Step-by-step how-to for each sub-subtask
+8. **Configuration Parameters** - Externalized, non-hardcoded parameters
+9. **Performance Targets** - Clear performance requirements
+10. **Testing Strategy** - Unit tests, integration tests, coverage targets
+11. **Common Gotchas & Solutions** - Prevent common mistakes
+12. **Integration Checkpoint** - Gate for moving to next task
+13. **Done Definition** - Complete checklist for "done"
+14. **Next Steps** - What to do after this task
+
+### Task ID Format
+
+- Main tasks: `001`, `002`, `007`, etc.
+- Subtasks: `002.1`, `002.2`, `007.3`, etc.
+- Sub-subtasks: `002.1.1`, `002.1.2`, etc.
+
+### Task Status Values
+
+- `pending` - Ready to work on
+- `in-progress` - Currently being worked on
+- `done` - Completed and verified
+- `deferred` - Postponed
+- `cancelled` - No longer needed
+- `blocked` - Waiting on external factors
+
+---
+
+## Current Active Tasks (Phase 3)
+
+**⚠️ Old task numbering (task-001 through task-020) is DEPRECATED.**
+
+### Active Tasks:
+
+| Task ID | Title | Status |
+|---------|-------|--------|
+| `001` | Align and Architecturally Integrate Feature Branches | Ready |
+| `002` | Analysis Stage (Clustering Pipeline) | Pending |
+| `003` | Clustering Stage | Pending |
+| `004` | Integration Stage | Pending |
+| `005` | Branch Clustering System | In Progress |
+| `007` | Branch Alignment Strategy Framework | Ready |
+| `075.1-5` | Alignment Analyzers | Ready |
+| `079` | Orchestration Framework | Ready |
+| `080` | Validation Integration | Ready |
+| `083` | E2E Testing & Reporting | Ready |
+
+**See:** [PROJECT_STATE_PHASE_3_READY.md](PROJECT_STATE_PHASE_3_READY.md) for full status.
+
+---
+
+## MCP Integration
+
+Taskmaster provides an MCP server for AI assistant integration. Configure in `.mcp.json`:
 
 ```json
 {
@@ -133,180 +264,267 @@ Taskmaster provides an MCP server that can be integrated with Claude Code. Confi
         "TASK_MASTER_TOOLS": "core",
         "ANTHROPIC_API_KEY": "your_key_here",
         "PERPLEXITY_API_KEY": "your_key_here",
-        "OPENAI_API_KEY": "OPENAI_API_KEY_HERE",
-        "GEMINI_API_KEY": "${GEMINI_API_KEY}",
-        "XAI_API_KEY": "XAI_API_KEY_HERE",
-        "OPENROUTER_API_KEY": "OPENROUTER_API_KEY_HERE",
-        "MISTRAL_API_KEY": "MISTRAL_API_KEY_HERE",
-        "AZURE_OPENAI_API_KEY": "AZURE_OPENAI_API_KEY_HERE",
-        "OLLAMA_API_KEY": "OLLAMA_API_KEY_HERE"
+        "OPENAI_API_KEY": "your_key_here",
+        "GEMINI_API_KEY": "your_key_here"
       }
     }
   }
 }
 ```
 
+### MCP Tool Tiers
+
+| Tier | Count | Tools |
+|------|-------|-------|
+| `core` | 7 | `get_tasks`, `next_task`, `get_task`, `set_task_status`, `update_subtask`, `parse_prd`, `expand_task` |
+| `standard` | 14 | core + `initialize_project`, `analyze_project_complexity`, `expand_all`, `add_subtask`, `remove_task`, `add_task`, `complexity_report` |
+| `all` | 44+ | standard + dependencies, tags, research, autopilot, scoping, models, rules |
+
+---
+
 ## Development Conventions
 
-### Task Structure Standard
-All tasks follow a standardized 14-section format:
-1. Task Header
-2. Overview/Purpose
-3. Success Criteria (detailed)
-4. Prerequisites & Dependencies
-5. Sub-subtasks Breakdown
-6. Specification Details
-7. Implementation Guide
-8. Configuration Parameters
-9. Performance Targets
-10. Testing Strategy
-11. Common Gotchas & Solutions
-12. Integration Checkpoint
-13. Done Definition
-14. Next Steps
+### Code Quality
+
+- **Python:** PEP 8 compliant with type hints
+- **Docstrings:** Google-style comprehensive documentation
+- **Testing:** Minimum 95% code coverage target
+- **Error Handling:** Comprehensive exception handling throughout
 
 ### Git Workflows
+
 - Use git worktrees for parallel development
-- Leverage the EmailIntelligence CLI for conflict resolution
-- Follow the constitutional analysis approach for code reviews
-- Use the orchestration protection mechanisms for critical files
+- Constitutional analysis for code reviews
+- Worktree-based conflict resolution
+- Safe branching and merging with validation
 
-### AI Model Configuration
-- Configure three tiers of models: main, research, and fallback
-- Use appropriate models for different tasks (e.g., research models for analysis)
-- Maintain API key security in environment variables
+### Task Management
 
-### Code Quality Standards
-- Follow PEP 8 for Python code
-- Use type hints for all public interfaces
-- Include comprehensive docstrings
-- Maintain high test coverage (>95%)
-- Implement proper error handling and logging
+- Use `--research` flag for complex technical tasks requiring AI assistance
+- Update subtasks with implementation notes using `update-subtask`
+- Follow the 14-section task structure standard
+- Track dependencies to manage task relationships
 
-## Key Features
+### Content Duplication Prevention
 
-### AI-Powered Task Management
-- Automatic task generation from PRD documents
-- Intelligent task expansion and subtask creation
-- Research-enhanced task updates using AI
-- Complexity analysis and estimation
+**Critical:** Follow guidelines in [CONTENT_DUPLICATION_PREVENTION_GUIDELINES.md](CONTENT_DUPLICATION_PREVENTION_GUIDELINES.md):
 
-### Constitutional Analysis
-- Specification-driven development approach
-- Constitutional compliance checking
-- Risk assessment for code changes
-- Automated validation of implementation
+- Pre-processing validation for content uniqueness
+- Template application controls (single application only)
+- Atomic operations with backup mechanisms
+- Clear content boundary management
+- Source attribution for all content
 
-### Git Integration
-- Advanced conflict detection and resolution
-- Worktree-based isolation for parallel development
-- Constitutional analysis of git operations
-- Safe branching and merging workflows
+---
 
-### Orchestration Protection
-- Monitoring of critical orchestration files
-- Protection against destructive operations
-- Automated verification of system integrity
-- Migration verification processes
+## AI Model Configuration
 
-## EmailIntelligence CLI Commands
-
-The EmailIntelligence CLI provides advanced git worktree-based conflict resolution:
+Configure models interactively:
 
 ```bash
-# Setup resolution workspace
-eai setup-resolution --pr 123 --source-branch feature/auth --target-branch main
-
-# Analyze constitutional compliance
-eai analyze-constitutional --pr 123 --constitution ./constitutions/auth.yaml
-
-# Develop resolution strategy
-eai develop-spec-kit-strategy --pr 123 --worktrees --interactive
-
-# Execute content alignment
-eai align-content --pr 123 --interactive --checkpoint-each-step
-
-# Validate resolution
-eai validate-resolution --pr 123 --comprehensive
-
-# Auto-resolve conflicts
-eai auto-resolve --pr 123
+task-master models --setup
 ```
+
+### Required API Keys
+
+At least **one** of these must be configured in `.env`:
+
+- `ANTHROPIC_API_KEY` (Claude models) - **Recommended**
+- `PERPLEXITY_API_KEY` (Research features) - **Highly recommended**
+- `OPENAI_API_KEY` (GPT models)
+- `GOOGLE_API_KEY` (Gemini models)
+- `MISTRAL_API_KEY` (Mistral models)
+- `OPENROUTER_API_KEY` (Multiple models)
+- `XAI_API_KEY` (Grok models)
+
+### Model Tiers
+
+- **Main Model:** Primary AI for task operations
+- **Research Model:** Enhanced research capabilities (Perplexity recommended)
+- **Fallback Model:** Backup when primary unavailable
+
+---
+
+## Troubleshooting
+
+### AI Commands Failing
+
+```bash
+# Check API keys configured
+cat .env
+
+# Verify model configuration
+task-master models
+
+# Test with different model
+task-master models --set-fallback gpt-4o-mini
+```
+
+### MCP Connection Issues
+
+- Check `.mcp.json` configuration
+- Verify Node.js installation
+- Use CLI as fallback if MCP unavailable
+
+### Task File Sync Issues
+
+```bash
+# Regenerate task files from tasks.json
+task-master generate
+
+# Fix dependency issues
+task-master validate-dependencies
+```
+
+### Common Issues
+
+| Issue | Solution |
+|-------|----------|
+| AI commands timeout | Check API key, try fallback model |
+| Task files out of sync | Run `task-master generate` |
+| Dependency errors | Run `task-master validate-dependencies` |
+| MCP not connecting | Check `.mcp.json`, restart MCP server |
+
+---
+
+## Important Notes
+
+### AI-Powered Operations
+
+These commands make AI calls and may take up to a minute:
+
+- `parse_prd` / `task-master parse-prd`
+- `analyze_project_complexity` / `task-master analyze-complexity`
+- `expand_task` / `task-master expand`
+- `expand_all` / `task-master expand --all`
+- `add_task` / `task-master add-task`
+- `update` / `task-master update`
+- `update_task` / `task-master update-task`
+- `update_subtask` / `task-master update-subtask`
+
+### File Management
+
+- **Never** manually edit `tasks.json` - use commands instead
+- **Never** manually edit `.taskmaster/config.json` - use `task-master models`
+- Task markdown files in `tasks/` are auto-generated
+- Run `task-master generate` after manual changes to tasks.json
+
+### DO NOT
+
+- **DO NOT** re-initialize (adds nothing new)
+- **DO NOT** merge non-alignment content into alignment tasks
+- **DO NOT** treat historical pivot proposals as canonical
+- **DO NOT** use old task numbering (task-001 through task-020 deprecated)
+
+---
+
+## Key Documentation
+
+### Essential Reading
+
+| Document | Purpose | Audience |
+|----------|---------|----------|
+| [CLAUDE.md](CLAUDE.md) | Auto-loaded agent context | AI agents |
+| [AGENT.md](AGENT.md) | Agent integration guide | All agents |
+| [PROJECT_IDENTITY.md](PROJECT_IDENTITY.md) | **CRITICAL:** Project scope & identity | Everyone |
+| [PROJECT_STATE_PHASE_3_READY.md](PROJECT_STATE_PHASE_3_READY.md) | Current phase status | Everyone |
+| [TASK_STRUCTURE_STANDARD.md](TASK_STRUCTURE_STANDARD.md) | Task format standard | Developers |
+| [CURRENT_DOCUMENTATION_MAP.md](CURRENT_DOCUMENTATION_MAP.md) | Documentation navigation | Everyone |
+
+### Reference Documents
+
+| Document | Purpose |
+|----------|---------|
+| [CONTENT_DUPLICATION_PREVENTION_GUIDELINES.md](CONTENT_DUPLICATION_PREVENTION_GUIDELINES.md) | Prevent content corruption |
+| [OLD_TASK_NUMBERING_DEPRECATED.md](OLD_TASK_NUMBERING_DEPRECATED.md) | Why old numbering deprecated |
+| [SESSION_MANAGEMENT_IMPLEMENTATION.md](SESSION_MANAGEMENT_IMPLEMENTATION.md) | Session system details |
+| [COMPLETE_TASK_WORKFLOW.md](COMPLETE_TASK_WORKFLOW.md) | Full task workflow guide |
+
+---
 
 ## Session Management System
 
-Taskmaster now includes a comprehensive session management system that provides documented development sessions with full state management. The system enables continuity across development sessions and maintains detailed records of development activities.
+Taskmaster includes comprehensive session management for documented development:
 
-### Key Features:
-- **State Management**: Tracks current session and command history with automatic backups
-- **Session Lifecycle**: Full support for starting, running, and ending development sessions
-- **Project Context**: Captures project context including documentation and pending handoffs
-- **Command-Line Interface**: Easy-to-use commands for session management
-- **Cross-Project Registration**: Maintains registry of projects for continuity
+### Features
 
-### Session Management Commands:
-```bash
-# Start a new session with goals
-python .qwen/session_cli.py start --goals "Goal 1,Goal 2,Goal 3"
+- **State Management:** Tracks current session and command history
+- **Session Lifecycle:** Start, run, and end development sessions
+- **Project Context:** Captures documentation and pending handoffs
+- **Cross-Project Registration:** Maintains project registry
 
-# Show current session information
-python .qwen/session_cli.py show
+### Usage
 
-# Show project context
-python .qwen/session_cli.py context
-
-# End the current session
-python .qwen/session_cli.py end
-```
-
-### Programmatic Usage:
 ```python
 from .qwen.session_manager import SessionManager
 
-# Initialize session manager for the current project
+# Initialize for current project
 sm = SessionManager("/path/to/project")
 
-# Start a session
+# Start session with goals
 session_info = sm.start_session(
     goals=["Implement feature X", "Fix bug Y"]
 )
 
-# End the session
-sm.end_session()
-
 # Get current session info
-current_session = sm.get_current_session()
+current = sm.get_current_session()
+
+# End session
+sm.end_session()
 ```
+
+---
 
 ## Best Practices
 
-### Task Management
-- Use `--research` flag for complex technical tasks requiring AI assistance
-- Regularly update subtasks with implementation notes using `update-subtask`
-- Follow the 14-section task structure standard for consistency
-- Use dependency tracking to manage task relationships
+### Task Workflow
 
-### Development Workflow
-- Start each session with `task-master next` to get the next task
-- Use worktrees for parallel development on different tasks
-- Apply constitutional analysis to ensure code quality
-- Regularly run complexity analysis to identify potential issues
+1. Start with `task-master next` to get next task
+2. Use `task-master show <id>` to review details
+3. Expand complex tasks: `task-master expand --id=<id> --research`
+4. Log progress: `task-master update-subtask --id=<id> --prompt="notes"`
+5. Mark complete: `task-master set-status --id=<id> --status=done`
 
-### Integration with AI Tools
-- Configure appropriate models for different types of tasks
-- Use Claude Code with the provided integration for enhanced development
-- Leverage MCP tools for streamlined AI interactions
-- Maintain secure handling of API keys and sensitive information
+### Multi-Claude Workflows
 
-## Troubleshooting
+For complex projects, use multiple sessions:
 
-### Common Issues
-- **AI Commands Failing**: Check API key configuration and model settings
-- **MCP Connection Issues**: Verify `.mcp.json` configuration and Node.js installation
-- **Task File Sync Issues**: Run `task-master generate` to regenerate task files
+```bash
+# Terminal 1: Main implementation
+cd project && claude
 
-### Performance Optimization
-- Use appropriate model tiers for different tasks to balance cost and capability
-- Implement caching for repeated operations
-- Monitor resource usage during complex analyses
-- Use worktrees to isolate resource-intensive operations
+# Terminal 2: Testing
+cd project-test-worktree && claude
+
+# Terminal 3: Documentation
+cd project-docs-worktree && claude
+```
+
+### Git Integration
+
+```bash
+# Create worktrees for parallel development
+git worktree add ../project-auth feature/auth-system
+git worktree add ../project-api feature/api-refactor
+
+# Create PR for completed task
+gh pr create --title "Complete task 002.1" --body "Implements clustering"
+
+# Reference task in commits
+git commit -m "feat: implement clustering (task 002.1)"
+```
+
+---
+
+## Resources
+
+- [Task Master AI Documentation](https://taskmaster.ai/docs)
+- [MCP Protocol](https://modelcontextprotocol.io/)
+- [Claude Code Integration](CLAUDE.md)
+- [Git Worktree Documentation](docs/branch-alignment-framework-prd.txt)
+
+---
+
+**Last Updated:** February 19, 2026
+**Project Status:** Phase 3 - Specifications Complete, Implementation Ready
+**Active Tasks:** 9 tasks (007, 075.1-5, 079-083)

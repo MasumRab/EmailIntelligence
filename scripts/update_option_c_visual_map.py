@@ -22,7 +22,15 @@ ARTIFACT_RE = re.compile(r"`([^`]+\.(?:json|md|yaml|yml|csv|txt))`")
 
 
 def normalize_dependency(value: str) -> str:
-    cleaned = value.strip().lstrip("*").strip()
+    cleaned = value.strip()
+    # Remove any leading/trailing asterisks that might be part of markdown formatting
+    cleaned = re.sub(r"^\*+|\*+$", "", cleaned).strip()
+    
+    # Check for "None" specifically after stripping asterisks
+    if cleaned.lower() == "none":
+        return "None"
+    
+    # Otherwise, perform general cleanup, removing non-alphanumeric characters (except commas, parentheses, hyphens, periods).
     cleaned = re.sub(r"[^\w\s,().-]", "", cleaned).strip()
     return cleaned or "None"
 

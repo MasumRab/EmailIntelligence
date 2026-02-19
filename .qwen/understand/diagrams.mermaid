@@ -1,0 +1,248 @@
+# .taskmaster Architecture Diagrams
+
+Generated: 2026-02-19
+
+## 1. System Context
+
+```mermaid
+C4Context
+  title System Context Diagram - .taskmaster
+
+  Person(developer, "Developer", "Uses task management and branch alignment tools")
+  Person(ai_agent, "AI Agent", "Claude Code, Qwen Code, or other AI assistants")
+
+  System_Boundary(taskmaster, ".taskmaster System") {
+    System(task_cli, "Task Master CLI", "task-master commands for task management")
+    System(eai_cli, "EmailIntelligence CLI", "Git worktree-based conflict resolution")
+    System(fastapi, "FastAPI Service", "REST API for programmatic access")
+    SystemDb(tasks_db, "tasks.json", "Task database")
+    SystemDb(archive, "Archive", "Historical task and documentation archives")
+  }
+
+  System_Ext(git, "Git Repository", "Source code management")
+  System_Ext(ai_api, "AI APIs", "Anthropic, OpenAI, Perplexity, etc.")
+
+  Rel(developer, task_cli, "Uses")
+  Rel(developer, eai_cli, "Uses")
+  Rel(ai_agent, task_cli, "Controls")
+  Rel(ai_agent, fastapi, "Calls")
+  Rel(task_cli, tasks_db, "Reads/Writes")
+  Rel(task_cli, git, "Executes commands")
+  Rel(eai_cli, git, "Performs operations")
+  Rel(task_cli, ai_api, "Calls for AI operations")
+  Rel(fastapi, tasks_db, "Reads")
+```
+
+## 2. Container Diagram
+
+```mermaid
+C4Container
+  title Container Diagram - .taskmaster
+
+  Person(developer, "Developer")
+
+  System_Boundary(taskmaster, ".taskmaster") {
+    Container(task_cli, "taskmaster_cli.py", "Python CLI", "Task management commands")
+    Container(eai_cli, "emailintelligence_cli.py", "Python CLI", "Conflict resolution workflow")
+    Container(fastapi_app, "src/main.py", "FastAPI", "REST API service")
+    
+    Container_Boundary(src, "Source Code") {
+      Container(core, "src/core/", "Python", "Core interfaces, models, config")
+      Container(analysis, "src/analysis/", "Python", "Constitutional & conflict analysis")
+      Container(git_ops, "src/git/", "Python", "Git operations wrapper")
+      Container(resolution, "src/resolution/", "Python", "Auto-resolution & merging")
+      Container(strategy, "src/strategy/", "Python", "Strategy generation & risk")
+      Container(validation, "src/validation/", "Python", "Validation components")
+    }
+
+    SystemDb(tasks_db, "tasks.json", "JSON", "Task database")
+    SystemDb(docs, "docs/", "Markdown", "Documentation")
+    SystemDb(scripts, "scripts/", "Python", "Automation scripts")
+  }
+
+  System_Ext(git, "Git", "Version control")
+  System_Ext(ai_api, "AI APIs", "External")
+
+  Rel(developer, task_cli, "Executes")
+  Rel(developer, eai_cli, "Executes")
+  Rel(developer, fastapi_app, "Calls")
+  Rel(task_cli, tasks_db, "Reads/Writes")
+  Rel(task_cli, core, "Uses")
+  Rel(eai_cli, git_ops, "Uses")
+  Rel(eai_cli, analysis, "Uses")
+  Rel(eai_cli, resolution, "Uses")
+  Rel(fastapi_app, core, "Uses")
+  Rel(core, git, "Executes commands")
+  Rel(analysis, ai_api, "Calls for analysis")
+  Rel(strategy, ai_api, "Calls for strategy")
+```
+
+## 3. Component Diagram - Core Layer
+
+```mermaid
+C4Component
+  title Component Diagram - Core Layer
+
+  Container_Boundary(core, "src/core/") {
+    Component(config, "ConfigurationManager", "Python", "Load and manage configuration")
+    Component(security, "SecurityValidator", "Python", "Path validation, size limits")
+    Component(interfaces, "Interfaces", "Python", "Abstract base classes")
+    Component(conflict_models, "Conflict Models", "Python", "Conflict, ConflictBlock classes")
+    Component(exceptions, "Exceptions", "Python", "Custom exception hierarchy")
+    Component(git_ops, "RepositoryOperations", "Python", "Git command wrapper")
+  }
+
+  Rel(config, security, "Uses")
+  Rel(git_ops, interfaces, "Implements")
+  Rel(conflict_models, exceptions, "Extends")
+  Rel(security, exceptions, "Raises")
+```
+
+## 4. Component Diagram - Resolution Layer
+
+```mermaid
+C4Component
+  title Component Diagram - Resolution Layer
+
+  Container_Boundary(resolution, "src/resolution/") {
+    Component(auto_resolver, "AutoResolver", "Python", "Execute conflict resolution")
+    Component(semantic_merger, "SemanticMerger", "Python", "Semantic code merging")
+    Component(constitutional, "ConstitutionalEngine", "Python", "Constitutional validation")
+    
+    Component_Boundary(strategies, "Resolution Strategies") {
+      Component(semantic, "Semantic Merge Strategy", "Python")
+      Component(pattern, "Pattern-based Strategy", "Python")
+      Component(rule, "Rule-based Strategy", "Python")
+    }
+  }
+
+  Rel(auto_resolver, semantic_merger, "Uses")
+  Rel(auto_resolver, constitutional, "Uses")
+  Rel(auto_resolver, semantic, "Applies")
+  Rel(auto_resolver, pattern, "Applies")
+  Rel(auto_resolver, rule, "Applies")
+  Rel(constitutional, semantic, "Validates")
+```
+
+## 5. Sequence Diagram - Conflict Resolution
+
+```mermaid
+sequenceDiagram
+  participant User
+  participant CLI as eai_cli.py
+  participant App as ConflictResolutionApp
+  participant Detector as GitConflictDetector
+  participant Git as Git Repository
+  participant Analyzer as ConstitutionalAnalyzer
+  participant Resolver as AutoResolver
+  participant Merger as SemanticMerger
+
+  User->>CLI: setup-resolution --pr 123
+  CLI->>App: setup_resolution(pr=123)
+  App->>Detector: detect_conflicts(pr, target_branch)
+  Detector->>Git: git merge-tree main feature
+  Git-->>Detector: Conflict output
+  Detector->>Detector: Parse conflict blocks
+  Detector-->>App: List[Conflict]
+  
+  App->>Analyzer: analyze_constitutional_compliance()
+  Analyzer->>Analyzer: Check against constitution
+  Analyzer-->>App: AnalysisResult
+  
+  App->>Resolver: execute_resolution(plan)
+  Resolver->>Merger: merge_conflicts()
+  Merger-->>Resolver: Merged content
+  Resolver-->>App: ResolutionResult
+  
+  App-->>CLI: Result JSON
+  CLI-->>User: Output
+```
+
+## 6. Sequence Diagram - Task Management
+
+```mermaid
+sequenceDiagram
+  participant User
+  participant CLI as task-master CLI
+  participant Parser as PRD Parser
+  participant DB as tasks.json
+  participant Generator as Task Generator
+  participant FS as File System
+
+  User->>CLI: parse-prd prd.md
+  CLI->>Parser: parse_prd("prd.md")
+  Parser->>Parser: Extract requirements
+  Parser->>Parser: Generate tasks
+  Parser-->>CLI: List[Task]
+  
+  CLI->>DB: Update tasks.json
+  DB-->>CLI: Success
+  
+  User->>CLI: generate
+  CLI->>Generator: generate_task_files()
+  Generator->>DB: Read tasks
+  Generator->>FS: Write task_XXX.md files
+  FS-->>Generator: Success
+  Generator-->>CLI: Files generated
+  CLI-->>User: "Generated N task files"
+```
+
+## 7. Data Flow Diagram
+
+```mermaid
+flowchart TD
+  subgraph Input
+    PRD[PRD Document]
+    UserInput[User Commands]
+  end
+  
+  subgraph Processing
+    Parser[PRD Parser]
+    TaskDB[(tasks.json)]
+    Analyzer[Constitutional Analyzer]
+    Resolver[Auto Resolver]
+  end
+  
+  subgraph Output
+    TaskFiles[task_XXX.md files]
+    ResolutionResult[Resolution JSON]
+    Reports[Analysis Reports]
+  end
+  
+  PRD --> Parser
+  UserInput --> TaskDB
+  Parser --> TaskDB
+  TaskDB --> Analyzer
+  Analyzer --> Resolver
+  Resolver --> ResolutionResult
+  TaskDB --> TaskFiles
+  Analyzer --> Reports
+```
+
+## 8. Deployment Diagram
+
+```mermaid
+flowchart LR
+  subgraph Local["Local Development"]
+    Dev[Developer Workstation]
+    CLI[CLI Tools]
+    IDE[IDE / Editor]
+  end
+  
+  subgraph Remote["Remote Services"]
+    AI[AI APIs]
+    Git[Git Hosting]
+  end
+  
+  Dev --> CLI
+  Dev --> IDE
+  CLI --> AI
+  CLI --> Git
+  IDE --> Git
+```
+
+---
+
+**Diagrams Generated:** 2026-02-19  
+**Tool:** Mermaid.js  
+**Project:** .taskmaster

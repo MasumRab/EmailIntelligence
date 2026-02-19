@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>.taskmaster Documentation Health Dashboard</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --success: #16a34a;
+            --warning: #d97706;
+            --danger: #dc2626;
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --text: #1e293b;
+        }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            padding: 2rem;
+        }
+        
+        .container { max-width: 1400px; margin: 0 auto; }
+        
+        header {
+            background: linear-gradient(135deg, var(--primary), #1d4ed8);
+            color: white;
+            padding: 2rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        h1 { font-size: 2.5rem; margin-bottom: 0.5rem; }
+        h2 { font-size: 1.8rem; margin: 1.5rem 0 1rem; color: var(--primary); }
+        h3 { font-size: 1.3rem; margin: 1rem 0 0.5rem; }
+        
+        .subtitle { opacity: 0.9; font-size: 1.1rem; }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .card {
+            background: var(--card);
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            border-left: 4px solid var(--primary);
+        }
+        
+        .card.success { border-left-color: var(--success); }
+        .card.warning { border-left-color: var(--warning); }
+        .card.danger { border-left-color: var(--danger); }
+        
+        .stat {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        .stat:last-child { border-bottom: none; }
+        
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--primary);
+        }
+        
+        .stat-value.success { color: var(--success); }
+        .stat-value.warning { color: var(--warning); }
+        .stat-value.danger { color: var(--danger); }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+            background: var(--card);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        th, td {
+            padding: 0.75rem 1rem;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        th {
+            background: #f1f5f9;
+            font-weight: 600;
+        }
+        
+        tr:hover { background: #f8fafc; }
+        
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+        
+        .badge-primary { background: #dbeafe; color: var(--primary); }
+        .badge-success { background: #dcfce7; color: var(--success); }
+        .badge-warning { background: #fef3c7; color: var(--warning); }
+        .badge-danger { background: #fee2e2; color: var(--danger); }
+        
+        .progress-bar {
+            height: 8px;
+            background: #e2e8f0;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 0.5rem 0;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), #3b82f6);
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+        
+        .progress-fill.success { background: linear-gradient(90deg, var(--success), #22c55e); }
+        .progress-fill.warning { background: linear-gradient(90deg, var(--warning), #f59e0b); }
+        .progress-fill.danger { background: linear-gradient(90deg, var(--danger), #ef4444); }
+        
+        .section {
+            background: var(--card);
+            padding: 2rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        
+        .chart-container {
+            height: 300px;
+            position: relative;
+            margin: 1rem 0;
+        }
+        
+        ul { padding-left: 1.5rem; }
+        li { margin: 0.5rem 0; }
+        
+        .timestamp {
+            font-size: 0.875rem;
+            color: #64748b;
+            margin-top: 1rem;
+        }
+        
+        @media print {
+            body { background: white; padding: 0; }
+            .card { box-shadow: none; border: 1px solid #e2e8f0; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📊 Documentation Health Dashboard</h1>
+            <p class="subtitle">.taskmaster Branch Analysis Report</p>
+            <p class="timestamp">Generated: 2026-02-19</p>
+        </header>
+
+        <!-- Executive Summary -->
+        <div class="grid">
+            <div class="card">
+                <h3>📁 Total Documentation</h3>
+                <div class="stat">
+                    <span>Files</span>
+                    <span class="stat-value">1,497</span>
+                </div>
+                <div class="stat">
+                    <span>Lines</span>
+                    <span class="stat-value">528,520</span>
+                </div>
+                <div class="stat">
+                    <span>Words</span>
+                    <span class="stat-value">2,794,348</span>
+                </div>
+            </div>
+
+            <div class="card success">
+                <h3>✅ Task Validation</h3>
+                <div class="stat">
+                    <span>Valid Tasks</span>
+                    <span class="stat-value success">218/228</span>
+                </div>
+                <div class="stat">
+                    <span>Completeness</span>
+                    <span class="stat-value success">98.9%</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill success" style="width: 98.9%"></div>
+                </div>
+            </div>
+
+            <div class="card warning">
+                <h3>⚠️ Issues Found</h3>
+                <div class="stat">
+                    <span>Invalid Tasks</span>
+                    <span class="stat-value warning">10</span>
+                </div>
+                <div class="stat">
+                    <span>Total Issues</span>
+                    <span class="stat-value warning">374</span>
+                </div>
+                <div class="stat">
+                    <span>Files with TODOs</span>
+                    <span class="stat-value warning">527</span>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>📂 Categories</h3>
+                <div class="stat">
+                    <span>Task Specifications</span>
+                    <span class="stat-value">334</span>
+                </div>
+                <div class="stat">
+                    <span>Archived</span>
+                    <span class="stat-value">180</span>
+                </div>
+                <div class="stat">
+                    <span>Core Documentation</span>
+                    <span class="stat-value">16</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Documentation Quality -->
+        <div class="section">
+            <h2>📋 Documentation Quality Assessment</h2>
+            
+            <h3>Task Specification Compliance</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Metric</th>
+                        <th>Value</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>14-Section Standard Compliance</td>
+                        <td>95.6%</td>
+                        <td><span class="badge badge-success">Excellent</span></td>
+                    </tr>
+                    <tr>
+                        <td>Header Metadata Complete</td>
+                        <td>98.2%</td>
+                        <td><span class="badge badge-success">Excellent</span></td>
+                    </tr>
+                    <tr>
+                        <td>Success Criteria Defined</td>
+                        <td>99.1%</td>
+                        <td><span class="badge badge-success">Excellent</span></td>
+                    </tr>
+                    <tr>
+                        <td>Subtasks with Effort Estimates</td>
+                        <td>87.3%</td>
+                        <td><span class="badge badge-warning">Good</span></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>Invalid Tasks Requiring Attention</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Task File</th>
+                        <th>Issues</th>
+                        <th>Missing Sections</th>
+                        <th>Completeness</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>task_002.7.md</td>
+                        <td>Missing subtasks</td>
+                        <td>Configuration, Performance, Testing</td>
+                        <td>83.3%</td>
+                    </tr>
+                    <tr>
+                        <td>task_011.1.md</td>
+                        <td>Only 1 subtask</td>
+                        <td>None</td>
+                        <td>100%</td>
+                    </tr>
+                    <tr>
+                        <td>task_019.2.md</td>
+                        <td>Only 1 success criteria</td>
+                        <td>None</td>
+                        <td>100%</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Category Distribution -->
+        <div class="section">
+            <h2>📂 Documentation by Category</h2>
+            <div class="grid">
+                <div class="card">
+                    <h3>Task Specifications</h3>
+                    <p class="stat-value">334 files</p>
+                    <p>Primary implementation tasks following 14-section standard</p>
+                </div>
+                <div class="card">
+                    <h3>Archived</h3>
+                    <p class="stat-value">180 files</p>
+                    <p>Historical documentation preserved for reference</p>
+                </div>
+                <div class="card">
+                    <h3>Summaries</h3>
+                    <p class="stat-value">40 files</p>
+                    <p>Project status and completion summaries</p>
+                </div>
+                <div class="card">
+                    <h3>PRD Documents</h3>
+                    <p class="stat-value">35 files</p>
+                    <p>Product requirements and specifications</p>
+                </div>
+                <div class="card">
+                    <h3>Plans</h3>
+                    <p class="stat-value">21 files</p>
+                    <p>Implementation and migration plans</p>
+                </div>
+                <div class="card">
+                    <h3>Guides</h3>
+                    <p class="stat-value">21 files</p>
+                    <p>How-to guides and procedures</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- TODO Analysis -->
+        <div class="section">
+            <h2>⚠️ TODO/FIXME Analysis</h2>
+            <div class="grid">
+                <div class="card warning">
+                    <h3>Total Markers</h3>
+                    <p class="stat-value warning">5,011</p>
+                    <p>Across 527 files</p>
+                </div>
+                <div class="card">
+                    <h3>Top TODO Files</h3>
+                    <ul>
+                        <li>roundtrip_test_prd_enhanced.md: 564</li>
+                        <li>tasks/task_002.md: 63</li>
+                        <li>tasks/overexpanded_backup/task_002.md: 63</li>
+                        <li>enhanced_improved_tasks/task-002.md: 62</li>
+                        <li>tasks/task_001.md: 61</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Git History -->
+        <div class="section">
+            <h2>📜 Git History Analysis</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Metric</th>
+                        <th>Value</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Total Documentation Commits</td>
+                        <td>67</td>
+                    </tr>
+                    <tr>
+                        <td>Unique Authors</td>
+                        <td>1 (Masum Rab)</td>
+                    </tr>
+                    <tr>
+                        <td>Most-Changed File</td>
+                        <td>GEMINI.md (10 commits)</td>
+                    </tr>
+                    <tr>
+                        <td>Recent Activity</td>
+                        <td>2026-02-19 (Latest)</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>Most-Changed Files</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>File</th>
+                        <th>Commits</th>
+                        <th>Category</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>GEMINI.md</td>
+                        <td>10</td>
+                        <td><span class="badge badge-warning">Orphaned</span></td>
+                    </tr>
+                    <tr>
+                        <td>CLAUDE.md</td>
+                        <td>8</td>
+                        <td><span class="badge badge-primary">Core</span></td>
+                    </tr>
+                    <tr>
+                        <td>AGENTS.md</td>
+                        <td>8</td>
+                        <td><span class="badge badge-primary">Core</span></td>
+                    </tr>
+                    <tr>
+                        <td>AGENT.md</td>
+                        <td>7</td>
+                        <td><span class="badge badge-primary">Core</span></td>
+                    </tr>
+                    <tr>
+                        <td>tasks/task_002.1-5.md</td>
+                        <td>6 each</td>
+                        <td><span class="badge badge-success">Task Spec</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Key Findings -->
+        <div class="section">
+            <h2>🔍 Key Findings</h2>
+            
+            <h3>✅ Strengths</h3>
+            <ul>
+                <li><strong>High Compliance:</strong> 98.9% task specification completeness</li>
+                <li><strong>Consistent Authorship:</strong> Single author ensures consistency</li>
+                <li><strong>Active Maintenance:</strong> 67 commits show active upkeep</li>
+                <li><strong>Archive Discipline:</strong> Old content properly archived</li>
+                <li><strong>14-Section Standard:</strong> Well-adopted across task files</li>
+            </ul>
+
+            <h3>⚠️ Areas for Improvement</h3>
+            <ul>
+                <li><strong>Missing Documents:</strong> PROJECT_STATE_PHASE_3_READY.md referenced but missing</li>
+                <li><strong>Orphaned Files:</strong> GEMINI.md, QWEN.md not integrated</li>
+                <li><strong>High TODO Count:</strong> 5,011 TODOs need attention</li>
+                <li><strong>Invalid Tasks:</strong> 10 tasks fail validation</li>
+                <li><strong>Broken Links:</strong> Some docs reference non-existent files</li>
+            </ul>
+
+            <h3>🎯 Critical Recommendations</h3>
+            <ol>
+                <li><strong>Create PROJECT_STATE_PHASE_3_READY.md</strong> - Primary reference document</li>
+                <li><strong>Complete Task 007 specification</strong> - Has TBD fields</li>
+                <li><strong>Fix 10 invalid tasks</strong> - Address validation failures</li>
+                <li><strong>Integrate orphaned docs</strong> - GEMINI.md, QWEN.md</li>
+                <li><strong>Reduce TODO backlog</strong> - Prioritize and address 5,011 markers</li>
+            </ol>
+        </div>
+
+        <!-- Document Relationships -->
+        <div class="section">
+            <h2>🔗 Document Relationships</h2>
+            
+            <h3>Core Documentation Hub</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Document</th>
+                        <th>References</th>
+                        <th>Referenced By</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>CLAUDE.md</td>
+                        <td>AGENT.md, AGENTS.md, tasks/*.md</td>
+                        <td>Auto-loaded</td>
+                        <td><span class="badge badge-success">Active</span></td>
+                    </tr>
+                    <tr>
+                        <td>CURRENT_DOCUMENTATION_MAP.md</td>
+                        <td>README.md, PROJECT_STATE_PHASE_3_READY.md</td>
+                        <td>Multiple docs</td>
+                        <td><span class="badge badge-success">Active</span></td>
+                    </tr>
+                    <tr>
+                        <td>PROJECT_IDENTITY.md</td>
+                        <td>tasks/task_002-004.md</td>
+                        <td>README.md</td>
+                        <td><span class="badge badge-success">Active</span></td>
+                    </tr>
+                    <tr>
+                        <td>GEMINI.md</td>
+                        <td>None</td>
+                        <td>None</td>
+                        <td><span class="badge badge-danger">Orphaned</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Branch Alignment Tasks -->
+        <div class="section">
+            <h2>🎯 Branch Alignment Meta-Task Status</h2>
+            
+            <h3>Phase 3 Active Tasks</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Task ID</th>
+                        <th>Title</th>
+                        <th>Validation</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>task_007.md</td>
+                        <td>Feature Branch Identification</td>
+                        <td><span class="badge badge-warning">Incomplete</span></td>
+                        <td>Phase 3 Active</td>
+                    </tr>
+                    <tr>
+                        <td>task_075.1-5.md</td>
+                        <td>Alignment Analyzers</td>
+                        <td><span class="badge badge-success">Valid</span></td>
+                        <td>Phase 3 Active</td>
+                    </tr>
+                    <tr>
+                        <td>task_079-083.md</td>
+                        <td>Orchestration Framework</td>
+                        <td><span class="badge badge-success">Valid</span></td>
+                        <td>Phase 3 Active</td>
+                    </tr>
+                    <tr>
+                        <td>task_002.1-5.md</td>
+                        <td>Stage One Analyzers</td>
+                        <td><span class="badge badge-success">Valid</span></td>
+                        <td>Exemplar Format</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>Task Classification Verification</h3>
+            <p><strong>Tasks 74-83:</strong> Process definition tasks (framework, tools, procedures) - NOT feature branches</p>
+            <p><strong>Tasks 002.1-5:</strong> Stage One Analyzers - CommitHistoryAnalyzer, CodebaseStructureAnalyzer, DiffDistanceCalculator, BranchClusterer, IntegrationTargetAssigner</p>
+        </div>
+
+        <footer style="text-align: center; padding: 2rem; color: #64748b;">
+            <p>Documentation Health Dashboard | Generated 2026-02-19</p>
+            <p>.taskmaster Branch Analysis</p>
+        </footer>
+    </div>
+</body>
+</html>

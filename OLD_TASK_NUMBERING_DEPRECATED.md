@@ -1,27 +1,27 @@
-# ⚠️ DEPRECATED: Old Task Numbering System (task-001 through task-020)
+# ⚠️ DEPRECATED: Old Task Numbering Systems (task-001 through task-020, task-075.x)
 
-**Status:** ❌ DEPRECATED as of January 6, 2026  
-**Replacement:** TASK_STRUCTURE_STANDARD.md numbering  
-**Current Active Tasks:** 9 files (task_007.md, task_075.1-5.md, task_079-083.md)
+**Status:** ❌ DEPRECATED as of January 6, 2026
+**Replacement:** TASK_STRUCTURE_STANDARD.md numbering
+**Current Active Tasks:** 12 files (task_001.md, task_002.1-9.md, task_002-clustering.md, task_002.md)
 
 ---
 
-## DO NOT USE THIS NUMBERING SYSTEM
+## DO NOT USE THESE NUMBERING SYSTEMS
 
 ### ❌ DEPRECATED (Don't use)
 ```
 task-001.md   task-002.md   task-003.md   ... task-020.md
 task-001      task-002      task-003      ... task-020
+task-075.md   task-075.1.md task-075.2.md ... task-075.9.md
 new_task_plan/task_files/
 ```
 
 ### ✅ USE CURRENT SYSTEM INSTEAD
 ```
-task_007.md              ← Branch Alignment Strategy Framework
-task_075.1.md - 075.5.md ← Alignment Analyzers (Stage 1-2)
-task_079.md              ← Orchestration Framework
-task_080.md              ← Validation Integration
-task_083.md              ← E2E Testing & Reporting
+task_001.md              ← Branch Alignment Framework Definition
+task_002.1.md - 002.9.md ← Branch Clustering System (Stage 1-3)
+task_002-clustering.md   ← Implementation Guide for Clustering System
+task_002.md              ← Consolidated Branch Clustering System Overview
 ```
 
 ---
@@ -53,57 +53,58 @@ If you encounter old references, use this mapping:
 
 | Old Task ID | Maps To | New File | Current Status |
 |-------------|---------|----------|-----------------|
-| task-001 | Alignment Strategy | task_007.md | Active (retrofitted) |
-| task-002 | Validation/Clustering | task_079.md + task_075.1-5.md | Active (retrofitted) |
-| task-003 | Pre-merge Validation | task_080.md | Active (retrofitted) |
-| task-004 | Alignment Framework | task_079.md | Active (retrofitted) |
-| task-005 | Error Detection | task_083.md | Active (retrofitted) |
-| task-006 | Backup/Restore | (Deferred) | Not in Phase 3 scope |
-| task-007 | Feature ID Tool | task_075.1-3.md | Active (renamed) |
-| task-008 | Changes Summary | task_083.md | Active (integrated) |
-| task-009 | Post-alignment | task_083.md | Active (integrated) |
-| task-010-020 | Various | (Deferred) | Not in Phase 3 scope |
+| task-001 | Branch Alignment Framework | task_001.md | Active (enhanced) |
+| task-075.1-9 | Branch Clustering System | task_002.1-9.md | Active (enhanced) |
+| task-002 | Branch Clustering System | task_002.md | Active (consolidated) |
+| task-003 | (Integrated into Task 002) | task_002.3.md | Active (integrated) |
+| task-004 | (Integrated into Task 002) | task_002.4.md | Active (integrated) |
+| task-005 | (Integrated into Task 002) | task_002.5.md | Active (integrated) |
+| task-006 | (Integrated into Task 002) | task_002.6.md | Active (integrated) |
+| task-007 | (Integrated into Task 002) | task_002.7.md | Active (integrated) |
+| task-008 | (Integrated into Task 002) | task_002.8.md | Active (integrated) |
+| task-009 | (Integrated into Task 002) | task_002.9.md | Active (integrated) |
+| task-075.1 | CommitHistoryAnalyzer | task_002.1.md | Active (enhanced) |
+| task-075.2 | CodebaseStructureAnalyzer | task_002.2.md | Active (enhanced) |
+| task-075.3 | DiffDistanceCalculator | task_002.3.md | Active (enhanced) |
+| task-075.4 | BranchClusterer | task_002.4.md | Active (enhanced) |
+| task-075.5 | IntegrationTargetAssigner | task_002.5.md | Active (enhanced) |
+| task-075.6 | PipelineIntegration | task_002.6.md | Active (enhanced) |
+| task-075.7 | VisualizationReporting | task_002.7.md | Active (enhanced) |
+| task-075.8 | TestingSuite | task_002.8.md | Active (enhanced) |
+| task-075.9 | FrameworkIntegration | task_002.9.md | Active (enhanced) |
 
 ---
 
-## Correct Task Structure (Phase 3)
+## Correct Task Structure (Current)
 
 ### Current active tasks:
 
 ```
-Phase 3: Alignment Framework
+Current: Branch Clustering & Alignment System
 
-1. Task 007: Branch Alignment Strategy Framework
-   └─ File: tasks/task_007.md
-   └─ Scope: Define alignment strategy framework
-   └─ Status: Retrofitted, ready for implementation
+1. Task 001: Branch Alignment Strategy Framework
+   └─ File: tasks/task_001.md
+   └─ Scope: Define alignment strategy and decision criteria
+   └─ Status: Enhanced, ready for implementation
 
-2. Tasks 075.1-5: Alignment Analyzers
-   ├─ task_075.1.md: CommitHistoryAnalyzer
-   ├─ task_075.2.md: CodebaseStructureAnalyzer
-   ├─ task_075.3.md: DiffDistanceCalculator
-   ├─ task_075.4.md: BranchClusterer
-   └─ task_075.5.md: IntegrationTargetAssigner
-   └─ Scope: Stage 1-2 analyzers for alignment
-   └─ Status: Retrofitted, ready for implementation
+2. Tasks 002.1-9: Branch Clustering System (Stage 1-3)
+   ├─ task_002.1.md: CommitHistoryAnalyzer
+   ├─ task_002.2.md: CodebaseStructureAnalyzer
+   ├─ task_002.3.md: DiffDistanceCalculator
+   ├─ task_002.4.md: BranchClusterer
+   ├─ task_002.5.md: IntegrationTargetAssigner
+   ├─ task_002.6.md: PipelineIntegration
+   ├─ task_002.7.md: VisualizationReporting
+   ├─ task_002.8.md: TestingSuite
+   └─ task_002.9.md: FrameworkIntegration
+   └─ Scope: Complete 3-stage clustering and alignment system
+   └─ Status: Enhanced with 14-section standard, ready for implementation
 
-3. Task 079: Parallel Alignment Orchestration Framework
-   └─ File: tasks/task_079.md
-   └─ Scope: Execute parallel alignment safely
-   └─ Dependencies: Task 007
-   └─ Status: Retrofitted, ready for implementation
-
-4. Task 080: Pre-merge Validation Framework
-   └─ File: tasks/task_080.md
-   └─ Scope: Validate alignment before merge
-   └─ Dependencies: Task 079
-   └─ Status: Retrofitted, ready for implementation
-
-5. Task 083: E2E Testing and Reporting
-   └─ File: tasks/task_083.md
-   └─ Scope: Comprehensive testing framework
-   └─ Dependencies: Task 079, 080
-   └─ Status: Retrofitted, ready for implementation
+3. Task 002: Consolidated Branch Clustering System Overview
+   └─ File: tasks/task_002.md
+   └─ Scope: Complete system overview and integration guide
+   └─ Dependencies: Tasks 002.1-9
+   └─ Status: Consolidated, ready for implementation
 ```
 
 ---
@@ -114,27 +115,30 @@ Phase 3: Alignment Framework
 # Correct location for current tasks
 /home/masum/github/PR/.taskmaster/tasks/
 
-# All 9 Phase 3 tasks
-task_007.md
-task_075.1.md
-task_075.2.md
-task_075.3.md
-task_075.4.md
-task_075.5.md
-task_079.md
-task_080.md
-task_083.md
+# All 12 Branch Clustering System tasks
+task_001.md
+task_002.md
+task_002.1.md
+task_002.2.md
+task_002.3.md
+task_002.4.md
+task_002.5.md
+task_002.6.md
+task_002.7.md
+task_002.8.md
+task_002.9.md
+task_002-clustering.md
 ```
 
 ---
 
 ## What Happened to Old Files?
 
-### `new_task_plan/task_files/` folder
-- ❌ Removed: task-001.md through task-020.md
-- 📦 Archived: All files preserved in git history
-- 🔍 Recoverable: Use `git log --all --full-history` if needed
-- ✅ Decision: Focus on Phase 3 current scope only
+### Original Task 75 files (task-75.x.md)
+- ❌ Migrated: task-75.1.md through task-75.9.md
+- 🔄 Renamed to: task_002.1.md through task_002.9.md
+- ✅ Enhanced: All content preserved and expanded with 14-section standard
+- 📁 Location: Archived in task_data/migration_backup_20260129/ for reference
 
 ### Historical documents referencing old numbering
 - ❌ Deprecated but preserved for reference

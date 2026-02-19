@@ -1,5 +1,10 @@
 # Task Master AI - Agent Integration Guide
 
+> **CRITICAL FIDELITY RULE:** 
+> 1. **Markdown-Canonical:** In this project, `tasks/*.md` is the canonical source of truth. DO NOT manually edit `tasks.json`.
+> 2. **Standard Compliance:** All tasks MUST follow the 14-section standard defined in `TASK_STRUCTURE_STANDARD.md`.
+> 3. **Sync Protocol:** Always edit Markdown files first, then run `python taskmaster_cli.py parse-prd --input tasks/` to sync changes into `tasks.json`. The global `tm` commands consume this JSON.
+
 ## Essential Commands
 
 ### Core Workflow Commands
@@ -313,6 +318,30 @@ All Python scripts implement security validation:
 - **Secure JSON Loading**: Validates content before parsing
 - **Backup Mechanisms**: Creates backups before destructive operations
 
+## Content Duplication and Corruption Prevention
+
+To prevent content duplication and corruption in task-to-todo creation processes:
+
+### Validation Framework
+- **Duplicate Detection**: Scripts validate for duplicate content before writing
+- **Content Integrity**: All generated content undergoes integrity checks
+- **Template Compliance**: Generated files must conform to predefined templates
+- **Atomic Operations**: File operations are atomic to prevent partial writes
+
+### Best Practices
+- **Single Source of Truth**: Each piece of content originates from one authoritative source
+- **Template-Based Generation**: Use standardized templates to ensure consistency
+- **Validation Gates**: Content passes through multiple validation checkpoints
+- **Error Handling**: Graceful error handling prevents corruption during failures
+
+### Quality Assurance
+- **Automated Testing**: All generated content is tested for integrity
+- **Format Validation**: Generated files follow expected format specifications
+- **Size Validation**: Files are checked to ensure reasonable size limits
+- **Link Verification**: All internal and external links are validated
+
+For detailed guidelines, see `CONTENT_DUPLICATION_PREVENTION_GUIDELINES.md`.
+
 ### Agent Usage Guidelines
 
 **When to Use Scripts:**
@@ -363,6 +392,32 @@ task-master expand --all --research
 ```
 
 If tasks already exist, another PRD can be parsed (with new information only!) using parse-prd with --append flag. This will add the generated tasks to the existing list of tasks..
+
+### Content Duplication Prevention
+
+When working with task files and performing task-to-todo conversions, follow these guidelines to prevent content duplication and corruption:
+
+#### 1. Content Validation Framework
+- **Pre-processing validation**: Check content uniqueness before adding to files
+- **Integrity validation**: Verify content structure and formatting after operations
+- **Duplicate detection**: Scan for existing content before adding new sections
+
+#### 2. Template Application Controls
+- **Single application**: Ensure templates are applied only once per file
+- **Conditional application**: Apply templates only if not already present
+- **Version tracking**: Track which templates have been applied to each file
+
+#### 3. Atomic Operations
+- **Transaction-based changes**: Either complete the entire operation or revert completely
+- **Backup mechanisms**: Create backups before any transformation operations
+- **Rollback capabilities**: Ability to revert changes if issues are detected
+
+#### 4. Content Boundary Management
+- **Preserve original content**: Keep original content separate from generated content
+- **Clear section markers**: Use clear markers to distinguish between different content sources
+- **Source attribution**: Track which source each content section originated from
+
+For detailed implementation guidelines, see CONTENT_DUPLICATION_PREVENTION_GUIDELINES.md.
 
 #### 2. Daily Development Loop
 
