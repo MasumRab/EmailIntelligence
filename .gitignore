@@ -25,6 +25,7 @@ share/python-wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+*.whl
 MANIFEST
 
 # PyInstaller
@@ -45,25 +46,23 @@ htmlcov/
 nosetests.xml
 coverage.xml
 *.cover
-*.py,cover
-.hypothesis/
 .pytest_cache/
 
 # Translations
 *.mo
 *.pot
 
-# Django stuff:
+# Django stuff
 *.log
 local_settings.py
 db.sqlite3
 db.sqlite3-journal
 
-# Flask stuff:
+# Flask stuff
 instance/
 .webassets-cache
 
-# Scrapy stuff:
+# Scrapy stuff
 .scrapy
 
 # Sphinx documentation
@@ -125,10 +124,36 @@ dmypy.json
 # IDE settings
 .vscode/
 .idea/
+*.iml
+*.sublime-project
+*.sublime-workspace
+.history
 *.swp
 *.swo
 *~
+
+# OS files
 .DS_Store
+Thumbs.db
+
+# Node.js
+**/node_modules/
+server/public/
+vite.config.ts.*
+*.tar.gz
+.pnpm-debug.log*
+
+# Databases
+*.sqlite3
+*.db
+*.db-journal
+
+# Credentials and sensitive data
+token.json
+credentials.json
+apikey.json
+jsons/
+jsons/*
 
 # Project-specific ignores
 .orchestration-disabled
@@ -142,13 +167,47 @@ worktrees/
 .cursorignore
 .validation_cache.json
 .emailintelligence/
-#QWEN.md
-#AGENTS.md
-#GEMINI.md
-#CRUSH.md
-#IFLOW.md
+diagnosis_message.txt
+logs/
+performance_metrics_log.jsonl
+config/llm_guidelines.local.json
+models/*.pkl
+
+# AI/IDE tool configs (local only)
+.iflow/
+.gemini-flow/
+.qwen/
+
+# Backup files
+*.bak
+*.backup
+backlog/config.yml.bak
+original_readme.md
+
+# Hidden files exceptions
+!docs/.gitkeep
+!.semgrep/
+!.gitignore
+!.git/hooks/
+!.flake8
+!.pylintrc
+!.github/
+!.specify/
+
+# Centralized Agent Markdown Files
+!docs/agents/
+!docs/agents/OPENCODE.md
+!docs/agents/AIDER.md
+!docs/agents/CURSOR.md
 !docs/agents/AMP.md
 terminal-jarvis_AGENTS.md
 cognee-AGENTS.md
-.taskmaster
-.aider*
+
+# Misc local config
+*.local.config
+*.local.json
+*.local.yaml
+*.local.yml
+config.local.*
+# ck (seek) semantic search cache
+.ck/
