@@ -1,4 +1,4 @@
-# Branch Merge Task: orchestration-tools (EmailIntelligenceGem)
+# Branch Merge Task: orchestration-tools (Email Intelligence)
 
 **Repository:** /home/masum/github/EmailIntelligenceGem
 **Branch:** orchestration-tools

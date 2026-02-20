@@ -1,0 +1,114 @@
+#!/bin/bash
+
+# Simplified Pre-commit hook for orchestration validation
+# Validates code quality and safety only - no file distribution
+
+# Recursion prevention: Exit if sync is already active
+if [[ "$ORCHESTRATION_SYNC_ACTIVE" == "1" ]]; then
+    exit 0
+fi
+
+# Check for disable flag
+if [[ "$DISABLE_ORCHESTRATION_CHECKS" == "1" ]]; then
+    echo "Orchestration checks disabled, skipping pre-commit validation"
+    exit 0
+fi
+
+set -e
+
+# Get current branch
+CURRENT_BRANCH="$(git rev-parse --abbrev-ref HEAD)"
+
+# Determine if this is an orchestration-tools variant branch
+IS_ORCHESTRATION_VARIANT=false
+if [[ "$CURRENT_BRANCH" == orchestration-tools* ]]; then
+    IS_ORCHESTRATION_VARIANT=true
+fi
+
+# Branch-specific validation
+case "$CURRENT_BRANCH" in
+    "main"|"scientific")
+        if [[ "$IS_ORCHESTRATION_VARIANT" == true ]]; then
+            echo "ERROR: This branch name conflicts with orchestration-tools pattern"
+            exit 1
+        fi
+        echo "✓ Pre-commit validation passed for $CURRENT_BRANCH"
+        ;;
+
+    "orchestration-tools"|orchestration-tools-*)
+        echo "Running orchestration-tools validation for: $CURRENT_BRANCH"
+
+        # Check for sensitive data
+        if git diff --cached --name-only | xargs grep -l "password\|secret\|key\|token" >/dev/null 2>&1; then
+            echo "ERROR: Potential sensitive data detected in staged files"
+            echo "Please review and ensure no secrets are being committed"
+            exit 1
+        fi
+
+        # Verify Task Master worktree isolation (no files should be staged from .taskmaster/)
+        if git diff --cached --name-only | grep -q "^\.taskmaster/" ; then
+            echo "ERROR: Task Master worktree files cannot be committed"
+            echo "Files in .taskmaster/ directory should not be staged"
+            echo "Use 'git restore --staged .taskmaster/' to unstage"
+            exit 1
+        fi
+
+        echo "✓ Orchestration-tools pre-commit validation passed for: $CURRENT_BRANCH"
+        ;;
+
+    "taskmaster")
+        echo "Running Task Master validation..."
+
+        # Task Master branch validation
+        if git diff --cached --name-only | grep -q "^\.taskmaster/" ; then
+            echo "ERROR: Task Master worktree files should not be committed"
+            exit 1
+        fi
+
+        echo "✓ Task Master pre-commit validation passed"
+        ;;
+
+    *)
+        # Generic validation for other branches
+        if [[ "$CURRENT_BRANCH" == taskmaster* ]]; then
+            echo "ERROR: Branch name conflicts with taskmaster pattern"
+            exit 1
+        fi
+        ;;
+esac
+
+# Common validation for all branches
+echo "Running common pre-commit validation..."
+
+# Check for large files (>50MB)
+STAGED_FILES=$(git diff --cached --name-only 2>/dev/null || echo "")
+if [[ -n "$STAGED_FILES" ]]; then
+    LARGE_FILES=$(echo "$STAGED_FILES" | xargs ls -l 2>/dev/null | awk '$5 > 50000000 {print $9}' || true)
+    if [[ -n "$LARGE_FILES" ]]; then
+        echo "ERROR: Large files detected (>50MB):"
+        echo "$LARGE_FILES"
+        echo "Please remove or use Git LFS for large files"
+        exit 1
+    fi
+fi
+
+# Ensure important orchestration files are not accidentally deleted
+REQUIRED_ORCHESTRATION_FILES=(
+    "scripts/install-hooks.sh"
+    "scripts/disable-hooks.sh"
+    "scripts/enable-hooks.sh"
+    "scripts/sync_orchestration_files.sh"
+    "setup/launch.py"
+)
+
+for file in "${REQUIRED_ORCHESTRATION_FILES[@]}"; do
+    if [[ -f "$file" ]]; then
+        # Check if this file is being deleted
+        if git diff --cached --name-only --diff-filter=D | grep -q "^$file$"; then
+            echo "ERROR: Critical orchestration file $file is being deleted"
+            exit 1
+        fi
+    fi
+done
+
+echo "✓ All pre-commit validations passed"

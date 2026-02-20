@@ -3,7 +3,7 @@
 **Branch**: `[###-feature-name]` | **Date**: [DATE] | **Spec**: [link]
 **Input**: Feature specification from `/specs/[###-feature-name]/spec.md`
 
-**Note**: This template is filled in by the `/speckit.plan` command. See `.specify/templates/commands/plan.md` for the execution workflow.
+**Note**: This template is filled in by the `/speckit.plan` command. See `.opencode/command/speckit.plan.md` for the execution workflow.
 
 ## Summary
 
@@ -31,18 +31,7 @@
 
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
-Based on the Orchestration Tools Verification and Review Constitution:
-- Verification-First Development: All implementation must include comprehensive verification before merging to any target branch
-- Goal-Task Consistency: All implementation tasks must align with defined project goals
-- Role-Based Access Control: Implementation must support multiple permission levels (Read, Run, Review, Admin) with appropriate authentication for the deployment context
-- Extensibility & Integration: Integration with existing CI/CD and Git version control systems with plugin architecture for new test scenarios
-- Context-Aware Verification: Verification must include environment variables, dependency versions, configuration files, infrastructure state, cross-branch compatibility, and context contamination prevention
-- Token Optimization and Resource Efficiency: System must monitor and optimize token usage to minimize computational overhead
-- Fail-Safe by Default: Detailed diagnostic reports for failures but allow merges to proceed with appropriate warnings
-- Security Requirements: Appropriate authentication method for deployment context with secure handling of sensitive data
-- Observability: All verification results must be logged with structured logging, correlation IDs, and real-time monitoring
-- Performance & Efficiency: Optimized execution with parallel processing and caching of expensive operations
-- Reliability Requirements: 99.9% uptime with automatic retry mechanisms and graceful failure handling
+[Gates determined based on constitution file]
 
 ## Project Structure
 

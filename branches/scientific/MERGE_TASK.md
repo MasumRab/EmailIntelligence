@@ -1,4 +1,4 @@
-# Branch Merge Task: scientific (EmailIntelligenceGem)
+# Branch Merge Task: scientific (Email Intelligence)
 
 **Repository:** /home/masum/github/EmailIntelligenceGem
 **Branch:** scientific

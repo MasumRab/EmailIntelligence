@@ -329,6 +329,11 @@ You MUST read the overview resource to understand the complete workflow. The inf
 - N/A (in-memory processing for reports) (003-unified-git-analysis)
 - Python 3.12+ (Assumed based on project context) + GitPython (for Git repository interaction), potentially a static analysis library (e.g., `ast` module, `pyright`, `shellcheck`) for parsing Python and shell scripts, and a dependency parsing library (e.g., `pip-tools`, `poetry`) for dependency manifest files. (001-toolset-additive-analysis)
 - N/A (in-memory processing for analysis and report generation, with file output for reports). (001-toolset-additive-analysis)
+- Python 3.11+ + `typer`, `InquirePy`, `pydantic`, `GitPython` (004-guided-workflow)
+- Local JSON (`.dev_state.json`) for persistence (004-guided-workflow)
+- Atomic JSON (`.dev_state.json`) for session persistence (004-guided-workflow)
+- Python 3.11+ + `typer` (CLI), `pydantic` (Data Models), `GitPython` (Plumbing), `rich` (UI), `InquirePy` (Interactive prompts). (004-guided-workflow)
+- Atomic JSON (`.dev_state.json`) for session persistence (Gitignored). (004-guided-workflow)
 
 ## Recent Changes
 - 001-rebase-analysis: Added Python 3.11+ + GitPython, (potentially a diffing library)
