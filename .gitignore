@@ -181,3 +181,6 @@ worktrees/
 !docs/agents/AIDER.md
 !docs/agents/CURSOR.md
 !docs/agents/AMP.md.dev_state.json
+
+# ck (seek) semantic search cache
+.ck/
