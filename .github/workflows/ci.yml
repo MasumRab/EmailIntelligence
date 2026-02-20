@@ -7,33 +7,55 @@ on:
       - scientific
       - orchestration-tools
       - orchestration-tools-changes
+    paths:
+      - 'src/**'
+      - 'tests/**'
+      - 'requirements*.txt'
+      - 'pyproject.toml'
+      - 'setup.py'
+      - '.github/workflows/ci.yml'
+      - '.github/workflows/test.yml'
+      - '.github/workflows/lint.yml'
   pull_request:
     branches:
       - main
       - scientific
       - orchestration-tools
       - orchestration-tools-changes
+    paths:
+      - 'src/**'
+      - 'tests/**'
+      - 'requirements*.txt'
+      - 'pyproject.toml'
+      - 'setup.py'
+      - '.github/workflows/ci.yml'
+      - '.github/workflows/test.yml'
+      - '.github/workflows/lint.yml'
 
 env:
   FORCE_COLOR: 1
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: true
 
 jobs:
   ci:
     name: Continuous Integration
     runs-on: ubuntu-latest
-    
+
     strategy:
       matrix:
         python-version: ["3.11", "3.12", "3.13"]
     
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v4.2.2
         with:
           fetch-depth: 0
-      
+
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405  # v5.3.0
         with:
           python-version: ${{ matrix.python-version }}
           cache: 'pip'
@@ -78,7 +100,7 @@ jobs:
       
       - name: Upload coverage to Codecov
         if: matrix.python-version == '3.11'
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@18283ee5d7cab751ccfae59670e250590817ab53  # v4.6.0
         with:
           files: ./coverage.xml
           flags: unittests
@@ -113,12 +135,12 @@ jobs:
     
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v4.2.2
         with:
           fetch-depth: 0
       
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405  # v5.3.0
         with:
           python-version: "3.11"
           cache: 'pip'
@@ -170,12 +192,12 @@ jobs:
     
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v4.2.2
         with:
           fetch-depth: 0
       
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405  # v5.3.0
         with:
           python-version: "3.11"
           cache: 'pip'
@@ -201,12 +223,12 @@ jobs:
     
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v4.2.2
         with:
           fetch-depth: 0
       
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405  # v5.3.0
         with:
           python-version: "3.11"
           cache: 'pip'
@@ -227,7 +249,7 @@ jobs:
           twine check dist/*
       
       - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@6027e3dd173dd9aa71c047588c40521f67a93e33  # v4.4.3
         with:
           name: build-artifacts
           path: dist/
