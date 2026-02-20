@@ -8,6 +8,7 @@ backups/
 
 # Test scripts (duplicates with _fixed suffix)
 tests/modules/*_fixed.sh
+tests/modules/*_fixed*.sh
 tests/modules/*_final.sh
 
 # Byte-compiled / optimized / DLL files
