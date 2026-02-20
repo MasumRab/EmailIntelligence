@@ -1,21 +1,74 @@
 #!/bin/bash
 
-# Post-commit hook for worktree orchestration
-# Runs synchronization scripts after commits to orchestration-tools branch
+# Simplified Post-commit hook for orchestration validation
+# Logs commits and runs validation only - no file distribution
+
+# Recursion prevention: Exit if sync is already active
+if [[ "$ORCHESTRATION_SYNC_ACTIVE" == "1" ]]; then
+    exit 0
+fi
+
+# Check for disable flag
+if [[ "$DISABLE_ORCHESTRATION_CHECKS" == "1" ]]; then
+    echo "Orchestration validation disabled, skipping post-commit validation"
+    exit 0
+fi
 
 set -e
 
-# Get current branch
+# Get current branch and commit info
 CURRENT_BRANCH="$(git rev-parse --abbrev-ref HEAD)"
+COMMIT_HASH="$(git rev-parse HEAD)"
+COMMIT_MESSAGE="$(git log -1 --pretty=%B)"
 
-# Only run sync if we're on orchestration-tools branch and sync script exists
-if [[ "$CURRENT_BRANCH" == "orchestration-tools" ]] && [[ -f "scripts/sync_setup_worktrees.sh" ]]; then
-    echo "Setup synchronization triggered after commit to orchestration-tools"
-    read -p "Run synchronization to update worktrees? (y/N): " -n 1 -r
-    echo
-    if [[ $REPLY =~ ^[Yy]$ ]]; then
-        bash scripts/sync_setup_worktrees.sh
-    else
-        echo "Synchronization skipped."
-    fi
+echo "Post-commit validation triggered on branch: $CURRENT_BRANCH"
+echo "Commit: $COMMIT_HASH"
+
+# Branch-specific validation
+case "$CURRENT_BRANCH" in
+    "orchestration-tools"|orchestration-tools-*)
+        echo "Running orchestration-tools validation for: $CURRENT_BRANCH"
+
+        # Validate critical orchestration files still exist
+        if [[ ! -f "scripts/install-hooks.sh" ]]; then
+            echo "WARNING: Critical orchestration script missing"
+        fi
+
+        # Verify setup directory integrity
+        if [[ ! -d "setup" ]]; then
+            echo "WARNING: Setup directory missing"
+        fi
+
+        echo "✓ Orchestration-tools post-commit validation complete"
+        ;;
+
+    "main"|"scientific")
+        # Validate that no orchestration-specific files were added inappropriately
+        if [[ -f ".git/hooks/post-commit-setup-sync" ]]; then
+            echo "INFO: Orchestration hook file detected on non-orchestration branch"
+        fi
+
+        echo "✓ Post-commit validation complete"
+        ;;
+
+    *)
+        # Generic validation for other branches
+        echo "✓ Generic post-commit validation complete"
+        ;;
+esac
+
+# Common post-commit validation for all branches
+echo "Running common post-commit validation..."
+
+# Check for large commits (potential issues)
+COMMIT_SIZE=$(git diff-tree --no-commit-id --name-only -r HEAD 2>/dev/null | wc -l || echo 0)
+if [[ $COMMIT_SIZE -gt 50 ]]; then
+    echo "Large commit detected ($COMMIT_SIZE files changed) - consider if unrelated changes should be separated"
 fi
+
+# Log commit for orchestration tracking
+if [[ -n "$ORCHESTRATION_LOG" ]]; then
+    echo "$(date '+%Y-%m-%d %H:%M:%S') $CURRENT_BRANCH $COMMIT_HASH $COMMIT_MESSAGE" >> "$ORCHESTRATION_LOG"
+fi
+
+echo "✓ Post-commit validation completed successfully"
