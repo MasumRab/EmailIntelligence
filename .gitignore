@@ -1,3 +1,11 @@
+# Aider
+.aider.chat.history.md
+.aider.input.history
+.aider.tags.cache.v4/
+
+# Backups
+backups/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
