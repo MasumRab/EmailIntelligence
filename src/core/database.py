@@ -742,7 +742,8 @@ class DatabaseManager(DataSource):
         cache_key = f"search:{search_term_lower}:{limit}"
         cached_results = self.caching_manager.get_query_result(cache_key)
         if cached_results is not None:
-            return cached_results
+            # Return a copy to avoid mutation of cached data
+            return list(cached_results)
 
         filtered_emails = []
 
@@ -797,8 +798,8 @@ class DatabaseManager(DataSource):
         # Results are already sorted because we iterated source_emails (which is sorted)
         results = [self._add_category_details(email) for email in filtered_emails]
 
-        # Cache the results
-        self.caching_manager.put_query_result(cache_key, results)
+        # Cache the results as a tuple to ensure immutability
+        self.caching_manager.put_query_result(cache_key, tuple(results))
 
         return results
 

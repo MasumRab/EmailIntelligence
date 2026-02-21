@@ -36,16 +36,19 @@ async def test_search_emails_caches_results(db_manager):
     cache_key = "search:keyword:10"
     assert db_manager.caching_manager.get_query_result(cache_key) is not None
 
-    # Mock the internal search to ensure we hit cache
-    # We spy on _get_sorted_emails because it's called during non-cached search
-    # If cache is hit, it shouldn't be called (or at least we can verify cache usage directly)
+    # Verify returned result is a copy (list) not the internal cache object (if implementation supports it)
+    cached_obj = db_manager.caching_manager.get_query_result(cache_key)
+    # Compare content, allowing type difference (list vs tuple)
+    assert tuple(results1) == tuple(cached_obj)
+    assert results1 is not cached_obj # Should be a copy/different object
 
-    # Actually, simpler: modify the cache and see if we get the modified result
+    # Modify cache and verify subsequent search gets modified result
     fake_result = [{"fake": "data"}]
     db_manager.caching_manager.put_query_result(cache_key, fake_result)
 
     results2 = await db_manager.search_emails_with_limit("keyword", limit=10)
     assert results2 == fake_result
+    assert results2 is not fake_result # Should be a copy
 
 @pytest.mark.asyncio
 async def test_search_cache_invalidation_on_create(db_manager):
@@ -108,3 +111,33 @@ async def test_search_cache_case_insensitive_key(db_manager):
     # Key should be lowercased
     cache_key = "search:keyword:10"
     assert db_manager.caching_manager.get_query_result(cache_key) is not None
+
+@pytest.mark.asyncio
+async def test_search_emails_cache_respects_limit(db_manager):
+    """Test that cache keys differ when only the limit changes."""
+    # Setup - create more than 10 emails that match the same keyword
+    for i in range(12):
+        await db_manager.create_email({
+            "subject": f"Keyword Email {i}",
+            "sender": f"sender{i}@example.com",
+            FIELD_CONTENT: "This content includes the keyword term"
+        })
+
+    # Warm cache with a smaller limit
+    results_limit_5 = await db_manager.search_emails_with_limit("keyword", limit=5)
+    assert len(results_limit_5) == 5
+
+    # Call again with a larger limit; results should not be truncated to 5
+    results_limit_10 = await db_manager.search_emails_with_limit("keyword", limit=10)
+    assert len(results_limit_10) == 10
+
+    # Verify different cache keys were used (implicitly via result count)
+    # Check cache keys directly
+    assert db_manager.caching_manager.get_query_result("search:keyword:5") is not None
+    assert db_manager.caching_manager.get_query_result("search:keyword:10") is not None
+
+    # Ensure the result sets differ, confirming they are not the same cached entry
+    ids_limit_5 = {email[FIELD_ID] for email in results_limit_5}
+    ids_limit_10 = {email[FIELD_ID] for email in results_limit_10}
+    assert ids_limit_5.issubset(ids_limit_10)
+    assert ids_limit_5 != ids_limit_10

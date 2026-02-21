@@ -271,11 +271,20 @@ class OptimizedPerformanceMonitor:
         """
         try:
             operation = log_entry.get("operation", "unknown")
+            # Normalize operation to avoid high cardinality
+            if not isinstance(operation, str):
+                operation = "unknown"
+
+            # Map specific operations if needed, or just sanitize
+            # For now, we allow operations but ensure they are strings
+            # In a real production system, we might want to allow-list these
+
             duration = log_entry.get("duration_seconds", 0.0)
 
             # Record as metric, converting seconds to ms
+            # Use a generic name with a tag for the operation
             self.record_metric(
-                name=f"operation_duration_{operation}",
+                name="operation_duration",
                 value=duration * 1000,
                 unit="ms",
                 tags={"operation": operation}
