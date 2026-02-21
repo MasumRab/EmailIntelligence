@@ -69,11 +69,12 @@ class LRUCache:
 
 
 class QueryResultCache:
-    """Cache for query results with TTL (Time To Live) support."""
+    """Cache for query results with TTL (Time To Live) support and capacity limit."""
 
-    def __init__(self, ttl_seconds: int = 300):  # 5 minutes default
+    def __init__(self, ttl_seconds: int = 300, capacity: int = 1000):  # 5 minutes default
         self.ttl_seconds = ttl_seconds
-        self.cache: Dict[str, Tuple[Any, float]] = {}  # (value, timestamp)
+        self.capacity = capacity
+        self.cache: OrderedDict[str, Tuple[Any, float]] = OrderedDict()  # (value, timestamp)
         self.hits = 0
         self.misses = 0
 
@@ -82,6 +83,7 @@ class QueryResultCache:
         if key in self.cache:
             value, timestamp = self.cache[key]
             if time.time() - timestamp < self.ttl_seconds:
+                self.cache.move_to_end(key)
                 self.hits += 1
                 return value
             else:
@@ -91,7 +93,12 @@ class QueryResultCache:
         return None
 
     def put(self, key: str, value: Any) -> None:
-        """Put value in cache with current timestamp."""
+        """Put value in cache with current timestamp, evicting if necessary."""
+        if key in self.cache:
+            self.cache.move_to_end(key)
+        elif len(self.cache) >= self.capacity:
+            self.cache.popitem(last=False)
+
         self.cache[key] = (value, time.time())
 
     def invalidate(self, key: str) -> None:
@@ -121,6 +128,7 @@ class QueryResultCache:
         hit_rate = self.hits / total if total > 0 else 0
         self.clear_expired()  # Clean up expired entries
         return {
+            "capacity": self.capacity,
             "size": len(self.cache),
             "hits": self.hits,
             "misses": self.misses,
@@ -138,7 +146,7 @@ class EnhancedCachingManager:
         self.category_record_cache = LRUCache(capacity=50)
 
         # Query result cache for complex queries
-        self.query_cache = QueryResultCache(ttl_seconds=300)  # 5 minutes
+        self.query_cache = QueryResultCache(ttl_seconds=300, capacity=1000)  # 5 minutes, 1000 items
 
         # Cache for email content (heavy data)
         self.email_content_cache = LRUCache(capacity=100)
