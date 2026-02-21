@@ -60,7 +60,9 @@ def test_log_event_batching(logger_instance, temp_audit_files):
         )
 
     # Wait for processing
-    time.sleep(2.0)
+    # Wait for all queued events to be processed instead of using a fixed sleep,
+    # which can be slow and flaky under load.
+    logger_instance._event_queue.join()
 
     # Verify file content
     with open(json_file, "r") as f:
@@ -91,7 +93,7 @@ def test_batch_processing_logic(mock_write_batch, temp_audit_files):
         logger._event_queue.put(event)
 
     # Allow thread to process
-    time.sleep(1.0)
+    logger._event_queue.join()
     logger.shutdown()
 
     # Expect calls to _write_batch
@@ -103,8 +105,13 @@ def test_batch_processing_logic(mock_write_batch, temp_audit_files):
     # The loop condition `while len(events_to_process) < 50` ensures max 50 per batch
 
     args_list = mock_write_batch.call_args_list
-    total_processed = sum(len(args[0][0]) for args in args_list)
-    assert total_processed == 55
+    batch_sizes = [len(args[0][0]) for args in args_list]
+
+    # Verify total events
+    assert sum(batch_sizes) == 55
+
+    # Verify no batch exceeds 50
+    assert max(batch_sizes) <= 50
 
 def test_empty_queue_handling(logger_instance):
     # Ensure thread is alive and doesn't crash on empty queue
