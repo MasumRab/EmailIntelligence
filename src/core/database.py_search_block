@@ -1,3 +1,31 @@
+    def _sort_emails_by_date(self, emails: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """Helper to sort emails by date (newest first)."""
+        try:
+            return sorted(
+                emails,
+                key=lambda e: e.get(FIELD_TIME, e.get(FIELD_CREATED_AT, "")),
+                reverse=True,
+            )
+        except TypeError:
+            logger.warning(
+                f"Sorting emails by {FIELD_TIME} failed due to incomparable types. Using '{FIELD_CREATED_AT}'."
+            )
+            return sorted(
+                emails, key=lambda e: e.get(FIELD_CREATED_AT, ""), reverse=True
+            )
+
+    async def _sort_and_paginate_emails(
+        self,
+        emails: List[Dict[str, Any]],
+        limit: int = 50,
+        offset: int = 0,
+    ) -> List[Dict[str, Any]]:
+        """Sorts and paginates a list of emails."""
+        sorted_emails = self._sort_emails_by_date(emails)
+        paginated_emails = sorted_emails[offset : offset + limit]
+        result_emails = [self._add_category_details(email) for email in paginated_emails]
+        return result_emails
+
     async def search_emails_with_limit(
         self, search_term: str, limit: int = 50, offset: int = 0
     ) -> List[Dict[str, Any]]:
@@ -16,23 +44,8 @@
 
         search_term_lower = search_term.lower()
 
-        # Sort emails first (Sort-First strategy)
-        # We use a generator or iterator to avoid creating full sorted list if possible,
-        # but self._sort_and_paginate_emails usually sorts all.
-        # Ideally, self.emails_data should be kept sorted, but here we sort explicitly.
-        # We sort ALL emails by date desc to assume order.
-        try:
-            sorted_emails = sorted(
-                self.emails_data,
-                key=lambda e: e.get(FIELD_TIME, e.get(FIELD_CREATED_AT, "")),
-                reverse=True,
-            )
-        except TypeError:
-            sorted_emails = sorted(
-                self.emails_data,
-                key=lambda e: e.get(FIELD_CREATED_AT, ""),
-                reverse=True
-            )
+        # Sort emails first (Sort-First strategy) using shared helper
+        sorted_emails = self._sort_emails_by_date(self.emails_data)
 
         result_emails = []
         skipped_count = 0
@@ -55,15 +68,11 @@
                 is_match = True
             else:
                 # Heavy check (on-disk)
-                # Only check content if light check failed (OR logic implies if light matched, we define it as match?)
-                # Wait, usually search is ANY field matches. So if light matched, we don't need to check content.
-                # If light did NOT match, check content.
                 email_id = email_light.get(FIELD_ID)
                 content_path = self._get_email_content_path(email_id)
                 if os.path.exists(content_path):
                     try:
-                        # Use asyncio.to_thread for I/O
-                        # We optimize by reading only if necessary
+                        # Use asyncio.to_thread for I/O to check content without blocking
                         def check_content():
                             with gzip.open(content_path, "rt", encoding="utf-8") as f:
                                 heavy_data = json.load(f)
@@ -73,6 +82,8 @@
                         if await asyncio.to_thread(check_content):
                             is_match = True
                     except (IOError, json.JSONDecodeError) as e:
+                        # Log error but don't crash search.
+                        # This matches review feedback about error handling visibility (keep as error or warning).
                         logger.error(f"Could not search content for email {email_id}: {e}")
 
             if is_match:

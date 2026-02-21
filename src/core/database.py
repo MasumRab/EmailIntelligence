@@ -545,15 +545,10 @@ class DatabaseManager(DataSource):
             self.category_counts[category_id] -= 1
         self._dirty_data.add(DATA_TYPE_CATEGORIES)
 
-    async def _sort_and_paginate_emails(
-        self,
-        emails: List[Dict[str, Any]],
-        limit: int = 50,
-        offset: int = 0,
-    ) -> List[Dict[str, Any]]:
-        """Sorts and paginates a list of emails."""
+    def _sort_emails_by_date(self, emails: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """Helper to sort emails by date (newest first)."""
         try:
-            sorted_emails = sorted(
+            return sorted(
                 emails,
                 key=lambda e: e.get(FIELD_TIME, e.get(FIELD_CREATED_AT, "")),
                 reverse=True,
@@ -562,9 +557,18 @@ class DatabaseManager(DataSource):
             logger.warning(
                 f"Sorting emails by {FIELD_TIME} failed due to incomparable types. Using '{FIELD_CREATED_AT}'."
             )
-            sorted_emails = sorted(
+            return sorted(
                 emails, key=lambda e: e.get(FIELD_CREATED_AT, ""), reverse=True
             )
+
+    async def _sort_and_paginate_emails(
+        self,
+        emails: List[Dict[str, Any]],
+        limit: int = 50,
+        offset: int = 0,
+    ) -> List[Dict[str, Any]]:
+        """Sorts and paginates a list of emails."""
+        sorted_emails = self._sort_emails_by_date(emails)
         paginated_emails = sorted_emails[offset : offset + limit]
         result_emails = [self._add_category_details(email) for email in paginated_emails]
         return result_emails
@@ -705,19 +709,8 @@ class DatabaseManager(DataSource):
 
         search_term_lower = search_term.lower()
 
-        # Sort emails first (Sort-First strategy)
-        try:
-            sorted_emails = sorted(
-                self.emails_data,
-                key=lambda e: e.get(FIELD_TIME, e.get(FIELD_CREATED_AT, "")),
-                reverse=True,
-            )
-        except TypeError:
-            sorted_emails = sorted(
-                self.emails_data,
-                key=lambda e: e.get(FIELD_CREATED_AT, ""),
-                reverse=True
-            )
+        # Sort emails first (Sort-First strategy) using shared helper
+        sorted_emails = self._sort_emails_by_date(self.emails_data)
 
         result_emails = []
         skipped_count = 0
@@ -754,6 +747,7 @@ class DatabaseManager(DataSource):
                         if await asyncio.to_thread(check_content):
                             is_match = True
                     except (IOError, json.JSONDecodeError) as e:
+                        # Log error but don't crash search.
                         logger.error(f"Could not search content for email {email_id}: {e}")
 
             if is_match:
