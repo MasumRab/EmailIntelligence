@@ -168,7 +168,9 @@ class DatabaseManager(DataSource):
 
     def _get_email_content_path(self, email_id: int) -> str:
         """Returns the path for an individual email's content file."""
-        return os.path.join(self.email_content_dir, f"{email_id}.json.gz")
+        # Ensure email_id is treated as a string of digits to prevent path traversal
+        safe_id = str(int(email_id))
+        return os.path.join(self.email_content_dir, f"{safe_id}.json.gz")
 
     def _read_content_sync(self, content_path: str) -> Dict[str, Any]:
         """Synchronously reads and parses the content file. Helper for asyncio.to_thread."""
@@ -741,6 +743,10 @@ class DatabaseManager(DataSource):
         """Search emails with limit parameter. Searches subject/sender in-memory, and content on-disk."""
         if not search_term:
             return await self.get_emails(limit=limit, offset=0)
+
+        # Limit search term length to prevent DoS via massive cache keys or processing
+        if len(search_term) > 256:
+            search_term = search_term[:256]
 
         # Check query cache
         # Normalize search term to lower case for consistent caching
