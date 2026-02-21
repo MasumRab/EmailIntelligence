@@ -2,1021 +2,62 @@
 
 **Status:** pending
 **Priority:** high
-**Effort:** TBD
-**Complexity:** TBD
+**Effort:** 48-64 hours
+**Complexity:** 8/10
 **Dependencies:** 007, 008, 009, 010, 011, 022
 
 ---
 
-## Overview/Purpose
+## Purpose
 
 Create a master orchestration script that guides a single developer through the entire branch alignment process, from identification and categorization to sequential alignment, error correction, validation, and documentation.
 
+Develop a high-level Python script acting as the primary interface for the single developer. This script should:
+1. **Initiate Categorization:** Call the tool from Task 007 to identify and categorize feature branches.
+2. **Present Categorized List:** Display the categorized branches (main, scientific, orchestration-tools) and allow the developer to select branches to process, potentially in prioritized order (as per P7).
+3. **Iterate through Branches:** For each selected feature branch:
+   a. **Backup:** Invoke Task 006's backup procedure.
+   b. **Migrate:** Call Task 022's automated architectural migration (backend->src, factory pattern).
+   c. **Align:** Call Task 009 (core logic) or Task 010 (complex logic) based on the branch's categorization.
+   d. **Error Check:** Run Task 005's error detection scripts.
+   e. **Validate:** Trigger Task 011's integrated validation.
+   f. **Document:** Prompt for/generate `CHANGES_SUMMARY.md` via Task 015.
+4. **Handle Pauses/Resumes:** Allow the developer to pause and resume the process, especially during conflict resolution.
+5. **Report Progress/Status:** Provide clear console output regarding the current step, successes, failures, and required manual interventions. The script should abstract away the underlying Git commands and tool invocations, presenting a streamlined experience.
+
 ## Success Criteria
 
-- [ ] [Success criteria to be defined]
+Task 012 is complete when:
+
+### Core Functionality
+- [ ] Orchestration script invokes Task 007 to identify and categorize branches
+- [ ] Interactive CLI presents categorized branches and allows selection/prioritization
+- [ ] Sequential processing loop handles backup → migrate → align → error-check → validate → document for each branch
+- [ ] Conditional routing to Task 009 (core) or Task 010 (complex) based on branch categorization
+- [ ] Pause, resume, and cancellation mechanisms function correctly
+- [ ] Workflow state persists and recovers after interruption
+
+### Integration
+- [ ] Task 006 (backup) invoked before alignment operations
+- [ ] Task 022 (migration) invoked after backup and before alignment
+- [ ] Task 005 (error detection) invoked after alignment
+- [ ] Task 011 (validation) invoked after error detection
+- [ ] Task 008/015 (documentation) invoked after successful validation
+
+### Quality
+- [ ] Progress reporting provides clear, real-time console output
+- [ ] Error conditions handled gracefully (pause for manual conflict resolution, offer abort/restore)
+- [ ] Comprehensive documentation for setup, usage, and maintenance
 
 ## Prerequisites & Dependencies
 
 ### Required Before Starting
-- [ ] No external prerequisites
-
-### Blocks (What This Task Unblocks)
-- [ ] No specific blocks defined
-
-### External Dependencies
-- [ ] No external dependencies
-
-## Sub-subtasks Breakdown
-
-
-## Specification Details
-
-### Task Interface
-- **ID**: 012
-- **Title**: Orchestrate Sequential Branch Alignment Workflow
-- **Status**: pending
-- **Priority**: high
-- **Effort**: TBD
-- **Complexity**: TBD
-
-### Requirements
-Requirements to be specified
-
-## Implementation Guide
-
-Implementation guide to be defined
-
-<!-- IMPORTED_FROM: /home/masum/github/PR/.taskmaster/enhanced_improved_tasks/task-012.md -->
-
-<!-- IMPORTED_FROM: /home/masum/github/PR/.taskmaster/task_data/migration_backup_20260129/current_tasks/task-012.md -->
-
-## Subtasks Breakdown
-
-### 009.1: Integrate Optimal Primary Target Determination
-**Effort:** 2-3 hours
-**Depends on:** None
-
-Develop logic to receive and validate the optimal primary branch target (e.g., main, scientific, orchestration-tools) for the feature branch, likely from Task 007.
-
-**Details:**
-The Python script will take the feature branch name and its determined primary target as input. This subtask focuses on how this input is consumed and validated against known primary branches. Leverage outputs from Task 007's categorization tool.
-
-**Success Criteria:**
-- [ ] Optimal primary target received from Task 007
-- [ ] Target validated against known primary branches
-- [ ] Invalid targets handled gracefully
-- [ ] Input validation comprehensive
-
----
-
-### 009.2: Coordinate Initial Environment Setup and Safety Checks
-**Effort:** 3-4 hours
-**Depends on:** 009.1
-
-Before any Git operations, coordinate safety checks with Task 012 (Branch Backup and Safety).
-
-**Details:**
-Coordinate with Task 012 to ensure a clean working directory and valid repository state, preventing unintended data loss or conflicts. This subtask focuses on orchestrating the safety validation rather than implementing it directly.
-
-**Success Criteria:**
-- [ ] Coordination with Task 012 implemented
-- [ ] Working directory validated
-- [ ] Repository state verified
-- [ ] Safety checks completed before proceeding
-
----
-
-### 009.3: Coordinate Local Feature Branch Backup
-**Effort:** 3-4 hours
-**Depends on:** 009.2
-
-Coordinate with Task 012 (Branch Backup and Safety) to create a temporary backup of the feature branch's current state before initiating any rebase operations.
-
-**Details:**
-Delegate the backup creation to Task 012's BranchBackupManager. This ensures the backup mechanism is handled by the specialized task while Task 009 coordinates the overall process.
-
-**Success Criteria:**
-- [ ] Coordination with Task 012 implemented
-- [ ] Backup created before Git operations
-- [ ] Backup verification completed
-- [ ] Backup reference stored for potential rollback
-
----
-
-### 009.4: Implement Branch Switching Logic
-**Effort:** 2-3 hours
-**Depends on:** 009.3
-
-Write the Python code to programmatically switch the local Git repository to the specified feature branch.
-
-**Details:**
-Utilize `GitPython`'s `repo.git.checkout(feature_branch_name)` or `subprocess.run(['git', 'checkout', feature_branch_name], cwd=repo_path, check=True)`.
-
-**Success Criteria:**
-- [ ] Branch switching implemented with GitPython
-- [ ] Error handling for invalid branch names
-- [ ] Successful checkout confirmed
-- [ ] Branch state verified after switching
-
----
-
-### 009.5: Implement Remote Primary Branch Fetch Logic
-**Effort:** 2-3 hours
-**Depends on:** 009.4
-
-Develop the code to fetch the latest changes from the determined primary target branch (`git fetch origin <primary_target>`).
-
-**Details:**
-Use `GitPython`'s `repo.remote('origin').fetch(primary_target_name)` or `subprocess.run(['git', 'fetch', 'origin', primary_target_name], cwd=repo_path, check=True)`. Include error handling for network issues or non-existent remotes/branches.
-
-**Success Criteria:**
-- [ ] Remote fetch implemented with GitPython
-- [ ] Error handling for network issues
-- [ ] Fetch verification completed
-- [ ] Primary branch updates retrieved
-
----
-
-### 009.6: Coordinate Core Rebase Initiation with Specialized Tasks
-**Effort:** 4-5 hours
-**Depends on:** 009.5
-
-Coordinate the command execution for initiating the Git rebase operation, leveraging specialized tasks for complex operations.
-
-**Details:**
-Execute `subprocess.run(['git', 'rebase', f'origin/{primary_target_name}'], cwd=repo_path, check=True, capture_output=True, text=True)` or `repo.git.rebase(f'origin/{primary_target_name}')`. Capture output for status and potential conflict detection. Coordinate with Task 013 for advanced rebase strategies.
-
-**Success Criteria:**
-- [ ] Rebase initiation coordinated
-- [ ] Output captured for status analysis
-- [ ] Conflict detection prepared
-- [ ] Error handling implemented
-
----
-
-### 009.7: Coordinate Conflict Detection and Resolution
-**Effort:** 4-5 hours
-**Depends on:** 009.6
-
-Coordinate with Task 013 (Conflict Detection and Resolution) when the rebase operation encounters conflicts.
-
-**Details:**
-Delegate conflict detection and resolution to Task 013's ConflictDetectionResolver. This subtask focuses on orchestrating the handoff to the specialized conflict resolution task rather than implementing conflict handling directly.
-
-**Success Criteria:**
-- [ ] Coordination with Task 013 implemented
-- [ ] Conflict detection handoff operational
-- [ ] Resolution guidance provided
-- [ ] Resolution status monitored
-
----
-
-### 009.8: Coordinate Post-Rebase Validation
-**Effort:** 3-4 hours
-**Depends on:** 009.7
-
-Coordinate with Task 014 (Validation and Verification) to perform automated checks to validate the integrity and correctness of the rebased feature branch.
-
-**Details:**
-Delegate validation to Task 014's ValidationVerificationFramework. This ensures comprehensive and consistent validation procedures.
-
-**Success Criteria:**
-- [ ] Coordination with Task 014 implemented
-- [ ] Validation procedures executed
-- [ ] Integrity checks completed
-- [ ] Validation results processed
-
----
-
-### 009.9: Coordinate Rollback to Backup Mechanism
-**Effort:** 3-4 hours
-**Depends on:** 009.6
-
-Coordinate with Task 015 (Rollback and Recovery) to revert the feature branch to its pre-alignment backup state if a rebase operation ultimately fails or is aborted by the user.
-
-**Details:**
-Delegate rollback operations to Task 015's RollbackRecoveryMechanisms. This ensures reliable and consistent rollback procedures.
-
-**Success Criteria:**
-- [ ] Coordination with Task 015 implemented
-- [ ] Rollback procedures available
-- [ ] Backup restoration functional
-- [ ] Rollback status tracked
-
----
-
-### 009.10: Develop Progress Tracking and User Feedback
-**Effort:** 2-3 hours
-**Depends on:** 009.6, 009.7, 009.8
-
-Add clear progress indicators and descriptive messages throughout the alignment process to keep the user informed.
-
-**Details:**
-Implement logging statements for each major step: fetching, checking out branch, initiating rebase, detecting conflicts, etc. Coordinate with specialized tasks to provide unified progress reporting.
-
-**Success Criteria:**
-- [ ] Progress indicators implemented
-- [ ] User feedback provided at each step
-- [ ] Unified reporting coordinated
-- [ ] Status updates timely and informative
-
----
-
-## Subtasks
-
-### 012.1. Design Overall Orchestration Workflow Architecture
-
-**Status:** pending  
-**Dependencies:** None  
-
-Define the high-level architecture, state machine, and interaction patterns for the sequential branch alignment orchestrator.
-
-**Details:**
-
-Outline the main states (e.g., initialization, branch selection, branch processing, paused, completed, error), transitions, and core components (e.g., queue, state manager, reporter). This will serve as the blueprint for subsequent implementation.
-
-### 012.2. Integrate Feature Branch Identification & Categorization Tool
-
-**Status:** pending  
-**Dependencies:** None  
-
-Implement the functionality to call Task 007's tool to identify and categorize feature branches, capturing its output.
-
-**Details:**
-
-Develop Python code to invoke Task 007's tool (which is assumed to be an external script or function), capture its output (a list of categorized branches), and parse this information into a structured format within the orchestrator's internal state.
-
-### 012.3. Develop Interactive Branch Selection & Prioritization UI
-
-**Status:** pending  
-**Dependencies:** 012.2  
-
-Create a command-line interface (CLI) to display categorized branches and allow the developer to select branches for processing, including optional prioritization based on P7.
-
-**Details:**
-
-The UI should clearly present branches grouped by their categories ('main', 'scientific', 'orchestration-tools'). Use interactive prompts (e.g., `inquirer` or simple `input` loops) to enable selection and reordering. Implement logic to apply 'P7' prioritization if chosen by the user, adjusting the processing order.
-
-### 012.4. Implement Branch Processing Queue Management System
-
-**Status:** pending  
-**Dependencies:** 012.1, 012.3  
-
-Establish an internal queue or list management system to hold and process the developer-selected and prioritized feature branches in sequential order.
-
-**Details:**
-
-Design a robust data structure (e.g., `collections.deque` or a custom class) that maintains the ordered list of branches awaiting alignment. Implement methods to efficiently add branches to the queue, remove a branch once processed, and retrieve the next branch to process.
-
-### 012.5. Develop Priority Assignment Algorithms for Alignment Sequence
-
-**Status:** pending  
-**Dependencies:** 012.3, 012.4  
-
-Implement algorithms or rules for automatically assigning/adjusting the processing priority of branches within the queue based on developer input or predefined criteria (e.g., P7).
-
-**Details:**
-
-Based on the user's input from the branch selection UI (Subtask 3) or system-defined heuristics, apply logic to sort or re-prioritize branches within the processing queue. This could involve sorting by category, age, or a specific 'P7' flag.
-
-### 012.6. Implement Sequential Execution Control Flow for Branches
-
-**Status:** pending  
-**Dependencies:** 012.1, 012.4, 012.5  
-
-Develop the core loop that iterates through the branch processing queue, managing the sequential execution of all alignment steps for each selected feature branch.
-
-**Details:**
-
-This central loop will be the primary driver, calling subsequent integration subtasks (e.g., backup, alignment, error checking, validation, documentation) for each branch. It must manage the current branch's context throughout its processing lifecycle.
-
-### 012.7. Integrate Backup Procedure (Task 006) into Workflow
-
-**Status:** pending  
-**Dependencies:** 012.6  
-
-Implement the invocation of Task 006's backup procedure for the currently processed feature branch at the beginning of its alignment process.
-
-**Details:**
-
-Modify the execution loop to call Task 006 (the external backup tool) for the current branch before any alignment operations begin. Ensure the orchestrator correctly passes necessary branch identifiers to Task 006 and handles its return values or potential exceptions.
-
-### 012.8. Integrate Branch Alignment Logic (Tasks 009 & 010) into Workflow
-
-**Status:** pending  
-**Dependencies:** 012.2, 012.6, 012.7  
-
-Implement conditional calls to Task 009 (core alignment logic) or Task 010 (complex alignment logic) based on the categorization of the current feature branch.
-
-**Details:**
-
-After a successful backup, use the branch categorization information (from Subtask 2) to determine whether to invoke Task 009 or Task 010. Pass all required branch details and parameters to the chosen alignment tool and capture its output.
-
-### 012.9. Integrate Error Detection & Handling (Task 005) into Workflow
-
-**Status:** pending  
-**Dependencies:** 012.6, 012.8  
-
-Implement the invocation of Task 005's error detection scripts after the alignment step for each feature branch and process its results.
-
-**Details:**
-
-Following the alignment step (Task 009/010), call Task 005 (the external error detection tool) with the context of the aligned branch. Interpret its results to determine if alignment introduced new issues or if existing ones were detected, logging any findings.
-
-### 012.10. Integrate Validation Framework (Task 011) into Workflow
-
-**Status:** pending  
-**Dependencies:** 012.6, 012.9  
-
-Implement the trigger for Task 011's integrated validation process after error detection for each feature branch, using its output to confirm alignment success.
-
-**Details:**
-
-After error detection (Task 005), invoke Task 011 (the external validation tool) for the aligned branch. Await its completion and use its output to confirm the overall success or identify the need for further manual resolution.
-
-### 012.11. Integrate Documentation Generation (Task 008) into Workflow
-
-**Status:** pending  
-**Dependencies:** 012.6, 012.10  
-
-Implement the mechanism to prompt for or automatically generate `CHANGES_SUMMARY.md` via Task 015 after successful validation of a feature branch.
-
-**Details:**
-
-Once Task 011 (Subtask 10) indicates successful validation, invoke Task 015 (the external documentation tool). This might involve presenting a prompt to the developer for input, or passing collected alignment information to Task 015 for automatic generation of `CHANGES_SUMMARY.md`.
-
-### 012.12. Implement Pause, Resume, and Cancellation Mechanisms
-
-**Status:** pending  
-**Dependencies:** 012.6, 012.28  
-
-Develop functionality to allow the developer to pause the alignment workflow, resume from a paused state, or cancel the entire process gracefully at any point.
-
-**Details:**
-
-Integrate user input handlers (e.g., keyboard interrupts, specific CLI commands) to trigger pause/resume/cancel. Implement logic to halt the current operation, save the workflow state (for pause), and perform necessary cleanup (for cancel). Ensure graceful exit during cancellation.
-
-### 012.13. Develop Workflow State Persistence & Recovery Mechanisms
-
-**Status:** pending  
-**Dependencies:** 012.1, 012.6  
-
-Implement mechanisms to save the current state of the workflow (e.g., processed branches, pending branches, current step, user inputs) and recover from it after a pause or unexpected interruption.
-
-**Details:**
-
-Design a system to serialize and deserialize the orchestrator's state. Use a simple, file-based storage format (e.g., JSON, YAML) to persist the `OrchestratorState` object. Implement load and save functions that are invoked during pauses, before critical steps, and upon startup for resuming.
-
-### 012.013. Create Comprehensive Progress Reporting & Status Output Module
-
-**Status:** pending  
-**Dependencies:** 012.6, 012.7, 012.8, 012.9, 012.10, 012.26  
-
-Design and implement clear, real-time console output to inform the developer about the current step, overall progress, successes, failures, and any required manual interventions.
-
-**Details:**
-
-Implement structured logging and print statements at key points in the workflow. Use console formatting (e.g., color coding, bold text) to highlight important messages, such as successful alignments, detected errors, required manual conflict resolution prompts, and workflow completion. The output should abstract Git commands.
-
-### 012.15. Document the Orchestration System for Maintenance
-
-**Status:** pending  
-**Dependencies:** 012.1, 012.28  
-
-Create comprehensive documentation for the orchestrator, covering setup, usage instructions, workflow details, troubleshooting, and maintenance guidelines for developers.
-
-**Details:**
-
-Produce a markdown document (`README.md` or similar) that includes: a high-level overview, command-line arguments, expected inputs/outputs, how to interpret status messages, steps for manual intervention, and detailed explanations of internal components and their interactions for future maintenance.
-
-### 012.16. Integrate Architectural Migration (Task 022) into Workflow
-
-**Status:** pending
-**Dependencies:** 012.7, 28
-
-Implement the invocation of Task 022's automated migration script after the backup step (012.7) and before the alignment step (012.8).
-
-**Details:**
-
-Call the migration tool to normalize the feature branch's directory structure (`backend` -> `src/backend`) and inject the factory pattern. Capture the migration status. If migration fails, halt the workflow or prompt the user, depending on severity. Ensure this step allows the subsequent alignment (Task 009/010) to work on a structurally compatible branch.
-**Priority:** high
-
-**Description:** Create a master orchestration script that guides a single developer through the entire branch alignment process, from identification and categorization to sequential alignment, error correction, validation, and documentation.
-
-**Details:**
-
-Develop a high-level Python script acting as the primary interface for the single developer. This script should:
-1.  **Initiate Categorization:** Call the tool from Task 007 to identify and categorize feature branches. 
-2.  **Present Categorized List:** Display the categorized branches (main, scientific, orchestration-tools) and allow the developer to select branches to process, potentially in prioritized order (as per P7). 
-3.  **Iterate through Branches:** For each selected feature branch:
-    a.  **Backup:** Invoke Task 006's backup procedure.
-    b.  **Migrate:** Call Task 022's automated architectural migration (backend->src, factory pattern).
-    c.  **Align:** Call Task 009 (core logic) or Task 010 (complex logic) based on the branch's categorization. 
-    d.  **Error Check:** Run Task 005's error detection scripts. 
-    e.  **Validate:** Trigger Task 011's integrated validation. 
-    f.  **Document:** Prompt for/generate `CHANGES_SUMMARY.md` via Task 015. 
-4.  **Handle Pauses/Resumes:** Allow the developer to pause and resume the process, especially during conflict resolution. 
-5.  **Report Progress/Status:** Provide clear console output regarding the current step, successes, failures, and required manual interventions. The script should abstract away the underlying Git commands and tool invocations, presenting a streamlined experience.
-
-**Test Strategy:**
-
-Execute the orchestration script on a controlled set of test branches, including some with expected conflicts and errors. Verify that it correctly calls all sub-components (backup, align, error detection, validation, documentation). Ensure that the flow is logical, user prompts are clear, and error conditions are handled gracefully (e.g., pausing for manual conflict resolution, offering to abort/restore). Confirm that the script maintains overall state and can resume if interrupted.
-
-## Subtasks
-
-### 012.1. Design Overall Orchestration Workflow Architecture
-
-**Status:** pending  
-**Dependencies:** None  
-
-Define the high-level architecture, state machine, and interaction patterns for the sequential branch alignment orchestrator.
-
-**Details:**
-
-Outline the main states (e.g., initialization, branch selection, branch processing, paused, completed, error), transitions, and core components (e.g., queue, state manager, reporter). This will serve as the blueprint for subsequent implementation.
-
-### 012.2. Integrate Feature Branch Identification & Categorization Tool
-
-**Status:** pending  
-**Dependencies:** None  
-
-Implement the functionality to call Task 007's tool to identify and categorize feature branches, capturing its output.
-
-**Details:**
-
-Develop Python code to invoke Task 007's tool (which is assumed to be an external script or function), capture its output (a list of categorized branches), and parse this information into a structured format within the orchestrator's internal state.
-
-### 012.3. Develop Interactive Branch Selection & Prioritization UI
-
-**Status:** pending  
-**Dependencies:** 012.2  
-
-Create a command-line interface (CLI) to display categorized branches and allow the developer to select branches for processing, including optional prioritization based on P7.
-
-**Details:**
-
-The UI should clearly present branches grouped by their categories ('main', 'scientific', 'orchestration-tools'). Use interactive prompts (e.g., `inquirer` or simple `input` loops) to enable selection and reordering. Implement logic to apply 'P7' prioritization if chosen by the user, adjusting the processing order.
-
-### 012.4. Implement Branch Processing Queue Management System
-
-**Status:** pending  
-**Dependencies:** 012.1, 012.3  
-
-Establish an internal queue or list management system to hold and process the developer-selected and prioritized feature branches in sequential order.
-
-**Details:**
-
-Design a robust data structure (e.g., `collections.deque` or a custom class) that maintains the ordered list of branches awaiting alignment. Implement methods to efficiently add branches to the queue, remove a branch once processed, and retrieve the next branch to process.
-
-### 012.5. Develop Priority Assignment Algorithms for Alignment Sequence
-
-**Status:** pending  
-**Dependencies:** 012.3, 012.4  
-
-Implement algorithms or rules for automatically assigning/adjusting the processing priority of branches within the queue based on developer input or predefined criteria (e.g., P7).
-
-**Details:**
-
-Based on the user's input from the branch selection UI (Subtask 3) or system-defined heuristics, apply logic to sort or re-prioritize branches within the processing queue. This could involve sorting by category, age, or a specific 'P7' flag.
-
-### 012.6. Implement Sequential Execution Control Flow for Branches
-
-**Status:** pending  
-**Dependencies:** 012.1, 012.4, 012.5  
-
-Develop the core loop that iterates through the branch processing queue, managing the sequential execution of all alignment steps for each selected feature branch.
-
-**Details:**
-
-This central loop will be the primary driver, calling subsequent integration subtasks (e.g., backup, alignment, error checking, validation, documentation) for each branch. It must manage the current branch's context throughout its processing lifecycle.
-
-### 012.7. Integrate Backup Procedure (Task 006) into Workflow
-
-**Status:** pending  
-**Dependencies:** 012.6  
-
-Implement the invocation of Task 006's backup procedure for the currently processed feature branch at the beginning of its alignment process.
-
-**Details:**
-
-Modify the execution loop to call Task 006 (the external backup tool) for the current branch before any alignment operations begin. Ensure the orchestrator correctly passes necessary branch identifiers to Task 006 and handles its return values or potential exceptions.
-
-### 012.8. Integrate Branch Alignment Logic (Tasks 009 & 010) into Workflow
-
-**Status:** pending  
-**Dependencies:** 012.2, 012.6, 012.7  
-
-Implement conditional calls to Task 009 (core alignment logic) or Task 010 (complex alignment logic) based on the categorization of the current feature branch.
-
-**Details:**
-
-After a successful backup, use the branch categorization information (from Subtask 2) to determine whether to invoke Task 009 or Task 010. Pass all required branch details and parameters to the chosen alignment tool and capture its output.
-
-### 012.9. Integrate Error Detection & Handling (Task 005) into Workflow
-
-**Status:** pending  
-**Dependencies:** 012.6, 012.8  
-
-Implement the invocation of Task 005's error detection scripts after the alignment step for each feature branch and process its results.
-
-**Details:**
-
-Following the alignment step (Task 009/010), call Task 005 (the external error detection tool) with the context of the aligned branch. Interpret its results to determine if alignment introduced new issues or if existing ones were detected, logging any findings.
-
-### 012.10. Integrate Validation Framework (Task 011) into Workflow
-
-**Status:** pending  
-**Dependencies:** 012.6, 012.9  
-
-Implement the trigger for Task 011's integrated validation process after error detection for each feature branch, using its output to confirm alignment success.
-
-**Details:**
-
-After error detection (Task 005), invoke Task 011 (the external validation tool) for the aligned branch. Await its completion and use its output to confirm the overall success or identify the need for further manual resolution.
-
-### 012.11. Integrate Documentation Generation (Task 008) into Workflow
-
-**Status:** pending  
-**Dependencies:** 012.6, 012.10  
-
-Implement the mechanism to prompt for or automatically generate `CHANGES_SUMMARY.md` via Task 015 after successful validation of a feature branch.
-
-**Details:**
-
-Once Task 011 (Subtask 10) indicates successful validation, invoke Task 015 (the external documentation tool). This might involve presenting a prompt to the developer for input, or passing collected alignment information to Task 015 for automatic generation of `CHANGES_SUMMARY.md`.
-
-### 012.12. Implement Pause, Resume, and Cancellation Mechanisms
-
-**Status:** pending  
-**Dependencies:** 012.6, 012.28  
-
-Develop functionality to allow the developer to pause the alignment workflow, resume from a paused state, or cancel the entire process gracefully at any point.
-
-**Details:**
-
-Integrate user input handlers (e.g., keyboard interrupts, specific CLI commands) to trigger pause/resume/cancel. Implement logic to halt the current operation, save the workflow state (for pause), and perform necessary cleanup (for cancel). Ensure graceful exit during cancellation.
-
-### 012.13. Develop Workflow State Persistence & Recovery Mechanisms
-
-**Status:** pending  
-**Dependencies:** 012.1, 012.6  
-
-Implement mechanisms to save the current state of the workflow (e.g., processed branches, pending branches, current step, user inputs) and recover from it after a pause or unexpected interruption.
-
-**Details:**
-
-Design a system to serialize and deserialize the orchestrator's state. Use a simple, file-based storage format (e.g., JSON, YAML) to persist the `OrchestratorState` object. Implement load and save functions that are invoked during pauses, before critical steps, and upon startup for resuming.
-
-### 012.013. Create Comprehensive Progress Reporting & Status Output Module
-
-**Status:** pending  
-**Dependencies:** 012.6, 012.7, 012.8, 012.9, 012.10, 012.26  
-
-Design and implement clear, real-time console output to inform the developer about the current step, overall progress, successes, failures, and any required manual interventions.
-
-**Details:**
-
-Implement structured logging and print statements at key points in the workflow. Use console formatting (e.g., color coding, bold text) to highlight important messages, such as successful alignments, detected errors, required manual conflict resolution prompts, and workflow completion. The output should abstract Git commands.
-
-### 012.15. Document the Orchestration System for Maintenance
-
-**Status:** pending  
-**Dependencies:** 012.1, 012.28  
-
-Create comprehensive documentation for the orchestrator, covering setup, usage instructions, workflow details, troubleshooting, and maintenance guidelines for developers.
-
-**Details:**
-
-Produce a markdown document (`README.md` or similar) that includes: a high-level overview, command-line arguments, expected inputs/outputs, how to interpret status messages, steps for manual intervention, and detailed explanations of internal components and their interactions for future maintenance.
-
-### 012.16. Integrate Architectural Migration (Task 022) into Workflow
-
-**Status:** pending
-**Dependencies:** 012.7, 28
-
-Implement the invocation of Task 022's automated migration script after the backup step (012.7) and before the alignment step (012.8).
-
-**Details:**
-
-Call the migration tool to normalize the feature branch's directory structure (`backend` -> `src/backend`) and inject the factory pattern. Capture the migration status. If migration fails, halt the workflow or prompt the user, depending on severity. Ensure this step allows the subsequent alignment (Task 009/010) to work on a structurally compatible branch.
-**Dependencies:** 007, 008, 009, 010, 26, 28
-
-**Priority:** high
-
-**Description:** Create a master orchestration script that guides a single developer through the entire branch alignment process, from identification and categorization to sequential alignment, error correction, validation, and documentation.
-
-**Details:**
-
-Develop a high-level Python script acting as the primary interface for the single developer. This script should:
-1.  **Initiate Categorization:** Call the tool from Task 007 to identify and categorize feature branches. 
-2.  **Present Categorized List:** Display the categorized branches (main, scientific, orchestration-tools) and allow the developer to select branches to process, potentially in prioritized order (as per P7). 
-3.  **Iterate through Branches:** For each selected feature branch:
-    a.  **Backup:** Invoke Task 006's backup procedure.
-    b.  **Migrate:** Call Task 022's automated architectural migration (backend->src, factory pattern).
-    c.  **Align:** Call Task 009 (core logic) or Task 010 (complex logic) based on the branch's categorization. 
-    d.  **Error Check:** Run Task 005's error detection scripts. 
-    e.  **Validate:** Trigger Task 011's integrated validation. 
-    f.  **Document:** Prompt for/generate `CHANGES_SUMMARY.md` via Task 015. 
-4.  **Handle Pauses/Resumes:** Allow the developer to pause and resume the process, especially during conflict resolution. 
-5.  **Report Progress/Status:** Provide clear console output regarding the current step, successes, failures, and required manual interventions. The script should abstract away the underlying Git commands and tool invocations, presenting a streamlined experience.
-
-**Test Strategy:**
-
-Execute the orchestration script on a controlled set of test branches, including some with expected conflicts and errors. Verify that it correctly calls all sub-components (backup, align, error detection, validation, documentation). Ensure that the flow is logical, user prompts are clear, and error conditions are handled gracefully (e.g., pausing for manual conflict resolution, offering to abort/restore). Confirm that the script maintains overall state and can resume if interrupted.
-
-## Subtasks
-
-### 012.1. Design Overall Orchestration Workflow Architecture
-
-**Status:** pending  
-**Dependencies:** None  
-
-Define the high-level architecture, state machine, and interaction patterns for the sequential branch alignment orchestrator.
-
-**Details:**
-
-Outline the main states (e.g., initialization, branch selection, branch processing, paused, completed, error), transitions, and core components (e.g., queue, state manager, reporter). This will serve as the blueprint for subsequent implementation.
-
-### 012.2. Integrate Feature Branch Identification & Categorization Tool
-
-**Status:** pending  
-**Dependencies:** None  
-
-Implement the functionality to call Task 007's tool to identify and categorize feature branches, capturing its output.
-
-**Details:**
-
-Develop Python code to invoke Task 007's tool (which is assumed to be an external script or function), capture its output (a list of categorized branches), and parse this information into a structured format within the orchestrator's internal state.
-
-### 012.3. Develop Interactive Branch Selection & Prioritization UI
-
-**Status:** pending  
-**Dependencies:** 012.2  
-
-Create a command-line interface (CLI) to display categorized branches and allow the developer to select branches for processing, including optional prioritization based on P7.
-
-**Details:**
-
-The UI should clearly present branches grouped by their categories ('main', 'scientific', 'orchestration-tools'). Use interactive prompts (e.g., `inquirer` or simple `input` loops) to enable selection and reordering. Implement logic to apply 'P7' prioritization if chosen by the user, adjusting the processing order.
-
-### 012.4. Implement Branch Processing Queue Management System
-
-**Status:** pending  
-**Dependencies:** 012.1, 012.3  
-
-Establish an internal queue or list management system to hold and process the developer-selected and prioritized feature branches in sequential order.
-
-**Details:**
-
-Design a robust data structure (e.g., `collections.deque` or a custom class) that maintains the ordered list of branches awaiting alignment. Implement methods to efficiently add branches to the queue, remove a branch once processed, and retrieve the next branch to process.
-
-### 012.5. Develop Priority Assignment Algorithms for Alignment Sequence
-
-**Status:** pending  
-**Dependencies:** 012.3, 012.4  
-
-Implement algorithms or rules for automatically assigning/adjusting the processing priority of branches within the queue based on developer input or predefined criteria (e.g., P7).
-
-**Details:**
-
-Based on the user's input from the branch selection UI (Subtask 3) or system-defined heuristics, apply logic to sort or re-prioritize branches within the processing queue. This could involve sorting by category, age, or a specific 'P7' flag.
-
-### 012.6. Implement Sequential Execution Control Flow for Branches
-
-**Status:** pending  
-**Dependencies:** 012.1, 012.4, 012.5  
-
-Develop the core loop that iterates through the branch processing queue, managing the sequential execution of all alignment steps for each selected feature branch.
-
-**Details:**
-
-This central loop will be the primary driver, calling subsequent integration subtasks (e.g., backup, alignment, error checking, validation, documentation) for each branch. It must manage the current branch's context throughout its processing lifecycle.
-
-### 012.7. Integrate Backup Procedure (Task 006) into Workflow
-
-**Status:** pending  
-**Dependencies:** 012.6  
-
-Implement the invocation of Task 006's backup procedure for the currently processed feature branch at the beginning of its alignment process.
-
-**Details:**
-
-Modify the execution loop to call Task 006 (the external backup tool) for the current branch before any alignment operations begin. Ensure the orchestrator correctly passes necessary branch identifiers to Task 006 and handles its return values or potential exceptions.
-
-### 012.8. Integrate Branch Alignment Logic (Tasks 009 & 010) into Workflow
-
-**Status:** pending  
-**Dependencies:** 012.2, 012.6, 012.7  
-
-Implement conditional calls to Task 009 (core alignment logic) or Task 010 (complex alignment logic) based on the categorization of the current feature branch.
-
-**Details:**
-
-After a successful backup, use the branch categorization information (from Subtask 2) to determine whether to invoke Task 009 or Task 010. Pass all required branch details and parameters to the chosen alignment tool and capture its output.
-
-### 012.9. Integrate Error Detection & Handling (Task 005) into Workflow
-
-**Status:** pending  
-**Dependencies:** 012.6, 012.8  
-
-Implement the invocation of Task 005's error detection scripts after the alignment step for each feature branch and process its results.
-
-**Details:**
-
-Following the alignment step (Task 009/010), call Task 005 (the external error detection tool) with the context of the aligned branch. Interpret its results to determine if alignment introduced new issues or if existing ones were detected, logging any findings.
-
-### 012.10. Integrate Validation Framework (Task 011) into Workflow
-
-**Status:** pending  
-**Dependencies:** 012.6, 012.9  
-
-Implement the trigger for Task 011's integrated validation process after error detection for each feature branch, using its output to confirm alignment success.
-
-**Details:**
-
-After error detection (Task 005), invoke Task 011 (the external validation tool) for the aligned branch. Await its completion and use its output to confirm the overall success or identify the need for further manual resolution.
-
-### 012.11. Integrate Documentation Generation (Task 008) into Workflow
-
-**Status:** pending  
-**Dependencies:** 012.6, 012.10  
-
-Implement the mechanism to prompt for or automatically generate `CHANGES_SUMMARY.md` via Task 015 after successful validation of a feature branch.
-
-**Details:**
-
-Once Task 011 (Subtask 10) indicates successful validation, invoke Task 015 (the external documentation tool). This might involve presenting a prompt to the developer for input, or passing collected alignment information to Task 015 for automatic generation of `CHANGES_SUMMARY.md`.
-
-### 012.12. Implement Pause, Resume, and Cancellation Mechanisms
-
-**Status:** pending  
-**Dependencies:** 012.6, 012.28  
-
-Develop functionality to allow the developer to pause the alignment workflow, resume from a paused state, or cancel the entire process gracefully at any point.
-
-**Details:**
-
-Integrate user input handlers (e.g., keyboard interrupts, specific CLI commands) to trigger pause/resume/cancel. Implement logic to halt the current operation, save the workflow state (for pause), and perform necessary cleanup (for cancel). Ensure graceful exit during cancellation.
-
-### 012.13. Develop Workflow State Persistence & Recovery Mechanisms
-
-**Status:** pending  
-**Dependencies:** 012.1, 012.6  
-
-Implement mechanisms to save the current state of the workflow (e.g., processed branches, pending branches, current step, user inputs) and recover from it after a pause or unexpected interruption.
-
-**Details:**
-
-Design a system to serialize and deserialize the orchestrator's state. Use a simple, file-based storage format (e.g., JSON, YAML) to persist the `OrchestratorState` object. Implement load and save functions that are invoked during pauses, before critical steps, and upon startup for resuming.
-
-### 012.013. Create Comprehensive Progress Reporting & Status Output Module
-
-**Status:** pending  
-**Dependencies:** 012.6, 012.7, 012.8, 012.9, 012.10, 012.26  
-
-Design and implement clear, real-time console output to inform the developer about the current step, overall progress, successes, failures, and any required manual interventions.
-
-**Details:**
-
-Implement structured logging and print statements at key points in the workflow. Use console formatting (e.g., color coding, bold text) to highlight important messages, such as successful alignments, detected errors, required manual conflict resolution prompts, and workflow completion. The output should abstract Git commands.
-
-### 012.15. Document the Orchestration System for Maintenance
-
-**Status:** pending  
-**Dependencies:** 012.1, 012.28  
-
-Create comprehensive documentation for the orchestrator, covering setup, usage instructions, workflow details, troubleshooting, and maintenance guidelines for developers.
-
-**Details:**
-
-Produce a markdown document (`README.md` or similar) that includes: a high-level overview, command-line arguments, expected inputs/outputs, how to interpret status messages, steps for manual intervention, and detailed explanations of internal components and their interactions for future maintenance.
-
-### 012.16. Integrate Architectural Migration (Task 022) into Workflow
-
-**Status:** pending
-**Dependencies:** 012.7, 28
-
-Implement the invocation of Task 022's automated migration script after the backup step (012.7) and before the alignment step (012.8).
-
-**Details:**
-
-Call the migration tool to normalize the feature branch's directory structure (`backend` -> `src/backend`) and inject the factory pattern. Capture the migration status. If migration fails, halt the workflow or prompt the user, depending on severity. Ensure this step allows the subsequent alignment (Task 009/010) to work on a structurally compatible branch.
-**Effort:** TBD
-**Complexity:** TBD
-
-## Overview/Purpose
-Create a master orchestration script that guides a single developer through the entire branch alignment process, from identification and categorization to sequential alignment, error correction, validation, and documentation.
-
-## Success Criteria
-
-- [ ] [Success criteria to be defined]
-
-## Prerequisites & Dependencies
-
-### Required Before Starting
-- [ ] 007, 008, 009, 010, 011, 022
-
-**Priority:** high
-
-**Description:** Create a master orchestration script that guides a single developer through the entire branch alignment process, from identification and categorization to sequential alignment, error correction, validation, and documentation.
-
-**Details:**
-
-Develop a high-level Python script acting as the primary interface for the single developer. This script should:
-1.  **Initiate Categorization:** Call the tool from Task 007 to identify and categorize feature branches. 
-2.  **Present Categorized List:** Display the categorized branches (main, scientific, orchestration-tools) and allow the developer to select branches to process, potentially in prioritized order (as per P7). 
-3.  **Iterate through Branches:** For each selected feature branch:
-    a.  **Backup:** Invoke Task 006's backup procedure.
-    b.  **Migrate:** Call Task 022's automated architectural migration (backend->src, factory pattern).
-    c.  **Align:** Call Task 009 (core logic) or Task 010 (complex logic) based on the branch's categorization. 
-    d.  **Error Check:** Run Task 005's error detection scripts. 
-    e.  **Validate:** Trigger Task 011's integrated validation. 
-    f.  **Document:** Prompt for/generate `CHANGES_SUMMARY.md` via Task 015. 
-4.  **Handle Pauses/Resumes:** Allow the developer to pause and resume the process, especially during conflict resolution. 
-5.  **Report Progress/Status:** Provide clear console output regarding the current step, successes, failures, and required manual interventions. The script should abstract away the underlying Git commands and tool invocations, presenting a streamlined experience.
-
-**Test Strategy:**
-
-Execute the orchestration script on a controlled set of test branches, including some with expected conflicts and errors. Verify that it correctly calls all sub-components (backup, align, error detection, validation, documentation). Ensure that the flow is logical, user prompts are clear, and error conditions are handled gracefully (e.g., pausing for manual conflict resolution, offering to abort/restore). Confirm that the script maintains overall state and can resume if interrupted.
-
-## Subtasks
-
-### 012.1. Design Overall Orchestration Workflow Architecture
-
-**Status:** pending  
-**Dependencies:** None  
-
-Define the high-level architecture, state machine, and interaction patterns for the sequential branch alignment orchestrator.
-
-**Details:**
-
-Outline the main states (e.g., initialization, branch selection, branch processing, paused, completed, error), transitions, and core components (e.g., queue, state manager, reporter). This will serve as the blueprint for subsequent implementation.
-
-### 012.2. Integrate Feature Branch Identification & Categorization Tool
-
-**Status:** pending  
-**Dependencies:** None  
-
-Implement the functionality to call Task 007's tool to identify and categorize feature branches, capturing its output.
-
-**Details:**
-
-Develop Python code to invoke Task 007's tool (which is assumed to be an external script or function), capture its output (a list of categorized branches), and parse this information into a structured format within the orchestrator's internal state.
-
-### 012.3. Develop Interactive Branch Selection & Prioritization UI
-
-**Status:** pending  
-**Dependencies:** 012.2  
-
-Create a command-line interface (CLI) to display categorized branches and allow the developer to select branches for processing, including optional prioritization based on P7.
-
-**Details:**
-
-The UI should clearly present branches grouped by their categories ('main', 'scientific', 'orchestration-tools'). Use interactive prompts (e.g., `inquirer` or simple `input` loops) to enable selection and reordering. Implement logic to apply 'P7' prioritization if chosen by the user, adjusting the processing order.
-
-### 012.4. Implement Branch Processing Queue Management System
-
-**Status:** pending  
-**Dependencies:** 012.1, 012.3  
-
-Establish an internal queue or list management system to hold and process the developer-selected and prioritized feature branches in sequential order.
-
-**Details:**
-
-Design a robust data structure (e.g., `collections.deque` or a custom class) that maintains the ordered list of branches awaiting alignment. Implement methods to efficiently add branches to the queue, remove a branch once processed, and retrieve the next branch to process.
-
-### 012.5. Develop Priority Assignment Algorithms for Alignment Sequence
-
-**Status:** pending  
-**Dependencies:** 012.3, 012.4  
-
-Implement algorithms or rules for automatically assigning/adjusting the processing priority of branches within the queue based on developer input or predefined criteria (e.g., P7).
-
-**Details:**
-
-Based on the user's input from the branch selection UI (Subtask 3) or system-defined heuristics, apply logic to sort or re-prioritize branches within the processing queue. This could involve sorting by category, age, or a specific 'P7' flag.
-
-### 012.6. Implement Sequential Execution Control Flow for Branches
-
-**Status:** pending  
-**Dependencies:** 012.1, 012.4, 012.5  
-
-Develop the core loop that iterates through the branch processing queue, managing the sequential execution of all alignment steps for each selected feature branch.
-
-**Details:**
-
-This central loop will be the primary driver, calling subsequent integration subtasks (e.g., backup, alignment, error checking, validation, documentation) for each branch. It must manage the current branch's context throughout its processing lifecycle.
-
-### 012.7. Integrate Backup Procedure (Task 006) into Workflow
-
-**Status:** pending  
-**Dependencies:** 012.6  
-
-Implement the invocation of Task 006's backup procedure for the currently processed feature branch at the beginning of its alignment process.
-
-**Details:**
-
-Modify the execution loop to call Task 006 (the external backup tool) for the current branch before any alignment operations begin. Ensure the orchestrator correctly passes necessary branch identifiers to Task 006 and handles its return values or potential exceptions.
-
-### 012.8. Integrate Branch Alignment Logic (Tasks 009 & 010) into Workflow
-
-**Status:** pending  
-**Dependencies:** 012.2, 012.6, 012.7  
-
-Implement conditional calls to Task 009 (core alignment logic) or Task 010 (complex alignment logic) based on the categorization of the current feature branch.
-
-**Details:**
-
-After a successful backup, use the branch categorization information (from Subtask 2) to determine whether to invoke Task 009 or Task 010. Pass all required branch details and parameters to the chosen alignment tool and capture its output.
-
-### 012.9. Integrate Error Detection & Handling (Task 005) into Workflow
-
-**Status:** pending  
-**Dependencies:** 012.6, 012.8  
-
-Implement the invocation of Task 005's error detection scripts after the alignment step for each feature branch and process its results.
-
-**Details:**
-
-Following the alignment step (Task 009/010), call Task 005 (the external error detection tool) with the context of the aligned branch. Interpret its results to determine if alignment introduced new issues or if existing ones were detected, logging any findings.
-
-### 012.10. Integrate Validation Framework (Task 011) into Workflow
-
-**Status:** pending  
-**Dependencies:** 012.6, 012.9  
-
-Implement the trigger for Task 011's integrated validation process after error detection for each feature branch, using its output to confirm alignment success.
-
-**Details:**
-
-After error detection (Task 005), invoke Task 011 (the external validation tool) for the aligned branch. Await its completion and use its output to confirm the overall success or identify the need for further manual resolution.
-
-### 012.11. Integrate Documentation Generation (Task 008) into Workflow
-
-**Status:** pending  
-**Dependencies:** 012.6, 012.10  
-
-Implement the mechanism to prompt for or automatically generate `CHANGES_SUMMARY.md` via Task 015 after successful validation of a feature branch.
-
-**Details:**
-
-Once Task 011 (Subtask 10) indicates successful validation, invoke Task 015 (the external documentation tool). This might involve presenting a prompt to the developer for input, or passing collected alignment information to Task 015 for automatic generation of `CHANGES_SUMMARY.md`.
-
-### 012.12. Implement Pause, Resume, and Cancellation Mechanisms
-
-**Status:** pending  
-**Dependencies:** 012.6, 012.28  
-
-Develop functionality to allow the developer to pause the alignment workflow, resume from a paused state, or cancel the entire process gracefully at any point.
-
-**Details:**
-
-Integrate user input handlers (e.g., keyboard interrupts, specific CLI commands) to trigger pause/resume/cancel. Implement logic to halt the current operation, save the workflow state (for pause), and perform necessary cleanup (for cancel). Ensure graceful exit during cancellation.
-
-### 012.13. Develop Workflow State Persistence & Recovery Mechanisms
-
-**Status:** pending  
-**Dependencies:** 012.1, 012.6  
-
-Implement mechanisms to save the current state of the workflow (e.g., processed branches, pending branches, current step, user inputs) and recover from it after a pause or unexpected interruption.
-
-**Details:**
-
-Design a system to serialize and deserialize the orchestrator's state. Use a simple, file-based storage format (e.g., JSON, YAML) to persist the `OrchestratorState` object. Implement load and save functions that are invoked during pauses, before critical steps, and upon startup for resuming.
-
-### 012.013. Create Comprehensive Progress Reporting & Status Output Module
-
-**Status:** pending  
-**Dependencies:** 012.6, 012.7, 012.8, 012.9, 012.10, 012.26  
-
-Design and implement clear, real-time console output to inform the developer about the current step, overall progress, successes, failures, and any required manual interventions.
-
-**Details:**
-
-Implement structured logging and print statements at key points in the workflow. Use console formatting (e.g., color coding, bold text) to highlight important messages, such as successful alignments, detected errors, required manual conflict resolution prompts, and workflow completion. The output should abstract Git commands.
-
-### 012.15. Document the Orchestration System for Maintenance
-
-**Status:** pending  
-**Dependencies:** 012.1, 012.28  
-
-Create comprehensive documentation for the orchestrator, covering setup, usage instructions, workflow details, troubleshooting, and maintenance guidelines for developers.
-
-**Details:**
-
-Produce a markdown document (`README.md` or similar) that includes: a high-level overview, command-line arguments, expected inputs/outputs, how to interpret status messages, steps for manual intervention, and detailed explanations of internal components and their interactions for future maintenance.
-
-### 012.16. Integrate Architectural Migration (Task 022) into Workflow
-
-**Status:** pending
-**Dependencies:** 012.7, 28
-
-Implement the invocation of Task 022's automated migration script after the backup step (012.7) and before the alignment step (012.8).
-
-**Details:**
-
-Call the migration tool to normalize the feature branch's directory structure (`backend` -> `src/backend`) and inject the factory pattern. Capture the migration status. If migration fails, halt the workflow or prompt the user, depending on severity. Ensure this step allows the subsequent alignment (Task 009/010) to work on a structurally compatible branch.
+- [ ] Task 007: Feature Branch Identification & Categorization
+- [ ] Task 008: Documentation Generation
+- [ ] Task 009: Core Branch Alignment Logic
+- [ ] Task 010: Complex Branch Alignment Logic
+- [ ] Task 011: Validation Framework
+- [ ] Task 022: Architectural Migration
 
 ### Blocks (What This Task Unblocks)
 - [ ] None specified
@@ -1026,786 +67,225 @@ Call the migration tool to normalize the feature branch's directory structure (`
 
 ## Sub-subtasks Breakdown
 
-### ### 012.1. Design Overall Orchestration Workflow Architecture
-- **Status**: pending
-- **Dependencies**: None
+### 012.1. Design Overall Orchestration Workflow Architecture
+- **Status:** pending
+- **Dependencies:** None
+- **Effort:** 4-6 hours
 
-### ### 012.2. Integrate Feature Branch Identification & Categorization Tool
-- **Status**: pending
-- **Dependencies**: None
+Define the high-level architecture, state machine, and interaction patterns for the sequential branch alignment orchestrator. Outline the main states (initialization, branch selection, branch processing, paused, completed, error), transitions, and core components (queue, state manager, reporter).
 
-### ### 012.3. Develop Interactive Branch Selection & Prioritization UI
-- **Status**: pending
-- **Dependencies**: 012.2
+### 012.2. Integrate Feature Branch Identification & Categorization Tool
+- **Status:** pending
+- **Dependencies:** None
+- **Effort:** 3-4 hours
 
-### ### 012.4. Implement Branch Processing Queue Management System
-- **Status**: pending
-- **Dependencies**: 012.1, 012.3
+Develop Python code to invoke Task 007's tool, capture its output (a list of categorized branches), and parse this information into a structured format within the orchestrator's internal state.
 
-### ### 012.5. Develop Priority Assignment Algorithms for Alignment Sequence
-- **Status**: pending
-- **Dependencies**: 012.3, 012.4
+### 012.3. Develop Interactive Branch Selection & Prioritization UI
+- **Status:** pending
+- **Dependencies:** 012.2
+- **Effort:** 3-4 hours
 
-### ### 012.6. Implement Sequential Execution Control Flow for Branches
-- **Status**: pending
-- **Dependencies**: 012.1, 012.4, 012.5
+Create a CLI to display categorized branches grouped by category ('main', 'scientific', 'orchestration-tools'). Use interactive prompts (e.g., `inquirer` or simple `input` loops) to enable selection and reordering. Implement logic to apply 'P7' prioritization if chosen.
 
-### ### 012.7. Integrate Backup Procedure (Task 006) into Workflow
-- **Status**: pending
-- **Dependencies**: 012.6
+### 012.4. Implement Branch Processing Queue Management System
+- **Status:** pending
+- **Dependencies:** 012.1, 012.3
+- **Effort:** 3-4 hours
 
-### ### 012.8. Integrate Branch Alignment Logic (Tasks 009 & 010) into Workflow
-- **Status**: pending
-- **Dependencies**: 012.2, 012.6, 012.7
+Design a robust data structure (e.g., `collections.deque` or a custom class) that maintains the ordered list of branches awaiting alignment. Implement methods to add branches, remove processed branches, and retrieve the next branch.
 
-### ### 012.9. Integrate Error Detection & Handling (Task 005) into Workflow
-- **Status**: pending
-- **Dependencies**: 012.6, 012.8
+### 012.5. Develop Priority Assignment Algorithms for Alignment Sequence
+- **Status:** pending
+- **Dependencies:** 012.3, 012.4
+- **Effort:** 2-3 hours
 
-### ### 012.10. Integrate Validation Framework (Task 011) into Workflow
-- **Status**: pending
-- **Dependencies**: 012.6, 012.9
+Implement algorithms for automatically assigning/adjusting the processing priority of branches within the queue based on developer input or predefined criteria (e.g., sorting by category, age, or P7 flag).
 
-### ### 012.11. Integrate Documentation Generation (Task 008) into Workflow
-- **Status**: pending
-- **Dependencies**: 012.6, 012.10
+### 012.6. Implement Sequential Execution Control Flow for Branches
+- **Status:** pending
+- **Dependencies:** 012.1, 012.4, 012.5
+- **Effort:** 4-6 hours
 
-### ### 012.12. Implement Pause, Resume, and Cancellation Mechanisms
-- **Status**: pending
-- **Dependencies**: 012.6, 012.28
+Develop the core loop that iterates through the branch processing queue, managing the sequential execution of all alignment steps (backup, alignment, error checking, validation, documentation) for each branch. Must manage branch context throughout its processing lifecycle.
 
-### ### 012.13. Develop Workflow State Persistence & Recovery Mechanisms
-- **Status**: pending
-- **Dependencies**: 012.1, 012.6
+### 012.7. Integrate Backup Procedure (Task 006) into Workflow
+- **Status:** pending
+- **Dependencies:** 012.6
+- **Effort:** 2-3 hours
 
-### ### 012.013. Create Comprehensive Progress Reporting & Status Output Module
-- **Status**: pending
-- **Dependencies**: 012.6, 012.7, 012.8, 012.9, 012.10, 012.26
+Invoke Task 006's backup procedure for the current feature branch before any alignment operations begin. Correctly pass branch identifiers and handle return values or exceptions.
 
-### ### 012.15. Document the Orchestration System for Maintenance
-- **Status**: pending
-- **Dependencies**: 012.1, 012.28
+### 012.8. Integrate Branch Alignment Logic (Tasks 009 & 010) into Workflow
+- **Status:** pending
+- **Dependencies:** 012.2, 012.6, 012.7
+- **Effort:** 3-4 hours
 
-### ### 012.16. Integrate Architectural Migration (Task 022) into Workflow
-- **Status**: pending
-- **Dependencies**: 012.7, 28
+Implement conditional calls to Task 009 (core alignment) or Task 010 (complex alignment) based on branch categorization. Pass all required branch details and capture output.
+
+### 012.9. Integrate Error Detection & Handling (Task 005) into Workflow
+- **Status:** pending
+- **Dependencies:** 012.6, 012.8
+- **Effort:** 3-4 hours
+
+Invoke Task 005's error detection scripts after the alignment step. Interpret results to determine if alignment introduced new issues or if existing ones were detected, logging findings.
+
+### 012.10. Integrate Validation Framework (Task 011) into Workflow
+- **Status:** pending
+- **Dependencies:** 012.6, 012.9
+- **Effort:** 3-4 hours
+
+Trigger Task 011's integrated validation process after error detection. Use its output to confirm alignment success or identify the need for manual resolution.
+
+### 012.11. Integrate Documentation Generation (Task 008) into Workflow
+- **Status:** pending
+- **Dependencies:** 012.6, 012.10
+- **Effort:** 2-3 hours
+
+After successful validation, invoke Task 015 (documentation tool) to prompt for or automatically generate `CHANGES_SUMMARY.md` with collected alignment information.
+
+### 012.12. Implement Pause, Resume, and Cancellation Mechanisms
+- **Status:** pending
+- **Dependencies:** 012.6
+- **Effort:** 3-4 hours
+
+Integrate user input handlers (keyboard interrupts, CLI commands) to trigger pause/resume/cancel. Implement logic to halt operations, save workflow state (for pause), and perform cleanup (for cancel).
+
+### 012.13. Develop Workflow State Persistence & Recovery Mechanisms
+- **Status:** pending
+- **Dependencies:** 012.1, 012.6
+- **Effort:** 4-5 hours
+
+Design a system to serialize and deserialize the orchestrator's state using file-based storage (JSON/YAML) to persist the `OrchestratorState` object. Implement load/save functions invoked during pauses, before critical steps, and upon startup for resuming.
+
+### 012.15. Document the Orchestration System for Maintenance
+- **Status:** pending
+- **Dependencies:** 012.1
+- **Effort:** 3-4 hours
+
+Produce comprehensive documentation (`README.md` or similar) covering: high-level overview, command-line arguments, expected inputs/outputs, status message interpretation, manual intervention steps, and internal component explanations for future maintenance.
+
+### 012.16. Integrate Architectural Migration (Task 022) into Workflow
+- **Status:** pending
+- **Dependencies:** 012.7
+- **Effort:** 3-4 hours
+
+Invoke Task 022's automated migration script after the backup step (012.7) and before the alignment step (012.8). Normalize the feature branch's directory structure (`backend` -> `src/backend`) and inject the factory pattern. If migration fails, halt the workflow or prompt the user depending on severity.
 
 ## Specification Details
 
 ### Task Interface
-- **ID**: 012
-- **Title**: Orchestrate Sequential Branch Alignment Workflow
-
-**Status:** pending
-
-**Dependencies:** 007, 008, 009, 010, 26, 28
-
-**Priority:** high
-
-**Description:** Create a master orchestration script that guides a single developer through the entire branch alignment process, from identification and categorization to sequential alignment, error correction, validation, and documentation.
-
-**Details:**
-
-Develop a high-level Python script acting as the primary interface for the single developer. This script should:
-1.  **Initiate Categorization:** Call the tool from Task 007 to identify and categorize feature branches. 
-2.  **Present Categorized List:** Display the categorized branches (main, scientific, orchestration-tools) and allow the developer to select branches to process, potentially in prioritized order (as per P7). 
-3.  **Iterate through Branches:** For each selected feature branch:
-    a.  **Backup:** Invoke Task 006's backup procedure.
-    b.  **Migrate:** Call Task 022's automated architectural migration (backend->src, factory pattern).
-    c.  **Align:** Call Task 009 (core logic) or Task 010 (complex logic) based on the branch's categorization. 
-    d.  **Error Check:** Run Task 005's error detection scripts. 
-    e.  **Validate:** Trigger Task 011's integrated validation. 
-    f.  **Document:** Prompt for/generate `CHANGES_SUMMARY.md` via Task 015. 
-4.  **Handle Pauses/Resumes:** Allow the developer to pause and resume the process, especially during conflict resolution. 
-5.  **Report Progress/Status:** Provide clear console output regarding the current step, successes, failures, and required manual interventions. The script should abstract away the underlying Git commands and tool invocations, presenting a streamlined experience.
-
-**Test Strategy:**
-
-Execute the orchestration script on a controlled set of test branches, including some with expected conflicts and errors. Verify that it correctly calls all sub-components (backup, align, error detection, validation, documentation). Ensure that the flow is logical, user prompts are clear, and error conditions are handled gracefully (e.g., pausing for manual conflict resolution, offering to abort/restore). Confirm that the script maintains overall state and can resume if interrupted.
-
-## Subtasks
-
-### 012.1. Design Overall Orchestration Workflow Architecture
-
-**Status:** pending  
-**Dependencies:** None  
-
-Define the high-level architecture, state machine, and interaction patterns for the sequential branch alignment orchestrator.
-
-**Details:**
-
-Outline the main states (e.g., initialization, branch selection, branch processing, paused, completed, error), transitions, and core components (e.g., queue, state manager, reporter). This will serve as the blueprint for subsequent implementation.
-
-### 012.2. Integrate Feature Branch Identification & Categorization Tool
-
-**Status:** pending  
-**Dependencies:** None  
-
-Implement the functionality to call Task 007's tool to identify and categorize feature branches, capturing its output.
-
-**Details:**
-
-Develop Python code to invoke Task 007's tool (which is assumed to be an external script or function), capture its output (a list of categorized branches), and parse this information into a structured format within the orchestrator's internal state.
-
-### 012.3. Develop Interactive Branch Selection & Prioritization UI
-
-**Status:** pending  
-**Dependencies:** 012.2  
-
-Create a command-line interface (CLI) to display categorized branches and allow the developer to select branches for processing, including optional prioritization based on P7.
-
-**Details:**
-
-The UI should clearly present branches grouped by their categories ('main', 'scientific', 'orchestration-tools'). Use interactive prompts (e.g., `inquirer` or simple `input` loops) to enable selection and reordering. Implement logic to apply 'P7' prioritization if chosen by the user, adjusting the processing order.
-
-### 012.4. Implement Branch Processing Queue Management System
-
-**Status:** pending  
-**Dependencies:** 012.1, 012.3  
-
-Establish an internal queue or list management system to hold and process the developer-selected and prioritized feature branches in sequential order.
-
-**Details:**
-
-Design a robust data structure (e.g., `collections.deque` or a custom class) that maintains the ordered list of branches awaiting alignment. Implement methods to efficiently add branches to the queue, remove a branch once processed, and retrieve the next branch to process.
-
-### 012.5. Develop Priority Assignment Algorithms for Alignment Sequence
-
-**Status:** pending  
-**Dependencies:** 012.3, 012.4  
-
-Implement algorithms or rules for automatically assigning/adjusting the processing priority of branches within the queue based on developer input or predefined criteria (e.g., P7).
-
-**Details:**
-
-Based on the user's input from the branch selection UI (Subtask 3) or system-defined heuristics, apply logic to sort or re-prioritize branches within the processing queue. This could involve sorting by category, age, or a specific 'P7' flag.
-
-### 012.6. Implement Sequential Execution Control Flow for Branches
-
-**Status:** pending  
-**Dependencies:** 012.1, 012.4, 012.5  
-
-Develop the core loop that iterates through the branch processing queue, managing the sequential execution of all alignment steps for each selected feature branch.
-
-**Details:**
-
-This central loop will be the primary driver, calling subsequent integration subtasks (e.g., backup, alignment, error checking, validation, documentation) for each branch. It must manage the current branch's context throughout its processing lifecycle.
-
-### 012.7. Integrate Backup Procedure (Task 006) into Workflow
-
-**Status:** pending  
-**Dependencies:** 012.6  
-
-Implement the invocation of Task 006's backup procedure for the currently processed feature branch at the beginning of its alignment process.
-
-**Details:**
-
-Modify the execution loop to call Task 006 (the external backup tool) for the current branch before any alignment operations begin. Ensure the orchestrator correctly passes necessary branch identifiers to Task 006 and handles its return values or potential exceptions.
-
-### 012.8. Integrate Branch Alignment Logic (Tasks 009 & 010) into Workflow
-
-**Status:** pending  
-**Dependencies:** 012.2, 012.6, 012.7  
-
-Implement conditional calls to Task 009 (core alignment logic) or Task 010 (complex alignment logic) based on the categorization of the current feature branch.
-
-**Details:**
-
-After a successful backup, use the branch categorization information (from Subtask 2) to determine whether to invoke Task 009 or Task 010. Pass all required branch details and parameters to the chosen alignment tool and capture its output.
-
-### 012.9. Integrate Error Detection & Handling (Task 005) into Workflow
-
-**Status:** pending  
-**Dependencies:** 012.6, 012.8  
-
-Implement the invocation of Task 005's error detection scripts after the alignment step for each feature branch and process its results.
-
-**Details:**
-
-Following the alignment step (Task 009/010), call Task 005 (the external error detection tool) with the context of the aligned branch. Interpret its results to determine if alignment introduced new issues or if existing ones were detected, logging any findings.
-
-### 012.10. Integrate Validation Framework (Task 011) into Workflow
-
-**Status:** pending  
-**Dependencies:** 012.6, 012.9  
-
-Implement the trigger for Task 011's integrated validation process after error detection for each feature branch, using its output to confirm alignment success.
-
-**Details:**
-
-After error detection (Task 005), invoke Task 011 (the external validation tool) for the aligned branch. Await its completion and use its output to confirm the overall success or identify the need for further manual resolution.
-
-### 012.11. Integrate Documentation Generation (Task 008) into Workflow
-
-**Status:** pending  
-**Dependencies:** 012.6, 012.10  
-
-Implement the mechanism to prompt for or automatically generate `CHANGES_SUMMARY.md` via Task 015 after successful validation of a feature branch.
-
-**Details:**
-
-Once Task 011 (Subtask 10) indicates successful validation, invoke Task 015 (the external documentation tool). This might involve presenting a prompt to the developer for input, or passing collected alignment information to Task 015 for automatic generation of `CHANGES_SUMMARY.md`.
-
-### 012.12. Implement Pause, Resume, and Cancellation Mechanisms
-
-**Status:** pending  
-**Dependencies:** 012.6, 012.28  
-
-Develop functionality to allow the developer to pause the alignment workflow, resume from a paused state, or cancel the entire process gracefully at any point.
-
-**Details:**
-
-Integrate user input handlers (e.g., keyboard interrupts, specific CLI commands) to trigger pause/resume/cancel. Implement logic to halt the current operation, save the workflow state (for pause), and perform necessary cleanup (for cancel). Ensure graceful exit during cancellation.
-
-### 012.13. Develop Workflow State Persistence & Recovery Mechanisms
-
-**Status:** pending  
-**Dependencies:** 012.1, 012.6  
-
-Implement mechanisms to save the current state of the workflow (e.g., processed branches, pending branches, current step, user inputs) and recover from it after a pause or unexpected interruption.
-
-**Details:**
-
-Design a system to serialize and deserialize the orchestrator's state. Use a simple, file-based storage format (e.g., JSON, YAML) to persist the `OrchestratorState` object. Implement load and save functions that are invoked during pauses, before critical steps, and upon startup for resuming.
-
-### 012.013. Create Comprehensive Progress Reporting & Status Output Module
-
-**Status:** pending  
-**Dependencies:** 012.6, 012.7, 012.8, 012.9, 012.10, 012.26  
-
-Design and implement clear, real-time console output to inform the developer about the current step, overall progress, successes, failures, and any required manual interventions.
-
-**Details:**
-
-Implement structured logging and print statements at key points in the workflow. Use console formatting (e.g., color coding, bold text) to highlight important messages, such as successful alignments, detected errors, required manual conflict resolution prompts, and workflow completion. The output should abstract Git commands.
-
-### 012.15. Document the Orchestration System for Maintenance
-
-**Status:** pending  
-**Dependencies:** 012.1, 012.28  
-
-Create comprehensive documentation for the orchestrator, covering setup, usage instructions, workflow details, troubleshooting, and maintenance guidelines for developers.
-
-**Details:**
-
-Produce a markdown document (`README.md` or similar) that includes: a high-level overview, command-line arguments, expected inputs/outputs, how to interpret status messages, steps for manual intervention, and detailed explanations of internal components and their interactions for future maintenance.
-
-### 012.16. Integrate Architectural Migration (Task 022) into Workflow
-
-**Status:** pending
-**Dependencies:** 012.7, 28
-
-Implement the invocation of Task 022's automated migration script after the backup step (012.7) and before the alignment step (012.8).
-
-**Details:**
-
-Call the migration tool to normalize the feature branch's directory structure (`backend` -> `src/backend`) and inject the factory pattern. Capture the migration status. If migration fails, halt the workflow or prompt the user, depending on severity. Ensure this step allows the subsequent alignment (Task 009/010) to work on a structurally compatible branch.
-- **Status**: pending
-
-**Dependencies:** 007, 008, 009, 010, 26, 28
-
-**Priority:** high
-
-**Description:** Create a master orchestration script that guides a single developer through the entire branch alignment process, from identification and categorization to sequential alignment, error correction, validation, and documentation.
-
-**Details:**
-
-Develop a high-level Python script acting as the primary interface for the single developer. This script should:
-1.  **Initiate Categorization:** Call the tool from Task 007 to identify and categorize feature branches. 
-2.  **Present Categorized List:** Display the categorized branches (main, scientific, orchestration-tools) and allow the developer to select branches to process, potentially in prioritized order (as per P7). 
-3.  **Iterate through Branches:** For each selected feature branch:
-    a.  **Backup:** Invoke Task 006's backup procedure.
-    b.  **Migrate:** Call Task 022's automated architectural migration (backend->src, factory pattern).
-    c.  **Align:** Call Task 009 (core logic) or Task 010 (complex logic) based on the branch's categorization. 
-    d.  **Error Check:** Run Task 005's error detection scripts. 
-    e.  **Validate:** Trigger Task 011's integrated validation. 
-    f.  **Document:** Prompt for/generate `CHANGES_SUMMARY.md` via Task 015. 
-4.  **Handle Pauses/Resumes:** Allow the developer to pause and resume the process, especially during conflict resolution. 
-5.  **Report Progress/Status:** Provide clear console output regarding the current step, successes, failures, and required manual interventions. The script should abstract away the underlying Git commands and tool invocations, presenting a streamlined experience.
-
-**Test Strategy:**
-
-Execute the orchestration script on a controlled set of test branches, including some with expected conflicts and errors. Verify that it correctly calls all sub-components (backup, align, error detection, validation, documentation). Ensure that the flow is logical, user prompts are clear, and error conditions are handled gracefully (e.g., pausing for manual conflict resolution, offering to abort/restore). Confirm that the script maintains overall state and can resume if interrupted.
-
-## Subtasks
-
-### 012.1. Design Overall Orchestration Workflow Architecture
-
-**Status:** pending  
-**Dependencies:** None  
-
-Define the high-level architecture, state machine, and interaction patterns for the sequential branch alignment orchestrator.
-
-**Details:**
-
-Outline the main states (e.g., initialization, branch selection, branch processing, paused, completed, error), transitions, and core components (e.g., queue, state manager, reporter). This will serve as the blueprint for subsequent implementation.
-
-### 012.2. Integrate Feature Branch Identification & Categorization Tool
-
-**Status:** pending  
-**Dependencies:** None  
-
-Implement the functionality to call Task 007's tool to identify and categorize feature branches, capturing its output.
-
-**Details:**
-
-Develop Python code to invoke Task 007's tool (which is assumed to be an external script or function), capture its output (a list of categorized branches), and parse this information into a structured format within the orchestrator's internal state.
-
-### 012.3. Develop Interactive Branch Selection & Prioritization UI
-
-**Status:** pending  
-**Dependencies:** 012.2  
-
-Create a command-line interface (CLI) to display categorized branches and allow the developer to select branches for processing, including optional prioritization based on P7.
-
-**Details:**
-
-The UI should clearly present branches grouped by their categories ('main', 'scientific', 'orchestration-tools'). Use interactive prompts (e.g., `inquirer` or simple `input` loops) to enable selection and reordering. Implement logic to apply 'P7' prioritization if chosen by the user, adjusting the processing order.
-
-### 012.4. Implement Branch Processing Queue Management System
-
-**Status:** pending  
-**Dependencies:** 012.1, 012.3  
-
-Establish an internal queue or list management system to hold and process the developer-selected and prioritized feature branches in sequential order.
-
-**Details:**
-
-Design a robust data structure (e.g., `collections.deque` or a custom class) that maintains the ordered list of branches awaiting alignment. Implement methods to efficiently add branches to the queue, remove a branch once processed, and retrieve the next branch to process.
-
-### 012.5. Develop Priority Assignment Algorithms for Alignment Sequence
-
-**Status:** pending  
-**Dependencies:** 012.3, 012.4  
-
-Implement algorithms or rules for automatically assigning/adjusting the processing priority of branches within the queue based on developer input or predefined criteria (e.g., P7).
-
-**Details:**
-
-Based on the user's input from the branch selection UI (Subtask 3) or system-defined heuristics, apply logic to sort or re-prioritize branches within the processing queue. This could involve sorting by category, age, or a specific 'P7' flag.
-
-### 012.6. Implement Sequential Execution Control Flow for Branches
-
-**Status:** pending  
-**Dependencies:** 012.1, 012.4, 012.5  
-
-Develop the core loop that iterates through the branch processing queue, managing the sequential execution of all alignment steps for each selected feature branch.
-
-**Details:**
-
-This central loop will be the primary driver, calling subsequent integration subtasks (e.g., backup, alignment, error checking, validation, documentation) for each branch. It must manage the current branch's context throughout its processing lifecycle.
-
-### 012.7. Integrate Backup Procedure (Task 006) into Workflow
-
-**Status:** pending  
-**Dependencies:** 012.6  
-
-Implement the invocation of Task 006's backup procedure for the currently processed feature branch at the beginning of its alignment process.
-
-**Details:**
-
-Modify the execution loop to call Task 006 (the external backup tool) for the current branch before any alignment operations begin. Ensure the orchestrator correctly passes necessary branch identifiers to Task 006 and handles its return values or potential exceptions.
-
-### 012.8. Integrate Branch Alignment Logic (Tasks 009 & 010) into Workflow
-
-**Status:** pending  
-**Dependencies:** 012.2, 012.6, 012.7  
-
-Implement conditional calls to Task 009 (core alignment logic) or Task 010 (complex alignment logic) based on the categorization of the current feature branch.
-
-**Details:**
-
-After a successful backup, use the branch categorization information (from Subtask 2) to determine whether to invoke Task 009 or Task 010. Pass all required branch details and parameters to the chosen alignment tool and capture its output.
-
-### 012.9. Integrate Error Detection & Handling (Task 005) into Workflow
-
-**Status:** pending  
-**Dependencies:** 012.6, 012.8  
-
-Implement the invocation of Task 005's error detection scripts after the alignment step for each feature branch and process its results.
-
-**Details:**
-
-Following the alignment step (Task 009/010), call Task 005 (the external error detection tool) with the context of the aligned branch. Interpret its results to determine if alignment introduced new issues or if existing ones were detected, logging any findings.
-
-### 012.10. Integrate Validation Framework (Task 011) into Workflow
-
-**Status:** pending  
-**Dependencies:** 012.6, 012.9  
-
-Implement the trigger for Task 011's integrated validation process after error detection for each feature branch, using its output to confirm alignment success.
-
-**Details:**
-
-After error detection (Task 005), invoke Task 011 (the external validation tool) for the aligned branch. Await its completion and use its output to confirm the overall success or identify the need for further manual resolution.
-
-### 012.11. Integrate Documentation Generation (Task 008) into Workflow
-
-**Status:** pending  
-**Dependencies:** 012.6, 012.10  
-
-Implement the mechanism to prompt for or automatically generate `CHANGES_SUMMARY.md` via Task 015 after successful validation of a feature branch.
-
-**Details:**
-
-Once Task 011 (Subtask 10) indicates successful validation, invoke Task 015 (the external documentation tool). This might involve presenting a prompt to the developer for input, or passing collected alignment information to Task 015 for automatic generation of `CHANGES_SUMMARY.md`.
-
-### 012.12. Implement Pause, Resume, and Cancellation Mechanisms
-
-**Status:** pending  
-**Dependencies:** 012.6, 012.28  
-
-Develop functionality to allow the developer to pause the alignment workflow, resume from a paused state, or cancel the entire process gracefully at any point.
-
-**Details:**
-
-Integrate user input handlers (e.g., keyboard interrupts, specific CLI commands) to trigger pause/resume/cancel. Implement logic to halt the current operation, save the workflow state (for pause), and perform necessary cleanup (for cancel). Ensure graceful exit during cancellation.
-
-### 012.13. Develop Workflow State Persistence & Recovery Mechanisms
-
-**Status:** pending  
-**Dependencies:** 012.1, 012.6  
-
-Implement mechanisms to save the current state of the workflow (e.g., processed branches, pending branches, current step, user inputs) and recover from it after a pause or unexpected interruption.
-
-**Details:**
-
-Design a system to serialize and deserialize the orchestrator's state. Use a simple, file-based storage format (e.g., JSON, YAML) to persist the `OrchestratorState` object. Implement load and save functions that are invoked during pauses, before critical steps, and upon startup for resuming.
-
-### 012.013. Create Comprehensive Progress Reporting & Status Output Module
-
-**Status:** pending  
-**Dependencies:** 012.6, 012.7, 012.8, 012.9, 012.10, 012.26  
-
-Design and implement clear, real-time console output to inform the developer about the current step, overall progress, successes, failures, and any required manual interventions.
-
-**Details:**
-
-Implement structured logging and print statements at key points in the workflow. Use console formatting (e.g., color coding, bold text) to highlight important messages, such as successful alignments, detected errors, required manual conflict resolution prompts, and workflow completion. The output should abstract Git commands.
-
-### 012.15. Document the Orchestration System for Maintenance
-
-**Status:** pending  
-**Dependencies:** 012.1, 012.28  
-
-Create comprehensive documentation for the orchestrator, covering setup, usage instructions, workflow details, troubleshooting, and maintenance guidelines for developers.
-
-**Details:**
-
-Produce a markdown document (`README.md` or similar) that includes: a high-level overview, command-line arguments, expected inputs/outputs, how to interpret status messages, steps for manual intervention, and detailed explanations of internal components and their interactions for future maintenance.
-
-### 012.16. Integrate Architectural Migration (Task 022) into Workflow
-
-**Status:** pending
-**Dependencies:** 012.7, 28
-
-Implement the invocation of Task 022's automated migration script after the backup step (012.7) and before the alignment step (012.8).
-
-**Details:**
-
-Call the migration tool to normalize the feature branch's directory structure (`backend` -> `src/backend`) and inject the factory pattern. Capture the migration status. If migration fails, halt the workflow or prompt the user, depending on severity. Ensure this step allows the subsequent alignment (Task 009/010) to work on a structurally compatible branch.
-- **Priority**: high
-
-**Description:** Create a master orchestration script that guides a single developer through the entire branch alignment process, from identification and categorization to sequential alignment, error correction, validation, and documentation.
-
-**Details:**
-
-Develop a high-level Python script acting as the primary interface for the single developer. This script should:
-1.  **Initiate Categorization:** Call the tool from Task 007 to identify and categorize feature branches. 
-2.  **Present Categorized List:** Display the categorized branches (main, scientific, orchestration-tools) and allow the developer to select branches to process, potentially in prioritized order (as per P7). 
-3.  **Iterate through Branches:** For each selected feature branch:
-    a.  **Backup:** Invoke Task 006's backup procedure.
-    b.  **Migrate:** Call Task 022's automated architectural migration (backend->src, factory pattern).
-    c.  **Align:** Call Task 009 (core logic) or Task 010 (complex logic) based on the branch's categorization. 
-    d.  **Error Check:** Run Task 005's error detection scripts. 
-    e.  **Validate:** Trigger Task 011's integrated validation. 
-    f.  **Document:** Prompt for/generate `CHANGES_SUMMARY.md` via Task 015. 
-4.  **Handle Pauses/Resumes:** Allow the developer to pause and resume the process, especially during conflict resolution. 
-5.  **Report Progress/Status:** Provide clear console output regarding the current step, successes, failures, and required manual interventions. The script should abstract away the underlying Git commands and tool invocations, presenting a streamlined experience.
-
-**Test Strategy:**
-
-Execute the orchestration script on a controlled set of test branches, including some with expected conflicts and errors. Verify that it correctly calls all sub-components (backup, align, error detection, validation, documentation). Ensure that the flow is logical, user prompts are clear, and error conditions are handled gracefully (e.g., pausing for manual conflict resolution, offering to abort/restore). Confirm that the script maintains overall state and can resume if interrupted.
-
-## Subtasks
-
-### 012.1. Design Overall Orchestration Workflow Architecture
-
-**Status:** pending  
-**Dependencies:** None  
-
-Define the high-level architecture, state machine, and interaction patterns for the sequential branch alignment orchestrator.
-
-**Details:**
-
-Outline the main states (e.g., initialization, branch selection, branch processing, paused, completed, error), transitions, and core components (e.g., queue, state manager, reporter). This will serve as the blueprint for subsequent implementation.
-
-### 012.2. Integrate Feature Branch Identification & Categorization Tool
-
-**Status:** pending  
-**Dependencies:** None  
-
-Implement the functionality to call Task 007's tool to identify and categorize feature branches, capturing its output.
-
-**Details:**
-
-Develop Python code to invoke Task 007's tool (which is assumed to be an external script or function), capture its output (a list of categorized branches), and parse this information into a structured format within the orchestrator's internal state.
-
-### 012.3. Develop Interactive Branch Selection & Prioritization UI
-
-**Status:** pending  
-**Dependencies:** 012.2  
-
-Create a command-line interface (CLI) to display categorized branches and allow the developer to select branches for processing, including optional prioritization based on P7.
-
-**Details:**
-
-The UI should clearly present branches grouped by their categories ('main', 'scientific', 'orchestration-tools'). Use interactive prompts (e.g., `inquirer` or simple `input` loops) to enable selection and reordering. Implement logic to apply 'P7' prioritization if chosen by the user, adjusting the processing order.
-
-### 012.4. Implement Branch Processing Queue Management System
-
-**Status:** pending  
-**Dependencies:** 012.1, 012.3  
-
-Establish an internal queue or list management system to hold and process the developer-selected and prioritized feature branches in sequential order.
-
-**Details:**
-
-Design a robust data structure (e.g., `collections.deque` or a custom class) that maintains the ordered list of branches awaiting alignment. Implement methods to efficiently add branches to the queue, remove a branch once processed, and retrieve the next branch to process.
-
-### 012.5. Develop Priority Assignment Algorithms for Alignment Sequence
-
-**Status:** pending  
-**Dependencies:** 012.3, 012.4  
-
-Implement algorithms or rules for automatically assigning/adjusting the processing priority of branches within the queue based on developer input or predefined criteria (e.g., P7).
-
-**Details:**
-
-Based on the user's input from the branch selection UI (Subtask 3) or system-defined heuristics, apply logic to sort or re-prioritize branches within the processing queue. This could involve sorting by category, age, or a specific 'P7' flag.
-
-### 012.6. Implement Sequential Execution Control Flow for Branches
-
-**Status:** pending  
-**Dependencies:** 012.1, 012.4, 012.5  
-
-Develop the core loop that iterates through the branch processing queue, managing the sequential execution of all alignment steps for each selected feature branch.
-
-**Details:**
-
-This central loop will be the primary driver, calling subsequent integration subtasks (e.g., backup, alignment, error checking, validation, documentation) for each branch. It must manage the current branch's context throughout its processing lifecycle.
-
-### 012.7. Integrate Backup Procedure (Task 006) into Workflow
-
-**Status:** pending  
-**Dependencies:** 012.6  
-
-Implement the invocation of Task 006's backup procedure for the currently processed feature branch at the beginning of its alignment process.
-
-**Details:**
-
-Modify the execution loop to call Task 006 (the external backup tool) for the current branch before any alignment operations begin. Ensure the orchestrator correctly passes necessary branch identifiers to Task 006 and handles its return values or potential exceptions.
-
-### 012.8. Integrate Branch Alignment Logic (Tasks 009 & 010) into Workflow
-
-**Status:** pending  
-**Dependencies:** 012.2, 012.6, 012.7  
-
-Implement conditional calls to Task 009 (core alignment logic) or Task 010 (complex alignment logic) based on the categorization of the current feature branch.
-
-**Details:**
-
-After a successful backup, use the branch categorization information (from Subtask 2) to determine whether to invoke Task 009 or Task 010. Pass all required branch details and parameters to the chosen alignment tool and capture its output.
-
-### 012.9. Integrate Error Detection & Handling (Task 005) into Workflow
-
-**Status:** pending  
-**Dependencies:** 012.6, 012.8  
-
-Implement the invocation of Task 005's error detection scripts after the alignment step for each feature branch and process its results.
-
-**Details:**
-
-Following the alignment step (Task 009/010), call Task 005 (the external error detection tool) with the context of the aligned branch. Interpret its results to determine if alignment introduced new issues or if existing ones were detected, logging any findings.
-
-### 012.10. Integrate Validation Framework (Task 011) into Workflow
-
-**Status:** pending  
-**Dependencies:** 012.6, 012.9  
-
-Implement the trigger for Task 011's integrated validation process after error detection for each feature branch, using its output to confirm alignment success.
-
-**Details:**
-
-After error detection (Task 005), invoke Task 011 (the external validation tool) for the aligned branch. Await its completion and use its output to confirm the overall success or identify the need for further manual resolution.
-
-### 012.11. Integrate Documentation Generation (Task 008) into Workflow
-
-**Status:** pending  
-**Dependencies:** 012.6, 012.10  
-
-Implement the mechanism to prompt for or automatically generate `CHANGES_SUMMARY.md` via Task 015 after successful validation of a feature branch.
-
-**Details:**
-
-Once Task 011 (Subtask 10) indicates successful validation, invoke Task 015 (the external documentation tool). This might involve presenting a prompt to the developer for input, or passing collected alignment information to Task 015 for automatic generation of `CHANGES_SUMMARY.md`.
-
-### 012.12. Implement Pause, Resume, and Cancellation Mechanisms
-
-**Status:** pending  
-**Dependencies:** 012.6, 012.28  
-
-Develop functionality to allow the developer to pause the alignment workflow, resume from a paused state, or cancel the entire process gracefully at any point.
-
-**Details:**
-
-Integrate user input handlers (e.g., keyboard interrupts, specific CLI commands) to trigger pause/resume/cancel. Implement logic to halt the current operation, save the workflow state (for pause), and perform necessary cleanup (for cancel). Ensure graceful exit during cancellation.
-
-### 012.13. Develop Workflow State Persistence & Recovery Mechanisms
-
-**Status:** pending  
-**Dependencies:** 012.1, 012.6  
-
-Implement mechanisms to save the current state of the workflow (e.g., processed branches, pending branches, current step, user inputs) and recover from it after a pause or unexpected interruption.
-
-**Details:**
-
-Design a system to serialize and deserialize the orchestrator's state. Use a simple, file-based storage format (e.g., JSON, YAML) to persist the `OrchestratorState` object. Implement load and save functions that are invoked during pauses, before critical steps, and upon startup for resuming.
-
-### 012.013. Create Comprehensive Progress Reporting & Status Output Module
-
-**Status:** pending  
-**Dependencies:** 012.6, 012.7, 012.8, 012.9, 012.10, 012.26  
-
-Design and implement clear, real-time console output to inform the developer about the current step, overall progress, successes, failures, and any required manual interventions.
-
-**Details:**
-
-Implement structured logging and print statements at key points in the workflow. Use console formatting (e.g., color coding, bold text) to highlight important messages, such as successful alignments, detected errors, required manual conflict resolution prompts, and workflow completion. The output should abstract Git commands.
-
-### 012.15. Document the Orchestration System for Maintenance
-
-**Status:** pending  
-**Dependencies:** 012.1, 012.28  
-
-Create comprehensive documentation for the orchestrator, covering setup, usage instructions, workflow details, troubleshooting, and maintenance guidelines for developers.
-
-**Details:**
-
-Produce a markdown document (`README.md` or similar) that includes: a high-level overview, command-line arguments, expected inputs/outputs, how to interpret status messages, steps for manual intervention, and detailed explanations of internal components and their interactions for future maintenance.
-
-### 012.16. Integrate Architectural Migration (Task 022) into Workflow
-
-**Status:** pending
-**Dependencies:** 012.7, 28
-
-Implement the invocation of Task 022's automated migration script after the backup step (012.7) and before the alignment step (012.8).
-
-**Details:**
-
-Call the migration tool to normalize the feature branch's directory structure (`backend` -> `src/backend`) and inject the factory pattern. Capture the migration status. If migration fails, halt the workflow or prompt the user, depending on severity. Ensure this step allows the subsequent alignment (Task 009/010) to work on a structurally compatible branch.
-- **Effort**: N/A
-- **Complexity**: N/A
+- **ID:** 012
+- **Title:** Orchestrate Sequential Branch Alignment Workflow
+- **Status:** pending
+- **Priority:** high
+- **Effort:** 48-64 hours
+- **Complexity:** 8/10
+
+### Core Components
+- **OrchestratorState:** Maintains current workflow state (processed branches, pending branches, current step)
+- **BranchProcessingQueue:** Ordered queue of branches to process with priority support
+- **SequentialExecutionLoop:** Core loop driving the per-branch workflow pipeline
+- **ProgressReporter:** Real-time console output with color coding and status abstraction
+- **StatePersistence:** JSON/YAML-based state serialization for pause/resume/recovery
+
+### Workflow Pipeline (per branch)
+1. Backup (Task 006) → 2. Migrate (Task 022) → 3. Align (Task 009/010) → 4. Error Check (Task 005) → 5. Validate (Task 011) → 6. Document (Task 008/015)
+
+### State Machine
+- **States:** initialization → branch_selection → branch_processing → paused → completed → error
+- **Transitions:** User-driven (selection, pause/resume/cancel) and system-driven (step completion, error detection)
 
 ## Implementation Guide
 
+### Phase 1: Foundation (012.1, 012.2, 012.3)
+1. Design the state machine and orchestrator architecture
+2. Implement Task 007 integration for branch identification
+3. Build the interactive CLI for branch selection
 
+### Phase 2: Queue & Control Flow (012.4, 012.5, 012.6)
+4. Implement the branch processing queue with priority support
+5. Build priority assignment algorithms
+6. Develop the sequential execution control loop
+
+### Phase 3: Integration Pipeline (012.7, 012.8, 012.9, 012.10, 012.11, 012.16)
+7. Integrate backup procedure (Task 006)
+8. Integrate architectural migration (Task 022)
+9. Integrate branch alignment logic (Tasks 009/010)
+10. Integrate error detection (Task 005)
+11. Integrate validation framework (Task 011)
+12. Integrate documentation generation (Task 008/015)
+
+### Phase 4: Resilience & Polish (012.12, 012.13, 012.15)
+13. Implement pause/resume/cancellation mechanisms
+14. Build state persistence and recovery
+15. Write comprehensive documentation
 
 ## Configuration Parameters
 
-- **Owner**: TBD
-- **Initiative**: TBD
-- **Scope**: TBD
-- **Focus**: TBD
+- **Owner:** TBD
+- **Initiative:** Branch Alignment Automation
+- **Scope:** Full orchestration of sequential branch alignment workflow
+- **Focus:** Single-developer CLI-driven workflow with state persistence
 
 ## Performance Targets
 
-- **Effort Range**: TBD
-- **Complexity Level**: TBD
+- **Per-branch processing:** Complete backup → migrate → align → validate → document pipeline within 5 minutes (excluding manual conflict resolution)
+- **State persistence:** Save/restore workflow state in <2 seconds
+- **CLI responsiveness:** Interactive prompts respond within 500ms
+- **Queue operations:** Branch queue add/remove/reorder in O(1) or O(n log n) for sorting
 
 ## Testing Strategy
 
 ### Unit Tests
-- [ ] Tests cover core functionality
-- [ ] Edge cases handled appropriately
-- [ ] Performance benchmarks met
+- [ ] State machine transitions cover all valid and invalid state changes
+- [ ] Queue management handles add, remove, reorder, and empty-queue edge cases
+- [ ] Priority algorithms produce correct ordering for all branch category combinations
+- [ ] State serialization/deserialization round-trips without data loss
 
 ### Integration Tests
-- [ ] Integration with dependent components verified
-- [ ] End-to-end workflow tested
-- [ ] Error handling verified
+- [ ] End-to-end workflow with mock task integrations (006, 007, 009/010, 005, 011, 022, 008/015)
+- [ ] Pause/resume preserves state correctly across interruptions
+- [ ] Error injection at each pipeline step triggers appropriate handling
+- [ ] Cancellation at each step performs proper cleanup
 
 ### Test Strategy Notes
-
+Execute the orchestration script on a controlled set of test branches, including some with expected conflicts and errors. Verify that it correctly calls all sub-components (backup, align, error detection, validation, documentation). Ensure that the flow is logical, user prompts are clear, and error conditions are handled gracefully (e.g., pausing for manual conflict resolution, offering to abort/restore). Confirm that the script maintains overall state and can resume if interrupted.
 
 ## Common Gotchas & Solutions
 
-- [ ] [Common issues and solutions to be documented]
+- **Git lock files:** If a previous Git operation was interrupted, lock files may prevent subsequent operations. Solution: Check for and clean up `.git/index.lock` before starting.
+- **Branch divergence during processing:** If the remote changes while processing locally, subsequent branches may have different merge bases. Solution: Re-fetch before each branch alignment.
+- **State file corruption:** If the process crashes during state serialization, the state file may be incomplete. Solution: Write to a temp file first, then atomic rename.
+- **Task tool failures:** External task tools (007, 009, etc.) may fail with unexpected exit codes. Solution: Capture stderr, log it, and present the user with actionable options (retry, skip, abort).
+- **Interactive prompt blocking:** Keyboard interrupt during an interactive prompt may leave terminal in a bad state. Solution: Use signal handlers and terminal reset on exit.
 
 ## Integration Checkpoint
 
 ### Criteria for Moving Forward
-- [ ] All success criteria met
+- [ ] All 15 subtasks (012.1–012.13, 012.15, 012.16) completed
+- [ ] State machine handles all transitions without deadlocks
+- [ ] Full pipeline tested end-to-end with mock task tools
+- [ ] Pause/resume/cancel tested across all pipeline stages
 - [ ] Code reviewed and approved
-- [ ] Tests passing
-- [ ] Documentation updated
-- [ ] No critical or high severity issues
+- [ ] Tests passing with >90% coverage
+- [ ] Documentation complete and accurate
 
 ## Done Definition
 
 ### Completion Criteria
 - [ ] All success criteria checkboxes marked complete
-- [ ] Code quality standards met (PEP 8, documentation)
+- [ ] All 15 subtasks completed and verified
+- [ ] End-to-end workflow tested on real branches (controlled environment)
+- [ ] State persistence and recovery verified
+- [ ] Documentation reviewed and approved
+- [ ] Code quality standards met (PEP 8, comprehensive docstrings)
 - [ ] Performance targets achieved
-- [ ] All subtasks completed
 - [ ] Integration checkpoint criteria satisfied
 
 ## Next Steps
 
-- [ ] No next steps specified
-- [ ] Additional steps to be defined
-
-
-<!-- EXTENDED_METADATA
-END_EXTENDED_METADATA -->
-
-## Configuration Parameters
-
-- **Owner**: TBD
-- **Initiative**: TBD
-- **Scope**: TBD
-- **Focus**: TBD
-
-## Performance Targets
-
-- **Effort Range**: TBD
-- **Complexity Level**: TBD
-
-## Testing Strategy
-
-Test strategy to be defined
-
-## Common Gotchas & Solutions
-
-- [ ] No common gotchas identified
-
-## Integration Checkpoint
-
-### Criteria for Moving Forward
-- [ ] All success criteria met
-- [ ] Code reviewed and approved
-- [ ] Tests passing
-- [ ] Documentation updated
-- [ ] No critical or high severity issues
-
-## Done Definition
-
-### Completion Criteria
-- [ ] All success criteria met
-- [ ] Code reviewed and approved
-- [ ] Tests passing
-- [ ] Documentation updated
-
-## Next Steps
-
-- [ ] Next steps to be defined
+- [ ] After completion, conduct a full dry-run on the real repository with 3-5 representative branches
+- [ ] Gather developer feedback on CLI usability and progress reporting
+- [ ] Evaluate whether batch/parallel processing would be beneficial for future iterations
+- [ ] Consider adding a web-based dashboard for workflow monitoring (future scope)
