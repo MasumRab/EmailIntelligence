@@ -744,13 +744,16 @@ class DatabaseManager(DataSource):
 
         # Check query cache
         # Normalize search term to lower case for consistent caching
-        cache_key = f"search:{search_term.lower()}:{limit}"
+        search_term_lower = search_term.lower()
+        cache_key = f"search:{search_term_lower}:{limit}"
+
         cached_result = self.caching_manager.get_query_result(cache_key)
         if cached_result is not None:
-            logger.info(f"Query cache hit for term: '{search_term}'")
+            # Sanitize log to prevent injection
+            safe_term = search_term.replace("\n", "\\n").replace("\r", "\\r")
+            logger.info(f"Query cache hit for term: '{safe_term}'")
             return cached_result
 
-        search_term_lower = search_term.lower()
         filtered_emails = []
 
         # Optimization: Iterate over sorted emails and stop once we reach the limit.
@@ -758,8 +761,10 @@ class DatabaseManager(DataSource):
         # when we already have enough recent matches.
         source_emails = self._get_sorted_emails()
 
+        # Sanitize log to prevent injection
+        safe_term_lower = search_term_lower.replace("\n", "\\n").replace("\r", "\\r")
         logger.info(
-            f"Starting email search for term: '{search_term_lower}'"
+            f"Starting email search for term: '{safe_term_lower}'"
         )
 
         for email_light in source_emails:
