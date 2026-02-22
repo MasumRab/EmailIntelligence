@@ -42,7 +42,8 @@ async def startup():
 
 if __name__ == "__main__":
     port = int(os.getenv("PORT", 8000))
-    host = "0.0.0.0"
+    # Default to 127.0.0.1 for security. Use HOST=0.0.0.0 in Docker/Production if needed.
+    host = os.getenv("HOST", "127.0.0.1")
 
     # Configure uvicorn for production
     config = {
