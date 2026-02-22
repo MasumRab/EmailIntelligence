@@ -17,6 +17,7 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, RedirectResponse
 from pydantic import ValidationError
+from .core.middleware import SecurityMiddleware, SecurityHeadersMiddleware
 from .core.module_manager import ModuleManager
 from .core.middleware import create_security_middleware, create_security_headers_middleware
 from .core.audit_logger import audit_logger, AuditEventType, AuditSeverity
@@ -586,8 +587,8 @@ def create_app():
     )
 
     # Add comprehensive security middleware
-    app.add_middleware(create_security_middleware(app))
-    app.add_middleware(create_security_headers_middleware(app))
+    app.add_middleware(SecurityMiddleware)
+    app.add_middleware(SecurityHeadersMiddleware)
 
     # Add security headers middleware (additional layer)
     @app.middleware("http")
@@ -712,13 +713,21 @@ def create_app():
             return FileResponse(os.path.join(static_dir, "index.html"))
 
         # Catch-all for SPA routing (excluding API and UI)
+        # Catch-all for SPA routing (excluding API and UI)
         @app.get("/{full_path:path}")
         async def catch_all(full_path: str):
             if full_path.startswith("api") or full_path.startswith("ui"):
                 raise HTTPException(status_code=404, detail="Not found")
 
+            # Sanitize and validate path to prevent directory traversal
+            clean_path = os.path.normpath(full_path).lstrip('/')
+            file_path = os.path.join(static_dir, clean_path)
+
+            # Ensure file_path is within static_dir
+            if not os.path.commonpath([file_path, static_dir]) == static_dir:
+                 raise HTTPException(status_code=403, detail="Access denied")
+
             # Check if file exists in static dir
-            file_path = os.path.join(static_dir, full_path)
             if os.path.exists(file_path) and os.path.isfile(file_path):
                  return FileResponse(file_path)
 
