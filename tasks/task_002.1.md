@@ -321,3 +321,17 @@ Task 002.1 is done when:
 - **ID mapping:** 75.1 → 002.1 (migration performed January 29, 2026)
 - **Test cases:** 5 scenarios from HANDOFF_75.1 (Normal, New, Stale, High-activity, Non-existent)
 - **Git commands:** 4 commands from HANDOFF_75.1 Git Commands Reference section
+
+## Performance Targets
+
+[Performance targets to be defined]
+
+
+## Testing Strategy
+
+[Testing strategy to be defined]
+
+
+## Next Steps
+
+[Next steps to be defined]

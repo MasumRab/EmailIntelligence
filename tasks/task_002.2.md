@@ -349,3 +349,17 @@ Task 002.2 is done when:
 - **Test cases:** 5 scenarios from HANDOFF_75.2 (Minor feature, Refactoring, Large new module, Core rewrite, Deletion-heavy)
 - **Algorithm details:** 4 formulas from HANDOFF_75.2 Algorithm Details section
 - **CORE_MODULES list:** 8 entries from HANDOFF_75.2
+
+## Performance Targets
+
+[Performance targets to be defined]
+
+
+## Testing Strategy
+
+[Testing strategy to be defined]
+
+
+## Next Steps
+
+[Next steps to be defined]
