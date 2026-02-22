@@ -28,7 +28,11 @@ except ImportError:
 try:
     from src.backend.python_nlp.gmail_service import GmailAIService
 except ImportError:
-    GmailAIService = None  # type: ignore
+    # Fallback to local if available
+    try:
+        from .gmail_service import GmailAIService
+    except ImportError:
+        GmailAIService = None  # type: ignore
 
 logger = logging.getLogger(__name__)
 
@@ -73,11 +77,13 @@ async def initialize_services():
     if _plugin_manager_instance is None:
         if PluginManager:
             _plugin_manager_instance = PluginManager()
-            # Use appropriate initialization method if available, avoiding non-existent discover_and_load_plugins
-            if hasattr(_plugin_manager_instance, "initialize"):
-                await _plugin_manager_instance.initialize()
-            if hasattr(_plugin_manager_instance, "load_plugins"):
-                await _plugin_manager_instance.load_plugins()
+            _plugin_manager_instance.discover_and_load_plugins(
+                model_manager=_model_manager_instance,
+                workflow_engine=_workflow_engine_instance,
+                ai_engine=_ai_engine_instance,
+                filter_manager=_filter_manager_instance,
+                db=db,
+            )
         else:
             logger.warning("PluginManager not available, plugins will not be loaded.")
 
@@ -131,7 +137,7 @@ def get_plugin_manager() -> "PluginManager":
         if not PluginManager:
             raise ImportError("PluginManager module is not available. Ensure required dependencies are installed.")
         _plugin_manager_instance = PluginManager()
-        # No synchronous initialization/discovery call here to avoid async issues or missing methods
+        _plugin_manager_instance.discover_and_load_plugins()
     return _plugin_manager_instance
 
 

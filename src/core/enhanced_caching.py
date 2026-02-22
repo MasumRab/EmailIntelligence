@@ -128,7 +128,6 @@ class QueryResultCache:
         hit_rate = self.hits / total if total > 0 else 0
         self.clear_expired()  # Clean up expired entries
         return {
-            "capacity": self.capacity,
             "size": len(self.cache),
             "hits": self.hits,
             "misses": self.misses,
@@ -146,7 +145,7 @@ class EnhancedCachingManager:
         self.category_record_cache = LRUCache(capacity=50)
 
         # Query result cache for complex queries
-        self.query_cache = QueryResultCache(ttl_seconds=300, capacity=1000)  # 5 minutes, 1000 items
+        self.query_cache = QueryResultCache(ttl_seconds=300, capacity=1000)  # 5 minutes
 
         # Cache for email content (heavy data)
         self.email_content_cache = LRUCache(capacity=100)
@@ -215,6 +214,10 @@ class EnhancedCachingManager:
     def invalidate_query_result(self, query_key: str) -> None:
         """Invalidate query result cache."""
         self.query_cache.invalidate(query_key)
+
+    def clear_query_cache(self) -> None:
+        """Clear query result cache."""
+        self.query_cache.clear()
 
     def clear_query_cache(self) -> None:
         """Clear the query result cache."""

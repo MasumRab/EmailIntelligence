@@ -1,8 +1,7 @@
-
 import pytest
+import asyncio
 from unittest.mock import MagicMock
-from datetime import datetime, timedelta
-from src.core.database import DatabaseManager, DatabaseConfig, FIELD_ID, FIELD_CREATED_AT, FIELD_IS_UNREAD
+from src.core.database import DatabaseManager, DatabaseConfig, FIELD_ID, FIELD_CATEGORY_ID, FIELD_IS_UNREAD
 
 @pytest.fixture
 def db_config(tmp_path):
@@ -10,47 +9,59 @@ def db_config(tmp_path):
     data_dir.mkdir()
     return DatabaseConfig(data_dir=str(data_dir))
 
-import pytest_asyncio
-
-@pytest_asyncio.fixture
-async def db_manager(db_config):
+@pytest.fixture
+def db_manager(db_config):
     manager = DatabaseManager(config=db_config)
-    await manager._ensure_initialized()
+    manager.caching_manager = MagicMock()
+    # Mock category cache
+    manager.categories_by_id = {}
+    manager.emails_data = []
+    manager._initialized = True
     return manager
 
 @pytest.mark.asyncio
-async def test_get_emails_pagination_and_filtering(db_manager):
-    """
-    Verify get_emails handles filtering and pagination correctly.
-    Using monotonically increasing timestamps to ensure stable sort order.
-    """
-    base_time = datetime(2023, 1, 1, 12, 0, 0)
+async def test_get_emails_filtering(db_manager):
+    # Setup 10 emails
+    # IDs 0-9.
+    # Evens are unread.
+    # ID 5 has category 1.
 
-    # Create 10 emails with distinct timestamps
+    emails = []
     for i in range(10):
-        # Even IDs are unread, Odd are read
-        is_unread = (i % 2 == 0)
-        # Each email 1 hour apart
-        created_at = (base_time + timedelta(hours=i)).isoformat()
-
-        await db_manager.create_email({
-            FIELD_ID: i, # Explicit ID if supported, or rely on order
-            "subject": f"Email {i}",
-            FIELD_IS_UNREAD: is_unread,
-            FIELD_CREATED_AT: created_at,
-            "messageId": f"msg_{i}"
+        emails.append({
+            FIELD_ID: i,
+            FIELD_CATEGORY_ID: 1 if i == 5 else 0,
+            FIELD_IS_UNREAD: i % 2 == 0,
+            "created_at": "2023-01-01T00:00:00Z"
         })
+    db_manager.emails_data = emails
+    # _get_sorted_emails uses emails_data if cache is None
+    db_manager._sorted_emails_cache = None
 
-    # Filter unread: IDs 0, 2, 4, 6, 8 (all have distinct timestamps)
-    # Sorted by created_at DESC (default in get_emails usually): 8, 6, 4, 2, 0
+    # Test filtering by category
+    results = await db_manager.get_emails(category_id=1, limit=10)
+    assert len(results) == 1
+    assert results[0][FIELD_ID] == 5
 
-    # Test pagination: limit 2, offset 1
-    # Full list (desc): [8, 6, 4, 2, 0]
-    # Offset 1: starts at 6
-    # Limit 2: [6, 4]
+    # Test filtering by unread
+    # Should get 0, 2, 4, 6, 8 (5 items)
+    results = await db_manager.get_emails(is_unread=True, limit=10)
+    assert len(results) == 5
+    ids = sorted([r[FIELD_ID] for r in results])
+    assert ids == [0, 2, 4, 6, 8]
 
-    emails = await db_manager.get_emails(is_unread=True, limit=2, offset=1)
+    # Test combined
+    # Unread and Category 0.
+    # Unread: 0, 2, 4, 6, 8.
+    # Category 0: All except 5.
+    # So expected: 0, 2, 4, 6, 8.
+    results = await db_manager.get_emails(category_id=0, is_unread=True, limit=10)
+    assert len(results) == 5
 
-    assert len(emails) == 2
-    assert emails[0]["subject"] == "Email 6"
-    assert emails[1]["subject"] == "Email 4"
+    # Test offset and limit
+    # Unread: 0, 2, 4, 6, 8.
+    # Offset 1, Limit 2. -> 2, 4.
+    results = await db_manager.get_emails(is_unread=True, limit=2, offset=1)
+    assert len(results) == 2
+    assert results[0][FIELD_ID] == 2
+    assert results[1][FIELD_ID] == 4

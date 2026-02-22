@@ -171,9 +171,7 @@ class DatabaseManager(DataSource):
 
     def _get_email_content_path(self, email_id: int) -> str:
         """Returns the path for an individual email's content file."""
-        # Ensure email_id is treated as a string of digits to prevent path traversal
-        safe_id = str(int(email_id))
-        return os.path.join(self.email_content_dir, f"{safe_id}.json.gz")
+        return os.path.join(self.email_content_dir, f"{email_id}.json.gz")
 
     def _read_content_sync(self, content_path: str) -> Dict[str, Any]:
         """Synchronously reads and parses the content file. Helper for asyncio.to_thread."""
@@ -200,12 +198,12 @@ class DatabaseManager(DataSource):
         content_path = self._get_email_content_path(email_id)
         if os.path.exists(content_path):
             try:
-                # Offload to helper which handles file I/O and validation
-                heavy_data = await asyncio.to_thread(self._read_content_sync, content_path)
-                full_email.update(heavy_data)
+                with gzip.open(content_path, "rt", encoding="utf-8") as f:
+                    heavy_data = await asyncio.to_thread(json.load, f)
+                    full_email.update(heavy_data)
 
-                # Cache the content
-                self.caching_manager.put_email_content(email_id, heavy_data)
+                    # Cache the content
+                    self.caching_manager.put_email_content(email_id, heavy_data)
             except (IOError, json.JSONDecodeError) as e:
                 error_context = create_error_context(
                     component="DatabaseManager",
@@ -763,22 +761,15 @@ class DatabaseManager(DataSource):
         if not search_term:
             return await self.get_emails(limit=limit, offset=0)
 
-        # Limit search term length to prevent DoS via massive cache keys or processing
-        if len(search_term) > 256:
-            search_term = search_term[:256]
-
         # Check query cache
         # Normalize search term to lower case for consistent caching
-        search_term_lower = search_term.lower()
-        cache_key = f"search:{search_term_lower}:{limit}"
-
+        cache_key = f"search:{search_term.lower()}:{limit}"
         cached_result = self.caching_manager.get_query_result(cache_key)
         if cached_result is not None:
-            # Sanitize log to prevent injection
-            safe_term = search_term.replace("\n", "\\n").replace("\r", "\\r")
-            logger.info(f"Query cache hit for term: '{safe_term}'")
+            logger.info(f"Query cache hit for term: '{search_term}'")
             return cached_result
 
+        search_term_lower = search_term.lower()
         filtered_emails = []
 
         # Optimization: Iterate over sorted emails and stop once we reach the limit.
@@ -786,10 +777,8 @@ class DatabaseManager(DataSource):
         # when we already have enough recent matches.
         source_emails = self._get_sorted_emails()
 
-        # Sanitize log to prevent injection
-        safe_term_lower = search_term_lower.replace("\n", "\\n").replace("\r", "\\r")
         logger.info(
-            f"Starting email search for term: '{safe_term_lower}'"
+            f"Starting email search for term: '{search_term_lower}'"
         )
 
         for email_light in source_emails:
