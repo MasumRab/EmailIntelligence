@@ -1,3 +1,6 @@
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
+import os
 import configparser
 configparser.SafeConfigParser = configparser.ConfigParser
 
@@ -620,10 +623,6 @@ def create_app():
             content={"detail": "Internal server error", "message": "An unexpected error occurred"},
         )
 
-    @app.get("/")
-    async def root():
-        """Redirect root to Gradio UI."""
-        return RedirectResponse(url="/ui")
 
     # Create the main Gradio UI as a placeholder
     # Modules will add their own tabs and components to this.
@@ -696,6 +695,41 @@ def create_app():
     # This makes the UI accessible at the '/ui' endpoint
     gr.mount_gradio_app(app, gradio_app, path="/ui")
 
+
+    # Serve React Frontend if build exists
+    static_dir = os.path.join(os.getcwd(), "static", "dist")
+    if os.path.exists(static_dir):
+        logger.info(f"Serving static files from {static_dir}")
+
+        # Mount assets
+        assets_dir = os.path.join(static_dir, "assets")
+        if os.path.exists(assets_dir):
+            app.mount("/assets", StaticFiles(directory=assets_dir), name="assets")
+
+        # Serve index.html at root
+        @app.get("/")
+        async def root():
+            return FileResponse(os.path.join(static_dir, "index.html"))
+
+        # Catch-all for SPA routing (excluding API and UI)
+        @app.get("/{full_path:path}")
+        async def catch_all(full_path: str):
+            if full_path.startswith("api") or full_path.startswith("ui"):
+                raise HTTPException(status_code=404, detail="Not found")
+
+            # Check if file exists in static dir
+            file_path = os.path.join(static_dir, full_path)
+            if os.path.exists(file_path) and os.path.isfile(file_path):
+                 return FileResponse(file_path)
+
+            # Otherwise return index.html
+            return FileResponse(os.path.join(static_dir, "index.html"))
+    else:
+        logger.warning("Static build directory not found. Serving default redirect.")
+        @app.get("/")
+        async def root():
+            """Redirect root to Gradio UI."""
+            return RedirectResponse(url="/ui")
     logger.info("Application creation complete. FastAPI and Gradio are integrated.")
     return app
 
