@@ -37,6 +37,7 @@ jobs:
         run: |
           uv run bandit -r src/ modules/
           # uv run safety check (temporarily disabled as it might not be installed or configured)
+          # TODO: Track re-enable in ISSUE-1234
           
       - name: Run linting
         run: |

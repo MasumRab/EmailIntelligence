@@ -265,6 +265,17 @@ class OptimizedPerformanceMonitor:
 
         logger.info("OptimizedPerformanceMonitor initialized")
 
+    def log_performance(self, log_entry: Dict[str, Any]) -> None:
+        """Compatibility method for legacy log_performance decorator."""
+        # Extract fields from log_entry to map to record_metric
+        operation = log_entry.get("operation", "unknown_operation")
+        duration_ms = log_entry.get("duration_seconds", 0) * 1000
+        self.record_metric(
+            name=operation,
+            value=duration_ms,
+            unit="ms"
+        )
+
     def record_metric(
         self,
         name: str,
@@ -349,6 +360,9 @@ class OptimizedPerformanceMonitor:
             return decorator(func)
         else:
             # Used as @time_function("name") or with time_function("name"):
+            # Capture outer self (OptimizedPerformanceMonitor instance) for use in inner class
+            monitor = self
+
             class TimerContext:
                 def __enter__(self):
                     self.start_time = time.perf_counter()
@@ -356,7 +370,7 @@ class OptimizedPerformanceMonitor:
 
                 def __exit__(self, exc_type, exc_val, exc_tb):
                     duration = (time.perf_counter() - self.start_time) * 1000
-                    self.record_metric(
+                    monitor.record_metric(
                         name=name, value=duration, unit="ms", tags=tags, sample_rate=sample_rate
                     )
 
