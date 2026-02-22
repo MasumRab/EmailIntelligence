@@ -731,6 +731,10 @@ class DatabaseManager(DataSource):
         """Searches for emails matching a query."""
         return await self.search_emails_with_limit(query, limit=50)
 
+    def _get_search_cache_key(self, search_term: str, limit: int) -> str:
+        """Generates a canonical cache key for search queries."""
+        return f"search:{search_term.lower()}:{limit}"
+
     async def search_emails_with_limit(self, search_term: str, limit: int = 50) -> List[Dict[str, Any]]:
         """Search emails with limit parameter. Searches subject/sender in-memory, and content on-disk."""
         if not search_term:
@@ -739,7 +743,7 @@ class DatabaseManager(DataSource):
         search_term_lower = search_term.lower()
 
         # Check query cache
-        cache_key = f"search:{search_term_lower}:{limit}"
+        cache_key = self._get_search_cache_key(search_term_lower, limit)
         cached_results = self.caching_manager.get_query_result(cache_key)
         if cached_results is not None:
             # Return a copy to avoid mutation of cached data
@@ -799,13 +803,14 @@ class DatabaseManager(DataSource):
         results = [self._add_category_details(email) for email in filtered_emails]
 
         # Cache the results as a tuple to ensure immutability
-        self.caching_manager.put_query_result(cache_key, tuple(results))
+        results_tuple = tuple(results)
+        self.caching_manager.put_query_result(cache_key, results_tuple)
 
-        return results
+        # Return a fresh list from the cached tuple to mirror the cache-hit path
+        return list(results_tuple)
 
     # TODO(P1, 6h): Optimize search performance to avoid disk I/O per STATIC_ANALYSIS_REPORT.md
     # TODO(P2, 4h): Implement search indexing to improve query performance
-    # TODO(P3, 3h): Add support for search result caching
 
     async def _update_email_fields(
         self, email: Dict[str, Any], update_data: Dict[str, Any]

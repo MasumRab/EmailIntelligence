@@ -265,31 +265,50 @@ class OptimizedPerformanceMonitor:
 
         logger.info("OptimizedPerformanceMonitor initialized")
 
+    _ALLOWED_OPERATIONS = {
+        "db",
+        "http",
+        "cache",
+        "job",
+        "unknown",
+        "search_emails",
+        "get_email_by_message_id",
+        "get_emails",
+        "get_all_categories",
+        "create_email",
+        "update_email_by_message_id",
+        "update_email",
+        "get_dashboard_aggregates",
+        "get_category_breakdown",
+        "update_tags_for_message",
+        "build_indexes",
+        "load_data",
+        "save_data_to_file"
+    }
+
     def log_performance(self, log_entry: Dict[str, Any]) -> None:
         """
         Adapter for legacy log_performance calls to record metrics.
         """
         try:
-            operation = log_entry.get("operation", "unknown")
-            # Normalize operation to avoid high cardinality
-            if not isinstance(operation, str):
-                operation = "unknown"
+            raw_operation = str(log_entry.get("operation") or "").lower()
 
-            # Map specific operations if needed, or just sanitize
-            # For now, we allow operations but ensure they are strings
-            # In a real production system, we might want to allow-list these
+            # Normalize to allowed operations
+            if raw_operation in self._ALLOWED_OPERATIONS:
+                operation = raw_operation
+            else:
+                operation = "other"
 
             duration = log_entry.get("duration_seconds", 0.0)
 
             # Record as metric, converting seconds to ms
-            # Use a generic name with a tag for the operation
             self.record_metric(
                 name="operation_duration",
                 value=duration * 1000,
                 unit="ms",
                 tags={"operation": operation}
             )
-        except Exception as e:
+        except (TypeError, KeyError, AttributeError) as e:
             logger.warning(f"Failed to record legacy performance metric: {e}")
 
     def record_metric(

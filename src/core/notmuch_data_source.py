@@ -451,6 +451,11 @@ class NotmuchDataSource(DataSource):
         
         # For now, return a mock implementation
         # In a full implementation, this would actually delete the email
+
+        # Invalidate query cache if database manager is available
+        if self.db and hasattr(self.db, 'caching_manager'):
+            self.db.caching_manager.clear_query_cache()
+
         return True
 
     @log_performance(operation="get_dashboard_aggregates")
