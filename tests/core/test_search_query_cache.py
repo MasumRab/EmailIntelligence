@@ -87,7 +87,7 @@ async def test_search_cache_invalidation_update(db_manager):
     email = {FIELD_ID: 1, FIELD_SUBJECT: "Old Subject"}
     db_manager.emails_by_id = {1: email}
     # Mock get_email_by_id to return the email
-    with patch.object(db_manager, 'get_email_by_id', return_value=email):
+    with patch.object(db_manager, 'get_email_by_id', new_callable=AsyncMock, return_value=email):
          # Execute
         await db_manager.update_email(1, {FIELD_SUBJECT: "New Subject"})
 
