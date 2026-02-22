@@ -16,6 +16,10 @@ class ModelManager:
         """Get active models. Stub implementation."""
         return []
 
+    def list_models(self) -> List[Dict[str, Any]]:
+        """List all models. Stub implementation."""
+        return []
+
     def check_health(self) -> bool:
         """Check model manager health. Stub implementation."""
         return True

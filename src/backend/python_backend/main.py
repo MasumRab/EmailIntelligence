@@ -17,9 +17,7 @@ from datetime import datetime, timedelta
 
 from fastapi import Depends, FastAPI, HTTPException, Request, status
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, JSONResponse
-from fastapi.security import HTTPBearer
-from fastapi.staticfiles import StaticFiles
+from fastapi.responses import JSONResponse
 from pydantic import ValidationError
 from starlette.middleware.base import BaseHTTPMiddleware
 
@@ -43,13 +41,12 @@ from . import (
     workflow_routes,
 )
 from .ai_engine import AdvancedAIEngine
-from .auth import TokenData, create_access_token, get_current_user
-from .database import db_manager
+from .auth import create_access_token
+from .database import db_manager, get_db
 from .exceptions import AppException, BaseAppException
 
 # Import new components
 from .model_manager import model_manager
-from .performance_monitor import performance_monitor
 from .settings import settings
 
 # Configure logging
@@ -158,7 +155,7 @@ async def startup_event():
 
     # Initialize new components
     logger.info("Initializing model manager...")
-    model_manager.discover_models()
+    # model_manager.discover_models()  # Method missing in stub
 
     logger.info("Initializing workflow manager...")
     # Nothing specific needed for workflow manager initialization
@@ -171,13 +168,13 @@ async def startup_event():
     from .dependencies import initialize_services
 
     await initialize_services()
-    await db_manager.connect()
+    # await db_manager.connect()  # Method missing in DatabaseManager
 
 
 @app.on_event("shutdown")
 async def shutdown_event():
     """Application shutdown: disconnect from the database."""
-    await db_manager.close()
+    await db_manager.shutdown()
 
 
 @app.exception_handler(AppException)
@@ -239,9 +236,10 @@ app.add_middleware(
 
 # Set up metrics if in production or staging environment
 if os.getenv("NODE_ENV") in ["production", "staging"]:
-    from .metrics import setup_metrics
-
-    setup_metrics(app)
+    # TODO: metrics module is missing. Re-enable when available.
+    # from .metrics import setup_metrics
+    # setup_metrics(app)
+    pass
 
 # Initialize services
 # Services are now initialized within their respective route files
@@ -249,7 +247,6 @@ if os.getenv("NODE_ENV") in ["production", "staging"]:
 gmail_service = GmailAIService()  # Used by gmail_routes
 filter_manager = SmartFilterManager()  # Used by filter_routes
 ai_engine = AdvancedAIEngine(model_manager)  # Used by email_routes and other AI-related routes
-performance_monitor = performance_monitor  # Used by all routes via @performance_monitor.track
 
 from .routes.v1.category_routes import router as category_router_v1
 
@@ -307,10 +304,10 @@ except ImportError:
 
 # Authentication endpoints
 @app.post("/token")
-async def login(username: str, password: str):
+async def login(username: str, password: str, db=Depends(get_db)):
     """Login endpoint to get access token"""
     # Use the new authentication system
-    db = await get_db()
+    # db is injected via Depends
     user = await authenticate_user(username, password, db)
 
     if not user:
@@ -378,17 +375,11 @@ async def get_error_stats():
 if __name__ == "__main__":
     import uvicorn
 
-port = int(os.getenv("PORT", 8000))
-env = os.getenv("NODE_ENV", "development")
-host = os.getenv("HOST", "127.0.0.1" if env == "development" else "0.0.0.0")
-reload = env == "development"
-# Use string app path to support reload
-if __name__ == "__main__":
-    import uvicorn
-
-    port = int(os.getenv("PORT", 8000))
+    port = int(os.getenv("PORT", "8000"))
     env = os.getenv("NODE_ENV", "development")
-    host = os.getenv("HOST", "0.0.0.0")
+    # Default to 127.0.0.1 for security. Use HOST=0.0.0.0 in Docker/Production if needed.
+    host = os.getenv("HOST", "127.0.0.1")
     reload = env == "development"
+
     # Use string app path to support reload
     uvicorn.run("main:app", host=host, port=port, reload=reload, log_level="info")

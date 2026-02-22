@@ -687,6 +687,32 @@ class DatabaseManager:
         # based on actual week-over-week data
         return {"emails": total_count, "percentage": 0.0}
 
+    async def get_user_by_username(self, username: str) -> Optional[Dict[str, Any]]:
+        """Get user by username."""
+        await self._ensure_initialized()
+        for user in self.users_data:
+            if user.get("username") == username:
+                return user
+        return None
+
+    async def create_user(self, user_data: Dict[str, Any]) -> None:
+        """Create a new user."""
+        await self._ensure_initialized()
+        # Check if user exists
+        username = user_data.get("username")
+        for user in self.users_data:
+            if user.get("username") == username:
+                logger.warning(f"User {username} already exists.")
+                return
+
+        new_id = self._generate_id(self.users_data)
+        new_user = user_data.copy()
+        new_user[FIELD_ID] = new_id
+
+        self.users_data.append(new_user)
+        await self._save_data(DATA_TYPE_USERS)
+        logger.info(f"Created user {username}")
+
 
 # Module-level variable to store the database manager instance
 # This is initialized via FastAPI startup event

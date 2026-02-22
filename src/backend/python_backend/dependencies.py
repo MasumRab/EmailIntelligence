@@ -18,7 +18,7 @@ from .model_manager import ModelManager  # Assuming this is in the same package 
 from .ai_engine import AdvancedAIEngine  # This might need to be updated to src version
 from .smart_filters import SmartFilterManager  # This might need to be updated to src version
 from .workflow_engine import WorkflowEngine  # This might need to be updated to src version
-from src.backend.plugins.plugin_manager import PluginManager
+from .plugin_manager import PluginManager
 from src.backend.python_nlp.gmail_service import GmailAIService  # This might be backend-specific
 
 if TYPE_CHECKING:
@@ -26,7 +26,7 @@ if TYPE_CHECKING:
     from .ai_engine import AdvancedAIEngine
     from .smart_filters import SmartFilterManager
     from .workflow_engine import WorkflowEngine
-    from src.backend.plugins.plugin_manager import PluginManager
+    from .plugin_manager import PluginManager
     from src.backend.python_nlp.gmail_service import GmailAIService
 
 logger = logging.getLogger(__name__)
@@ -127,7 +127,7 @@ async def initialize_services():
     # Initialize core managers first
     if _model_manager_instance is None:
         _model_manager_instance = ModelManager()
-        _model_manager_instance.discover_models()
+        # _model_manager_instance.discover_models()  # Method missing in stub
 
     if _ai_engine_instance is None:
         _ai_engine_instance = AdvancedAIEngine(model_manager=_model_manager_instance)
@@ -165,7 +165,7 @@ def get_model_manager() -> "ModelManager":
     global _model_manager_instance
     if _model_manager_instance is None:
         _model_manager_instance = ModelManager()
-        _model_manager_instance.discover_models()
+        # _model_manager_instance.discover_models()  # Method missing in stub
     return _model_manager_instance
 
 
