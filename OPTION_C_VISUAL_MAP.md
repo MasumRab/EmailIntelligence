@@ -5,7 +5,7 @@
 
 ---
 
-## Current Task Framework Map (2026-02-21)
+## Current Task Framework Map (2026-02-23)
 
 This section reflects the current task files (001-028) as they exist now. It is added above the legacy Option C map to preserve historical reference.
 

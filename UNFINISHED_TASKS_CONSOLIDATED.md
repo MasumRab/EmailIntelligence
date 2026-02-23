@@ -193,11 +193,12 @@ Fill in estimates based on task scope and comparison with similar tasks:
 
 ---
 
-## Task G: Ensure 14-Section Standard Compliance Across All Tasks
+## Task G: Ensure 14-Section Standard Compliance Across All Tasks ✅ DONE
 
 **Priority:** MEDIUM
 **Effort:** 4-6 hours (232 task files)
 **Risk:** MEDIUM — needs scripted approach
+**Completed:** 2026-02-23 — `scripts/check_section_compliance.py` created. 225 task files scanned, all PASS. Supports `--all` and `--fix` flags.
 
 ### Problem
 
@@ -224,11 +225,12 @@ task_014.md: PASS — all 14 sections present
 
 ---
 
-## Task H: Consolidate Root .md Files to docs/
+## Task H: Consolidate Root .md Files to docs/ ✅ DONE
 
 **Priority:** MEDIUM
 **Effort:** 1-2 hours
 **Risk:** LOW — update any internal cross-references
+**Completed:** 2026-02-23 — 96 files moved to docs/ and archive/. Root now has 13 .md files (12 permanent + this file).
 
 ### Problem
 
@@ -368,11 +370,12 @@ For files 002.3-002.9, scan for:
 
 ---
 
-## Task J: Integrate Task 75 Technical Specs into New Structure
+## Task J: Integrate Task 75 Technical Specs into New Structure ✅ DONE
 
 **Priority:** LOW (deferred — not blocking MVP)
 **Effort:** 4-6 hours
 **Risk:** LOW
+**Completed:** 2026-02-23 — All 9 HANDOFF_002.x specs verified against task_002.x files. Report at `reports/task75_techspec_verification.md`. All classes, methods, formulas, and config schemas preserved.
 
 ### Problem
 
@@ -390,11 +393,12 @@ Per UNIQUE_DELTAS_REPORT.md, all unique content should already be in the canonic
 
 ---
 
-## Task K: Implement Round-Trip Testing (MD ↔ tasks.json)
+## Task K: Implement Round-Trip Testing (MD ↔ tasks.json) ✅ DONE
 
 **Priority:** LOW (tooling improvement)
 **Effort:** 3-4 hours
 **Risk:** LOW
+**Completed:** 2026-02-23 — `scripts/roundtrip_test.py` created. Parses 225 markdown tasks and compares against tasks.json. Currently tasks.json has 0 entries (all 225 orphaned in markdown). Known limitation: TaskEntity.toJSON() strips custom fields (GitHub #1555).
 
 ### Problem
 
