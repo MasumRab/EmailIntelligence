@@ -4,10 +4,14 @@
 Parses all tasks/task_*.md files and .taskmaster/tasks/tasks.json,
 compares shared fields, and reports mismatches and orphans.
 
-Usage:
-    python scripts/roundtrip_test.py
+Supports incremental per-task testing:
+    python scripts/roundtrip_test.py                # All tasks
+    python scripts/roundtrip_test.py --id 2.3       # Single task
+    python scripts/roundtrip_test.py --parent 2     # Task 2 + all 2.x subtasks
+    python scripts/roundtrip_test.py --id 10 --id 11  # Multiple specific tasks
 """
 
+import argparse
 import json
 import os
 import re
@@ -160,6 +164,26 @@ def parse_json_tasks() -> dict[str, dict]:
 COMPARE_FIELDS = ["title", "status", "priority", "dependencies"]
 
 
+def _filter_tasks(tasks: dict[str, dict], ids: list[str] | None, parents: list[str] | None) -> dict[str, dict]:
+    """Filter a task dict to only include requested IDs/parents."""
+    if not ids and not parents:
+        return tasks
+
+    keep = set()
+    if ids:
+        for raw in ids:
+            keep.add(_normalize_id(raw))
+    if parents:
+        for raw in parents:
+            parent_id = _normalize_id(raw)
+            keep.add(parent_id)
+            for tid in tasks:
+                if tid.startswith(parent_id + "."):
+                    keep.add(tid)
+
+    return {k: v for k, v in tasks.items() if k in keep}
+
+
 def compare_and_report(md_tasks: dict, json_tasks: dict) -> int:
     """Compare tasks and print a report. Returns exit code (0=ok, 1=mismatches)."""
     md_ids = set(md_tasks.keys())
@@ -230,8 +254,25 @@ def compare_and_report(md_tasks: dict, json_tasks: dict) -> int:
 
 
 def main() -> int:
+    parser = argparse.ArgumentParser(
+        description="Round-trip test: verify markdown tasks ↔ tasks.json consistency"
+    )
+    parser.add_argument(
+        "--id", action="append", dest="ids", metavar="TASK_ID",
+        help="Test specific task(s) only, e.g. --id 2.3 --id 10"
+    )
+    parser.add_argument(
+        "--parent", action="append", dest="parents", metavar="PARENT_ID",
+        help="Test a parent task and all its subtasks, e.g. --parent 2"
+    )
+    args = parser.parse_args()
+
     md_tasks = parse_markdown_tasks()
     json_tasks = parse_json_tasks()
+
+    md_tasks = _filter_tasks(md_tasks, args.ids, args.parents)
+    json_tasks = _filter_tasks(json_tasks, args.ids, args.parents)
+
     return compare_and_report(md_tasks, json_tasks)
 
 
