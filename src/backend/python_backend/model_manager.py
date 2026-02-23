@@ -24,4 +24,8 @@ class ModelManager:
         """Discover models. Stub implementation."""
         pass
 
+    def list_models(self) -> List[Dict[str, Any]]:
+        """List models. Stub implementation."""
+        return []
+
 model_manager = ModelManager()

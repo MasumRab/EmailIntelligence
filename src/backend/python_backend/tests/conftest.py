@@ -79,10 +79,12 @@ def client(mock_db_manager, mock_ai_engine, mock_filter_manager, mock_workflow_e
                 attr.side_effect = None
 
     # Set up dependency overrides
+    from src.core.auth import get_current_active_user, TokenData
     app.dependency_overrides[get_db] = lambda: mock_db_manager
     app.dependency_overrides[get_ai_engine] = lambda: mock_ai_engine
     app.dependency_overrides[get_filter_manager] = lambda: mock_filter_manager
     app.dependency_overrides[get_workflow_engine] = lambda: mock_workflow_engine
+    app.dependency_overrides[get_current_active_user] = lambda: TokenData(username="testuser", role="user")
 
     decorator_path = "backend.python_backend.performance_monitor.log_performance"
     with patch(decorator_path, lambda *args, **kwargs: (lambda func: func)):
@@ -116,9 +118,11 @@ def client_with_real_workflows(mock_db_manager, mock_ai_engine, mock_filter_mana
                 attr.side_effect = None
 
     # Override dependencies
+    from src.core.auth import get_current_active_user, TokenData
     app.dependency_overrides[get_db] = lambda: mock_db_manager
     app.dependency_overrides[get_ai_engine] = lambda: mock_ai_engine
     app.dependency_overrides[get_filter_manager] = lambda: mock_filter_manager
+    app.dependency_overrides[get_current_active_user] = lambda: TokenData(username="testuser", role="user")
 
     # Manually run the startup events to initialize the real workflow engine
     # This is a bit of a hack, but necessary for this kind of integration test.
