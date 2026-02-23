@@ -464,12 +464,14 @@ class SmartFilterManager:
 
 def main():
     """Demonstrates the usage of the SmartFilterManager."""
+    logging.basicConfig(level=logging.INFO)
+    logger = logging.getLogger(__name__)
     manager = SmartFilterManager()
     sample_emails = [{"senderEmail": "urgent@company.com", "subject": "Urgent: Action Required"}]
     filters = manager.create_intelligent_filters(sample_emails)
-    print(f"Created {len(filters)} filters.")
+    logger.info(f"Created {len(filters)} filters.")
     if filters:
-        print(
+        logger.info(
             f"Applied filters to sample email: {manager.apply_filters_to_email_data(sample_emails[0])}"
         )
 

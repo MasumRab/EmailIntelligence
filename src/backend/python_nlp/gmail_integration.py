@@ -604,9 +604,9 @@ async def main():
         return
     try:
         if batch := await collector.execute_collection_strategy("daily_sync"):
-            print(f"Collected {batch.total_count} emails.")
+            logger.info(f"Collected {batch.total_count} emails.")
             for email in batch.messages[:3]:
-                print(f"  - Subject: {email['subject']}")
+                logger.info(f"  - Subject: {email['subject']}")
     except Exception as e:
         logger.exception(f"Collection failed: {e}")
 
