@@ -114,23 +114,19 @@ class SmartFilterManager:
             filename = PathValidator.sanitize_filename(os.path.basename(db_path))
             db_path = os.path.join(DATA_DIR, filename)
 
+        self.logger = logging.getLogger(__name__)
+
         # Validate the final path
         try:
             self.db_path = str(PathValidator.validate_and_resolve_db_path(db_path, DATA_DIR))
-        except Exception as e:
-            print(f"Path validation failed: {e}")
+        except ValueError as e:
+            self.logger.error(f"Path validation failed: {e}")
             raise
-
-        print(f"DEBUG: db_path resolved to: {self.db_path}")
 
         # Ensure directory exists
         if self.db_path != ":memory:":
             db_dir = os.path.dirname(self.db_path)
-            print(f"DEBUG: Creating directory: {db_dir}")
             os.makedirs(db_dir, exist_ok=True)
-            print(f"DEBUG: Directory exists: {os.path.exists(db_dir)}")
-
-        self.logger = logging.getLogger(__name__)
         self.conn = None
         if self.db_path == ":memory:":
             self.conn = sqlite3.connect(":memory:")
