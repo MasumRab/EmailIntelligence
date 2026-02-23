@@ -45,7 +45,7 @@ from . import (
 )
 from .ai_engine import AdvancedAIEngine
 from .auth import TokenData, create_access_token, get_current_user
-from .database import db_manager
+from .database import db_manager, get_db
 from .exceptions import AppException, BaseAppException
 
 # Import new components
@@ -307,13 +307,15 @@ except ImportError:
 # Ensure route files import them from .models
 
 
+from fastapi.security import OAuth2PasswordRequestForm
+
 # Authentication endpoints
 @app.post("/token")
-async def login(username: str, password: str):
+async def login(form_data: OAuth2PasswordRequestForm = Depends()):
     """Login endpoint to get access token"""
     # Use the new authentication system
     db = await get_db()
-    user = await authenticate_user(username, password, db)
+    user = await authenticate_user(form_data.username, form_data.password, db)
 
     if not user:
         raise HTTPException(
@@ -380,9 +382,9 @@ async def get_error_stats():
 if __name__ == "__main__":
     import uvicorn
 
-port = int(os.getenv("PORT", 8000))
-env = os.getenv("NODE_ENV", "development")
-host = os.getenv("HOST", "127.0.0.1" if env == "development" else "0.0.0.0")
-reload = env == "development"
-# Use string app path to support reload
-uvicorn.run("main:app", host=host, port=port, reload=reload, log_level="info")
+    port = int(os.getenv("PORT", 8000))
+    env = os.getenv("NODE_ENV", "development")
+    host = os.getenv("HOST", "127.0.0.1" if env == "development" else "0.0.0.0")
+    reload = env == "development"
+    # Use string app path to support reload
+    uvicorn.run("src.backend.python_backend.main:app", host=host, port=port, reload=reload, log_level="info")
