@@ -714,8 +714,9 @@ def create_app():
 
         # Catch-all for SPA routing (excluding API and UI)
         # Catch-all for SPA routing (excluding API and UI)
-        @app.get("/{full_path:path}")
-        async def catch_all(full_path: str):
+            if full_path.startswith("api/") or full_path == "api" \
+                    or full_path.startswith("ui/") or full_path == "ui":
+                raise HTTPException(status_code=404, detail="Not found")
             if full_path.startswith("api") or full_path.startswith("ui"):
                 raise HTTPException(status_code=404, detail="Not found")
 
