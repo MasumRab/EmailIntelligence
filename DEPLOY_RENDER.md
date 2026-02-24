@@ -31,7 +31,7 @@ To fit within the free tier limits, this deployment uses:
     | :--- | :--- | :--- |
     | `RENDER` | `true` | Activates "Lite Mode" and triggers frontend build. |
     | `PYTHON_VERSION` | `3.11.0` | Ensures correct Python version. |
-    | `NODE_VERSION` | `20.11.0` | Ensures correct Node.js version for frontend build. |
+    | `NODE_VERSION` | `20.0.0` | Ensures correct Node.js version for frontend build. |
     | `PORT` | `10000` | (Render sets this automatically, but good to know). |
 
 6.  **Create Web Service**.

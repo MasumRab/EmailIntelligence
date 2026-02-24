@@ -714,9 +714,8 @@ def create_app():
 
         # Catch-all for SPA routing (excluding API and UI)
         # Catch-all for SPA routing (excluding API and UI)
-            if full_path.startswith("api/") or full_path == "api" \
-                    or full_path.startswith("ui/") or full_path == "ui":
-                raise HTTPException(status_code=404, detail="Not found")
+        @app.get("/{full_path:path}")
+        async def catch_all(full_path: str):
             if full_path.startswith("api") or full_path.startswith("ui"):
                 raise HTTPException(status_code=404, detail="Not found")
 
@@ -724,8 +723,13 @@ def create_app():
             clean_path = os.path.normpath(full_path).lstrip('/')
             file_path = os.path.join(static_dir, clean_path)
 
-            # Ensure file_path is within static_dir
-            if not os.path.commonpath([file_path, static_dir]) == static_dir:
+            # Ensure file_path is within static_dir using absolute paths
+            try:
+                static_dir_abs = os.path.abspath(static_dir)
+                file_path_abs = os.path.abspath(file_path)
+                if not file_path_abs.startswith(static_dir_abs):
+                     raise HTTPException(status_code=403, detail="Access denied")
+            except Exception:
                  raise HTTPException(status_code=403, detail="Access denied")
 
             # Check if file exists in static dir

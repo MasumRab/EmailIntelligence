@@ -39,21 +39,8 @@ jobs:
 
       - name: 'Run Gemini CLI'
         id: 'run_gemini'
-      - name: 'Check Gemini credentials'
-        id: 'check_creds'
-        run: |
-          if [ -n "$GEMINI_API_KEY" ] || [ -n "$GOOGLE_API_KEY" ] || [ -n "$GCP_WIF_PROVIDER" ]; then
-            echo "has_creds=true" >> "$GITHUB_OUTPUT"
-          fi
-        env:
-          GEMINI_API_KEY: '${{ secrets.GEMINI_API_KEY }}'
-          GOOGLE_API_KEY: '${{ secrets.GOOGLE_API_KEY }}'
-          GCP_WIF_PROVIDER: '${{ vars.GCP_WIF_PROVIDER }}'
-
-      - name: 'Run Gemini CLI'
-        id: 'run_gemini'
-        if: steps.check_creds.outputs.has_creds == 'true'
-        uses: 'google-github-actions/run-gemini-cli@v0'
+        if: |-
+          ${{ secrets.GEMINI_API_KEY != '' || secrets.GOOGLE_API_KEY != '' || vars.GCP_WIF_PROVIDER != '' }}
         uses: 'google-github-actions/run-gemini-cli@v0' # ratchet:exclude
         env:
           TITLE: '${{ github.event.pull_request.title || github.event.issue.title }}'
