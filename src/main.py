@@ -1,6 +1,7 @@
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 import os
+from pathlib import Path
 import configparser
 configparser.SafeConfigParser = configparser.ConfigParser
 
@@ -714,30 +715,36 @@ def create_app():
 
         # Catch-all for SPA routing (excluding API and UI)
         # Catch-all for SPA routing (excluding API and UI)
+        # Catch-all for SPA routing (excluding API and UI)
         @app.get("/{full_path:path}")
         async def catch_all(full_path: str):
             if full_path.startswith("api") or full_path.startswith("ui"):
                 raise HTTPException(status_code=404, detail="Not found")
 
-            # Sanitize and validate path to prevent directory traversal
-            clean_path = os.path.normpath(full_path).lstrip('/')
-            file_path = os.path.join(static_dir, clean_path)
+            # Secure path handling using pathlib
+            static_path = Path(static_dir).resolve()
 
-            # Ensure file_path is within static_dir using absolute paths
+            # Prevent directory traversal
             try:
-                static_dir_abs = os.path.abspath(static_dir)
-                file_path_abs = os.path.abspath(file_path)
-                if not file_path_abs.startswith(static_dir_abs):
-                     raise HTTPException(status_code=403, detail="Access denied")
-            except Exception:
-                 raise HTTPException(status_code=403, detail="Access denied")
+                # Resolve the requested path relative to static_dir
+                # lstrip('/') ensures it's treated as relative
+                requested_path = (static_path / full_path.lstrip('/')).resolve()
 
-            # Check if file exists in static dir
-            if os.path.exists(file_path) and os.path.isfile(file_path):
-                 return FileResponse(file_path)
+                # Verify the resolved path is still within static_dir
+                if not requested_path.is_relative_to(static_path):
+                    raise HTTPException(status_code=403, detail="Access denied")
 
-            # Otherwise return index.html
-            return FileResponse(os.path.join(static_dir, "index.html"))
+                # Check if file exists and is a file
+                if requested_path.exists() and requested_path.is_file():
+                    return FileResponse(str(requested_path))
+
+                # Otherwise return index.html for SPA
+                index_path = static_path / "index.html"
+                return FileResponse(str(index_path))
+
+            except Exception as e:
+                logger.warning(f"Static file access error: {e}")
+                raise HTTPException(status_code=403, detail="Access denied")
     else:
         logger.warning("Static build directory not found. Serving default redirect.")
         @app.get("/")
