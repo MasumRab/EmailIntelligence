@@ -608,6 +608,30 @@ class WorkflowRunner:
 
         return cleanup_schedule
 
+    def _build_node_context(self, node_id: str) -> Dict[str, Any]:
+        """
+        Build the execution context for a specific node based on its input connections.
+        """
+        node_context = {}
+
+        # Populate with initial execution context (global variables)
+        node_context.update(self.execution_context)
+
+        # Update with values from connected nodes
+        for conn in self.workflow.connections:
+            if conn["to"]["node_id"] == node_id:
+                input_name = conn["to"]["input"]
+                from_node_id = conn["from"]["node_id"]
+                output_name = conn["from"]["output"]
+
+                # Check if we have results from the source node
+                if from_node_id in self.node_results:
+                    source_results = self.node_results[from_node_id]
+                    if output_name in source_results:
+                        node_context[input_name] = source_results[output_name]
+
+        return node_context
+
     def _evaluate_condition(self, condition: str) -> bool:
         """
         Evaluate a condition expression for conditional node execution.

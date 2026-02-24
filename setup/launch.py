@@ -587,9 +587,16 @@ def install_nodejs_dependencies(directory: str, update: bool = False) -> bool:
     if not check_node_npm_installed():
         return False
 
-    cmd = ["npm", "update" if update else "install"]
+    # Use shutil.which to find the executable, avoiding shell=True on Windows
+    npm_path = shutil.which("npm")
+    if not npm_path:
+        logger.error("npm executable not found.")
+        return False
+
+    cmd = [npm_path, "update" if update else "install"]
     desc = f"{'Updating' if update else 'Installing'} Node.js dependencies for '{directory}/'"
-    return run_command(cmd, desc, cwd=ROOT_DIR / directory, shell=(os.name == "nt"))
+    # shell=False is safer and works if full path to executable is provided
+    return run_command(cmd, desc, cwd=ROOT_DIR / directory, shell=False)
 
 
 def start_client():
@@ -652,11 +659,17 @@ def start_node_service(service_path: Path, service_name: str, port: int, api_url
     if not service_path.exists():
         logger.warning(f"{service_name} path not found at {service_path}, skipping.")
         return
+
+    npm_path = shutil.which("npm")
+    if not npm_path:
+        logger.error(f"npm executable not found. Cannot start {service_name}.")
+        return
+
     logger.info(f"Starting {service_name} on port {port}...")
     env = os.environ.copy()
     env["PORT"] = str(port)
     env["VITE_API_URL"] = api_url
-    process = subprocess.Popen(["npm", "start"], cwd=service_path, env=env)
+    process = subprocess.Popen([npm_path, "start"], cwd=service_path, env=env)
     process_manager.add_process(process)
 
 
@@ -667,8 +680,14 @@ def setup_node_dependencies(service_path: Path, service_name: str):
             f"package.json not found for {service_name}, skipping dependency installation."
         )
         return
+
+    npm_path = shutil.which("npm")
+    if not npm_path:
+        logger.error(f"npm executable not found. Cannot install dependencies for {service_name}.")
+        return
+
     logger.info(f"Installing npm dependencies for {service_name}...")
-    run_command(["npm", "install"], f"Installing {service_name} dependencies", cwd=service_path)
+    run_command([npm_path, "install"], f"Installing {service_name} dependencies", cwd=service_path)
 
 
 def start_gradio_ui(host, port, share, debug):
