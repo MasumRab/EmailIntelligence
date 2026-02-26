@@ -18,14 +18,9 @@ Analyze backend-to-src migration status for each feature branch.
 - [ ] Branches categorized correctly
 - [ ] Output includes migration field
 - [ ] Statuses accurate
-- [ ] Migration status analyzed
-- [ ] Branches categorized correctly
-- [ ] Output includes migration field
-- [ ] Statuses accurate
 - [ ] All 3 subtasks complete
 - [ ] Merge artifact detection working
 - [ ] Content mismatch detection working
-- [ ] Migration status analyzed
 - [ ] Tool outputs complete categorization
 
 ## Prerequisites & Dependencies
@@ -59,7 +54,6 @@ Requirements to be specified
 
 Implementation guide to be defined
 
-<!-- IMPORTED_FROM: /home/masum/github/PR/.taskmaster/enhanced_improved_tasks/task-007-3.md -->
 
 ## Purpose
 

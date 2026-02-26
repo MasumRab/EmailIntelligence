@@ -47,7 +47,6 @@ Requirements to be specified
 
 Implementation guide to be defined
 
-<!-- IMPORTED_FROM: /home/masum/github/PR/.taskmaster/enhanced_improved_tasks/task-017.md -->
 
 ### 017.3. Develop Post-Alignment Validation Integration
 

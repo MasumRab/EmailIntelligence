@@ -18,10 +18,6 @@ Define validation layers and select appropriate tools for the merge validation f
 - [ ] Configuration documented
 - [ ] Thresholds defined
 - [ ] Design document complete
-- [ ] Tools selected for all layers
-- [ ] Configuration documented
-- [ ] Thresholds defined
-- [ ] Design document complete
 
 ## Prerequisites & Dependencies
 
@@ -54,9 +50,7 @@ Requirements to be specified
 
 Implementation guide to be defined
 
-<!-- IMPORTED_FROM: /home/masum/github/PR/.taskmaster/enhanced_improved_tasks/task-008-10-19.md -->
 
-<!-- IMPORTED_FROM: /home/masum/github/PR/.taskmaster/enhanced_improved_tasks/task-008-1.md -->
 
 ## Implementation Notes
 

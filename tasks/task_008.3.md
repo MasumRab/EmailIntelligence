@@ -18,10 +18,6 @@ Integrate static analysis tools to enforce architectural rules.
 - [ ] Module boundaries enforced
 - [ ] Import rules defined
 - [ ] CI integration working
-- [ ] Static analysis configured
-- [ ] Module boundaries enforced
-- [ ] Import rules defined
-- [ ] CI integration working
 
 ## Prerequisites & Dependencies
 
@@ -54,9 +50,7 @@ Requirements to be specified
 
 Implementation guide to be defined
 
-<!-- IMPORTED_FROM: /home/masum/github/PR/.taskmaster/enhanced_improved_tasks/task-008-3.md -->
 
-<!-- IMPORTED_FROM: /home/masum/github/PR/.taskmaster/task_data/migration_backup_20260129/current_tasks/task-008-3.md -->
 
 ## Test Strategy
 

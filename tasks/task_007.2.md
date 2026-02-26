@@ -18,10 +18,6 @@ Detect when branch content doesn't match its naming convention's expected target
 - [ ] Mismatches detected
 - [ ] Alerts generated with rationale
 - [ ] False positives minimized
-- [ ] Similarity calculations working
-- [ ] Mismatches detected
-- [ ] Alerts generated with rationale
-- [ ] False positives minimized
 
 ## Prerequisites & Dependencies
 
@@ -54,7 +50,6 @@ Requirements to be specified
 
 Implementation guide to be defined
 
-<!-- IMPORTED_FROM: /home/masum/github/PR/.taskmaster/enhanced_improved_tasks/task-007-2.md -->
 
 ## Purpose
 

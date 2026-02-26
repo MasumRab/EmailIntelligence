@@ -19,11 +19,6 @@ Document the strategy for choosing between `git merge` and `git rebase` based on
 - [ ] Conflict resolution procedures specified
 - [ ] Visual merge tool usage documented
 - [ ] Safety mechanisms defined
-- [ ] Merge vs rebase decision criteria defined
-- [ ] Strategy documented for each branch type
-- [ ] Conflict resolution procedures specified
-- [ ] Visual merge tool usage documented
-- [ ] Safety mechanisms defined
 
 ## Prerequisites & Dependencies
 
@@ -56,7 +51,6 @@ Requirements to be specified
 
 Implementation guide to be defined
 
-<!-- IMPORTED_FROM: /home/masum/github/PR/.taskmaster/enhanced_improved_tasks/task-001-6.md -->
 
 ## Purpose
 

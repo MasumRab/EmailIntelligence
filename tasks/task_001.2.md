@@ -19,11 +19,6 @@ Analyze Git history and codebase structure for each branch to support target det
 - [ ] Codebase similarity metrics calculated
 - [ ] Architectural assessment recorded
 - [ ] Data ready for target assignment
-- [ ] Git history analysis complete for all branches
-- [ ] Shared commit counts documented
-- [ ] Codebase similarity metrics calculated
-- [ ] Architectural assessment recorded
-- [ ] Data ready for target assignment
 
 ## Prerequisites & Dependencies
 
@@ -56,7 +51,6 @@ Requirements to be specified
 
 Implementation guide to be defined
 
-<!-- IMPORTED_FROM: /home/masum/github/PR/.taskmaster/enhanced_improved_tasks/task-001-2.md -->
 
 ## Purpose
 

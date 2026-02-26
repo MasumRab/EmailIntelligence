@@ -2,8 +2,8 @@
 
 **Status:** pending
 **Priority:** high
-**Effort:** TBD
-**Complexity:** TBD
+**Effort:** 20-28 hours
+**Complexity:** 6/10
 **Dependencies:** None
 
 ---
@@ -12,626 +12,311 @@
 
 Configure and integrate foundational elements for branch management, including branch protection rules, merge guards, pre-merge validation scripts, and comprehensive merge validation frameworks, adapted for a single developer workflow.
 
+This task sets up the environment by ensuring existing dependencies (Task 008, 003, 018, 015) are properly configured and integrated into a unified workflow. Local Git settings will reflect branch protection rules via pre-commit hooks and local configuration checks. The goal is to create a local version of these rules and frameworks that a single developer can run before pushing changes, ensuring adherence to governance without needing full CI/CD for every step.
+
+---
+
 ## Success Criteria
 
-- [ ] [Success criteria to be defined]
+Task 004 is complete when:
+
+### Core Functionality
+- [ ] Git hooks (pre-commit, pre-push) installed and functional in local environment
+- [ ] Branch protection rules enforced locally (block direct commits to `main`, `scientific`, `orchestration-tools`)
+- [ ] Branch naming conventions validated (require `feature/`, `docs/`, `fix/`, `enhancement/` prefixes)
+- [ ] Pre-merge validation scripts (Task 003) executable from hook context
+- [ ] Comprehensive merge validation framework (Task 008) invocable from orchestration script
+
+### Quality Assurance
+- [ ] All hooks produce clear, actionable error messages on failure
+- [ ] Hooks pass silently on valid operations (no noise)
+- [ ] Setup script installs hooks idempotently
+- [ ] Code follows PEP 8 with comprehensive docstrings
+
+### Integration Readiness
+- [ ] Orchestration script sequences all validation calls correctly
+- [ ] Environment variables and paths configured for local execution
+- [ ] Documentation (Task 015) accurately reflects local setup
+
+---
 
 ## Prerequisites & Dependencies
 
 ### Required Before Starting
-- [ ] No external prerequisites
+- [ ] Git repository initialized with standard branch structure
+- [ ] Python 3.8+ available in development environment
 
 ### Blocks (What This Task Unblocks)
-- [ ] No specific blocks defined
+- Tasks requiring branch governance enforcement
+- CI/CD pipeline integration tasks
 
 ### External Dependencies
-- [ ] No external dependencies
+- Python 3.8+ (subprocess, pathlib, sys)
+- Git CLI available on PATH
+
+---
 
 ## Sub-subtasks Breakdown
 
+### 004.1: Design Local Git Hook Integration for Branch Protection
 
+**Status:** pending
+**Effort:** 6-8 hours
+**Dependencies:** None
+
+Define the structure for the local branch alignment framework. Identify appropriate Git hooks (pre-commit, pre-push) and establish the initial directory layout for scripts and configurations.
+
+**Steps:**
+1. Research Git hooks to determine suitability for local branch protection
+2. Create directory structure: `.githooks/local_alignment/`
+3. Document selected hooks and their intended functions
+4. Create Python setup script to install hooks into local `.git/hooks/`
+5. Verify hook installation is idempotent
+
+**Success Criteria:**
+- [ ] Hook selection documented with rationale
+- [ ] Directory structure created and committed
+- [ ] Setup script installs hooks reliably
+- [ ] Hooks trigger on appropriate Git operations
+
+---
+
+### 004.2: Integrate Existing Pre-Merge Validation Scripts and Frameworks
+
+**Status:** pending
+**Effort:** 6-8 hours
+**Dependencies:** 004.1
+
+Adapt and integrate pre-merge validation scripts (Task 003) and the merge validation framework (Task 008) into the Git hook structure. Ensure these components are executable and provide actionable feedback.
+
+**Steps:**
+1. Review interfaces of Task 003 and Task 008 outputs
+2. Develop Python wrapper scripts callable by Git hooks
+3. Implement result capture and developer-facing reporting
+4. Configure environment variables and paths for local execution
+5. Test wrapper scripts in isolation
+
+**Success Criteria:**
+- [ ] Wrapper scripts execute Task 003 validation logic
+- [ ] Wrapper scripts invoke Task 008 framework
+- [ ] Failures produce actionable error messages
+- [ ] Environment configuration documented
+
+---
+
+### 004.3: Develop Centralized Local Alignment Orchestration Script
+
+**Status:** pending
+**Effort:** 8-12 hours
+**Dependencies:** 004.1, 004.2
+
+Create the primary Python orchestration script that ties together Git hooks and validation components. This script manages the flow of local branch alignment checks, enforces rules, and prevents destructive merge patterns before push.
+
+**Steps:**
+1. Design orchestration logic (branch detection, naming checks, validation sequencing)
+2. Implement rule enforcement (block protected branches, require feature branch naming)
+3. Create user-facing interface (status messages, error messages, help)
+4. Add rollback protection for destructive operations
+5. Test complete end-to-end workflow
+
+**Success Criteria:**
+- [ ] Script blocks commits to protected branches
+- [ ] Script warns on non-standard branch naming
+- [ ] Script sequences all validation calls correctly
+- [ ] Clear pass/fail output with actionable guidance
+
+---
 
 ## Specification Details
 
-### Task Interface
-- **ID**: 004
-- **Title**: Establish Core Branch Alignment Framework
-- **Status**: pending
-- **Priority**: high
-- **Effort**: TBD
-- **Complexity**: TBD
-
-### Requirements
-Requirements to be specified
-
-## Implementation Guide
-
-Implementation guide to be defined
-
-<!-- IMPORTED_FROM: /home/masum/github/PR/.taskmaster/enhanced_improved_tasks/task-004.md -->
-
-<!-- IMPORTED_FROM: /home/masum/github/PR/.taskmaster/enhanced_improved_tasks/task-004-3_backup.md -->
-
-### Purpose
-
-Create primary Python script that orchestrates all local branch alignment checks.
-
----
-
-### Details
-
-Implement central orchestrator that sequences validation calls and enforces alignment rules.
-
-### Steps
-
-1. **Design orchestration logic**
-   - Determine current branch
-   - Check branch naming conventions
-   - Sequence validation calls
-
-2. **Implement rule enforcement**
-   - Block commits to protected branches
-   - Require feature branch naming
-   - Prompt for review before push
-
-3. **Create user interface**
-   - Clear status messages
-   - Actionable error messages
-   - Help instructions
-
-4. **Add rollback protection**
-
-5. **Test complete workflow**
-
----
-
-### Implementation Notes
-
-### Orchestration Script
+### Orchestration Script Interface
 
 ```python
 #!/usr/bin/env python3
 """Central local alignment orchestrator."""
 
-import subprocess
-import sys
-from pathlib import Path
-
 PROTECTED_BRANCHES = ["main", "scientific", "orchestration-tools"]
 FEATURE_PREFIXES = ["feature/", "docs/", "fix/", "enhancement/"]
+```
 
-def get_current_branch():
-    """Get current Git branch."""
-    result = subprocess.run(
-        ["git", "rev-parse", "--abbrev-ref", "HEAD"],
-        capture_output=True,
-        text=True
-    )
-    return result.stdout.strip()
+### Key Functions
+- `get_current_branch()` — Detect active Git branch via `git rev-parse`
+- `is_protected_branch(branch)` — Check against protected branch list
+- `is_feature_branch(branch)` — Validate naming convention prefix
+- `run_validation()` — Execute pre-merge validation wrapper scripts
+- `main()` — Orchestrate checks and enforce rules
 
-def is_protected_branch(branch):
-    """Check if branch is protected."""
-    return branch in PROTECTED_BRANCHES
+### Directory Layout
 
-def is_feature_branch(branch):
-    """Check if branch follows naming convention."""
-    return any(branch.startswith(p) for p in FEATURE_PREFIXES)
-
-def run_validation():
-    """Run all pre-merge validation."""
-    # Call Task 19 wrapper
-    result = subprocess.run(
-        [sys.executable, "scripts/wrappers/pre_merge_wrapper.py"],
-        capture_output=True,
-        text=True
-    )
-    return result.returncode == 0
-
-def main():
-    branch = get_current_branch()
-    
-    print(f"Current branch: {branch}")
-    
-    if is_protected_branch(branch):
-        print("ERROR: Direct commits to protected branches not allowed")
-        print("Please create a feature branch for your changes")
-        sys.exit(1)
-    
-    if not is_feature_branch(branch):
-        print("WARNING: Branch does not follow naming convention")
-        print("Recommended prefixes: feature/, docs/, fix/, enhancement/")
-    
-    if not run_validation():
-        print("VALIDATION FAILED")
-        print("Please fix issues before proceeding")
-        sys.exit(1)
-    
-    print("Local alignment checks passed")
-
-if __name__ == "__main__":
-    main()
+```
+.githooks/
+└── local_alignment/
+    ├── setup.py              # Hook installer
+    ├── orchestrator.py       # Central orchestration script
+    └── wrappers/
+        ├── pre_merge_wrapper.py   # Task 003 integration
+        └── validation_wrapper.py  # Task 008 integration
 ```
 
 ---
 
-### Progress Log
+## Implementation Guide
 
-### 2026-01-06
-- Subtask file created
-- Ready for implementation
+### Phase 1: Hook Infrastructure (004.1)
+1. Create `.githooks/local_alignment/` directory
+2. Write `setup.py` that symlinks or copies hooks into `.git/hooks/`
+3. Implement `pre-push` hook that invokes orchestrator
+
+### Phase 2: Validation Integration (004.2)
+1. Create `wrappers/pre_merge_wrapper.py` calling Task 003 scripts
+2. Create `wrappers/validation_wrapper.py` calling Task 008 framework
+3. Each wrapper: execute subprocess, capture output, return exit code
+
+### Phase 3: Orchestration (004.3)
+1. Build `orchestrator.py` with branch detection and rule enforcement
+2. Wire orchestrator to call wrappers in sequence
+3. Implement clear pass/fail messaging
+
+### Reference Implementation
+
+```python
+def main():
+    branch = get_current_branch()
+    print(f"Current branch: {branch}")
+
+    if is_protected_branch(branch):
+        print("ERROR: Direct commits to protected branches not allowed")
+        print("Please create a feature branch for your changes")
+        sys.exit(1)
+
+    if not is_feature_branch(branch):
+        print("WARNING: Branch does not follow naming convention")
+        print("Recommended prefixes: feature/, docs/, fix/, enhancement/")
+
+    if not run_validation():
+        print("VALIDATION FAILED — please fix issues before proceeding")
+        sys.exit(1)
+
+    print("Local alignment checks passed")
+```
 
 ---
 
-### Subtasks
+## Configuration Parameters
 
-### 004.1. Design Local Git Hook Integration for Branch Protection
+| Parameter | Value | Notes |
+|-----------|-------|-------|
+| Protected Branches | `main`, `scientific`, `orchestration-tools` | Configurable list |
+| Feature Prefixes | `feature/`, `docs/`, `fix/`, `enhancement/` | Naming convention |
+| Hook Types | `pre-commit`, `pre-push` | Primary enforcement points |
+| Validation Timeout | 30 seconds | Per-script subprocess timeout |
+| Script Language | Python 3.8+ | All hooks and orchestration |
 
-**Status:** pending  
-**Dependencies:** None  
+---
 
-Define the structure for the local branch alignment framework, including identifying appropriate Git hooks (e.g., pre-commit, pre-push) and establishing the initial directory layout for scripts and configurations. This subtask will set up the foundational integration points within the developer's local Git environment to reflect branch protection rules.
+## Performance Targets
 
-**Details:**
+| Metric | Target |
+|--------|--------|
+| Hook execution time | < 5 seconds for branch/naming checks |
+| Full validation pipeline | < 30 seconds including pre-merge scripts |
+| Memory usage | < 50 MB |
+| Setup script execution | < 2 seconds |
 
-Research available Git hooks to determine which are most suitable for enforcing local branch protection rules and triggering pre-merge validations. Create an initial directory structure (e.g., '.githooks/local_alignment/') within the project repository to house Python scripts and configuration files. Document the selected hooks and their intended functions, and create initial Python setup scripts to install these hooks into the local .git/hooks directory.
+---
 
-### 004.2. Integrate Existing Pre-Merge Validation Scripts and Frameworks
-
-**Status:** pending  
-**Dependencies:** 004.1  
-
-Adapt and integrate the existing pre-merge validation scripts (Task 003) and the comprehensive merge validation framework (Task 008) into the newly defined local Git hook structure. Ensure these external components are executable and provide actionable feedback within the local developer workflow.
-
-**Details:**
-
-Review the outputs/requirements of Task 003 (pre-merge validation scripts) and Task 008 (comprehensive merge validation framework) to understand their interfaces and execution requirements. Develop wrapper scripts (preferably in Python) that can be called by the local Git hooks established in Subtask 1. These wrappers should execute the core validation logic and capture/report any failures or warnings to the developer. Configure necessary environment variables or paths for these scripts to run correctly in a local environment.
-
-### 004.3. Develop Centralized Local Alignment Orchestration Script
-
-**Status:** pending  
-**Dependencies:** 004.1, 004.2  
-
-Create a primary Python orchestration script that ties together the local Git hooks and the integrated validation components. This script will manage the flow of local branch alignment checks, enforce specified rules (e.g., branch naming, pre-push checks), and prevent destructive merge patterns before changes are pushed, ensuring safe alignment operations.
-
-**Details:**
-
-Implement a robust Python script to serve as the central orchestrator for local branch alignment. This script will be triggered by a pre-push or pre-merge hook. It should sequence calls to the validation scripts integrated in Subtask 2, interpret their results, and implement custom logic. Examples include checking the current Git branch and preventing certain operations if not on a feature branch, prompting for code review before allowing a push to a primary-like local branch, or enforcing adherence to specific branch naming conventions. The script must provide clear, actionable messages to the developer upon success or failure.
-**Priority:** high
-
-**Description:** Configure and integrate foundational elements for branch management, including branch protection rules, merge guards, pre-merge validation scripts, and comprehensive merge validation frameworks, adapted for a single developer workflow.
-
-**Details:**
-
-This task involves setting up the environment by ensuring existing dependencies (Task 008, 003, 018, 015) are properly configured and integrated into a unified workflow. This includes configuring local Git settings to reflect branch protection rules (similar to Task 018 but for local development, e.g., using pre-commit hooks or local Git configuration checks), making sure pre-merge validation scripts (Task 003) are executable, and the comprehensive merge validation framework (Task 008) is ready for use. The documentation from Task 015 will serve as the primary guide. The goal is to create a 'local' version of these rules and frameworks that can be run by a single developer before pushing changes, ensuring adherence to governance without needing full CI/CD for every step. Use Python for scripting configurations where possible. Example: a Python script to check current Git branch and prevent certain operations if not on a feature branch, or to prompt for code review before allowing a push to a primary-like local branch.
-
-**Test Strategy:**
-
-Verify that branch protection settings, merge guard simulations, and pre-merge scripts can be triggered and provide expected feedback. Confirm that best practices documentation (Task 015) is accessible and accurately reflects the local setup. Test with dummy repositories to ensure rules prevent direct commits/pushes to 'primary' branches without proper procedure. Check that the comprehensive merge validation framework (Task 008) can be invoked manually.
-
-### Subtasks
-
-### 004.1. Design Local Git Hook Integration for Branch Protection
-
-**Status:** pending  
-**Dependencies:** None  
-
-Define the structure for the local branch alignment framework, including identifying appropriate Git hooks (e.g., pre-commit, pre-push) and establishing the initial directory layout for scripts and configurations. This subtask will set up the foundational integration points within the developer's local Git environment to reflect branch protection rules.
-
-**Details:**
-
-Research available Git hooks to determine which are most suitable for enforcing local branch protection rules and triggering pre-merge validations. Create an initial directory structure (e.g., '.githooks/local_alignment/') within the project repository to house Python scripts and configuration files. Document the selected hooks and their intended functions, and create initial Python setup scripts to install these hooks into the local .git/hooks directory.
-
-### 004.2. Integrate Existing Pre-Merge Validation Scripts and Frameworks
-
-**Status:** pending  
-**Dependencies:** 004.1  
-
-Adapt and integrate the existing pre-merge validation scripts (Task 003) and the comprehensive merge validation framework (Task 008) into the newly defined local Git hook structure. Ensure these external components are executable and provide actionable feedback within the local developer workflow.
-
-**Details:**
-
-Review the outputs/requirements of Task 003 (pre-merge validation scripts) and Task 008 (comprehensive merge validation framework) to understand their interfaces and execution requirements. Develop wrapper scripts (preferably in Python) that can be called by the local Git hooks established in Subtask 1. These wrappers should execute the core validation logic and capture/report any failures or warnings to the developer. Configure necessary environment variables or paths for these scripts to run correctly in a local environment.
-
-### 004.3. Develop Centralized Local Alignment Orchestration Script
-
-**Status:** pending  
-**Dependencies:** 004.1, 004.2  
-
-Create a primary Python orchestration script that ties together the local Git hooks and the integrated validation components. This script will manage the flow of local branch alignment checks, enforce specified rules (e.g., branch naming, pre-push checks), and prevent destructive merge patterns before changes are pushed, ensuring safe alignment operations.
-
-**Details:**
-
-Implement a robust Python script to serve as the central orchestrator for local branch alignment. This script will be triggered by a pre-push or pre-merge hook. It should sequence calls to the validation scripts integrated in Subtask 2, interpret their results, and implement custom logic. Examples include checking the current Git branch and preventing certain operations if not on a feature branch, prompting for code review before allowing a push to a primary-like local branch, or enforcing adherence to specific branch naming conventions. The script must provide clear, actionable messages to the developer upon success or failure.
-**Dependencies:** None
-
-**Priority:** high
-
-**Description:** Configure and integrate foundational elements for branch management, including branch protection rules, merge guards, pre-merge validation scripts, and comprehensive merge validation frameworks, adapted for a single developer workflow.
-
-**Details:**
-
-This task involves setting up the environment by ensuring existing dependencies (Task 008, 003, 018, 015) are properly configured and integrated into a unified workflow. This includes configuring local Git settings to reflect branch protection rules (similar to Task 018 but for local development, e.g., using pre-commit hooks or local Git configuration checks), making sure pre-merge validation scripts (Task 003) are executable, and the comprehensive merge validation framework (Task 008) is ready for use. The documentation from Task 015 will serve as the primary guide. The goal is to create a 'local' version of these rules and frameworks that can be run by a single developer before pushing changes, ensuring adherence to governance without needing full CI/CD for every step. Use Python for scripting configurations where possible. Example: a Python script to check current Git branch and prevent certain operations if not on a feature branch, or to prompt for code review before allowing a push to a primary-like local branch.
-
-**Test Strategy:**
-
-Verify that branch protection settings, merge guard simulations, and pre-merge scripts can be triggered and provide expected feedback. Confirm that best practices documentation (Task 015) is accessible and accurately reflects the local setup. Test with dummy repositories to ensure rules prevent direct commits/pushes to 'primary' branches without proper procedure. Check that the comprehensive merge validation framework (Task 008) can be invoked manually.
-
-### Subtasks
-
-### 004.1. Design Local Git Hook Integration for Branch Protection
-
-**Status:** pending  
-**Dependencies:** None  
-
-Define the structure for the local branch alignment framework, including identifying appropriate Git hooks (e.g., pre-commit, pre-push) and establishing the initial directory layout for scripts and configurations. This subtask will set up the foundational integration points within the developer's local Git environment to reflect branch protection rules.
-
-**Details:**
-
-Research available Git hooks to determine which are most suitable for enforcing local branch protection rules and triggering pre-merge validations. Create an initial directory structure (e.g., '.githooks/local_alignment/') within the project repository to house Python scripts and configuration files. Document the selected hooks and their intended functions, and create initial Python setup scripts to install these hooks into the local .git/hooks directory.
-
-### 004.2. Integrate Existing Pre-Merge Validation Scripts and Frameworks
-
-**Status:** pending  
-**Dependencies:** 004.1  
-
-Adapt and integrate the existing pre-merge validation scripts (Task 003) and the comprehensive merge validation framework (Task 008) into the newly defined local Git hook structure. Ensure these external components are executable and provide actionable feedback within the local developer workflow.
-
-**Details:**
-
-Review the outputs/requirements of Task 003 (pre-merge validation scripts) and Task 008 (comprehensive merge validation framework) to understand their interfaces and execution requirements. Develop wrapper scripts (preferably in Python) that can be called by the local Git hooks established in Subtask 1. These wrappers should execute the core validation logic and capture/report any failures or warnings to the developer. Configure necessary environment variables or paths for these scripts to run correctly in a local environment.
-
-### 004.3. Develop Centralized Local Alignment Orchestration Script
-
-**Status:** pending  
-**Dependencies:** 004.1, 004.2  
-
-Create a primary Python orchestration script that ties together the local Git hooks and the integrated validation components. This script will manage the flow of local branch alignment checks, enforce specified rules (e.g., branch naming, pre-push checks), and prevent destructive merge patterns before changes are pushed, ensuring safe alignment operations.
-
-**Details:**
-
-Implement a robust Python script to serve as the central orchestrator for local branch alignment. This script will be triggered by a pre-push or pre-merge hook. It should sequence calls to the validation scripts integrated in Subtask 2, interpret their results, and implement custom logic. Examples include checking the current Git branch and preventing certain operations if not on a feature branch, prompting for code review before allowing a push to a primary-like local branch, or enforcing adherence to specific branch naming conventions. The script must provide clear, actionable messages to the developer upon success or failure.
-**Effort:** TBD
-**Complexity:** TBD
-
-### Overview/Purpose
-Configure and integrate foundational elements for branch management, including branch protection rules, merge guards, pre-merge validation scripts, and comprehensive merge validation frameworks, adapted for a single developer workflow.
-
-### Success Criteria
-
-- [ ] [Success criteria to be defined]
-
-### Prerequisites & Dependencies
-
-### Required Before Starting
-- [ ] None
-
-**Priority:** high
-
-**Description:** Configure and integrate foundational elements for branch management, including branch protection rules, merge guards, pre-merge validation scripts, and comprehensive merge validation frameworks, adapted for a single developer workflow.
-
-**Details:**
-
-This task involves setting up the environment by ensuring existing dependencies (Task 008, 003, 018, 015) are properly configured and integrated into a unified workflow. This includes configuring local Git settings to reflect branch protection rules (similar to Task 018 but for local development, e.g., using pre-commit hooks or local Git configuration checks), making sure pre-merge validation scripts (Task 003) are executable, and the comprehensive merge validation framework (Task 008) is ready for use. The documentation from Task 015 will serve as the primary guide. The goal is to create a 'local' version of these rules and frameworks that can be run by a single developer before pushing changes, ensuring adherence to governance without needing full CI/CD for every step. Use Python for scripting configurations where possible. Example: a Python script to check current Git branch and prevent certain operations if not on a feature branch, or to prompt for code review before allowing a push to a primary-like local branch.
-
-**Test Strategy:**
-
-Verify that branch protection settings, merge guard simulations, and pre-merge scripts can be triggered and provide expected feedback. Confirm that best practices documentation (Task 015) is accessible and accurately reflects the local setup. Test with dummy repositories to ensure rules prevent direct commits/pushes to 'primary' branches without proper procedure. Check that the comprehensive merge validation framework (Task 008) can be invoked manually.
-
-### Subtasks
-
-### 004.1. Design Local Git Hook Integration for Branch Protection
-
-**Status:** pending  
-**Dependencies:** None  
-
-Define the structure for the local branch alignment framework, including identifying appropriate Git hooks (e.g., pre-commit, pre-push) and establishing the initial directory layout for scripts and configurations. This subtask will set up the foundational integration points within the developer's local Git environment to reflect branch protection rules.
-
-**Details:**
-
-Research available Git hooks to determine which are most suitable for enforcing local branch protection rules and triggering pre-merge validations. Create an initial directory structure (e.g., '.githooks/local_alignment/') within the project repository to house Python scripts and configuration files. Document the selected hooks and their intended functions, and create initial Python setup scripts to install these hooks into the local .git/hooks directory.
-
-### 004.2. Integrate Existing Pre-Merge Validation Scripts and Frameworks
-
-**Status:** pending  
-**Dependencies:** 004.1  
-
-Adapt and integrate the existing pre-merge validation scripts (Task 003) and the comprehensive merge validation framework (Task 008) into the newly defined local Git hook structure. Ensure these external components are executable and provide actionable feedback within the local developer workflow.
-
-**Details:**
-
-Review the outputs/requirements of Task 003 (pre-merge validation scripts) and Task 008 (comprehensive merge validation framework) to understand their interfaces and execution requirements. Develop wrapper scripts (preferably in Python) that can be called by the local Git hooks established in Subtask 1. These wrappers should execute the core validation logic and capture/report any failures or warnings to the developer. Configure necessary environment variables or paths for these scripts to run correctly in a local environment.
-
-### 004.3. Develop Centralized Local Alignment Orchestration Script
-
-**Status:** pending  
-**Dependencies:** 004.1, 004.2  
-
-Create a primary Python orchestration script that ties together the local Git hooks and the integrated validation components. This script will manage the flow of local branch alignment checks, enforce specified rules (e.g., branch naming, pre-push checks), and prevent destructive merge patterns before changes are pushed, ensuring safe alignment operations.
-
-**Details:**
-
-Implement a robust Python script to serve as the central orchestrator for local branch alignment. This script will be triggered by a pre-push or pre-merge hook. It should sequence calls to the validation scripts integrated in Subtask 2, interpret their results, and implement custom logic. Examples include checking the current Git branch and preventing certain operations if not on a feature branch, prompting for code review before allowing a push to a primary-like local branch, or enforcing adherence to specific branch naming conventions. The script must provide clear, actionable messages to the developer upon success or failure.
-
-### Blocks (What This Task Unblocks)
-- [ ] None specified
-
-### External Dependencies
-- [ ] None
-
-### Sub-subtasks Breakdown
-
-### ### 004.1. Design Local Git Hook Integration for Branch Protection
-- **Status**: pending
-- **Dependencies**: None
-
-### ### 004.2. Integrate Existing Pre-Merge Validation Scripts and Frameworks
-- **Status**: pending
-- **Dependencies**: 004.1
-
-### ### 004.3. Develop Centralized Local Alignment Orchestration Script
-- **Status**: pending
-- **Dependencies**: 004.1, 004.2
-
-### Specification Details
-
-### Task Interface
-- **ID**: 004
-- **Title**: Establish Core Branch Alignment Framework
-
-**Status:** pending
-
-**Dependencies:** None
-
-**Priority:** high
-
-**Description:** Configure and integrate foundational elements for branch management, including branch protection rules, merge guards, pre-merge validation scripts, and comprehensive merge validation frameworks, adapted for a single developer workflow.
-
-**Details:**
-
-This task involves setting up the environment by ensuring existing dependencies (Task 008, 003, 018, 015) are properly configured and integrated into a unified workflow. This includes configuring local Git settings to reflect branch protection rules (similar to Task 018 but for local development, e.g., using pre-commit hooks or local Git configuration checks), making sure pre-merge validation scripts (Task 003) are executable, and the comprehensive merge validation framework (Task 008) is ready for use. The documentation from Task 015 will serve as the primary guide. The goal is to create a 'local' version of these rules and frameworks that can be run by a single developer before pushing changes, ensuring adherence to governance without needing full CI/CD for every step. Use Python for scripting configurations where possible. Example: a Python script to check current Git branch and prevent certain operations if not on a feature branch, or to prompt for code review before allowing a push to a primary-like local branch.
-
-**Test Strategy:**
-
-Verify that branch protection settings, merge guard simulations, and pre-merge scripts can be triggered and provide expected feedback. Confirm that best practices documentation (Task 015) is accessible and accurately reflects the local setup. Test with dummy repositories to ensure rules prevent direct commits/pushes to 'primary' branches without proper procedure. Check that the comprehensive merge validation framework (Task 008) can be invoked manually.
-
-### Subtasks
-
-### 004.1. Design Local Git Hook Integration for Branch Protection
-
-**Status:** pending  
-**Dependencies:** None  
-
-Define the structure for the local branch alignment framework, including identifying appropriate Git hooks (e.g., pre-commit, pre-push) and establishing the initial directory layout for scripts and configurations. This subtask will set up the foundational integration points within the developer's local Git environment to reflect branch protection rules.
-
-**Details:**
-
-Research available Git hooks to determine which are most suitable for enforcing local branch protection rules and triggering pre-merge validations. Create an initial directory structure (e.g., '.githooks/local_alignment/') within the project repository to house Python scripts and configuration files. Document the selected hooks and their intended functions, and create initial Python setup scripts to install these hooks into the local .git/hooks directory.
-
-### 004.2. Integrate Existing Pre-Merge Validation Scripts and Frameworks
-
-**Status:** pending  
-**Dependencies:** 004.1  
-
-Adapt and integrate the existing pre-merge validation scripts (Task 003) and the comprehensive merge validation framework (Task 008) into the newly defined local Git hook structure. Ensure these external components are executable and provide actionable feedback within the local developer workflow.
-
-**Details:**
-
-Review the outputs/requirements of Task 003 (pre-merge validation scripts) and Task 008 (comprehensive merge validation framework) to understand their interfaces and execution requirements. Develop wrapper scripts (preferably in Python) that can be called by the local Git hooks established in Subtask 1. These wrappers should execute the core validation logic and capture/report any failures or warnings to the developer. Configure necessary environment variables or paths for these scripts to run correctly in a local environment.
-
-### 004.3. Develop Centralized Local Alignment Orchestration Script
-
-**Status:** pending  
-**Dependencies:** 004.1, 004.2  
-
-Create a primary Python orchestration script that ties together the local Git hooks and the integrated validation components. This script will manage the flow of local branch alignment checks, enforce specified rules (e.g., branch naming, pre-push checks), and prevent destructive merge patterns before changes are pushed, ensuring safe alignment operations.
-
-**Details:**
-
-Implement a robust Python script to serve as the central orchestrator for local branch alignment. This script will be triggered by a pre-push or pre-merge hook. It should sequence calls to the validation scripts integrated in Subtask 2, interpret their results, and implement custom logic. Examples include checking the current Git branch and preventing certain operations if not on a feature branch, prompting for code review before allowing a push to a primary-like local branch, or enforcing adherence to specific branch naming conventions. The script must provide clear, actionable messages to the developer upon success or failure.
-- **Status**: pending
-
-**Dependencies:** None
-
-**Priority:** high
-
-**Description:** Configure and integrate foundational elements for branch management, including branch protection rules, merge guards, pre-merge validation scripts, and comprehensive merge validation frameworks, adapted for a single developer workflow.
-
-**Details:**
-
-This task involves setting up the environment by ensuring existing dependencies (Task 008, 003, 018, 015) are properly configured and integrated into a unified workflow. This includes configuring local Git settings to reflect branch protection rules (similar to Task 018 but for local development, e.g., using pre-commit hooks or local Git configuration checks), making sure pre-merge validation scripts (Task 003) are executable, and the comprehensive merge validation framework (Task 008) is ready for use. The documentation from Task 015 will serve as the primary guide. The goal is to create a 'local' version of these rules and frameworks that can be run by a single developer before pushing changes, ensuring adherence to governance without needing full CI/CD for every step. Use Python for scripting configurations where possible. Example: a Python script to check current Git branch and prevent certain operations if not on a feature branch, or to prompt for code review before allowing a push to a primary-like local branch.
-
-**Test Strategy:**
-
-Verify that branch protection settings, merge guard simulations, and pre-merge scripts can be triggered and provide expected feedback. Confirm that best practices documentation (Task 015) is accessible and accurately reflects the local setup. Test with dummy repositories to ensure rules prevent direct commits/pushes to 'primary' branches without proper procedure. Check that the comprehensive merge validation framework (Task 008) can be invoked manually.
-
-### Subtasks
-
-### 004.1. Design Local Git Hook Integration for Branch Protection
-
-**Status:** pending  
-**Dependencies:** None  
-
-Define the structure for the local branch alignment framework, including identifying appropriate Git hooks (e.g., pre-commit, pre-push) and establishing the initial directory layout for scripts and configurations. This subtask will set up the foundational integration points within the developer's local Git environment to reflect branch protection rules.
-
-**Details:**
-
-Research available Git hooks to determine which are most suitable for enforcing local branch protection rules and triggering pre-merge validations. Create an initial directory structure (e.g., '.githooks/local_alignment/') within the project repository to house Python scripts and configuration files. Document the selected hooks and their intended functions, and create initial Python setup scripts to install these hooks into the local .git/hooks directory.
-
-### 004.2. Integrate Existing Pre-Merge Validation Scripts and Frameworks
-
-**Status:** pending  
-**Dependencies:** 004.1  
-
-Adapt and integrate the existing pre-merge validation scripts (Task 003) and the comprehensive merge validation framework (Task 008) into the newly defined local Git hook structure. Ensure these external components are executable and provide actionable feedback within the local developer workflow.
-
-**Details:**
-
-Review the outputs/requirements of Task 003 (pre-merge validation scripts) and Task 008 (comprehensive merge validation framework) to understand their interfaces and execution requirements. Develop wrapper scripts (preferably in Python) that can be called by the local Git hooks established in Subtask 1. These wrappers should execute the core validation logic and capture/report any failures or warnings to the developer. Configure necessary environment variables or paths for these scripts to run correctly in a local environment.
-
-### 004.3. Develop Centralized Local Alignment Orchestration Script
-
-**Status:** pending  
-**Dependencies:** 004.1, 004.2  
-
-Create a primary Python orchestration script that ties together the local Git hooks and the integrated validation components. This script will manage the flow of local branch alignment checks, enforce specified rules (e.g., branch naming, pre-push checks), and prevent destructive merge patterns before changes are pushed, ensuring safe alignment operations.
-
-**Details:**
-
-Implement a robust Python script to serve as the central orchestrator for local branch alignment. This script will be triggered by a pre-push or pre-merge hook. It should sequence calls to the validation scripts integrated in Subtask 2, interpret their results, and implement custom logic. Examples include checking the current Git branch and preventing certain operations if not on a feature branch, prompting for code review before allowing a push to a primary-like local branch, or enforcing adherence to specific branch naming conventions. The script must provide clear, actionable messages to the developer upon success or failure.
-- **Priority**: high
-
-**Description:** Configure and integrate foundational elements for branch management, including branch protection rules, merge guards, pre-merge validation scripts, and comprehensive merge validation frameworks, adapted for a single developer workflow.
-
-**Details:**
-
-This task involves setting up the environment by ensuring existing dependencies (Task 008, 003, 018, 015) are properly configured and integrated into a unified workflow. This includes configuring local Git settings to reflect branch protection rules (similar to Task 018 but for local development, e.g., using pre-commit hooks or local Git configuration checks), making sure pre-merge validation scripts (Task 003) are executable, and the comprehensive merge validation framework (Task 008) is ready for use. The documentation from Task 015 will serve as the primary guide. The goal is to create a 'local' version of these rules and frameworks that can be run by a single developer before pushing changes, ensuring adherence to governance without needing full CI/CD for every step. Use Python for scripting configurations where possible. Example: a Python script to check current Git branch and prevent certain operations if not on a feature branch, or to prompt for code review before allowing a push to a primary-like local branch.
-
-**Test Strategy:**
-
-Verify that branch protection settings, merge guard simulations, and pre-merge scripts can be triggered and provide expected feedback. Confirm that best practices documentation (Task 015) is accessible and accurately reflects the local setup. Test with dummy repositories to ensure rules prevent direct commits/pushes to 'primary' branches without proper procedure. Check that the comprehensive merge validation framework (Task 008) can be invoked manually.
-
-### Subtasks
-
-### 004.1. Design Local Git Hook Integration for Branch Protection
-
-**Status:** pending  
-**Dependencies:** None  
-
-Define the structure for the local branch alignment framework, including identifying appropriate Git hooks (e.g., pre-commit, pre-push) and establishing the initial directory layout for scripts and configurations. This subtask will set up the foundational integration points within the developer's local Git environment to reflect branch protection rules.
-
-**Details:**
-
-Research available Git hooks to determine which are most suitable for enforcing local branch protection rules and triggering pre-merge validations. Create an initial directory structure (e.g., '.githooks/local_alignment/') within the project repository to house Python scripts and configuration files. Document the selected hooks and their intended functions, and create initial Python setup scripts to install these hooks into the local .git/hooks directory.
-
-### 004.2. Integrate Existing Pre-Merge Validation Scripts and Frameworks
-
-**Status:** pending  
-**Dependencies:** 004.1  
-
-Adapt and integrate the existing pre-merge validation scripts (Task 003) and the comprehensive merge validation framework (Task 008) into the newly defined local Git hook structure. Ensure these external components are executable and provide actionable feedback within the local developer workflow.
-
-**Details:**
-
-Review the outputs/requirements of Task 003 (pre-merge validation scripts) and Task 008 (comprehensive merge validation framework) to understand their interfaces and execution requirements. Develop wrapper scripts (preferably in Python) that can be called by the local Git hooks established in Subtask 1. These wrappers should execute the core validation logic and capture/report any failures or warnings to the developer. Configure necessary environment variables or paths for these scripts to run correctly in a local environment.
-
-### 004.3. Develop Centralized Local Alignment Orchestration Script
-
-**Status:** pending  
-**Dependencies:** 004.1, 004.2  
-
-Create a primary Python orchestration script that ties together the local Git hooks and the integrated validation components. This script will manage the flow of local branch alignment checks, enforce specified rules (e.g., branch naming, pre-push checks), and prevent destructive merge patterns before changes are pushed, ensuring safe alignment operations.
-
-**Details:**
-
-Implement a robust Python script to serve as the central orchestrator for local branch alignment. This script will be triggered by a pre-push or pre-merge hook. It should sequence calls to the validation scripts integrated in Subtask 2, interpret their results, and implement custom logic. Examples include checking the current Git branch and preventing certain operations if not on a feature branch, prompting for code review before allowing a push to a primary-like local branch, or enforcing adherence to specific branch naming conventions. The script must provide clear, actionable messages to the developer upon success or failure.
-- **Effort**: N/A
-- **Complexity**: N/A
-
-### Implementation Guide
-
-### Testing Strategy
+## Testing Strategy
 
 ### Unit Tests
-- [ ] Tests cover core functionality
-- [ ] Edge cases handled appropriately
-- [ ] Performance benchmarks met
+- [ ] `is_protected_branch()` returns True for each protected branch
+- [ ] `is_protected_branch()` returns False for feature branches
+- [ ] `is_feature_branch()` validates all approved prefixes
+- [ ] `is_feature_branch()` rejects invalid branch names
+- [ ] `get_current_branch()` returns correct branch name
 
 ### Integration Tests
-- [ ] Integration with dependent components verified
-- [ ] End-to-end workflow tested
-- [ ] Error handling verified
+- [ ] Pre-push hook blocks push from protected branch
+- [ ] Pre-push hook allows push from valid feature branch
+- [ ] Invalid branch naming produces warning (not block)
+- [ ] Validation failure blocks push with actionable message
+- [ ] Complete workflow passes on well-formed feature branch
 
-### Test Strategy Notes
-
-### Configuration Parameters
-
-- **Owner**: TBD
-- **Initiative**: TBD
-- **Scope**: TBD
-- **Focus**: TBD
-
-### Performance Targets
-
-- **Effort Range**: TBD
-- **Complexity Level**: TBD
-
-### Testing Strategy
-
-Test strategy to be defined
-
-### Common Gotchas & Solutions
-
-- [ ] No common gotchas identified
-
-### Integration Checkpoint
-
-### Criteria for Moving Forward
-- [ ] All success criteria met
-- [ ] Code reviewed and approved
-- [ ] Tests passing
-- [ ] Documentation updated
-- [ ] No critical or high severity issues
-
-### Done Definition
-
-### Completion Criteria
-- [ ] All success criteria met
-- [ ] Code reviewed and approved
-- [ ] Tests passing
-- [ ] Documentation updated
-
-### Next Steps
-
-- [ ] Next steps to be defined
-
-### Configuration Parameters
-
-- **Owner**: TBD
-- **Initiative**: TBD
-- **Scope**: TBD
-- **Focus**: TBD
-
-### Performance Targets
-
-- **Effort Range**: TBD
-- **Complexity Level**: TBD
-
-### Testing Strategy
-
+### Manual Verification
 - Test on feature branch (should pass)
-- Test on protected branch (should fail)
+- Test on protected branch (should block with error)
 - Test with invalid naming (should warn)
-- Test complete workflow
+- Test with validation failure (should block)
 
 ---
 
-### Common Gotchas & Solutions
+## Common Gotchas & Solutions
 
-- [ ] [Common issues and solutions to be documented]
+**Gotcha 1: Hook not executable**
+```bash
+# WRONG: Hook file lacks execute permission
+# RIGHT: Setup script must chmod +x all hook files
+chmod +x .git/hooks/pre-push
+```
 
-### Integration Checkpoint
+**Gotcha 2: Subprocess path resolution**
+```python
+# WRONG: Relative path breaks depending on working directory
+subprocess.run(["python", "scripts/wrapper.py"])
 
-### Criteria for Moving Forward
-- [ ] All success criteria met
-- [ ] Code reviewed and approved
-- [ ] Tests passing
-- [ ] Documentation updated
-- [ ] No critical or high severity issues
+# RIGHT: Resolve paths relative to git root
+repo_root = subprocess.run(
+    ["git", "rev-parse", "--show-toplevel"],
+    capture_output=True, text=True
+).stdout.strip()
+script = Path(repo_root) / "scripts" / "wrapper.py"
+```
 
-### Done Definition
+**Gotcha 3: Detached HEAD state**
+```python
+# WRONG: rev-parse returns "HEAD" in detached state
+# RIGHT: Handle detached HEAD explicitly
+branch = get_current_branch()
+if branch == "HEAD":
+    print("WARNING: Detached HEAD — skipping branch checks")
+```
 
-### Completion Criteria
-- [ ] All success criteria checkboxes marked complete
-- [ ] Code quality standards met (PEP 8, documentation)
-- [ ] Performance targets achieved
-- [ ] All subtasks completed
-- [ ] Integration checkpoint criteria satisfied
+---
 
-### Next Steps
+## Integration Checkpoint
 
-- [ ] No next steps specified
-- [ ] Additional steps to be defined
+**When to consider Task 004 complete:**
 
+- [ ] All 3 subtasks (004.1, 004.2, 004.3) marked done
+- [ ] Hook setup script runs without errors on clean clone
+- [ ] Protected branch enforcement verified manually
+- [ ] Validation pipeline invokes Task 003 and Task 008 wrappers
+- [ ] All unit and integration tests passing
+- [ ] No false positives blocking valid developer workflow
+- [ ] Documentation updated to reflect local setup
 
-<!-- EXTENDED_METADATA
-END_EXTENDED_METADATA -->
+---
+
+## Done Definition
+
+Task 004 is done when:
+
+1. ✅ All 3 subtasks completed and verified
+2. ✅ Git hooks install cleanly via setup script
+3. ✅ Protected branch commits blocked with clear error
+4. ✅ Feature branch naming validated with warnings
+5. ✅ Pre-merge validation scripts integrated and callable
+6. ✅ Orchestration script sequences all checks correctly
+7. ✅ Unit and integration tests pass
+8. ✅ Code follows PEP 8, includes docstrings
+9. ✅ All success criteria checkboxes marked complete
+10. ✅ Commit: `feat: complete Task 004 core branch alignment framework`
+
+---
+
+## Next Steps
+
+1. **Immediate:** Start 004.1 — design hook structure and directory layout
+2. **After 004.1:** Implement 004.2 — integrate Task 003/008 wrappers
+3. **After 004.2:** Build 004.3 — orchestration script with full rule enforcement
+4. **Post-completion:** Verify downstream tasks can leverage the framework
+5. **Future:** Extend to CI/CD pipeline integration when ready

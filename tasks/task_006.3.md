@@ -19,11 +19,6 @@ Create central orchestration script that integrates backup/restore into alignmen
 - [ ] Automatic restore on failure
 - [ ] Cleanup of old backups
 - [ ] Comprehensive logging
-- [ ] Central orchestration working
-- [ ] Backup before alignment
-- [ ] Automatic restore on failure
-- [ ] Cleanup of old backups
-- [ ] Comprehensive logging
 - [ ] All 3 subtasks complete
 - [ ] Feature branch backup working
 - [ ] Primary branch backup working
@@ -61,7 +56,6 @@ Requirements to be specified
 
 Implementation guide to be defined
 
-<!-- IMPORTED_FROM: /home/masum/github/PR/.taskmaster/enhanced_improved_tasks/task-006-3.md -->
 
 ## Purpose
 

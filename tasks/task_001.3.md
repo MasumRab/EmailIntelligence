@@ -19,11 +19,6 @@ Define explicit, reproducible criteria for selecting integration targets (main, 
 - [ ] Decision tree clear and unambiguous
 - [ ] Examples provided for each target type
 - [ ] Ready for application to all branches
-- [ ] All target selection criteria documented
-- [ ] Criteria measurable and reproducible
-- [ ] Decision tree clear and unambiguous
-- [ ] Examples provided for each target type
-- [ ] Ready for application to all branches
 
 ## Prerequisites & Dependencies
 
@@ -56,7 +51,6 @@ Requirements to be specified
 
 Implementation guide to be defined
 
-<!-- IMPORTED_FROM: /home/masum/github/PR/.taskmaster/enhanced_improved_tasks/task-001-3.md -->
 
 ## Purpose
 

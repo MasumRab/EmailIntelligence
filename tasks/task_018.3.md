@@ -47,7 +47,6 @@ Requirements to be specified
 
 Implementation guide to be defined
 
-<!-- IMPORTED_FROM: /home/masum/github/PR/.taskmaster/enhanced_improved_tasks/task-018.md -->
 
 ### 018.3. Develop Comprehensive Test Scenarios
 

@@ -18,10 +18,6 @@ Create scripts to detect uncleaned merge markers and accidentally deleted module
 - [ ] Deleted files identified
 - [ ] Module dependency check working
 - [ ] Report generated
-- [ ] Merge markers detected in changed files
-- [ ] Deleted files identified
-- [ ] Module dependency check working
-- [ ] Report generated
 
 ## Prerequisites & Dependencies
 
@@ -54,7 +50,6 @@ Requirements to be specified
 
 Implementation guide to be defined
 
-<!-- IMPORTED_FROM: /home/masum/github/PR/.taskmaster/enhanced_improved_tasks/task-005-1.md -->
 
 ## Purpose
 

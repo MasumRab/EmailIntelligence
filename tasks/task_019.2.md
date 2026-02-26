@@ -47,7 +47,6 @@ Requirements to be specified
 
 Implementation guide to be defined
 
-<!-- IMPORTED_FROM: /home/masum/github/PR/.taskmaster/enhanced_improved_tasks/task-019.md -->
 
 ### 019.2. Implement Deployment Packaging System
 

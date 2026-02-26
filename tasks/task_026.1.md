@@ -47,7 +47,6 @@ Requirements to be specified
 
 Implementation guide to be defined
 
-<!-- IMPORTED_FROM: /home/masum/github/PR/.taskmaster/tasks/task_026.md -->
 
 ### 026.1. Design Optimization Architecture
 

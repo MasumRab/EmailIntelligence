@@ -18,10 +18,6 @@ Create backup and restore functionality for feature branches before alignment op
 - [ ] Restore restores to original state
 - [ ] Multiple backups supported
 - [ ] Error handling robust
-- [ ] Backup created with timestamp
-- [ ] Restore restores to original state
-- [ ] Multiple backups supported
-- [ ] Error handling robust
 
 ## Prerequisites & Dependencies
 
@@ -54,7 +50,6 @@ Requirements to be specified
 
 Implementation guide to be defined
 
-<!-- IMPORTED_FROM: /home/masum/github/PR/.taskmaster/enhanced_improved_tasks/task-006-1.md -->
 
 ## Purpose
 

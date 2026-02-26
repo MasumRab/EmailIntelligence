@@ -19,11 +19,6 @@ Apply criteria to each branch and propose optimal integration targets with expli
 - [ ] No default assignments (each justified)
 - [ ] Branches needing rename identified
 - [ ] Mapping document complete
-- [ ] Optimal target proposed for each branch
-- [ ] Justification explicit for each choice
-- [ ] No default assignments (each justified)
-- [ ] Branches needing rename identified
-- [ ] Mapping document complete
 
 ## Prerequisites & Dependencies
 
@@ -56,7 +51,6 @@ Requirements to be specified
 
 Implementation guide to be defined
 
-<!-- IMPORTED_FROM: /home/masum/github/PR/.taskmaster/enhanced_improved_tasks/task-001-4.md -->
 
 ## Purpose
 

@@ -47,7 +47,6 @@ Requirements to be specified
 
 Implementation guide to be defined
 
-<!-- IMPORTED_FROM: /home/masum/github/PR/.taskmaster/enhanced_improved_tasks/task-012.md -->
 
 ### 012.3. Develop Interactive Branch Selection & Prioritization UI
 

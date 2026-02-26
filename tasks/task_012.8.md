@@ -47,7 +47,6 @@ Requirements to be specified
 
 Implementation guide to be defined
 
-<!-- IMPORTED_FROM: /home/masum/github/PR/.taskmaster/enhanced_improved_tasks/task-012.md -->
 
 ### 012.8. Integrate Branch Alignment Logic (Tasks 009 & 010) into Workflow
 

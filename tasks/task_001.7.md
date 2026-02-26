@@ -19,11 +19,6 @@ Define how to handle architectural differences between feature branches and inte
 - [ ] Documentation format specified
 - [ ] Examples provided
 - [ ] Ready for use during alignment
-- [ ] Architectural prioritization framework documented
-- [ ] Clear guidelines for preferring advanced architectures
-- [ ] Documentation format specified
-- [ ] Examples provided
-- [ ] Ready for use during alignment
 
 ## Prerequisites & Dependencies
 
@@ -56,7 +51,6 @@ Requirements to be specified
 
 Implementation guide to be defined
 
-<!-- IMPORTED_FROM: /home/masum/github/PR/.taskmaster/enhanced_improved_tasks/task-001-7.md -->
 
 ## Purpose
 

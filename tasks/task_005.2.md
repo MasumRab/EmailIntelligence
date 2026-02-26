@@ -18,10 +18,6 @@ Detect encoding issues and extract import statements from Python files.
 - [ ] Imports extracted from Python files
 - [ ] Backend imports flagged
 - [ ] Clear error reporting
-- [ ] Encoding issues detected
-- [ ] Imports extracted from Python files
-- [ ] Backend imports flagged
-- [ ] Clear error reporting
 
 ## Prerequisites & Dependencies
 
@@ -54,7 +50,6 @@ Requirements to be specified
 
 Implementation guide to be defined
 
-<!-- IMPORTED_FROM: /home/masum/github/PR/.taskmaster/enhanced_improved_tasks/task-005-2.md -->
 
 ## Purpose
 

@@ -18,10 +18,6 @@ Extend backup mechanism for primary branches with comprehensive backup options.
 - [ ] Remote backup working
 - [ ] Integrity verification implemented
 - [ ] Critical branches can be backed up
-- [ ] Mirror backup working
-- [ ] Remote backup working
-- [ ] Integrity verification implemented
-- [ ] Critical branches can be backed up
 
 ## Prerequisites & Dependencies
 
@@ -54,7 +50,6 @@ Requirements to be specified
 
 Implementation guide to be defined
 
-<!-- IMPORTED_FROM: /home/masum/github/PR/.taskmaster/enhanced_improved_tasks/task-006-2.md -->
 
 ## Purpose
 

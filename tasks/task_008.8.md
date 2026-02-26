@@ -18,10 +18,6 @@ Aggregate results from all validation layers into unified report.
 - [ ] Unified report generated
 - [ ] Clear pass/fail status
 - [ ] GitHub summary updated
-- [ ] Results consolidated
-- [ ] Unified report generated
-- [ ] Clear pass/fail status
-- [ ] GitHub summary updated
 
 ## Prerequisites & Dependencies
 
@@ -54,7 +50,6 @@ Requirements to be specified
 
 Implementation guide to be defined
 
-<!-- IMPORTED_FROM: /home/masum/github/PR/.taskmaster/enhanced_improved_tasks/task-008-8.md -->
 
 ## Purpose
 

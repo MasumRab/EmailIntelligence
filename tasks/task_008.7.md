@@ -18,10 +18,6 @@ Add security scanning to CI pipeline.
 - [ ] Dependency scanning integrated
 - [ ] Critical issues block merge
 - [ ] Reports generated
-- [ ] SAST integrated
-- [ ] Dependency scanning integrated
-- [ ] Critical issues block merge
-- [ ] Reports generated
 
 ## Prerequisites & Dependencies
 
@@ -54,7 +50,6 @@ Requirements to be specified
 
 Implementation guide to be defined
 
-<!-- IMPORTED_FROM: /home/masum/github/PR/.taskmaster/enhanced_improved_tasks/task-008-7.md -->
 
 ## Purpose
 

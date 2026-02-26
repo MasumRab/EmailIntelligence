@@ -18,10 +18,6 @@ Create smoke tests that verify core application functionality.
 - [ ] Core endpoints covered
 - [ ] CI integration working
 - [ ] Tests pass on clean build
-- [ ] Smoke tests created
-- [ ] Core endpoints covered
-- [ ] CI integration working
-- [ ] Tests pass on clean build
 
 ## Prerequisites & Dependencies
 
@@ -54,7 +50,6 @@ Requirements to be specified
 
 Implementation guide to be defined
 
-<!-- IMPORTED_FROM: /home/masum/github/PR/.taskmaster/enhanced_improved_tasks/task-008-5.md -->
 
 ## Purpose
 

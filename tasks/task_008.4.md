@@ -18,10 +18,6 @@ Configure CI to execute full test suite and block on failures.
 - [ ] Coverage reported
 - [ ] Failures block merge
 - [ ] Coverage threshold enforced
-- [ ] Tests run in CI
-- [ ] Coverage reported
-- [ ] Failures block merge
-- [ ] Coverage threshold enforced
 
 ## Prerequisites & Dependencies
 
@@ -54,7 +50,6 @@ Requirements to be specified
 
 Implementation guide to be defined
 
-<!-- IMPORTED_FROM: /home/masum/github/PR/.taskmaster/enhanced_improved_tasks/task-008-4.md -->
 
 ## Purpose
 

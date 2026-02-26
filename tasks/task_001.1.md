@@ -18,10 +18,6 @@ Identify and catalog all active feature branches that need alignment analysis.
 - [ ] All branches documented with branch names and creation dates
 - [ ] Excluded merged branches identified
 - [ ] List ready for assessment phase
-- [ ] Complete list of active feature branches created
-- [ ] All branches documented with branch names and creation dates
-- [ ] Excluded merged branches identified
-- [ ] List ready for assessment phase
 
 ## Prerequisites & Dependencies
 
@@ -54,7 +50,6 @@ Requirements to be specified
 
 Implementation guide to be defined
 
-<!-- IMPORTED_FROM: /home/masum/github/PR/.taskmaster/enhanced_improved_tasks/task-001-1.md -->
 
 ## Purpose
 

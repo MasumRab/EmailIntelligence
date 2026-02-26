@@ -19,11 +19,6 @@ Create the central tracking document that consolidates all branch alignment info
 - [ ] Justifications documented
 - [ ] Format clear and maintainable
 - [ ] Ready for tracking during execution
-- [ ] ALIGNMENT_CHECKLIST.md created in project root
-- [ ] All branches listed with targets
-- [ ] Justifications documented
-- [ ] Format clear and maintainable
-- [ ] Ready for tracking during execution
 
 ## Prerequisites & Dependencies
 
@@ -56,7 +51,6 @@ Requirements to be specified
 
 Implementation guide to be defined
 
-<!-- IMPORTED_FROM: /home/masum/github/PR/.taskmaster/enhanced_improved_tasks/task-001-5.md -->
 
 ## Purpose
 

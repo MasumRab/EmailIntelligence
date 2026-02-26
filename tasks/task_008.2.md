@@ -18,10 +18,6 @@ Set up GitHub Actions workflow to trigger validation on PRs.
 - [ ] Triggers on PR to main
 - [ ] Python environment configured
 - [ ] Placeholder for validation steps
-- [ ] Workflow file created
-- [ ] Triggers on PR to main
-- [ ] Python environment configured
-- [ ] Placeholder for validation steps
 
 ## Prerequisites & Dependencies
 
@@ -54,9 +50,7 @@ Requirements to be specified
 
 Implementation guide to be defined
 
-<!-- IMPORTED_FROM: /home/masum/github/PR/.taskmaster/enhanced_improved_tasks/task-008-2.md -->
 
-<!-- IMPORTED_FROM: /home/masum/github/PR/.taskmaster/task_data/migration_backup_20260129/current_tasks/task-008-2.md -->
 
 ## Test Strategy
 

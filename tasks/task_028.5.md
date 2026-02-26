@@ -47,7 +47,6 @@ Requirements to be specified
 
 Implementation guide to be defined
 
-<!-- IMPORTED_FROM: /home/masum/github/PR/.taskmaster/tasks/task_028.md -->
 
 ### 028.5. Integration with Roadmap Workflow
 

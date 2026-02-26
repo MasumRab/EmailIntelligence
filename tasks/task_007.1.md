@@ -18,10 +18,6 @@ Detect merge conflict markers in feature branches to identify broken or poorly m
 - [ ] Branches flagged appropriately
 - [ ] Confidence scores reduced
 - [ ] Output includes artifact flags
-- [ ] Merge markers detected
-- [ ] Branches flagged appropriately
-- [ ] Confidence scores reduced
-- [ ] Output includes artifact flags
 
 ## Prerequisites & Dependencies
 
@@ -54,7 +50,6 @@ Requirements to be specified
 
 Implementation guide to be defined
 
-<!-- IMPORTED_FROM: /home/masum/github/PR/.taskmaster/enhanced_improved_tasks/task-007-1.md -->
 
 ## Purpose
 

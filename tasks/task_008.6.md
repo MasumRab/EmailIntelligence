@@ -18,10 +18,6 @@ Set up performance benchmarking to detect regressions.
 - [ ] Baselines established
 - [ ] Regressions detected
 - [ ] Threshold enforcement working
-- [ ] Performance tests created
-- [ ] Baselines established
-- [ ] Regressions detected
-- [ ] Threshold enforcement working
 
 ## Prerequisites & Dependencies
 
@@ -54,7 +50,6 @@ Requirements to be specified
 
 Implementation guide to be defined
 
-<!-- IMPORTED_FROM: /home/masum/github/PR/.taskmaster/enhanced_improved_tasks/task-008-6.md -->
 
 ## Purpose
 

@@ -18,14 +18,9 @@ Configure branch protection to require validation checks.
 - [ ] Validation checks required
 - [ ] PR reviews required
 - [ ] Force push disabled
-- [ ] Branch protection enabled
-- [ ] Validation checks required
-- [ ] PR reviews required
-- [ ] Force push disabled
 - [ ] 009.1-009.9 complete
 - [ ] All validation layers working
 - [ ] CI pipeline configured
-- [ ] Branch protection enabled
 - [ ] Reports generated
 
 ## Prerequisites & Dependencies
@@ -59,7 +54,6 @@ Requirements to be specified
 
 Implementation guide to be defined
 
-<!-- IMPORTED_FROM: /home/masum/github/PR/.taskmaster/enhanced_improved_tasks/task-008-9.md -->
 
 ## Purpose
 
