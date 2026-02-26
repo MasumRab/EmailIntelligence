@@ -106,6 +106,36 @@ class DatabaseManager:
             os.makedirs(self.email_content_dir)
             logger.info(f"Created email content directory: {self.email_content_dir}")
 
+    async def connect(self) -> None:
+        """Connect to the database (stub for file-based)."""
+        await self._ensure_initialized()
+
+    async def close(self) -> None:
+        """Close the database connection (stub for file-based)."""
+        await self.shutdown()
+
+    async def get_user_by_username(self, username: str) -> Optional[Dict[str, Any]]:
+        """Get user by username."""
+        await self._ensure_initialized()
+        for user in self.users_data:
+            if user.get("username") == username:
+                return user
+        return None
+
+    async def create_user(self, user_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        """Create a new user."""
+        await self._ensure_initialized()
+        if await self.get_user_by_username(user_data.get("username")):
+             return None
+
+        new_id = self._generate_id(self.users_data)
+        user_record = user_data.copy()
+        user_record[FIELD_ID] = new_id
+
+        self.users_data.append(user_record)
+        await self._save_data(DATA_TYPE_USERS)
+        return user_record
+
     def _get_email_content_path(self, email_id: int) -> str:
         return os.path.join(self.email_content_dir, f"{email_id}.json.gz")
 
@@ -688,9 +718,12 @@ class DatabaseManager:
         return {"emails": total_count, "percentage": 0.0}
 
 
+# Create a global instance for backward compatibility
+db_manager = DatabaseManager()
+
 # Module-level variable to store the database manager instance
 # This is initialized via FastAPI startup event
-_db_manager_instance = None
+_db_manager_instance = db_manager
 
 
 async def get_db() -> DatabaseManager:
@@ -707,9 +740,11 @@ async def get_db() -> DatabaseManager:
     """
     global _db_manager_instance
     if _db_manager_instance is None:
-        # This should ideally not be reached if startup event is properly set
-        _db_manager_instance = DatabaseManager()
+        _db_manager_instance = db_manager
+
+    if not _db_manager_instance._initialized:
         await _db_manager_instance._ensure_initialized()
+
     return _db_manager_instance
 
 
@@ -717,9 +752,6 @@ async def initialize_db():
     """Initialize the database manager. Should be called during application startup."""
     global _db_manager_instance
     if _db_manager_instance is None:
-        _db_manager_instance = DatabaseManager()
-        await _db_manager_instance._ensure_initialized()
+        _db_manager_instance = db_manager
 
-
-# Create a global instance for backward compatibility
-db_manager = DatabaseManager()
+    await _db_manager_instance._ensure_initialized()
