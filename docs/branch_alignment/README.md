@@ -10,17 +10,15 @@ This directory contains comprehensive documentation for the Task Master branch a
 - **`BRANCH_ALIGNMENT_SYSTEM.md`** - Detailed implementation and architecture of the alignment framework
 - **`COORDINATION_AGENT_SYSTEM.md`** - Coordination mechanisms and multi-agent workflows
 
-### Coordination Documentation  
+### Coordination Documentation
 - **`MULTI_AGENT_COORDINATION.md`** - Multi-agent coordination features specifically for branch alignment tasks
-- **`TASK_DEPENDENCY_FLOW.md`** - Detailed analysis of task dependencies and coordination flow (coming soon)
+- **`TASK_DEPENDENCY_FLOW.md`** - Detailed analysis of task dependencies and coordination flow
+- **`../QWEN_CODE_CLI_CONFIGURATION.md`** - Complete Qwen Code CLI configuration guide (NEW)
 
 ### Precalculation Patterns
 - **`PRECALCULATION_PATTERNS.md`** - Research findings on external data reference patterns and precalculation approaches
-- **`EXTERNAL_DATA_REFERENCES.md`** - Guidelines for using external files instead of hardcoded values
-
-### Best Practices
-- **`COORDINATION_BEST_PRACTICES.md`** - Recommended practices for multi-agent coordination
-- **`DATA_MANAGEMENT_STRATEGIES.md`** - Strategies for managing external references and precalculated data
+- **`../EXTERNAL_DATA_REFERENCES.md`** - Guidelines for using external files instead of hardcoded values
+- **`../task_data/`** - External data files (branch lists, dependencies, etc.)
 
 ## Key Concepts
 

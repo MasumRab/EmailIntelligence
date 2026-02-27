@@ -112,10 +112,38 @@ venv/
 .venv/
 ENV/
 env/
-.venv/
-env/
-ENV/
-venv/
 
 # ck (seek) semantic search cache
 .ck/
+
+# Agent-generated files
+AMP_*.md
+CASS_*.md
+CK_*.md
+MCP_*.md
+MULTI_AGENT_*.md
+PROJECT_*.md
+QWEN_*.md
+REGRESSION_ANALYSIS.md
+*_COMPLETE.md
+*_REPORT.md
+*_ANALYSIS.md
+*_GUIDE.md
+*_QUICKSTART.md
+*_DISCOVERY*.md
+*_INTEGRATION.md
+*_VERIFICATION.md
+test_mcp_setup.sh
+
+# Agent session files in .qwen
+.qwen/AMP_*.md
+.qwen/CASS_*.md
+.qwen/handoff_*.md
+.qwen/AMP_SESSION_*.md
+.qwen/AMP_TRACKING_*.md
+
+# Reports directory
+reports/
+
+# Task data that should be generated
+task_data/
