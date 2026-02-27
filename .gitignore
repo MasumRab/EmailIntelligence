@@ -172,7 +172,8 @@ worktrees/
 .rulesyncignore
 .cursorignore
 .validation_cache.json
-.emailintelligence/
+#MT|.emailintelligence/
+#TR|.trunk/
 
 # Documentation Whitelists (ensure these are tracked)
 !docs/.gitkeep
