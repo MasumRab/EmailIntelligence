@@ -19,12 +19,11 @@ from typing import Any, Dict, List, Optional
 from .analysis_components.importance_model import ImportanceModel
 
 from backend.python_nlp.text_utils import clean_text
-from transformers import AutoTokenizer, AutoModelForSequenceClassification, pipeline
 
-from .analysis_components.intent_model import IntentModel
-from .analysis_components.sentiment_model import SentimentModel
-from .analysis_components.topic_model import TopicModel
-from .analysis_components.urgency_model import UrgencyModel
+from modules.default_ai_engine.analysis_components.intent_model import IntentModel
+from modules.default_ai_engine.analysis_components.sentiment_model import SentimentModel
+from modules.default_ai_engine.analysis_components.topic_model import TopicModel
+from modules.default_ai_engine.analysis_components.urgency_model import UrgencyModel
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(name)s - %(message)s"
@@ -35,7 +34,7 @@ logger = logging.getLogger(__name__)
 try:
     import nltk
     from textblob import TextBlob
-    from transformers import AutoModelForSequenceClassification, AutoTokenizer
+    from transformers import AutoModelForSequenceClassification, AutoTokenizer, pipeline
 
     HAS_NLTK = True
     HAS_SKLEARN_AND_JOBLIB = True
@@ -68,6 +67,9 @@ def clean_text(text: str) -> str:
 # INTENT_MODEL_PATH = os.path.join(MODEL_DIR, "intent_model.pkl")
 # URGENCY_MODEL_PATH = os.path.join(MODEL_DIR, "urgency_model.pkl")
 
+WORK_AND_BUSINESS = "Work & Business"
+PERSONAL_AND_FAMILY = "Personal & Family"
+
 class NLPEngine:
     """
     Natural Language Processing engine for email analysis.
@@ -84,10 +86,10 @@ class NLPEngine:
     """
 
     CATEGORY_PATTERNS = {
-        "Work & Business": [
-            r"\b(meeting|conference|project|deadline|client|presentation|report|proposal|budget|team|"
+        WORK_AND_BUSINESS: [
+            r"\b(meeting|conference|project|deadline|client|presentation|report|proposal|budget|team|" +
             r"colleague|office|work|business|professional|corporate|company|organization)",
-            r"\b(employee|staff|manager|supervisor|director|executive|department|division|"
+            r"\b(employee|staff|manager|supervisor|director|executive|department|division|" +
             r"quarterly|annual|monthly|weekly|daily)\b",
         ],
         "Finance & Banking": [
@@ -102,10 +104,10 @@ class NLPEngine:
             r"\b(symptoms|diagnosis|patient|specialist|emergency|ambulance|insurance|"
             r"medicare|medicaid|covid|coronavirus|vaccine)\b",
         ],
-        "Personal & Family": [
-            r"\b(family|personal|friend|birthday|anniversary|vacation|holiday|weekend|"
+        PERSONAL_AND_FAMILY: [
+            r"\b(family|personal|friend|birthday|anniversary|vacation|holiday|weekend|" +
             r"dinner|lunch|home|house|kids|children)\b",
-            r"\b(mom|dad|mother|father|sister|brother|grandma|grandpa|wedding|"
+            r"\b(mom|dad|mother|father|sister|brother|grandma|grandpa|wedding|" +
             r"graduation|baby|party|celebration)\b",
         ],
         "Travel": [
@@ -362,7 +364,7 @@ class NLPEngine:
         """
         # Define topic categories and their associated keywords
         topics = {
-            "Work & Business": [
+            WORK_AND_BUSINESS: [
                 "meeting",
                 "conference",
                 "project",
@@ -384,7 +386,7 @@ class NLPEngine:
                 "money",
                 "financial",
             ],
-            "Personal & Family": [
+            PERSONAL_AND_FAMILY: [
                 "family",
                 "personal",
                 "friend",
@@ -897,10 +899,10 @@ class NLPEngine:
         personal_words = ["family", "friend", "personal", "home", "birthday"]
 
         if any(word in text for word in work_words):
-            categories = ["Work & Business"]
+            categories = [WORK_AND_BUSINESS]
             topic = "work_business"
         elif any(word in text for word in personal_words):
-            categories = ["Personal & Family"]
+            categories = [PERSONAL_AND_FAMILY]
             topic = "personal_family"
         else:
             categories = ["General"]
