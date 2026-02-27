@@ -1,9 +1,66 @@
 # Task Master AI - Agent Integration Guide
 
-> **CRITICAL FIDELITY RULE:** 
+> **CRITICAL FIDELITY RULE:**
 > 1. **Markdown-Canonical:** In this project, `tasks/*.md` is the canonical source of truth. DO NOT manually edit `tasks.json`.
 > 2. **Standard Compliance:** All tasks MUST follow the 14-section standard defined in `TASK_STRUCTURE_STANDARD.md`.
 > 3. **Sync Protocol:** Always edit Markdown files first, then run `python taskmaster_cli.py parse-prd --input tasks/` to sync changes into `tasks.json`. The global `tm` commands consume this JSON.
+
+## RTK (Token Optimization) Usage
+
+**See:** [`RTK_USAGE_GUIDE.md`](RTK_USAGE_GUIDE.md) for complete documentation.
+
+### Quick Decision Framework
+
+**✅ USE RTK** (token-safe):
+- Directory exploration: `rtk ls`, `rtk tree`
+- Status checks: `rtk git status`, `rtk docker ps`
+- Passing tests/builds: `rtk test`, `rtk npm run build`
+- Initial reconnaissance: `rtk read`, `rtk smart`, `rtk deps`
+- Format checks: `rtk lint`, `rtk prettier`
+
+**❌ AVOID RTK** (full fidelity required):
+- Debugging failures: use native `pytest -v`, `npm run build`
+- Security audits: use `read_file` tool, native `git diff`
+- Config debugging: use native `cat`, `read_file`
+- API response debugging: use native `curl -v`
+- Test/build failures: use native commands for full stack traces
+- Git conflicts: use native `git diff` for full conflict markers
+
+**⚠️ ESCALATE VERBOSITY** if output is unclear:
+```bash
+rtk -v command     # More verbose
+rtk -vv command    # Even more
+rtk -vvv command   # Maximum detail before going native
+```
+
+**Golden Rule:** When in doubt about information loss, prefer native commands or `read_file` tool. Token savings are never worth incorrect conclusions.
+
+### Common RTK Commands
+
+```bash
+# File & directory
+rtk ls -la                    # Directory listing (70% token savings)
+rtk tree src/                 # Tree view (80% savings)
+rtk read file.py              # Smart file reading
+rtk smart component.tsx       # 2-line technical summary
+
+# Git & GitHub
+rtk git status                # Condensed status
+rtk git log --oneline         # Compact history
+rtk git diff                  # Only changed lines
+rtk gh pr list                # PR list, optimized
+
+# Development
+rtk test                      # Only failures shown (98% savings when passing)
+rtk npm run build             # Filtered build output
+rtk lint                      # Grouped violations
+rtk deps                      # Project dependencies
+
+# Analysis
+rtk grep "pattern" src/       # Compact grep, grouped by file
+rtk json config.json          # JSON structure without values
+rtk err command               # Run command, show only errors
+```
 
 ## Essential Commands
 
@@ -92,20 +149,21 @@ Task Master provides an MCP server that Claude Code can connect to. Configure in
       "command": "npx",
       "args": ["-y", "task-master-ai"],
       "env": {
-        "ANTHROPIC_API_KEY": "your_key_here",
-        "PERPLEXITY_API_KEY": "your_key_here",
-        "OPENAI_API_KEY": "OPENAI_API_KEY_HERE",
-        "GOOGLE_API_KEY": "GOOGLE_API_KEY_HERE",
-        "XAI_API_KEY": "XAI_API_KEY_HERE",
-        "OPENROUTER_API_KEY": "OPENROUTER_API_KEY_HERE",
-        "MISTRAL_API_KEY": "MISTRAL_API_KEY_HERE",
-        "AZURE_OPENAI_API_KEY": "AZURE_OPENAI_API_KEY_HERE",
-        "OLLAMA_API_KEY": "OLLAMA_API_KEY_HERE"
+        "ANTHROPIC_API_KEY": "${ANTHROPIC_API_KEY}",
+        "PERPLEXITY_API_KEY": "${PERPLEXITY_API_KEY}",
+        "OPENAI_API_KEY": "${OPENAI_API_KEY}",
+        "GOOGLE_API_KEY": "${GOOGLE_API_KEY}",
+        "XAI_API_KEY": "${XAI_API_KEY}",
+        "OPENROUTER_API_KEY": "${OPENROUTER_API_KEY}",
+        "MISTRAL_API_KEY": "${MISTRAL_API_KEY}",
+        "AZURE_OPENAI_API_KEY": "${AZURE_OPENAI_API_KEY}",
+        "OLLAMA_API_KEY": "${OLLAMA_API_KEY}"
       }
     }
   }
 }
 ```
+> ⚠️ **SECURITY WARNING:** Never commit `.mcp.json` with real API keys. Use environment variables.
 
 ### Essential MCP Tools
 
