@@ -225,3 +225,4 @@ cognee-AGENTS.md
 config.local.*
 # ck (seek) semantic search cache
 .ck/
+.env.local
