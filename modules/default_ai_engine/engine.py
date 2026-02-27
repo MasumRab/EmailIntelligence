@@ -5,7 +5,7 @@ from typing import Any, Dict, List, Optional
 from src.core.ai_engine import AIAnalysisResult, BaseAIEngine
 
 # Module-specific components
-from backend.python_nlp.nlp_engine import NLPEngine
+import backend.python_nlp.nlp_engine
 
 logger = logging.getLogger(__name__)
 
@@ -16,7 +16,7 @@ class DefaultAIEngine(BaseAIEngine):
     """
 
     def __init__(self):
-        self.nlp_engine = NLPEngine()
+        self.nlp_engine = backend.python_nlp.nlp_engine.NLPEngine()
         self.category_lookup_map: Dict[str, Dict[str, Any]] = {}
 
     def initialize(self):
