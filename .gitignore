@@ -185,3 +185,4 @@ worktrees/
 
 # ck (seek) semantic search cache
 .ck/
+.trunk/
