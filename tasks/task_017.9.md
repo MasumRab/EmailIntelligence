@@ -127,9 +127,6 @@ class ValidationIntegrationFramework:
 
 ---
 
-## Implementation Guide
-
-
 ## Configuration Parameters
 
 - **Owner**: TBD

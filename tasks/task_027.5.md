@@ -156,9 +156,6 @@ class FutureDevelopmentRoadmap:
 
 ---
 
-## Implementation Guide
-
-
 ## Configuration Parameters
 
 - **Owner**: TBD

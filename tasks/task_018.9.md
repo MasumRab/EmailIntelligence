@@ -147,9 +147,6 @@ class E2ETestingReporting:
 
 ---
 
-## Implementation Guide
-
-
 ## Configuration Parameters
 
 - **Owner**: TBD

@@ -145,9 +145,6 @@ class ImprovementsEnhancementsFramework:
 
 ---
 
-## Implementation Guide
-
-
 ## Configuration Parameters
 
 - **Owner**: TBD

@@ -152,9 +152,6 @@ class OptimizationPerformanceTuning:
 
 ---
 
-## Implementation Guide
-
-
 ## Configuration Parameters
 
 - **Owner**: TBD

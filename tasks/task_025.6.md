@@ -151,9 +151,6 @@ class ScalingAdvancedFeatures:
 
 ---
 
-## Implementation Guide
-
-
 ## Configuration Parameters
 
 - **Owner**: TBD

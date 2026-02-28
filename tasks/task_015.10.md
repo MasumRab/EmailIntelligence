@@ -129,9 +129,6 @@ class ValidationVerificationFramework:
 
 ---
 
-## Implementation Guide
-
-
 ## Configuration Parameters
 
 - **Owner**: TBD

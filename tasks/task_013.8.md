@@ -108,9 +108,6 @@ class BranchBackupManager:
 
 ---
 
-## Implementation Guide
-
-
 ## Configuration Parameters
 
 - **Owner**: TBD

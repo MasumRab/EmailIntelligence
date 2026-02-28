@@ -123,9 +123,6 @@ class RollbackRecoveryMechanisms:
 
 ---
 
-## Implementation Guide
-
-
 ## Configuration Parameters
 
 - **Owner**: TBD

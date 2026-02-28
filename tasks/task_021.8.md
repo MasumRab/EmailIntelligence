@@ -147,9 +147,6 @@ class MaintenanceMonitoringFramework:
 
 ---
 
-## Implementation Guide
-
-
 ## Configuration Parameters
 
 - **Owner**: TBD

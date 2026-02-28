@@ -117,9 +117,6 @@ class ConflictDetectionResolver:
 
 ---
 
-## Implementation Guide
-
-
 ## Configuration Parameters
 
 - **Owner**: TBD

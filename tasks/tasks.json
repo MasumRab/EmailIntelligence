@@ -1,9 +1,9 @@
 {
   "master": {
-    "name": "EmailIntelligence Task Master",
+    "name": "Branch Alignment Tooling",
     "version": "2.0.0",
-    "description": "Option C restructured tasks with +3 shift",
-    "lastUpdated": "2026-01-29T00:00:00Z",
+    "description": "Git branch clustering, merge automation, and validation framework",
+    "lastUpdated": "2026-02-27T00:00:00Z",
     "tasks": [
       {
         "id": "001",

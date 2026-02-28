@@ -133,9 +133,6 @@ class DocumentationKnowledgeManagement:
 
 ---
 
-## Implementation Guide
-
-
 ## Configuration Parameters
 
 - **Owner**: TBD
