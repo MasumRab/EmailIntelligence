@@ -1,6 +1,7 @@
 import os
 import sys
 import subprocess
+import shutil
 import requests
 import re
 from pathlib import Path
@@ -22,7 +23,7 @@ def get_repository():
     try:
         # Fallback to git config safely
         result = subprocess.run(
-            ["git", "config", "--get", "remote.origin.url"],
+            [shutil.which("git") or "git", "config", "--get", "remote.origin.url"],
             capture_output=True,
             text=True,
             check=True

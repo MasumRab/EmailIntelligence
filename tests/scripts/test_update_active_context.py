@@ -24,7 +24,10 @@ class TestUpdateActiveContext(unittest.TestCase):
         mock_run.return_value = mock_result
 
         self.assertEqual(get_repository(), "gitowner/gitrepo")
-        mock_run.assert_called_once_with(["git", "config", "--get", "remote.origin.url"], capture_output=True, text=True, check=True)
+        mock_run.assert_called_once()
+        called_args = mock_run.call_args[0][0]
+        self.assertTrue(called_args[0].endswith("git"))
+        self.assertEqual(called_args[1:], ["config", "--get", "remote.origin.url"])
 
     @patch.dict(os.environ, {}, clear=True)
     @patch("subprocess.run")
