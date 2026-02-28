@@ -62,9 +62,7 @@ logs/
 config.local.*
 config/llm_guidelines.local.json
 
-<<<<<<< HEAD
-# Ignore hidden files and directories, with exceptions
-.*
+# Hidden files and directories, with exceptions
 !docs/.gitkeep
 !.semgrep/
 !.gitignore
@@ -73,8 +71,6 @@ config/llm_guidelines.local.json
 !.pylintrc
 !.github/
 
-=======
->>>>>>> f90d40dbbd2563cd1501dbad55242370fca561f2
 # Python cache
 __pycache__/
 
@@ -101,3 +97,4 @@ original_readme.md
 .python-version
 .ruby-version
 .tool-versions
+" 
