@@ -59,13 +59,30 @@ logs/
 config.local.*
 config/llm_guidelines.local.json
 
-<<<<<<< HEAD
+# Hidden files/directories (exceptions below)
+.aider.tags.cache.v4/
+.aider.chat.history.md
+.aider.conf.yml
+.aider.input.history
+.curl/
+.npm/
+.npm-*
+.python-version
+.ruby-version
+.tool-versions
+
 # Ignore hidden files and directories, with exceptions
 .*
 !docs/.gitkeep
 !.semgrep/
 !.gitignore
-!.git/hooks/
+!.pre-commit-config.yaml
+!.prettierrc.json
+!.eslintrc.json
+!.github/
+!.github/workflows/
+!client/.eslintrc.json
+!/server/.eslintrc.json
 
 # Python cache
 __pycache__/
@@ -82,15 +99,3 @@ worktrees/
 backlog/config.yml.bak
 original_readme.md
 scripts/hooks/
-
-# Hidden files/directories (exceptions below)
-.aider.tags.cache.v4/
-.aider.chat.history.md
-.aider.conf.yml
-.aider.input.history
-.curl/
-.npm/
-.npm-*
-.python-version
-.ruby-version
-.tool-versions
