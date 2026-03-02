@@ -352,7 +352,8 @@ class DatabaseManager(DataSource):
 
         try:
             with gzip.open(file_path, "wt", encoding="utf-8") as f:
-                dump_func = partial(json.dump, data_to_save, f, indent=4)
+                # Optimized: Use compact JSON separators for faster serialization and smaller files
+                dump_func = partial(json.dump, data_to_save, f, separators=(',', ':'))
                 await asyncio.to_thread(dump_func)
             logger.info(f"Persisted {len(data_to_save)} items to compressed file: {file_path}")
         except IOError as e:
@@ -685,7 +686,8 @@ class DatabaseManager(DataSource):
             content_path = self._get_email_content_path(email_id)
             try:
                 with gzip.open(content_path, "wt", encoding="utf-8") as f:
-                    dump_func = partial(json.dump, heavy_data, f, indent=4)
+                    # Optimized: Use compact JSON separators for faster serialization and smaller files
+                    dump_func = partial(json.dump, heavy_data, f, separators=(',', ':'))
                     await asyncio.to_thread(dump_func)
             except IOError as e:
                 logger.error(f"Error updating heavy content for email {email_id}: {e}")
@@ -864,7 +866,8 @@ class DatabaseManager(DataSource):
         content_path = self._get_email_content_path(email_id)
         try:
             with gzip.open(content_path, "wt", encoding="utf-8") as f:
-                dump_func = partial(json.dump, heavy_data, f, indent=4)
+                # Optimized: Use compact JSON separators for faster serialization and smaller files
+                dump_func = partial(json.dump, heavy_data, f, separators=(',', ':'))
                 await asyncio.to_thread(dump_func)
 
             # Update content availability index
