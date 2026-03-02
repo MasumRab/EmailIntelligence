@@ -17,20 +17,20 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 # Constitutional Engine integration
-from src.resolution import ConstitutionalEngine
+from resolution import ConstitutionalEngine
 
 # Git Operations integration
-from src.git.conflict_detector import GitConflictDetector
-from src.core.conflict_models import Conflict, ConflictBlock, ConflictTypeExtended, RiskLevel
-from src.analysis.conflict_analyzer import ConflictAnalyzer
+from git.conflict_detector import GitConflictDetector
+from core.conflict_models import Conflict, ConflictBlock, ConflictTypeExtended, RiskLevel
+from analysis.conflict_analyzer import ConflictAnalyzer
 
 # Additional imports for interface-based architecture
-from src.analysis.constitutional.analyzer import ConstitutionalAnalyzer
-from src.resolution.auto_resolver import AutoResolver
-from src.resolution.semantic_merger import SemanticMerger
-from src.strategy.generator import StrategyGenerator
-from src.strategy.risk_assessor import RiskAssessor
-from src.validation.validator import Validator
+from analysis.constitutional.analyzer import ConstitutionalAnalyzer
+from resolution.auto_resolver import AutoResolver
+from resolution.semantic_merger import SemanticMerger
+from strategy.generator import StrategyGenerator
+from strategy.risk_assessor import RiskAssessor
+from validation.validator import Validator
 
 try:
     import yaml
@@ -1789,7 +1789,7 @@ class EmailIntelligenceCLI:
                 'risk_assessment': strategy.risk_assessment
             }
 
-        from src.core.conflict_models import ResolutionPlan, ValidationResult
+        from core.conflict_models import ResolutionPlan, ValidationResult
         validation_result = ValidationResult(
             is_valid=True,
             errors=[],
@@ -1817,7 +1817,7 @@ class EmailIntelligenceCLI:
 
     def _convert_metadata_to_conflicts(self, metadata_conflicts: List[Dict[str, Any]]) -> List[Conflict]:
         """Convert metadata conflict format to Conflict objects"""
-        from src.core.conflict_models import Conflict, ConflictBlock, ConflictTypeExtended, RiskLevel
+        from core.conflict_models import Conflict, ConflictBlock, ConflictTypeExtended, RiskLevel
 
         conflicts = []
         for meta_conflict in metadata_conflicts:

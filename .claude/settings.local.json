@@ -3,5 +3,9 @@
     "deny": [
       "Read(credentials/)"
     ]
-  }
+  },
+  "enabledMcpjsonServers": [
+    "task-master-ai"
+  ],
+  "enableAllProjectMcpServers": true
 }
