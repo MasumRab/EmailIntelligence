@@ -92,7 +92,13 @@ dev = [
     "pytest-cov>=6.0.0",
     "pytest-asyncio>=1.2.0",
 
-    # Code quality
+    # Code quality - Ruff (fast Python linter/formatter)
+    "ruff>=0.9.0",
+
+    # Security scanning
+    "bandit>=1.8.0",
+
+    # Legacy tools (still used in CI)
     "black>=25.1.0",
     "flake8>=7.2.0",
     "isort>=6.0.1",
