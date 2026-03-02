@@ -1,3 +1,7 @@
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
+import os
+from pathlib import Path
 import configparser
 configparser.SafeConfigParser = configparser.ConfigParser
 
@@ -14,6 +18,7 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, RedirectResponse
 from pydantic import ValidationError
+from .core.middleware import SecurityMiddleware, SecurityHeadersMiddleware
 from .core.module_manager import ModuleManager
 from .core.middleware import create_security_middleware, create_security_headers_middleware
 from .core.audit_logger import audit_logger, AuditEventType, AuditSeverity
@@ -583,8 +588,8 @@ def create_app():
     )
 
     # Add comprehensive security middleware
-    app.add_middleware(create_security_middleware(app))
-    app.add_middleware(create_security_headers_middleware(app))
+    app.add_middleware(SecurityMiddleware)
+    app.add_middleware(SecurityHeadersMiddleware)
 
     # Add security headers middleware (additional layer)
     @app.middleware("http")
@@ -620,10 +625,6 @@ def create_app():
             content={"detail": "Internal server error", "message": "An unexpected error occurred"},
         )
 
-    @app.get("/")
-    async def root():
-        """Redirect root to Gradio UI."""
-        return RedirectResponse(url="/ui")
 
     # Create the main Gradio UI as a placeholder
     # Modules will add their own tabs and components to this.
@@ -696,6 +697,60 @@ def create_app():
     # This makes the UI accessible at the '/ui' endpoint
     gr.mount_gradio_app(app, gradio_app, path="/ui")
 
+
+    # Serve React Frontend if build exists
+    static_dir = os.path.join(os.getcwd(), "static", "dist")
+    if os.path.exists(static_dir):
+        logger.info(f"Serving static files from {static_dir}")
+
+        # Mount assets
+        assets_dir = os.path.join(static_dir, "assets")
+        if os.path.exists(assets_dir):
+            app.mount("/assets", StaticFiles(directory=assets_dir), name="assets")
+
+        # Serve index.html at root
+        @app.get("/")
+        async def root():
+            return FileResponse(os.path.join(static_dir, "index.html"))
+
+        # Catch-all for SPA routing (excluding API and UI)
+        # Catch-all for SPA routing (excluding API and UI)
+        # Catch-all for SPA routing (excluding API and UI)
+        @app.get("/{full_path:path}")
+        async def catch_all(full_path: str):
+            if full_path.startswith("api") or full_path.startswith("ui"):
+                raise HTTPException(status_code=404, detail="Not found")
+
+            # Secure path handling using pathlib
+            static_path = Path(static_dir).resolve()
+
+            # Prevent directory traversal
+            try:
+                # Resolve the requested path relative to static_dir
+                # lstrip('/') ensures it's treated as relative
+                requested_path = (static_path / full_path.lstrip('/')).resolve()
+
+                # Verify the resolved path is still within static_dir
+                if not requested_path.is_relative_to(static_path):
+                    raise HTTPException(status_code=403, detail="Access denied")
+
+                # Check if file exists and is a file
+                if requested_path.exists() and requested_path.is_file():
+                    return FileResponse(str(requested_path))
+
+                # Otherwise return index.html for SPA
+                index_path = static_path / "index.html"
+                return FileResponse(str(index_path))
+
+            except Exception as e:
+                logger.warning(f"Static file access error: {e}")
+                raise HTTPException(status_code=403, detail="Access denied")
+    else:
+        logger.warning("Static build directory not found. Serving default redirect.")
+        @app.get("/")
+        async def root():
+            """Redirect root to Gradio UI."""
+            return RedirectResponse(url="/ui")
     logger.info("Application creation complete. FastAPI and Gradio are integrated.")
     return app
 
