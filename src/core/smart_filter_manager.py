@@ -679,7 +679,7 @@ class SmartFilterManager:
 
         # Update cache
         cache_key = f"filter_{filter_obj.filter_id}"
-        await self.caching_manager.set(cache_key, filter_obj)
+        self.caching_manager.set(cache_key, filter_obj)
 
     @log_performance(operation="get_active_filters_sorted")
     async def get_active_filters_sorted(self) -> List[EmailFilter]:
@@ -688,7 +688,7 @@ class SmartFilterManager:
 
         # Check cache first
         cache_key = "active_filters_sorted"
-        cached_result = await self.caching_manager.get(cache_key)
+        cached_result = self.caching_manager.get(cache_key)
         if cached_result is not None:
             return cached_result
 
@@ -715,7 +715,7 @@ class SmartFilterManager:
         ]
 
         # Cache the result
-        await self.caching_manager.set(cache_key, filters)
+        self.caching_manager.set(cache_key, filters)
 
         return filters
 
@@ -810,8 +810,9 @@ class SmartFilterManager:
         current_time = datetime.now(timezone.utc).isoformat()
         self._db_execute(update_query, (current_time, filter_id))
 
-        # Invalidate cache for active filters
-        await self.caching_manager.delete("active_filters_sorted")
+        # Optimization: Do NOT invalidate active_filters_sorted cache here.
+        # This prevents N+1 cache invalidation and DB refetch loops during batch processing.
+        # The usage_count stats in the cache will be slightly stale, which is acceptable for performance.
 
     async def _batch_update_filter_usage(self, filters: List[EmailFilter]):
         """
@@ -860,7 +861,7 @@ class SmartFilterManager:
 
         # Check cache first
         cache_key = f"filter_{filter_id}"
-        cached_result = await self.caching_manager.get(cache_key)
+        cached_result = self.caching_manager.get(cache_key)
         if cached_result is not None:
             return cached_result
 
@@ -888,7 +889,7 @@ class SmartFilterManager:
         )
 
         # Cache the result
-        await self.caching_manager.set(cache_key, filter_obj)
+        self.caching_manager.set(cache_key, filter_obj)
 
         return filter_obj
 
@@ -911,8 +912,8 @@ class SmartFilterManager:
         await self._save_filter_async(existing_filter)
 
         # Invalidate cache
-        await self.caching_manager.delete(f"filter_{filter_id}")
-        await self.caching_manager.delete("active_filters_sorted")
+        self.caching_manager.delete(f"filter_{filter_id}")
+        self.caching_manager.delete("active_filters_sorted")
 
         return True
 
@@ -925,8 +926,8 @@ class SmartFilterManager:
         self._db_execute(update_query, (is_active, filter_id))
 
         # Invalidate cache
-        await self.caching_manager.delete(f"filter_{filter_id}")
-        await self.caching_manager.delete("active_filters_sorted")
+        self.caching_manager.delete(f"filter_{filter_id}")
+        self.caching_manager.delete("active_filters_sorted")
 
         return True
 
@@ -943,8 +944,8 @@ class SmartFilterManager:
         self._db_execute(delete_perf_query, (filter_id,))
 
         # Invalidate cache
-        await self.caching_manager.delete(f"filter_{filter_id}")
-        await self.caching_manager.delete("active_filters_sorted")
+        self.caching_manager.delete(f"filter_{filter_id}")
+        self.caching_manager.delete("active_filters_sorted")
 
         return True
 
