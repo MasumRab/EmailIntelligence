@@ -713,7 +713,10 @@ class DatabaseManager(DataSource):
             f"Starting email search for term: '{search_term_lower}'. Using optimized index."
         )
 
-        for email_light in self.emails_data:
+        # Iterate backwards through emails since we only need the most recent ones
+        # and self.emails_data is stored chronologically.
+        # This allows us to early exit once we've found enough results, avoiding O(N) disk I/O.
+        for email_light in reversed(self.emails_data):
             email_id = email_light.get(FIELD_ID)
 
             # Use pre-computed search text if available
@@ -730,6 +733,8 @@ class DatabaseManager(DataSource):
 
             if found_in_light:
                 filtered_emails.append(email_light)
+                if len(filtered_emails) >= limit:
+                    break
                 continue
 
             # Content search (slow path)
@@ -741,6 +746,8 @@ class DatabaseManager(DataSource):
                         content = heavy_data.get(FIELD_CONTENT, "")
                         if isinstance(content, str) and search_term_lower in content.lower():
                             filtered_emails.append(email_light)
+                            if len(filtered_emails) >= limit:
+                                break
                 except (IOError, json.JSONDecodeError) as e:
                     logger.error(f"Could not search content for email {email_id}: {e}")
 
