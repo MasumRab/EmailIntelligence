@@ -5,14 +5,14 @@ import sys
 import argparse
 
 def inject_markers(commit):
-    # Detect EmailIntelligence repo root
-    repo_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..", "EmailIntelligence"))
-    if not os.path.exists(repo_dir):
-        repo_dir = os.path.expanduser("~/github/EmailIntelligence")
-    
-    if not os.path.exists(repo_dir):
-        print(f"Error: EmailIntelligence repo not found at {repo_dir}")
+    # Detect repository root automatically from CWD
+    try:
+        repo_dir = subprocess.run(["git", "rev-parse", "--show-toplevel"], 
+                                  capture_output=True, text=True, check=True).stdout.strip()
+    except subprocess.CalledProcessError:
+        print("Error: Current directory is not part of a git repository.")
         sys.exit(1)
+
     os.chdir(repo_dir)
 
     base = subprocess.run(["git", "merge-base", "HEAD", commit], capture_output=True, text=True).stdout.strip()

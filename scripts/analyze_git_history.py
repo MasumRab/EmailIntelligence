@@ -7,15 +7,17 @@ import os
 import sys
 
 def analyze_git_history(commit_range, verbose=False):
-    # Detect EmailIntelligence repo root
-    repo_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..", "EmailIntelligence"))
-    if not os.path.exists(repo_path):
-        # Fallback to finding it in ~/github
-        repo_path = os.path.expanduser("~/github/EmailIntelligence")
-    
-    if not os.path.exists(os.path.join(repo_path, ".git")):
-        print(f"Error: Could not find EmailIntelligence repository at {repo_path}")
+    # Detect repository root automatically from CWD
+    try:
+        repo_path = subprocess.run(["git", "rev-parse", "--show-toplevel"], 
+                                   capture_output=True, text=True, check=True).stdout.strip()
+    except subprocess.CalledProcessError:
+        print("Error: Current directory is not part of a git repository.")
         return
+
+    # Verify context (looking for EmailIntelligence markers or just confirming repo)
+    if not any(marker in repo_path for marker in ["EmailIntelligence", "scientific", "orchestration"]):
+         print(f"Warning: Repository path '{repo_path}' does not contain 'EmailIntelligence'. Proceeding with analysis anyway...")
 
     cmd = ["git", "-C", repo_path, "log", "--no-merges", "--format=%s", commit_range]
     result = subprocess.run(cmd, capture_output=True, text=True)
