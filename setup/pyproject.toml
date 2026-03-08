@@ -1,10 +1,6 @@
 # EmailIntelligence - Optimized Dependencies for System-Managed Python
 # Conditional dependencies to minimize unnecessary downloads
 
-[[tool.uv.index]]
-name = "pytorch-cpu"
-url = "https://download.pytorch.org/whl/cpu"
-
 [project]
 name = "emailintelligence"
 version = "0.2.0"
@@ -40,7 +36,7 @@ dependencies = [
 
     # Compatibility fixes
     # markupsafe 3.0.2 lacks wheels for Python 3.11/3.12 on some platforms
-    "markupsafe<3.0.0",
+    "markupsafe<3.0.0"
 ]
 
 [project.optional-dependencies]
@@ -133,3 +129,7 @@ include-package-data = false
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
