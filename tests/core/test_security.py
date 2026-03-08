@@ -198,3 +198,57 @@ class TestDataMigrationSecurity:
         # Should exit with error due to unsafe path
         assert result.returncode == 1
         assert "Unsafe data directory path" in result.stderr
+
+
+class TestDataSanitizer:
+    """Test DataSanitizer security functions."""
+
+    def test_sanitize_input_xss(self):
+        """Test that input sanitization prevents XSS."""
+        from src.core.security import DataSanitizer
+
+        # Test various XSS vectors
+        vectors = [
+            "<script>alert(1)</script>",
+            "<img src=x onerror=alert(1)>",
+            "<a href='javascript:alert(1)'>Click me</a>",
+            "foo<script>bar",
+        ]
+
+        for vector in vectors:
+            sanitized = DataSanitizer.sanitize_input(vector)
+            # Should not contain raw tags
+            assert "<" not in sanitized
+            assert ">" not in sanitized
+            # Should be escaped
+            assert "&lt;" in sanitized
+            assert "&gt;" in sanitized
+
+    def test_sanitize_input_plain_text(self):
+        """Test that plain text is preserved (mostly)."""
+        from src.core.security import DataSanitizer
+
+        text = "Hello World"
+        assert DataSanitizer.sanitize_input(text) == text
+
+        # Quotes are escaped by html.escape
+        text_with_quotes = 'Hello "World"'
+        sanitized = DataSanitizer.sanitize_input(text_with_quotes)
+        assert sanitized == 'Hello &quot;World&quot;'
+
+    def test_sanitize_recursive(self):
+        """Test recursive sanitization of dicts and lists."""
+        from src.core.security import DataSanitizer
+
+        data = {
+            "key1": "<script>",
+            "key2": ["<img>", "safe"],
+            "key3": {"nested": "<object>"}
+        }
+
+        sanitized = DataSanitizer.sanitize_input(data)
+
+        assert sanitized["key1"] == "&lt;script&gt;"
+        assert sanitized["key2"][0] == "&lt;img&gt;"
+        assert sanitized["key2"][1] == "safe"
+        assert sanitized["key3"]["nested"] == "&lt;object&gt;"
