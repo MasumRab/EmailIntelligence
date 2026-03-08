@@ -6,9 +6,15 @@ import argparse
 import os
 import sys
 
-def analyze_git_history(repo_path, commit_range, verbose=False):
+def analyze_git_history(commit_range, verbose=False):
+    # Detect EmailIntelligence repo root
+    repo_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..", "EmailIntelligence"))
+    if not os.path.exists(repo_path):
+        # Fallback to finding it in ~/github
+        repo_path = os.path.expanduser("~/github/EmailIntelligence")
+    
     if not os.path.exists(os.path.join(repo_path, ".git")):
-        print(f"Error: {repo_path} is not a git repository.")
+        print(f"Error: Could not find EmailIntelligence repository at {repo_path}")
         return
 
     cmd = ["git", "-C", repo_path, "log", "--no-merges", "--format=%s", commit_range]
@@ -59,7 +65,7 @@ def analyze_git_history(repo_path, commit_range, verbose=False):
             if 'feat:' in lower_commit or 'fix:' in lower_commit or 'implement' in lower_commit:
                 categories['Other Features & Fixes'].append(commit)
 
-    print(f"=== Substantive Code Changes in {repo_path} ({commit_range}) ===\n")
+    print(f"=== Substantive Code Changes in EmailIntelligence ({commit_range}) ===\n")
 
     for cat, items in sorted(categories.items()):
         print(f"## {cat} ({len(items)} commits)")
@@ -71,10 +77,9 @@ def analyze_git_history(repo_path, commit_range, verbose=False):
         print()
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Categorize git commit history while filtering orchestration noise.")
-    parser.add_argument("--repo", default=".", help="Path to the git repository (default: current directory)")
+    parser = argparse.ArgumentParser(description="Categorize EmailIntelligence git history and filter orchestration noise.")
     parser.add_argument("--range", default="origin/main..HEAD", help="Commit range (default: origin/main..HEAD)")
     parser.add_argument("--verbose", action="store_true", help="Show all commits in each category")
     
     args = parser.parse_args()
-    analyze_git_history(os.path.abspath(args.repo), args.range, args.verbose)
+    analyze_git_history(args.range, args.verbose)

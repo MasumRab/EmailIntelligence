@@ -4,9 +4,14 @@ import os
 import sys
 import argparse
 
-def inject_markers(commit, repo_dir):
+def inject_markers(commit):
+    # Detect EmailIntelligence repo root
+    repo_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..", "EmailIntelligence"))
     if not os.path.exists(repo_dir):
-        print(f"Error: {repo_dir} not found.")
+        repo_dir = os.path.expanduser("~/github/EmailIntelligence")
+    
+    if not os.path.exists(repo_dir):
+        print(f"Error: EmailIntelligence repo not found at {repo_dir}")
         sys.exit(1)
     os.chdir(repo_dir)
 
@@ -43,8 +48,7 @@ def inject_markers(commit, repo_dir):
     print(f"\nSuccessfully processed {count} files.")
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Inject 3-way conflict markers into modified files.")
+    parser = argparse.ArgumentParser(description="Inject 3-way conflict markers for EmailIntelligence.")
     parser.add_argument("commit", help="Commit to compare against")
-    parser.add_argument("--repo", default=".", help="Repo path")
     args = parser.parse_args()
-    inject_markers(args.commit, os.path.abspath(args.repo))
+    inject_markers(args.commit)

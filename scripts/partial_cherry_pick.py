@@ -4,9 +4,14 @@ import os
 import sys
 import argparse
 
-def partial_cherry_pick(commit, repo_dir):
+def partial_cherry_pick(commit):
+    # Detect EmailIntelligence repo root
+    repo_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..", "EmailIntelligence"))
     if not os.path.exists(repo_dir):
-        print(f"Error: {repo_dir} not found.")
+        repo_dir = os.path.expanduser("~/github/EmailIntelligence")
+    
+    if not os.path.exists(repo_dir):
+        print(f"Error: EmailIntelligence repo not found at {repo_dir}")
         sys.exit(1)
 
     os.chdir(repo_dir)
@@ -84,8 +89,7 @@ def partial_cherry_pick(commit, repo_dir):
     print(f"Conflicts: {len(failed_mods)}")
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Selective cherry-pick that skips conflicts.")
+    parser = argparse.ArgumentParser(description="Selective cherry-pick for EmailIntelligence that skips conflicts.")
     parser.add_argument("commit", help="The commit hash to cherry-pick from")
-    parser.add_argument("--repo", default=".", help="Repo path (default: current)")
     args = parser.parse_args()
-    partial_cherry_pick(args.commit, os.path.abspath(args.repo))
+    partial_cherry_pick(args.commit)
