@@ -732,13 +732,39 @@ class SmartFilterManager:
             WHERE filter_id IN ({placeholders})
         """
 
-        current_time = datetime.now(timezone.utc).isoformat()
-        params = [current_time] + filter_ids
+        current_datetime = datetime.now(timezone.utc)
+        current_time_iso = current_datetime.isoformat()
+        params = [current_time_iso] + filter_ids
 
         self._db_execute(update_query, tuple(params))
 
-        # Invalidate cache for active filters
-        await self.caching_manager.delete("active_filters_sorted")
+        # Fire and forget cache invalidation asynchronously.
+        # Using a background task here is acceptable because cache invalidation
+        # is a fast operation and we don't strictly need to block on it,
+        # but we must retain a reference to the task to prevent garbage collection.
+        if not hasattr(self, '_background_tasks'):
+            self._background_tasks = set()
+
+        async def _invalidate_cache():
+            try:
+                await self.caching_manager.delete("active_filters_sorted")
+                for filter_id in filter_ids:
+                    cache_key = f"filter_{filter_id}"
+                    await self.caching_manager.delete(cache_key)
+            except Exception as e:
+                self.logger.error(f"Failed to invalidate cache in background task: {e}")
+
+        def _on_task_done(t):
+            self._background_tasks.discard(t)
+            try:
+                t.result() # Retrieve any unhandled exceptions to prevent asyncio warnings
+            except Exception as e:
+                self.logger.error(f"Background cache invalidation task failed: {e}")
+
+        loop = asyncio.get_running_loop()
+        task = loop.create_task(_invalidate_cache())
+        self._background_tasks.add(task)
+        task.add_done_callback(_on_task_done)
 
     async def _update_filter_usage(self, filter_id: str):
         """Updates the usage statistics for a filter."""

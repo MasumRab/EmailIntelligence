@@ -60,6 +60,11 @@ async def test_apply_filters_to_email_optimized_behavior():
         email_data = {"subject": "This is a test email"}
         await manager.apply_filters_to_email(email_data)
 
+        # Deterministically wait for background tasks to finish
+        import asyncio
+        if hasattr(manager, '_background_tasks') and manager._background_tasks:
+            await asyncio.gather(*manager._background_tasks)
+
         # Verification
 
         # Identify calls that update usage stats
