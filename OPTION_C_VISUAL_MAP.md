@@ -20,14 +20,14 @@ This section reflects the current task files (001-028) as they exist now. It is 
 | 006 | Implement Robust Branch Backup and Restore Mechanism | 004 | None listed |
 | 007 | Develop Feature Branch Identification and Categorization Tool | 004 | None listed |
 | 008 | Create Comprehensive Merge Validation Framework | None | `backlog/tasks/alignment/create-merge-validation-framework.md`, `validation_framework_design.md`, `.github/workflows/merge-validation.yml`, `requirements.txt`, `.github/workflows/ci.yml` (+1 more) |
-| 009 | Core Multistage Primary-to-Feature Branch Alignment | 004, 006, 007, 012, 013, 014, 015, 022 | `config/task_009_alignment_orchestration.yaml` |
-| 010 | Implement Multilevel Strategies for Complex Branches | 005, 009, 013, 014, 015, 016, 022 | None listed |
+| 009 | Core Multistage Primary-to-Feature Branch Alignment | 004, 006, 007 | `config/task_009_alignment_orchestration.yaml` |
+| 010 | Implement Multilevel Strategies for Complex Branches | 005, 009 | None listed |
 | 011 | Integrate Validation Framework into Multistage Alignment Workflow | 005, 009, 010 | `validation_framework_design.md`, `validation_config.yaml` |
-| 012 | Orchestrate Sequential Branch Alignment Workflow | 007, 008, 009, 010, 011, 022 | `CHANGES_SUMMARY.md`, `README.md` |
-| 013 | Branch Backup and Safety | 006, 022 | `config/task_013_backup_safety.yaml` |
+| 012 | Orchestrate Sequential Branch Alignment Workflow | 007, 008, 009, 010, 011 | `CHANGES_SUMMARY.md`, `README.md` |
+| 013 | Branch Backup and Safety | 006 | `config/task_013_backup_safety.yaml` |
 | 014 | Conflict Detection and Resolution | 010, 013 | `config/task_014_conflict_resolution.yaml` |
 | 015 | Validation and Verification | 005, 010, 014 | `CHANGES_SUMMARY.md`, `README.md`, `config/task_015_validation_verification.yaml` |
-| 016 | Rollback and Recovery | 006, 013, 010 | `config/task_016_rollback_recovery.yaml` |
+| 016 | Rollback and Recovery | 006, 013 | `config/task_016_rollback_recovery.yaml` |
 | 017 | Validation Integration Framework | 005, 010, 015 | `config/task_017_validation_integration.yaml` |
 | 018 | End-to-End Testing and Reporting | 010, 017, 016, 015 | `config/task_018_e2e_testing.yaml` |
 | 019 | Deployment and Release Management | 018, 010 | `config/task_019_deployment_management.yaml` |

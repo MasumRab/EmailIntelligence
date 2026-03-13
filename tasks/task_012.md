@@ -4,7 +4,7 @@
 **Priority:** high
 **Effort:** 48-64 hours
 **Complexity:** 8/10
-**Dependencies:** 007, 008, 009, 010, 011, 022
+**Dependencies:** 007, 008, 009, 010, 011
 
 ---
 
@@ -57,7 +57,6 @@ Task 012 is complete when:
 - [ ] Task 009: Core Branch Alignment Logic
 - [ ] Task 010: Complex Branch Alignment Logic
 - [ ] Task 011: Validation Framework
-- [ ] Task 022: Architectural Migration
 
 ### Blocks (What This Task Unblocks)
 - [ ] None specified

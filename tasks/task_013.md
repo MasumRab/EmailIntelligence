@@ -4,7 +4,7 @@
 **Priority:** High
 **Effort:** 48-64 hours
 **Complexity:** 7/10
-**Dependencies:** 006, 022
+**Dependencies:** 006
 
 ---
 
@@ -46,7 +46,6 @@ Task 013 is complete when:
 
 ### Required Before Starting
 - [ ] Task 006 (Backup/restore mechanism) complete
-- [ ] Task 022 (Architectural migration) complete
 - [ ] GitPython or subprocess for git commands available
 - [ ] Test infrastructure in place
 

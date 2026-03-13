@@ -4,7 +4,7 @@
 **Priority:** High
 **Effort:** 28-40 hours
 **Complexity:** 8/10
-**Dependencies:** 004, 006, 007, 012, 013, 014, 015, 022
+**Dependencies:** 004, 006, 007
 
 ---
 
@@ -54,22 +54,20 @@ Task 009 is complete when:
 - [ ] Task 004 (Git operations framework) complete
 - [ ] Task 006 (Backup/restore mechanism) complete
 - [ ] Task 007 (Feature branch identification) complete
-- [ ] Task 012 (Branch backup and safety) complete
-- [ ] Task 013 (Conflict detection and resolution) complete
-- [ ] Task 014 (Validation and verification) complete
-- [ ] Task 015 (Rollback and recovery) complete
-- [ ] Task 022 (Architectural migration) complete
 - [ ] GitPython or subprocess for git commands available
 - [ ] Test infrastructure in place
 
 ### Blocks (What This Task Unblocks)
 - Task 010 (Complex branch alignment)
 - Task 011 (Validation integration)
+- Task 012 (Sequential orchestration)
 
 ### External Dependencies
 - Python 3.8+
 - GitPython or subprocess for git commands
-- Specialized tasks (012, 013, 014, 015)
+
+### Runtime Coordination (not build-time dependencies)
+- Coordinates with Task 013 (backup/safety), 014 (conflict resolution), 015 (validation), 016 (rollback) at runtime via defined interfaces
 
 ---
 

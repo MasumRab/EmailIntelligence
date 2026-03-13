@@ -4,7 +4,7 @@
 **Priority:** High
 **Effort:** 44-60 hours
 **Complexity:** 8/10
-**Dependencies:** 006, 013, 010
+**Dependencies:** 006, 013
 
 ---
 
@@ -47,13 +47,12 @@ Task 016 is complete when:
 ### Required Before Starting
 - [ ] Task 006 (Backup/restore mechanism) complete
 - [ ] Task 013 (Backup and safety) complete
-- [ ] Task 010 (Core alignment logic) defined
 - [ ] GitPython or subprocess for git commands available
 - [ ] Test infrastructure in place
 
 ### Blocks (What This Task Unblocks)
-- Task 010 (Core alignment logic)
-- Task 018 (Validation integration)
+- Task 018 (E2E testing)
+- Provides rollback capability consumed by Task 009/010 at runtime
 
 ### External Dependencies
 - Python 3.8+

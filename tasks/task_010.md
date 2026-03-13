@@ -4,7 +4,7 @@
 **Priority:** medium
 **Effort:** 56-72 hours
 **Complexity:** 8/10
-**Dependencies:** 005, 009, 013, 014, 015, 016, 022
+**Dependencies:** 005, 009
 
 ---
 
@@ -55,20 +55,20 @@ The script should be configurable to define what constitutes a 'complex' branch 
 
 ### Required Before Starting
 - [ ] Task 005: Centralized error detection system
-- [ ] Task 009: Pre-alignment analysis pipeline
-- [ ] Task 013: Backup and safety checks
-- [ ] Task 014: Conflict resolution tools
-- [ ] Task 015: Validation framework
-- [ ] Task 016: Rollback and recovery
-- [ ] Task 022: Core alignment logic
+- [ ] Task 009: Core multistage alignment
 
 ### Blocks (What This Task Unblocks)
-- Tasks that depend on complex branch handling capabilities
+- Task 011 (Validation integration)
+- Task 012 (Sequential orchestration)
+- Tasks 014-022 (downstream safety, quality, and release tasks)
 
 ### External Dependencies
 - Git CLI (rebase, cherry-pick, mergetool, reflog, reset)
 - Visual diff tools (meld, kdiff3, vscode diff — user-configured)
 - Project test framework (pytest)
+
+### Runtime Coordination (not build-time dependencies)
+- Coordinates with Task 013 (backup), 014 (conflict resolution), 015 (validation), 016 (rollback) at runtime
 
 ## Sub-subtasks Breakdown
 

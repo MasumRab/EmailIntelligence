@@ -788,3 +788,77 @@ _This guide ensures Claude Code has immediate access to Task Master's essential 
 - NEVER stop before pushing - that leaves work stranded locally
 - NEVER say "ready to push when you are" - YOU must push
 - If push fails, resolve and retry until it succeeds
+
+<skills_system priority="1">
+
+## Available Skills
+
+<!-- SKILLS_TABLE_START -->
+<usage>
+When users ask you to perform tasks, check if any of the available skills below can help complete the task more effectively. Skills provide specialized capabilities and domain knowledge.
+
+How to use skills:
+- Invoke: Bash("openskills read <skill-name>")
+- The skill content will load with detailed instructions on how to complete the task
+- Base directory provided in output for resolving bundled resources (references/, scripts/, assets/)
+
+Usage notes:
+- Only use skills listed in <available_skills> below
+- Do not invoke a skill that is already loaded in your context
+- Each skill invocation is stateless
+</usage>
+
+<available_skills>
+
+<skill>
+<name>coding-agent</name>
+<description>Run Codex CLI, Claude Code, OpenCode, or Pi Coding Agent via background process for programmatic control.</description>
+<location>global</location>
+</skill>
+
+<skill>
+<name>gemini</name>
+<description>Gemini CLI for one-shot Q&A, summaries, and generation.</description>
+<location>global</location>
+</skill>
+
+<skill>
+<name>tmux</name>
+<description>Remote-control tmux sessions for interactive CLIs by sending keystrokes and scraping pane output.</description>
+<location>global</location>
+</skill>
+
+<skill>
+<name>cass</name>
+<description>"Coding Agent Session Search - unified CLI/TUI to index and search local coding agent history from Claude Code, Codex, Gemini, Cursor, Aider, ChatGPT, Pi-Agent, Factory, and more. Purpose-built for AI agent consumption with robot mode."</description>
+<location>global</location>
+</skill>
+
+<skill>
+<name>graphite</name>
+<description>Navigation and restacking with Graphite (gt)</description>
+<location>global</location>
+</skill>
+
+<skill>
+<name>prompt-lookup</name>
+<description>Activates when the user asks about AI prompts, needs prompt templates, wants to search for prompts, or mentions prompts.chat. Use for discovering, retrieving, and improving prompts.</description>
+<location>global</location>
+</skill>
+
+<skill>
+<name>skill-creator</name>
+<description>Create new skills, modify and improve existing skills, and measure skill performance. Use when users want to create a skill from scratch, update or optimize an existing skill, run evals to test a skill, benchmark skill performance with variance analysis, or optimize a skill's description for better triggering accuracy.</description>
+<location>global</location>
+</skill>
+
+<skill>
+<name>skill-lookup</name>
+<description>Activates when the user asks about Agent Skills, wants to find reusable AI capabilities, needs to install skills, or mentions skills for Claude. Use for discovering, retrieving, and installing skills.</description>
+<location>global</location>
+</skill>
+
+</available_skills>
+<!-- SKILLS_TABLE_END -->
+
+</skills_system>
