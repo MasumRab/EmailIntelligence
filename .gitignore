@@ -161,6 +161,9 @@ logs/
 performance_metrics_log.jsonl
 models/*.pkl
 
+# Aider
+.aider*
+
 # Project-specific ignores
 .orchestration-disabled
 .taskmaster/

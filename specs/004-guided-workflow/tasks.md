@@ -102,6 +102,7 @@
 - [x] T052 Perform final "No Stubs" audit across `src/core/` and remove obsolete placeholders
 - [x] T053 Update `README.md` with high-fidelity usage, agentic protocol, and architecture diagrams
 - [x] T054 Create `docs/orchestration_core.md` with detailed API and schema documentation
+- [ ] T055 [SC-002] Implement performance benchmarks for 100-commit history analysis (must complete in <5s)
 
 ## Dependencies
 

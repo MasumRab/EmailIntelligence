@@ -1,10 +1,6 @@
 # EmailIntelligence - Optimized Dependencies for System-Managed Python
 # Conditional dependencies to minimize unnecessary downloads
 
-[[tool.uv.index]]
-name = "pytorch-cpu"
-url = "https://download.pytorch.org/whl/cpu"
-
 [project]
 name = "emailintelligence"
 version = "0.2.0"
@@ -28,7 +24,7 @@ dependencies = [
 
     # Basic data handling (always needed)
     "aiosqlite>=0.20.0",
-    "RestrictedPython>=8.0",
+    "RestrictedPython>=8.0"
 ]
 
 [project.optional-dependencies]
@@ -140,3 +136,7 @@ where = ["src"]
 # Environment markers for conditional dependencies
 # Note: uv doesn't support marker configuration in pyproject.toml
 # GPU packages should be installed manually only when needed
+
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
