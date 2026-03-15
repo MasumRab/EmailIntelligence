@@ -163,7 +163,7 @@ models/*.pkl
 
 # Project-specific ignores
 .orchestration-disabled
-# .taskmaster/
+.taskmaster/
 worktrees/
 .merge-notes/
 .context-control/
