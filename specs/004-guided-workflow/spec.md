@@ -296,6 +296,23 @@ As a developer, I want a comprehensive alignment report between two branches sho
 
 - **FR-042**: System MUST implement interactive resolution UX for FR-030 fix options using a numbered list selection interface (1-4) with preview of each option's impact before execution.
 
+- **FR-043**: System MUST integrate pydriller library for commit topology analysis, enabling DAG traversal, reachability checks, and commit relationship mapping.
+
+- **FR-044**: System MUST implement problematic commit detection including: WIP commits (starts with WIP, draft, temp), large diffs (>1000 lines), many files (>10), merge commits, revert commits, and breaking changes.
+
+- **FR-045**: System MUST generate topology risk assessment report showing commit risk scores, conflict probability, and rebase complexity estimation based on commit graph analysis.
+
+- **FR-046**: System SHOULD integrate git-graphable for hygiene analysis including direct pushes to protected branches, back-merge detection, and contributor patterns.
+
+- **FR-047**: System MUST implement analysis cache with SHA-based validation. Cache branch analysis results to `.dev_state/analysis_cache/{branch}__{sha}.json` to enable fast cross-branch comparison without re-analysis. Cache must invalidate when branch SHA changes.
+
+### External Tools (Required)
+| Tool | Purpose | FR |
+|------|---------|-----|
+| `gkg` | Git knowledge graph | FR-035 |
+| `ast-grep` | Structural pattern matching | FR-039 |
+| `pydriller` | Commit topology analysis | FR-043 |
+
 
 ### Key Entities *(include if feature involves data)*
 
