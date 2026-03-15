@@ -161,14 +161,14 @@ async def get_system_status() -> SystemStatus:
         try:
             dashboard_response = requests.get("http://127.0.0.1:8000/api/dashboard/stats", timeout=5)
             dashboard_data = dashboard_response.json() if dashboard_response.status_code == 200 else {}
-        except (requests.RequestException, ValueError):
+        except:
             dashboard_data = {}
 
         # Get Gmail performance metrics
         try:
             gmail_response = requests.get("http://127.0.0.1:8000/api/gmail/performance", timeout=5)
             gmail_data = gmail_response.json() if gmail_response.status_code == 200 else {}
-        except (requests.RequestException, ValueError):
+        except:
             gmail_data = {}
 
         return SystemStatus(

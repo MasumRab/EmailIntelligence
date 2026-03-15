@@ -7,9 +7,9 @@ It provides a standardized way to specify model parameters and data paths.
 It also includes the PromptEngineer class for LLM interaction capabilities.
 """
 
-import json
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional, List
+import json
 
 
 @dataclass
@@ -31,8 +31,7 @@ class PromptEngineer:
     to use them in addition to the existing local models.
     """
 
-    def __init__(self, template: str = None):
-        self.template = template
+    def __init__(self):
         self.templates = {}
         self.defaults = {
             "system_prompt": "You are an AI assistant specialized in email analysis and management. You help users categorize emails, identify important information, and suggest actions.",
@@ -64,23 +63,9 @@ class PromptEngineer:
         try:
             return template.format(**kwargs)
         except KeyError as e:
-            raise ValueError(f"Missing required variable {e} for template '{template_name}'")
-
-    def fill(self, **kwargs) -> str:
-        """
-        Fill the template with provided variables (backward compatibility method).
-        """
-        if self.template:
-            return self.template.format(**kwargs)
-        else:
-            raise ValueError("No template provided to PromptEngineer")
-
-    def execute(self, **kwargs) -> str:
-        """
-        Execute the prompt by filling template and adding execution prefix (backward compatibility method).
-        """
-        filled = self.fill(**kwargs)
-        return f"Executing prompt: {filled}"
+            raise ValueError(
+                f"Missing required variable {e} for template '{template_name}'"
+            )
 
     def create_email_categorization_prompt(
         self, subject: str, content: str, categories: List[str]
@@ -124,7 +109,9 @@ class PromptEngineer:
         )
         return prompt
 
-    def create_summary_prompt(self, subject: str, content: str, max_length: int = 100) -> str:
+    def create_summary_prompt(
+        self, subject: str, content: str, max_length: int = 100
+    ) -> str:
         """
         Create a prompt for summarizing an email.
 

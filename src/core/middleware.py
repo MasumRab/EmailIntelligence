@@ -5,17 +5,16 @@ Provides comprehensive middleware for API security, rate limiting, audit trails,
 and performance monitoring with minimal overhead.
 """
 
-import ipaddress
-import logging
 import time
+import logging
 from typing import Callable, Optional
-
-from fastapi import HTTPException, Request, Response
+from fastapi import Request, Response, HTTPException
 from fastapi.responses import JSONResponse
+import ipaddress
 
+from .rate_limiter import api_rate_limiter
 from .audit_logger import audit_logger
 from .performance_monitor import performance_monitor
-from .rate_limiter import api_rate_limiter
 
 logger = logging.getLogger(__name__)
 
@@ -31,7 +30,7 @@ class SecurityMiddleware:
         enable_rate_limiting: bool = True,
         enable_audit_logging: bool = True,
         enable_performance_monitoring: bool = True,
-        trusted_proxies: Optional[list] = None,
+        trusted_proxies: Optional[list] = None
     ):
         self.app = app
         self.enable_rate_limiting = enable_rate_limiting
@@ -55,7 +54,8 @@ class SecurityMiddleware:
         # Rate limiting check
         if self.enable_rate_limiting:
             allowed, headers = await api_rate_limiter.check_rate_limit(
-                request.url.path, client_ip  # Use IP as client key, could be enhanced with user_id
+                request.url.path,
+                client_ip  # Use IP as client key, could be enhanced with user_id
             )
 
             if not allowed:
@@ -70,7 +70,7 @@ class SecurityMiddleware:
                         resource=f"api:{request.url.path}",
                         action=f"{request.method} {request.url.path}",
                         result="failure",
-                        details={"rate_limit_headers": headers},
+                        details={"rate_limit_headers": headers}
                     )
 
                 # Return rate limit exceeded response
@@ -78,9 +78,9 @@ class SecurityMiddleware:
                     status_code=429,
                     content={
                         "error": "Rate limit exceeded",
-                        "message": "Too many requests. Please try again later.",
+                        "message": "Too many requests. Please try again later."
                     },
-                    headers=headers,
+                    headers=headers
                 )
                 await response(scope, receive, send)
                 return
@@ -93,9 +93,9 @@ class SecurityMiddleware:
                 tags={
                     "method": request.method,
                     "endpoint": request.url.path,
-                    "user_id": user_id or "anonymous",
+                    "user_id": user_id or "anonymous"
                 },
-                sample_rate=0.1,  # Sample 10% of requests to reduce overhead
+                sample_rate=0.1  # Sample 10% of requests to reduce overhead
             )
             perf_context.__enter__()
 
@@ -122,7 +122,7 @@ class SecurityMiddleware:
                             ip_address=client_ip,
                             status_code=status_code,
                             response_time=response_time,
-                            user_agent=user_agent,
+                            user_agent=user_agent
                         )
 
                 await send(message)
@@ -147,7 +147,7 @@ class SecurityMiddleware:
                     resource=f"api:{request.url.path}",
                     action=f"{request.method} {request.url.path}",
                     result="error",
-                    details={"error": str(e), "error_type": type(e).__name__},
+                    details={"error": str(e), "error_type": type(e).__name__}
                 )
 
             raise
@@ -166,11 +166,9 @@ class SecurityMiddleware:
                 # Verify the proxy is trusted
                 try:
                     proxy_ip = ipaddress.ip_address(request.client.host)
-                    if any(
-                        proxy_ip in ipaddress.ip_network(proxy) for proxy in self.trusted_proxies
-                    ):
+                    if any(proxy_ip in ipaddress.ip_network(proxy) for proxy in self.trusted_proxies):
                         return real_ip
-                except (ValueError, ipaddress.AddressValueError):
+                except:
                     pass
 
             return client_ip
@@ -229,7 +227,7 @@ def create_security_middleware(
     enable_rate_limiting: bool = True,
     enable_audit_logging: bool = True,
     enable_performance_monitoring: bool = True,
-    trusted_proxies: Optional[list] = None,
+    trusted_proxies: Optional[list] = None
 ):
     """Create security middleware with specified options."""
     return SecurityMiddleware(
@@ -237,9 +235,8 @@ def create_security_middleware(
         enable_rate_limiting=enable_rate_limiting,
         enable_audit_logging=enable_audit_logging,
         enable_performance_monitoring=enable_performance_monitoring,
-        trusted_proxies=trusted_proxies,
+        trusted_proxies=trusted_proxies
     )
-
 
 def create_security_headers_middleware(app):
     """Create security headers middleware."""

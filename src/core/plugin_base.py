@@ -10,21 +10,20 @@ import asyncio
 import hashlib
 import importlib.util
 import inspect
-import json
 import logging
 import os
 import sys
 from dataclasses import dataclass, field
-from enum import Enum
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Set
+from typing import Any, Dict, List, Optional, Set, Callable
+from enum import Enum
+import json
 
 logger = logging.getLogger(__name__)
 
 
 class PluginStatus(Enum):
     """Plugin lifecycle states."""
-
     INSTALLED = "installed"
     ENABLED = "enabled"
     DISABLED = "disabled"
@@ -35,16 +34,14 @@ class PluginStatus(Enum):
 
 class PluginSecurityLevel(Enum):
     """Security levels for plugin execution."""
-
-    TRUSTED = "trusted"  # Full system access
-    STANDARD = "standard"  # Limited API access
+    TRUSTED = "trusted"      # Full system access
+    STANDARD = "standard"    # Limited API access
     SANDBOXED = "sandboxed"  # Isolated execution environment
 
 
 @dataclass
 class PluginMetadata:
     """Metadata for plugin identification and management."""
-
     plugin_id: str
     name: str
     version: str
@@ -57,18 +54,17 @@ class PluginMetadata:
     permissions: List[str] = field(default_factory=list)
     security_level: PluginSecurityLevel = PluginSecurityLevel.STANDARD
     tags: List[str] = field(default_factory=list)
-    created_at: float = field(default_factory=lambda: __import__("time").time())
+    created_at: float = field(default_factory=lambda: __import__('time').time())
     checksum: Optional[str] = None
 
 
 @dataclass
 class PluginInstance:
     """Runtime instance of a loaded plugin."""
-
     metadata: PluginMetadata
     plugin_object: Any
     status: PluginStatus = PluginStatus.ENABLED
-    loaded_at: float = field(default_factory=lambda: __import__("time").time())
+    loaded_at: float = field(default_factory=lambda: __import__('time').time())
     config: Dict[str, Any] = field(default_factory=dict)
     hooks: Dict[str, List[Callable]] = field(default_factory=dict)
 
@@ -118,9 +114,8 @@ class HookSystem:
         self._hooks: Dict[str, List[Dict[str, Any]]] = {}
         self._lock = asyncio.Lock()
 
-    async def register_hook(
-        self, hook_name: str, callback: Callable, plugin_id: str, priority: int = 100
-    ) -> str:
+    async def register_hook(self, hook_name: str, callback: Callable,
+                          plugin_id: str, priority: int = 100) -> str:
         """Register a callback for a hook."""
         async with self._lock:
             if hook_name not in self._hooks:
@@ -128,9 +123,12 @@ class HookSystem:
 
             hook_id = f"{plugin_id}_{hook_name}_{hash(callback)}"
 
-            self._hooks[hook_name].append(
-                {"id": hook_id, "callback": callback, "plugin_id": plugin_id, "priority": priority}
-            )
+            self._hooks[hook_name].append({
+                "id": hook_id,
+                "callback": callback,
+                "plugin_id": plugin_id,
+                "priority": priority
+            })
 
             # Sort by priority (lower number = higher priority)
             self._hooks[hook_name].sort(key=lambda x: x["priority"])
@@ -169,7 +167,8 @@ class HookSystem:
     def get_registered_hooks(self) -> Dict[str, List[str]]:
         """Get list of registered hooks by name."""
         return {
-            hook_name: [hook["id"] for hook in hooks] for hook_name, hooks in self._hooks.items()
+            hook_name: [hook["id"] for hook in hooks]
+            for hook_name, hooks in self._hooks.items()
         }
 
 
@@ -184,18 +183,13 @@ class SecuritySandbox:
         self._allowed_modules: Dict[PluginSecurityLevel, Set[str]] = {
             PluginSecurityLevel.TRUSTED: {"*"},  # All modules allowed
             PluginSecurityLevel.STANDARD: {
-                "os",
-                "sys",
-                "json",
-                "datetime",
-                "pathlib",
-                "src.core",
-                "backend.python_backend",
-                "fastapi",
-                "pydantic",
-                "asyncio",
+                "os", "sys", "json", "datetime", "pathlib",
+                "src.core", "backend.python_backend",
+                "fastapi", "pydantic", "asyncio"
             },
-            PluginSecurityLevel.SANDBOXED: {"json", "datetime", "pathlib", "asyncio"},
+            PluginSecurityLevel.SANDBOXED: {
+                "json", "datetime", "pathlib", "asyncio"
+            }
         }
 
     def validate_import(self, module_name: str, security_level: PluginSecurityLevel) -> bool:
@@ -203,9 +197,8 @@ class SecuritySandbox:
         allowed = self._allowed_modules[security_level]
         return "*" in allowed or module_name in allowed or module_name.startswith("src.")
 
-    def execute_in_sandbox(
-        self, code: str, security_level: PluginSecurityLevel, globals_dict: Dict[str, Any] = None
-    ) -> Any:
+    def execute_in_sandbox(self, code: str, security_level: PluginSecurityLevel,
+                          globals_dict: Dict[str, Any] = None) -> Any:
         """Execute code in a sandboxed environment."""
         # Create restricted globals
         if globals_dict is None:
@@ -214,16 +207,8 @@ class SecuritySandbox:
         # Remove dangerous builtins
         safe_builtins = {}
         dangerous_builtins = {
-            "open",
-            "file",
-            "input",
-            "raw_input",
-            "exec",
-            "eval",
-            "compile",
-            "__import__",
-            "reload",
-            "execfile",
+            "open", "file", "input", "raw_input", "exec", "eval",
+            "compile", "__import__", "reload", "execfile"
         }
 
         for name, obj in __builtins__.items():
@@ -255,7 +240,11 @@ class SecuritySandbox:
             return True
 
         # For standard and sandboxed, restrict to plugin directory and allowed paths
-        allowed_paths = [Path("plugins"), Path("data"), Path("logs")]
+        allowed_paths = [
+            Path("plugins"),
+            Path("data"),
+            Path("logs")
+        ]
 
         for allowed_path in allowed_paths:
             try:
@@ -288,13 +277,13 @@ class PluginRegistry:
         discovered = []
 
         for plugin_dir in self.plugins_dir.iterdir():
-            if plugin_dir.is_dir() and not plugin_dir.name.startswith("."):
+            if plugin_dir.is_dir() and not plugin_dir.name.startswith('.'):
                 plugin_id = plugin_dir.name
                 metadata_file = plugin_dir / "plugin.json"
 
                 if metadata_file.exists():
                     try:
-                        with open(metadata_file, "r") as f:
+                        with open(metadata_file, 'r') as f:
                             data = json.load(f)
                             metadata = PluginMetadata(**data)
                             await self.register_plugin(metadata)
@@ -316,9 +305,7 @@ class PluginRegistry:
             logger.error(f"Failed to register plugin {metadata.plugin_id}: {e}")
             return False
 
-    async def load_plugin(
-        self, plugin_id: str, config: Dict[str, Any] = None
-    ) -> Optional[PluginInstance]:
+    async def load_plugin(self, plugin_id: str, config: Dict[str, Any] = None) -> Optional[PluginInstance]:
         """Load and initialize a plugin."""
         if plugin_id not in self._registry:
             logger.error(f"Plugin {plugin_id} not found in registry")
@@ -342,11 +329,9 @@ class PluginRegistry:
             if not plugin_class:
                 # Try to find any class that implements PluginInterface
                 for name, obj in plugin_module.__dict__.items():
-                    if (
-                        inspect.isclass(obj)
-                        and issubclass(obj, PluginInterface)
-                        and obj != PluginInterface
-                    ):
+                    if (inspect.isclass(obj) and
+                        issubclass(obj, PluginInterface) and
+                        obj != PluginInterface):
                         plugin_class = obj
                         break
 
@@ -370,7 +355,11 @@ class PluginRegistry:
                 return None
 
             # Create instance
-            instance = PluginInstance(metadata=metadata, plugin_object=plugin_object, config=config)
+            instance = PluginInstance(
+                metadata=metadata,
+                plugin_object=plugin_object,
+                config=config
+            )
 
             self._instances[plugin_id] = instance
 
@@ -439,26 +428,22 @@ class PluginRegistry:
                 "description": metadata.description,
                 "status": PluginStatus.INSTALLED.value,
                 "security_level": metadata.security_level.value,
-                "loaded": plugin_id in self._instances,
+                "loaded": plugin_id in self._instances
             }
 
             if plugin_id in self._instances:
                 instance = self._instances[plugin_id]
-                plugin_info.update(
-                    {
-                        "status": instance.status.value,
-                        "loaded_at": instance.loaded_at,
-                        "capabilities": instance.plugin_object.get_capabilities(),
-                    }
-                )
+                plugin_info.update({
+                    "status": instance.status.value,
+                    "loaded_at": instance.loaded_at,
+                    "capabilities": instance.plugin_object.get_capabilities()
+                })
 
             plugins.append(plugin_info)
 
         return plugins
 
-    async def _load_plugin_module(
-        self, plugin_dir: Path, metadata: PluginMetadata
-    ) -> Optional[Any]:
+    async def _load_plugin_module(self, plugin_dir: Path, metadata: PluginMetadata) -> Optional[Any]:
         """Load a plugin module from disk."""
         main_file = plugin_dir / "__init__.py"
         if not main_file.exists():
@@ -470,7 +455,8 @@ class PluginRegistry:
 
         try:
             spec = importlib.util.spec_from_file_location(
-                f"plugins.{metadata.plugin_id}", main_file
+                f"plugins.{metadata.plugin_id}",
+                main_file
             )
 
             if spec and spec.loader:
@@ -491,9 +477,7 @@ class PluginRegistry:
 
             # Check if all required permissions are appropriate for security level
             if security_level == PluginSecurityLevel.SANDBOXED and required_permissions:
-                logger.warning(
-                    f"Sandboxed plugin {metadata.plugin_id} requested permissions: {required_permissions}"
-                )
+                logger.warning(f"Sandboxed plugin {metadata.plugin_id} requested permissions: {required_permissions}")
                 return False
 
             return True
@@ -535,10 +519,10 @@ class PluginRegistry:
                 "security_level": metadata.security_level.value,
                 "tags": metadata.tags,
                 "created_at": metadata.created_at,
-                "checksum": metadata.checksum,
+                "checksum": metadata.checksum
             }
 
-            with open(metadata_file, "w") as f:
+            with open(metadata_file, 'w') as f:
                 json.dump(metadata_dict, f, indent=2)
 
         except Exception as e:

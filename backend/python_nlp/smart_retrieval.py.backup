@@ -50,6 +50,7 @@ class SyncCheckpoint:
     errors_count: int
 
 
+<<<<<<< HEAD
 class GmailRetrievalService:
     """
     Service for retrieving emails from Gmail using the Gmail API.
@@ -402,64 +403,38 @@ if __name__ == '__main__':
     asyncio.run(main())
 
 
-
-# Work-in-progress implementation: SmartRetrievalManager as an extension
-class SmartRetrievalManager(GmailRetrievalService):
-    """
-    Extended retrieval system with optimized strategies and smart features.
-    This class extends GmailRetrievalService to add advanced functionality
-    while maintaining all original capabilities.
-    """
-    def __init__(self, checkpoint_db_path: str = DEFAULT_CHECKPOINT_DB_PATH, credentials_path: str = CREDENTIALS_PATH, 
-                 token_path: str = TOKEN_JSON_PATH):
-        # Initialize the parent class
-        super().__init__(credentials_path, token_path, checkpoint_db_path)
-        
-        # Additional attributes for advanced functionality
-        self.retrieval_strategies = []
-        
-        # Initialize checkpoint database for advanced features if not already done by parent
-        if not hasattr(self, '_db_conn') or self._db_conn is None:
-            self._init_checkpoint_db()
+=======
+>>>>>>> 73a8d1727b5a9766467abd3d090470711b0fdcb2
+class SmartRetrievalManager:
+    def __init__(self, checkpoint_db_path: str = DEFAULT_CHECKPOINT_DB_PATH):
+        self.logger = logging.getLogger(__name__)
+        self.checkpoint_db_path = checkpoint_db_path
+        self.gmail_service = None
+        self._init_checkpoint_db()
+        creds = self._load_credentials() or self._authenticate()
+        if creds and creds.valid:
+            if os.path.exists(TOKEN_JSON_PATH):
+                return Credentials.from_authorized_user_file(TOKEN_JSON_PATH, SCOPES)
+        return None
 
     def _store_credentials(self, creds: Credentials):
-        """
-        Store credentials to file (this is already handled by parent class).
-        """
-        # Using the credential management from parent class
-        # This method is preserved as a placeholder for potential custom logic
-        super()._store_credentials(creds)  # assuming parent has a method
+        try:
+            with open(TOKEN_JSON_PATH, "w") as token_file:
+                token_file.write(creds.to_json())
+            self.logger.info("Credentials stored successfully.")
+        except Exception as e:
+            self.logger.error(
+                f"An unexpected error occurred during the OAuth flow: {e}", exc_info=True
+            )
+            return None
 
     def get_optimized_retrieval_strategies(self) -> List[RetrievalStrategy]:
-        """
-        Retrieve optimized strategies for email retrieval (WIP).
-        """
-        # TODO: Implement logic to determine optimized strategies
-        # For now, return a default strategy
-        default_strategy = RetrievalStrategy(
-            name="default_optimized",
-            query_filter="from:me after:2023-01-01",
-            priority=1,
-            batch_size=50,
-            frequency="daily",
-            max_emails_per_run=100,
-            include_folders=["INBOX"],
-            exclude_folders=["TRASH", "SPAM"],
-            date_range_days=30
-        )
-        self.retrieval_strategies = [default_strategy]
-        return self.retrieval_strategies
 
     def get_incremental_query(
         self, strategy: RetrievalStrategy, checkpoint: Optional[SyncCheckpoint] = None
     ) -> str:
-        """
-        Construct an incremental query based on checkpoint (WIP).
-        """
         base_query = strategy.query_filter
         if checkpoint and checkpoint.last_sync_date:
-            # Add date filter based on last sync to make query incremental
-            base_query += f" after:{checkpoint.last_sync_date.strftime('%Y/%m/%d')}"
         return base_query
 
     async def execute_smart_retrieval(
@@ -468,94 +443,30 @@ class SmartRetrievalManager(GmailRetrievalService):
         max_api_calls: int = 100,
         time_budget_minutes: int = 30,
     ) -> Dict[str, Any]:
-        """
-        Execute smart retrieval with provided strategies, API call limits, and time budget.
-        
+
         Args:
             strategies: A list of strategies to execute. If None, uses default optimized strategies.
             max_api_calls: The maximum number of API calls to make.
             time_budget_minutes: The time limit in minutes for the retrieval process.
-        """
-        # Use the strategies if provided, otherwise get optimized strategies
-        if not strategies:
-            strategies = self.get_optimized_retrieval_strategies()
-        
-        # Track API calls to respect the limit
-        api_call_count = 0
-        start_time = datetime.now()
-        all_retrieved_emails = []
 
-        self.logger.info(f"Starting smart retrieval with {len(strategies)} strategies, "
-                         f"max {max_api_calls} API calls and {time_budget_minutes} min budget")
-
-        for strategy in strategies:
-            if api_call_count >= max_api_calls:
-                self.logger.info("Reached maximum API call limit")
-                break
-                
-            elapsed_time = (datetime.now() - start_time).total_seconds() / 60
-            if elapsed_time >= time_budget_minutes:
-                self.logger.info("Reached time budget limit")
-                break
-
-            # Get any existing checkpoint for this strategy
-            checkpoint = self.get_checkpoint(strategy.name)
-            
-            # Get incremental query based on checkpoint
-            query = self.get_incremental_query(strategy, checkpoint)
-            
-            # Temporarily modify strategy to use incremental query
-            original_query = strategy.query_filter
-            strategy.query_filter = query
-            
-            # Use the parent's retrieval method with current strategy
-            self.logger.info(f"Executing retrieval with strategy: {strategy.name}, query: {query}")
-            emails = self.retrieve_emails(strategy)
-            all_retrieved_emails.extend(emails)
-            
-            # Restore original query
-            strategy.query_filter = original_query
-            
-            # Update checkpoint
-            if emails:
-                new_checkpoint = SyncCheckpoint(
-                    strategy_name=strategy.name,
-                    last_sync_date=datetime.now(),
-                    last_history_id=emails[-1].get('history_id', ''),
-                    processed_count=len(emails),
-                    next_page_token=None,
-                    errors_count=0
+        row = cursor.fetchone()
+            if row:
+                return SyncCheckpoint(
+                    strategy_name, datetime.fromisoformat(row[0]), row[1], 0, None, 0
                 )
-                self.save_checkpoint(new_checkpoint)
-                
-            # Increment API call count (estimate)
-            api_call_count += min(strategy.max_emails_per_run // strategy.batch_size + 1, 10)  # Rough estimate
-
-        total_time = (datetime.now() - start_time).total_seconds() / 60
-        self.logger.info(f"Smart retrieval completed in {total_time:.2f} minutes, "
-                         f"made {api_call_count} API calls, retrieved {len(all_retrieved_emails)} emails")
-
-        return {
-            "emails": all_retrieved_emails,
-            "api_calls_made": api_call_count,
-            "time_elapsed_minutes": total_time,
-            "strategies_used": [s.name for s in strategies],
-            "total_retrieved": len(all_retrieved_emails)
-        }
+        return None
 
     def _save_checkpoint(self, checkpoint: SyncCheckpoint):
-        """
-        Save a sync checkpoint.
-        Using the checkpoint functionality from parent class.
-        """
-        # Delegate to the parent class's save_checkpoint method
-        self.save_checkpoint(checkpoint)  # Call the instance method directly, not super()
 
 
 async def main_cli():
     """Provides a command-line interface for the SmartGmailRetriever."""
     parser = argparse.ArgumentParser(description="Smart Gmail Retriever CLI")
+<<<<<<< HEAD
+<<<<<<< HEAD
 
+=======
+>>>>>>> 73a8d1727b5a9766467abd3d090470711b0fdcb2
     # TODO: Implement CLI logic
     # Pseudo code for CLI implementation:
     # parser.add_argument("--strategies", nargs="+", help="Retrieval strategies to use")

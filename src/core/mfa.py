@@ -7,12 +7,12 @@ including secret generation, QR code generation, and token verification.
 
 import logging
 import secrets
-from base64 import b64encode
-from io import BytesIO
-from typing import List, Optional, Tuple
+from typing import Optional, Tuple, List
 
 import pyotp
 import qrcode
+from io import BytesIO
+from base64 import b64encode
 
 logger = logging.getLogger(__name__)
 
@@ -23,7 +23,7 @@ class MFAService:
     def __init__(self, issuer_name: str = "EmailIntelligence"):
         """
         Initialize the MFA service.
-
+        
         Args:
             issuer_name: Name of the service for TOTP QR codes
         """
@@ -32,7 +32,7 @@ class MFAService:
     def generate_secret(self) -> str:
         """
         Generate a new TOTP secret.
-
+        
         Returns:
             Base32 encoded secret string
         """
@@ -41,30 +41,31 @@ class MFAService:
     def generate_qr_code(self, username: str, secret: str) -> str:
         """
         Generate a QR code for TOTP setup.
-
+        
         Args:
             username: Username for the TOTP URI
             secret: TOTP secret
-
+            
         Returns:
             Base64 encoded QR code image
         """
         try:
             totp_uri = pyotp.totp.TOTP(secret).provisioning_uri(
-                name=username, issuer_name=self.issuer_name
+                name=username,
+                issuer_name=self.issuer_name
             )
-
+            
             qr = qrcode.QRCode(version=1, box_size=10, border=5)
             qr.add_data(totp_uri)
             qr.make(fit=True)
-
+            
             img = qr.make_image(fill_color="black", back_color="white")
-
+            
             # Convert to base64 for easy transmission
             buffer = BytesIO()
             img.save(buffer, format="PNG")
             img_str = b64encode(buffer.getvalue()).decode()
-
+            
             return img_str
         except Exception as e:
             logger.error(f"Error generating QR code: {e}")
@@ -73,11 +74,11 @@ class MFAService:
     def verify_token(self, secret: str, token: str) -> bool:
         """
         Verify a TOTP token.
-
+        
         Args:
             secret: TOTP secret
             token: Token to verify
-
+            
         Returns:
             True if token is valid, False otherwise
         """
@@ -91,10 +92,10 @@ class MFAService:
     def generate_backup_codes(self, count: int = 10) -> List[str]:
         """
         Generate backup codes for MFA.
-
+        
         Args:
             count: Number of backup codes to generate
-
+            
         Returns:
             List of backup codes
         """
@@ -105,16 +106,14 @@ class MFAService:
             codes.append(code)
         return codes
 
-    def verify_backup_code(
-        self, backup_codes: List[str], code: str
-    ) -> Tuple[bool, Optional[List[str]]]:
+    def verify_backup_code(self, backup_codes: List[str], code: str) -> Tuple[bool, Optional[List[str]]]:
         """
         Verify a backup code and return updated list without the used code.
-
+        
         Args:
             backup_codes: List of backup codes
             code: Code to verify
-
+            
         Returns:
             Tuple of (is_valid, updated_backup_codes)
         """

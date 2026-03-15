@@ -3,13 +3,24 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
+# Configure pytest-asyncio to auto mode
+pytest_plugins = ("pytest_asyncio",)
+
+
+def pytest_configure(config):
+    """Configure pytest settings."""
+    config.option.asyncio_mode = "auto"
+
+
 # Set up test environment immediately on import to handle early imports
 def _setup_test_env_early():
     """Set up minimal environment for early imports."""
     import secrets
+
     if "SECRET_KEY" not in os.environ:
         os.environ["SECRET_KEY"] = secrets.token_urlsafe(32)
     os.environ.setdefault("DATA_DIR", "./test_data")
+
 
 _setup_test_env_early()
 
@@ -66,9 +77,30 @@ def setup_test_environment():
 # from src.core.database import get_db  # FIXME: get_db function doesn't exist
 from src.core.factory import get_data_source
 
-# Use the test app instead of the main app
-# Use the create_test_app function defined above
-create_app = create_test_app
+# Use the actual app from src.main
+try:
+    from src.main import create_app
+except ImportError as e:
+    import logging
+
+    logging.warning(f"Could not import src.main.create_app: {e}")
+    # Fall back to minimal test app
+    create_app = create_test_app
+
+
+# Patch old backend paths to new modules paths for test compatibility
+import sys
+
+
+def _patch_backend_imports():
+    """Patch old backend imports to work with new module structure."""
+    # The old backend.python_backend module has been deprecated
+    # These patches make old import paths work for backwards compatibility
+    if "backend.python_backend" in sys.modules:
+        del sys.modules["backend.python_backend"]
+
+
+_patch_backend_imports()
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -84,7 +116,13 @@ def download_nltk_data():
         import nltk
 
         # Use NLTK's programmatic download for better reliability
-        packages = ["punkt", "punkt_tab", "stopwords", "wordnet", "averaged_perceptron_tagger"]
+        packages = [
+            "punkt",
+            "punkt_tab",
+            "stopwords",
+            "wordnet",
+            "averaged_perceptron_tagger",
+        ]
         for package in packages:
             try:
                 nltk.download(package, quiet=True)

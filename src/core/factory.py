@@ -5,12 +5,17 @@ from typing import AsyncGenerator
 from .data_source import DataSource
 from .database import DatabaseManager
 from .ai_engine import ModernAIEngine
-from .data.repository import DatabaseEmailRepository, CachingEmailRepository, EmailRepository
+from .data.repository import (
+    DatabaseEmailRepository,
+    CachingEmailRepository,
+    EmailRepository,
+)
 from .caching import init_cache_manager, CacheConfig, CacheBackend
 
 # Optional import for NotmuchDataSource
 try:
     from .notmuch_data_source import NotmuchDataSource
+
     NOTMUCH_AVAILABLE = True
 except ImportError:
     NOTMUCH_AVAILABLE = False
@@ -43,6 +48,7 @@ async def get_ai_engine() -> AsyncGenerator[ModernAIEngine, None]:
     except Exception as e:
         # Log initialization errors
         import logging
+
         logger = logging.getLogger(__name__)
         logger.error(f"Failed to provide AI engine: {e}")
         raise
@@ -54,6 +60,7 @@ async def get_ai_engine() -> AsyncGenerator[ModernAIEngine, None]:
                 engine.cleanup()
             except Exception as e:
                 import logging
+
                 logger = logging.getLogger(__name__)
                 logger.warning(f"Error during AI engine cleanup: {e}")
 
@@ -67,11 +74,15 @@ async def get_data_source() -> DataSource:
         source_type = os.environ.get("DATA_SOURCE_TYPE", "default")
         if source_type == "notmuch":
             if not NOTMUCH_AVAILABLE:
-                raise ImportError("NotmuchDataSource requested but notmuch library is not available. Install with: pip install notmuch")
+                raise ImportError(
+                    "NotmuchDataSource requested but notmuch library is not available. Install with: pip install notmuch"
+                )
             _data_source_instance = NotmuchDataSource()
+            await _data_source_instance._ensure_initialized()
         else:
             # Create DatabaseManager with proper configuration
             from .database import DatabaseConfig, create_database_manager
+
             config = DatabaseConfig()
             _data_source_instance = await create_database_manager(config)
     return _data_source_instance
@@ -86,10 +97,10 @@ async def get_email_repository() -> EmailRepository:
         # Initialize cache manager with Redis backend
         redis_url = os.getenv("REDIS_URL", "redis://localhost:6379")
         cache_config = CacheConfig(
-                backend=CacheBackend.REDIS,
+            backend=CacheBackend.REDIS,
             redis_url=redis_url,
             default_ttl=600,  # 10 minutes for dashboard data
-            enable_monitoring=True
+            enable_monitoring=True,
         )
         init_cache_manager(cache_config)
 

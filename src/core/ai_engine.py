@@ -2,13 +2,6 @@ import logging
 from abc import ABC, abstractmethod
 from typing import Any, Dict, List, Optional
 
-from .enhanced_error_reporting import (
-    log_error,
-    ErrorSeverity,
-    ErrorCategory,
-    create_error_context
-)
-
 logger = logging.getLogger(__name__)
 
 
@@ -149,7 +142,7 @@ class ModernAIEngine(BaseAIEngine):
             self._initialized = True
             logger.info("ModernAIEngine fully initialized with model manager")
 
-        except (ImportError, AttributeError, RuntimeError) as e:
+        except Exception as e:
             logger.error(f"Failed to initialize ModernAIEngine: {e}")
             # Continue without model manager - use fallback methods
             self._model_manager = None
@@ -176,7 +169,7 @@ class ModernAIEngine(BaseAIEngine):
                     "status": "healthy",
                     "models_available": len(models_info) if models_info else 0,
                 }
-            except (AttributeError, RuntimeError, ConnectionError) as e:
+            except Exception as e:
                 health_status["components"]["model_manager"] = {
                     "status": "unhealthy",
                     "error": str(e),
@@ -197,7 +190,7 @@ class ModernAIEngine(BaseAIEngine):
                 "status": "healthy",
                 "test_result": "passed",
             }
-        except (RuntimeError, ValueError, ConnectionError) as e:
+        except Exception as e:
             health_status["components"]["analysis_engine"] = {
                 "status": "unhealthy",
                 "error": str(e),

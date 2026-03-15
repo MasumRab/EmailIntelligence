@@ -3,17 +3,16 @@ DEPRECATED: This module is part of the deprecated `backend` package.
 It will be removed in a future release.
 """
 
-import json
-from typing import Any, Dict, List
-
 import gradio as gr
-import matplotlib.pyplot as plt
-import numpy as np
 import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
 import plotly.express as px
 import plotly.graph_objects as go
+import json
 import requests
-import seaborn as sns
+from typing import Dict, Any, List
 
 from backend.python_nlp.nlp_engine import NLPEngine
 
