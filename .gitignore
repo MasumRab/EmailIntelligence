@@ -91,6 +91,7 @@ __pycache__/
 performance_metrics_log.jsonl
 models/*.pkl
 worktrees/
+.taskmaster/
 
 # Backup files
 *.bak
