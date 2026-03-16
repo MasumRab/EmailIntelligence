@@ -650,11 +650,10 @@ class WorkflowRunner:
 
         # A node's result can be cleaned up after step `i` if it's not needed by any node > i.
         # This means last_used_at[prev_node_id] <= i.
-        # A node's result can be cleaned up after the node at its `last_used_at` index has run.
-        for prev_node_id, cleanup_idx in last_used_at.items():
-            if cleanup_idx != -1:
-                cleanup_trigger_node_id = execution_order[cleanup_idx]
-                cleanup_schedule[cleanup_trigger_node_id].append(prev_node_id)
+        for i, node_id in enumerate(execution_order):
+            for prev_node_id in execution_order[:i]:
+                if last_used_at[prev_node_id] <= i:
+                    cleanup_schedule[node_id].append(prev_node_id)
 
         return cleanup_schedule
 
