@@ -321,7 +321,19 @@ You MUST read the overview resource to understand the complete workflow. The inf
 
 <!-- BACKLOG.MD MCP GUIDELINES END -->
 
-## Active Technologies
+## Project-Specific Governance
+
+### File Access and Ignore Patterns
+
+This project uses a layered ignore strategy to maintain repository health while allowing AI tool access to orchestration files.
+
+- **Mandatory Configuration**: The `.gemini/settings.json` file MUST be configured with `"respectGitIgnore": false` to allow tool access to paths listed in `.gitignore`.
+- **Whitelisting**: Use `.geminiignore` to explicitly whitelist directories (e.g., `!.taskmaster/`, `!.context-control/`) that are ignored by Git but required for agentic workflows.
+- **Strict Prohibition**: NEVER remove `.taskmaster/`, `worktrees/`, or other orchestration directories from `.gitignore`. These are often Git worktrees and must remain untracked by the main branch.
+- **Session Restart**: Changes to `.gemini/settings.json` or `.geminiignore` require a **session restart** to take effect. If immediate access is needed, use `run_shell_command` with `cat` or `grep` as a temporary bypass.
+
+### Active Technologies
+
 - Python 3.11+ + GitPython, (potentially a diffing library) (001-rebase-analysis)
 - Git repository (001-rebase-analysis)
 - Git repository (history) (001-rebase-analysis)
@@ -334,6 +346,8 @@ You MUST read the overview resource to understand the complete workflow. The inf
 - Atomic JSON (`.dev_state.json`) for session persistence (004-guided-workflow)
 - Python 3.11+ + `typer` (CLI), `pydantic` (Data Models), `GitPython` (Plumbing), `rich` (UI), `InquirePy` (Interactive prompts). (004-guided-workflow)
 - Atomic JSON (`.dev_state.json`) for session persistence (Gitignored). (004-guided-workflow)
+- Python 3.11+ (Required for `typer` and `pydantic` v2 compatibility) (004-guided-workflow)
+- Ephemeral JSON (`.dev_state.json`) for session persistence; Structured JSONL logs in `.dev_state/logs/`. (004-guided-workflow)
 
 ## Recent Changes
 - 001-rebase-analysis: Added Python 3.11+ + GitPython, (potentially a diffing library)

@@ -1,34 +1,26 @@
 openapi: 3.0.0
 info:
   title: Orchestration Core CLI Contract
-  version: 1.1.0
-  description: CLI Interface definition for dev.py. Although a CLI, we model it as an API for strictness.
+  version: 1.3.0
+  description: CLI Interface definition for dev.py (Agentic-First).
 
 paths:
   /analyze:
     get:
-      summary: Analyze conflicts
+      summary: Analyze conflicts, constitution, and artifacts
       parameters:
-        - name: target
-          in: query
-          required: true
-          schema:
-            type: string
-        - name: json
-          in: query
-          schema:
-            type: boolean
         - name: const
           in: query
-          schema:
-            type: boolean
+          schema: { type: boolean }
+        - name: artifacts
+          in: query
+          schema: { type: boolean }
       responses:
         '200':
           description: Analysis Report (JSON)
           content:
             application/json:
-              schema:
-                $ref: '#/components/schemas/ConflictReport'
+              schema: { $ref: '#/components/schemas/AnalysisReport' }
 
   /plan-rebase:
     get:
@@ -38,26 +30,132 @@ paths:
           description: Rebase Plan (JSON)
           content:
             application/json:
+              schema: { $ref: '#/components/schemas/HistoryPlan' }
+
+  /align:
+    get:
+      summary: Generate alignment report or batch schedule
+      parameters:
+        - name: batch
+          in: query
+          schema: { type: boolean }
+      responses:
+        '200':
+          description: Alignment Report or Merge Schedule
+          content:
+            application/json:
               schema:
-                $ref: '#/components/schemas/HistoryPlan'
+                oneOf:
+                  - $ref: '#/components/schemas/AlignmentReport'
+                  - $ref: '#/components/schemas/MergeSchedule'
+
+  /resolve:
+    post:
+      summary: Apply a resolution template
+      parameters:
+        - name: template
+          in: query
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Resolution Status
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ResolutionStatus' }
+
+  /sync:
+    get:
+      summary: Check for toolset divergence against canonical branch
+    post:
+      summary: Apply sync updates
+      responses:
+        '200':
+          description: Sync Report
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SyncReport' }
+
+  /deps:
+    get:
+      summary: Extract or compare dependency graphs
+      parameters:
+        - name: compare
+          in: query
+          schema: { type: string }
+      responses:
+        '200':
+          description: Dependency Graph/Diff
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/DependencyGraph' }
+
+  /task:
+    post:
+      summary: Run or update tasks from tasks.md
+      responses:
+        '200':
+          description: Task Progress Status
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/TaskStatus' }
 
 components:
   schemas:
-    ConflictReport:
+    AnalysisReport:
       type: object
       properties:
-        status:
-          type: string
-          enum: [clean, conflict, error]
-        conflicts:
-          type: array
-          items:
-            $ref: '../data-model.md#/Conflict'
+        status: { type: string }
+        violations: { type: array, items: { type: object } }
+        artifacts: { type: array, items: { type: object } }
 
     HistoryPlan:
       type: object
       properties:
-        commits:
-          type: array
-          items:
-            $ref: '../data-model.md#/CommitNode'
+        commits: { type: array, items: { type: object } }
+
+    AlignmentReport:
+      type: object
+      properties:
+        risk_score: { type: integer }
+        recommendation: { type: string }
+        divergence: { $ref: '#/components/schemas/SimilarityMatrix' }
+
+    MergeSchedule:
+      type: object
+      required: [sequence]
+      properties:
+        sequence: { type: array, items: { type: string } }
+        total_conflict_risk: { type: number }
+
+    SimilarityMatrix:
+      type: object
+      properties:
+        branches: { type: array, items: { type: string } }
+        scores: { type: array, items: { type: array, items: { type: number } } }
+
+    SyncReport:
+      type: object
+      properties:
+        up_to_date: { type: boolean }
+        diverged_files: { type: array, items: { type: string } }
+
+    DependencyGraph:
+      type: object
+      properties:
+        nodes: { type: array, items: { type: object } }
+        edges: { type: array, items: { type: object } }
+
+    TaskStatus:
+      type: object
+      properties:
+        task_id: { type: string }
+        status: { type: string }
+        logs: { type: array, items: { type: string } }
+
+    ResolutionStatus:
+      type: object
+      properties:
+        applied: { type: boolean }
+        strategy: { type: string }
+        commit: { type: string }

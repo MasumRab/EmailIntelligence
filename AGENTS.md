@@ -854,3 +854,10 @@ You MUST read the overview resource to understand the complete workflow. The inf
 </CRITICAL_INSTRUCTION>
 
 <!-- BACKLOG.MD MCP GUIDELINES END -->
+
+## Active Technologies
+- Python 3.11+ (004-guided-workflow)
+- Atomic JSON (`.dev_state.json`) for session persistence (Gitignored). (004-guided-workflow)
+
+## Recent Changes
+- 004-guided-workflow: Added Python 3.11+

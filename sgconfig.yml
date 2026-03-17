@@ -1,0 +1,10 @@
+id: email-intelligence-rules
+ruleDirs:
+  - /home/masum/github/EmailIntelligenceGem/rules/python
+  - /home/masum/github/EmailIntelligenceGem/rules/typescript
+  - /home/masum/github/EmailIntelligenceGem/rules/devpy
+  - /home/masum/github/EmailIntelligenceGem/rules/architectural
+testConfigs:
+  - testDir: /home/masum/github/EmailIntelligenceGem/rule-tests
+utilDirs:
+  - /home/masum/github/EmailIntelligenceGem/utils

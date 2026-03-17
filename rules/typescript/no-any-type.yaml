@@ -1,0 +1,18 @@
+# Rule: No any Type
+# Prohibits 'any' type usage in TypeScript/React code
+# Severity: warning
+
+id: typescript-no-any-type
+language: tsx
+severity: warning
+rule:
+  any:
+    - kind: type_annotation
+      regex: ':\\s*any\\b'
+    - kind: as_expression
+      has:
+        text: any
+    - kind: ts_type_annotation
+      regex: ':\\s*any\\b'
+message: "Avoid 'any' type. Use proper typing or 'unknown' if absolutely necessary."
+note: "Replace 'any' with specific types or 'unknown' for flexible but type-safe handling."

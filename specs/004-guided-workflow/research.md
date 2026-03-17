@@ -1,40 +1,41 @@
-# Research: Guided CLI Workflows & Unified Integration
+# Research: Orchestration Core & Guided Workflows
 
-**Feature**: 004-guided-workflow
-**Status**: Consolidated
+## High-Rigor Git Analysis
 
-## 1. Unified CLI Architecture (`dev.py`)
+### Decision: in-memory conflict detection via `git merge-tree`
+- **Decision**: Use `git merge-tree --real-merge` for conflict detection.
+- **Rationale**: The core requirement (US2) is to analyze conflicts without modifying the working tree. `merge-tree` (available in Git 2.38+) allows calculating a merge result and identifying conflicts purely in the object database.
+- **Alternatives considered**: 
+    - `git checkout` to a temporary branch and merging: Rejected as it triggers hooks and disrupts user workflow.
+    - `GitPython` high-level API: Rejected as it often relies on porcelain commands that touch the index.
 
-### Decision: Sidecar Entry Point
-- **Context**: `launch.py` is complex and pending refactor.
-- **Choice**: Create `dev.py` as a lightweight, independent entry point.
-- **Rationale**: Decouples new developer tools from legacy infrastructure. Allows "Phase 2" implementation without regression risk.
-- **Pattern**: `dev.py` imports standalone modules from `src/cli/guides/`.
+### Decision: Topological Sorting via Kahn's Algorithm
+- **Decision**: Implement topological sorting using Kahn's algorithm for rebase planning (US3).
+- **Rationale**: Kahn's algorithm is efficient ($O(V+E)$) and easily allows for cycle detection, which is critical for identifying illegal commit dependencies.
+- **Alternatives considered**: DFS-based topological sort.
 
-## 2. Git Worktree Isolation (`GitWorktreeRunner`)
+## Constitutional Enforcement (AST Scanning)
 
-### Decision: Python Context Manager
-- **Context**: Need safe, ephemeral environments for conflict analysis.
-- **Inspiration**: [git-worktree-runner](https://github.com/coderabbitai/git-worktree-runner)
-- **Implementation**:
-  ```python
-  with GitWorktreeRunner(branch="feature/x") as worktree:
-      # worktree.path is now a clean directory
-      engine.analyze(worktree.path)
-  # auto-cleanup on exit
-  ```
-- **Rationale**: Provides the safety of the external tool without the binary dependency/shelling-out overhead.
+### Decision: Structural Pattern Matching via `ast-grep` and Python `ast`
+- **Decision**: Use `ast-grep` for high-speed structural searches and the standard Python `ast` module for fine-grained rule validation (e.g., US4).
+- **Rationale**: `ast-grep` is exceptionally fast for project-wide scans, while Python's `ast` allows for complex logical checks (like class inheritance or decorator presence) that are difficult to express in simple patterns.
+- **Alternatives considered**: Regex-based scanning (Rejected as too fragile).
 
-## 3. Scientific Engine Integration
+## Machine Intelligence & Clustering
 
-### Decision: Direct Import
-- **Context**: Scientific code (`ConstitutionalEngine`, `GitConflictDetector`) is now merged into `src/`.
-- **Choice**: `dev.py` commands (`analyze`, `resolve`) will directly import these classes.
-- **Gap**: Requires `requirements-guides.txt` to ensure AI dependencies (like `PyYAML`, `networkx`) are present.
+### Decision: Agglomerative Clustering for Branch Grouping
+- **Decision**: Use `scikit-learn`'s `AgglomerativeClustering` with Ward linkage (FR-048).
+- **Rationale**: Ward's method minimizes the variance within clusters, which is ideal for grouping branches that share similar commit histories or dependency changes. It doesn't require pre-specifying the number of clusters (via distance threshold).
+- **Alternatives considered**: K-Means (Requires pre-defining $k$).
 
-## 4. State Management
+### Decision: BM25 for Text Similarity
+- **Decision**: Use `rank-bm25` for comparing documentation and commit messages (FR-036).
+- **Rationale**: BM25 is the industry standard for lightweight, non-vectorized text similarity. It is much faster than running LLM embeddings for thousands of document pairs and requires no external API.
+- **Alternatives considered**: TF-IDF (less robust to document length variation).
 
-### Decision: `WorkflowContextManager`
-- **Context**: Interactive guides need to remember user intent across steps.
-- **Choice**: A simple state machine class (already prototyped in Phase 1).
-- **Persistence**: In-memory for now. Future: `.dev_state.json` for resuming interrupted sessions.
+## Resilience & Session Management
+
+### Decision: Atomic JSON State with Ephemeral Lifecycle
+- **Decision**: Store session state in `.dev_state.json` using atomic writes (tmp + rename). Automatically delete the file on successful completion.
+- **Rationale**: Prevents partial state corruption during crashes. Auto-cleanup ensures the environment doesn't accumulate stale state files.
+- **Alternatives considered**: SQLite (Too heavy for simple task state).

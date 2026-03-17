@@ -1,0 +1,18 @@
+# Rule: Pydantic Models
+# Enforces pydantic model usage for data validation in dev.py
+# Severity: warning
+
+id: devpy-pydantic-models
+language: python
+severity: warning
+rule:
+  # Check for pydantic usage
+  any:
+    - not:
+        has:
+          kind: import
+          has:
+            module:
+              text: pydantic
+message: "dev.py should use pydantic for data validation and settings."
+note: "Use pydantic BaseModel for data classes: class Config(BaseModel): ..."

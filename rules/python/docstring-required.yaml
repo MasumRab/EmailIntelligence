@@ -1,0 +1,21 @@
+# Rule: Docstring Required
+# Enforces Constitution I: Google-style docstrings for public functions
+# Severity: warning
+
+id: python-docstring-required
+language: python
+severity: warning
+rule:
+  kind: function_definition
+  # Exclude private methods
+  not:
+    has:
+      pattern: 'def _'
+  # Check for missing docstring
+  where:
+    - matches:
+        not:
+          has:
+            kind: docstring
+message: "Public function '{{name}}' is missing a docstring. Constitution I requires Google-style docstrings."
+note: "Add a docstring like:\n\"\"\"\nArgs:\n    param: Description\n\nReturns:\n    Description\n\"\"\""
