@@ -8,7 +8,8 @@ description: "Task list template for feature implementation"
 **Input**: Design documents from `/specs/[###-feature-name]/`
 **Prerequisites**: plan.md (required), spec.md (required for user stories), research.md, data-model.md, contracts/
 
-**Tests**: The examples below include test tasks. Tests are OPTIONAL - only include them if explicitly requested in the feature specification.
+**Constitution Compliance**: All tasks must adhere to Orchestration Tools Verification and Review Constitution principles including verification-first development, goal-task consistency, role-based access control with multiple permission levels (appropriate authentication for deployment context), observability requirements, multi-branch validation strategy, context contamination prevention, and performance efficiency measures.
+
 
 **Organization**: Tasks are grouped by user story to enable independent implementation and testing of each story.
 
@@ -24,6 +25,20 @@ description: "Task list template for feature implementation"
 - **Web app**: `backend/src/`, `frontend/src/`
 - **Mobile**: `api/src/`, `ios/src/` or `android/src/`
 - Paths shown below assume single project - adjust based on plan.md structure
+
+## Constitution Compliance Tasks
+
+Each feature implementation must include tasks to satisfy the following constitution principles:
+- **Verification-First Development**: Include comprehensive verification tasks that must pass before merge to any target branch
+- **Goal-Task Consistency**: Implement mechanisms to verify alignment between project goals and implementation tasks
+- **Role-Based Access Control**: Implement multiple permission levels (Read, Run, Review, Admin) with appropriate authentication for the deployment context
+- **Context-Aware Verification**: Include verification of environment variables, dependency versions, configuration files, infrastructure state, cross-branch compatibility, and context contamination prevention
+- **Token Optimization**: Implement monitoring and optimization of token usage to minimize computational overhead
+- **Security Requirements**: Implement appropriate authentication method for deployment context with secure handling of sensitive data
+- **Observability**: Log all verification results with structured logging, correlation IDs, and real-time monitoring
+- **Performance & Efficiency**: Optimize with parallel processing and caching of expensive operations
+- **Reliability**: Maintain 99.9% uptime with automatic retry mechanisms and graceful failure handling
+- **Extensibility**: Implement plugin architecture for new test scenarios through configuration
 
 <!-- 
   ============================================================================
