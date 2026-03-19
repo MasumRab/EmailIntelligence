@@ -17,6 +17,8 @@ from .analysis.validate import ValidateCommand
 from .analysis.compare import CompareCommand
 from .infra.verify import VerifyCommand
 from .task.taskmaster import TaskmasterCommand
+from .task.list_tasks import ListTasksCommand
+from .task.analyze_tasks import AnalyzeTasksCommand
 
 __all__ = [
     "Command",
@@ -30,4 +32,6 @@ __all__ = [
     "CompareCommand",
     "VerifyCommand",
     "TaskmasterCommand",
+    "ListTasksCommand",
+    "AnalyzeTasksCommand",
 ]
