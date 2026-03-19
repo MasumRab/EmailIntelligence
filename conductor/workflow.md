@@ -1,0 +1,1 @@
+# Workflow\n\n1. Research script logic in remote branches.\n2. Wrap script into a `Command` class in the relevant domain sub-package.\n3. Register command in `src/cli/commands/__init__.py`.\n4. Verify logic with `dev.py compare`.\n5. Commit domain-level migrations.
