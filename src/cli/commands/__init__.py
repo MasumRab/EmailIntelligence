@@ -16,6 +16,7 @@ from .git.history import AnalyzeHistoryCommand
 from .analysis.validate import ValidateCommand
 from .analysis.compare import CompareCommand
 from .infra.verify import VerifyCommand
+from .task.taskmaster import TaskmasterCommand
 
 __all__ = [
     "Command",
@@ -28,4 +29,5 @@ __all__ = [
     "ValidateCommand",
     "CompareCommand",
     "VerifyCommand",
+    "TaskmasterCommand",
 ]
