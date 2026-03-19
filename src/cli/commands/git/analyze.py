@@ -8,7 +8,7 @@ from argparse import Namespace
 from pathlib import Path
 from typing import Any, Dict
 
-from .interface import Command
+from ..interface import Command
 
 
 class AnalyzeCommand(Command):

@@ -7,7 +7,7 @@ Implements the analyze-history command for git history analysis.
 from argparse import Namespace
 from typing import Any, Dict
 
-from .interface import Command
+from ..interface import Command
 
 
 class AnalyzeHistoryCommand(Command):

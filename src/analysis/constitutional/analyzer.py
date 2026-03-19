@@ -6,15 +6,15 @@ Orchestrates the checking of code against constitutional rules.
 from pathlib import Path
 from typing import List, Dict, Any
 
-from ..core.interfaces import IConstitutionalAnalyzer
-from ..core.conflict_models import Conflict, AnalysisResult, RiskLevel
-from ..utils.logger import get_logger
+from ...core.interfaces import IConstitutionalAnalyzer
+from ...core.conflict_models import Conflict, AnalysisResult, RiskLevel
+from ...utils.logger import get_logger
+from .models import RequirementViolation
 from .requirement_checker import (
     ErrorHandlingChecker,
     TypeHintChecker,
     DocstringChecker,
     SecurityChecker,
-    RequirementViolation,
 )
 
 
@@ -78,18 +78,3 @@ class ConstitutionalAnalyzer(IConstitutionalAnalyzer):
         
         logger.info(f"Constitutional analysis completed with score: {compliance_score:.2f}")
         return analysis_result
-
-
-class RequirementViolation:
-    """
-    Represents a violation of a constitutional requirement.
-    """
-    
-    def __init__(self, rule_id: str, description: str, severity: RiskLevel, location: str = None):
-        self.rule_id = rule_id
-        self.description = description
-        self.severity = severity
-        self.location = location
-
-    def __str__(self):
-        return f"[{self.severity.value}] {self.rule_id}: {self.description}"
