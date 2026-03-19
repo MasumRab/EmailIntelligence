@@ -37,6 +37,14 @@ This feature follows the speckit framework with the following phases:
 
 - Q: The specification currently includes user stories for both a simple branch synchronization (`User Story 1`) and a comprehensive PR resolution (resolving comments, fixing gaps, etc., in `User Stories 2-5`). What is the primary goal for this feature? → A: The goals are separate but equal. The feature should support both synchronizing a branch AND the full PR resolution process independently.
 
+### Session 2026-03-19
+
+- Q: What error handling strategy should be used when `gh` commands fail during automated operations? → A: Retry with backoff - retry 3 times with exponential backoff, then fail with detailed logging.
+- Q: What is the primary target user persona for this automation framework? → A: Both individual developers and team leads - supports both single-user and team workflows.
+- Q: What rollback/recovery mechanism should be used if a PR merge attempt fails mid-operation? → A: Manual only - user handles rollback without automatic recovery.
+- Q: What should be the acceptable timeout threshold for individual `gh` command operations? → A: Configurable - timeout is a user-configurable parameter in automation settings.
+- Q: How should the system handle concurrent PR operations (up to 10 concurrent PRs mentioned in requirements)? → A: Parallel with locking - run multiple PRs in parallel but use file locks to prevent race conditions on shared resources.
+
 
 
 ## User Scenarios & Testing *(mandatory)*
