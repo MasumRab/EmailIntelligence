@@ -29,6 +29,7 @@ from .commands import (
     AnalyzeTasksCommand,
     ClusterBranchesCommand
 )
+from .services.nlp import NLPService
 
 async def run_cli(args: Optional[List[str]] = None) -> int:
     """
@@ -40,14 +41,17 @@ async def run_cli(args: Optional[List[str]] = None) -> int:
     Returns:
         int: Exit code
     """
-    # Initialize factory and registry
-    # In a real implementation, we would inject actual dependency instances here
+    # Initialize services
+    nlp_service = NLPService()
+    
+    # Initialize factory and registry with injected dependencies
     dependencies = {
         "conflict_detector": None, # Placeholder
         "analyzer": None,          # Placeholder
         "strategy_generator": None, # Placeholder
         "repository_ops": None,     # Placeholder
-        "security_validator": None  # Placeholder
+        "security_validator": None, # Placeholder
+        "nlp": nlp_service
     }
     
     factory = CommandFactory(dependencies)
