@@ -13,7 +13,7 @@ from typing import Any, Dict, List, Optional
 from ..interface import Command
 
 
-class PRExtractCommand(Command):
+class OrchExtractCommand(Command):
     """
     Command for extracting orchestration-managed file changes into a dedicated branch.
     
@@ -33,11 +33,11 @@ class PRExtractCommand(Command):
 
     @property
     def name(self) -> str:
-        return "pr-extract"
+        return "orch-extract"
 
     @property
     def description(self) -> str:
-        return "Extract orchestration changes from a feature branch"
+        return "Isolate and extract orchestration/config changes into a dedicated branch"
 
     def add_arguments(self, parser: Any) -> None:
         """Add command-specific arguments."""

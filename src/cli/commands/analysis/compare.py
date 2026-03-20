@@ -23,7 +23,7 @@ class CompareCommand(Command):
 
     @property
     def name(self) -> str:
-        return "compare"
+        return "logic-compare"
 
     @property
     def description(self) -> str:

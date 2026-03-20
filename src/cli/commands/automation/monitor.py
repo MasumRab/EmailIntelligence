@@ -28,7 +28,7 @@ class MonitorCommand(Command):
 
     @property
     def name(self) -> str:
-        return "monitor"
+        return "sys-monitor"
 
     @property
     def description(self) -> str:

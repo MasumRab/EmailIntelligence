@@ -28,7 +28,7 @@ class VerifyCommand(Command):
 
     @property
     def name(self) -> str:
-        return "verify"
+        return "env-verify"
 
     @property
     def description(self) -> str:

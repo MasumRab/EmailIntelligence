@@ -21,7 +21,7 @@ class ResolveCommand(Command):
 
     @property
     def name(self) -> str:
-        return "resolve"
+        return "git-resolve"
 
     @property
     def description(self) -> str:

@@ -27,7 +27,7 @@ class TaskmasterCommand(Command):
 
     @property
     def name(self) -> str:
-        return "taskmaster"
+        return "task-generate"
 
     @property
     def description(self) -> str:

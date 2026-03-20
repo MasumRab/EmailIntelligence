@@ -21,7 +21,7 @@ class AnalyzeCommand(Command):
 
     @property
     def name(self) -> str:
-        return "analyze"
+        return "git-analyze"
 
     @property
     def description(self) -> str:

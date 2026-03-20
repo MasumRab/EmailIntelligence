@@ -19,7 +19,7 @@ class ValidateCommand(Command):
 
     @property
     def name(self) -> str:
-        return "validate"
+        return "code-validate"
 
     @property
     def description(self) -> str:
