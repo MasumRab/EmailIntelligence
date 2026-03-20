@@ -16,12 +16,12 @@ from .commands import (
     CommandRegistry,
     AnalyzeCommand,
     ResolveCommand,
-    ValidateCommand,
-    AnalyzeHistoryCommand,
     PlanRebaseCommand,
+    AnalyzeHistoryCommand,
     MergeSmartCommand,
     StashResolveCommand,
-    PRExtractCommand,
+    OrchExtractCommand,
+    ValidateCommand,
     CompareCommand,
     AnalyzeCodeCommand,
     ImportAuditCommand,
@@ -33,7 +33,8 @@ from .commands import (
     AnalyzeTasksCommand,
     ClusterBranchesCommand,
     MonitorCommand,
-    MCPSyncCommand
+    MCPSyncCommand,
+    AgentScaffoldCommand
 )
 from .services.nlp import NLPService
 
@@ -71,7 +72,7 @@ async def run_cli(args: Optional[List[str]] = None) -> int:
     registry.register_command(PlanRebaseCommand, agent="planner")
     registry.register_command(MergeSmartCommand, agent="resolver")
     registry.register_command(StashResolveCommand, agent="resolver")
-    registry.register_command(PRExtractCommand, agent="git")
+    registry.register_command(OrchExtractCommand, agent="git")
     registry.register_command(AnalyzeCodeCommand, agent="analyst")
     registry.register_command(ImportAuditCommand, agent="analyst")
     registry.register_command(CompareCommand, agent="system")
@@ -80,6 +81,7 @@ async def run_cli(args: Optional[List[str]] = None) -> int:
     registry.register_command(BackupCommand, agent="system")
     registry.register_command(MonitorCommand, agent="system")
     registry.register_command(MCPSyncCommand, agent="system")
+    registry.register_command(AgentScaffoldCommand, agent="system")
     registry.register_command(TaskmasterCommand, agent="workflow")
     registry.register_command(ListTasksCommand, agent="workflow")
     registry.register_command(AnalyzeTasksCommand, agent="workflow")

@@ -38,6 +38,9 @@ from .task.cluster_branches import ClusterBranchesCommand
 from .automation.monitor import MonitorCommand
 from .automation.mcp_sync import MCPSyncCommand
 
+# 6. Agent Domain
+from .agent.scaffold import AgentScaffoldCommand
+
 __all__ = [
     "Command",
     "CommandFactory",
@@ -67,4 +70,6 @@ __all__ = [
     # Automation
     "MonitorCommand",
     "MCPSyncCommand",
+    # Agent
+    "AgentScaffoldCommand",
 ]
