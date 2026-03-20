@@ -2,7 +2,7 @@
 Analyze Tasks Command Module
 
 Implements complexity analysis and dependency graphing for project tasks.
-Ported from .taskmaster/scripts/task_complexity_analyzer.py.
+Ported from .taskmaster/scripts/task_complexity_analyzer.py with RelationshipBuilder DNA.
 """
 
 import json
@@ -20,6 +20,7 @@ class AnalyzeTasksCommand(Command):
     
     Provides insights into effort estimation, dependency cycles, and 
     hierarchical clustering potential for branch alignment.
+    Includes automated relationship discovery.
     """
 
     def __init__(self):
@@ -44,6 +45,11 @@ class AnalyzeTasksCommand(Command):
             "--graph", 
             action="store_true", 
             help="Generate a textual dependency graph"
+        )
+        parser.add_argument(
+            "--relationships", 
+            action="store_true", 
+            help="Deep scan for implicit and parent-child relationships"
         )
 
     def get_dependencies(self) -> Dict[str, Any]:
@@ -89,6 +95,9 @@ class AnalyzeTasksCommand(Command):
 
             if args.graph:
                 self._print_graph(tasks)
+
+            if args.relationships:
+                self._analyze_relationships(tasks)
                 
             return 0
         except Exception as e:
@@ -110,3 +119,33 @@ class AnalyzeTasksCommand(Command):
                 print(f"  [{task['id']}] depends on -> {', '.join(map(str, deps))}")
             else:
                 print(f"  [{task['id']}] (No dependencies)")
+
+    # --- Relationship Discovery Logic (Ported DNA) ---
+
+    def _analyze_relationships(self, tasks: List[Dict]) -> None:
+        """Ported logic to find implicit links and hierarchies."""
+        print("\n🔍 DISCOVERING IMPLICIT RELATIONSHIPS")
+        
+        task_map = {str(t['id']): t for t in tasks}
+        
+        for task in tasks:
+            tid = str(task['id'])
+            content = (task.get('title', '') + ' ' + task.get('description', '')).lower()
+            
+            # 1. Parent-Child Discovery
+            if '.' in tid:
+                parent_parts = tid.rsplit('.', 1)
+                if len(parent_parts) > 0:
+                    parent_id = parent_parts[0]
+                    if parent_id in task_map:
+                        print(f"  - Hierarchy: Task {tid} is a sub-task of {parent_id}")
+
+            # 2. Keyword-based Dependency Scan
+            keywords = ['depends on', 'requires', 'after', 'prerequisite']
+            for kw in keywords:
+                if kw in content:
+                    # Look for ID-like patterns near keyword
+                    refs = re.findall(r'task[-\s](\d+(?:\.\d+)*)', content)
+                    for ref in refs:
+                        if ref in task_map and ref != tid:
+                            print(f"  - Implicit Link: {tid} -> {ref} (Reason: '{kw}')")
