@@ -46,7 +46,7 @@ class CompareCommand(Command):
             print("Error: Need at least 2 scripts to compare.")
             return 1
 
-        print(f"🧬 Performing Forensic Logic Analysis on {len(script_files)} scripts...")
+        print("🧬 Performing Forensic Logic Analysis on {} scripts...".format(len(script_files)))
         
         results = self._analyze_logic_chain(script_files)
         
@@ -92,7 +92,7 @@ class CompareCommand(Command):
                         "body": normalized
                     }
         except Exception as e:
-            print(f"Error extracting DNA from {path.name}: {e}")
+            print("Error extracting DNA from {}: {}".format(path.name, e))
         return dna
 
     def _detect_patterns(self, path: Path) -> Dict[str, bool]:
@@ -166,20 +166,20 @@ class CompareCommand(Command):
 
     def _print_forensic_report(self, results: Dict, threshold: float):
         for comp in results["comparisons"]:
-            print(f"\n--- {comp['from']} -> {comp['to']} ---")
-            print(f"Parity Score: {comp['parity_score']:.2%}")
+            print("\n--- {} -> {} ---".format(comp['from'], comp['to']))
+            print("Parity Score: {:.2f}%%".format(comp['parity_score'] * 100))
             
             if comp["matches"]:
-                print(f"✅ Identical Logic ({len(comp['matches'])}): {', '.join(comp['matches'][:5])}...")
+                print("✅ Identical Logic ({}): {}".format(len(comp['matches']), ", ".join(comp['matches'][:5])))
             
             if comp["drifts"]:
-                print(f"⚠️  Logic Drift Detected ({len(comp['drifts'])}):")
+                print("⚠️  Logic Drift Detected ({}):".format(len(comp['drifts'])))
                 for d in comp["drifts"]:
                     status = "Fuzzy Match" if d["similarity"] >= threshold else "MAJOR DRIFT"
-                    print(f"  - {d['name']}: {d['similarity']:.1%} similarity ({status})")
+                    print("  - {}: {:.1f}%% similarity ({})".format(d['name'], d['similarity'] * 100, status))
             
             if comp["missing"]:
-                print(f"❌ Dropped Functions ({len(comp['missing'])}): {', '.join(comp['missing'])}")
+                print("❌ Dropped Functions ({}): {}".format(len(comp['missing']), ", ".join(comp['missing'])))
 
             if comp["missing_patterns"]:
-                print(f"🚨 MISSING FUNCTIONAL ASPECTS: {', '.join(comp['missing_patterns'])}")
+                print("🚨 MISSING FUNCTIONAL ASPECTS: {}".format(", ".join(comp['missing_patterns'])))

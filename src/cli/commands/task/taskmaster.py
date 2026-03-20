@@ -23,7 +23,7 @@ class TaskmasterCommand(Command):
     - Multi-directory PRD scanning
     - Regex-based ID and metadata extraction
     - Completeness-weighted task merging
-    - Fuzzy logic similarity matching (85% threshold)
+    - Fuzzy logic similarity matching (85 percent threshold)
     - Source traceability (merged_from tracking)
     """
 

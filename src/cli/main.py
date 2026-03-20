@@ -16,12 +16,13 @@ from .commands import (
     CommandRegistry,
     AnalyzeCommand,
     ResolveCommand,
-    PlanRebaseCommand,
+    ValidateCommand,
     AnalyzeHistoryCommand,
+    PlanRebaseCommand,
     MergeSmartCommand,
     StashResolveCommand,
     OrchExtractCommand,
-    ValidateCommand,
+    GitAlignCommand,
     CompareCommand,
     AnalyzeCodeCommand,
     ImportAuditCommand,
@@ -34,7 +35,8 @@ from .commands import (
     ClusterBranchesCommand,
     MonitorCommand,
     MCPSyncCommand,
-    AgentScaffoldCommand
+    AgentScaffoldCommand,
+    RuleSyncCommand
 )
 from .services.nlp import NLPService
 
@@ -64,7 +66,7 @@ async def run_cli(args: Optional[List[str]] = None) -> int:
     factory = CommandFactory(dependencies)
     registry = CommandRegistry(factory)
 
-    # Register commands
+    # Register ALL commands
     registry.register_command(AnalyzeCommand, agent="analyst")
     registry.register_command(ResolveCommand, agent="resolver")
     registry.register_command(ValidateCommand, agent="validator")
@@ -73,6 +75,7 @@ async def run_cli(args: Optional[List[str]] = None) -> int:
     registry.register_command(MergeSmartCommand, agent="resolver")
     registry.register_command(StashResolveCommand, agent="resolver")
     registry.register_command(OrchExtractCommand, agent="git")
+    registry.register_command(GitAlignCommand, agent="resolver")
     registry.register_command(AnalyzeCodeCommand, agent="analyst")
     registry.register_command(ImportAuditCommand, agent="analyst")
     registry.register_command(CompareCommand, agent="system")
@@ -82,6 +85,7 @@ async def run_cli(args: Optional[List[str]] = None) -> int:
     registry.register_command(MonitorCommand, agent="system")
     registry.register_command(MCPSyncCommand, agent="system")
     registry.register_command(AgentScaffoldCommand, agent="system")
+    registry.register_command(RuleSyncCommand, agent="system")
     registry.register_command(TaskmasterCommand, agent="workflow")
     registry.register_command(ListTasksCommand, agent="workflow")
     registry.register_command(AnalyzeTasksCommand, agent="workflow")

@@ -1,7 +1,7 @@
 """
 CLI Commands Package
 
-Organized by functional domains (git, task, analysis, infra, automation, docs).
+Organized by functional domains (git, task, analysis, infra, automation, agent).
 """
 
 from .factory import CommandFactory
@@ -16,6 +16,7 @@ from .git.history import AnalyzeHistoryCommand
 from .git.merge_smart import MergeSmartCommand
 from .git.stash_resolve import StashResolveCommand
 from .git.pr_extract import OrchExtractCommand
+from .git.align import GitAlignCommand
 
 # 2. Analysis Domain
 from .analysis.validate import ValidateCommand
@@ -40,6 +41,7 @@ from .automation.mcp_sync import MCPSyncCommand
 
 # 6. Agent Domain
 from .agent.scaffold import AgentScaffoldCommand
+from .agent.rule_sync import RuleSyncCommand
 
 __all__ = [
     "Command",
@@ -53,6 +55,7 @@ __all__ = [
     "MergeSmartCommand",
     "StashResolveCommand",
     "OrchExtractCommand",
+    "GitAlignCommand",
     # Analysis
     "ValidateCommand",
     "CompareCommand",
@@ -72,4 +75,5 @@ __all__ = [
     "MCPSyncCommand",
     # Agent
     "AgentScaffoldCommand",
+    "RuleSyncCommand",
 ]

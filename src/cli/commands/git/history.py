@@ -119,7 +119,7 @@ class AnalyzeHistoryCommand(Command):
             for sha in dangling:
                 files = subprocess.run(["git", "show", "--name-only", "--format=", sha], capture_output=True, text=True).stdout
                 if any(p in files for p in ["src/", "backend/", "client/", "conductor/"]):
-                    msg = subprocess.run(["git", "show", "--no-patch", "--format=%B", sha], capture_output=True, text=True).stdout.strip()
+                    msg = subprocess.run(["git", "show", "--no-patch", "--format=%%B", sha], capture_output=True, text=True).stdout.strip()
                     print(f"\n📦 FOUND LOST WORK: {sha}\n   Message: {msg[:80]}...")
                     found_count += 1
             print(f"\n✅ Scan complete. Identified {found_count} potential recovery targets.")

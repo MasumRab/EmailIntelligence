@@ -46,7 +46,7 @@ class MonitorCommand(Command):
 
     @property
     def description(self) -> str:
-        return "Exhaustive system resource and performance monitor (100% parity)"
+        return "Exhaustive system resource and performance monitor (100 percent parity)"
 
     def add_arguments(self, parser: Any) -> None:
         parser.add_argument("--interval", type=float, default=5.0)
@@ -67,10 +67,10 @@ class MonitorCommand(Command):
         if self._security_validator:
             is_safe, error = self._security_validator.validate_path_security(str(self._monitoring_file.absolute()))
             if not is_safe:
-                print(f"Error: Security violation: {error}"); return 1
+                print("Error: Security violation: {}".format(error)); return 1
 
         self.load_monitoring()
-        print(f"📊 Starting Exhaustive Resource Monitor (Interval: {args.interval}s)...")
+        print("📊 Starting Exhaustive Resource Monitor (Interval: {}s)...".format(args.interval))
 
         try:
             if args.once:
@@ -134,7 +134,13 @@ class MonitorCommand(Command):
         s = self._system_resources[-1]
         stats = self._get_system_stats()
         ts = datetime.fromtimestamp(s["timestamp"]).strftime('%H:%M:%S')
-        print(f"[{ts}] CPU: {s['cpu_percent']:.1f}% (P95: {stats.get('p95',0):.1f}%) | MEM: {s['memory_percent']:.1f}%")
+        
+        # Use formatting to avoid f-string % issues
+        msg = "[{}] CPU: {:.1f}%% (P95: {:.1f}%%) | MEM: {:.1f}%%".format(
+
+            ts, s['cpu_percent'], stats.get('p95', 0), s['memory_percent']
+        )
+        print(msg)
 
     def _save_monitoring_data(self):
         data = {"system": list(self._system_resources), "timestamp": time.time()}
