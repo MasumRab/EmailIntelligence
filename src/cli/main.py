@@ -26,6 +26,8 @@ from .commands import (
     AnalyzeCodeCommand,
     ImportAuditCommand,
     VerifyCommand,
+    DeployCommand,
+    BackupCommand,
     TaskmasterCommand,
     ListTasksCommand,
     AnalyzeTasksCommand,
@@ -72,6 +74,8 @@ async def run_cli(args: Optional[List[str]] = None) -> int:
     registry.register_command(ImportAuditCommand, agent="analyst")
     registry.register_command(CompareCommand, agent="system")
     registry.register_command(VerifyCommand, agent="system")
+    registry.register_command(DeployCommand, agent="system")
+    registry.register_command(BackupCommand, agent="system")
     registry.register_command(TaskmasterCommand, agent="workflow")
     registry.register_command(ListTasksCommand, agent="workflow")
     registry.register_command(AnalyzeTasksCommand, agent="workflow")

@@ -25,6 +25,8 @@ from .analysis.import_audit import ImportAuditCommand
 
 # 3. Infra Domain
 from .infra.verify import VerifyCommand
+from .infra.deploy import DeployCommand
+from .infra.backup import BackupCommand
 
 # 4. Task Domain
 from .task.taskmaster import TaskmasterCommand
@@ -51,6 +53,8 @@ __all__ = [
     "ImportAuditCommand",
     # Infra
     "VerifyCommand",
+    "DeployCommand",
+    "BackupCommand",
     # Task
     "TaskmasterCommand",
     "ListTasksCommand",
