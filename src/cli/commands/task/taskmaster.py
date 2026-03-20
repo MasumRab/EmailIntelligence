@@ -159,13 +159,22 @@ class TaskmasterCommand(Command):
         return SequenceMatcher(None, text1.lower(), text2.lower()).ratio()
 
     def _find_task_files(self, tasks_path: Path) -> List[Path]:
+        """Exhaustive search including all known task sub-directories."""
         files = list(tasks_path.glob("task*.md"))
-        for sd in ["task_data", "improved_tasks", "restructured_tasks_14_section"]:
-            path = tasks_path / sd
-            if path.exists(): files.extend(list(path.glob("task*.md")))
+        subdirs = [
+            "task_data", 
+            "improved_tasks", 
+            "enhanced_improved_tasks",
+            "restructured_tasks_14_section"
+        ]
+        for subdir in subdirs:
+            subdir_path = tasks_path / subdir
+            if subdir_path.exists():
+                files.extend(list(subdir_path.glob("task*.md")))
         return files
 
     def _parse_task_from_md(self, file_path: Path) -> Optional[Dict]:
+        """Ported regex logic with full metadata fidelity."""
         try:
             content = file_path.read_text(encoding='utf-8')
             id_match = re.search(r'task[-_]?(\d+(?:[-_.]\d+)*)', file_path.stem, re.I)
@@ -173,12 +182,20 @@ class TaskmasterCommand(Command):
             
             title = re.search(r'#\s*Task.*?[:\-]\s*(.+)', content)
             status = re.search(r'\*\*Status:\*\*\s*(.+?)(?:\n|$)', content)
+            priority = re.search(r'\*\*Priority:\*\*\s*(.+?)(?:\n|$)', content)
+            
+            # Extract description vs acceptance criteria (The missing DNA)
+            parts = content.split('## Acceptance Criteria')
+            desc = parts[0].strip()
+            ac = parts[1].strip() if len(parts) > 1 else ""
             
             return {
                 "id": id_match.group(1).replace('_', '.').replace('-', '.'),
                 "title": title.group(1).strip() if title else f"Task {file_path.stem}",
                 "status": status.group(1).strip() if status else "pending",
-                "description": content, # Full content for similarity
+                "priority": priority.group(1).strip() if priority else "medium",
+                "description": desc,
+                "acceptance_criteria": ac,
                 "source_file": str(file_path)
             }
         except: return None
