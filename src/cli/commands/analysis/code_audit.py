@@ -134,12 +134,40 @@ class AnalyzeCodeCommand(Command):
         return issues
 
     def analyze_maintainability_issues(self, root: Path) -> List[Dict]:
-        """Detects code duplication and complex functions."""
+        """Detects structural anti-patterns using AST."""
         issues = []
-        for func in self._detect_complex_functions(root):
-            if func["complexity"] > 15:
-                issues.append({"type": "MAINTAINABILITY", "risk_level": "MEDIUM", "file": func["file"], "description": f"High complexity in {func['name']} ({func['complexity']})"})
+        for py_file in root.rglob("*.py"):
+            if "venv" in str(py_file): continue
+            try:
+                content = py_file.read_text(encoding='utf-8')
+                tree = ast.parse(content)
+                
+                for node in ast.walk(tree):
+                    # 1. Detect Bare Excepts (Fragile Intent)
+                    if isinstance(node, ast.ExceptHandler) and node.type is None:
+                        issues.append({
+                            "type": "MAINTAINABILITY",
+                            "risk_level": "MEDIUM",
+                            "file": str(py_file.relative_to(root)),
+                            "line": node.lineno,
+                            "description": "Fragile Intent: Bare 'except:' clause detected"
+                        })
+                    
+                    # 2. Detect Unsafe I/O (Non-SecurityValidator logic)
+                    if isinstance(node, ast.Call) and isinstance(node.func, ast.Name):
+                        if node.func.id == "open" and not self._is_security_validator_active():
+                            issues.append({
+                                "type": "SECURITY_RISK",
+                                "risk_level": "HIGH",
+                                "file": str(py_file.relative_to(root)),
+                                "line": node.lineno,
+                                "description": "Unsafe I/O: 'open()' called without SecurityValidator gating"
+                            })
+            except: continue
         return issues
+
+    def _is_security_validator_active(self) -> bool:
+        return self._security_validator is not None
 
     def _detect_circular_dependencies(self, root: Path) -> List[Dict]:
         # Implementation of circular dependency logic...
