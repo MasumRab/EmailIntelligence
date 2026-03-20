@@ -16,13 +16,15 @@ from .commands import (
     CommandRegistry,
     AnalyzeCommand,
     ResolveCommand,
-    ValidateCommand,
-    AnalyzeHistoryCommand,
     PlanRebaseCommand,
+    AnalyzeHistoryCommand,
     MergeSmartCommand,
     StashResolveCommand,
     OrchExtractCommand,
     GitAlignCommand,
+    GitMergeSemanticCommand,
+    GitAutoResolveCommand,
+    ValidateCommand,
     CompareCommand,
     AnalyzeCodeCommand,
     ImportAuditCommand,
@@ -66,7 +68,7 @@ async def run_cli(args: Optional[List[str]] = None) -> int:
     factory = CommandFactory(dependencies)
     registry = CommandRegistry(factory)
 
-    # Register ALL commands
+    # Register commands
     registry.register_command(AnalyzeCommand, agent="analyst")
     registry.register_command(ResolveCommand, agent="resolver")
     registry.register_command(ValidateCommand, agent="validator")
@@ -76,6 +78,8 @@ async def run_cli(args: Optional[List[str]] = None) -> int:
     registry.register_command(StashResolveCommand, agent="resolver")
     registry.register_command(OrchExtractCommand, agent="git")
     registry.register_command(GitAlignCommand, agent="resolver")
+    registry.register_command(GitMergeSemanticCommand, agent="resolver")
+    registry.register_command(GitAutoResolveCommand, agent="resolver")
     registry.register_command(AnalyzeCodeCommand, agent="analyst")
     registry.register_command(ImportAuditCommand, agent="analyst")
     registry.register_command(CompareCommand, agent="system")
