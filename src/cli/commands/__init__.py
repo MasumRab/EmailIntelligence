@@ -20,6 +20,8 @@ from .git.pr_extract import PRExtractCommand
 # 2. Analysis Domain
 from .analysis.validate import ValidateCommand
 from .analysis.compare import CompareCommand
+from .analysis.code_audit import AnalyzeCodeCommand
+from .analysis.import_audit import ImportAuditCommand
 
 # 3. Infra Domain
 from .infra.verify import VerifyCommand
@@ -45,6 +47,8 @@ __all__ = [
     # Analysis
     "ValidateCommand",
     "CompareCommand",
+    "AnalyzeCodeCommand",
+    "ImportAuditCommand",
     # Infra
     "VerifyCommand",
     # Task
