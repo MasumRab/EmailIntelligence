@@ -2,7 +2,7 @@
 Taskmaster Command Module
 
 Implements the core Taskmaster logic for parsing PRDs and generating tasks.json.
-Ported from .taskmaster/taskmaster_cli.py.
+Ported from .taskmaster/taskmaster_cli.py with TaskDeduplicator DNA.
 """
 
 import json
@@ -20,6 +20,7 @@ class TaskmasterCommand(Command):
     
     This command implements the official Taskmaster workflow for converting
     specification-driven task definitions into machine-readable JSON.
+    Includes automated deduplication capabilities.
     """
 
     def __init__(self):
@@ -49,6 +50,11 @@ class TaskmasterCommand(Command):
             "--validate-only", 
             action="store_true", 
             help="Validate markdown files without writing JSON"
+        )
+        parser.add_argument(
+            "--deduplicate", 
+            action="store_true", 
+            help="Merge highly similar tasks based on title and description"
         )
 
     def get_dependencies(self) -> Dict[str, Any]:
@@ -93,11 +99,15 @@ class TaskmasterCommand(Command):
             print(f"✅ Validation complete. {len(tasks)} tasks are valid.")
             return 0
 
+        # Optional Deduplication
+        if args.deduplicate:
+            tasks = self._deduplicate_tasks(tasks)
+
         # Create Taskmaster JSON structure
         result = {
             "master": {
                 "name": "Task Master",
-                "version": "2.0.0 (Modular)",
+                "version": "2.1.0 (Deduplicated)",
                 "description": "Taskmaster-generated tasks from modular CLI",
                 "tasks": tasks
             }
@@ -154,3 +164,38 @@ class TaskmasterCommand(Command):
         except Exception as e:
             print(f"Warning: Failed to parse {file_path.name}: {e}")
             return None
+
+    # --- Deduplication Logic (Ported DNA) ---
+
+    def _deduplicate_tasks(self, tasks: List[Dict]) -> List[Dict]:
+        """Identify and merge duplicate tasks using similarity matching."""
+        print(f"🔄 Deduplicating {len(tasks)} tasks...")
+        
+        unique_tasks = []
+        for task in tasks:
+            is_dupe = False
+            for existing in unique_tasks:
+                similarity = self._calculate_similarity(
+                    task.get("title", ""), 
+                    existing.get("title", "")
+                )
+                if similarity > 0.85:
+                    print(f"  - Merging duplicate: '{task.get('title')}' -> '{existing.get('title')}'")
+                    # Merge logic: Mark source files for audit
+                    existing["merged_from"] = existing.get("merged_from", [])
+                    existing["merged_from"].append(task.get("source_file"))
+                    is_dupe = True
+                    break
+            
+            if not is_dupe:
+                unique_tasks.append(task)
+        
+        print(f"✅ Reduced to {len(unique_tasks)} unique tasks.")
+        return unique_tasks
+
+    def _calculate_similarity(self, text1: str, text2: str) -> float:
+        """Ported SequenceMatcher similarity logic."""
+        from difflib import SequenceMatcher
+        t1, t2 = text1.lower().strip(), text2.lower().strip()
+        if not t1 or not t2: return 0.0
+        return SequenceMatcher(None, t1, t2).ratio()
