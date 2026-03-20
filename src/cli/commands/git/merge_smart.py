@@ -62,39 +62,61 @@ class MergeSmartCommand(Command):
         print(f"🧬 Starting Intelligent Merge: {file_path}")
         print(f"   Refs: {args.local} <-> {args.remote}")
 
-        merged_content, conflicts = self.intelligent_merge(str(file_path), args.local, args.remote)
+        try:
+            # 1. Get merge base
+            base_ref = self._run_command(f"git merge-base {args.local} {args.remote}").strip()
+            if not base_ref:
+                print("Error: Could not find common ancestor (merge-base).")
+                return 1
 
-        if conflicts < 0:
-            print("❌ Merge failed"); return 1
+            # 2. Get content versions
+            base_content = self._get_git_content(file_path, base_ref)
+            local_content = self._get_git_content(file_path, args.local)
+            remote_content = self._get_git_content(file_path, args.remote)
 
-        output_path = Path(args.output) if args.output else file_path.with_suffix(".merged")
-        output_path.write_text(merged_content, encoding='utf-8')
+            # 3. Get changed lines
+            local_changes = set(self._get_changed_lines(file_path, base_ref, args.local))
+            remote_changes = set(self._get_changed_lines(file_path, base_ref, args.remote))
 
-        print(f"\n✅ Merged content written to: {output_path}")
-        if conflicts == 0:
-            print("✨ No conflicts detected!")
-        else:
-            print(f"⚠️  Detected {conflicts} conflicts. Manual resolution required.")
+            # 4. Perform 3-way merge
+            merged_content, conflicts = self._do_3way_merge(
+                base_content, local_content, remote_content, 
+                local_changes, remote_changes,
+                args.local, args.remote
+            )
 
-        return 0 if conflicts == 0 else 2
+            # 5. Write output
+            output_path = Path(args.output) if args.output else file_path.with_suffix(".merged")
+            output_path.write_text(merged_content, encoding='utf-8')
 
-    # --- PORTED LOGIC DNA (100% PARITY) ---
+            print(f"\n✅ Merged content written to: {output_path}")
+            if conflicts == 0:
+                print("✨ No conflicts detected!")
+            else:
+                print(f"⚠️  Detected {conflicts} conflicts. Manual resolution required.")
 
-    def run_command(self, cmd: str) -> str:
+            return 0 if conflicts == 0 else 2
+        except Exception as e:
+            print(f"Error during smart merge: {e}")
+            return 1
+
+    # --- PORTED LOGIC DNA (RESTORED FIDELITY) ---
+
+    def _run_command(self, cmd: str) -> str:
         """Ported from legacy run_command."""
         result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
         return result.stdout
 
-    def get_file_content(self, file_path: str, ref: str = "HEAD") -> str:
-        """Ported from legacy get_file_content."""
+    def _get_git_content(self, file_path: Path, ref: str) -> str:
+        """Ported from legacy get_file_content with Path awareness."""
         try:
-            return self.run_command(f"git show {ref}:{file_path}")
+            return self._run_command(f"git show {ref}:{file_path}")
         except: return ""
 
-    def get_changed_lines(self, file_path: str, base_ref: str, target_ref: str) -> List[int]:
+    def _get_changed_lines(self, file_path: Path, base_ref: str, target_ref: str) -> List[int]:
         """Ported logic for diff chunk parsing."""
         try:
-            diff = self.run_command(f"git diff {base_ref}..{target_ref} -- {file_path}")
+            diff = self._run_command(f"git diff {base_ref}..{target_ref} -- {file_path}")
             changed_lines = set()
             for line in diff.split("\n"):
                 if line.startswith("@@"):
@@ -107,24 +129,12 @@ class MergeSmartCommand(Command):
             return sorted(list(changed_lines))
         except: return []
 
-    def intelligent_merge(self, file_path: str, local_ref: str, remote_ref: str) -> Tuple[str, int]:
-        """Exhaustive implementation of the 3-way merge algorithm."""
-        base_ref = self.run_command(f"git merge-base {local_ref} {remote_ref}").strip()
-        if not base_ref: return "", -1
-
-        base_content = self.get_file_content(file_path, base_ref)
-        local_content = self.get_file_content(file_path, local_ref)
-        remote_content = self.get_file_content(file_path, remote_ref)
-
-        if not base_content: return "", -1
-
-        base_lines = base_content.split("\n")
-        local_lines = local_content.split("\n") if local_content else base_lines
-        remote_lines = remote_content.split("\n") if remote_content else base_lines
-
-        l_changes = set(self.get_changed_lines(file_path, base_ref, local_ref))
-        r_changes = set(self.get_changed_lines(file_path, base_ref, remote_ref))
-
+    def _do_3way_merge(self, base, local, remote, local_chg, remote_chg, l_ref, r_ref) -> Tuple[str, int]:
+        """Core 3-way merge logic with conflict markers."""
+        base_lines = base.splitlines()
+        local_lines = local.splitlines()
+        remote_lines = remote.splitlines()
+        
         merged = []
         conflicts = 0
         max_ln = max(len(base_lines), len(local_lines), len(remote_lines))
@@ -135,11 +145,11 @@ class MergeSmartCommand(Command):
             l = local_lines[i] if i < len(local_lines) else b
             r = remote_lines[i] if i < len(remote_lines) else b
 
-            l_mod = ln in l_changes
-            r_mod = ln in r_changes
+            l_mod = ln in local_chg
+            r_mod = ln in remote_chg
 
             if l_mod and r_mod and l != r:
-                merged.extend([f"<<<<<<< LOCAL ({local_ref})", l, "=======", r, f">>>>>>> REMOTE ({remote_ref})"])
+                merged.extend([f"<<<<<<< LOCAL ({l_ref})", l, "=======", r, f">>>>>>> REMOTE ({r_ref})"])
                 conflicts += 1
             elif l_mod: merged.append(l)
             elif r_mod: merged.append(r)
