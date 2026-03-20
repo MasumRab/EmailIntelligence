@@ -8,14 +8,21 @@ from .factory import CommandFactory
 from .interface import Command
 from .registry import CommandRegistry
 
-# Domain-specific commands
+# 1. Git Domain
 from .git.analyze import AnalyzeCommand
 from .git.resolve import ResolveCommand
 from .git.rebase import PlanRebaseCommand
 from .git.history import AnalyzeHistoryCommand
+from .git.merge_smart import MergeSmartCommand
+
+# 2. Analysis Domain
 from .analysis.validate import ValidateCommand
 from .analysis.compare import CompareCommand
+
+# 3. Infra Domain
 from .infra.verify import VerifyCommand
+
+# 4. Task Domain
 from .task.taskmaster import TaskmasterCommand
 from .task.list_tasks import ListTasksCommand
 from .task.analyze_tasks import AnalyzeTasksCommand
@@ -25,13 +32,18 @@ __all__ = [
     "Command",
     "CommandFactory",
     "CommandRegistry",
+    # Git
     "AnalyzeCommand",
     "ResolveCommand",
     "PlanRebaseCommand",
     "AnalyzeHistoryCommand",
+    "MergeSmartCommand",
+    # Analysis
     "ValidateCommand",
     "CompareCommand",
+    # Infra
     "VerifyCommand",
+    # Task
     "TaskmasterCommand",
     "ListTasksCommand",
     "AnalyzeTasksCommand",
