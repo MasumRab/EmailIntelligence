@@ -2,7 +2,7 @@
 Analyze Command Module
 
 Implements the analyze command for conflict analysis and architectural validation.
-Ported from feat-v2.0 with ArchitecturalRuleEngine DNA.
+Unified implementation of conflict detection and architectural governance.
 """
 
 from argparse import Namespace
@@ -65,17 +65,54 @@ class AnalyzeCommand(Command):
 
     async def execute(self, args: Namespace) -> int:
         """Execute the analyze command."""
-        repo_path = Path(args.repo_path)
-        
-        print(f"🔍 Analyzing repository at {repo_path}...")
-        
-        if args.arch_check:
-            self._perform_arch_check(repo_path)
+        try:
+            repo_path = Path(args.repo_path)
+            if not repo_path.exists():
+                print(f"Error: Repository path does not exist: {args.repo_path}")
+                return 1
 
-        # Implementation logic for conflict detection would continue here
-        # (Assuming the rest of the original logic is preserved/available via services)
-        
-        return 0
+            # 1. Perform Architectural Check if requested
+            if args.arch_check:
+                self._perform_arch_check(repo_path)
+
+            # 2. Initialize Repository Operations
+            if self._repo_ops:
+                # Handle both class and instance for flexible DI
+                repo_ops = self._repo_ops(repo_path) if callable(self._repo_ops) else self._repo_ops
+            else:
+                from ..git.repository import RepositoryOperations
+                repo_ops = RepositoryOperations(repo_path)
+
+            # 3. Determine and Validate Branches
+            base_branch = args.base_branch
+            head_branch = args.head_branch
+
+            if not head_branch:
+                stdout, _, rc = await repo_ops.run_command(["rev-parse", "--abbrev-ref", "HEAD"])
+                if rc == 0:
+                    head_branch = stdout.strip()
+                else:
+                    print("Error: Could not determine current branch")
+                    return 1
+
+            print(f"🔍 Analyzing conflicts: {base_branch} <- {head_branch}")
+
+            # 4. Detect and Analyze Conflicts
+            if self._detector:
+                conflicts = await self._detector.detect_conflicts_between_branches(head_branch, base_branch)
+                if not conflicts:
+                    print("No git conflicts detected.")
+                else:
+                    print(f"Found {len(conflicts)} conflicts.")
+                    for conflict in conflicts:
+                        # Logic for strategy generation and analysis...
+                        print(f"  - Conflict in {conflict.file_path} (Risk: {conflict.severity.value})")
+
+            return 0
+
+        except Exception as e:
+            print(f"Error during analysis: {e}")
+            return 1
 
     # --- Architectural Rule Logic (Ported DNA) ---
 
@@ -83,14 +120,6 @@ class AnalyzeCommand(Command):
         """Ported logic to enforce layering and import boundaries."""
         import ast
         print("\n🏗️  ENFORCING ARCHITECTURAL RULES")
-        
-        # Define default layers
-        layers = {
-            "cli": ["src/cli/"],
-            "core": ["src/core/"],
-            "backend": ["src/backend/"]
-        }
-
         py_files = list(path.rglob("*.py"))
         print(f"  - Scanning {len(py_files)} files for layer violations...")
 
@@ -104,20 +133,15 @@ class AnalyzeCommand(Command):
         try:
             content = file_path.read_text(encoding='utf-8')
             tree = ast.parse(content)
-            
             if "src/core/" in str(file_path):
                 for node in ast.walk(tree):
                     if isinstance(node, (ast.Import, ast.ImportFrom)):
                         module = self._get_module_name(node)
                         if any(x in module for x in ["src.cli", "src.backend"]):
                             print(f"  [VIOLATION] Core file '{file_path.name}' imports higher layer: {module}")
-        except Exception:
-            pass
+        except Exception: pass
 
     def _get_module_name(self, node: Any) -> str:
-        """Extract module name from AST import node."""
-        if hasattr(node, 'module') and node.module:
-            return node.module
-        if hasattr(node, 'names'):
-            return node.names[0].name
+        if hasattr(node, 'module') and node.module: return node.module
+        if hasattr(node, 'names'): return node.names[0].name
         return ""
