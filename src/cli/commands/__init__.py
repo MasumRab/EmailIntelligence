@@ -15,6 +15,7 @@ from .git.rebase import PlanRebaseCommand
 from .git.history import AnalyzeHistoryCommand
 from .git.merge_smart import MergeSmartCommand
 from .git.stash_resolve import StashResolveCommand
+from .git.pr_extract import PRExtractCommand
 
 # 2. Analysis Domain
 from .analysis.validate import ValidateCommand
@@ -40,6 +41,7 @@ __all__ = [
     "AnalyzeHistoryCommand",
     "MergeSmartCommand",
     "StashResolveCommand",
+    "PRExtractCommand",
     # Analysis
     "ValidateCommand",
     "CompareCommand",
