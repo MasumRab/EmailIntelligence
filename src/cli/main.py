@@ -23,7 +23,8 @@ from .commands import (
     VerifyCommand,
     TaskmasterCommand,
     ListTasksCommand,
-    AnalyzeTasksCommand
+    AnalyzeTasksCommand,
+    ClusterBranchesCommand
 )
 
 async def run_cli(args: Optional[List[str]] = None) -> int:
@@ -60,6 +61,7 @@ async def run_cli(args: Optional[List[str]] = None) -> int:
     registry.register_command(TaskmasterCommand, agent="workflow")
     registry.register_command(ListTasksCommand, agent="workflow")
     registry.register_command(AnalyzeTasksCommand, agent="workflow")
+    registry.register_command(ClusterBranchesCommand, agent="analyst")
 
     # Create top-level parser
     parser = argparse.ArgumentParser(

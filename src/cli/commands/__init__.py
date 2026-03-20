@@ -19,6 +19,7 @@ from .infra.verify import VerifyCommand
 from .task.taskmaster import TaskmasterCommand
 from .task.list_tasks import ListTasksCommand
 from .task.analyze_tasks import AnalyzeTasksCommand
+from .task.cluster_branches import ClusterBranchesCommand
 
 __all__ = [
     "Command",
@@ -34,4 +35,5 @@ __all__ = [
     "TaskmasterCommand",
     "ListTasksCommand",
     "AnalyzeTasksCommand",
+    "ClusterBranchesCommand",
 ]
