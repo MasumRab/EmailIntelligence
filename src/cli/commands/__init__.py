@@ -36,6 +36,7 @@ from .task.cluster_branches import ClusterBranchesCommand
 
 # 5. Automation Domain
 from .automation.monitor import MonitorCommand
+from .automation.mcp_sync import MCPSyncCommand
 
 __all__ = [
     "Command",
@@ -65,4 +66,5 @@ __all__ = [
     "ClusterBranchesCommand",
     # Automation
     "MonitorCommand",
+    "MCPSyncCommand",
 ]
