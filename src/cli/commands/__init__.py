@@ -34,6 +34,9 @@ from .task.list_tasks import ListTasksCommand
 from .task.analyze_tasks import AnalyzeTasksCommand
 from .task.cluster_branches import ClusterBranchesCommand
 
+# 5. Automation Domain
+from .automation.monitor import MonitorCommand
+
 __all__ = [
     "Command",
     "CommandFactory",
@@ -60,4 +63,6 @@ __all__ = [
     "ListTasksCommand",
     "AnalyzeTasksCommand",
     "ClusterBranchesCommand",
+    # Automation
+    "MonitorCommand",
 ]

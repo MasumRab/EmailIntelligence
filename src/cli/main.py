@@ -16,12 +16,12 @@ from .commands import (
     CommandRegistry,
     AnalyzeCommand,
     ResolveCommand,
-    PlanRebaseCommand,
+    ValidateCommand,
     AnalyzeHistoryCommand,
+    PlanRebaseCommand,
     MergeSmartCommand,
     StashResolveCommand,
     PRExtractCommand,
-    ValidateCommand,
     CompareCommand,
     AnalyzeCodeCommand,
     ImportAuditCommand,
@@ -31,7 +31,8 @@ from .commands import (
     TaskmasterCommand,
     ListTasksCommand,
     AnalyzeTasksCommand,
-    ClusterBranchesCommand
+    ClusterBranchesCommand,
+    MonitorCommand
 )
 from .services.nlp import NLPService
 
@@ -76,6 +77,7 @@ async def run_cli(args: Optional[List[str]] = None) -> int:
     registry.register_command(VerifyCommand, agent="system")
     registry.register_command(DeployCommand, agent="system")
     registry.register_command(BackupCommand, agent="system")
+    registry.register_command(MonitorCommand, agent="system")
     registry.register_command(TaskmasterCommand, agent="workflow")
     registry.register_command(ListTasksCommand, agent="workflow")
     registry.register_command(AnalyzeTasksCommand, agent="workflow")
