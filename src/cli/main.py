@@ -19,6 +19,7 @@ from .commands import (
     PlanRebaseCommand,
     AnalyzeHistoryCommand,
     MergeSmartCommand,
+    StashResolveCommand,
     ValidateCommand,
     CompareCommand,
     VerifyCommand,
@@ -58,6 +59,7 @@ async def run_cli(args: Optional[List[str]] = None) -> int:
     registry.register_command(AnalyzeHistoryCommand, agent="analyst")
     registry.register_command(PlanRebaseCommand, agent="planner")
     registry.register_command(MergeSmartCommand, agent="resolver")
+    registry.register_command(StashResolveCommand, agent="resolver")
     registry.register_command(CompareCommand, agent="system")
     registry.register_command(VerifyCommand, agent="system")
     registry.register_command(TaskmasterCommand, agent="workflow")
