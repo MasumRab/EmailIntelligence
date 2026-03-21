@@ -339,35 +339,6 @@ def validate_orchestration_environment() -> bool:
 
 
 
-    if not is_conda_available():
-        if env_name:
-            logger.warning(f"Conda not available, cannot activate environment '{env_name}'. Please install Conda.")
-        else:
-            logger.debug("Conda not available, skipping environment activation.")
-        return False
-
-    conda_info = get_conda_env_info()
-    if conda_info["is_active"]:
-        if conda_info["env_name"] == env_name:
-            logger.info(f"Already in specified conda environment: {conda_info['env_name']}")
-            return True
-        else:
-            logger.warning(
-                f"Currently in conda environment '{conda_info['env_name']}', "
-                f"but '{env_name}' was requested. "
-                f"Please activate '{env_name}' manually before running the script."
-            )
-            return False
-
-
-
-
-
-
-
-
-
-# --- Helper Functions ---
 def get_venv_executable(venv_path: Path, executable: str) -> Path:
     """Get the path to a specific executable in the virtual environment."""
     scripts_dir = "Scripts" if platform.system() == "Windows" else "bin"
