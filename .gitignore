@@ -13,12 +13,20 @@ venv/
 *.env
 !.env.example
 
+# Python dependency management
+poetry.lock
+poetry.toml
+uv.lock
+
 # Credentials and sensitive data
 token.json
 credentials.json
 apikey.json
 jsons/
 jsons/*
+*.p12
+*.pem
+*.key
 
 # Build / packaging artifacts
 build/
@@ -49,36 +57,44 @@ coverage/
 *.sublime-workspace
 .history
 
-# Misc
-diagnosis_message.txt
+# Logs and diagnostics
 logs/
+diagnosis_message.txt
+performance_metrics_log.jsonl
 
-# Ignore configuration and local environment files
+# Configuration (local overrides)
 *.local.config
 *.local.json
 *.local.yaml
 *.local.yml
-jsons/client_id.json
-credentials.json
-jsons/apikey.json
 config.local.*
 config/llm_guidelines.local.json
+jsons/client_id.json
+jsons/apikey.json
 
-# Ignore hidden files and directories, with exceptions
-.*
-!docs/.gitkeep
-!.semgrep/
-!.gitignore
-!.git/hooks/
-
-# Python cache
+# Cache directories
 __pycache__/
+.mypy_cache/
+.ruff_cache/
+.pyright/
 
-# Miscellaneous
-diagnosis_message.txt
-performance_metrics_log.jsonl
-config/llm_guidelines.local.json
+# Beads task tracker
+.beads/
+
+# Crush (if present)
+.crush/
+
+# Models (trained/serialized)
 models/*.pkl
-worktrees/
+models/*.joblib
+
+# Environment-specific
 emailintelligence_env/
+worktrees/
+
+# dotfiles that should NOT be ignored
+!.gitignore
+!.gitattributes
+!.semgrep/
 !.specify/
+!.editorconfig

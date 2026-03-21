@@ -1,0 +1,42 @@
+# Auto-detect line endings
+* text=auto
+
+# Shell scripts - Unix line endings
+*.sh text eol=lf
+
+# PowerShell scripts - Windows line endings
+*.ps1 text eol=crlf
+
+# Python - always LF
+*.py text eol=lf
+
+# JavaScript/TypeScript - always LF
+*.js text eol=lf
+*.jsx text eol=lf
+*.ts text eol=lf
+*.tsx text eol=lf
+
+# JSON/YAML/TOML - always LF
+*.json text eol=lf
+*.yaml text eol=lf
+*.yml text eol=lf
+*.toml text eol=lf
+
+# Markdown - always LF
+*.md text eol=lf
+
+# Binary files
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pdf binary
+*.zip binary
+*.tar binary
+*.gz binary
+*.whl binary
+
+# Database files
+*.sqlite3 binary
+*.db binary
