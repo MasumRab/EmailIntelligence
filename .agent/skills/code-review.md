@@ -1,20 +1,31 @@
-# Code Review Skill
+# Internal-First Code Review Skill
 
-This skill provides the AI agent with instructions for performing rigorous, industrial-grade code reviews.
+This skill instructs the AI to prioritize the project's internal diagnostic suite (`dev.py`) for all code review tasks.
 
-## Core Principles
-1.  **Forensic Parity**: Always check if removed logic was actually migrated or if it was accidentally deleted.
-2.  **Incremental Focus**: Default to reviewing the current `HEAD` against `HEAD~1` to maintain high fidelity and avoid tool limits.
-3.  **Security Gating**: Ensure every new I/O operation is wrapped in the `SecurityValidator`.
+## Core Pillars of Review
 
-## Workflow
-When a user asks for a "Review" or uses the `/code-review` command:
-1.  Verify the current branch and recent commit history.
-2.  Trigger the CodeRabbit review using `coderabbit review --base-commit HEAD~1 --plain`.
-3.  Perform a manual check of any removed imports or logic blocks.
-4.  Synthesize the results and provide actionable architectural feedback.
+### 1. Topological Awareness (`branch-cluster`)
+-   **Goal**: Determine if the change introduces a new "island" or if it correctly aligns with existing functional domains.
+-   **Check**: Does the branch sit correctly in the `consolidate/` namespace?
 
-## Tooling
--   **Primary**: CodeRabbit CLI
--   **Verification**: `python3 dev.py logic-compare`
--   **Audit**: `python3 dev.py code-audit`
+### 2. Forensic DNA Parity (`logic-compare`)
+-   **Goal**: Prevent accidental logic loss during porting.
+-   **Check**: If functions were moved from `scripts/` to `src/cli/`, their AST-normalized bodies must match >95%.
+
+### 3. Structural Risk Audit (`code-audit`)
+-   **Goal**: Find deeper maintainability and security issues using AST visitors.
+-   **Check**: 
+    -   Are there bare `except:` clauses?
+    -   Is `open()` gated by the `SecurityValidator`?
+    -   Are there high-complexity functions?
+
+### 4. Architectural Layering (`import-audit`)
+-   **Goal**: Enforce SOLID independence.
+-   **Check**: CLI components should NOT import from `src.backend` or `src.core` directly; they must use service bridges.
+
+## Automated Workflow
+When a review is requested:
+1.  **Execute** the `code-review` recipe.
+2.  **Synthesize** the output of the internal tools first.
+3.  **Cross-reference** with CodeRabbit results if available.
+4.  **Verdict**: Issue a "Technical Integrity" score based on internal diagnostic passes.
