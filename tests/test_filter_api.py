@@ -9,7 +9,7 @@ from datetime import datetime
 def mock_filter_manager():
     """Fixture to mock the SmartFilterManager used in filter routes."""
     with patch(
-        "server.python_backend.filter_routes.filter_manager", new_callable=MagicMock
+        "src.core.model_routes.SmartFilterManager", new_callable=MagicMock
     ) as mock_fm:
         yield mock_fm
 
@@ -18,7 +18,7 @@ def mock_filter_manager():
 def mock_performance_monitor():
     """Fixture to mock the performance monitor."""
     with patch(
-        "server.python_backend.filter_routes.performance_monitor", new_callable=AsyncMock
+        "src.core.performance_monitor.OptimizedPerformanceMonitor", new_callable=AsyncMock
     ) as mock_pm:
         mock_pm.track = lambda func: func
         yield mock_pm
