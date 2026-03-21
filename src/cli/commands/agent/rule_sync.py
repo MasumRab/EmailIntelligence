@@ -1,8 +1,8 @@
 """
 Rule Sync Command Module
 
-Synchronizes repository-anchored rules from agent/rules/ to IDE-specific 
-hidden directories like .cursor/rules/ or .cline/.
+Synchronizes repository-anchored rules from .agent/rules/ to active 
+agent environments (e.g. .clinerules, .cursor/rules).
 """
 
 import os
@@ -18,8 +18,8 @@ class RuleSyncCommand(Command):
     """
     Command for publishing repository-managed rules to AI agent environments.
     
-    Ensures that the 'Source of Truth' in agent/rules/ is correctly 
-    mirrored to .cursor/rules/, .cline/, and other IDE hidden folders.
+    Ensures that the 'Source of Truth' in .agent/rules/ is correctly 
+    mirrored to active agent configuration folders.
     """
 
     def __init__(self):
@@ -31,15 +31,13 @@ class RuleSyncCommand(Command):
 
     @property
     def description(self) -> str:
-        return "Publish repository rules to IDE-specific agent folders"
+        return "Publish repository rules from .agent/rules to active agent environments"
 
     def add_arguments(self, parser: Any) -> None:
         """Add command-specific arguments."""
         parser.add_argument(
-            "--target", 
-            choices=["cursor", "cline", "all"],
-            default="all",
-            help="Target IDE/Agent environment"
+            "--target-dir", 
+            help="Specific directory to publish rules to (e.g. .clinerules)"
         )
         parser.add_argument(
             "--verify", 
@@ -64,7 +62,7 @@ class RuleSyncCommand(Command):
 
     async def execute(self, args: Namespace) -> int:
         """Execute the rule synchronization."""
-        source_dir = Path("agent/rules")
+        source_dir = Path(".agent/rules")
         
         if not source_dir.exists():
             print(f"Error: Source rules directory '{source_dir}' not found.")
@@ -72,40 +70,36 @@ class RuleSyncCommand(Command):
 
         print(f"📜 Synchronizing Source of Truth rules from '{source_dir}'...")
 
-        targets = {
-            "cursor": Path(".cursor/rules"),
-            "cline": Path(".clinerules")
-        }
+        # Default targets if none specified
+        target_dirs = [Path(".clinerules"), Path(".cursor/rules")]
+        if args.target_dir:
+            target_dirs = [Path(args.target_dir)]
 
         try:
-            selected = targets.keys() if args.target == "all" else [args.target]
-            
-            for key in selected:
-                dest_dir = targets[key]
-                print(f"\n--- Syncing target: {key} ({dest_dir}) ---")
+            for dest_dir in target_dirs:
+                print(f"\n--- Syncing target: {dest_dir} ---")
                 
                 if not args.verify:
                     dest_dir.mkdir(parents=True, exist_ok=True)
 
                 for rule_file in source_dir.glob("*.md"):
-                    # For Cursor, we rename .md to .mdc
-                    dest_name = rule_file.name if key != "cursor" else rule_file.stem + ".mdc"
-                    dest_path = dest_dir / dest_name
+                    # We maintain original names to minimize environment-specific hacks
+                    dest_path = dest_dir / rule_file.name
 
                     if args.verify:
                         if not dest_path.exists():
-                            print(f"  [MISSING] {dest_name}")
+                            print(f"  [MISSING] {rule_file.name}")
                         else:
-                            print(f"  [OK] {dest_name}")
+                            print(f"  [OK] {rule_file.name}")
                         continue
 
                     if dest_path.exists() and not args.force:
-                        print(f"  - Skipping {dest_name} (exists). Use --force to overwrite.")
+                        print(f"  - Skipping {rule_file.name} (exists). Use --force to overwrite.")
                         continue
 
                     # Copy with metadata preservation
                     shutil.copy2(rule_file, dest_path)
-                    print(f"  - Published {rule_file.name} -> {dest_name}")
+                    print(f"  - Published {rule_file.name}")
 
             return 0
         except Exception as e:

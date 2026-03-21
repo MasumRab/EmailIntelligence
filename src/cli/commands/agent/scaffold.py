@@ -17,7 +17,7 @@ class AgentScaffoldCommand(Command):
     """
     Command for installing and updating repository-specific agent tools.
     
-    Creates symlinks from the repo's agent/ directory to ~/.gemini/
+    Creates symlinks from the repo's .agent/ directory to ~/.gemini/
     to ensure the agent has the correct skills and recipes for this project.
     """
 
@@ -57,7 +57,7 @@ class AgentScaffoldCommand(Command):
 
     async def execute(self, args: Namespace) -> int:
         """Execute the agent-scaffold command."""
-        repo_agent_dir = Path("agent")
+        repo_agent_dir = Path(".agent")
         gemini_root = Path("~/.gemini").expanduser()
         
         if not repo_agent_dir.exists():

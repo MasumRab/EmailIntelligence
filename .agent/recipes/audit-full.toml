@@ -1,0 +1,9 @@
+name = "audit-full"
+description = "Perform a full system audit including code quality, imports, and environment health."
+
+[workflow]
+steps = [
+    { command = "env-verify", description = "Verifying environment health" },
+    { command = "code-audit", description = "Auditing codebase for technical debt and security" },
+    { command = "import-audit", description = "Auditing repository imports" }
+]
