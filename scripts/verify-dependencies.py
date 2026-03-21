@@ -96,13 +96,6 @@ def verify_system_packages():
     """Verify essential system packages are present."""
     print("\nVerifying system packages...")
 
-    # Check for git
-    exit_code = os.system("git --version > /dev/null 2>&1")
-    if exit_code == 0:
-        print("git: Installed")
-    else:
-        print("git: Missing")
-        return False
 
     return True
 
