@@ -20,8 +20,7 @@ from setup.validation import (
     validate_environment, validate_port, validate_host
 )
 from setup.services import (
-    start_services, start_backend, start_node_service, start_gradio_ui, validate_services,
-    PACKAGE_JSON
+    start_services, start_backend, start_node_service, start_gradio_ui, validate_services
 )
 from setup.environment import (
     handle_setup, prepare_environment, setup_wsl_environment, check_wsl_requirements
@@ -85,7 +84,6 @@ PYTHON_MIN_VERSION = (3, 12)
 PYTHON_MAX_VERSION = (3, 13)
 VENV_DIR = "venv"
 CONDA_ENV_NAME = os.getenv("CONDA_ENV_NAME", "base")
-USER_ENV_FILE = "launch-user.env"
 
 
 
@@ -202,50 +200,107 @@ def validate_environment() -> bool:
     return True
 
 
-def _check_paths(paths, root):
-    """Check which paths don't exist and return the missing ones."""
-    return [p for p in paths if not (root / p).exists()]
-
-
-def _log_missing(missing, label):
-    """Log missing paths with a given label."""
-    if missing:
-        logger.error(f"Missing critical {label}:")
-        for path in missing:
-            logger.error(f"  - {path}")
-
-
-def check_critical_files() -> bool:  # noqa: PLR0912
+def check_critical_files() -> bool:
     """Check for critical files that must exist in the orchestration-tools branch."""
+    # Critical files that are essential for orchestration
     critical_files = [
-        "scripts/install-hooks.sh", "scripts/cleanup_orchestration.sh",
-        "scripts/sync_setup_worktrees.sh", "scripts/reverse_sync_orchestration.sh",
-        "scripts/hooks/pre-commit", "scripts/hooks/post-commit",
-        "scripts/hooks/post-commit-setup-sync", "scripts/hooks/post-merge",
-        "scripts/hooks/post-checkout", "scripts/hooks/post-push",
-        "scripts/lib/common.sh", "scripts/lib/error_handling.sh",
-        "scripts/lib/git_utils.sh", "scripts/lib/logging.sh",
-        "scripts/lib/validation.sh", "setup/launch.py", "setup/pyproject.toml",
-        "setup/requirements.txt", "setup/requirements-dev.txt",
-        "setup/setup_environment_system.sh", "setup/setup_environment_wsl.sh",
-        "setup/setup_python.sh", ".flake8", ".pylintrc", ".gitignore",
-        ".gitattributes", "launch.py", "deployment/deploy.py",
-        "deployment/test_stages.py", "deployment/docker-compose.yml",
-    ]
-    critical_dirs = ["scripts/", "scripts/hooks/", "scripts/lib/", "setup/", "deployment/", "docs/"]
-    orchestration_docs = [
-        "docs/orchestration_summary.md", "docs/orchestration_validation_tests.md",
-        "docs/orchestration_hook_management.md", "docs/orchestration_branch_scope.md",
-        "docs/env_management.md", "docs/git_workflow_plan.md",
-        "docs/current_orchestration_docs/", "docs/guides/",
+        # Core orchestration scripts
+        "scripts/install-hooks.sh",
+        "scripts/cleanup_orchestration.sh",
+        "scripts/sync_setup_worktrees.sh",
+        "scripts/reverse_sync_orchestration.sh",
+
+        # Git hooks
+        "scripts/hooks/pre-commit",
+        "scripts/hooks/post-commit",
+        "scripts/hooks/post-commit-setup-sync",
+        "scripts/hooks/post-merge",
+        "scripts/hooks/post-checkout",
+        "scripts/hooks/post-push",
+
+        # Shared libraries
+        "scripts/lib/common.sh",
+        "scripts/lib/error_handling.sh",
+        "scripts/lib/git_utils.sh",
+        "scripts/lib/logging.sh",
+        "scripts/lib/validation.sh",
+
+        # Setup files
+        "setup/launch.py",
+        "setup/pyproject.toml",
+        "setup/requirements.txt",
+        "setup/requirements-dev.txt",
+        "setup/setup_environment_system.sh",
+        "setup/setup_environment_wsl.sh",
+        "setup/setup_python.sh",
+
+        # Configuration files
+        ".flake8",
+        ".pylintrc",
+        ".gitignore",
+        ".gitattributes",
+
+        # Root wrapper
+        "launch.py",
+
+        # Deployment files
+        "deployment/deploy.py",
+        "deployment/test_stages.py",
+        "deployment/docker-compose.yml",
     ]
 
-    missing_files = _check_paths(critical_files + orchestration_docs, ROOT_DIR)
-    missing_dirs = _check_paths(critical_dirs, ROOT_DIR)
+    # Critical directories that must exist
+    critical_directories = [
+        "scripts/",
+        "scripts/hooks/",
+        "scripts/lib/",
+        "setup/",
+        "deployment/",
+        "docs/",
+    ]
+
+    # Orchestration documentation files
+    orchestration_docs = [
+        "docs/orchestration_summary.md",
+        "docs/orchestration_validation_tests.md",
+        "docs/orchestration_hook_management.md",
+        "docs/orchestration_branch_scope.md",
+        "docs/env_management.md",
+        "docs/git_workflow_plan.md",
+        "docs/current_orchestration_docs/",
+        "docs/guides/",
+    ]
+
+    missing_files = []
+    missing_dirs = []
+
+    # Check for missing critical files
+    for file_path in critical_files:
+        full_path = ROOT_DIR / file_path
+        if not full_path.exists():
+            missing_files.append(file_path)
+
+    # Check for missing critical directories
+    for dir_path in critical_directories:
+        full_path = ROOT_DIR / dir_path
+        if not full_path.exists():
+            missing_dirs.append(dir_path)
+
+    # Check for missing orchestration documentation
+    for doc_path in orchestration_docs:
+        full_path = ROOT_DIR / doc_path
+        if not full_path.exists():
+            missing_files.append(doc_path)
 
     if missing_files or missing_dirs:
-        _log_missing(missing_files, "files")
-        _log_missing(missing_dirs, "directories")
+        if missing_files:
+            logger.error("Missing critical files:")
+            for file_path in missing_files:
+                logger.error(f"  - {file_path}")
+        if missing_dirs:
+            logger.error("Missing critical directories:")
+            for dir_path in missing_dirs:
+                logger.error(f"  - {dir_path}")
         logger.error("Please restore these critical files for proper orchestration functionality.")
         return False
 
@@ -283,6 +338,35 @@ def validate_orchestration_environment() -> bool:
 
 
 
+    if not is_conda_available():
+        if env_name:
+            logger.warning(f"Conda not available, cannot activate environment '{env_name}'. Please install Conda.")
+        else:
+            logger.debug("Conda not available, skipping environment activation.")
+        return False
+
+    conda_info = get_conda_env_info()
+    if conda_info["is_active"]:
+        if conda_info["env_name"] == env_name:
+            logger.info(f"Already in specified conda environment: {conda_info['env_name']}")
+            return True
+        else:
+            logger.warning(
+                f"Currently in conda environment '{conda_info['env_name']}', "
+                f"but '{env_name}' was requested. "
+                f"Please activate '{env_name}' manually before running the script."
+            )
+            return False
+
+
+
+
+
+
+
+
+
+# --- Helper Functions ---
 def get_venv_executable(venv_path: Path, executable: str) -> Path:
     """Get the path to a specific executable in the virtual environment."""
     scripts_dir = "Scripts" if platform.system() == "Windows" else "bin"
@@ -325,13 +409,7 @@ def install_package_manager(venv_path: Path, manager: str):
     run_command([python_exe, "-m", "pip", "install", manager], f"Installing {manager}")
 
 
-def setup_dependencies(_venv_path=None, _use_poetry=False):
-    """Set up dependencies in a virtual environment.
-    
-    Args:
-        venv_path: Path to the virtual environment (currently unused, reserved for future use).
-        use_poetry: Whether to use poetry for dependency management.
-    """
+def setup_dependencies(venv_path: Path, use_poetry: bool = False):
     python_exe = get_python_executable()
 
     if use_poetry:
@@ -385,12 +463,7 @@ def install_notmuch_matching_system():
         logger.warning("notmuch not found on system, skipping version-specific install")
 
 
-def download_nltk_data(_venv_path=None):
-    """Download NLTK data packages.
-    
-    Args:
-        venv_path: Path to virtual environment (unused, reserved for future use).
-    """
+def download_nltk_data(venv_path=None):
     python_exe = get_python_executable()
 
     # Updated NLTK download script with better error handling and more packages
@@ -481,7 +554,7 @@ def check_node_npm_installed() -> bool:
 
 def install_nodejs_dependencies(directory: str, update: bool = False) -> bool:
     """Install Node.js dependencies in a given directory."""
-    pkg_json_path = ROOT_DIR / directory / PACKAGE_JSON
+    pkg_json_path = ROOT_DIR / directory / "package.json"
     if not pkg_json_path.exists():
         logger.debug(f"No package.json in '{directory}/', skipping npm install.")
         return True
@@ -515,7 +588,7 @@ def start_server_ts():
         return None
 
     # Check if package.json exists
-    pkg_json_path = ROOT_DIR / "backend" / "server-ts" / PACKAGE_JSON
+    pkg_json_path = ROOT_DIR / "backend" / "server-ts" / "package.json"
     if not pkg_json_path.exists():
         logger.debug(
             "No package.json in 'backend/server-ts/', skipping TypeScript backend server startup."
@@ -564,7 +637,7 @@ def start_node_service(service_path: Path, service_name: str, port: int, api_url
 
 def setup_node_dependencies(service_path: Path, service_name: str):
     """Install npm dependencies for a Node.js service."""
-    if not (service_path / PACKAGE_JSON).exists():
+    if not (service_path / "package.json").exists():
         logger.warning(
             f"package.json not found for {service_name}, skipping dependency installation."
         )
@@ -573,15 +646,7 @@ def setup_node_dependencies(service_path: Path, service_name: str):
     run_command(["npm", "install"], f"Installing {service_name} dependencies", cwd=service_path)
 
 
-def start_gradio_ui(_host=None, _port=None, share=False, debug=False):
-    """Start the Gradio UI.
-    
-    Args:
-        host: Host to bind to (unused, configured in Gradio).
-        port: Port to bind to (unused, configured in Gradio).
-        share: Whether to create a public share link.
-        debug: Enable debug mode.
-    """
+def start_gradio_ui(host, port, share, debug):
     logger.info("Starting Gradio UI...")
     python_exe = get_python_executable()
     cmd = [python_exe, "-m", "src.main"]  # Assuming Gradio is launched from main
@@ -717,8 +782,8 @@ def print_system_info():
         "pyproject.toml",
         "requirements.txt",
         "requirements-dev.txt",
-        PACKAGE_JSON,
-        USER_ENV_FILE,
+        "package.json",
+        "launch-user.env",
         ".env",
     ]
     for cf in config_files:
@@ -1013,15 +1078,24 @@ def _execute_check_command(args) -> int:
     """Execute the check command for orchestration validation."""
     logger.info("Running orchestration checks...")
     
-    # Determine which checks to run
-    run_critical = args.critical_files or (not args.env)
-    run_env = args.env or (not args.critical_files)
+    success = True
     
-    # Run checks and track results
-    critical_passed = not run_critical or check_critical_files()
-    env_passed = not run_env or validate_orchestration_environment()
+    # Run critical files check if requested
+    if args.critical_files or (not args.env):
+        if not check_critical_files():
+            success = False
     
-    if critical_passed and env_passed:
+    # Run environment validation if requested
+    if args.env:
+        if not validate_orchestration_environment():
+            success = False
+
+    # If no specific check was requested, run all checks
+    if not args.critical_files and not args.env:
+        if not validate_orchestration_environment():
+            success = False
+
+    if success:
         logger.info("All orchestration checks passed!")
         return 0
     else:
@@ -1029,118 +1103,9 @@ def _execute_check_command(args) -> int:
         return 1
 
 
-def _load_env_files(args):
-    """Load environment variables from files."""
-    user_env_file = ROOT_DIR / USER_ENV_FILE
-    if user_env_file.exists():
-        load_dotenv(user_env_file)
-        logger.info(f"Loaded user environment variables from {user_env_file}")
-    else:
-        logger.debug(f"User env file not found: {user_env_file}")
-
-    env_file = args.env_file or ".env"
-    if os.path.exists(env_file):
-        logger.info(f"Loading environment variables from {env_file}")
-        load_dotenv(env_file)
-
-
-def _handle_conda_env(args):
-    """Handle Conda environment setup."""
-    from setup.environment import is_conda_available, get_conda_env_info, activate_conda_env
-    if not is_conda_available():
-        logger.error("Conda is not available. Please install Conda or use venv.")
-        return False
-    if not get_conda_env_info()["is_active"] and not activate_conda_env(args.conda_env):
-        logger.error(f"Failed to activate Conda environment: {args.conda_env}")
-        return False
-    if get_conda_env_info()["is_active"]:
-        logger.info(f"Using existing Conda environment: {os.environ.get('CONDA_DEFAULT_ENV')}")
-    return True
-
-
-def _handle_test_stage(args):
-    """Handle test stage execution."""
-    from setup.test_stages import handle_test_stage
-    handle_test_stage(args)
-
-
-def _load_env_files(args):
-    """Load environment variables from files."""
-    user_env_file = ROOT_DIR / USER_ENV_FILE
-    if user_env_file.exists():
-        load_dotenv(user_env_file)
-        logger.info(f"Loaded user environment variables from {user_env_file}")
-    else:
-        logger.debug(f"User env file not found: {user_env_file}")
-
-    env_file = args.env_file or ".env"
-    if os.path.exists(env_file):
-        logger.info(f"Loading environment variables from {env_file}")
-        load_dotenv(env_file)
-
-
-def _handle_conda_env(args):
-    """Handle Conda environment setup."""
-    from setup.environment import is_conda_available, get_conda_env_info, activate_conda_env
-    if not is_conda_available():
-        logger.error("Conda is not available. Please install Conda or use venv.")
-        return False
-    if not get_conda_env_info()["is_active"] and not activate_conda_env(args.conda_env):
-        logger.error(f"Failed to activate Conda environment: {args.conda_env}")
-        return False
-    if get_conda_env_info()["is_active"]:
-        logger.info(f"Using existing Conda environment: {os.environ.get('CONDA_DEFAULT_ENV')}")
-    return True
-
-
-def _validate_args(args):
-    """Validate input arguments."""
-    try:
-        args.port = validate_port(args.port)
-        args.host = validate_host(args.host)
-        if hasattr(args, "frontend_port"):
-            args.frontend_port = validate_port(args.frontend_port)
-    except ValueError as e:
-        logger.error(f"Input validation failed: {e}")
-        return False
-    return True
-
-
-def _handle_test_or_setup(args):
-    """Handle test or setup mode."""
-    if args.setup:
-        venv_path = ROOT_DIR / VENV_DIR
-        handle_setup(args, venv_path)
-        return True
-
-    if hasattr(args, "stage") and args.stage == "test":
-        from setup.test_stages import handle_test_stage
-        handle_test_stage(args)
-        return True
-
-    if getattr(args, "unit", False) or getattr(args, "integration", False) or getattr(args, "coverage", False):
-        from setup.test_stages import handle_test_stage
-        handle_test_stage(args)
-        return True
-
-    return False
-
-
-def _run_services():
-    """Start all services and handle shutdown."""
-    start_services(args)
-    logger.info("All services started. Press Ctrl+C to shut down.")
-    try:
-        while True:
-            time.sleep(1)
-    except KeyboardInterrupt:
-        logger.info("Shutdown signal received.")
-    finally:
-        process_manager.cleanup()
-
-
-def _handle_legacy_args(args) -> int:  # noqa: PLR0912
+def _handle_legacy_args(args) -> int:
     """Handle legacy argument parsing for backward compatibility."""
+    # Setup WSL environment if applicable (early setup)
     from setup.environment import setup_wsl_environment, check_wsl_requirements
     setup_wsl_environment()
     check_wsl_requirements()
@@ -1151,33 +1116,99 @@ def _handle_legacy_args(args) -> int:  # noqa: PLR0912
     logging.getLogger().setLevel(getattr(args, 'loglevel', 'INFO'))
 
     if DOTENV_AVAILABLE:
-        _load_env_files(args)
+        # Load user customizations from launch-user.env if it exists
+        user_env_file = ROOT_DIR / "launch-user.env"
+        if user_env_file.exists():
+            load_dotenv(user_env_file)
+            logger.info(f"Loaded user environment variables from {user_env_file}")
+        else:
+            logger.debug(f"User env file not found: {user_env_file}")
 
+        # Load environment file if specified
+        env_file = args.env_file or ".env"
+        if os.path.exists(env_file):
+            logger.info(f"Loading environment variables from {env_file}")
+            load_dotenv(env_file)
+
+    # Set conda environment name if specified
     global CONDA_ENV_NAME
-    if args.conda_env and args.conda_env != "base":
+    if args.conda_env and args.conda_env != "base":  # Only if explicitly set to non-default
         CONDA_ENV_NAME = args.conda_env
-        args.use_conda = True
+        args.use_conda = True  # Set flag when conda env is specified
+        # args.use_conda remains as set by command line argument
 
+    # Check for system info first (doesn't need validation)
     if args.system_info:
         print_system_info()
         return 0
 
+    # Validate environment if not skipping preparation
     if not args.skip_prepare and not validate_environment():
         return 1
 
-    if not _validate_args(args):
+    # Validate input arguments
+    try:
+        args.port = validate_port(args.port)
+        args.host = validate_host(args.host)
+        if hasattr(args, "frontend_port"):
+            args.frontend_port = validate_port(args.frontend_port)
+    except ValueError as e:
+        logger.error(f"Input validation failed: {e}")
         return 1
 
-    if _handle_test_or_setup(args):
+    if args.setup:
+        venv_path = ROOT_DIR / VENV_DIR
+        handle_setup(args, venv_path)
         return 0
 
-    if args.use_conda and not _handle_conda_env(args):
-        return 1
+    # Handle Conda environment if requested
+    from setup.environment import is_conda_available, get_conda_env_info, activate_conda_env
+    if args.use_conda:
+        if not is_conda_available():
+            logger.error("Conda is not available. Please install Conda or use venv.")
+            return 1
+        if not get_conda_env_info()["is_active"] and not activate_conda_env(args.conda_env):
+            logger.error(f"Failed to activate Conda environment: {args.conda_env}")
+            return 1
+        elif get_conda_env_info()["is_active"]:
+            logger.info(f"Using existing Conda environment: {os.environ.get('CONDA_DEFAULT_ENV')}")
 
     if not args.skip_prepare and not args.use_conda:
         prepare_environment(args)
 
-    _run_services()
+    if args.system_info:
+        print("DEBUG: system_info flag detected")
+        print_system_info()
+        return 0
+
+    # Handle test stage
+    if hasattr(args, "stage") and args.stage == "test":
+        from setup.test_stages import handle_test_stage
+        handle_test_stage(args)
+        return 0
+
+    # Handle unit/integration test flags
+    if (
+        getattr(args, "unit", False)
+        or getattr(args, "integration", False)
+        or getattr(args, "coverage", False)
+    ):
+        from setup.test_stages import handle_test_stage
+        handle_test_stage(args)
+        return 0
+
+    # Service startup logic
+    start_services(args)
+
+    logger.info("All services started. Press Ctrl+C to shut down.")
+    try:
+        while True:
+            time.sleep(1)
+    except KeyboardInterrupt:
+        logger.info("Shutdown signal received.")
+    finally:
+        process_manager.cleanup()
+
     return 0
 
 

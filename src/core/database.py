@@ -23,8 +23,8 @@ from .enhanced_error_reporting import (
     ErrorCategory,
     create_error_context
 )
-from .constants import DEFAULT_CATEGORY_COLOR, DEFAULT_CATEGORIES
-from .security import validate_path_safety, sanitize_path
+from .constants import DEFAULT_CATEGORY_COLOR
+from .security import validate_path_safety
 
 logger = logging.getLogger(__name__)
 

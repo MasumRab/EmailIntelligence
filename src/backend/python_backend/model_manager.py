@@ -19,24 +19,3 @@ class ModelManager:
     def check_health(self) -> bool:
         """Check model manager health. Stub implementation."""
         return True
-
-    def discover_models(self):
-        """Discover available models. Stub implementation - to be implemented."""
-        pass
-
-    def discover_models(self) -> None:
-        pass
-
-    def list_models(self) -> List[Dict[str, Any]]:
-        return []
-
-    def load_model(self, model_name: str) -> None:
-        pass
-
-    def get_model(self, model_name: str) -> Any:
-        pass
-
-    def unload_model(self, model_name: str) -> None:
-        pass
-
-model_manager = ModelManager()

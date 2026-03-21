@@ -1,4 +1,3 @@
-    conditions:
 pull_request_rules:
   - name: Ping PR author when conflicting
     description: Warn the pull request author when their PR are conflicting
