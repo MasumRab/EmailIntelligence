@@ -201,110 +201,53 @@ def validate_environment() -> bool:
     return True
 
 
+def _check_paths(paths, root):
+    """Check which paths don't exist and return the missing ones."""
+    return [p for p in paths if not (root / p).exists()]
+
+
+def _log_missing(missing, label):
+    """Log missing paths with a given label."""
+    if missing:
+        logger.error(f"Missing critical {label}:")
+        for path in missing:
+            logger.error(f"  - {path}")
+
+
 def check_critical_files() -> bool:
     """Check for critical files that must exist in the orchestration-tools branch."""
-    # Critical files that are essential for orchestration
     critical_files = [
-        # Core orchestration scripts
-        "scripts/install-hooks.sh",
-        "scripts/cleanup_orchestration.sh",
-        "scripts/sync_setup_worktrees.sh",
-        "scripts/reverse_sync_orchestration.sh",
-        
-        # Git hooks
-        "scripts/hooks/pre-commit",
-        "scripts/hooks/post-commit",
-        "scripts/hooks/post-commit-setup-sync",
-        "scripts/hooks/post-merge",
-        "scripts/hooks/post-checkout",
-        "scripts/hooks/post-push",
-        
-        # Shared libraries
-        "scripts/lib/common.sh",
-        "scripts/lib/error_handling.sh",
-        "scripts/lib/git_utils.sh",
-        "scripts/lib/logging.sh",
-        "scripts/lib/validation.sh",
-        
-        # Setup files
-        "setup/launch.py",
-        "setup/pyproject.toml",
-        "setup/requirements.txt",
-        "setup/requirements-dev.txt",
-        "setup/setup_environment_system.sh",
-        "setup/setup_environment_wsl.sh",
-        "setup/setup_python.sh",
-        
-        # Configuration files
-        ".flake8",
-        ".pylintrc",
-        ".gitignore",
-        ".gitattributes",
-        
-        # Root wrapper
-        "launch.py",
-        
-        # Deployment files
-        "deployment/deploy.py",
-        "deployment/test_stages.py",
-        "deployment/docker-compose.yml",
+        "scripts/install-hooks.sh", "scripts/cleanup_orchestration.sh",
+        "scripts/sync_setup_worktrees.sh", "scripts/reverse_sync_orchestration.sh",
+        "scripts/hooks/pre-commit", "scripts/hooks/post-commit",
+        "scripts/hooks/post-commit-setup-sync", "scripts/hooks/post-merge",
+        "scripts/hooks/post-checkout", "scripts/hooks/post-push",
+        "scripts/lib/common.sh", "scripts/lib/error_handling.sh",
+        "scripts/lib/git_utils.sh", "scripts/lib/logging.sh",
+        "scripts/lib/validation.sh", "setup/launch.py", "setup/pyproject.toml",
+        "setup/requirements.txt", "setup/requirements-dev.txt",
+        "setup/setup_environment_system.sh", "setup/setup_environment_wsl.sh",
+        "setup/setup_python.sh", ".flake8", ".pylintrc", ".gitignore",
+        ".gitattributes", "launch.py", "deployment/deploy.py",
+        "deployment/test_stages.py", "deployment/docker-compose.yml",
     ]
-    
-    # Critical directories that must exist
-    critical_directories = [
-        "scripts/",
-        "scripts/hooks/",
-        "scripts/lib/",
-        "setup/",
-        "deployment/",
-        "docs/",
-    ]
-    
-    # Orchestration documentation files
+    critical_dirs = ["scripts/", "scripts/hooks/", "scripts/lib/", "setup/", "deployment/", "docs/"]
     orchestration_docs = [
-        "docs/orchestration_summary.md",
-        "docs/orchestration_validation_tests.md",
-        "docs/orchestration_hook_management.md",
-        "docs/orchestration_branch_scope.md",
-        "docs/env_management.md",
-        "docs/git_workflow_plan.md",
-        "docs/current_orchestration_docs/",
-        "docs/guides/",
+        "docs/orchestration_summary.md", "docs/orchestration_validation_tests.md",
+        "docs/orchestration_hook_management.md", "docs/orchestration_branch_scope.md",
+        "docs/env_management.md", "docs/git_workflow_plan.md",
+        "docs/current_orchestration_docs/", "docs/guides/",
     ]
-    
-    missing_files = []
-    missing_dirs = []
-    
-    # Check for missing critical files
-    for file_path in critical_files:
-        full_path = ROOT_DIR / file_path
-        if not full_path.exists():
-            missing_files.append(file_path)
-    
-    # Check for missing critical directories
-    for dir_path in critical_directories:
-        full_path = ROOT_DIR / dir_path
-        if not full_path.exists():
-            missing_dirs.append(dir_path)
-    
-    # Check for missing orchestration documentation
-    for doc_path in orchestration_docs:
-        full_path = ROOT_DIR / doc_path
-        if not full_path.exists():
-            missing_files.append(doc_path)
-    
+
+    missing_files = _check_paths(critical_files + orchestration_docs, ROOT_DIR)
+    missing_dirs = _check_paths(critical_dirs, ROOT_DIR)
+
     if missing_files or missing_dirs:
-        if missing_files:
-            logger.error("Missing critical files:")
-            for file_path in missing_files:
-                logger.error(f"  - {file_path}")
-        if missing_dirs:
-            logger.error("Missing critical directories:")
-            for dir_path in missing_dirs:
-                logger.error(f"  - {dir_path}")
+        _log_missing(missing_files, "files")
+        _log_missing(missing_dirs, "directories")
         logger.error("Please restore these critical files for proper orchestration functionality.")
         return False
-    
+
     logger.info("All critical files are present.")
     return True
 
@@ -1085,9 +1028,43 @@ def _execute_check_command(args) -> int:
         return 1
 
 
+def _load_env_files(args):
+    """Load environment variables from files."""
+    user_env_file = ROOT_DIR / "launch-user.env"
+    if user_env_file.exists():
+        load_dotenv(user_env_file)
+        logger.info(f"Loaded user environment variables from {user_env_file}")
+    else:
+        logger.debug(f"User env file not found: {user_env_file}")
+
+    env_file = args.env_file or ".env"
+    if os.path.exists(env_file):
+        logger.info(f"Loading environment variables from {env_file}")
+        load_dotenv(env_file)
+
+
+def _handle_conda_env(args):
+    """Handle Conda environment setup."""
+    from setup.environment import is_conda_available, get_conda_env_info, activate_conda_env
+    if not is_conda_available():
+        logger.error("Conda is not available. Please install Conda or use venv.")
+        return False
+    if not get_conda_env_info()["is_active"] and not activate_conda_env(args.conda_env):
+        logger.error(f"Failed to activate Conda environment: {args.conda_env}")
+        return False
+    if get_conda_env_info()["is_active"]:
+        logger.info(f"Using existing Conda environment: {os.environ.get('CONDA_DEFAULT_ENV')}")
+    return True
+
+
+def _handle_test_stage(args):
+    """Handle test stage execution."""
+    from setup.test_stages import handle_test_stage
+    handle_test_stage(args)
+
+
 def _handle_legacy_args(args) -> int:
     """Handle legacy argument parsing for backward compatibility."""
-    # Setup WSL environment if applicable (early setup)
     from setup.environment import setup_wsl_environment, check_wsl_requirements
     setup_wsl_environment()
     check_wsl_requirements()
@@ -1098,37 +1075,20 @@ def _handle_legacy_args(args) -> int:
     logging.getLogger().setLevel(getattr(args, 'loglevel', 'INFO'))
 
     if DOTENV_AVAILABLE:
-        # Load user customizations from launch-user.env if it exists
-        user_env_file = ROOT_DIR / "launch-user.env"
-        if user_env_file.exists():
-            load_dotenv(user_env_file)
-            logger.info(f"Loaded user environment variables from {user_env_file}")
-        else:
-            logger.debug(f"User env file not found: {user_env_file}")
+        _load_env_files(args)
 
-        # Load environment file if specified
-        env_file = args.env_file or ".env"
-        if os.path.exists(env_file):
-            logger.info(f"Loading environment variables from {env_file}")
-            load_dotenv(env_file)
-
-    # Set conda environment name if specified
     global CONDA_ENV_NAME
-    if args.conda_env and args.conda_env != "base":  # Only if explicitly set to non-default
+    if args.conda_env and args.conda_env != "base":
         CONDA_ENV_NAME = args.conda_env
-        args.use_conda = True  # Set flag when conda env is specified
-        # args.use_conda remains as set by command line argument
+        args.use_conda = True
 
-    # Check for system info first (doesn't need validation)
     if args.system_info:
         print_system_info()
         return 0
 
-    # Validate environment if not skipping preparation
     if not args.skip_prepare and not validate_environment():
         return 1
 
-    # Validate input arguments
     try:
         args.port = validate_port(args.port)
         args.host = validate_host(args.host)
@@ -1143,40 +1103,22 @@ def _handle_legacy_args(args) -> int:
         handle_setup(args, venv_path)
         return 0
 
-    # Handle Conda environment if requested
-    from setup.environment import is_conda_available, get_conda_env_info, activate_conda_env
     if args.use_conda:
-        if not is_conda_available():
-            logger.error("Conda is not available. Please install Conda or use venv.")
+        if not _handle_conda_env(args):
             return 1
-        if not get_conda_env_info()["is_active"] and not activate_conda_env(args.conda_env):
-            logger.error(f"Failed to activate Conda environment: {args.conda_env}")
-            return 1
-        elif get_conda_env_info()["is_active"]:
-            logger.info(f"Using existing Conda environment: {os.environ.get('CONDA_DEFAULT_ENV')}")
 
     if not args.skip_prepare and not args.use_conda:
         prepare_environment(args)
 
-    # Handle test stage
     if hasattr(args, "stage") and args.stage == "test":
-        from setup.test_stages import handle_test_stage
-        handle_test_stage(args)
+        _handle_test_stage(args)
         return 0
 
-    # Handle unit/integration test flags
-    if (
-        getattr(args, "unit", False)
-        or getattr(args, "integration", False)
-        or getattr(args, "coverage", False)
-    ):
-        from setup.test_stages import handle_test_stage
-        handle_test_stage(args)
+    if getattr(args, "unit", False) or getattr(args, "integration", False) or getattr(args, "coverage", False):
+        _handle_test_stage(args)
         return 0
 
-    # Service startup logic
     start_services(args)
-
     logger.info("All services started. Press Ctrl+C to shut down.")
     try:
         while True:
