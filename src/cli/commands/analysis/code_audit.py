@@ -67,10 +67,21 @@ class AnalyzeCodeCommand(Command):
             "large_modules": self._detect_large_modules(root_path)
         }
 
+        # Severity Filtering Logic (As suggested by CodeRabbit)
+        severity_order = {"LOW": 0, "MEDIUM": 1, "HIGH": 2}
+        min_severity = severity_order[args.severity]
+
+        filtered_results = {}
+        for category, issues in results.items():
+            filtered_results[category] = [
+                i for i in issues 
+                if severity_order.get(i.get("risk_level", "LOW"), 0) >= min_severity
+            ]
+
         if args.json:
-            print(json.dumps(results, indent=2))
+            print(json.dumps(filtered_results, indent=2))
         else:
-            self._print_report(results)
+            self._print_report(filtered_results)
 
         return 0
 
@@ -181,15 +192,19 @@ class AnalyzeCodeCommand(Command):
             try:
                 loc = len(py_file.read_text().splitlines())
                 if loc > 500:
-                    modules.append({"file": str(py_file.relative_to(root)), "loc": loc})
+                    modules.append({
+                        "type": "MAINTAINABILITY",
+                        "risk_level": "LOW",
+                        "file": str(py_file.relative_to(root)),
+                        "description": f"Large module with {loc} lines of code"
+                    })
             except Exception:
                 continue
         return modules
 
     def _print_report(self, results: Dict):
-        print("\nAudit complete. Found {} issues.".format(
-            sum(len(v) for v in results.values())
-        ))
+        count = sum(len(v) for v in results.values())
+        print(f"\nAudit complete. Found {count} issues.")
         for cat, issues in results.items():
             for issue in issues:
                 lvl = issue.get("risk_level", "INFO")

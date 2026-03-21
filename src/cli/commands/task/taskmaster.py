@@ -109,8 +109,8 @@ class TaskmasterCommand(Command):
         for task in tasks:
             is_dup = False
             for existing in unique:
-                sim = self._calculate_similarity(task['title'], existing['title'])
-                if sim > 0.85:
+                # Deduplicate by ID match (Canonical) or title similarity (Fuzzy)
+                if task['id'] == existing['id'] or self._calculate_similarity(task['title'], existing['title']) > 0.85:
                     # Merge logic: keep the more complete one
                     if self._completeness_score(task) > self._completeness_score(existing):
                         existing.update(task)
@@ -143,21 +143,28 @@ class TaskmasterCommand(Command):
         """Ported regex-based PRD parsing logic."""
         try:
             content = file_path.read_text(encoding='utf-8')
-            id_match = re.search(r'task[-_]?(\d+(?:[-_.]\d+)*)', file_path.stem, re.I)
+            # 1. Improved ID extraction (Matches task-1-2, task_1_2, task.1.2)
+            id_match = re.search(r'task[-_.]?(\d+(?:[-_.]\d+)*)', file_path.stem, re.I)
             if not id_match:
                 return None
             
+            # Canonicalize ID (Replace all separators with dots)
+            task_id = re.sub(r'[-_]', '.', id_match.group(1))
+            
+            # 2. Extract metadata with robustness for trailing whitespace
             title = re.search(r'#\s*Task.*?[:\-]\s*(.+)', content)
             priority = re.search(r'Priority:\s*(\w+)', content, re.I)
-            desc = re.search(r'##\s*Description\n(.*?)(?=\n##|\Z)', content, re.S)
-            ac = re.search(r'##\s*Acceptance Criteria\n(.*?)(?=\n##|\Z)', content, re.S)
+            
+            # Use improved regex for headings (allowing trailing spaces before newline)
+            desc_match = re.search(r'##\s*Description\s*\n(.*?)(?=\n##|\Z)', content, re.S)
+            ac_match = re.search(r'##\s*Acceptance Criteria\s*\n(.*?)(?=\n##|\Z)', content, re.S)
 
             return {
-                "id": id_match.group(1).replace("-", "."),
+                "id": task_id,
                 "title": title.group(1).strip() if title else file_path.stem,
                 "priority": priority.group(1).strip() if priority else "medium",
-                "description": desc.group(1).strip() if desc else "",
-                "acceptance_criteria": ac.group(1).strip() if ac else "",
+                "description": desc_match.group(1).strip() if desc_match else "",
+                "acceptance_criteria": ac_match.group(1).strip() if ac_match else "",
                 "source_file": str(file_path)
             }
         except Exception as e:

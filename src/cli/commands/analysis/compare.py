@@ -11,7 +11,7 @@ import json
 from argparse import Namespace
 from difflib import SequenceMatcher
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Tuple
 
 from ..interface import Command
 
@@ -168,7 +168,7 @@ class CompareCommand(Command):
     def _print_forensic_report(self, results: Dict, threshold: float):
         for comp in results["comparisons"]:
             print("\n--- {} -> {} ---".format(comp['from'], comp['to']))
-            print("Parity Score: {:.2f}".format(comp['parity_score'] * 100) + "%")
+            print("Parity Score: {:.2f}%".format(comp['parity_score'] * 100))
             
             if comp["matches"]:
                 print("✅ Identical Logic ({}): {}".format(len(comp['matches']), ", ".join(comp['matches'][:5])))
@@ -177,7 +177,7 @@ class CompareCommand(Command):
                 print("⚠️  Logic Drift Detected ({}):".format(len(comp['drifts'])))
                 for d in comp["drifts"]:
                     status = "Fuzzy Match" if d["similarity"] >= threshold else "MAJOR DRIFT"
-                    print("  - {}: {:.1f}".format(d['name'], d['similarity'] * 100) + "% similarity (" + status + ")")
+                    print("  - {}: {:.1f}% similarity ({})".format(d['name'], d['similarity'] * 100, status))
             
             if comp["missing"]:
                 print("❌ Dropped Functions ({}): {}".format(len(comp['missing']), ", ".join(comp['missing'])))
