@@ -3,13 +3,14 @@ NLP Service Module
 
 Provides independent semantic and lexical analysis capabilities.
 Uses sophisticated standard library algorithms to remain functional 
-without heavy ML dependencies.
+without heavy ML dependencies, while bridging to the NLPEngine when available.
 """
 
 import logging
 import re
+import math
 import collections
-from typing import List
+from typing import Any, Dict, List, Optional, Set
 from difflib import SequenceMatcher, get_close_matches
 
 logger = logging.getLogger(__name__)
@@ -23,12 +24,31 @@ class NLPService:
         self._engine = None
         self._initialized = False
 
+    def get_engine(self):
+        """Dynamically loads the scientific NLP engine if available."""
+        if self._engine: return self._engine
+        try:
+            # High-fidelity bridge to the scientific core
+            from src.backend.python_nlp.nlp_engine import NLPEngine
+            self._engine = NLPEngine()
+            return self._engine
+        except (ImportError, Exception) as e:
+            logger.debug(f"Scientific NLP Engine not available: {e}")
+            return None
+
     async def calculate_similarity(self, text1: str, text2: str) -> float:
         """
         Calculates similarity using a multi-factor approach:
-        1. Sequence matching (Structural)
-        2. Token set overlap (Lexical)
+        1. Try heavy NLPEngine if available
+        2. Fallback to sequence matching (Structural)
+        3. Fallback to token set overlap (Lexical)
         """
+        engine = self.get_engine()
+        if engine and hasattr(engine, 'calculate_similarity'):
+            try:
+                return engine.calculate_similarity(text1, text2)
+            except: pass
+
         if not text1 or not text2:
             return 0.0
             

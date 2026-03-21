@@ -19,7 +19,7 @@ from typing import Any, Dict, List, Optional
 
 from transformers import AutoModelForSequenceClassification, AutoTokenizer, pipeline
 
-from backend.python_nlp.text_utils import clean_text
+from src.backend.python_nlp.text_utils import clean_text
 
 from .analysis_components.importance_model import ImportanceModel
 from .analysis_components.intent_model import IntentModel
