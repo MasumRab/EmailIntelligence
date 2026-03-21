@@ -14,4 +14,5 @@
 
 ## Quality Standards
 - **Strict Isolation**: All operations must respect the project root isolation to prevent environment contamination.
-- **Pragmatic Verification**: No code change is complete without functional verification. We focus on high-impact tests that provide the most value for the development effort.
+- **Forensic Logic Verification**: Ported code must achieve high functional parity verified via logic-compare (DNA matching).
+- **Pragmatic Verification**: Functional verification via the CLI is mandatory for all changes. We focus on high-impact tests that provide the most value for the development effort.

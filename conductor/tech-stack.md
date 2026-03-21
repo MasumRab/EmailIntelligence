@@ -1,1 +1,1 @@
-# Tech Stack\n\n- **Primary Language**: Python 3.12+\n- **CLI Framework**: Custom SOLID pattern (Factory/Registry)\n- **Shell**: Bash/SH (grouped by domain)\n- **Utilities**: AST (for code comparison), Asyncio
+# Tech Stack\n\n- **Primary Language**: Python 3.11+ (Targeting 3.12 features)\n- **CLI Framework**: Custom SOLID pattern (Factory/Registry)\n- **Shell**: Bash/SH (grouped by domain)\n- **Utilities**: AST (for code comparison), Asyncio, Psutil, Scipy/Numpy (Clustering)
