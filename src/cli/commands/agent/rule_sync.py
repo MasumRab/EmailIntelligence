@@ -46,6 +46,11 @@ class RuleSyncCommand(Command):
             action="store_true", 
             help="Verify consistency without making changes"
         )
+        parser.add_argument(
+            "--force", 
+            action="store_true", 
+            help="Overwrite existing files in target folders"
+        )
 
     def get_dependencies(self) -> Dict[str, Any]:
         """Get required dependencies."""
@@ -92,6 +97,10 @@ class RuleSyncCommand(Command):
                             print(f"  [MISSING] {dest_name}")
                         else:
                             print(f"  [OK] {dest_name}")
+                        continue
+
+                    if dest_path.exists() and not args.force:
+                        print(f"  - Skipping {dest_name} (exists). Use --force to overwrite.")
                         continue
 
                     # Copy with metadata preservation
