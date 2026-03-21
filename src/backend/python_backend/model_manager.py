@@ -24,19 +24,19 @@ class ModelManager:
         """Discover available models. Stub implementation - to be implemented."""
         pass
 
-    def list_models(self):
+    def discover_models(self) -> None:
+        pass
+
+    def list_models(self) -> List[Dict[str, Any]]:
         return []
 
-    def load_model(self, model_name: str):
-        """Load a model by name. Stub implementation - to be implemented."""
+    def load_model(self, model_name: str) -> None:
         pass
 
-    def get_model(self, model_name: str):
-        """Get a model by name. Stub implementation - to be implemented."""
+    def get_model(self, model_name: str) -> Any:
         pass
 
-    def unload_model(self, model_name: str):
-        """Unload a model by name. Stub implementation - to be implemented."""
+    def unload_model(self, model_name: str) -> None:
         pass
 
 model_manager = ModelManager()
