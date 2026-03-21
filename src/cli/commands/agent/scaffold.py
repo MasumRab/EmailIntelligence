@@ -18,10 +18,10 @@ class AgentScaffoldCommand(Command):
     Command for installing repository-specific agent tools.
     
     Creates symlinks from the repo's .agent/ directory to ~/.gemini/
-    with an 'eai-' prefix to differentiate from global/MCP skills.
+    with a 'repo-' prefix to differentiate from global/MCP skills.
     """
 
-    PROJECT_PREFIX = "eai-"
+    PROJECT_PREFIX = "repo-"
 
     def __init__(self):
         self._security_validator = None
@@ -86,5 +86,5 @@ class AgentScaffoldCommand(Command):
                 except Exception as e:
                     print(f"  - Error linking {item.name}: {e}")
 
-        print("\n✅ Differentiation complete. Project tools are prefixed with 'eai-'.")
+        print("\n✅ Differentiation complete. Project tools are prefixed with 'repo-'.")
         return 0
