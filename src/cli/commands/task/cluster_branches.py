@@ -9,7 +9,7 @@ import json
 import subprocess
 from argparse import Namespace
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Tuple
 
 from ..interface import Command
 

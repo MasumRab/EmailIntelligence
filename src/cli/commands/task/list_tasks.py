@@ -8,7 +8,7 @@ Ported from .taskmaster/scripts/list_tasks.py.
 import json
 from argparse import Namespace
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any, Dict
 
 from ..interface import Command
 

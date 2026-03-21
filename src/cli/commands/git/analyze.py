@@ -7,7 +7,7 @@ Unified implementation of conflict detection and architectural governance.
 
 from argparse import Namespace
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any, Dict
 
 from ..interface import Command
 
@@ -118,7 +118,6 @@ class AnalyzeCommand(Command):
 
     def _perform_arch_check(self, path: Path) -> None:
         """Ported logic to enforce layering and import boundaries."""
-        import ast
         print("\n🏗️  ENFORCING ARCHITECTURAL RULES")
         py_files = list(path.rglob("*.py"))
         print(f"  - Scanning {len(py_files)} files for layer violations...")

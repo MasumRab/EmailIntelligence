@@ -5,6 +5,7 @@ Implements the plan-rebase command for generating rebase plans.
 """
 
 from argparse import Namespace
+from pathlib import Path
 from typing import Any, Dict
 
 from ..interface import Command
@@ -17,6 +18,12 @@ class PlanRebaseCommand(Command):
     This command analyzes commit history and generates a structured
     rebase plan that organizes commits by priority and risk.
     """
+
+    def __init__(self):
+        self._history = None
+        self._classifier = None
+        self._planner = None
+        self._security_validator = None
 
     @property
     def name(self) -> str:
@@ -51,6 +58,7 @@ class PlanRebaseCommand(Command):
             "history": "GitHistory",
             "classifier": "CommitClassifier",
             "planner": "RebasePlanner",
+            "security_validator": "SecurityValidator",
         }
 
     def set_dependencies(self, dependencies: Dict[str, Any]) -> None:
@@ -63,6 +71,7 @@ class PlanRebaseCommand(Command):
         self._history = dependencies.get("history")
         self._classifier = dependencies.get("classifier")
         self._planner = dependencies.get("planner")
+        self._security_validator = dependencies.get("security_validator")
 
     async def execute(self, args: Namespace) -> int:
         """
@@ -76,7 +85,14 @@ class PlanRebaseCommand(Command):
         """
         try:
             branch = args.branch or "HEAD"
-            output_file = args.output
+            output_file = Path(args.output)
+
+            # Security validation
+            if self._security_validator:
+                is_safe, error = self._security_validator.validate_path_security(str(output_file.absolute()))
+                if not is_safe:
+                    print(f"Error: Security violation for path '{output_file}': {error}")
+                    return 1
 
             print(f"Planning rebase for branch: {branch}...")
 

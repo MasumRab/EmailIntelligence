@@ -6,11 +6,10 @@ Achieves 100% functional parity with the advanced feat-v2.0 logic.
 """
 
 import json
-import time
 from datetime import datetime
 from argparse import Namespace
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
 from ..interface import Command
 
@@ -99,6 +98,11 @@ class GitAlignCommand(Command):
 
     def _load_strategy(self, path: Optional[str], metadata: Dict) -> Optional[Dict]:
         if path and Path(path).exists():
+            if self._security_validator:
+                is_safe, err = self._security_validator.validate_path_security(str(Path(path).absolute()))
+                if not is_safe:
+                    print("Error: Security violation for strategy file: {}".format(err))
+                    return None
             with open(path) as f: return json.load(f)
         return metadata.get("strategy")
 

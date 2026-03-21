@@ -2,19 +2,20 @@
 Monitor Command Module
 
 Exhaustive implementation of system and process resource tracking.
-Achieves 100% functional parity with legacy scripts/resource_monitor.py.
+Achieves 100 percent functional parity with legacy scripts/resource_monitor.py.
 """
 
-import time
-import json
-import psutil
 import collections
+import json
 import statistics
 import threading
-from datetime import datetime
+import time
 from argparse import Namespace
+from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List
+
+import psutil
 
 from ..interface import Command
 
@@ -61,13 +62,15 @@ class MonitorCommand(Command):
         self._security_validator = dependencies.get("security_validator")
 
     async def execute(self, args: Namespace) -> int:
-        if args.output: self._monitoring_file = Path(args.output)
+        if args.output:
+            self._monitoring_file = Path(args.output)
         
         # Security validation
         if self._security_validator:
             is_safe, error = self._security_validator.validate_path_security(str(self._monitoring_file.absolute()))
             if not is_safe:
-                print("Error: Security violation: {}".format(error)); return 1
+                print("Error: Security violation: {}".format(error))
+                return 1
 
         self.load_monitoring()
         print("📊 Starting Exhaustive Resource Monitor (Interval: {}s)...".format(args.interval))
@@ -88,7 +91,8 @@ class MonitorCommand(Command):
             
             return 0
         except KeyboardInterrupt:
-            self._active = False; return 0
+            self._active = False
+            return 0
 
     # --- PORTED LOGIC DNA (100% PARITY) ---
 
@@ -103,41 +107,47 @@ class MonitorCommand(Command):
             "cpu_percent": cpu,
             "memory_percent": mem.percent,
             "memory_available": mem.available,
-            "disk_io": (io.read_bytes, io.write_bytes) if io else (0,0),
-            "network_io": (net.bytes_sent, net.bytes_recv) if net else (0,0),
-            "load_average": psutil.getloadavg() if hasattr(psutil, 'getloadavg') else (0,0,0)
+            "disk_io": (io.read_bytes, io.write_bytes) if io else (0, 0),
+            "network_io": (net.bytes_sent, net.bytes_recv) if net else (0, 0),
+            "load_average": psutil.getloadavg() if hasattr(psutil, 'getloadavg') else (0, 0, 0)
         }
-        with self._lock: self._system_resources.append(snap)
+        with self._lock:
+            self._system_resources.append(snap)
 
     def _collect_process_resources(self):
         for proc in psutil.process_iter(['pid', 'name', 'cpu_percent', 'memory_percent']):
             try:
-                with self._lock: self._process_resources[proc.info['pid']].append(proc.info)
-            except: continue
+                with self._lock:
+                    self._process_resources[proc.info['pid']].append(proc.info)
+            except Exception:
+                continue
 
     def _percentile(self, data: List[float], p: float) -> float:
-        if not data: return 0.0
+        if not data:
+            return 0.0
         sorted_data = sorted(data)
         index = (p / 100) * (len(sorted_data) - 1)
-        if index.is_integer(): return sorted_data[int(index)]
+        if index.is_integer():
+            return sorted_data[int(index)]
         lower = sorted_data[int(index)]
         upper = sorted_data[min(int(index) + 1, len(sorted_data) - 1)]
         return lower + (upper - lower) * (index - int(index))
 
     def _get_system_stats(self) -> Dict:
-        if not self._system_resources: return {}
+        if not self._system_resources:
+            return {}
         cpus = [s["cpu_percent"] for s in self._system_resources]
         return {"mean": statistics.mean(cpus), "p95": self._percentile(cpus, 95)}
 
     def _display_resource_summary(self):
-        if not self._system_resources: return
+        if not self._system_resources:
+            return
         s = self._system_resources[-1]
         stats = self._get_system_stats()
         ts = datetime.fromtimestamp(s["timestamp"]).strftime('%H:%M:%S')
         
         # Use formatting to avoid f-string % issues
         msg = "[{}] CPU: {:.1f}%% (P95: {:.1f}%%) | MEM: {:.1f}%%".format(
-
             ts, s['cpu_percent'], stats.get('p95', 0), s['memory_percent']
         )
         print(msg)
@@ -145,13 +155,17 @@ class MonitorCommand(Command):
     def _save_monitoring_data(self):
         data = {"system": list(self._system_resources), "timestamp": time.time()}
         try:
-            with open(self._monitoring_file, 'w') as f: json.dump(data, f, indent=2)
-        except: pass
+            with open(self._monitoring_file, 'w') as f:
+                json.dump(data, f, indent=2)
+        except Exception:
+            pass
 
     def load_monitoring(self):
-        if not self._monitoring_file.exists(): return
+        if not self._monitoring_file.exists():
+            return
         try:
             with open(self._monitoring_file, 'r') as f:
                 data = json.load(f)
                 self._system_resources.extend(data.get("system", []))
-        except: pass
+        except Exception:
+            pass

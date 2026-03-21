@@ -8,7 +8,7 @@ with the global Gemini CLI configuration (~/.gemini).
 import os
 from argparse import Namespace
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any, Dict
 
 from ..interface import Command
 

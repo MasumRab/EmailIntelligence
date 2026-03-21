@@ -8,7 +8,7 @@ Unified implementation of pattern detection and dangling commit recovery.
 from argparse import Namespace
 import subprocess
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any, Dict
 
 from ..interface import Command
 

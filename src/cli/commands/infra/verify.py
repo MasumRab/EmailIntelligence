@@ -10,7 +10,7 @@ import sys
 import subprocess
 from argparse import Namespace
 from pathlib import Path
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List
 
 from ..interface import Command
 

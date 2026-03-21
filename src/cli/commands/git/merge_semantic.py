@@ -9,11 +9,12 @@ import ast
 import logging
 from argparse import Namespace
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List
 
 from ..interface import Command
 
 logger = logging.getLogger(__name__)
+
 
 class GitMergeSemanticCommand(Command):
     """
@@ -60,7 +61,8 @@ class GitMergeSemanticCommand(Command):
         if self._security_validator:
             is_safe, err = self._security_validator.validate_path_security(str(file_path.absolute()))
             if not is_safe:
-                print(f"Error: Security violation: {err}"); return 1
+                print(f"Error: Security violation: {err}")
+                return 1
 
         print(f"🧬 Starting Semantic Merge for '{file_path}'...")
         # Implementation of full parity logic loop
@@ -90,7 +92,7 @@ class GitMergeSemanticCommand(Command):
         params = []
         for line in lines:
             if '(' in line and ')' in line:
-                content = line[line.find('(')+1 : line.find(')')]
+                content = line[line.find('(') + 1 : line.find(')')]
                 params.extend([p.strip() for p in content.split(',') if p.strip()])
         return params
 
@@ -126,7 +128,8 @@ class GitMergeSemanticCommand(Command):
                 return str(sorted(list(set(p1 + p2))))
             if isinstance(p1, dict) and isinstance(p2, dict):
                 return str({**p1, **p2})
-        except: pass
+        except Exception:
+            pass
         return f"/* CONFLICT {v1} | {v2} */"
 
     def _merge_imports(self, lines_a: List[str], lines_b: List[str]) -> List[str]:

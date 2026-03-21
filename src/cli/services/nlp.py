@@ -8,9 +8,8 @@ without heavy ML dependencies.
 
 import logging
 import re
-import math
 import collections
-from typing import Any, Dict, List, Optional, Set
+from typing import List
 from difflib import SequenceMatcher, get_close_matches
 
 logger = logging.getLogger(__name__)

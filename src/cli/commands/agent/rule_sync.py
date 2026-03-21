@@ -5,11 +5,10 @@ Synchronizes repository-anchored rules from .agent/rules/ to active
 agent environments (e.g. .clinerules, .cursor/rules).
 """
 
-import os
 import shutil
 from argparse import Namespace
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any, Dict
 
 from ..interface import Command
 

@@ -6,7 +6,6 @@ Achieves 100% functional parity with orchestration-tools:scripts/intelligent_mer
 """
 
 import subprocess
-import sys
 from argparse import Namespace
 from pathlib import Path
 from typing import Any, Dict, List, Tuple
@@ -16,13 +15,10 @@ from ..interface import Command
 
 class MergeSmartCommand(Command):
     """
-    Command for intelligently merging two versions of a file using a common ancestor.
+    Command for performing intelligent 3-way merges on files.
     
-    Ported Capabilities:
-    - Automated merge-base identification (common ancestor)
-    - Precise changed-line detection using git diff chunks
-    - Functional 3-way merge engine with conflict markers
-    - Support for custom local and remote refs
+    Identifies common ancestors, extracts changes from local and remote,
+    and performs a line-by-line semantic merge with conflict marking.
     """
 
     def __init__(self):
@@ -37,15 +33,20 @@ class MergeSmartCommand(Command):
         return "Intelligently merge two versions of a file using a common ancestor"
 
     def add_arguments(self, parser: Any) -> None:
+        """Add command-specific arguments."""
         parser.add_argument("file", help="Path to the file to merge")
-        parser.add_argument("--local", default="HEAD", help="Local git ref (default: HEAD)")
-        parser.add_argument("--remote", required=True, help="Remote git ref to merge from")
-        parser.add_argument("--output", help="Custom output path for merged file")
+        parser.add_argument("--local", required=True, help="Local branch/ref")
+        parser.add_argument("--remote", required=True, help="Remote branch/ref")
+        parser.add_argument("--output", help="Path to save merged file")
 
     def get_dependencies(self) -> Dict[str, Any]:
-        return {"security_validator": "SecurityValidator"}
+        """Get required dependencies."""
+        return {
+            "security_validator": "SecurityValidator"
+        }
 
     def set_dependencies(self, dependencies: Dict[str, Any]) -> None:
+        """Set command dependencies."""
         self._security_validator = dependencies.get("security_validator")
 
     async def execute(self, args: Namespace) -> int:
@@ -111,7 +112,7 @@ class MergeSmartCommand(Command):
         """Ported from legacy get_file_content with Path awareness."""
         try:
             return self._run_command(f"git show {ref}:{file_path}")
-        except: return ""
+        except Exception: return ""
 
     def _get_changed_lines(self, file_path: Path, base_ref: str, target_ref: str) -> List[int]:
         """Ported logic for diff chunk parsing."""
@@ -127,7 +128,7 @@ class MergeSmartCommand(Command):
                         count = int(loc.split(",")[1]) if "," in loc else 1
                         for i in range(start, start + count): changed_lines.add(i)
             return sorted(list(changed_lines))
-        except: return []
+        except Exception: return []
 
     def _do_3way_merge(self, base, local, remote, local_chg, remote_chg, l_ref, r_ref) -> Tuple[str, int]:
         """Core 3-way merge logic with conflict markers."""

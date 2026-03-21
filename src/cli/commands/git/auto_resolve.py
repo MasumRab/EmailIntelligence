@@ -5,11 +5,9 @@ Exhaustive implementation of the intelligent conflict auto-resolution engine.
 Ported from src/resolution/auto_resolver.py to become an independent CLI command.
 """
 
-import json
 import logging
 from argparse import Namespace
-from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 from ..interface import Command
 

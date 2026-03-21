@@ -7,8 +7,7 @@ Ported from feat-v2.0-pr:scripts/extract-orchestration-changes.sh.
 
 import subprocess
 from argparse import Namespace
-from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 from ..interface import Command
 

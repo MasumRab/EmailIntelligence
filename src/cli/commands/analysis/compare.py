@@ -9,9 +9,9 @@ import ast
 import hashlib
 import json
 from argparse import Namespace
-from pathlib import Path
-from typing import Any, Dict, List, Set, Tuple
 from difflib import SequenceMatcher
+from pathlib import Path
+from typing import Any, Dict, List
 
 from ..interface import Command
 
@@ -117,7 +117,8 @@ class CompareCommand(Command):
             patterns['iteration_tracking'] = 'iteration_history' in content or 'best_results' in content
             patterns['dependency_validation'] = 'dep_id' in content and 'validate' in content
             patterns['self_healing'] = 'improvement' in content and 'threshold' in content
-        except Exception: pass
+        except Exception:
+            pass
         return patterns
 
     def _normalize_logic(self, source: str) -> str:
@@ -167,7 +168,7 @@ class CompareCommand(Command):
     def _print_forensic_report(self, results: Dict, threshold: float):
         for comp in results["comparisons"]:
             print("\n--- {} -> {} ---".format(comp['from'], comp['to']))
-            print("Parity Score: {:.2f}%%".format(comp['parity_score'] * 100))
+            print("Parity Score: {:.2f}".format(comp['parity_score'] * 100) + "%")
             
             if comp["matches"]:
                 print("✅ Identical Logic ({}): {}".format(len(comp['matches']), ", ".join(comp['matches'][:5])))
@@ -176,7 +177,7 @@ class CompareCommand(Command):
                 print("⚠️  Logic Drift Detected ({}):".format(len(comp['drifts'])))
                 for d in comp["drifts"]:
                     status = "Fuzzy Match" if d["similarity"] >= threshold else "MAJOR DRIFT"
-                    print("  - {}: {:.1f}%% similarity ({})".format(d['name'], d['similarity'] * 100, status))
+                    print("  - {}: {:.1f}".format(d['name'], d['similarity'] * 100) + "% similarity (" + status + ")")
             
             if comp["missing"]:
                 print("❌ Dropped Functions ({}): {}".format(len(comp['missing']), ", ".join(comp['missing'])))

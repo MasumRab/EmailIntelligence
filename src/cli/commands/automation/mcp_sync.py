@@ -5,11 +5,10 @@ Synchronizes Model Context Protocol (MCP) configurations across different IDEs a
 Consolidates templates from the central mcp/ directory.
 """
 
-import json
 import shutil
 from argparse import Namespace
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any, Dict
 
 from ..interface import Command
 
@@ -89,7 +88,7 @@ class MCPSyncCommand(Command):
                 # Ensure destination directory exists
                 dest_path.parent.mkdir(parents=True, exist_ok=True)
                 shutil.copy2(template_path, dest_path)
-                print(f"    ✅ Success")
+                print("    ✅ Success")
 
             print("\n🚀 MCP synchronization complete.")
             return 0
