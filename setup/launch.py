@@ -1063,6 +1063,81 @@ def _handle_test_stage(args):
     handle_test_stage(args)
 
 
+def _load_env_files(args):
+    """Load environment variables from files."""
+    user_env_file = ROOT_DIR / "launch-user.env"
+    if user_env_file.exists():
+        load_dotenv(user_env_file)
+        logger.info(f"Loaded user environment variables from {user_env_file}")
+    else:
+        logger.debug(f"User env file not found: {user_env_file}")
+
+    env_file = args.env_file or ".env"
+    if os.path.exists(env_file):
+        logger.info(f"Loading environment variables from {env_file}")
+        load_dotenv(env_file)
+
+
+def _handle_conda_env(args):
+    """Handle Conda environment setup."""
+    from setup.environment import is_conda_available, get_conda_env_info, activate_conda_env
+    if not is_conda_available():
+        logger.error("Conda is not available. Please install Conda or use venv.")
+        return False
+    if not get_conda_env_info()["is_active"] and not activate_conda_env(args.conda_env):
+        logger.error(f"Failed to activate Conda environment: {args.conda_env}")
+        return False
+    if get_conda_env_info()["is_active"]:
+        logger.info(f"Using existing Conda environment: {os.environ.get('CONDA_DEFAULT_ENV')}")
+    return True
+
+
+def _validate_args(args):
+    """Validate input arguments."""
+    try:
+        args.port = validate_port(args.port)
+        args.host = validate_host(args.host)
+        if hasattr(args, "frontend_port"):
+            args.frontend_port = validate_port(args.frontend_port)
+    except ValueError as e:
+        logger.error(f"Input validation failed: {e}")
+        return False
+    return True
+
+
+def _handle_test_or_setup(args):
+    """Handle test or setup mode."""
+    if args.setup:
+        venv_path = ROOT_DIR / VENV_DIR
+        handle_setup(args, venv_path)
+        return True
+
+    if hasattr(args, "stage") and args.stage == "test":
+        from setup.test_stages import handle_test_stage
+        handle_test_stage(args)
+        return True
+
+    if getattr(args, "unit", False) or getattr(args, "integration", False) or getattr(args, "coverage", False):
+        from setup.test_stages import handle_test_stage
+        handle_test_stage(args)
+        return True
+
+    return False
+
+
+def _run_services():
+    """Start all services and handle shutdown."""
+    start_services(args)
+    logger.info("All services started. Press Ctrl+C to shut down.")
+    try:
+        while True:
+            time.sleep(1)
+    except KeyboardInterrupt:
+        logger.info("Shutdown signal received.")
+    finally:
+        process_manager.cleanup()
+
+
 def _handle_legacy_args(args) -> int:
     """Handle legacy argument parsing for backward compatibility."""
     from setup.environment import setup_wsl_environment, check_wsl_requirements
@@ -1089,45 +1164,19 @@ def _handle_legacy_args(args) -> int:
     if not args.skip_prepare and not validate_environment():
         return 1
 
-    try:
-        args.port = validate_port(args.port)
-        args.host = validate_host(args.host)
-        if hasattr(args, "frontend_port"):
-            args.frontend_port = validate_port(args.frontend_port)
-    except ValueError as e:
-        logger.error(f"Input validation failed: {e}")
+    if not _validate_args(args):
         return 1
 
-    if args.setup:
-        venv_path = ROOT_DIR / VENV_DIR
-        handle_setup(args, venv_path)
+    if _handle_test_or_setup(args):
         return 0
 
-    if args.use_conda:
-        if not _handle_conda_env(args):
-            return 1
+    if args.use_conda and not _handle_conda_env(args):
+        return 1
 
     if not args.skip_prepare and not args.use_conda:
         prepare_environment(args)
 
-    if hasattr(args, "stage") and args.stage == "test":
-        _handle_test_stage(args)
-        return 0
-
-    if getattr(args, "unit", False) or getattr(args, "integration", False) or getattr(args, "coverage", False):
-        _handle_test_stage(args)
-        return 0
-
-    start_services(args)
-    logger.info("All services started. Press Ctrl+C to shut down.")
-    try:
-        while True:
-            time.sleep(1)
-    except KeyboardInterrupt:
-        logger.info("Shutdown signal received.")
-    finally:
-        process_manager.cleanup()
-
+    _run_services()
     return 0
 
 
