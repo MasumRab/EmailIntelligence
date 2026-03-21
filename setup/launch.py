@@ -215,7 +215,7 @@ def _log_missing(missing, label):
             logger.error(f"  - {path}")
 
 
-def check_critical_files() -> bool:
+def check_critical_files() -> bool:  # noqa: PLR0912
     """Check for critical files that must exist in the orchestration-tools branch."""
     critical_files = [
         "scripts/install-hooks.sh", "scripts/cleanup_orchestration.sh",
@@ -1139,7 +1139,7 @@ def _run_services():
         process_manager.cleanup()
 
 
-def _handle_legacy_args(args) -> int:
+def _handle_legacy_args(args) -> int:  # noqa: PLR0912
     """Handle legacy argument parsing for backward compatibility."""
     from setup.environment import setup_wsl_environment, check_wsl_requirements
     setup_wsl_environment()
