@@ -1,8 +1,8 @@
 """
 Agent Scaffold Command Module
 
-Synchronizes repository-specific skills, recipes, and personalities 
-with the global Gemini CLI configuration (~/.gemini).
+Installs and updates repository-specific agent tools with explicit 
+differentiation from global ecosystem/MCP prompts.
 """
 
 import os
@@ -15,11 +15,13 @@ from ..interface import Command
 
 class AgentScaffoldCommand(Command):
     """
-    Command for installing and updating repository-specific agent tools.
+    Command for installing repository-specific agent tools.
     
     Creates symlinks from the repo's .agent/ directory to ~/.gemini/
-    to ensure the agent has the correct skills and recipes for this project.
+    with an 'eai-' prefix to differentiate from global/MCP skills.
     """
+
+    PROJECT_PREFIX = "eai-"
 
     def __init__(self):
         self._security_validator = None
@@ -30,33 +32,22 @@ class AgentScaffoldCommand(Command):
 
     @property
     def description(self) -> str:
-        return "Sync project-specific agent skills and recipes to ~/.gemini"
+        return "Sync project-specific agent tools to ~/.gemini (with prefixing)"
 
     def add_arguments(self, parser: Any) -> None:
-        """Add command-specific arguments."""
         parser.add_argument(
             "--force", 
             action="store_true", 
-            help="Overwrite existing symlinks or files"
-        )
-        parser.add_argument(
-            "--dry-run", 
-            action="store_true", 
-            help="Show what would be linked without making changes"
+            help="Overwrite existing global links"
         )
 
     def get_dependencies(self) -> Dict[str, Any]:
-        """Get required dependencies."""
-        return {
-            "security_validator": "SecurityValidator"
-        }
+        return {"security_validator": "SecurityValidator"}
 
     def set_dependencies(self, dependencies: Dict[str, Any]) -> None:
-        """Set command dependencies."""
         self._security_validator = dependencies.get("security_validator")
 
     async def execute(self, args: Namespace) -> int:
-        """Execute the agent-scaffold command."""
         repo_agent_dir = Path(".agent")
         gemini_root = Path("~/.gemini").expanduser()
         
@@ -64,66 +55,36 @@ class AgentScaffoldCommand(Command):
             print(f"Error: Repository agent directory '{repo_agent_dir}' not found.")
             return 1
 
-        print("🚀 Scaffolding Project-Specific Agent Tools...")
+        print(f"🚀 Scaffolding Project-Specific Agent Tools (Prefix: '{self.PROJECT_PREFIX}')...")
 
-        # 1. Sync Skills
-        self._sync_category(
-            repo_agent_dir / "skills", 
-            gemini_root / "skills", 
-            args.force, 
-            args.dry_run
-        )
-
-        # 2. Sync Recipes (Commands)
-        self._sync_category(
-            repo_agent_dir / "recipes", 
-            gemini_root / "commands", 
-            args.force, 
-            args.dry_run
-        )
-
-        # 3. Sync Personalities
-        self._sync_category(
-            repo_agent_dir / "personalities", 
-            gemini_root / "personalities", 
-            args.force, 
-            args.dry_run
-        )
-        
-        print("\n✅ Scaffolding complete. Run 'gemini --memory show' to verify loaded context.")
-        return 0
-
-    def _sync_category(self, source_dir: Path, target_dir: Path, force: bool, dry_run: bool):
-        """Sync a category of tools using symlinks."""
-        if not source_dir.exists():
-            return
-
-        print(f"\n--- Syncing {source_dir.name} ---")
-        
-        for item in source_dir.iterdir():
-            if item.is_dir() or item.suffix in [".md", ".toml"]:
-                dest_path = target_dir / item.name
+        subdirs = ["skills", "recipes", "personalities"]
+        for subdir in subdirs:
+            source_path = repo_agent_dir / subdir
+            dest_path = gemini_root / subdir
+            
+            if not source_path.exists():
+                continue
                 
-                if dry_run:
-                    print(f"  [DRY RUN] Would link {item} -> {dest_path}")
-                    continue
+            print(f"\n--- Syncing {subdir} ---")
+            dest_path.mkdir(parents=True, exist_ok=True)
+
+            for item in source_path.glob("*"):
+                # Apply project prefix to prevent collisions with global skills
+                prefixed_name = f"{self.PROJECT_PREFIX}{item.name}"
+                link_path = dest_path / prefixed_name
+
+                if link_path.exists() or link_path.is_symlink():
+                    if args.force:
+                        link_path.unlink()
+                    else:
+                        print(f"  - Skipping {item.name} (exists as {prefixed_name})")
+                        continue
 
                 try:
-                    # Create target parent dir if it doesn't exist
-                    target_dir.mkdir(parents=True, exist_ok=True)
-
-                    if dest_path.exists() or dest_path.is_symlink():
-                        if force:
-                            if dest_path.is_dir() and not dest_path.is_symlink():
-                                import shutil
-                                shutil.rmtree(dest_path)
-                            else:
-                                dest_path.unlink()
-                        else:
-                            print(f"  - Skipping {item.name} (already exists). Use --force to update.")
-                            continue
-
-                    os.symlink(item.absolute(), dest_path)
-                    print(f"  - Linked {item.name}")
+                    os.symlink(item.absolute(), link_path)
+                    print(f"  - Linked {item.name} -> {prefixed_name}")
                 except Exception as e:
                     print(f"  - Error linking {item.name}: {e}")
+
+        print("\n✅ Differentiation complete. Project tools are prefixed with 'eai-'.")
+        return 0
