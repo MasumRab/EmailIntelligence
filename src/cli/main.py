@@ -29,7 +29,6 @@ from .commands import (
     CompareCommand,
     AnalyzeCodeCommand,
     ImportAuditCommand,
-    ReviewCommand,
     VerifyCommand,
     DeployCommand,
     BackupCommand,
@@ -86,7 +85,6 @@ async def run_cli(args: Optional[List[str]] = None) -> int:
     registry.register_command(GitDiscoverCommand, agent="analyst")
     registry.register_command(AnalyzeCodeCommand, agent="analyst")
     registry.register_command(ImportAuditCommand, agent="analyst")
-    registry.register_command(ReviewCommand, agent="analyst")
     registry.register_command(CompareCommand, agent="system")
     registry.register_command(VerifyCommand, agent="system")
     registry.register_command(DeployCommand, agent="system")

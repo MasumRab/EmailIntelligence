@@ -1,0 +1,22 @@
+# Code Review Recipe
+# Purpose: AI-driven architectural and logic review via CodeRabbit
+# Usage: gemini --recipe code-review
+
+[recipe]
+name = "code-review"
+description = "Perform a rigorous AI-driven code review of the most recent changes."
+
+[[steps]]
+name = "Determine Scope"
+command = "git log -n 1 --pretty=format:'%H'"
+description = "Identify the most recent commit for incremental review."
+
+[[steps]]
+name = "Run CodeRabbit"
+command = "coderabbit review --base-commit HEAD~1 --plain"
+description = "Trigger the specialized industrial review engine."
+
+[[steps]]
+name = "Verify Logic Parity"
+command = "python3 dev.py logic-compare HEAD~1 HEAD"
+description = "Verify that no logic DNA was lost during the recent changes."
