@@ -1,4 +1,4 @@
-name = "audit-full"
+name = "audit:full"
 description = "Perform a full system audit including code quality, imports, and environment health."
 
 [workflow]

@@ -47,14 +47,25 @@ class ImportTransformer(cst.CSTTransformer):
         return updated_node.with_changes(names=new_names)
 
     def leave_ImportFrom(self, original_node: cst.ImportFrom, updated_node: cst.ImportFrom) -> cst.ImportFrom:
-        if updated_node.module and isinstance(updated_node.module, cst.Name):
-            root = updated_node.module.value.split('.')[0]
+        if updated_node.module:
+            # Handle both cst.Name and cst.Attribute (for deep imports)
+            module_name = self._get_full_name(updated_node.module)
+            root = module_name.split('.')[0]
             if root in self.mapping:
                 new_root = self.mapping[root]
-                new_module = cst.parse_expression(updated_node.module.value.replace(root, new_root, 1))
+                new_module_name = module_name.replace(root, new_root, 1)
                 self.modified = True
-                return updated_node.with_changes(module=new_module)
+                return updated_node.with_changes(module=cst.parse_expression(new_module_name))
         return updated_node
+
+    def _get_full_name(self, node: cst.CSTNode) -> str:
+        """Helper to extract strings from Name or Attribute nodes."""
+        if isinstance(node, cst.Name):
+            return node.value
+        elif isinstance(node, cst.Attribute):
+            return "{}.{}".format(self._get_full_name(node.value), node.attr.value)
+        return ""
+
 
 
 class ImportAuditCommand(Command):

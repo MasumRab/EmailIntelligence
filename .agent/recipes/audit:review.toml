@@ -3,7 +3,7 @@
 # Usage: gemini --recipe code-review
 
 [recipe]
-name = "code-review"
+name = "audit:review"
 description = "Rigorous internal-first review using consolidate CLI diagnostic suite."
 
 [[steps]]
