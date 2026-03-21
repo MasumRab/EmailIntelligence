@@ -85,6 +85,7 @@ PYTHON_MIN_VERSION = (3, 12)
 PYTHON_MAX_VERSION = (3, 13)
 VENV_DIR = "venv"
 CONDA_ENV_NAME = os.getenv("CONDA_ENV_NAME", "base")
+USER_ENV_FILE = "launch-user.env"
 
 
 
@@ -717,7 +718,7 @@ def print_system_info():
         "requirements.txt",
         "requirements-dev.txt",
         PACKAGE_JSON,
-        "launch-user.env",
+        USER_ENV_FILE,
         ".env",
     ]
     for cf in config_files:
@@ -1030,7 +1031,7 @@ def _execute_check_command(args) -> int:
 
 def _load_env_files(args):
     """Load environment variables from files."""
-    user_env_file = ROOT_DIR / "launch-user.env"
+    user_env_file = ROOT_DIR / USER_ENV_FILE
     if user_env_file.exists():
         load_dotenv(user_env_file)
         logger.info(f"Loaded user environment variables from {user_env_file}")
@@ -1065,7 +1066,7 @@ def _handle_test_stage(args):
 
 def _load_env_files(args):
     """Load environment variables from files."""
-    user_env_file = ROOT_DIR / "launch-user.env"
+    user_env_file = ROOT_DIR / USER_ENV_FILE
     if user_env_file.exists():
         load_dotenv(user_env_file)
         logger.info(f"Loaded user environment variables from {user_env_file}")
