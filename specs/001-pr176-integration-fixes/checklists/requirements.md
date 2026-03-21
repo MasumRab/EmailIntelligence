@@ -39,34 +39,34 @@ This checklist ensures all requirements for the Generic PR Integration Fixes fea
 - [ ] System provides guidance for aligning with current architecture
 - [ ] Process works for any valid PR number provided as input
 
-### FR-009: Use GitHub CLI (gh) tool to inspect, review, and manage PR issues, comments, and merge conflicts
+### FR-006: Use GitHub CLI (gh) tool to inspect, review, and manage PR issues, comments, and merge conflicts
 - [ ] GitHub CLI is properly integrated into the process
 - [ ] All PR inspection tasks use GitHub CLI commands
 - [ ] Commands are parameterized to work with arbitrary PR numbers
 - [ ] Error handling for GitHub CLI operations is implemented
 
-### FR-010: Use gh command line tool to retrieve PR details, comments, and status information
+### FR-007: Use gh command line tool to retrieve PR details, comments, and status information
 - [ ] System uses `gh pr view [PR_NUMBER]` for PR details
 - [ ] System uses `gh pr comments [PR_NUMBER]` for comments
 - [ ] System uses `gh pr diff [PR_NUMBER]` for changes
 - [ ] All commands accept parameterized PR number
 
-### FR-011: Use GitHub CLI (gh) tool to inspect potential conflicts or dependencies with PR #182 (branch pr-179)
+### FR-008: Use GitHub CLI (gh) tool to inspect potential conflicts or dependencies with other PRs
 - [ ] System can check for conflicts with other PRs
 - [ ] Process includes checking against specified other PRs
 - [ ] Conflicts with other PRs are properly reported
 
-### FR-012: Use gh command line tool to inspect PR #182 for potential conflicts
-- [ ] System can specifically target PR #182 for conflict checking
+### FR-009: Use gh command line tool to inspect other PRs for potential conflicts
+- [ ] System can specifically target other PRs for conflict checking
 - [ ] Process includes steps to analyze cross-PR conflicts
 
-### FR-013: Accept PR number as user input parameter
+### FR-010: Accept PR number as user input parameter
 - [ ] System prompts user for PR number or accepts as argument
 - [ ] Input validation is performed on the PR number
 - [ ] All internal processes use the provided PR number
 - [ ] Default PR number handling is replaced with user input
 
-### FR-014: Parameterize all PR-specific values to accept user input for PR number
+### FR-011: Parameterize all PR-specific values to accept user input for PR number
 - [ ] All references to "PR 176" have been generalized
 - [ ] Template variables are properly substituted with user input
 - [ ] Process works with any valid PR number
