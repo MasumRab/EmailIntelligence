@@ -522,3 +522,4 @@ def start_services(args):
         # Start frontend if configured and available
         if available_services.get("frontend", False):
             frontend_path = config.get_service_path("frontend")
+            start_node_service(frontend_path, "Frontend Client", args.frontend_port, api_url)

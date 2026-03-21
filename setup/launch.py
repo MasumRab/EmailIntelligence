@@ -381,7 +381,7 @@ def install_package_manager(venv_path: Path, manager: str):
     run_command([python_exe, "-m", "pip", "install", manager], f"Installing {manager}")
 
 
-def setup_dependencies(venv_path: Path = None, use_poetry: bool = False):  # noqa: ARG001
+def setup_dependencies(venv_path=None, use_poetry=False):  # noqa: ARG001  # noqa: ARG001
     """Set up dependencies in a virtual environment.
     
     Args:
@@ -629,7 +629,7 @@ def setup_node_dependencies(service_path: Path, service_name: str):
     run_command(["npm", "install"], f"Installing {service_name} dependencies", cwd=service_path)
 
 
-def start_gradio_ui(host=None, port=None, share=False, debug=False):
+def start_gradio_ui(_host=None, _port=None, share=False, debug=False):
     """Start the Gradio UI.
     
     Args:
