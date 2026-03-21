@@ -8,9 +8,8 @@ from datetime import datetime
 @pytest.fixture
 def mock_filter_manager():
     """Fixture to mock the SmartFilterManager used in filter routes."""
-    import src.backend.python_backend.filter_routes
     with patch(
-        "src.backend.python_backend.filter_routes.filter_manager", new_callable=MagicMock
+        "server.python_backend.filter_routes.filter_manager", new_callable=MagicMock
     ) as mock_fm:
         yield mock_fm
 
@@ -18,9 +17,8 @@ def mock_filter_manager():
 @pytest.fixture
 def mock_performance_monitor():
     """Fixture to mock the performance monitor."""
-    import src.backend.python_backend.filter_routes
     with patch(
-        "src.backend.python_backend.filter_routes.performance_monitor", new_callable=AsyncMock
+        "server.python_backend.filter_routes.performance_monitor", new_callable=AsyncMock
     ) as mock_pm:
         mock_pm.track = lambda func: func
         yield mock_pm
