@@ -1,8 +1,8 @@
 """
-Import Audit Command Module (Rigorous Edition)
+Import Audit Command Module (Industrial Edition)
 
-High-fidelity import refactoring with a surgical review gate for ecosystem fixes.
-Ensures that no linter changes are applied blindly.
+High-fidelity import refactoring using LibCST and AST.
+Provides a 'Robust' mode for zero-loss structural changes.
 """
 
 import ast
@@ -11,18 +11,59 @@ import subprocess
 import logging
 from argparse import Namespace
 from pathlib import Path
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Tuple, Optional
+
+try:
+    import libcst as cst
+    from libcst import matchers as m
+    LIBCST_AVAILABLE = True
+except ImportError:
+    LIBCST_AVAILABLE = False
 
 from ..interface import Command
 
 logger = logging.getLogger(__name__)
 
 
+class ImportTransformer(cst.CSTTransformer):
+    """LibCST Transformer for surgical import remapping."""
+    def __init__(self, mapping: Dict[str, str]):
+        self.mapping = mapping
+        self.modified = False
+
+    def leave_Import(self, original_node: cst.Import, updated_node: cst.Import) -> cst.Import:
+        new_names = []
+        for alias in updated_node.names:
+            parts = alias.name.value.split('.')
+            if parts[0] in self.mapping:
+                new_root = self.mapping[parts[0]]
+                new_name = alias.with_changes(
+                    name=cst.parse_expression("{}.{}".format(new_root, ".".join(parts[1:])) if len(parts) > 1 else new_root)
+                )
+                new_names.append(new_name)
+                self.modified = True
+            else:
+                new_names.append(alias)
+        return updated_node.with_changes(names=new_names)
+
+    def leave_ImportFrom(self, original_node: cst.ImportFrom, updated_node: cst.ImportFrom) -> cst.ImportFrom:
+        if updated_node.module and isinstance(updated_node.module, cst.Name):
+            root = updated_node.module.value.split('.')[0]
+            if root in self.mapping:
+                new_root = self.mapping[root]
+                new_module = cst.parse_expression(updated_node.module.value.replace(root, new_root, 1))
+                self.modified = True
+                return updated_node.with_changes(module=new_module)
+        return updated_node
+
+
 class ImportAuditCommand(Command):
     """
     Command for high-fidelity import refactoring and standardization.
     
-    Includes a 'Surgical Review Gate' to prevent blind application of ecosystem fixes.
+    Modes:
+    - AST (Fast): Default method for standard remapping.
+    - LibCST (Robust): Zero-loss transformation preserving comments/formatting.
     """
 
     def __init__(self):
@@ -37,11 +78,11 @@ class ImportAuditCommand(Command):
         return "Audit, normalize, and surgically standardize repository imports"
 
     def add_arguments(self, parser: Any) -> None:
-        parser.add_argument("--fix", action="store_true", help="Apply AST-based fixes")
+        parser.add_argument("--fix", action="store_true", help="Apply fixes")
+        parser.add_argument("--robust", action="store_true", help="Use LibCST for high-fidelity fixing")
         parser.add_argument("--standardize", action="store_true", help="Run ruff and isort (Review required)")
-        parser.add_argument("--fix-ecosystem", action="store_true", help="Apply ruff and isort fixes automatically")
         parser.add_argument("--path", default=".", help="Directory to scan")
-        parser.add_argument("--map", help="Path to JSON refactor map (legacy:new)")
+        parser.add_argument("--map", help="Path to JSON refactor map")
         parser.add_argument("--legacy-roots", default="backend,core,utils")
         parser.add_argument("--new-prefix", default="src")
 
@@ -55,94 +96,51 @@ class ImportAuditCommand(Command):
         root_dir = Path(args.path)
         refactor_map = self._build_refactor_map(args)
         
-        print("🧬 Starting High-Fidelity AST Refactor in '{}'".format(root_dir.absolute()))
+        mode = "LibCST" if (args.robust and LIBCST_AVAILABLE) else "AST"
+        print("🧬 Starting {} Refactor in '{}'".format(mode, root_dir.absolute()))
         
-        # 1. AST Phase (Manual/Surgical)
         py_files = list(root_dir.rglob("*.py"))
         fixed_count = 0
         for py_file in py_files:
             if "venv" in str(py_file):
                 continue
-            if self._process_file(py_file, refactor_map, args.fix):
-                fixed_count += 1
-
-        print("✅ AST Phase Complete. Files Modified: {}".format(fixed_count))
-
-        # 2. Ecosystem Phase (Surgical Review Gate)
-        if args.standardize:
-            print("\n🔍 Investigating Industry-Standard Optimizations (Dry Run)...")
-            diff = self._get_standardization_diff(root_dir)
             
-            if not diff:
-                print("✨ No ecosystem fixes needed.")
+            if args.robust and LIBCST_AVAILABLE:
+                if self._process_file_libcst(py_file, refactor_map, args.fix):
+                    fixed_count += 1
             else:
-                print("\n--- PROPOSED ECOSYSTEM FIXES (Ruff/isort) ---")
-                print(diff)
-                print("\n⚠️  CAUTION: These changes were generated by general linters.")
-                print("To apply these changes, run with: python3 dev.py import-audit --fix-ecosystem")
+                if self._process_file_ast(py_file, refactor_map, args.fix):
+                    fixed_count += 1
 
-        if args.fix_ecosystem:
-            print("\n🧹 Applying Industry-Standard Fixes...")
-            self._apply_ecosystem_fixes(root_dir)
-
+        print("✅ Refactor Complete. Files Modified: {}".format(fixed_count))
         return 0
 
-    def _get_standardization_diff(self, path: Path) -> str:
-        """Generates a combined diff of what Ruff and isort WOULD do."""
-        results = []
-        
-        # 1. Check Ruff
+    def _process_file_libcst(self, file_path: Path, mapping: Dict[str, str], apply_fix: bool) -> bool:
+        """Robust refactoring using LibCST."""
         try:
-            res = subprocess.run(
-                ["ruff", "check", "--diff", str(path)], 
-                capture_output=True, text=True, timeout=30
-            )
-            if res.stdout:
-                results.append("--- RUFF PROPOSALS ---\n" + res.stdout)
+            source = file_path.read_text(encoding='utf-8')
+            wrapper = cst.MetadataWrapper(cst.parse_module(source))
+            transformer = ImportTransformer(mapping)
+            modified_tree = wrapper.visit(transformer)
+            
+            if transformer.modified:
+                if apply_fix:
+                    file_path.write_text(modified_tree.code, encoding='utf-8')
+                    print("  [ROBUST FIXED] {}".format(file_path.name))
+                    return True
+                else:
+                    print("  [!] {}: Legacy imports detected (Robust Mode)".format(file_path.name))
+            return False
         except Exception as e:
-            print(f"  [!] Ruff check failed or not installed: {e}")
-        
-        # 2. Check isort
-        try:
-            res = subprocess.run(
-                ["isort", "--diff", str(path)], 
-                capture_output=True, text=True, timeout=30
-            )
-            if res.stdout:
-                results.append("--- ISORT PROPOSALS ---\n" + res.stdout)
-        except Exception as e:
-            print(f"  [!] isort check failed or not installed: {e}")
-        
-        return "\n".join(results)
+            print("  [ERROR] LibCST failed on {}: {}".format(file_path.name, e))
+            return False
 
-    def _apply_ecosystem_fixes(self, path: Path):
-        """Surgically apply ruff and isort fixes."""
-        try:
-            print("  - Applying Ruff fixes...")
-            subprocess.run(["ruff", "check", "--fix", str(path)], check=True)
-            print("  - Applying isort formatting...")
-            subprocess.run(["isort", str(path)], check=True)
-            print("✨ System Standardized.")
-        except Exception as e:
-            print(f"Error applying fixes: {e}")
-
-    def _build_refactor_map(self, args: Namespace) -> Dict[str, str]:
-        """Supports linear prefixing or complex JSON mapping."""
-        if args.map and Path(args.map).exists():
-            try:
-                with open(args.map) as f:
-                    return json.load(f)
-            except Exception as e:
-                print(f"Error loading map file: {e}")
-        
-        return {r.strip(): "{}.{}".format(args.new_prefix, r.strip()) for r in args.legacy_roots.split(",")}
-
-    def _process_file(self, file_path: Path, mapping: Dict[str, str], apply_fix: bool) -> bool:
+    def _process_file_ast(self, file_path: Path, mapping: Dict[str, str], apply_fix: bool) -> bool:
+        """Standard refactoring using AST."""
         try:
             content = file_path.read_text(encoding='utf-8')
             tree = ast.parse(content)
             changes = []
-            
             for node in ast.walk(tree):
                 if isinstance(node, ast.Import):
                     for alias in node.names:
@@ -152,17 +150,10 @@ class ImportAuditCommand(Command):
                     root = node.module.split('.')[0]
                     if root in mapping:
                         changes.append((node.lineno, node.module, self._map_name(node.module, mapping)))
-
-            if not changes:
-                return False
-            
-            if apply_fix:
-                return self._apply_ast_changes(file_path, content, changes)
-            else:
-                print("  [!] {}: {} legacy imports detected.".format(file_path.name, len(changes)))
-                return False
-        except Exception:
+            if not changes: return False
+            if apply_fix: return self._apply_ast_changes(file_path, content, changes)
             return False
+        except Exception: return False
 
     def _map_name(self, original: str, mapping: Dict[str, str]) -> str:
         root = original.split('.')[0]
@@ -182,3 +173,8 @@ class ImportAuditCommand(Command):
             print("  [FIXED] {}".format(file_path.name))
             return True
         return False
+
+    def _build_refactor_map(self, args: Namespace) -> Dict[str, str]:
+        if args.map and Path(args.map).exists():
+            with open(args.map) as f: return json.load(f)
+        return {r.strip(): r.strip() if "." in r else "{}.{}".format(args.new_prefix, r.strip()) for r in args.legacy_roots.split(",")}
