@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 ROOT_DIR = Path(__file__).resolve().parent.parent
 
 # Constants
-PACKAGE_JSON = PACKAGE_JSON
+PACKAGE_JSON = "package.json"
 
 
 def check_uvicorn_installed() -> bool:
@@ -353,10 +353,8 @@ def start_services(args):
 
         # Start frontend if configured and available
         if available_services.get("frontend", False):
-            frontend_config = config.get_service_config("frontend")
             frontend_path = config.get_service_path("frontend")
-        logger.error(f"Invalid host parameter: {host}")
-        return
+            start_node_service(frontend_path, "Frontend Client", args.frontend_port, api_url)
 
     cmd = [
         python_exe,

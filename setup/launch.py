@@ -20,7 +20,8 @@ from setup.validation import (
     validate_environment, validate_port, validate_host
 )
 from setup.services import (
-    start_services, start_backend, start_node_service, start_gradio_ui, validate_services
+    start_services, start_backend, start_node_service, start_gradio_ui, validate_services,
+    PACKAGE_JSON
 )
 from setup.environment import (
     handle_setup, prepare_environment, setup_wsl_environment, check_wsl_requirements
@@ -469,7 +470,12 @@ def install_notmuch_matching_system():
         logger.warning("notmuch not found on system, skipping version-specific install")
 
 
-def download_nltk_data(venv_path=None):
+def download_nltk_data(venv_path=None):  # noqa: ARG001
+    """Download NLTK data packages.
+    
+    Args:
+        venv_path: Path to virtual environment (unused, reserved for future use).
+    """
     python_exe = get_python_executable()
 
     # Updated NLTK download script with better error handling and more packages
@@ -560,7 +566,7 @@ def check_node_npm_installed() -> bool:
 
 def install_nodejs_dependencies(directory: str, update: bool = False) -> bool:
     """Install Node.js dependencies in a given directory."""
-    pkg_json_path = ROOT_DIR / directory / "package.json"
+    pkg_json_path = ROOT_DIR / directory / PACKAGE_JSON
     if not pkg_json_path.exists():
         logger.debug(f"No package.json in '{directory}/', skipping npm install.")
         return True
@@ -594,7 +600,7 @@ def start_server_ts():
         return None
 
     # Check if package.json exists
-    pkg_json_path = ROOT_DIR / "backend" / "server-ts" / "package.json"
+    pkg_json_path = ROOT_DIR / "backend" / "server-ts" / PACKAGE_JSON
     if not pkg_json_path.exists():
         logger.debug(
             "No package.json in 'backend/server-ts/', skipping TypeScript backend server startup."
@@ -643,7 +649,7 @@ def start_node_service(service_path: Path, service_name: str, port: int, api_url
 
 def setup_node_dependencies(service_path: Path, service_name: str):
     """Install npm dependencies for a Node.js service."""
-    if not (service_path / "package.json").exists():
+    if not (service_path / PACKAGE_JSON).exists():
         logger.warning(
             f"package.json not found for {service_name}, skipping dependency installation."
         )
@@ -652,7 +658,15 @@ def setup_node_dependencies(service_path: Path, service_name: str):
     run_command(["npm", "install"], f"Installing {service_name} dependencies", cwd=service_path)
 
 
-def start_gradio_ui(host, port, share, debug):
+def start_gradio_ui(host=None, port=None, share=False, debug=False):
+    """Start the Gradio UI.
+    
+    Args:
+        host: Host to bind to (unused, configured in Gradio).
+        port: Port to bind to (unused, configured in Gradio).
+        share: Whether to create a public share link.
+        debug: Enable debug mode.
+    """
     logger.info("Starting Gradio UI...")
     python_exe = get_python_executable()
     cmd = [python_exe, "-m", "src.main"]  # Assuming Gradio is launched from main
@@ -788,7 +802,7 @@ def print_system_info():
         "pyproject.toml",
         "requirements.txt",
         "requirements-dev.txt",
-        "package.json",
+        PACKAGE_JSON,
         "launch-user.env",
         ".env",
     ]
