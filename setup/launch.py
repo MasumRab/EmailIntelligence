@@ -410,7 +410,7 @@ def install_package_manager(venv_path: Path, manager: str):
     run_command([python_exe, "-m", "pip", "install", manager], f"Installing {manager}")
 
 
-def setup_dependencies(venv_path: Path = None, use_poetry: bool = False):
+def setup_dependencies(venv_path: Path = None, use_poetry: bool = False):  # noqa: ARG001
     """Set up dependencies in a virtual environment.
     
     Args:

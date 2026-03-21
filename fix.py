@@ -15,10 +15,8 @@ while i < len(lines):
             new_lines.append(lines[i])
             i += 1
         i += 1
-        continue
-    else:
-        new_lines.append(line)
-        i += 1
+    new_lines.append(line)
+    i += 1
 
 with open('setup/launch.py', 'w') as f:
     f.writelines(new_lines)

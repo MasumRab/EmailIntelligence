@@ -21,6 +21,7 @@ class ModelManager:
         return True
 
     def discover_models(self):
+        """Discover available models. Stub implementation - to be implemented."""
         pass
 
     def list_models(self):
