@@ -713,7 +713,12 @@ class DatabaseManager(DataSource):
             f"Starting email search for term: '{search_term_lower}'. Using optimized index."
         )
 
-        for email_light in self.emails_data:
+        # Iterate in reverse order to find recent emails first
+        for email_light in reversed(self.emails_data):
+            # Early exit if we found enough matches
+            if len(filtered_emails) >= limit:
+                break
+
             email_id = email_light.get(FIELD_ID)
 
             # Use pre-computed search text if available

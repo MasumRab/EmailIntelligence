@@ -16,6 +16,14 @@ class ModelManager:
         """Get active models. Stub implementation."""
         return []
 
+    def discover_models(self) -> None:
+        """Discover models. Stub implementation."""
+        logger.info("Discovering models (stub)...")
+
+    def list_models(self) -> List[Dict[str, Any]]:
+        """List models. Stub implementation."""
+        return []
+
     def check_health(self) -> bool:
         """Check model manager health. Stub implementation."""
         return True

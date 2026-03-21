@@ -145,13 +145,8 @@ async def initialize_services():
     # Initialize Plugin Manager, which may need other managers
     if _plugin_manager_instance is None:
         _plugin_manager_instance = PluginManager()
-        _plugin_manager_instance.discover_and_load_plugins(
-            model_manager=_model_manager_instance,
-            workflow_engine=_workflow_engine_instance,
-            ai_engine=_ai_engine_instance,
-            filter_manager=_filter_manager_instance,
-            db=db,
-        )
+        _plugin_manager_instance.load_plugins()
+        _plugin_manager_instance.initialize_all_plugins()
 
     # Initialize services that depend on the core managers
     if _gmail_service_instance is None:
