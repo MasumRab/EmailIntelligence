@@ -81,6 +81,12 @@ __pycache__/
 # Beads task tracker
 .beads/
 
+# Qwen commands (generated)
+.qwen/
+
+# Task Master
+.taskmaster/
+
 # Crush (if present)
 .crush/
 

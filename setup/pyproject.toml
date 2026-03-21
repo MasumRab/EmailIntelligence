@@ -36,12 +36,13 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
     "black>=25.1.0",
-    "flake8>=7.2.0",
+    "ruff>=0.9.0",
     "isort>=6.0.1",
     "mypy>=1.16.0",
     "pylint>=3.3.7",
     "pytest>=8.4.0",
-    "pytest-asyncio>=0.23.0"
+    "pytest-asyncio>=0.23.0",
+    "pytest-cov>=6.0.0",
 ]
 
 [[tool.uv.index]]
@@ -51,7 +52,17 @@ url = "https://download.pytorch.org/whl/cpu"
 requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
 
-[dependency-groups]
-dev = [
-    "pytest>=8.4.2",
-]
+[tool.ruff]
+line-length = 88
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "N", "UP", "B", "C4", "SIM"]
+ignore = ["E501"]
+
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = false
+ignore_missing_imports = true
