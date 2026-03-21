@@ -381,7 +381,7 @@ def install_package_manager(venv_path: Path, manager: str):
     run_command([python_exe, "-m", "pip", "install", manager], f"Installing {manager}")
 
 
-def setup_dependencies(venv_path=None, use_poetry=False):  # noqa: ARG001  # noqa: ARG001
+def setup_dependencies(_venv_path=None, _use_poetry=False):
     """Set up dependencies in a virtual environment.
     
     Args:
@@ -441,7 +441,7 @@ def install_notmuch_matching_system():
         logger.warning("notmuch not found on system, skipping version-specific install")
 
 
-def download_nltk_data(venv_path=None):  # noqa: ARG001
+def download_nltk_data(_venv_path=None):
     """Download NLTK data packages.
     
     Args:
@@ -1157,11 +1157,6 @@ def _handle_legacy_args(args) -> int:
 
     if not args.skip_prepare and not args.use_conda:
         prepare_environment(args)
-
-    if args.system_info:
-        print("DEBUG: system_info flag detected")
-        print_system_info()
-        return 0
 
     # Handle test stage
     if hasattr(args, "stage") and args.stage == "test":
