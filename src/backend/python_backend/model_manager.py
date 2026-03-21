@@ -27,12 +27,15 @@ class ModelManager:
         return []
 
     def load_model(self, model_name: str):
+        """Load a model by name. Stub implementation - to be implemented."""
         pass
 
     def get_model(self, model_name: str):
+        """Get a model by name. Stub implementation - to be implemented."""
         pass
 
     def unload_model(self, model_name: str):
+        """Unload a model by name. Stub implementation - to be implemented."""
         pass
 
 model_manager = ModelManager()

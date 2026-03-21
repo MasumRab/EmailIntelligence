@@ -409,7 +409,13 @@ def install_package_manager(venv_path: Path, manager: str):
     run_command([python_exe, "-m", "pip", "install", manager], f"Installing {manager}")
 
 
-def setup_dependencies(venv_path: Path, use_poetry: bool = False):
+def setup_dependencies(venv_path: Path = None, use_poetry: bool = False):
+    """Set up dependencies in a virtual environment.
+    
+    Args:
+        venv_path: Path to the virtual environment (currently unused, reserved for future use).
+        use_poetry: Whether to use poetry for dependency management.
+    """
     python_exe = get_python_executable()
 
     if use_poetry:
@@ -1078,24 +1084,15 @@ def _execute_check_command(args) -> int:
     """Execute the check command for orchestration validation."""
     logger.info("Running orchestration checks...")
     
-    success = True
+    # Determine which checks to run
+    run_critical = args.critical_files or (not args.env)
+    run_env = args.env or (not args.critical_files)
     
-    # Run critical files check if requested
-    if args.critical_files or (not args.env):
-        if not check_critical_files():
-            success = False
+    # Run checks and track results
+    critical_passed = not run_critical or check_critical_files()
+    env_passed = not run_env or validate_orchestration_environment()
     
-    # Run environment validation if requested
-    if args.env:
-        if not validate_orchestration_environment():
-            success = False
-    
-    # If no specific check was requested, run all checks
-    if not args.critical_files and not args.env:
-        if not validate_orchestration_environment():
-            success = False
-    
-    if success:
+    if critical_passed and env_passed:
         logger.info("All orchestration checks passed!")
         return 0
     else:
