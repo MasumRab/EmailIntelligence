@@ -484,8 +484,8 @@ class ModelRegistry:
 
             model_path = metadata.path
             if model_path.exists():
-                model = AutoModelForSequenceClassification.from_pretrained(str(model_path))
-                tokenizer = AutoTokenizer.from_pretrained(str(model_path))
+                model = AutoModelForSequenceClassification.from_pretrained(str(model_path), local_files_only=True)
+                tokenizer = AutoTokenizer.from_pretrained(str(model_path), local_files_only=True)
                 return {"model": model, "tokenizer": tokenizer}
             else:
                 logger.error(f"Transformers model path not found: {model_path}")
