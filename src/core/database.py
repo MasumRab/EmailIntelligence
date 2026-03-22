@@ -23,8 +23,8 @@ from .enhanced_error_reporting import (
     ErrorCategory,
     create_error_context
 )
-from .constants import DEFAULT_CATEGORY_COLOR, DEFAULT_CATEGORIES
-from .security import validate_path_safety, sanitize_path
+from .constants import DEFAULT_CATEGORY_COLOR
+from .security import validate_path_safety
 
 logger = logging.getLogger(__name__)
 
@@ -831,12 +831,13 @@ class DatabaseManager(DataSource):
         # Results are already sorted because we iterated source_emails (which is sorted)
         results = [self._add_category_details(email) for email in filtered_emails]
 
-        # Cache the results (store copy to prevent external mutation affecting cache)
-        self.caching_manager.put_query_result(cache_key, list(results))
+        # Cache the results
+        self.caching_manager.put_query_result(cache_key, results)
         return results
 
     # TODO(P1, 6h): Optimize search performance to avoid disk I/O per STATIC_ANALYSIS_REPORT.md
     # TODO(P2, 4h): Implement search indexing to improve query performance
+    # TODO(P3, 3h): Add support for search result caching
 
     async def _update_email_fields(
         self, email: Dict[str, Any], update_data: Dict[str, Any]

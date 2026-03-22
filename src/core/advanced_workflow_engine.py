@@ -11,7 +11,6 @@ This module provides:
 - Workflow persistence and sharing
 """
 
-import asyncio
 import json
 import logging
 import time
@@ -111,7 +110,6 @@ class BaseNode(ABC):
 
         # If security is available, validate and sanitize inputs
         if security_available and self._security_context:
-            from .security import security_manager
 
             # Validate access and sanitize inputs
             sanitized_inputs = DataSanitizer.sanitize_input(inputs)
