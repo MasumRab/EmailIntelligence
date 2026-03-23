@@ -122,6 +122,7 @@ class SmartFilterManager:
         self.db_path = db_path
         self.logger = logging.getLogger(__name__)
         self.conn = None
+        self._background_tasks: set[asyncio.Task] = set()
         if self.db_path == ":memory:":
             self.conn = sqlite3.connect(":memory:")
             self.conn.row_factory = sqlite3.Row
@@ -720,6 +721,28 @@ class SmartFilterManager:
         
         return summary
 
+    def _schedule_background_task(self, coro):
+        loop = asyncio.get_running_loop()
+        task = loop.create_task(coro)
+        self._background_tasks.add(task)
+        task.add_done_callback(self._on_background_task_done)
+
+    def _on_background_task_done(self, task: asyncio.Task) -> None:
+        self._background_tasks.discard(task)
+        try:
+            task.result()  # drain exceptions to avoid warnings
+        except Exception as e:
+            self.logger.error(f"Background task failed: {e}")
+
+    async def _invalidate_filter_cache(self, filter_ids: List[str]) -> None:
+        try:
+            await self.caching_manager.delete("active_filters_sorted")
+            for filter_id in filter_ids:
+                cache_key = f"filter_{filter_id}"
+                await self.caching_manager.delete(cache_key)
+        except Exception as e:
+            self.logger.error(f"Failed to invalidate cache: {e}")
+
     async def _batch_update_filter_usage(self, filter_ids: List[str]):
         """Updates the usage statistics for multiple filters in a batch."""
         if not filter_ids:
@@ -732,13 +755,14 @@ class SmartFilterManager:
             WHERE filter_id IN ({placeholders})
         """
 
-        current_time = datetime.now(timezone.utc).isoformat()
-        params = [current_time] + filter_ids
+        current_datetime = datetime.now(timezone.utc)
+        current_time_iso = current_datetime.isoformat()
+        params = [current_time_iso] + filter_ids
 
         self._db_execute(update_query, tuple(params))
 
-        # Invalidate cache for active filters
-        await self.caching_manager.delete("active_filters_sorted")
+        # Fire and forget cache invalidation asynchronously.
+        self._schedule_background_task(self._invalidate_filter_cache(filter_ids))
 
     async def _update_filter_usage(self, filter_id: str):
         """Updates the usage statistics for a filter."""

@@ -34,7 +34,7 @@ def check_uvicorn_installed() -> bool:
         if not validate_path_safety(python_exe):
             logger.error(f"Unsafe Python executable path: {python_exe}")
             return False
-            
+
         result = subprocess.run([python_exe, "-c", "import uvicorn"], capture_output=True)
         return result.returncode == 0
     except Exception:
@@ -169,12 +169,12 @@ def get_python_executable() -> str:
 def start_backend(host: str, port: int, debug: bool = False):
     """Start the Python backend server."""
     python_exe = get_python_executable()
-    
+
     # Validate the python executable path to prevent command injection
     if not validate_path_safety(python_exe):
         logger.error(f"Unsafe Python executable path: {python_exe}")
         return
-    
+
     # Sanitize host parameter to prevent command injection
     import re
     if not re.match(r'^[a-zA-Z0-9.-]+
@@ -259,12 +259,12 @@ def setup_node_dependencies(service_path: Path, service_name: str):
 def start_gradio_ui(host, port, share, debug):
     """Start the Gradio UI."""
     python_exe = get_python_executable()
-    
+
     # Validate the python executable path to prevent command injection
     if not validate_path_safety(python_exe):
         logger.error(f"Unsafe Python executable path: {python_exe}")
         return
-    
+
     # Sanitize host parameter to prevent command injection
     import re
     if not re.match(r'^[a-zA-Z0-9.-]+$', host):
@@ -352,7 +352,7 @@ def start_services(args):
             start_node_service(frontend_path, "Frontend Client", args.frontend_port, api_url), host):
         logger.error(f"Invalid host parameter: {host}")
         return
-    
+
 =======
 from pathlib import Path
 
