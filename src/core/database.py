@@ -582,6 +582,12 @@ class DatabaseManager(DataSource):
         is_unread: Optional[bool] = None,
     ) -> List[Dict[str, Any]]:
         """Get emails with pagination and filtering."""
+        # Check cache
+        cache_key = f"get_emails_{limit}_{offset}_{category_id}_{is_unread}"
+        cached_result = self.caching_manager.get_query_result(cache_key)
+        if cached_result is not None:
+            return cached_result
+
         filtered_emails = self.emails_data
         if category_id is not None:
             filtered_emails = [
@@ -589,9 +595,14 @@ class DatabaseManager(DataSource):
             ]
         if is_unread is not None:
             filtered_emails = [e for e in filtered_emails if e.get(FIELD_IS_UNREAD) == is_unread]
-        return await self._sort_and_paginate_emails(
+
+        result = await self._sort_and_paginate_emails(
             filtered_emails, limit=limit, offset=offset
         )
+
+        # Cache result
+        self.caching_manager.put_query_result(cache_key, result)
+        return result
 
     async def update_email_by_message_id(
         self, message_id: str, update_data: Dict[str, Any]
