@@ -29,6 +29,10 @@ jobs:
           python-version: "3.11"
           cache: 'pip'
       
+      - name: Install packaging for verification
+        run: |
+          pip install packaging
+
       - name: Verify dependencies
         run: |
           python scripts/verify-dependencies.py --minimal
@@ -36,7 +40,6 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
           pip install -r requirements-dev.txt
           pip install flake8 pylint black isort
       

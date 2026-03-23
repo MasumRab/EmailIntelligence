@@ -10,10 +10,10 @@ import json
 import logging
 import time
 from abc import ABC, abstractmethod
-from collections import OrderedDict
 from dataclasses import dataclass
 from enum import Enum
 from typing import Any, Dict, List, Optional, Set, Union
+from collections import OrderedDict
 
 try:
     import redis.asyncio as redis
@@ -105,16 +105,10 @@ class CacheBackendInterface(ABC):
 
 
 class MemoryCacheBackend(CacheBackendInterface):
-    """
-    In-memory cache backend using LRU strategy.
-
-    Optimized to use OrderedDict for O(1) average time complexity on get/set operations,
-    replacing previous O(N) list-based implementation.
-    """
+    """In-memory cache backend using LRU strategy with O(1) complexity using OrderedDict"""
 
     def __init__(self, config: CacheConfig):
         self.config = config
-        # Use OrderedDict for O(1) LRU tracking
         self._cache: OrderedDict[str, Dict[str, Any]] = OrderedDict()
         self._stats = CacheStats()
 
@@ -128,7 +122,7 @@ class MemoryCacheBackend(CacheBackendInterface):
                 self._stats.misses += 1
                 return None
 
-            # Update access order for LRU - O(1) operation
+            # Update access order for LRU (move to end = most recently used)
             self._cache.move_to_end(key)
 
             self._stats.hits += 1
@@ -141,14 +135,15 @@ class MemoryCacheBackend(CacheBackendInterface):
         """Set value in memory cache"""
         expires_at = time.time() + ttl if ttl else None
 
-        self._cache[key] = {"value": value, "expires_at": expires_at, "created_at": time.time()}
+        if key in self._cache:
+            # If updating existing key, mark as recently used
+            self._cache.move_to_end(key)
 
-        # Update access order (move to end as most recently used) - O(1) operation
-        self._cache.move_to_end(key)
+        self._cache[key] = {"value": value, "expires_at": expires_at, "created_at": time.time()}
 
         # Enforce max items limit (LRU eviction)
         while len(self._cache) > self.config.max_memory_items:
-            # Pop the first item (least recently used) - O(1) operation
+            # Remove oldest item (FIFO order in OrderedDict = least recently used)
             self._cache.popitem(last=False)
             self._stats.evictions += 1
 
