@@ -105,10 +105,16 @@ class CacheBackendInterface(ABC):
 
 
 class MemoryCacheBackend(CacheBackendInterface):
-    """In-memory cache backend using LRU strategy"""
+    """
+    In-memory cache backend using LRU strategy.
+
+    Optimized to use OrderedDict for O(1) average time complexity on get/set operations,
+    replacing previous O(N) list-based implementation.
+    """
 
     def __init__(self, config: CacheConfig):
         self.config = config
+        # Use OrderedDict for O(1) LRU tracking
         self._cache: OrderedDict[str, Dict[str, Any]] = OrderedDict()
         self._stats = CacheStats()
 

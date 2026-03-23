@@ -668,27 +668,27 @@ class SmartFilterManager:
         
         # Check sender domain criteria
         if "sender_domain" in criteria:
-            if email_context["sender_domain"] != criteria["sender_domain"]:
+            if email_context.get("sender_domain") != criteria["sender_domain"]:
                 return False
         
         # Check subject keywords
         if "subject_keywords" in criteria:
             # We use pre-computed lowercase subject
-            subject = email_context["subject_lower"]
+            subject = email_context.get("subject_lower", "")
             if not any(keyword.lower() in subject for keyword in criteria["subject_keywords"]):
                 return False
         
         # Check content keywords
         if "content_keywords" in criteria:
             # We use pre-computed lowercase content
-            content = email_context["content_lower"]
+            content = email_context.get("content_lower", "")
             if not any(keyword.lower() in content for keyword in criteria["content_keywords"]):
                 return False
         
         # Check from patterns
         if "from_patterns" in criteria:
             # We use pre-computed lowercase sender
-            sender_email = email_context["sender_lower"]
+            sender_email = email_context.get("sender_lower", "")
             if not any(re.search(p, sender_email, re.IGNORECASE) for p in criteria["from_patterns"]):
                 return False
         
