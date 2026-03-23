@@ -64,7 +64,7 @@ class ContextControlMiddleware(BaseHTTPMiddleware):
                 if ContextIsolator:
                     request.state.context_isolator = ContextIsolator
 
-            except Exception as e:
+            except Exception as e:  # pylint: disable=broad-except
                 # If context creation fails, continue without it
                 request.state.context_error = str(e)
 
@@ -129,7 +129,7 @@ def create_app() -> FastAPI:
                     "isolator": ContextIsolator is not None,
                     "config": ContextControlConfig is not None
                 }
-            except:
+            except Exception:  # pylint: disable=broad-except
                 pass
 
         return health_status
@@ -145,7 +145,7 @@ def create_app() -> FastAPI:
                     "config": config.dict(),
                     "context_control_available": True
                 }
-            except Exception as e:
+            except Exception as e:  # pylint: disable=broad-except
                 return {
                     "context_control_available": True,
                     "config_error": str(e)

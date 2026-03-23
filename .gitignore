@@ -90,6 +90,7 @@ config/llm_guidelines.local.json
 models/*.pkl
 worktrees/
 temp_untracked_files/
+guidance/
 
 # Backup files
 *.bak

@@ -21,7 +21,7 @@ def validate_factory_pattern():
         app = create_app()
         print(f"✅ Factory function works - created app with {len(app.routes)} routes")
         return True
-    except Exception as e:
+    except Exception as e:  # pylint: disable=broad-except
         print(f"❌ Factory pattern validation failed: {e}")
         traceback.print_exc()
         return False
@@ -36,7 +36,7 @@ def validate_context_control():
         try:
             controller = ContextController()
             print("✅ Context control architecture is available")
-        except Exception:
+        except Exception:  # pylint: disable=broad-except
             # Try initializing config first
             init_config()
             controller = ContextController()
@@ -45,7 +45,7 @@ def validate_context_control():
     except ImportError as e:
         print(f"⚠️  Context control not available: {e}")
         return True  # Not critical for core functionality
-    except Exception as e:
+    except Exception as e:  # pylint: disable=broad-except
         print(f"⚠️  Context control validation issue (non-critical): {e}")
         return True  # Context control is not critical for core functionality
 
@@ -99,7 +99,7 @@ def validate_local_features():
                 from src.backend.python_backend.gradio_app import gradio_app
                 print("✅ Gradio UI preserved")
                 features_validated += 1
-            except Exception as e:
+            except Exception as e:  # pylint: disable=broad-except
                 print(f"⚠️  Gradio UI not available (non-critical): {e}")
                 # Don't count this as failure since it's not critical for core functionality
                 features_validated += 1
@@ -119,7 +119,7 @@ def validate_remote_patterns():
     except ImportError as e:
         print(f"⚠️  Some remote patterns not available: {e}")
         return True  # Not critical if basic functionality works
-    except Exception as e:
+    except Exception as e:  # pylint: disable=broad-except
         print(f"❌ Remote pattern validation failed: {e}")
         return False
 
@@ -139,7 +139,7 @@ def validate_service_compatibility():
         print(f"✅ Essential service routes available: {found_routes}")
 
         return len(found_routes) >= 2  # At least 2 of 3 essential routes
-    except Exception as e:
+    except Exception as e:  # pylint: disable=broad-except
         print(f"❌ Service compatibility validation failed: {e}")
         return False
 

@@ -40,7 +40,7 @@ def get_installed_packages() -> Dict[str, str]:
     for dist in distributions():
         try:
             installed[dist.metadata['Name'].lower()] = dist.version
-        except Exception:
+        except Exception:  # pylint: disable=broad-except
             pass
     return installed
 
@@ -99,10 +99,17 @@ def verify_gpu_support():
 
 def verify_system_packages():
     """Verify essential system packages are present."""
+    import subprocess
     print("\nVerifying system packages...")
 
     # Check for git
-    exit_code = os.system("git --version > /dev/null 2>&1")
+    try:
+        # Use subprocess instead of os.system for better security and error handling
+        result = subprocess.run(["git", "--version"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=False)
+        exit_code = result.returncode
+    except FileNotFoundError:
+        exit_code = 1
+
     if exit_code == 0:
         print("git: Installed")
     else:
