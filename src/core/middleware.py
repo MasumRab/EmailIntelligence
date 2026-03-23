@@ -232,15 +232,21 @@ def create_security_middleware(
     trusted_proxies: Optional[list] = None,
 ):
     """Create security middleware with specified options."""
-    return SecurityMiddleware(
-        app,
-        enable_rate_limiting=enable_rate_limiting,
-        enable_audit_logging=enable_audit_logging,
-        enable_performance_monitoring=enable_performance_monitoring,
-        trusted_proxies=trusted_proxies,
-    )
+    # We must return a callable type that accepts (app, ...) and returns an ASGI app.
+    # FastAPI's add_middleware requires the class, not an instance.
+    def _middleware_factory(app):
+        return SecurityMiddleware(
+            app,
+            enable_rate_limiting=enable_rate_limiting,
+            enable_audit_logging=enable_audit_logging,
+            enable_performance_monitoring=enable_performance_monitoring,
+            trusted_proxies=trusted_proxies,
+        )
+    return _middleware_factory
 
 
 def create_security_headers_middleware(app):
     """Create security headers middleware."""
-    return SecurityHeadersMiddleware(app)
+    def _middleware_factory(app):
+        return SecurityHeadersMiddleware(app)
+    return _middleware_factory

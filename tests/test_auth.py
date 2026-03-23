@@ -15,13 +15,13 @@ def test_auth_token_endpoint():
     """Test the token endpoint for authentication"""
     with TestClient(app) as client:
         # Test with valid credentials
-        response = client.post("/token", data={"username": "admin", "password": "secret"})
+        response = client.post("/api/auth/login", json={"username": "admin", "password": "secret"})
         assert response.status_code == 200
         assert "access_token" in response.json()
         assert response.json()["token_type"] == "bearer"
 
         # Test with invalid credentials
-        response = client.post("/token", data={"username": "invalid", "password": "invalid"})
+        response = client.post("/api/auth/login", json={"username": "invalid", "password": "invalid"})
         assert response.status_code == 401
 
 
