@@ -502,6 +502,32 @@ class WorkflowRunner:
                                     f"{node_to_cleanup} to optimize memory"
                                 )
 
+    def _build_node_context(self, node_id: str) -> Dict[str, Any]:
+        """Map outputs from connected upstream nodes to the current node's inputs."""
+        node = self.workflow.nodes[node_id]
+
+        # Start with the initial context so nodes can access it
+        context = self.execution_context.copy()
+
+        # Then map upstream outputs based on workflow connections
+        for conn in self.workflow.connections:
+            if conn["to"]["node_id"] == node_id:
+                from_node_id = conn["from"]["node_id"]
+                output_name = conn["from"]["output"]
+                input_name = conn["to"]["input"]
+
+                # Check if the dependency result is available
+                if from_node_id in self.node_results:
+                    node_result = self.node_results[from_node_id]
+                    # If result is a dict with the specific output key, extract it
+                    if isinstance(node_result, dict) and output_name in node_result:
+                        context[input_name] = node_result[output_name]
+                    else:
+                        # Fallback for simple results
+                        context[input_name] = node_result
+
+        return context
+
     async def _execute_single_node(self, node_id: str):
         """Execute a single node asynchronously"""
         node = self.workflow.nodes[node_id]

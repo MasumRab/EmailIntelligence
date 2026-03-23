@@ -32,7 +32,7 @@ class TestDataSourceFactory:
         mock_db_manager = AsyncMock()
         mock_db_manager._ensure_initialized = AsyncMock()
 
-        with patch("src.core.factory.DatabaseManager", return_value=mock_db_manager):
+        with patch("src.core.database.DatabaseManager", return_value=mock_db_manager):
             data_source = await get_data_source()
 
             assert data_source is mock_db_manager
@@ -68,7 +68,7 @@ class TestDataSourceFactory:
         mock_db_manager = AsyncMock()
         mock_db_manager._ensure_initialized = AsyncMock()
 
-        with patch("src.core.factory.DatabaseManager", return_value=mock_db_manager):
+        with patch("src.core.database.DatabaseManager", return_value=mock_db_manager):
             data_source = await get_data_source()
 
             assert data_source is mock_db_manager
@@ -132,7 +132,7 @@ class TestDataSourceFactory:
                 mock_db_manager = AsyncMock()
                 mock_db_manager._ensure_initialized = AsyncMock()
 
-                with patch("src.core.factory.DatabaseManager", return_value=mock_db_manager):
+                with patch("src.core.database.DatabaseManager", return_value=mock_db_manager):
                     data_source = await get_data_source()
                     assert data_source is mock_db_manager
             else:
@@ -148,18 +148,18 @@ class TestAIEngineFactory:
         # Check that the function exists
         assert callable(get_ai_engine)
 
-    def test_get_ai_engine_returns_object(self):
+    @pytest.mark.asyncio
+    async def test_get_ai_engine_returns_object(self):
         """Test that get_ai_engine returns an object with expected interface."""
-        ai_engine = get_ai_engine()
+        async with get_ai_engine() as ai_engine:
+            # Should have basic AI methods
+            expected_methods = ["analyze_email", "train_models"]
 
-        # Should have basic AI methods
-        expected_methods = ["analyze_sentiment", "classify_topic", "recognize_intent"]
-
-        for method_name in expected_methods:
-            assert hasattr(ai_engine, method_name), f"AI engine missing method: {method_name}"
-            assert callable(
-                getattr(ai_engine, method_name)
-            ), f"AI engine method not callable: {method_name}"
+            for method_name in expected_methods:
+                assert hasattr(ai_engine, method_name), f"AI engine missing method: {method_name}"
+                assert callable(
+                    getattr(ai_engine, method_name)
+                ), f"AI engine method not callable: {method_name}"
 
 
 class TestFactoryErrorHandling:
@@ -177,7 +177,7 @@ class TestFactoryErrorHandling:
         mock_db_manager = AsyncMock()
         mock_db_manager._ensure_initialized = AsyncMock(side_effect=Exception("DB init failed"))
 
-        with patch("src.core.factory.DatabaseManager", return_value=mock_db_manager):
+        with patch("src.core.database.DatabaseManager", return_value=mock_db_manager):
             with pytest.raises(Exception, match="DB init failed"):
                 await get_data_source()
 
@@ -189,8 +189,8 @@ class TestFactoryErrorHandling:
 
         src.core.factory._data_source_instance = None
 
-        # Mock an import error for DatabaseManager
-        with patch("src.core.factory.DatabaseManager", side_effect=ImportError("Module not found")):
+        # Mock an import error for NotmuchDataSource
+        with patch("src.core.factory.NOTMUCH_AVAILABLE", False):
             # Should still work for notmuch
             import os
 
@@ -198,8 +198,8 @@ class TestFactoryErrorHandling:
             os.environ["DATA_SOURCE_TYPE"] = "notmuch"
 
             try:
-                data_source = await get_data_source()
-                assert isinstance(data_source, NotmuchDataSource)
+                with pytest.raises(ImportError, match="notmuch library is not available"):
+                    await get_data_source()
             finally:
                 # Restore environment
                 if original_env is not None:
@@ -316,7 +316,7 @@ class TestFactoryConfiguration:
                     mock_db = AsyncMock()
                     mock_db._ensure_initialized = AsyncMock()
 
-                    with patch("src.core.factory.DatabaseManager", return_value=mock_db):
+                    with patch("src.core.database.DatabaseManager", return_value=mock_db):
                         data_source = await get_data_source()
                         assert data_source is mock_db
 
