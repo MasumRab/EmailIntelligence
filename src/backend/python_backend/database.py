@@ -18,6 +18,7 @@ from typing import Any, Dict, List, Literal, Optional
 
 from .constants import DEFAULT_CATEGORY_COLOR
 from .performance_monitor import log_performance
+from src.core.database import build_content_available_index
 
 logger = logging.getLogger(__name__)
 
@@ -145,15 +146,9 @@ class DatabaseManager:
             if FIELD_MESSAGE_ID in email
         }
 
-        self._content_available_index.clear()
-        if os.path.exists(self.email_content_dir):
-            for filename in os.listdir(self.email_content_dir):
-                if filename.endswith(".json.gz"):
-                    try:
-                        email_id = int(filename.split(".")[0])
-                        self._content_available_index.add(email_id)
-                    except ValueError:
-                        pass
+        self._content_available_index = build_content_available_index(
+            self.email_content_dir
+        )
 
         self.categories_by_id = {cat[FIELD_ID]: cat for cat in self.categories_data}
         self.categories_by_name = {

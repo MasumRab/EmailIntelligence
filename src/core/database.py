@@ -27,6 +27,36 @@ from .security import validate_path_safety
 
 logger = logging.getLogger(__name__)
 
+
+def build_content_available_index(email_content_dir: str) -> set[int]:
+    """Builds a set of email IDs for which heavy content files exist."""
+    content_index: set[int] = set()
+    if os.path.exists(email_content_dir):
+        for filename in os.listdir(email_content_dir):
+            if filename.endswith(".json.gz"):
+                try:
+                    email_id = int(filename.split(".")[0])
+                    content_index.add(email_id)
+                except ValueError:
+                    pass
+    return content_index
+
+
+def search_email_content(
+    email_id: int, content_path: str, search_term_lower: str
+) -> bool:
+    """Helper to check if search_term_lower is in the heavy content file."""
+    try:
+        with gzip.open(content_path, "rt", encoding="utf-8") as f:
+            heavy_data = json.load(f)
+            content = heavy_data.get(FIELD_CONTENT, "")
+            if isinstance(content, str) and search_term_lower in content.lower():
+                return True
+    except (IOError, json.JSONDecodeError) as e:
+        logger.error(f"Could not search content for email {email_id}: {e}")
+    return False
+
+
 # Globalized data directory at the project root
 DATA_DIR = "data"
 EMAIL_CONTENT_DIR = os.path.join(DATA_DIR, "email_content")
@@ -256,15 +286,9 @@ class DatabaseManager(DataSource):
             for email in self.emails_data
         }
 
-        self._content_available_index.clear()
-        if os.path.exists(self.email_content_dir):
-            for filename in os.listdir(self.email_content_dir):
-                if filename.endswith(".json.gz"):
-                    try:
-                        email_id = int(filename.split(".")[0])
-                        self._content_available_index.add(email_id)
-                    except ValueError:
-                        pass
+        self._content_available_index = build_content_available_index(
+            self.email_content_dir
+        )
 
         self.categories_by_id = {cat[FIELD_ID]: cat for cat in self.categories_data}
         self.categories_by_name = {
