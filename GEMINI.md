@@ -286,7 +286,6 @@ As a Gemini CLI assistant with Task Master:
 ---
 
 *See AGENTS.md for complete Task Master commands, workflows, and best practices.*
-<<<<<<< HEAD
 
 <!-- BACKLOG.MD MCP GUIDELINES START -->
 
@@ -329,5 +328,3 @@ You MUST read the overview resource to understand the complete workflow. The inf
 ## Recent Changes
 - 001-rebase-analysis: Added Python 3.11+ + GitPython, (potentially a diffing library)
 - 004-guided-workflow: Added Guided CLI Workflows spec and plan.
-=======
->>>>>>> 3809f0f3a2e942466dc0ff196cd81b50bb948e4c

@@ -10,10 +10,10 @@ import json
 import logging
 import time
 from abc import ABC, abstractmethod
-from collections import OrderedDict
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Dict, List, Optional, Set
+from typing import Any, Dict, List, Optional, Set, Union
+from collections import OrderedDict
 
 try:
     import redis.asyncio as redis
@@ -105,30 +105,25 @@ class CacheBackendInterface(ABC):
 
 
 class MemoryCacheBackend(CacheBackendInterface):
-    """
-    In-memory cache backend using LRU strategy.
-
-    Optimized to use OrderedDict for O(1) average time complexity on get/set operations,
-    replacing previous O(N) list-based implementation.
-    """
+    """In-memory cache backend using LRU strategy with O(1) complexity using OrderedDict"""
 
     def __init__(self, config: CacheConfig):
         self.config = config
-        # Use OrderedDict for O(1) LRU tracking
         self._cache: OrderedDict[str, Dict[str, Any]] = OrderedDict()
         self._stats = CacheStats()
 
     async def get(self, key: str) -> Optional[Any]:
         """Get value from memory cache"""
         if key in self._cache:
-            # Move to end to mark as recently used
-            self._cache.move_to_end(key)
             entry = self._cache[key]
             # Check TTL
             if entry.get("expires_at") and time.time() > entry["expires_at"]:
                 await self.delete(key)
                 self._stats.misses += 1
                 return None
+
+            # Update access order for LRU (move to end = most recently used)
+            self._cache.move_to_end(key)
 
             self._stats.hits += 1
             return entry["value"]
@@ -141,14 +136,15 @@ class MemoryCacheBackend(CacheBackendInterface):
         expires_at = time.time() + ttl if ttl else None
 
         if key in self._cache:
-            # Move to end if it exists
+            # If updating existing key, mark as recently used
             self._cache.move_to_end(key)
 
         self._cache[key] = {"value": value, "expires_at": expires_at, "created_at": time.time()}
 
         # Enforce max items limit (LRU eviction)
         while len(self._cache) > self.config.max_memory_items:
-            self._cache.popitem(last=False)  # Remove first item (LRU)
+            # Remove oldest item (FIFO order in OrderedDict = least recently used)
+            self._cache.popitem(last=False)
             self._stats.evictions += 1
 
         self._stats.sets += 1
@@ -165,7 +161,6 @@ class MemoryCacheBackend(CacheBackendInterface):
     async def exists(self, key: str) -> bool:
         """Check if key exists in memory cache"""
         if key in self._cache:
-            # Check TTL without modifying access order
             entry = self._cache[key]
             if entry.get("expires_at") and time.time() > entry["expires_at"]:
                 await self.delete(key)
