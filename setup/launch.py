@@ -791,9 +791,11 @@ def install_nodejs_dependencies(directory: str, update: bool = False) -> bool:
     if not check_node_npm_installed():
         return False
 
-    cmd = ["npm", "update" if update else "install"]
+    # Prevent command injection on Windows by explicitly resolving 'npm'
+    npm_path = shutil.which("npm") or "npm"
+    cmd = [npm_path, "update" if update else "install"]
     desc = f"{'Updating' if update else 'Installing'} Node.js dependencies for '{directory}/'"
-    return run_command(cmd, desc, cwd=ROOT_DIR / directory, shell=(os.name == "nt"))
+    return run_command(cmd, desc, cwd=ROOT_DIR / directory, shell=False)
 
 
 def start_client():
