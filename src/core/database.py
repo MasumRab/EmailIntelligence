@@ -23,8 +23,8 @@ from .enhanced_error_reporting import (
     ErrorCategory,
     create_error_context
 )
-from .constants import DEFAULT_CATEGORY_COLOR, DEFAULT_CATEGORIES
-from .security import validate_path_safety, sanitize_path
+from .constants import DEFAULT_CATEGORY_COLOR
+from .security import validate_path_safety
 
 logger = logging.getLogger(__name__)
 
@@ -201,7 +201,7 @@ class DatabaseManager(DataSource):
                 with gzip.open(content_path, "rt", encoding="utf-8") as f:
                     heavy_data = await asyncio.to_thread(json.load, f)
                     full_email.update(heavy_data)
-                    
+
                     # Cache the content
                     self.caching_manager.put_email_content(email_id, heavy_data)
             except (IOError, json.JSONDecodeError) as e:

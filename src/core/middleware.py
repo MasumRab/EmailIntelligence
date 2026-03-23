@@ -8,9 +8,9 @@ and performance monitoring with minimal overhead.
 import ipaddress
 import logging
 import time
-from typing import Callable, Optional
+from typing import Optional
 
-from fastapi import HTTPException, Request, Response
+from fastapi import Request
 from fastapi.responses import JSONResponse
 
 from .audit_logger import audit_logger
