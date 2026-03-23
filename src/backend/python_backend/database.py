@@ -635,17 +635,12 @@ class DatabaseManager:
             email_id = email_light.get(FIELD_ID)
             if email_id in self._content_available_index:
                 content_path = self._get_email_content_path(email_id)
-                try:
-                    with gzip.open(content_path, "rt", encoding="utf-8") as f:
-                        heavy_data = json.load(f)
-                        content = heavy_data.get(FIELD_CONTENT, "")
-                        if (
-                            isinstance(content, str)
-                            and search_term_lower in content.lower()
-                        ):
-                            filtered_emails.append(email_light)
-                except (IOError, json.JSONDecodeError) as e:
-                    logger.error(f"Could not search content for email {email_id}: {e}")
+                from src.core.database import search_email_content
+
+                if search_email_content(email_id, content_path, search_term_lower):
+                    filtered_emails.append(email_light)
+                    if len(filtered_emails) >= limit:
+                        break
         try:
             total_emails = len(self.emails_data)
             auto_labeled = sum(1 for email in self.emails_data if email.get("category"))
