@@ -29,7 +29,7 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
-from src.core.security import PathValidator
+from src.core.security import sanitize_path
 
 load_dotenv()
 
@@ -148,9 +148,10 @@ class EmailCache:
     def __init__(self, cache_path: str = str(DEFAULT_CACHE_PATH)):
         """Initializes the EmailCache."""
         # Secure path validation
-        self.cache_path = str(
-            PathValidator.validate_database_path(cache_path, Path(cache_path).parent)
-        )
+        sanitized = sanitize_path(cache_path, Path(cache_path).parent)
+        if not sanitized:
+            raise ValueError(f"Invalid or unsafe cache path: {cache_path}")
+        self.cache_path = str(sanitized)
         self.conn = sqlite3.connect(self.cache_path, check_same_thread=False)
         self._init_cache()
 
