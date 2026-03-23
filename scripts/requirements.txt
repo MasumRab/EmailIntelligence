@@ -1,0 +1,2 @@
+# requirements-scripts.txt
+requests>=2.31.0
