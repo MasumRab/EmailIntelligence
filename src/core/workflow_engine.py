@@ -541,6 +541,22 @@ class WorkflowRunner:
                 else:
                     raise e  # Re-raise the exception after max retries
 
+    def _build_node_context(self, node_id: str) -> Dict[str, Any]:
+        """Build the execution context for a specific node."""
+        context = self.execution_context.copy()
+
+        # Add outputs from dependencies to the context
+        for conn in self.workflow.connections:
+            if conn["to"]["node_id"] == node_id:
+                source_id = conn["from"]["node_id"]
+                source_output = conn["from"]["output"]
+                target_input = conn["to"]["input"]
+
+                if source_id in self.node_results and source_output in self.node_results[source_id]:
+                    context[target_input] = self.node_results[source_id][source_output]
+
+        return context
+
     async def _execute_single_node_with_timing(self, node_id: str):
         """Execute a single node asynchronously and track execution time"""
         start_time = time.time()
