@@ -56,6 +56,49 @@ def search_email_content(
         logger.error(f"Could not search content for email {email_id}: {e}")
     return False
 
+def execute_search_emails(
+    emails_data: List[Dict[str, Any]],
+    search_term_lower: str,
+    limit: int,
+    content_available_index: set[int],
+    get_content_path_fn: Any,
+    search_index: Optional[Dict[int, str]] = None
+) -> List[Dict[str, Any]]:
+    """Shared search logic to find recent matches quickly via reversed iteration and early exit."""
+    filtered_emails = []
+
+    for email_light in reversed(emails_data):
+        if len(filtered_emails) >= limit:
+            break
+
+        email_id = email_light.get(FIELD_ID)
+
+        # Use pre-computed search text if available
+        searchable_text = search_index.get(email_id) if search_index else None
+        if searchable_text:
+            found_in_light = search_term_lower in searchable_text
+        else:
+            # Fallback if index missing
+            found_in_light = (
+                search_term_lower in str(email_light.get(FIELD_SUBJECT, "") or "").lower()
+                or search_term_lower in str(email_light.get(FIELD_SENDER, "") or "").lower()
+                or search_term_lower in str(email_light.get(FIELD_SENDER_EMAIL, "") or "").lower()
+            )
+
+        if found_in_light:
+            filtered_emails.append(email_light)
+            continue
+
+        # Content search (slow path)
+        if email_id in content_available_index:
+            content_path = get_content_path_fn(email_id)
+            if search_email_content(email_id, content_path, search_term_lower):
+                filtered_emails.append(email_light)
+                if len(filtered_emails) >= limit:
+                    break
+
+    return filtered_emails
+
 
 # Globalized data directory at the project root
 DATA_DIR = "data"
@@ -812,44 +855,18 @@ class DatabaseManager(DataSource):
             return cached_result
 
         search_term_lower = search_term.lower()
-        filtered_emails = []
         logger.info(
             f"Starting email search for term: '{search_term_lower}'. Using optimized index."
         )
 
-        # Reverse iteration strategy to find most recent matches quickly
-        for email_light in reversed(self.emails_data):
-            if len(filtered_emails) >= limit:
-                break
-
-            email_id = email_light.get(FIELD_ID)
-
-            # Use pre-computed search text if available
-            searchable_text = self._search_index.get(email_id)
-            if searchable_text:
-                found_in_light = search_term_lower in searchable_text
-            else:
-                # Fallback if index missing (shouldn't happen if initialized correctly)
-                found_in_light = (
-                    search_term_lower
-                    in str(email_light.get(FIELD_SUBJECT, "") or "").lower()
-                    or search_term_lower
-                    in str(email_light.get(FIELD_SENDER, "") or "").lower()
-                    or search_term_lower
-                    in str(email_light.get(FIELD_SENDER_EMAIL, "") or "").lower()
-                )
-
-            if found_in_light:
-                filtered_emails.append(email_light)
-                continue
-
-            # Content search (slow path)
-            if email_id in self._content_available_index:
-                content_path = self._get_email_content_path(email_id)
-                if search_email_content(email_id, content_path, search_term_lower):
-                    filtered_emails.append(email_light)
-                    if len(filtered_emails) >= limit:
-                        break
+        filtered_emails = execute_search_emails(
+            self.emails_data,
+            search_term_lower,
+            limit,
+            self._content_available_index,
+            self._get_email_content_path,
+            self._search_index
+        )
 
         result = await self._sort_and_paginate_emails(filtered_emails, limit=limit)
 
