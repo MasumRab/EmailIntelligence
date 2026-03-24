@@ -18,7 +18,7 @@ from datetime import datetime, timedelta
 from fastapi import Depends, FastAPI, HTTPException, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
-from fastapi.security import HTTPBearer
+from fastapi.security import HTTPBearer, OAuth2PasswordRequestForm
 from fastapi.staticfiles import StaticFiles
 from pydantic import ValidationError
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -307,11 +307,11 @@ except ImportError:
 
 # Authentication endpoints
 @app.post("/token")
-async def login(username: str, password: str):
+async def login(form_data: OAuth2PasswordRequestForm = Depends()):
     """Login endpoint to get access token"""
     # Use the new authentication system
     db = await get_db()
-    user = await authenticate_user(username, password, db)
+    user = await authenticate_user(form_data.username, form_data.password, db)
 
     if not user:
         raise HTTPException(
@@ -329,7 +329,7 @@ async def login(username: str, password: str):
         # Use a default if settings are not available
         access_token_expires = timedelta(minutes=30)
 
-    access_token = create_access_token(data={"sub": username}, expires_delta=access_token_expires)
+    access_token = create_access_token(data={"sub": form_data.username}, expires_delta=access_token_expires)
     return {"access_token": access_token, "token_type": "bearer"}
 
 
