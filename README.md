@@ -1,138 +1,197 @@
-# Orchestration Tools Branch
+# EmailIntelligence
 
-This branch (`orchestration-tools`) serves as the **central source of truth** for development environment tooling, configuration management, scripts, and Git hooks that ensure consistency across all project branches.
+Intelligent email management platform with AI-powered filtering, categorization, and analysis.
 
-## Purpose
+## Quick Start
 
-The primary goal is to keep the core email intelligence codebase clean by separating orchestration concerns from application code. This branch will **NOT** be merged with other branches, but instead provides essential tools and configurations that are synchronized to other branches via Git hooks.
+**Prerequisites:**
+- Python 3.11+
+- Node.js 18+
+- Git
 
-## Files to KEEP (Essential for Orchestration)
-
-### Orchestration Scripts & Tools
-- `scripts/` - All orchestration scripts and utilities
-  - `install-hooks.sh` - Installs Git hooks for automated environment management
-  - `cleanup_orchestration.sh` - Removes orchestration-specific files when not on orchestration-tools
-  - `sync_setup_worktrees.sh` - Synchronizes worktrees for different branches
-  - `reverse_sync_orchestration.sh` - Reverse synchronization for orchestration updates
-  - `cleanup.sh` - Cleanup utilities
-  - `lib/` - Shared utility libraries (common.sh, error_handling.sh, git_utils.sh, logging.sh, validation.sh)
-  - `hooks/` - Git hook source files (pre-commit, post-checkout, post-commit, post-merge, post-push)
-
-### Setup & Environment Management
-- `setup/` - Launch scripts and environment setup
-  - `launch.py` - Main launcher with environment setup functionality
-  - `pyproject.toml` - Python project configuration
-  - `requirements.txt` - Runtime dependencies
-  - `requirements-dev.txt` - Development dependencies
-  - `setup_environment_*.sh` - Environment setup scripts
-  - `launch.*` - Cross-platform launch scripts
-
-### Configuration Files
-- `.flake8`, `.pylintrc` - Python linting configuration
-- `.gitignore`, `.gitattributes` - Git configuration
-- `launch.py` (root wrapper) - Forwards to setup/launch.py (backward compatibility)
-
-### Orchestration Documentation
-- `docs/orchestration_summary.md` - Summary of orchestration workflow
-- `docs/orchestration_validation_tests.md` - Validation tests for orchestration
-- `docs/env_management.md` - Environment management documentation
-- `docs/git_workflow_plan.md` - Git workflow planning
-- `docs/current_orchestration_docs/` - All orchestration-specific documentation
-- `docs/guides/` - Orchestration guides
-
-## Files to REMOVE (Application-Specific)
-
-The following files are NOT needed in this orchestration-focused branch and can be safely removed:
-
-### Application Source Code
-- `src/` - Application source code
-- `modules/` - Application modules
-- `backend/` - Backend implementation
-- `client/` - Frontend implementation
-- `tests/` - Application tests
-
-### Application Data & Dependencies
-- `data/` - Application data
-- `node_modules/` - Node.js dependencies
-- `performance_metrics_log.jsonl` - Runtime logs
-
-### Application-Specific Configurations
-- `.env.example` - Application environment example
-- `.mcp.json` - MCP-specific configuration (if application-specific)
-- `.rules` - Application-specific rules
-- Any documentation files in `docs/` that are not orchestration-related
-
-## Git Hook Behavior
-
-### `pre-commit` Hook
-- **Purpose**: Prevent accidental changes to orchestration-managed files
-- **Behavior**: Allows all changes on orchestration-tools; warns on orchestration-managed file changes on other branches
-
-### `post-checkout` Hook
-- **Purpose**: Sync essential files when switching branches
-- **Behavior**: Syncs setup/ directory, shared configs, and installs hooks when switching FROM orchestration-tools; skips sync when switching TO orchestration-tools
-
-### `post-merge` Hook
-- **Purpose**: Ensure environment consistency after merges
-- **Behavior**: Syncs setup/ directory, installs/updates Git hooks, cleans up temporary worktrees
-
-### `post-push` Hook
-- **Purpose**: Detect orchestration changes and create PRs
-- **Behavior**: Creates automatic draft PRs when orchestration-managed files are changed on non-orchestration branches
-
-## Development Workflow
-
-1. **For orchestration development**: Work directly in `orchestration-tools` branch
-2. **For environment setup**: The `setup/` directory contains all necessary tools
-3. **For configuration changes**: Make changes in orchestration-tools, they propagate automatically
-4. **For Git hook management**: Use `install-hooks.sh` to install consistent hook versions
-
-## Branch Policy
-
-- **This branch will NOT be merged with other branches**
-- **Focus only on orchestration tools, scripts, and configurations**
-- **Remove application-specific files to keep the branch clean**
-- **Maintain backward compatibility for the launch system**
-- **Ensure all hooks and automation scripts work correctly**
-
-## Hook Management and Updates
-
-When making changes to orchestration files, follow these important steps:
-
-1. **Always work in the orchestration-tools branch**
-2. **Test your changes thoroughly**
-3. **After pushing changes, other developers will receive updates automatically when switching branches**
-4. **For immediate updates, run**: `scripts/install-hooks.sh --force`
-5. **Refer to**: `docs/orchestration_hook_management.md` for detailed procedures
-
-## Cleanup Strategy
-
-To clean this branch for orchestration-only purposes:
-
+**Step 1: Clone the repository**
 ```bash
-# Remove application-specific directories
-rm -rf src/
-rm -rf modules/
-rm -rf tests/
-rm -rf data/
-rm -rf backend/
-rm -rf client/
-rm -rf node_modules/
-
-# Remove application-specific files
-rm -f .env.example
-rm -f .mcp.json
-rm -f .rules
-rm -f performance_metrics_log.jsonl
-
-# Review docs/ and remove non-orchestration documentation
-# (Keep orchestration_summary.md, orchestration_validation_tests.md, env_management.md, git_workflow_plan.md, and directories)
+git clone https://github.com/MasumRab/EmailIntelligence.git
+cd EmailIntelligence
 ```
 
-## Important Notes
+**Step 2: Install dependencies**
+```bash
+# For Ubuntu/WSL environments
+./setup_environment_wsl.sh
 
-- The root `launch.py` wrapper is essential and should be kept for backward compatibility
-- The `setup/` directory is critical for environment setup and should be maintained
-- All Git hooks in `scripts/hooks/` are essential for the orchestration workflow
-- This branch serves as the single source of truth for all environment and tooling configurations
+# For other environments
+npm install
+```
+
+**Step 3: Database Setup**
+The application uses SQLite. The database file (`sqlite.db`) is created automatically in the `backend` directory.
+
+**Step 4: Run the Application**
+```bash
+# Windows
+launch.bat --stage dev
+
+# Linux/macOS
+./launch.sh --stage dev
+
+# Or with Python directly
+python launch.py --stage dev
+```
+
+The application will be available at http://localhost:5173
+
+## Documentation
+
+Comprehensive guides in the `docs/` directory:
+
+- **[Deployment Guide](docs/deployment_guide.md)**: Local, Docker, staging, and production deployment
+- **[Launcher Guide](docs/launcher_guide.md)**: Unified launcher system and CLI options
+- **[Environment Management Guide](docs/env_management.md)**: Python environment setup and management
+- **[Extensions Guide](docs/extensions_guide.md)**: Using and developing extensions
+- **[Client Development Guide](docs/client_development.md)**: Frontend development
+- **[Server Development Guide](docs/server_development.md)**: Backend development
+- **[Python Style Guide](docs/python_style_guide.md)**: Python coding standards
+
+## AI Models Setup
+
+The AI features (sentiment analysis, topic classification, etc.) use trained models in `backend/python_nlp/`.
+
+**Placeholder Models:** Running `launch.py --stage dev` creates empty placeholder `.pkl` files. These won't provide actual AI functionality.
+
+**Training Actual Models:** To enable AI features, train models using `backend/python_nlp/ai_training.py`. You'll need to:
+1. Prepare labeled datasets (emails with topics, sentiments, etc.)
+2. Configure `ModelConfig` for each model type
+3. Train and save models with expected filenames (`topic_model.pkl`, `sentiment_model.pkl`, etc.)
+
+See `docs/ai_model_training_guide.md` (TODO: create) for detailed guidance.
+
+## Configuration
+
+Set environment variables in `.env` or your shell:
+
+- `DATABASE_URL`: Database connection (SQLite: `sqlite:backend/sqlite.db`)
+- `GMAIL_CREDENTIALS_JSON`: Gmail API OAuth credentials JSON
+- `credentials.json`: Alternative - place credentials file in project root
+- `GMAIL_TOKEN_PATH`: Token storage path (default: `jsons/token.json`)
+- `NLP_MODEL_DIR`: NLP models directory (default: `backend/python_nlp/`)
+- `PORT`: FastAPI server port (default: `8000`)
+
+## Running the Application
+
+**Development mode:**
+```bash
+python launch.py --stage dev
+```
+
+Starts:
+- Python FastAPI AI Server (port 8000)
+- React Frontend (port 5173)
+
+**Gradio Scientific UI:**
+```bash
+python launch.py --gradio-ui --host 0.0.0.0 --port 7860
+```
+
+**Environment Support:**
+- Conda: Auto-detected, use `--conda-env <name>` to specify
+- Virtual Environment: Created automatically if conda not found
+
+## Gmail API Integration
+
+1. **Enable Gmail API** in Google Cloud Console
+2. **Create OAuth 2.0 Client ID** (Desktop app)
+3. **Download credentials JSON**
+4. **Provide credentials:**
+   - Set `GMAIL_CREDENTIALS_JSON` env var, OR
+   - Place as `credentials.json` in project root
+5. **Authorize:** Browser authorization on first use creates `token.json`
+
+**Scopes:** `https://www.googleapis.com/auth/gmail.readonly`
+
+## Security Considerations
+
+- **JWT Authentication:** Implemented for sensitive API endpoints
+- **Secret Management:** Use environment variables, never commit secrets
+- **CORS Policy:** Restrict in production (`backend/python_backend/main.py`)
+- **Input Validation:** Sanitize all user/external data
+
+## Deployment
+
+**Docker:**
+```bash
+# Build
+python deployment/deploy.py prod build
+
+# Start
+python deployment/deploy.py prod up -d
+
+# Stop
+python deployment/deploy.py prod down
+```
+
+See [Deployment Guide](docs/deployment_guide.md) for comprehensive deployment instructions.
+
+## Building for Production
+
+```bash
+# Build frontend
+npm run build
+
+# Run backend with ASGI server (e.g., Gunicorn/Uvicorn)
+```
+
+## Extension System
+
+Manage extensions with the launcher:
+```bash
+python launch.py --list-extensions
+python launch.py --install-extension <path>
+```
+
+See [Extensions Guide](docs/extensions_guide.md) for development details.
+
+## Debugging
+
+**Pytest hangs:**
+```bash
+pytest -vvv --capture=no
+pytest path/to/test_file.py::test_name
+```
+
+**NPM/Build hangs:**
+- Clean cache: `npm cache clean --force`
+- Remove `node_modules` & `package-lock.json`, then `npm install`
+
+**System monitoring:**
+```bash
+top, htop, vmstat
+strace -p <PID>
+dmesg -T
+```
+
+## Known Vulnerabilities
+
+**esbuild vulnerabilities (moderate severity):**
+- `drizzle-kit` dependencies require vulnerable `esbuild` versions (0.18.20, 0.19.12)
+- Overrides attempted but ineffective due to version incompatibilities
+- Requires `drizzle-kit` update to resolve
+
+**Updated packages:**
+- `vite@6.3.5` and `@vitejs/plugin-react@4.5.2` updated successfully
+
+## Orchestration Tools
+
+This project uses orchestration tools for environment management and Git hooks:
+
+- **Setup scripts:** `setup/` directory
+- **Git hooks:** `scripts/hooks/`
+- **Shared libraries:** `scripts/lib/`
+
+**Important:**
+- Root `launch.py` is essential for backward compatibility
+- `setup/` directory is critical for environment setup
+- Git hooks in `scripts/hooks/` are essential for orchestration workflow
 - Changes to orchestration-managed files require PRs through the automated system
+
+See `docs/orchestration_summary.md` for details.

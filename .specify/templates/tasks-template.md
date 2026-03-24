@@ -8,8 +8,12 @@ description: "Task list template for feature implementation"
 **Input**: Design documents from `/specs/[###-feature-name]/`
 **Prerequisites**: plan.md (required), spec.md (required for user stories), research.md, data-model.md, contracts/
 
+<<<<<<< HEAD
 **Constitution Compliance**: All tasks must adhere to Orchestration Tools Verification and Review Constitution principles including verification-first development, goal-task consistency, role-based access control with multiple permission levels (appropriate authentication for deployment context), observability requirements, multi-branch validation strategy, context contamination prevention, and performance efficiency measures.
 
+=======
+**Tests**: The examples below include test tasks. Tests are OPTIONAL - only include them if explicitly requested in the feature specification.
+>>>>>>> 843a5721ca34ab4e9e4621dc0b0dc57996f8ff65
 
 **Organization**: Tasks are grouped by user story to enable independent implementation and testing of each story.
 
@@ -26,6 +30,7 @@ description: "Task list template for feature implementation"
 - **Mobile**: `api/src/`, `ios/src/` or `android/src/`
 - Paths shown below assume single project - adjust based on plan.md structure
 
+<<<<<<< HEAD
 ## Constitution Compliance Tasks
 
 Each feature implementation must include tasks to satisfy the following constitution principles:
@@ -40,6 +45,8 @@ Each feature implementation must include tasks to satisfy the following constitu
 - **Reliability**: Maintain 99.9% uptime with automatic retry mechanisms and graceful failure handling
 - **Extensibility**: Implement plugin architecture for new test scenarios through configuration
 
+=======
+>>>>>>> 843a5721ca34ab4e9e4621dc0b0dc57996f8ff65
 <!-- 
   ============================================================================
   IMPORTANT: The tasks below are SAMPLE TASKS for illustration purposes only.

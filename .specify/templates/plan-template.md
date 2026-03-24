@@ -31,6 +31,7 @@
 
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
+<<<<<<< HEAD
 Based on the Orchestration Tools Verification and Review Constitution:
 - Verification-First Development: All implementation must include comprehensive verification before merging to any target branch
 - Goal-Task Consistency: All implementation tasks must align with defined project goals
@@ -43,6 +44,9 @@ Based on the Orchestration Tools Verification and Review Constitution:
 - Observability: All verification results must be logged with structured logging, correlation IDs, and real-time monitoring
 - Performance & Efficiency: Optimized execution with parallel processing and caching of expensive operations
 - Reliability Requirements: 99.9% uptime with automatic retry mechanisms and graceful failure handling
+=======
+[Gates determined based on constitution file]
+>>>>>>> 843a5721ca34ab4e9e4621dc0b0dc57996f8ff65
 
 ## Project Structure
 

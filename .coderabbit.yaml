@@ -1,0 +1,13 @@
+review:
+  base:
+    branches:
+      - origin/001-pr176-integration-fixes
+  files:
+    include:
+      - .editorconfig
+      - .gitattributes
+      - .gitignore
+      - setup/pyproject.toml
+      - specs/WORK_TO_SPEC_MAPPING.md
+    exclude:
+      - "**/*.md"

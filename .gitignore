@@ -96,6 +96,13 @@ models/*.joblib
 
 # Environment-specific
 emailintelligence_env/
+
+# Backup files
+*.backup
+*.bak
+temp-backup/
+
+# Worktrees
 worktrees/
 
 # dotfiles that should NOT be ignored
