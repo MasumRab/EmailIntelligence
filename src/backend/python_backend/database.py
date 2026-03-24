@@ -719,3 +719,14 @@ async def initialize_db():
     if _db_manager_instance is None:
         _db_manager_instance = DatabaseManager()
         await _db_manager_instance._ensure_initialized()
+
+# Ensure connect/close are defined on DatabaseManager for legacy support
+if not hasattr(DatabaseManager, 'connect'):
+    async def _connect(self):
+        await self._ensure_initialized()
+    DatabaseManager.connect = _connect
+
+if not hasattr(DatabaseManager, 'close'):
+    async def _close(self):
+        await self.shutdown()
+    DatabaseManager.close = _close

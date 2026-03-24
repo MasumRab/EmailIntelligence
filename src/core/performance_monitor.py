@@ -183,17 +183,13 @@ import atexit
 
 # Enhanced performance monitoring system with additional features
 from collections import defaultdict, deque
-from dataclasses import asdict, dataclass
-from datetime import datetime, timezone
-from functools import wraps
+from dataclasses import asdict
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Union
-
-logger = logging.getLogger(__name__)
+from typing import Union
 
 
 @dataclass
-class PerformanceMetric:
+class PerformanceMetricV2:
     """Represents a performance metric with minimal overhead."""
 
     name: str
@@ -247,7 +243,7 @@ class OptimizedPerformanceMonitor:
         self.log_file.parent.mkdir(parents=True, exist_ok=True)
 
         # Metrics storage
-        self._metrics_buffer: deque[PerformanceMetric] = deque(maxlen=max_metrics_buffer)
+        self._metrics_buffer: deque[PerformanceMetricV2] = deque(maxlen=max_metrics_buffer)
         self._aggregated_metrics: Dict[str, AggregatedMetric] = {}
 
         # Threading and async
@@ -300,7 +296,7 @@ class OptimizedPerformanceMonitor:
         if sample_rate < 1.0 and random.random() > sample_rate:
             return
 
-        metric = PerformanceMetric(
+        metric = PerformanceMetricV2(
             name=name,
             value=value,
             unit=unit,
@@ -312,17 +308,6 @@ class OptimizedPerformanceMonitor:
         # Add to buffer (thread-safe)
         with self._buffer_lock:
             self._metrics_buffer.append(metric)
-
-    def log_performance(self, log_entry: Dict[str, Any]) -> None:
-        """Compatibility method for legacy log_performance decorator."""
-        operation = log_entry.get("operation", "unknown")
-        duration = log_entry.get("duration_seconds", 0) * 1000  # Convert to ms
-        self.record_metric(
-            name=f"operation_duration_{operation}",
-            value=duration,
-            unit="ms",
-            tags={"operation": operation},
-        )
 
     def time_function(
         self, name: str, tags: Optional[Dict[str, str]] = None, sample_rate: float = 1.0
@@ -388,7 +373,7 @@ class OptimizedPerformanceMonitor:
             )
         return self._aggregated_metrics.copy()
 
-    def get_recent_metrics(self, name: str, limit: int = 100) -> List[PerformanceMetric]:
+    def get_recent_metrics(self, name: str, limit: int = 100) -> List[PerformanceMetricV2]:
         """Get recent raw metrics for a specific name."""
         with self._buffer_lock:
             return [m for m in self._metrics_buffer if m.name == name][-limit:]
@@ -459,7 +444,10 @@ class OptimizedPerformanceMonitor:
 
     def shutdown(self):
         """Shutdown the performance monitor gracefully."""
-        logger.info("Shutting down OptimizedPerformanceMonitor")
+        try:
+            logger.info("Shutting down OptimizedPerformanceMonitor")
+        except ValueError:
+            pass # Logger might be already closed in atexit
 
         self._stop_event.set()
 
