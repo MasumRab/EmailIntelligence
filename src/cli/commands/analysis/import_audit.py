@@ -8,6 +8,8 @@ Provides a 'Robust' mode for zero-loss structural changes.
 import ast
 import json
 import logging
+import os
+import tempfile
 from argparse import Namespace
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
@@ -184,16 +186,25 @@ class ImportAuditCommand(Command):
             modified = True
 
         if modified:
-            # Write using a safe method - create temp file and rename
-            temp_path = file_path.with_suffix(file_path.suffix + '.tmp')
+            # Write using a safe method - create temp file with fixed name pattern
             try:
-                temp_path.write_text("\n".join(lines) + "\n", encoding='utf-8')
-                temp_path.replace(file_path)
-                print(f"  ⚠️ AST Fallback Rewrite: {file_path}")
+                # Use mkstemp for atomic file writing with secure permissions
+                fd, temp_path_str = tempfile.mkstemp(
+                    suffix='.tmp',
+                    prefix='import_audit_',
+                    dir=str(file_path.parent)
+                )
+                try:
+                    with os.fdopen(fd, 'w', encoding='utf-8') as f:
+                        f.write("\n".join(lines) + "\n")
+                    # Atomic rename
+                    os.replace(temp_path_str, str(file_path))
+                    print(f"  ⚠️ AST Fallback Rewrite: {file_path}")
+                except Exception:
+                    # Clean up temp file on failure
+                    os.unlink(temp_path_str)
+                    raise
             except Exception:
-                # Clean up temp file on failure
-                if temp_path.exists():
-                    temp_path.unlink()
                 return False
         return modified
 
