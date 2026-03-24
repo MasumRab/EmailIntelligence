@@ -228,6 +228,27 @@ class DependencyVerifier:
 
         return requirements_content
 
+    def _print_conditional_results(self, check_gpu: bool, minimal: bool, system_packages: bool) -> None:
+        """Print conditionally formatted results to reduce cognitive complexity."""
+        if check_gpu:
+            print(f"\n🎮 GPU Status: {'Available' if self.has_gpu else 'Not detected'}")
+            if not self.has_gpu:
+                print("  ⚠️  Avoid installing CUDA/GPU packages to save disk space and bandwidth")
+
+        if minimal:
+            print("\n🎯 Minimal Setup Test:")
+            print("  ✅ Core functionality should work without ML/AI packages")
+            print("  ⚠️  Advanced features (sentiment analysis, etc.) will be limited")
+
+        if system_packages:
+            print("\n📥 System Package Detection:")
+            if self.system_packages:
+                print(f"  ✅ Detected: {', '.join(self.system_packages)}")
+                print("  💡 Consider using system packages instead of pip installs")
+            else:
+                print("  ⚠️  No system packages detected")
+
+
     def run_verification(self, check_gpu: bool = False, minimal: bool = False,
                         system_packages: bool = False) -> None:
         """Run the complete dependency verification."""
@@ -261,23 +282,7 @@ class DependencyVerifier:
         for rec in results['recommendations']:
             print(f"  • {rec}")
 
-        if check_gpu:
-            print(f"\n🎮 GPU Status: {'Available' if self.has_gpu else 'Not detected'}")
-            if not self.has_gpu:
-                print("  ⚠️  Avoid installing CUDA/GPU packages to save disk space and bandwidth")
-
-        if minimal:
-            print("\n🎯 Minimal Setup Test:")
-            print("  ✅ Core functionality should work without ML/AI packages")
-            print("  ⚠️  Advanced features (sentiment analysis, etc.) will be limited")
-
-        if system_packages:
-            print("\n📥 System Package Detection:")
-            if self.system_packages:
-                print(f"  ✅ Detected: {', '.join(self.system_packages)}")
-                print("  💡 Consider using system packages instead of pip installs")
-            else:
-                print("  ⚠️  No system packages detected")
+        self._print_conditional_results(check_gpu, minimal, system_packages)
 
         # Generate conditional requirements
         print("\n📝 Generating conditional requirements file...")
