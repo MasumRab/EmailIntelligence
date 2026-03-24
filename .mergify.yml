@@ -7,7 +7,7 @@ pull_request_rules:
     actions:
       comment:
         message: >
-          👋 {{author}} your PR is conflicting and needs to be updated to be
+          👋 @{{author}} your PR is conflicting and needs to be updated to be
           merged
 
   - name: Automatic merge during office hours + hotfix support
@@ -20,7 +20,6 @@ pull_request_rules:
       - "#approved-reviews-by>=1"
       - -conflict
       - -draft
-      - -author=dependabot[bot]
     actions:
       merge:
         method: merge

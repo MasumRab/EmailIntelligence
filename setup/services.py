@@ -17,6 +17,9 @@ from src.core.security import validate_path_safety
 
 logger = logging.getLogger(__name__)
 
+# Global constants
+PACKAGE_JSON = "package.json"
+
 # Global paths
 ROOT_DIR = Path(__file__).resolve().parent.parent
 
@@ -63,7 +66,7 @@ def install_nodejs_dependencies(directory: str, update: bool = False) -> bool:
         logger.error(f"Unsafe directory path: {dir_path}")
         return False
 
-    package_json = dir_path / "package.json"
+    package_json = dir_path / PACKAGE_JSON
     if not package_json.exists():
         logger.warning(f"No package.json in {directory}, skipping npm install")
         return False
@@ -237,9 +240,9 @@ def start_node_service(service_path: Path, service_name: str, port: int, api_url
         # Sanitize the API URL to prevent injection
         env["API_URL"] = api_url.replace('"', "").replace("'", "")
 
-        if (service_path / "package.json").exists():
+        if (service_path / PACKAGE_JSON).exists():
             # Check if it's a dev script or start script
-            with open(service_path / "package.json", "r") as f:
+            with open(service_path / PACKAGE_JSON, "r") as f:
                 import json
 
                 package_data = json.load(f)
@@ -274,7 +277,7 @@ def setup_node_dependencies(service_path: Path, service_name: str):
         logger.error(f"Unsafe service path: {service_path}")
         return
 
-    package_json = service_path / "package.json"
+    package_json = service_path / PACKAGE_JSON
     if not package_json.exists():
         logger.warning(f"No package.json found for {service_name}")
         return
@@ -350,7 +353,7 @@ def validate_services() -> Dict[str, bool]:
     ts_backend_config = config.get_service_config("typescript_backend")
     if ts_backend_config:
         ts_path = config.get_service_path("typescript_backend")
-        package_json = ts_path / ts_backend_config.get("package_json", "package.json")
+        package_json = ts_path / ts_backend_config.get(PACKAGE_JSON, PACKAGE_JSON)
         available_services["typescript_backend"] = (
             ts_path.exists() and package_json.exists()
         )
@@ -360,7 +363,7 @@ def validate_services() -> Dict[str, bool]:
     if frontend_config:
         frontend_path = config.get_service_path("frontend")
         package_json = frontend_path / frontend_config.get(
-            "package_json", "package.json"
+            PACKAGE_JSON, PACKAGE_JSON
         )
         available_services["frontend"] = (
             frontend_path.exists() and package_json.exists()
