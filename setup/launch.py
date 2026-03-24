@@ -622,6 +622,46 @@ def start_client():
     node_modules_path = ROOT_DIR / "client" / "node_modules"
     if not node_modules_path.exists():
         logger.info("Installing Node.js dependencies...")
+        if not install_nodejs_dependencies("client"):
+            logger.error("Failed to install Node.js dependencies for client")
+            return None
+
+    # Start the frontend
+    client_dir = ROOT_DIR / "client"
+    try:
+        # Check for npm script to run
+        import json
+
+        pkg_json = client_dir / "package.json"
+        if pkg_json.exists():
+            with open(pkg_json) as f:
+                pkg_data = json.load(f)
+            # Try 'dev' first, then 'start', then default npm start
+            dev_script = pkg_data.get("scripts", {}).get("dev")
+            start_script = pkg_data.get("scripts", {}).get("start")
+
+            if dev_script:
+                cmd = ["npm", "run", "dev"]
+                logger.info("Starting frontend with 'npm run dev'...")
+            elif start_script:
+                cmd = ["npm", "start"]
+                logger.info("Starting frontend with 'npm start'...")
+            else:
+                cmd = ["npm", "start"]
+                logger.info("Starting frontend with 'npm start'...")
+
+            process = subprocess.Popen(cmd, cwd=client_dir, env=os.environ.copy())
+            from setup.utils import process_manager
+
+            process_manager.add_process(process)
+            logger.info("Frontend started successfully")
+            return process
+        else:
+            logger.error("package.json not found in client directory")
+            return None
+    except Exception as e:
+        logger.error(f"Failed to start frontend: {e}")
+        return None
 
 
 def start_server_ts():
@@ -641,9 +681,49 @@ def start_server_ts():
         return None
 
     # Install Node.js dependencies if node_modules doesn't exist
-    node_modules_path = ROOT_DIR / "backend" / "server-ts" / "node_modules"
+    server_ts_dir = ROOT_DIR / "backend" / "server-ts"
+    node_modules_path = server_ts_dir / "node_modules"
     if not node_modules_path.exists():
         logger.info("Installing TypeScript server dependencies...")
+        if not install_nodejs_dependencies("backend/server-ts"):
+            logger.error("Failed to install TypeScript server dependencies")
+            return None
+
+    # Start the TypeScript backend server
+    try:
+        import json
+
+        pkg_json = server_ts_dir / "package.json"
+        if pkg_json.exists():
+            with open(pkg_json) as f:
+                pkg_data = json.load(f)
+
+            # Try 'dev' first, then 'start', then default
+            dev_script = pkg_data.get("scripts", {}).get("dev")
+            start_script = pkg_data.get("scripts", {}).get("start")
+
+            if dev_script:
+                cmd = ["npm", "run", "dev"]
+                logger.info("Starting TypeScript server with 'npm run dev'...")
+            elif start_script:
+                cmd = ["npm", "run", "start"]
+                logger.info("Starting TypeScript server with 'npm run start'...")
+            else:
+                cmd = ["npm", "start"]
+                logger.info("Starting TypeScript server with 'npm start'...")
+
+            process = subprocess.Popen(cmd, cwd=server_ts_dir, env=os.environ.copy())
+            from setup.utils import process_manager
+
+            process_manager.add_process(process)
+            logger.info("TypeScript backend server started successfully")
+            return process
+        else:
+            logger.error("package.json not found in backend/server-ts directory")
+            return None
+    except Exception as e:
+        logger.error(f"Failed to start TypeScript backend server: {e}")
+        return None
 
 
 # --- Service Startup Functions ---
