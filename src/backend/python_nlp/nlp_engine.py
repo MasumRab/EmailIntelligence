@@ -127,7 +127,7 @@ class NLPEngine:
     def __init__(self):
         """Initializes the NLP engine and loads all necessary models and resources."""
         model_dir = os.getenv(
-            "NLP_MODEL_DIR", os.path.join(os.path.dirname(__file__), "..", "..", "models")
+            "NLP_MODEL_DIR", os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..", "models"))
         )
         self.sentiment_model_path = os.path.join(model_dir, "sentiment")
         self.topic_model_path = os.path.join(model_dir, "topic")
