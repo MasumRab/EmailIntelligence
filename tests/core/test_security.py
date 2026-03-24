@@ -72,6 +72,14 @@ class TestPathValidation:
         expected = (pathlib.Path.cwd() / safe_path).resolve()
         assert result == expected
 
+    def test_sanitize_path_with_base_dir(self):
+        """Test path sanitization when an explicit base_dir is provided."""
+        with tempfile.TemporaryDirectory() as temp_dir:
+            safe_path = "test.db"
+            result = sanitize_path(safe_path, base_dir=temp_dir)
+            expected = (pathlib.Path(temp_dir) / safe_path).resolve()
+            assert result == expected
+
     def test_sanitize_path_unsafe(self):
         """Test path sanitization for unsafe paths."""
         unsafe_paths = [

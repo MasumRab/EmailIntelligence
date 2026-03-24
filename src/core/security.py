@@ -169,10 +169,8 @@ def sanitize_path(
     resolved_path = (base_path / path).resolve()
 
     # Ensure the resolved path is within the base directory
-    try:
-        if not resolved_path.is_relative_to(base_path):
-            return None
-    except ValueError:
+    # Use parent check for compatibility with Python < 3.9 and robustness
+    if resolved_path != base_path and base_path not in resolved_path.parents:
         return None
 
     return resolved_path
