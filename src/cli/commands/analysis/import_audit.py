@@ -163,8 +163,14 @@ class ImportAuditCommand(Command):
     def _apply_ast_changes(self, file_path: Path, content: str, changes: List[Tuple[int, str, str]]) -> bool:
         """Naive line-based replace for AST fallback. (DANGEROUS, preferred CST)"""
         lines = content.splitlines()
+        if not lines:
+            return False
+
         modified = False
         for lineno, old, new in changes:
+            # Validate lineno is a positive integer within bounds
+            if not isinstance(lineno, int) or lineno < 1:
+                continue
             idx = lineno - 1
             if 0 <= idx < len(lines) and old in lines[idx]:
                 lines[idx] = lines[idx].replace(old, new)
@@ -172,7 +178,7 @@ class ImportAuditCommand(Command):
 
         if modified:
             file_path.write_text("\n".join(lines) + "\n", encoding='utf-8')
-            print(f"  ⚠️ AST Fallback Rewrote: {file_path}")
+            print(f"  ⚠️ AST Fallback Rewrite: {file_path}")
         return modified
 
     def _build_refactor_map(self, args: Namespace) -> Dict[str, str]:
