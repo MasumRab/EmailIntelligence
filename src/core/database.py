@@ -7,6 +7,7 @@ import asyncio
 import gzip
 import itertools
 import json
+from .data.data_source import DataSource
 import logging
 import os
 from datetime import datetime, timezone
@@ -23,8 +24,8 @@ from .enhanced_error_reporting import (
     ErrorCategory,
     create_error_context
 )
-from .constants import DEFAULT_CATEGORY_COLOR, DEFAULT_CATEGORIES
-from .security import validate_path_safety, sanitize_path
+from .constants import DEFAULT_CATEGORY_COLOR
+from .security import validate_path_safety
 
 logger = logging.getLogger(__name__)
 
@@ -101,7 +102,6 @@ class DatabaseConfig:
 
 
 # Import DataSource locally to avoid circular imports
-from .data.data_source import DataSource
 
 class DatabaseManager(DataSource):
     """Optimized async database manager with in-memory caching, write-behind,

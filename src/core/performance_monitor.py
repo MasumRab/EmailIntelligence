@@ -9,16 +9,20 @@ Also includes the optimized version features:
 - Asynchronous processing
 - Configurable sampling rates
 """
+import atexit
+from collections import defaultdict, deque
+from pathlib import Path
+
 
 import asyncio
 import json
 import logging
 import threading
 import time
-from dataclasses import dataclass
+from dataclasses import dataclass, asdict
 from datetime import datetime, timezone
 from functools import wraps
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional, Union
 
 import psutil
 
@@ -179,13 +183,6 @@ def _create_decorator(func, op_name):
         return sync_wrapper
 
 
-import atexit
-
-# Enhanced performance monitoring system with additional features
-from collections import defaultdict, deque
-from dataclasses import asdict
-from pathlib import Path
-from typing import Union
 
 
 @dataclass
@@ -266,7 +263,7 @@ class OptimizedPerformanceMonitor:
         # Extract fields from log_entry to map to record_metric
         operation = log_entry.get("operation", "unknown_operation")
         duration_ms = log_entry.get("duration_seconds", 0) * 1000
-        self.record_metric(
+        performance_monitor.record_metric(
             name=operation,
             value=duration_ms,
             unit="ms"
@@ -332,7 +329,7 @@ class OptimizedPerformanceMonitor:
                     return func(*args, **kwargs)
                 finally:
                     duration = (time.perf_counter() - start_time) * 1000  # Convert to milliseconds
-                    self.record_metric(
+                    performance_monitor.record_metric(
                         name=name, value=duration, unit="ms", tags=tags, sample_rate=sample_rate
                     )
 
@@ -352,7 +349,7 @@ class OptimizedPerformanceMonitor:
 
                 def __exit__(self, exc_type, exc_val, exc_tb):
                     duration = (time.perf_counter() - self.start_time) * 1000
-                    self.record_metric(
+                    performance_monitor.record_metric(
                         name=name, value=duration, unit="ms", tags=tags, sample_rate=sample_rate
                     )
 

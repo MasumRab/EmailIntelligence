@@ -12,7 +12,7 @@ import time
 from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Set
+from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -685,14 +685,6 @@ class ModelRegistry:
             instance = await self.get_model(model_id)
             if not instance:
                 return {"passed": False, "issues": ["Cannot test unloaded model"]}
-
-            # Test with sample data based on model type
-            if instance.metadata.model_type == ModelType.SENTIMENT:
-                test_input = "This is a great product!"
-            elif instance.metadata.model_type == ModelType.TOPIC:
-                test_input = "Meeting about project deadlines"
-            else:
-                test_input = "Test input for model validation"
 
             start_time = time.time()
             # This would need to be implemented based on the actual model interface

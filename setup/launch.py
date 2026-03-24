@@ -181,7 +181,7 @@ def check_wsl_requirements():
 
     # Check if X11 server is accessible (optional check)
     try:
-        result = subprocess.run(["xset", "-q"], capture_output=True, timeout=2)
+        result = subprocess.run([shutil.which("xset") or "xset", "-q"], capture_output=True, timeout=2)
         if result.returncode != 0:
             logger.warning("X11 server not accessible - GUI applications may not work")
             logger.info("Install VcXsrv, MobaXterm, or similar X11 server on Windows")
@@ -334,7 +334,7 @@ def validate_host(host: str) -> str:
 def is_conda_available() -> bool:
     """Check if conda is available on the system."""
     try:
-        subprocess.run(["conda", "--version"], capture_output=True, text=True, check=True)
+        subprocess.run([shutil.which("conda") or "conda", "--version"], capture_output=True, text=True, check=True)
         return True
     except (subprocess.CalledProcessError, FileNotFoundError):
         return False
@@ -522,7 +522,7 @@ def validate_orchestration_environment() -> bool:
     # Check if the requested environment exists
     try:
         result = subprocess.run(
-            ["conda", "info", "--envs"], capture_output=True, text=True, check=True
+            [shutil.which("conda") or "conda", "info", "--envs"], capture_output=True, text=True, check=True
         )
         envs = result.stdout.strip().split("\n")
         env_names = [line.split()[0] for line in envs if line.strip() and not line.startswith("#")]
@@ -667,7 +667,7 @@ def setup_dependencies(venv_path: Path, use_poetry: bool = False):
 def install_notmuch_matching_system():
     try:
         result = subprocess.run(
-            ["notmuch", "--version"], capture_output=True, text=True, check=True
+            [shutil.which("notmuch") or "notmuch", "--version"], capture_output=True, text=True, check=True
         )
         version_line = result.stdout.strip()
         # Parse version, e.g., "notmuch 0.38.3"
@@ -1391,6 +1391,7 @@ def _handle_legacy_args(args) -> int:
     if not args.skip_python_version_check:
         check_python_version()
 
+    logging.getLogger().setLevel(args.loglevel)
     logging.getLogger().setLevel(getattr(args, 'loglevel', 'INFO'))
 
     if DOTENV_AVAILABLE:

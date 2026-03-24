@@ -39,11 +39,11 @@ def check_uvicorn_installed() -> bool:
 def check_node_npm_installed() -> bool:
     """Check if Node.js and npm are installed."""
     try:
-        result = subprocess.run(["node", "--version"], capture_output=True)
+        result = subprocess.run([shutil.which("node") or "node", "--version"], capture_output=True)
         if result.returncode != 0:
             return False
 
-        result = subprocess.run(["npm", "--version"], capture_output=True)
+        result = subprocess.run([shutil.which("npm") or "npm", "--version"], capture_output=True)
         return result.returncode == 0
     except FileNotFoundError:
         return False
@@ -74,9 +74,11 @@ def install_nodejs_dependencies(directory: str, update: bool = False) -> bool:
     logger.info(f"Installing Node.js dependencies in {directory}...")
     try:
         if update:
-            cmd = ["npm", "update"]
+            npm_path = shutil.which("npm") or "npm"
+            cmd = [npm_path, "update"]
         else:
-            cmd = ["npm", "install"]
+            npm_path = shutil.which("npm") or "npm"
+            cmd = [npm_path, "install"]
 
         result = subprocess.run(cmd, cwd=dir_path, capture_output=True, text=True)
         if result.returncode == 0:
@@ -112,7 +114,7 @@ def start_client():
 
         # Start the development server
         logger.info("Starting client development server...")
-        process = subprocess.Popen(["npm", "run", "dev"], cwd=client_dir)
+        process = subprocess.Popen([shutil.which("npm") or "npm", "run", "dev"], cwd=client_dir)
         from setup.utils import process_manager
         process_manager.add_process(process)
     except Exception as e:
@@ -141,7 +143,7 @@ def start_server_ts():
 
         # Start the server
         logger.info("Starting TypeScript backend server...")
-        process = subprocess.Popen(["npm", "start"], cwd=server_dir)
+        process = subprocess.Popen([shutil.which("npm") or "npm", "start"], cwd=server_dir)
         from setup.utils import process_manager
         process_manager.add_process(process)
     except Exception as e:
@@ -176,26 +178,6 @@ def start_backend(host: str, port: int, debug: bool = False):
         logger.error(f'Invalid host format: {host}')
         return
 
-    # Start the backend server
-    cmd = [
-        python_exe,
-        "-m",
-        "uvicorn",
-        "src.main:create_app",
-        "--factory",
-        "--host",
-        host,
-        "--port",
-        str(port),
-    ]
-    if debug:
-        cmd.append("--reload")
-    logger.info(f"Starting backend on {host}:{port}")
-    backend_process = subprocess.Popen(cmd, cwd=ROOT_DIR)
-    from setup.utils import process_manager
-    process_manager.add_process(backend_process)
-    return backend_process
-
 
 def start_node_service(service_path: Path, service_name: str, port: int, api_url: str):
     """Start a Node.js service."""
@@ -228,9 +210,9 @@ def start_node_service(service_path: Path, service_name: str, port: int, api_url
                 scripts = package_data.get("scripts", {})
 
                 if "dev" in scripts:
-                    cmd = ["npm", "run", "dev"]
+                    cmd = [shutil.which("npm") or "npm", "run", "dev"]
                 elif "start" in scripts:
-                    cmd = ["npm", "start"]
+                    cmd = [shutil.which("npm") or "npm", "start"]
                 else:
                     logger.warning(f"No suitable npm script found for {service_name}")
                     return
@@ -264,7 +246,7 @@ def setup_node_dependencies(service_path: Path, service_name: str):
     if not node_modules.exists():
         logger.info(f"Installing dependencies for {service_name}...")
         try:
-            result = subprocess.run(["npm", "install"], cwd=service_path, capture_output=True, text=True)
+            result = subprocess.run([shutil.which("npm") or "npm", "install"], cwd=service_path, capture_output=True, text=True)
             if result.returncode == 0:
                 logger.info(f"Dependencies installed successfully for {service_name}")
             else:
@@ -430,9 +412,9 @@ def start_node_service(service_path: Path, service_name: str, port: int, api_url
                 scripts = package_data.get("scripts", {})
 
                 if "dev" in scripts:
-                    cmd = ["npm", "run", "dev"]
+                    cmd = [shutil.which("npm") or "npm", "run", "dev"]
                 elif "start" in scripts:
-                    cmd = ["npm", "start"]
+                    cmd = [shutil.which("npm") or "npm", "start"]
                 else:
                     logger.warning(f"No suitable npm script found for {service_name}")
                     return
@@ -466,7 +448,7 @@ def setup_node_dependencies(service_path: Path, service_name: str):
     if not node_modules.exists():
         logger.info(f"Installing dependencies for {service_name}...")
         try:
-            result = subprocess.run(["npm", "install"], cwd=service_path, capture_output=True, text=True)
+            result = subprocess.run([shutil.which("npm") or "npm", "install"], cwd=service_path, capture_output=True, text=True)
             if result.returncode == 0:
                 logger.info(f"Dependencies installed successfully for {service_name}")
             else:

@@ -134,3 +134,5 @@ where = ["src"]
 [[tool.uv.index]]
 name = "pytorch-cpu"
 url = "https://download.pytorch.org/whl/cpu"
+[tool.pytest.ini_options]
+asyncio_mode = "auto"

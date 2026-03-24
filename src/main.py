@@ -1,5 +1,3 @@
-import configparser
-configparser.SafeConfigParser = configparser.ConfigParser
 
 import argparse
 import logging
@@ -15,9 +13,12 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, RedirectResponse
 from pydantic import ValidationError
 from .core.module_manager import ModuleManager
-from .core.middleware import create_security_middleware, create_security_headers_middleware
+from .core.middleware import SecurityMiddleware, SecurityHeadersMiddleware
 from .core.audit_logger import audit_logger, AuditEventType, AuditSeverity
 from .core.performance_monitor import performance_monitor
+import configparser
+configparser.SafeConfigParser = configparser.ConfigParser
+
 
 # Configure logging
 logging.basicConfig(
@@ -94,7 +95,7 @@ def create_system_status_tab():
         with gr.TabItem("Overview"):
             with gr.Row():
                 with gr.Column():
-                    status_indicator = gr.Textbox(
+                    gr.Textbox(
                         label="System Status",
                         value="🟢 Online",
                         interactive=False
@@ -335,9 +336,9 @@ def create_ai_lab_tab():
 
                 with gr.Column():
                     gr.Markdown("### Model Testing")
-                    test_input = gr.Textbox(label="Test Input", placeholder="Enter text to test model...")
-                    test_model_btn = gr.Button("🧪 Test Model", variant="secondary")
-                    test_output = gr.JSON(label="Test Results")
+                    gr.Textbox(label="Test Input", placeholder="Enter text to test model...")
+                    gr.Button("🧪 Test Model", variant="secondary")
+                    gr.JSON(label="Test Results")
 
             def refresh_model_status():
                 """Get current model status."""
@@ -511,16 +512,16 @@ def create_gmail_integration_tab():
             with gr.Row():
                 with gr.Column():
                     gr.Markdown("### Account Information")
-                    account_status = gr.Textbox(
+                    gr.Textbox(
                         label="Connection Status",
                         value="🔄 Checking...",
                         interactive=False
                     )
-                    last_sync = gr.Textbox(
+                    gr.Textbox(
                         label="Last Sync",
                         interactive=False
                     )
-                    api_quota = gr.Textbox(
+                    gr.Textbox(
                         label="API Quota Status",
                         interactive=False
                     )
@@ -583,8 +584,8 @@ def create_app():
     )
 
     # Add comprehensive security middleware
-    app.add_middleware(create_security_middleware(app))
-    app.add_middleware(create_security_headers_middleware(app))
+    app.add_middleware(SecurityMiddleware)
+    app.add_middleware(SecurityHeadersMiddleware)
 
     # Add security headers middleware (additional layer)
     @app.middleware("http")
@@ -710,7 +711,7 @@ def main():
     parser.add_argument("--reload", action="store_true", help="Enable auto-reloading.")
     args = parser.parse_args()
 
-    app = create_app()
+    create_app()
 
     uvicorn.run(
         "src.main:create_app",

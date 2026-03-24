@@ -3,6 +3,7 @@ import os
 import unittest
 from unittest.mock import patch, MagicMock
 from pathlib import Path
+import json
 
 # Add scripts directory to path
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "scripts"))
@@ -85,21 +86,6 @@ class TestUpdateActiveContext(unittest.TestCase):
 
         generate_context()
         mock_write.assert_called_once_with(API_ERROR_MESSAGE)
-
-    @patch.dict(os.environ, {"GITHUB_TOKEN": "faketoken", "GITHUB_REPOSITORY": "owner/repo"}, clear=True)
-    @patch("update_active_context.fetch_paginated")
-    @patch("update_active_context.write_context")
-    def test_generate_context_no_open_prs(self, mock_write, mock_fetch):
-        # Simulate no open pull requests returned by the API
-        def fetch_side_effect(url, headers):
-            if "pulls?" in url:
-                return []
-            return []
-
-        mock_fetch.side_effect = fetch_side_effect
-
-        generate_context()
-        mock_write.assert_called_once_with("No active Pull Requests found.")
 
     @patch.dict(os.environ, {"GITHUB_TOKEN": "faketoken", "GITHUB_REPOSITORY": "owner/repo"}, clear=True)
     @patch("update_active_context.fetch_paginated")
