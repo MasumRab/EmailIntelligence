@@ -10,14 +10,14 @@
 
 ## Milestone 2: Task Intelligence Porting
 - [x] Task 2.1: Port `TaskDeduplicator` logic to `task-generate` command.
-- [ ] Task 2.2: Port relationship building logic to `task-analyze` command.
+- [x] Task 2.2: Port relationship building logic to `task-analyze` command.
 
 ## Milestone 3: Repository Governance
 - [x] Task 3.1: Port `ArchitecturalRuleEngine` concepts to `import-audit` (Contract Validator).
 - [x] Task 3.2: Port dangling commit recovery scripts to `git-history` domain.
 
 ## Milestone 4: Agent & Performance Integration
-- [ ] Task 4.1: Integrate `AgentHealthMonitor` into `sys-monitor` command.
+- [x] Task 4.1: Integrate `AgentHealthMonitor` into `sys-monitor` command.
 - [x] Task 4.2: Wrap `resource_monitor.py` advanced metrics into CLI services (`sys-monitor`).
 
 ## Phase: Review Fixes
