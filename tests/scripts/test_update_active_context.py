@@ -90,6 +90,21 @@ class TestUpdateActiveContext(unittest.TestCase):
     @patch.dict(os.environ, {"GITHUB_TOKEN": "faketoken", "GITHUB_REPOSITORY": "owner/repo"}, clear=True)
     @patch("update_active_context.fetch_paginated")
     @patch("update_active_context.write_context")
+    def test_generate_context_no_open_prs(self, mock_write, mock_fetch):
+        # Simulate no open pull requests returned by the API
+        def fetch_side_effect(url, headers):
+            if "pulls?" in url:
+                return []
+            return []
+
+        mock_fetch.side_effect = fetch_side_effect
+
+        generate_context()
+        mock_write.assert_called_once_with("No active Pull Requests found.")
+
+    @patch.dict(os.environ, {"GITHUB_TOKEN": "faketoken", "GITHUB_REPOSITORY": "owner/repo"}, clear=True)
+    @patch("update_active_context.fetch_paginated")
+    @patch("update_active_context.write_context")
     def test_generate_context_success(self, mock_write, mock_fetch):
         # First call fetches PRs, subsequent calls fetch files for those PRs
         def fetch_side_effect(url, headers):
