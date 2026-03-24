@@ -162,6 +162,7 @@ class ImportAuditCommand(Command):
 
     def _apply_ast_changes(self, file_path: Path, content: str, changes: List[Tuple[int, str, str]]) -> bool:
         """Naive line-based replace for AST fallback. (DANGEROUS, preferred CST)"""
+        # Create a copy of content to avoid any user-controlled modifications
         lines = content.splitlines()
         if not lines:
             return False
@@ -172,13 +173,28 @@ class ImportAuditCommand(Command):
             if not isinstance(lineno, int) or lineno < 1:
                 continue
             idx = lineno - 1
-            if 0 <= idx < len(lines) and old in lines[idx]:
-                lines[idx] = lines[idx].replace(old, new)
-                modified = True
+            # Additional bounds check: ensure idx is within list bounds
+            if idx >= len(lines):
+                continue
+            # Validate that the old string exists in the target line before modification
+            # This prevents malicious manipulation of line numbers or content
+            if old not in lines[idx]:
+                continue
+            lines[idx] = lines[idx].replace(old, new)
+            modified = True
 
         if modified:
-            file_path.write_text("\n".join(lines) + "\n", encoding='utf-8')
-            print(f"  ⚠️ AST Fallback Rewrite: {file_path}")
+            # Write using a safe method - create temp file and rename
+            temp_path = file_path.with_suffix(file_path.suffix + '.tmp')
+            try:
+                temp_path.write_text("\n".join(lines) + "\n", encoding='utf-8')
+                temp_path.replace(file_path)
+                print(f"  ⚠️ AST Fallback Rewrite: {file_path}")
+            except Exception:
+                # Clean up temp file on failure
+                if temp_path.exists():
+                    temp_path.unlink()
+                return False
         return modified
 
     def _build_refactor_map(self, args: Namespace) -> Dict[str, str]:
