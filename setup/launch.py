@@ -47,14 +47,21 @@ logging.basicConfig(
 logger = logging.getLogger("launcher")
 
 
+# --- Constants ---
+PYPROJECT_TOML = "pyproject.toml"
+REQUIREMENTS_TXT = "requirements.txt"
+REQUIREMENTS_DEV_TXT = "requirements-dev.txt"
+PACKAGE_JSON = "package.json"
+
+
 # --- Global state ---
 def find_project_root() -> Path:
     """Find the project root directory by looking for key files."""
     current = Path(__file__).resolve().parent
-    if (current / "pyproject.toml").exists() and current.name != "setup":
+    if (current / PYPROJECT_TOML).exists() and current.name != "setup":
         return current
     for parent in current.parents:
-        if (parent / "pyproject.toml").exists():
+        if (parent / PYPROJECT_TOML).exists():
             return parent
     return current
 
@@ -86,7 +93,9 @@ class ProcessManager:
                 try:
                     p.wait(timeout=10)
                 except subprocess.TimeoutExpired:
-                    logger.warning(f"Process {p.pid} did not terminate gracefully, killing.")
+                    logger.warning(
+                        f"Process {p.pid} did not terminate gracefully, killing."
+                    )
                     p.kill()
         logger.info("Resource cleanup completed.")
 
@@ -186,9 +195,9 @@ def check_for_merge_conflicts() -> bool:
         "backend/python_nlp/smart_retrieval.py",
         "backend/python_nlp/ai_training.py",
         "README.md",
-        "pyproject.toml",
-        "requirements.txt",
-        "requirements-dev.txt",
+        PYPROJECT_TOML,
+        REQUIREMENTS_TXT,
+        REQUIREMENTS_DEV_TXT,
     ]
 
     conflicts_found = False
@@ -293,7 +302,9 @@ def validate_host(host: str) -> str:
 def is_conda_available() -> bool:
     """Check if conda is available on the system."""
     try:
-        subprocess.run(["conda", "--version"], capture_output=True, text=True, check=True)
+        subprocess.run(
+            ["conda", "--version"], capture_output=True, text=True, check=True
+        )
         return True
     except (subprocess.CalledProcessError, FileNotFoundError):
         return False
@@ -309,7 +320,9 @@ def get_conda_env_info():
         "is_active": conda_default_env is not None,
         "env_name": conda_default_env,
         "prefix": conda_prefix,
-        "python_exe": env_vars.get("CONDA_PREFIX", "") + "/python" if conda_prefix else None,
+        "python_exe": env_vars.get("CONDA_PREFIX", "") + "/python"
+        if conda_prefix
+        else None,
     }
 
 
@@ -341,7 +354,11 @@ def activate_conda_env(env_name: str = None) -> bool:
             ["conda", "info", "--envs"], capture_output=True, text=True, check=True
         )
         envs = result.stdout.strip().split("\n")
-        env_names = [line.split()[0] for line in envs if line.strip() and not line.startswith("#")]
+        env_names = [
+            line.split()[0]
+            for line in envs
+            if line.strip() and not line.startswith("#")
+        ]
         if env_name not in env_names:
             logger.warning(f"Conda environment '{env_name}' not found.")
             return False
@@ -430,9 +447,13 @@ def setup_dependencies(venv_path: Path, use_poetry: bool = False):
     if use_poetry:
         # For poetry, we need to install it first if not available
         try:
-            subprocess.run([python_exe, "-c", "import poetry"], check=True, capture_output=True)
+            subprocess.run(
+                [python_exe, "-c", "import poetry"], check=True, capture_output=True
+            )
         except subprocess.CalledProcessError:
-            run_command([python_exe, "-m", "pip", "install", "poetry"], "Installing Poetry")
+            run_command(
+                [python_exe, "-m", "pip", "install", "poetry"], "Installing Poetry"
+            )
 
         run_command(
             [python_exe, "-m", "poetry", "install", "--with", "dev"],
@@ -442,14 +463,16 @@ def setup_dependencies(venv_path: Path, use_poetry: bool = False):
     else:
         # For uv, install if not available
         try:
-            subprocess.run([python_exe, "-c", "import uv"], check=True, capture_output=True)
+            subprocess.run(
+                [python_exe, "-c", "import uv"], check=True, capture_output=True
+            )
         except subprocess.CalledProcessError:
             run_command([python_exe, "-m", "pip", "install", "uv"], "Installing uv")
 
         run_command(
-        [python_exe, "-m", "uv", "pip", "install", "-e", "."],
-        "Installing dependencies with uv",
-        cwd=ROOT_DIR,
+            [python_exe, "-m", "uv", "pip", "install", "-e", "."],
+            "Installing dependencies with uv",
+            cwd=ROOT_DIR,
         )
 
         # Install notmuch with version matching system
@@ -468,14 +491,16 @@ def install_notmuch_matching_system():
         python_exe = get_python_executable()
         # Try to install matching version, fallback to latest if not available
         if not run_command(
-        [python_exe, "-m", "pip", "install", f"notmuch=={major_minor}"],
+            [python_exe, "-m", "pip", "install", f"notmuch=={major_minor}"],
             f"Installing notmuch {major_minor} to match system",
         ):
-            logger.warning(f"Could not install notmuch {major_minor}, trying latest version")
+            logger.warning(
+                f"Could not install notmuch {major_minor}, trying latest version"
+            )
         run_command(
             [python_exe, "-m", "pip", "install", "notmuch"],
             "Installing latest notmuch version",
-            )
+        )
     except (subprocess.CalledProcessError, FileNotFoundError):
         logger.warning("notmuch not found on system, skipping version-specific install")
 
@@ -504,7 +529,10 @@ except Exception as e:
 
     logger.info("Downloading NLTK data...")
     result = subprocess.run(
-        [python_exe, "-c", nltk_download_script], cwd=ROOT_DIR, capture_output=True, text=True
+        [python_exe, "-c", nltk_download_script],
+        cwd=ROOT_DIR,
+        capture_output=True,
+        text=True,
     )
     if result.returncode != 0:
         logger.error(f"Failed to download NLTK data: {result.stderr}")
@@ -571,7 +599,7 @@ def check_node_npm_installed() -> bool:
 
 def install_nodejs_dependencies(directory: str, update: bool = False) -> bool:
     """Install Node.js dependencies in a given directory."""
-    pkg_json_path = ROOT_DIR / directory / "package.json"
+    pkg_json_path = ROOT_DIR / directory / PACKAGE_JSON
     if not pkg_json_path.exists():
         logger.debug(f"No package.json in '{directory}/', skipping npm install.")
         return True
@@ -605,7 +633,7 @@ def start_server_ts():
         return None
 
     # Check if package.json exists
-    pkg_json_path = ROOT_DIR / "backend" / "server-ts" / "package.json"
+    pkg_json_path = ROOT_DIR / "backend" / "server-ts" / PACKAGE_JSON
     if not pkg_json_path.exists():
         logger.debug(
             "No package.json in 'backend/server-ts/', skipping TypeScript backend server startup."
@@ -654,13 +682,15 @@ def start_node_service(service_path: Path, service_name: str, port: int, api_url
 
 def setup_node_dependencies(service_path: Path, service_name: str):
     """Install npm dependencies for a Node.js service."""
-    if not (service_path / "package.json").exists():
+    if not (service_path / PACKAGE_JSON).exists():
         logger.warning(
             f"package.json not found for {service_name}, skipping dependency installation."
         )
         return
     logger.info(f"Installing npm dependencies for {service_name}...")
-    run_command(["npm", "install"], f"Installing {service_name} dependencies", cwd=service_path)
+    run_command(
+        ["npm", "install"], f"Installing {service_name} dependencies", cwd=service_path
+    )
 
 
 def start_gradio_ui(host, port, share, debug):
@@ -684,7 +714,9 @@ def handle_setup(args, venv_path):
     if args.use_conda:
         # For Conda, we assume the environment is already set up
         # Could add Conda environment creation here in the future
-        logger.info("Using Conda environment - assuming dependencies are already installed")
+        logger.info(
+            "Using Conda environment - assuming dependencies are already installed"
+        )
     else:
         # Use venv
         create_venv(venv_path, args.force_recreate_venv)
@@ -695,7 +727,9 @@ def handle_setup(args, venv_path):
 
         # Setup Node.js dependencies
         setup_node_dependencies(ROOT_DIR / "client", "Frontend Client")
-        setup_node_dependencies(ROOT_DIR / "backend" / "server-ts", "TypeScript Backend")
+        setup_node_dependencies(
+            ROOT_DIR / "backend" / "server-ts", "TypeScript Backend"
+        )
     logger.info("Setup complete.")
 
 
@@ -718,11 +752,15 @@ def start_services(args):
 
     if not args.frontend_only:
         start_backend(args.host, args.port, args.debug)
-        start_node_service(ROOT_DIR / "backend" / "server-ts", "TypeScript Backend", 8001, api_url)
+        start_node_service(
+            ROOT_DIR / "backend" / "server-ts", "TypeScript Backend", 8001, api_url
+        )
 
     if not args.api_only:
         start_gradio_ui(args.host, 7860, args.share, args.debug)
-        start_node_service(ROOT_DIR / "client", "Frontend Client", args.frontend_port, api_url)
+        start_node_service(
+            ROOT_DIR / "client", "Frontend Client", args.frontend_port, api_url
+        )
 
 
 def handle_test_stage(args):
@@ -734,9 +772,13 @@ def handle_test_stage(args):
     if args.integration:
         results.append(test_stages.run_integration_tests(args.coverage, args.debug))
     if args.e2e:
-        results.append(test_stages.run_e2e_tests(headless=not args.debug, debug=args.debug))
+        results.append(
+            test_stages.run_e2e_tests(headless=not args.debug, debug=args.debug)
+        )
     if args.performance:
-        results.append(test_stages.run_performance_tests(duration=300, users=10, debug=args.debug))
+        results.append(
+            test_stages.run_performance_tests(duration=300, users=10, debug=args.debug)
+        )
     if args.security:
         results.append(
             test_stages.run_security_tests(
@@ -745,8 +787,12 @@ def handle_test_stage(args):
         )
 
     # If no specific test type is selected, run a default set (e.g., unit and integration)
-    if not any([args.unit, args.integration, args.e2e, args.performance, args.security]):
-        logger.info("No specific test type selected, running unit and integration tests.")
+    if not any(
+        [args.unit, args.integration, args.e2e, args.performance, args.security]
+    ):
+        logger.info(
+            "No specific test type selected, running unit and integration tests."
+        )
         results.append(test_stages.run_unit_tests(args.coverage, args.debug))
         results.append(test_stages.run_integration_tests(args.coverage, args.debug))
 
@@ -796,10 +842,10 @@ def print_system_info():
 
     print("\n=== Configuration Files ===")
     config_files = [
-        "pyproject.toml",
-        "requirements.txt",
-        "requirements-dev.txt",
-        "package.json",
+        PYPROJECT_TOML,
+        REQUIREMENTS_TXT,
+        REQUIREMENTS_DEV_TXT,
+        PACKAGE_JSON,
         "launch-user.env",
         ".env",
     ]
@@ -813,18 +859,27 @@ def main():
 
     # Parse command line arguments
     parser = argparse.ArgumentParser(description="EmailIntelligence Unified Launcher")
-    parser.add_argument("--setup", action="store_true", help="Set up the environment (legacy)")
     parser.add_argument(
-        "--stage", choices=["dev", "test"], default="dev", help="Application mode (legacy)"
+        "--setup", action="store_true", help="Set up the environment (legacy)"
+    )
+    parser.add_argument(
+        "--stage",
+        choices=["dev", "test"],
+        default="dev",
+        help="Application mode (legacy)",
     )
 
     # Environment Setup
     parser.add_argument(
-        "--force-recreate-venv", action="store_true", help="Force recreation of the venv."
+        "--force-recreate-venv",
+        action="store_true",
+        help="Force recreation of the venv.",
     )
 
     parser.add_argument(
-        "--use-conda", action="store_true", help="Use Conda environment instead of venv."
+        "--use-conda",
+        action="store_true",
+        help="Use Conda environment instead of venv.",
     )
     parser.add_argument(
         "--conda-env",
@@ -833,25 +888,35 @@ def main():
         help="Conda environment name to use (default: base).",
     )
     parser.add_argument(
-        "--no-venv", action="store_true", help="Don't create or use a virtual environment."
+        "--no-venv",
+        action="store_true",
+        help="Don't create or use a virtual environment.",
     )
     parser.add_argument(
-        "--update-deps", action="store_true", help="Update dependencies before launching."
+        "--update-deps",
+        action="store_true",
+        help="Update dependencies before launching.",
     )
     parser.add_argument(
         "--skip-torch-cuda-test",
         action="store_true",
         help="Skip CUDA availability test for PyTorch.",
     )
-    parser.add_argument("--reinstall-torch", action="store_true", help="Reinstall PyTorch.")
     parser.add_argument(
-        "--skip-python-version-check", action="store_true", help="Skip Python version check."
+        "--reinstall-torch", action="store_true", help="Reinstall PyTorch."
+    )
+    parser.add_argument(
+        "--skip-python-version-check",
+        action="store_true",
+        help="Skip Python version check.",
     )
     parser.add_argument(
         "--no-download-nltk", action="store_true", help="Skip downloading NLTK data."
     )
     parser.add_argument(
-        "--skip-prepare", action="store_true", help="Skip all environment preparation steps."
+        "--skip-prepare",
+        action="store_true",
+        help="Skip all environment preparation steps.",
     )
     parser.add_argument(
         "--loglevel",
@@ -863,44 +928,71 @@ def main():
     # Application Stage
 
     # Server Configuration
-    parser.add_argument("--port", type=int, default=8000, help="Specify the port to run on.")
-    parser.add_argument("--host", type=str, default="127.0.0.1", help="Specify the host to run on.")
     parser.add_argument(
-        "--frontend-port", type=int, default=5173, help="Specify the frontend port to run on."
-    )
-    parser.add_argument("--api-url", type=str, help="Specify the API URL for the frontend.")
-    parser.add_argument(
-        "--api-only", action="store_true", help="Run only the API server without the frontend."
+        "--port", type=int, default=8000, help="Specify the port to run on."
     )
     parser.add_argument(
-        "--frontend-only", action="store_true", help="Run only the frontend without the API server."
+        "--host", type=str, default="127.0.0.1", help="Specify the host to run on."
+    )
+    parser.add_argument(
+        "--frontend-port",
+        type=int,
+        default=5173,
+        help="Specify the frontend port to run on.",
+    )
+    parser.add_argument(
+        "--api-url", type=str, help="Specify the API URL for the frontend."
+    )
+    parser.add_argument(
+        "--api-only",
+        action="store_true",
+        help="Run only the API server without the frontend.",
+    )
+    parser.add_argument(
+        "--frontend-only",
+        action="store_true",
+        help="Run only the frontend without the API server.",
     )
     parser.add_argument("--debug", action="store_true", help="Enable debug mode.")
 
     # Testing Options
     parser.add_argument(
-        "--coverage", action="store_true", help="Generate coverage report when running tests."
+        "--coverage",
+        action="store_true",
+        help="Generate coverage report when running tests.",
     )
     parser.add_argument("--unit", action="store_true", help="Run unit tests.")
-    parser.add_argument("--integration", action="store_true", help="Run integration tests.")
+    parser.add_argument(
+        "--integration", action="store_true", help="Run integration tests."
+    )
     parser.add_argument("--e2e", action="store_true", help="Run end-to-end tests.")
-    parser.add_argument("--performance", action="store_true", help="Run performance tests.")
+    parser.add_argument(
+        "--performance", action="store_true", help="Run performance tests."
+    )
     parser.add_argument("--security", action="store_true", help="Run security tests.")
 
     # Extensions and Models
-    parser.add_argument("--skip-extensions", action="store_true", help="Skip loading extensions.")
-    parser.add_argument("--skip-models", action="store_true", help="Skip downloading models.")
+    parser.add_argument(
+        "--skip-extensions", action="store_true", help="Skip loading extensions."
+    )
+    parser.add_argument(
+        "--skip-models", action="store_true", help="Skip downloading models."
+    )
 
     # Advanced Options
     parser.add_argument(
         "--system-info", action="store_true", help="Print system information then exit."
     )
     parser.add_argument("--share", action="store_true", help="Create a public URL.")
-    parser.add_argument("--listen", action="store_true", help="Make the server listen on network.")
     parser.add_argument(
-    "--ngrok", type=str, help="Use ngrok to create a tunnel, specify ngrok region."
+        "--listen", action="store_true", help="Make the server listen on network."
     )
-    parser.add_argument("--env-file", type=str, help="Specify environment file to load.")
+    parser.add_argument(
+        "--ngrok", type=str, help="Use ngrok to create a tunnel, specify ngrok region."
+    )
+    parser.add_argument(
+        "--env-file", type=str, help="Specify environment file to load."
+    )
 
     args = parser.parse_args()
 
@@ -924,10 +1016,14 @@ def _add_legacy_args(parser):
     # Environment Setup
     parser.add_argument("--setup", action="store_true", help="Run environment setup.")
     parser.add_argument(
-        "--force-recreate-venv", action="store_true", help="Force recreation of the venv."
+        "--force-recreate-venv",
+        action="store_true",
+        help="Force recreation of the venv.",
     )
     parser.add_argument(
-        "--use-conda", action="store_true", help="Use Conda environment instead of venv."
+        "--use-conda",
+        action="store_true",
+        help="Use Conda environment instead of venv.",
     )
     parser.add_argument(
         "--conda-env",
@@ -936,79 +1032,99 @@ def _add_legacy_args(parser):
         help="Conda environment name to use (default: base).",
     )
     parser.add_argument(
-        "--no-venv", action="store_true", help="Don't create or use a virtual environment."
+        "--no-venv",
+        action="store_true",
+        help="Don't create or use a virtual environment.",
     )
     parser.add_argument(
-        "--update-deps", action="store_true", help="Update dependencies before launching."
+        "--update-deps",
+        action="store_true",
+        help="Update dependencies before launching.",
     )
     parser.add_argument(
         "--skip-torch-cuda-test",
         action="store_true",
         help="Skip CUDA availability test for PyTorch.",
     )
-    parser.add_argument("--reinstall-torch", action="store_true", help="Reinstall PyTorch.")
     parser.add_argument(
-        "--skip-python-version-check", action="store_true", help="Skip Python version check."
+        "--reinstall-torch", action="store_true", help="Reinstall PyTorch."
+    )
+    parser.add_argument(
+        "--skip-python-version-check",
+        action="store_true",
+        help="Skip Python version check.",
     )
     parser.add_argument(
         "--no-download-nltk", action="store_true", help="Skip downloading NLTK data."
     )
     parser.add_argument(
-        "--skip-prepare", action="store_true", help="Skip all environment preparation steps."
+        "--skip-prepare",
+        action="store_true",
+        help="Skip all environment preparation steps.",
     )
 
     # Application Configuration
-    parser.add_argument("--port", type=int, default=8000, help="Specify the port to run on.")
-    parser.add_argument("--host", type=str, default="127.0.0.1", help="Specify the host to run on.")
     parser.add_argument(
-        "--frontend-port", type=int, default=5173, help="Specify the frontend port to run on."
-    )
-    parser.add_argument("--api-url", type=str, help="Specify the API URL for the frontend.")
-    parser.add_argument(
-        "--api-only", action="store_true", help="Run only the API server without the frontend."
+        "--port", type=int, default=8000, help="Specify the port to run on."
     )
     parser.add_argument(
-        "--frontend-only", action="store_true", help="Run only the frontend without the API server."
+        "--host", type=str, default="127.0.0.1", help="Specify the host to run on."
+    )
+    parser.add_argument(
+        "--frontend-port",
+        type=int,
+        default=5173,
+        help="Specify the frontend port to run on.",
+    )
+    parser.add_argument(
+        "--api-url", type=str, help="Specify the API URL for the frontend."
+    )
+    parser.add_argument(
+        "--api-only",
+        action="store_true",
+        help="Run only the API server without the frontend.",
+    )
+    parser.add_argument(
+        "--frontend-only",
+        action="store_true",
+        help="Run only the frontend without the API server.",
     )
 
     # Testing Options
     parser.add_argument(
-        "--coverage", action="store_true", help="Generate coverage report when running tests."
+        "--coverage",
+        action="store_true",
+        help="Generate coverage report when running tests.",
     )
     parser.add_argument("--unit", action="store_true", help="Run unit tests.")
-    parser.add_argument("--integration", action="store_true", help="Run integration tests.")
+    parser.add_argument(
+        "--integration", action="store_true", help="Run integration tests."
+    )
     parser.add_argument("--e2e", action="store_true", help="Run end-to-end tests.")
-    parser.add_argument("--performance", action="store_true", help="Run performance tests.")
+    parser.add_argument(
+        "--performance", action="store_true", help="Run performance tests."
+    )
     parser.add_argument("--security", action="store_true", help="Run security tests.")
 
     # Extensions and Models
-    parser.add_argument("--skip-extensions", action="store_true", help="Skip loading extensions.")
-    parser.add_argument("--skip-models", action="store_true", help="Skip downloading models.")
+    parser.add_argument(
+        "--skip-extensions", action="store_true", help="Skip loading extensions."
+    )
+    parser.add_argument(
+        "--skip-models", action="store_true", help="Skip downloading models."
+    )
 
     # Advanced Options
     parser.add_argument(
         "--system-info", action="store_true", help="Print system information then exit."
     )
     parser.add_argument("--share", action="store_true", help="Create a public URL.")
-    parser.add_argument("--listen", action="store_true", help="Make the server listen on network.")
+    parser.add_argument(
+        "--listen", action="store_true", help="Make the server listen on network."
+    )
     parser.add_argument(
         "--ngrok", type=str, help="Use ngrok to create a tunnel, specify ngrok region."
     )
-
-
-def _execute_command(command_name: str, args) -> int:
-    """Execute a command using the command pattern."""
-    factory = get_command_factory()
-    command = factory.create_command(command_name, args)
-
-    if command is None:
-        logger.error(f"Unknown command: {command_name}")
-        return 1
-
-    try:
-        return command.execute()
-    finally:
-        command.cleanup()
 
 
 def _handle_legacy_args(args) -> int:
@@ -1039,7 +1155,9 @@ def _handle_legacy_args(args) -> int:
 
     # Set conda environment name if specified
     global CONDA_ENV_NAME
-    if args.conda_env and args.conda_env != "base":  # Only if explicitly set to non-default
+    if (
+        args.conda_env and args.conda_env != "base"
+    ):  # Only if explicitly set to non-default
         CONDA_ENV_NAME = args.conda_env
         args.use_conda = True  # Set flag when conda env is specified
         # args.use_conda remains as set by command line argument
@@ -1068,11 +1186,15 @@ def _handle_legacy_args(args) -> int:
         if not is_conda_available():
             logger.error("Conda is not available. Please install Conda or use venv.")
             return 1
-        if not get_conda_env_info()["is_active"] and not activate_conda_env(args.conda_env):
+        if not get_conda_env_info()["is_active"] and not activate_conda_env(
+            args.conda_env
+        ):
             logger.error(f"Failed to activate Conda environment: {args.conda_env}")
             return 1
         elif get_conda_env_info()["is_active"]:
-            logger.info(f"Using existing Conda environment: {os.environ.get('CONDA_DEFAULT_ENV')}")
+            logger.info(
+                f"Using existing Conda environment: {os.environ.get('CONDA_DEFAULT_ENV')}"
+            )
 
     if not args.skip_prepare and not args.use_conda:
         prepare_environment(args)
