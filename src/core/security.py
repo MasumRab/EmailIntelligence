@@ -7,6 +7,24 @@ from typing import Union
 import re
 
 
+import os
+
+def validate_path_safety(path: Union[str, Path]) -> bool:
+    """Module-level wrapper for SecurityValidator.is_safe_path"""
+    # Use current working directory as default repo root for standalone calls
+    validator = SecurityValidator(Path.cwd())
+    return validator.is_safe_path(path)
+
+def sanitize_path(path: Union[str, Path]) -> str:
+    """Sanitize a path to prevent directory traversal and other attacks"""
+    path_str = str(path)
+    # Remove potentially dangerous characters
+    sanitized = path_str.replace(';', '').replace('|', '').replace('&', '').replace('`', '')
+    sanitized = sanitized.replace('$(', '').replace('${', '').replace('<', '').replace('>', '')
+    # Normalize path separators
+    return os.path.normpath(sanitized)
+
+
 class SecurityValidator:
     """Handles security validation and path safety checks"""
     
