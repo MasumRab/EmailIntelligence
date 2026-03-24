@@ -1,3 +1,4 @@
+PACKAGE_JSON = PACKAGE_JSON
 #!/usr/bin/env python3
 """
 EmailIntelligence Unified Launcher
@@ -117,7 +118,7 @@ def check_wsl_requirements():
 
     # Check if X11 server is accessible (optional check)
     try:
-        result = subprocess.run(["xset", "-q"], capture_output=True, timeout=2)
+        result = subprocess.run(["xset", "-q"], capture_output=True, timeout=2, shell=False)
         if result.returncode != 0:
             logger.warning("X11 server not accessible - GUI applications may not work")
             logger.info("Install VcXsrv, MobaXterm, or similar X11 server on Windows")
@@ -381,7 +382,7 @@ def run_command(cmd: List[str], description: str, **kwargs) -> bool:
     """Run a command and log its output."""
     logger.info(f"{description}...")
     try:
-        proc = subprocess.run(cmd, check=True, text=True, capture_output=True, **kwargs)
+        proc = subprocess.run(list(cmd), check=True, text=True, capture_output=True, shell=False, **kwargs)
         if proc.stdout:
             logger.debug(proc.stdout)
         if proc.stderr:
@@ -409,7 +410,7 @@ def install_package_manager(venv_path: Path, manager: str):
     run_command([python_exe, "-m", "pip", "install", manager], f"Installing {manager}")
 
 
-def setup_dependencies(venv_path: Path, use_poetry: bool = False):
+def setup_dependencies(use_poetry: bool = False):
     python_exe = get_python_executable()
 
     if use_poetry:
@@ -417,7 +418,7 @@ def setup_dependencies(venv_path: Path, use_poetry: bool = False):
         run_command([python_exe, "-m", "pip", "install", "--upgrade", "pip"], "Upgrading pip")
         # For poetry, we need to install it first if not available
         try:
-            subprocess.run([python_exe, "-c", "import poetry"], check=True, capture_output=True)
+            subprocess.run([str(python_exe), "-c", "import poetry"], check=True, capture_output=True, shell=False)
         except subprocess.CalledProcessError:
             run_command([python_exe, "-m", "pip", "install", "poetry"], "Installing Poetry")
 
@@ -431,7 +432,7 @@ def setup_dependencies(venv_path: Path, use_poetry: bool = False):
         run_command([python_exe, "-m", "pip", "install", "--upgrade", "pip"], "Upgrading pip")
         # For uv, install if not available
         try:
-            subprocess.run([python_exe, "-c", "import uv"], check=True, capture_output=True)
+            subprocess.run([str(python_exe), "-c", "import uv"], check=True, capture_output=True, shell=False)
         except subprocess.CalledProcessError:
             run_command([python_exe, "-m", "pip", "install", "uv"], "Installing uv")
 
@@ -448,7 +449,7 @@ def setup_dependencies(venv_path: Path, use_poetry: bool = False):
 def install_notmuch_matching_system():
     try:
         result = subprocess.run(
-            ["notmuch", "--version"], capture_output=True, text=True, check=True
+            ["notmuch", "--version"], capture_output=True, text=True, check=True, shell=False
         )
         version_line = result.stdout.strip()
         # Parse version, e.g., "notmuch 0.38.3"
@@ -463,7 +464,7 @@ def install_notmuch_matching_system():
         logger.warning("notmuch not found on system, skipping version-specific install")
 
 
-def download_nltk_data(venv_path=None):
+def download_nltk_data():
     python_exe = get_python_executable()
 
     # Updated NLTK download script with better error handling and more packages
@@ -487,7 +488,7 @@ except Exception as e:
 
     logger.info("Downloading NLTK data...")
     result = subprocess.run(
-        [python_exe, "-c", nltk_download_script], cwd=ROOT_DIR, capture_output=True, text=True
+        [str(python_exe), "-c", nltk_download_script], cwd=ROOT_DIR, capture_output=True, text=True, shell=False
     )
     if result.returncode != 0:
         logger.error(f"Failed to download NLTK data: {result.stderr}")
@@ -510,7 +511,7 @@ except Exception as e:
 
     logger.info("Downloading TextBlob corpora...")
     result = subprocess.run(
-        [python_exe, "-c", textblob_download_script],
+        [str(python_exe), "-c", textblob_download_script],
         cwd=ROOT_DIR,
         capture_output=True,
         text=True,
@@ -528,7 +529,7 @@ def check_uvicorn_installed() -> bool:
     python_exe = get_python_executable()
     try:
         result = subprocess.run(
-            [python_exe, "-c", "import uvicorn"], capture_output=True, text=True
+            [str(python_exe), "-c", "import uvicorn"], capture_output=True, text=True, shell=False
         )
         if result.returncode == 0:
             logger.info("uvicorn is available.")
@@ -554,9 +555,9 @@ def check_node_npm_installed() -> bool:
 
 def install_nodejs_dependencies(directory: str, update: bool = False) -> bool:
     """Install Node.js dependencies in a given directory."""
-    pkg_json_path = ROOT_DIR / directory / "package.json"
+    pkg_json_path = ROOT_DIR / directory / PACKAGE_JSON
     if not pkg_json_path.exists():
-        logger.debug(f"No package.json in '{directory}/', skipping npm install.")
+        logger.debug(f"No {PACKAGE_JSON} in '{directory}/', skipping npm install.")
         return True
 
     if not check_node_npm_installed():
@@ -588,10 +589,10 @@ def start_server_ts():
         return None
 
     # Check if package.json exists
-    pkg_json_path = ROOT_DIR / "backend" / "server-ts" / "package.json"
+    pkg_json_path = ROOT_DIR / "backend" / "server-ts" / PACKAGE_JSON
     if not pkg_json_path.exists():
         logger.debug(
-            "No package.json in 'backend/server-ts/', skipping TypeScript backend server startup."
+            "No {PACKAGE_JSON} in 'backend/server-ts/', skipping TypeScript backend server startup."
         )
         return None
 
@@ -637,7 +638,7 @@ def start_node_service(service_path: Path, service_name: str, port: int, api_url
 
 def setup_node_dependencies(service_path: Path, service_name: str):
     """Install npm dependencies for a Node.js service."""
-    if not (service_path / "package.json").exists():
+    if not (service_path / PACKAGE_JSON).exists():
         logger.warning(
             f"package.json not found for {service_name}, skipping dependency installation."
         )
@@ -674,7 +675,7 @@ def handle_setup(args, venv_path):
         install_package_manager(venv_path, "uv")
         setup_dependencies(venv_path, False)
         if not args.no_download_nltk:
-            download_nltk_data(venv_path)
+            download_nltk_data()
 
         # Setup Node.js dependencies
         setup_node_dependencies(ROOT_DIR / "client", "Frontend Client")
@@ -700,11 +701,11 @@ def start_services(args):
     api_url = args.api_url or f"http://{args.host}:{args.port}"
 
     if not args.frontend_only:
-        start_backend(args.host, args.port, args.debug)
+        start_backend(args.host)
         start_node_service(ROOT_DIR / "backend" / "server-ts", "TypeScript Backend", 8001, api_url)
 
     if not args.api_only:
-        start_gradio_ui(args.host, 7860, args.share, args.debug)
+        start_gradio_ui(args.share, args.debug)
         start_node_service(ROOT_DIR / "client", "Frontend Client", args.frontend_port, api_url)
 
 
@@ -782,7 +783,7 @@ def print_system_info():
         "pyproject.toml",
         "requirements.txt",
         "requirements-dev.txt",
-        "package.json",
+        PACKAGE_JSON,
         "launch-user.env",
         ".env",
     ]
@@ -1091,9 +1092,8 @@ def _execute_check_command(args) -> int:
             success = False
     
     # If no specific check was requested, run all checks
-    if not args.critical_files and not args.env:
-        if not validate_orchestration_environment():
-            success = False
+    if not args.critical_files and not args.env and not validate_orchestration_environment():
+        success = False
     
     if success:
         logger.info("All orchestration checks passed!")
