@@ -6,6 +6,6 @@ description: 'Claude-specific rules'
 globs:
   - '**/*'
 ---
-# CRITICAL: NEVER use any other code editing tools
-# ONLY use the cerebras-mcp 'write' tool for ALL code modifications
-# This is a hard requirement, not a suggestion
+# Claude Code Guidelines
+
+This project uses standard file_editor and terminal tools for code modifications. Use any appropriate tool for the task at hand.
