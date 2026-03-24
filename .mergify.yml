@@ -1,6 +1,6 @@
 pull_request_rules:
   - name: Ping PR author when conflicting
-    description: Warn the pull request author when their PR are conflicting
+    description: Warn the pull request author when their PR is conflicting. Tag @jules if they're an author.
     conditions:
       - conflict
       - -closed
@@ -8,7 +8,29 @@ pull_request_rules:
       comment:
         message: >
           👋 @{{author}} your PR is conflicting and needs to be updated to be
-          merged
+          merged.
+          {% if author == "jules" or "jules" in assignees %}
+          
+          **Note for @jules:** This PR requires conflict resolution. Consider rebasing on latest main or using interactive merge.
+          {% endif %}
+
+  - name: Alert @jules on conflicts for their PRs
+    description: Notify @jules specifically when their PRs have merge conflicts
+    conditions:
+      - conflict
+      - -closed
+      - author=jules
+    actions:
+      comment:
+        message: >
+          ⚠️ **@jules** - This PR has merge conflicts that need resolution:
+          
+          **Quick Fix Options:**
+          1. **Rebase on main:** `git fetch origin && git rebase origin/main`
+          2. **Merge main:** `git fetch origin && git merge origin/main`
+          3. **Use GitHub UI:** Click "Resolve conflicts" button on this PR
+          
+          After resolving: `git push --force-with-lease` (if rebased) or `git push` (if merged)
 
   - name: Auto-merge Dependabot PRs (no approval required)
     description: Automatically merge Dependabot PRs when CI passes. No human approval required for dependency updates.
