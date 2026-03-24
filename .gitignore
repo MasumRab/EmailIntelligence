@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -10,28 +11,21 @@ __pycache__/
 .Python
 build/
 develop-eggs/
-dist/
-*.egg-info/
-pip-wheel-metadata/
-*.egg
-*.whl
-*.tar.gz
-
+=======
 # Node.js
-node_modules/
-*.DS_Store
+**/node_modules/
+dist/
+**/*.DS_Store
+server/public/
+vite.config.ts.*
+*.tar.gz
 
 # Python virtual environment
 venv/
 .venv/
-env/
-ENV/
-env.bak/
-venv.bak/
-
-# Environment files
 .env
 .env.*
+*.env
 !.env.example
 
 # Credentials and sensitive data
@@ -41,88 +35,212 @@ apikey.json
 jsons/
 jsons/*
 
-# Logs
-*.log
-logs/
+# Build / packaging artifacts
+build/
+>>>>>>> parent of ab35f4ef (Merge branch 'orchestration-tools' of https://github.com/MasumRab/EmailIntelligence into orchestration-tools)
+dist/
+*.egg-info/
+pip-wheel-metadata/
+*.egg
+<<<<<<< HEAD
+MANIFEST
 
-# Test / coverage reports
+# PyInstaller
+*.manifest
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
 htmlcov/
 .tox/
 .nox/
+=======
+*.whl
+
+# Databases
+*.sqlite3
+*.db
+*.db-journal
+
+# Test and coverage reports
+>>>>>>> parent of ab35f4ef (Merge branch 'orchestration-tools' of https://github.com/MasumRab/EmailIntelligence into orchestration-tools)
 .coverage
 .coverage.*
 coverage.xml
 coverage/
 *.cover
 .pytest_cache/
+<<<<<<< HEAD
 
-# Database files
-*.sqlite3
-*.db
-*.db-journal
+# Translations
+*.mo
+*.pot
 
-# Jupyter / IPython
-.ipynb_checkpoints/
+# Django stuff:
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+
+# Flask stuff:
+instance/
+.webassets-cache
+
+# Scrapy stuff:
+.scrapy
+
+# Sphinx documentation
+docs/_build/
+
+# PyBuilder
+target/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# IPython
 profile_default/
 ipython_config.py
 
-# IDE / editor specific
+# pyenv
+.python-version
+
+# pipenv
+Pipfile.lock
+
+# PEP 582
+__pypackages__/
+
+# Celery stuff
+celerybeat-schedule
+celerybeat.pid
+
+# SageMath parsed files
+*.sage.py
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Spyder project settings
+.spyderproject
+.spyproject
+
+# Rope project settings
+.ropeproject
+
+# mkdocs documentation
+/site
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Pyre type checker
+.pyre/
+
+# IDE settings
+=======
+
+# IDEs / editor-specific
+>>>>>>> parent of ab35f4ef (Merge branch 'orchestration-tools' of https://github.com/MasumRab/EmailIntelligence into orchestration-tools)
 .vscode/
 .idea/
 *.iml
 *.sublime-project
 *.sublime-workspace
 .history
-.spyderproject
-.spyproject
-.ropeproject
 
-# Type checkers / linters
-.mypy_cache/
-.dmypy.json
-dmypy.json
-.pyre/
-
-# Project specific ignores
+<<<<<<< HEAD
+# Project-specific ignores
 .orchestration-disabled
 .taskmaster/
 worktrees/
 .merge-notes/
 .context-control/
-.rules/
+.rules
 .rulesync/
 .rulesyncignore
 .cursorignore
 .validation_cache.json
 .emailintelligence/
+#QWEN.md
+#AGENTS.md
+#GEMINI.md
+#CRUSH.md
+#IFLOW.md
+=======
+# Misc
+diagnosis_message.txt
+logs/
+
+# Ignore configuration and local environment files
+*.local.config
+*.local.json
+*.local.yaml
+*.local.yml
+jsons/client_id.json
+credentials.json
+jsons/apikey.json
+config.local.*
+config/llm_guidelines.local.json
+
+# Ignore hidden files and directories, with exceptions
+!docs/.gitkeep
+!.semgrep/
+!.gitignore
+!.git/hooks/
+<<<<<<< HEAD
+=======
+!.git/info/exclude
+!.flake8
+!.pylintrc
+!.github/
+!.specify/**
+!.gemini/**
+!.qwen/**
+!.claude/
+>>>>>>> a7da61cf1f697de3c8c81f536bf579d36d88e613
+
+# Python cache
+**/__pycache__/
 
 # Miscellaneous
 diagnosis_message.txt
 performance_metrics_log.jsonl
+config/llm_guidelines.local.json
 models/*.pkl
-backlog/config.yml.bak
+worktrees/
+
+<<<<<<< HEAD
+# Backup files
 *.bak
 *~
 *.backup
+backlog/config.yml.bak
 original_readme.md
+=======
 
-# Windows system files
-Thumbs.db
-Desktop.ini
-$RECYCLE.BIN/
-ehthumbs.db
-
-# Keep important git-tracked files
-!docs/.gitkeep
-!/.semgrep/
-!/.gitignore
-!/.git/hooks/
-!/.git/info/exclude
-!/.flake8
-!/.pylintrc
-!/.github/
-!/.specify/**
-!/.gemini/**
-!/.qwen/**
-!/.claude/**
-!docs/agents/**
+# Centralized Agent Markdown Files
+!docs/agents/
+#AGENTS.md
+#CLAUDE.md
+#GEMINI.md
+#QWEN.md
+!docs/agents/OPENCODE.md
+!docs/agents/AIDER.md
+!docs/agents/CURSOR.md
+>>>>>>> parent of ab35f4ef (Merge branch 'orchestration-tools' of https://github.com/MasumRab/EmailIntelligence into orchestration-tools)
+!docs/agents/AMP.md
+terminal-jarvis_AGENTS.md
+cognee-AGENTS.md
+>>>>>>> a7da61cf1f697de3c8c81f536bf579d36d88e613
