@@ -102,9 +102,15 @@ def create_app() -> FastAPI:
         app.add_middleware(ContextControlMiddleware)
     
     # Add CORS middleware as expected by both architectures
+
+    # Parse allowed origins from environment variable, default to restrictive local access
+    allowed_origins = os.environ.get("ALLOWED_ORIGINS", "http://localhost:3000,http://127.0.0.1:3000").split(",")
+    # Remove empty strings if any
+    allowed_origins = [origin.strip() for origin in allowed_origins if origin.strip()]
+
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=["*"],  # Should be configured based on environment
+        allow_origins=allowed_origins,
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
