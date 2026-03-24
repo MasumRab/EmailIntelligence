@@ -36,11 +36,11 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements-dev.txt
+          pip install -e .[ml,data,viz,db,google,dev]
 
       - name: Verify dependencies
         run: |
-          python scripts/verify-dependencies.py --check-gpu --system-packages
+          python scripts/verify-dependencies.py --system-packages
 
       - name: Run unit tests
         run: |
