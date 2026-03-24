@@ -192,7 +192,7 @@ class WorkflowManager:
         )
 
         # Create node instances from the data
-        node_configs = {node_data["node_id"]: node_data for node_data in workflow_data["nodes"]}
+        {node_data["node_id"]: node_data for node_data in workflow_data["nodes"]}
 
         for node_data in workflow_data["nodes"]:
             node_id = node_data["node_id"]
