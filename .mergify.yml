@@ -1,4 +1,3 @@
-    conditions:
 pull_request_rules:
   - name: Ping PR author when conflicting
     description: Warn the pull request author when their PR are conflicting
@@ -10,18 +9,21 @@ pull_request_rules:
         message: >
           👋 @{{author}} your PR is conflicting and needs to be updated to be
           merged
+
   - name: Automatic merge during office hours + hotfix support
     description: Merge when PR passes all conditions. Hotfixes merge anytime, others during office hours. Must pass CI and reviews, not be draft or conflicting.
     conditions:
       - or:
-          - schedule = Mon-Fri 09:00-17:00[America/Los_Angeles]
-          - label = hotfix
+          - schedule=Mon-Fri 09:00-17:00[America/Los_Angeles]
+          - label=hotfix
       - check-success=test
       - "#approved-reviews-by>=1"
       - -conflict
       - -draft
     actions:
       merge:
+        method: merge
+
   - name: Label conflicting pull requests
     description: Add a label to a pull request with conflict to spot it easily
     conditions:
@@ -29,5 +31,14 @@ pull_request_rules:
       - -closed
     actions:
       label:
-        toggle:
+        add:
+          - conflict
+
+  - name: Remove conflict label when resolved
+    description: Remove the conflict label when the conflict is resolved
+    conditions:
+      - -conflict
+    actions:
+      label:
+        remove:
           - conflict
