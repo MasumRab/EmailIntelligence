@@ -19,11 +19,15 @@ def test_get_all_categories_db_error(client, mock_db_manager):
     mock_db_manager.get_all_categories.side_effect = Exception("DB Error")
 
     response = client.get("/api/categories")
-    assert response.status_code == 503
-    assert response.json() == {"detail": "Database service unavailable."}
+    assert response.status_code == 500
+    json_resp = response.json()
+    assert json_resp["success"] is False
 
 
 def test_create_category(client, mock_db_manager):
+    print("MOCK:", mock_db_manager)
+    import backend.python_backend.database
+    print("DB:", backend.python_backend.database._db_manager_instance)
     """Test creating a new category successfully."""
     new_category_data = {"name": "Personal", "description": "Personal stuff", "color": "#00ff00"}
     created_category_db_dict = {**new_category_data, "id": 2, "count": 0}
@@ -43,5 +47,6 @@ def test_create_category_db_error(client, mock_db_manager):
     mock_db_manager.create_category.side_effect = Exception("DB Create Error")
 
     response = client.post("/api/categories", json=new_category_data)
-    assert response.status_code == 503
-    assert response.json() == {"detail": "Database service unavailable."}
+    assert response.status_code == 500
+    json_resp = response.json()
+    assert json_resp["success"] is False

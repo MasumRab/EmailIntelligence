@@ -3,7 +3,8 @@ Custom exceptions for the Email Intelligence Platform.
 """
 
 
-class BaseAppException(Exception):
+from fastapi import HTTPException
+class BaseAppException(HTTPException):
     """Base exception class for the application."""
 
     def __init__(self, status_code: int, detail: str):

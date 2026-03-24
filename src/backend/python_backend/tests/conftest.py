@@ -80,9 +80,16 @@ def client(mock_db_manager, mock_ai_engine, mock_filter_manager, mock_workflow_e
 
     # Set up dependency overrides
     app.dependency_overrides[get_db] = lambda: mock_db_manager
+    import src.core.database
+    src.core.database._db_manager_instance = mock_db_manager
     app.dependency_overrides[get_ai_engine] = lambda: mock_ai_engine
     app.dependency_overrides[get_filter_manager] = lambda: mock_filter_manager
+    from src.core.auth import get_current_active_user
+    app.dependency_overrides[get_current_active_user] = lambda: "testuser"
     app.dependency_overrides[get_workflow_engine] = lambda: mock_workflow_engine
+    from src.core.auth import get_current_active_user
+    app.dependency_overrides[get_current_active_user] = lambda: "testuser"
+
 
     decorator_path = "backend.python_backend.performance_monitor.log_performance"
     with patch(decorator_path, lambda *args, **kwargs: (lambda func: func)):
@@ -117,8 +124,12 @@ def client_with_real_workflows(mock_db_manager, mock_ai_engine, mock_filter_mana
 
     # Override dependencies
     app.dependency_overrides[get_db] = lambda: mock_db_manager
+    import src.core.database
+    src.core.database._db_manager_instance = mock_db_manager
     app.dependency_overrides[get_ai_engine] = lambda: mock_ai_engine
     app.dependency_overrides[get_filter_manager] = lambda: mock_filter_manager
+    from src.core.auth import get_current_active_user
+    app.dependency_overrides[get_current_active_user] = lambda: "testuser"
 
     # Manually run the startup events to initialize the real workflow engine
     # This is a bit of a hack, but necessary for this kind of integration test.
@@ -137,3 +148,11 @@ def client_with_real_workflows(mock_db_manager, mock_ai_engine, mock_filter_mana
     # Reset the global instance so other tests are not affected
     global _workflow_engine_instance
     _workflow_engine_instance = None
+
+from src.core.auth import get_current_active_user
+
+@pytest.fixture(autouse=True)
+def override_auth():
+    app.dependency_overrides[get_current_active_user] = lambda: "testuser"
+    yield
+    app.dependency_overrides.pop(get_current_active_user, None)

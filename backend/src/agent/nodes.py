@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 
 # Module path: backend/src/agent/nodes.py

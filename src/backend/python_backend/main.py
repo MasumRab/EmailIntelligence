@@ -107,7 +107,7 @@ class ErrorHandlingMiddleware(BaseHTTPMiddleware):
                 else:  # BaseAppException
                     error_response = {
                         "success": False,
-                        "message": "An internal error occurred",
+                        "message": getattr(exc, "detail", "An internal error occurred"),
                         "error_code": "INTERNAL_ERROR",
                         "details": None,
                         "request_id": request_id,
@@ -194,10 +194,10 @@ async def app_exception_handler(request: Request, exc: AppException):
 async def base_app_exception_handler(request: Request, exc: BaseAppException):
 
     return JSONResponse(
-        status_code=500,
+        status_code=getattr(exc, "status_code", 500),
         content={
             "success": False,
-            "message": "An internal error occurred",
+            "message": getattr(exc, "detail", "An internal error occurred"),
             "error_code": "INTERNAL_ERROR",
             "details": str(exc),
         },

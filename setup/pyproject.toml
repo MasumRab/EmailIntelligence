@@ -1,6 +1,10 @@
 # EmailIntelligence - Optimized Dependencies for System-Managed Python
 # Conditional dependencies to minimize unnecessary downloads
 
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+
 [project]
 name = "emailintelligence"
 version = "0.2.0"
@@ -9,11 +13,11 @@ requires-python = ">=3.11"
 
 # Core dependencies only - always required
 dependencies = [
+    "pydantic-settings>=2.13.1",
     # Web framework (always needed)
     "fastapi>=0.115.12",
     "uvicorn[standard]>=0.34.3",
     "pydantic>=2.11.5",
-    "pydantic-settings>=2.8.0",
     "python-dotenv>=1.1.0",
     "python-multipart>=0.0.20",
     "email-validator>=2.2.0",
@@ -37,7 +41,7 @@ dependencies = [
 
     # Compatibility fixes
     # markupsafe 3.0.2 lacks wheels for Python 3.11/3.12 on some platforms
-    "markupsafe<3.0.0"
+    "markupsafe<3.0.0",
 ]
 
 [project.optional-dependencies]
@@ -89,13 +93,7 @@ dev = [
     "pytest-cov>=6.0.0",
     "pytest-asyncio>=1.2.0",
 
-    # Code quality - Ruff (fast Python linter/formatter)
-    "ruff>=0.9.0",
-
-    # Security scanning
-    "bandit>=1.8.0",
-
-    # Legacy tools (still used in CI)
+    # Code quality
     "black>=25.1.0",
     "flake8>=7.2.0",
     "isort>=6.0.1",
@@ -130,7 +128,3 @@ include-package-data = false
 
 [tool.setuptools.packages.find]
 where = ["src"]
-
-[[tool.uv.index]]
-name = "pytorch-cpu"
-url = "https://download.pytorch.org/whl/cpu"

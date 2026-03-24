@@ -687,6 +687,14 @@ class DatabaseManager:
         # based on actual week-over-week data
         return {"emails": total_count, "percentage": 0.0}
 
+    async def connect(self):
+        """Legacy method for connecting to the database."""
+        await self._ensure_initialized()
+
+    async def close(self):
+        """Legacy method for closing the database."""
+        pass
+
 
 # Module-level variable to store the database manager instance
 # This is initialized via FastAPI startup event
@@ -723,14 +731,3 @@ async def initialize_db():
 # Legacy export for backward compatibility with main.py
 db_manager = DatabaseManager()
 _db_manager_instance = db_manager
-
-# Ensure connect/close are defined on DatabaseManager for legacy support
-if not hasattr(DatabaseManager, 'connect'):
-    async def _connect(self):
-        await self._ensure_initialized()
-    DatabaseManager.connect = _connect
-
-if not hasattr(DatabaseManager, 'close'):
-    async def _close(self):
-        pass
-    DatabaseManager.close = _close

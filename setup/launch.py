@@ -622,7 +622,7 @@ def setup_dependencies(venv_path: Path, use_poetry: bool = False):
         run_command([python_exe, "-m", "pip", "install", "--upgrade", "pip"], "Upgrading pip")
         # For poetry, we need to install it first if not available
         try:
-            subprocess.run([python_exe, "-c", "import poetry"], check=True, capture_output=True)
+            subprocess.run([shutil.which(str(python_exe)) or str(python_exe), "-c", "import poetry"], check=True, capture_output=True)
         except subprocess.CalledProcessError:
             run_command([python_exe, "-m", "pip", "install", "poetry"], "Installing Poetry")
 
@@ -636,7 +636,7 @@ def setup_dependencies(venv_path: Path, use_poetry: bool = False):
         run_command([python_exe, "-m", "pip", "install", "--upgrade", "pip"], "Upgrading pip")
         # For uv, install if not available
         try:
-            subprocess.run([python_exe, "-c", "import uv"], check=True, capture_output=True)
+            subprocess.run([shutil.which(str(python_exe)) or str(python_exe), "-c", "import uv"], check=True, capture_output=True)
         except subprocess.CalledProcessError:
             run_command([python_exe, "-m", "pip", "install", "uv"], "Installing uv")
 
