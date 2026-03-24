@@ -1,32 +1,56 @@
-# Rigorous Code Review Recipe
-# Purpose: Internal-first diagnostic review leveraging consolidated CLI tools.
-# Usage: gemini --recipe code-review
+description = "Reviews the code changes on your current branch"
 
-[recipe]
-name = "audit:review"
-description = "Rigorous internal-first review using consolidate CLI diagnostic suite."
+prompt = """
+<CONTEXT>
+    **Code Changes**: call the `git diff -U5 --merge-base origin/HEAD` tool to retrieve the changes.
+</CONTEXT>
 
-[[steps]]
-name = "Topology Analysis"
-command = "python3 dev.py branch-cluster --mode hybrid"
-description = "Analyze where these changes sit in the repository's branch topology."
+<PROTOCOL>
+Activate the `code-review-commons` skill for persona, objective, instructions and critical constraints. Then follow the exact structure and rules in the `<OUTPUT>` section.
+</PROTOCOL>
 
-[[steps]]
-name = "Forensic Logic Check"
-command = "python3 dev.py logic-compare HEAD~1 HEAD"
-description = "Verify 100% logic DNA parity for any ported or refactored functions."
+<OUTPUT>
+The output **MUST** be clean, concise, and structured exactly as follows.
 
-[[steps]]
-name = "AST Risk Audit"
-command = "python3 dev.py code-audit --path src/cli/commands/ --severity MEDIUM"
-description = "Perform AST-based structural scanning for fragile intent and security risks."
+**If no issues are found:**
 
-[[steps]]
-name = "Import Layer Audit"
-command = "python3 dev.py import-audit --path src/cli/ --legacy-roots 'backend,core' --new-prefix 'src'"
-description = "Verify that all imports adhere to the new unified architectural layers."
+# Change summary: [Single sentence description of the overall change].
 
-[[steps]]
-name = "External Context (Optional)"
-command = "coderabbit review --base-commit HEAD~1 --plain"
-description = "Supplement internal diagnostics with industrial AI review."
+No issues found. Code looks clean and ready to merge.
+
+**If issues are found:**
+
+# Change summary: [Single sentence description of the overall change].
+
+[Optional general feedback for the entire change, e.g., unrelated change that should be in a different PR, or improved general approaches.]
+
+## File: path/to/file/one
+
+### L<LINE_NUMBER>: [<SEVERITY>] Single sentence summary of the issue.
+
+More details about the issue, including why it is an issue (e.g., "This could lead to a null pointer exception").
+
+Suggested change:
+
+```
+    while (condition) {
+      unchanged line;
+-     remove this;
++     replace it with this;
++     and this;
+      but keep this the same;
+    }
+```
+
+### L<LINE_NUMBER_2>: [MEDIUM] Summary of the next problem.
+
+More details about this problem, including where else it occurs if applicable (e.g., "Also seen in lines L45, L67 of this file.").
+
+## File: path/to/file/two
+
+### L<LINE_NUMBER_3>: [HIGH] Summary of the issue in the next file.
+
+Details...
+
+</OUTPUT>
+"""

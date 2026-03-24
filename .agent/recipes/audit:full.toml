@@ -1,9 +1,24 @@
-name = "audit:full"
-description = "Perform a full system audit including code quality, imports, and environment health."
+description = "Perform a full system audit including code quality, imports, and environment health"
 
-[workflow]
-steps = [
-    { command = "env-verify", description = "Verifying environment health" },
-    { command = "code-audit", description = "Auditing codebase for technical debt and security" },
-    { command = "import-audit", description = "Auditing repository imports" }
-]
+prompt = """
+Perform a full system audit including code quality, imports, and environment health.
+
+## Audit Scope
+
+1. **Environment Verification**: Check environment health and configuration
+2. **Code Audit**: Scan codebase for technical debt and security issues
+3. **Import Audit**: Analyze repository imports for compliance
+
+## Arguments
+
+$ARGUMENTS
+
+## Output Format
+
+Provide a consolidated report with:
+- Environment status
+- Code quality findings (by severity)
+- Import analysis results
+- Critical issues requiring attention
+- Prioritized recommendations
+"""
