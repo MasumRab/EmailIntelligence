@@ -720,10 +720,6 @@ async def initialize_db():
         _db_manager_instance = DatabaseManager()
         await _db_manager_instance._ensure_initialized()
 
-# Legacy export for backward compatibility with main.py
-db_manager = DatabaseManager()
-_db_manager_instance = db_manager
-
 # Ensure connect/close are defined on DatabaseManager for legacy support
 if not hasattr(DatabaseManager, 'connect'):
     async def _connect(self):
@@ -732,5 +728,5 @@ if not hasattr(DatabaseManager, 'connect'):
 
 if not hasattr(DatabaseManager, 'close'):
     async def _close(self):
-        pass
+        await self.shutdown()
     DatabaseManager.close = _close

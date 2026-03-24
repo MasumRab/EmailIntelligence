@@ -3,7 +3,6 @@ import os
 import unittest
 from unittest.mock import patch, MagicMock
 from pathlib import Path
-import json
 
 # Add scripts directory to path
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "scripts"))

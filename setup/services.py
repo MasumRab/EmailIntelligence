@@ -176,6 +176,26 @@ def start_backend(host: str, port: int, debug: bool = False):
         logger.error(f'Invalid host format: {host}')
         return
 
+    # Start the backend server
+    cmd = [
+        python_exe,
+        "-m",
+        "uvicorn",
+        "src.main:create_app",
+        "--factory",
+        "--host",
+        host,
+        "--port",
+        str(port),
+    ]
+    if debug:
+        cmd.append("--reload")
+    logger.info(f"Starting backend on {host}:{port}")
+    backend_process = subprocess.Popen(cmd, cwd=ROOT_DIR)
+    from setup.utils import process_manager
+    process_manager.add_process(backend_process)
+    return backend_process
+
 
 def start_node_service(service_path: Path, service_name: str, port: int, api_url: str):
     """Start a Node.js service."""

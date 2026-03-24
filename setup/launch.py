@@ -1391,7 +1391,6 @@ def _handle_legacy_args(args) -> int:
     if not args.skip_python_version_check:
         check_python_version()
 
-    logging.getLogger().setLevel(args.loglevel)
     logging.getLogger().setLevel(getattr(args, 'loglevel', 'INFO'))
 
     if DOTENV_AVAILABLE:
