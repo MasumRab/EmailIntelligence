@@ -13,11 +13,9 @@ import hashlib
 import json
 import logging
 import os
-import re
 import sqlite3
 import time
 from collections import deque
-from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional
@@ -149,8 +147,14 @@ class EmailCache:
         """Initializes the EmailCache."""
         # Secure path validation
         self.cache_path = str(
-            PathValidator.validate_database_path(cache_path, Path(cache_path).parent)
+            PathValidator.validate_and_resolve_db_path(cache_path, Path(cache_path).parent)
         )
+
+        # Ensure the directory exists
+        db_dir = os.path.dirname(self.cache_path)
+        if db_dir and not os.path.exists(db_dir):
+            os.makedirs(db_dir, exist_ok=True)
+
         self.conn = sqlite3.connect(self.cache_path, check_same_thread=False)
         self._init_cache()
 
@@ -275,15 +279,15 @@ class GmailDataCollector:
                 creds = Credentials.from_authorized_user_file(TOKEN_JSON_PATH, SCOPES)
             except Exception as e:
                 self.logger.error(f"Error loading credentials from {TOKEN_JSON_PATH}: {e}")
-        if creds and creds.valid:
-            self.gmail_service = build("gmail", "v1", credentials=creds)
-        elif creds and creds.expired and creds.refresh_token:
+
+        if creds and (creds.valid or (creds.expired and creds.refresh_token)):
             try:
-                creds.refresh(Request())
+                if creds.expired and creds.refresh_token:
+                    creds.refresh(Request())
+                    self._store_credentials(creds)
                 self.gmail_service = build("gmail", "v1", credentials=creds)
-                self._store_credentials(creds)
             except Exception as e:
-                self.logger.error(f"Error refreshing credentials: {e}")
+                self.logger.error(f"Error with credentials: {e}")
 
     def _store_credentials(self, creds):
         """Stores the API credentials to a token file."""

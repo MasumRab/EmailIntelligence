@@ -11,10 +11,10 @@ import logging
 import os
 import re
 import sqlite3
-from collections import Counter, defaultdict
+from collections import Counter
 from dataclasses import dataclass
-from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional, Set
+from datetime import datetime
+from typing import Any, Dict, List, Optional
 
 from src.core.security import PathValidator
 
@@ -115,9 +115,19 @@ class SmartFilterManager:
             db_path = os.path.join(DATA_DIR, filename)
 
         # Validate the final path
-        self.db_path = str(PathValidator.validate_database_path(db_path, DATA_DIR))
+        self.db_path = str(PathValidator.validate_and_resolve_db_path(db_path, DATA_DIR))
         self.logger = logging.getLogger(__name__)
         self.conn = None
+
+        # Ensure the directory exists
+        db_dir = os.path.dirname(self.db_path)
+        if db_dir and not os.path.exists(db_dir):
+            os.makedirs(db_dir, exist_ok=True)
+
+        # Ensure the directory exists
+        db_dir = os.path.dirname(self.db_path)
+        if db_dir and not os.path.exists(db_dir):
+            os.makedirs(db_dir, exist_ok=True)
         if self.db_path == ":memory:":
             self.conn = sqlite3.connect(":memory:")
             self.conn.row_factory = sqlite3.Row

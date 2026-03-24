@@ -8,6 +8,8 @@ from dataclasses import dataclass
 import json
 import yaml
 from pathlib import Path
+from enum import Enum
+
 
 
 @dataclass
@@ -21,7 +23,6 @@ class ConstitutionalRequirement:
     compliance_threshold: float  # 0.0 to 1.0
 
 
-from enum import Enum
 
 class ComplianceLevel(Enum):
     """Levels of compliance"""
@@ -36,7 +37,7 @@ class ConstitutionalValidationResult:
     """Result of constitutional validation"""
     overall_score: float  # 0.0 to 1.0
     compliance_level: ComplianceLevel
-    detailed_results: List[ComplianceResult]
+    detailed_results: List[Any]
     summary: str = ""
     recommendations: List[str] = None
 
@@ -199,13 +200,13 @@ class ConstitutionalEngine:
         report_lines = [
             "# Constitutional Compliance Report",
             "",
-            f"## Summary",
+            "## Summary",
             f"- Total Requirements: {total_count}",
             f"- Compliant: {compliant_count}",
             f"- Non-compliant: {total_count - compliant_count}",
             f"- Overall Compliance Score: {overall_score:.2%}",
             "",
-            f"## Detailed Results",
+            "## Detailed Results",
         ]
         
         for result in results:
