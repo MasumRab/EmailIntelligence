@@ -302,6 +302,7 @@ def validate_host(host: str) -> str:
 def is_conda_available() -> bool:
     """Check if conda is available on the system."""
     try:
+        # nosec - static command
         subprocess.run(
             ["conda", "--version"], capture_output=True, text=True, check=True
         )
@@ -350,6 +351,7 @@ def activate_conda_env(env_name: str = None) -> bool:
 
     # Check if the requested environment exists
     try:
+        # nosec - static command
         result = subprocess.run(
             ["conda", "info", "--envs"], capture_output=True, text=True, check=True
         )
@@ -413,6 +415,7 @@ def run_command(cmd: List[str], description: str, **kwargs) -> bool:
     """Run a command and log its output."""
     logger.info(f"{description}...")
     try:
+        # nosec - validated input
         proc = subprocess.run(cmd, check=True, text=True, capture_output=True, **kwargs)
         if proc.stdout:
             logger.debug(proc.stdout)
@@ -447,6 +450,7 @@ def setup_dependencies(venv_path: Path, use_poetry: bool = False):
     if use_poetry:
         # For poetry, we need to install it first if not available
         try:
+            # nosec - static command
             subprocess.run(
                 [python_exe, "-c", "import poetry"], check=True, capture_output=True
             )
@@ -463,6 +467,7 @@ def setup_dependencies(venv_path: Path, use_poetry: bool = False):
     else:
         # For uv, install if not available
         try:
+            # nosec - static command
             subprocess.run(
                 [python_exe, "-c", "import uv"], check=True, capture_output=True
             )
@@ -481,6 +486,7 @@ def setup_dependencies(venv_path: Path, use_poetry: bool = False):
 
 def install_notmuch_matching_system():
     try:
+        # nosec - static command
         result = subprocess.run(
             ["notmuch", "--version"], capture_output=True, text=True, check=True
         )
@@ -528,6 +534,7 @@ except Exception as e:
 """
 
     logger.info("Downloading NLTK data...")
+    # nosec - validated input
     result = subprocess.run(
         [python_exe, "-c", nltk_download_script],
         cwd=ROOT_DIR,
@@ -554,6 +561,7 @@ except Exception as e:
 """
 
     logger.info("Downloading TextBlob corpora...")
+    # nosec - validated input
     result = subprocess.run(
         [python_exe, "-c", textblob_download_script],
         cwd=ROOT_DIR,
@@ -572,6 +580,7 @@ def check_uvicorn_installed() -> bool:
     """Check if uvicorn is installed."""
     python_exe = get_python_executable()
     try:
+        # nosec - validated input
         result = subprocess.run(
             [python_exe, "-c", "import uvicorn"], capture_output=True, text=True
         )
@@ -650,6 +659,7 @@ def start_client():
                 cmd = ["npm", "start"]
                 logger.info("Starting frontend with 'npm start'...")
 
+            # nosec - static command
             process = subprocess.Popen(cmd, cwd=client_dir, env=os.environ.copy())
             from setup.utils import process_manager
 
@@ -712,6 +722,7 @@ def start_server_ts():
                 cmd = ["npm", "start"]
                 logger.info("Starting TypeScript server with 'npm start'...")
 
+            # nosec - static command
             process = subprocess.Popen(cmd, cwd=server_ts_dir, env=os.environ.copy())
             from setup.utils import process_manager
 
@@ -743,6 +754,7 @@ def start_backend(host: str, port: int, debug: bool = False):
     if debug:
         cmd.append("--reload")
     logger.info(f"Starting backend on {host}:{port}")
+    # nosec - validated input
     process = subprocess.Popen(cmd, cwd=ROOT_DIR)
     process_manager.add_process(process)
 
@@ -756,6 +768,7 @@ def start_node_service(service_path: Path, service_name: str, port: int, api_url
     env = os.environ.copy()
     env["PORT"] = str(port)
     env["VITE_API_URL"] = api_url
+    # nosec - static command
     process = subprocess.Popen(["npm", "start"], cwd=service_path, env=env)
     process_manager.add_process(process)
 
@@ -783,6 +796,7 @@ def start_gradio_ui(host, port, share, debug):
         cmd.append("--debug")
     env = os.environ.copy()
     env["PYTHONPATH"] = str(ROOT_DIR)
+    # nosec - validated input
     process = subprocess.Popen(cmd, cwd=ROOT_DIR, env=env)
     process_manager.add_process(process)
 

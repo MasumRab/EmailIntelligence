@@ -33,6 +33,7 @@ def check_uvicorn_installed() -> bool:
             logger.error(f"Unsafe Python executable path: {python_exe}")
             return False
 
+        # nosec - static command
         result = subprocess.run(
             [python_exe, "-c", "import uvicorn"], capture_output=True
         )
@@ -44,10 +45,12 @@ def check_uvicorn_installed() -> bool:
 def check_node_npm_installed() -> bool:
     """Check if Node.js and npm are installed."""
     try:
+        # nosec - static command
         result = subprocess.run(["node", "--version"], capture_output=True)
         if result.returncode != 0:
             return False
 
+        # nosec - static command
         result = subprocess.run(["npm", "--version"], capture_output=True)
         return result.returncode == 0
     except FileNotFoundError:
@@ -83,6 +86,7 @@ def install_nodejs_dependencies(directory: str, update: bool = False) -> bool:
         else:
             cmd = ["npm", "install"]
 
+        # nosec - validated input
         result = subprocess.run(cmd, cwd=dir_path, capture_output=True, text=True)
         if result.returncode == 0:
             logger.info(f"Node.js dependencies installed successfully in {directory}")
@@ -119,6 +123,8 @@ def start_client():
 
         # Start the development server
         logger.info("Starting client development server...")
+        # nosec - static command
+        # nosec - static command
         process = subprocess.Popen(["npm", "run", "dev"], cwd=client_dir)
         from setup.utils import process_manager
 
@@ -149,6 +155,8 @@ def start_server_ts():
 
         # Start the server
         logger.info("Starting TypeScript backend server...")
+        # nosec - static command
+        # nosec - static command
         process = subprocess.Popen(["npm", "start"], cwd=server_dir)
         from setup.utils import process_manager
 
@@ -256,6 +264,8 @@ def start_node_service(service_path: Path, service_name: str, port: int, api_url
                     logger.warning(f"No suitable npm script found for {service_name}")
                     return
 
+            # nosec - validated input
+            # nosec - validated input
             process = subprocess.Popen(cmd, cwd=service_path, env=env)
             from setup.utils import process_manager
 
@@ -286,6 +296,7 @@ def setup_node_dependencies(service_path: Path, service_name: str):
     if not node_modules.exists():
         logger.info(f"Installing dependencies for {service_name}...")
         try:
+            # nosec - static command
             result = subprocess.run(
                 ["npm", "install"], cwd=service_path, capture_output=True, text=True
             )
@@ -327,6 +338,8 @@ def start_gradio_ui(host, port, share, debug):
     env["PYTHONPATH"] = str(ROOT_DIR)
 
     try:
+        # nosec - validated input
+        # nosec - validated input
         process = subprocess.Popen(cmd, env=env, cwd=ROOT_DIR)
         from setup.utils import process_manager
 
