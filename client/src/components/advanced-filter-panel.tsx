@@ -11,18 +11,12 @@ import {
   SelectValue,
 } from "@components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@components/ui/card";
-import { Badge } from "@components/ui/badge";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@components/ui/popover";
-import { Calendar } from "@components/ui/calendar";
-import { CalendarIcon, Plus, Trash2, Filter } from "lucide-react";
+import { Plus, Trash2, Filter } from "lucide-react";
 import type { Category } from "@shared/schema";
 
 interface AdvancedFilterPanelProps {
   categories: Category[];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onApplyFilters: (filters: any) => void;
 }
 
@@ -82,6 +76,7 @@ export function AdvancedFilterPanel({
     }
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const updateCondition = (id: string, field: string, value: any) => {
     setCustomConditions(
       customConditions.map((condition) =>
@@ -91,6 +86,7 @@ export function AdvancedFilterPanel({
   };
 
   const applyFilters = () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const filters: any = {};
 
     // Keyword-based filters

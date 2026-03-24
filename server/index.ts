@@ -102,6 +102,7 @@ app.get('*', catchAllLimiter, (req, res) => {
 });
 
 // Error handling
+// eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
   console.error(err.stack);
   res.status(500).json({ error: 'Internal server error' });
