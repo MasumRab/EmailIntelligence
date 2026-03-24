@@ -78,11 +78,29 @@ def client(mock_db_manager, mock_ai_engine, mock_filter_manager, mock_workflow_e
                 attr.reset_mock()
                 attr.side_effect = None
 
+    from backend.python_backend.dependencies import get_category_service
+    from src.core.auth import get_current_active_user
+
+    # Create a mock category service
+    from src.backend.python_backend.services.category_service import CategoryService
+    mock_category_service = AsyncMock(spec=CategoryService)
+
+    async def mock_create_category(category_data):
+        from src.core.models import CategoryCreate
+        if isinstance(category_data, CategoryCreate):
+            category_data = category_data.model_dump()
+        return await mock_db_manager.create_category(category_data)
+
+    mock_category_service.get_all_categories = mock_db_manager.get_all_categories
+    mock_category_service.create_category = mock_create_category
+
     # Set up dependency overrides
     app.dependency_overrides[get_db] = lambda: mock_db_manager
     app.dependency_overrides[get_ai_engine] = lambda: mock_ai_engine
     app.dependency_overrides[get_filter_manager] = lambda: mock_filter_manager
     app.dependency_overrides[get_workflow_engine] = lambda: mock_workflow_engine
+    app.dependency_overrides[get_category_service] = lambda: mock_category_service
+    app.dependency_overrides[get_current_active_user] = lambda: {"username": "testuser", "role": "admin"}
 
     decorator_path = "backend.python_backend.performance_monitor.log_performance"
     with patch(decorator_path, lambda *args, **kwargs: (lambda func: func)):

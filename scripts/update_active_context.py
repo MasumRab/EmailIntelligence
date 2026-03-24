@@ -26,7 +26,8 @@ def get_repository():
             [shutil.which("git") or "git", "config", "--get", "remote.origin.url"],
             capture_output=True,
             text=True,
-            check=True
+            check=True,
+            shell=False
         )
         url = result.stdout.strip()
 
