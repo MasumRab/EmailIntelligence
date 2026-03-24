@@ -14,7 +14,9 @@ pull_request_rules:
     description: Automatically merge Dependabot PRs when CI passes. No human approval required for dependency updates.
     conditions:
       - author=dependabot[bot]
-      - check-success=test
+      - or:
+          - check-success=test
+          - check-success=lint-only
       - -conflict
       - -draft
     actions:
@@ -23,6 +25,19 @@ pull_request_rules:
         commit_message_template: |
           {{ title }} (#{{ number }})
           {{ body }}
+
+  - name: Auto-merge with label (no approval required)
+    description: Automatically merge PRs with 'automerge' label when CI passes
+    conditions:
+      - label=automerge
+      - or:
+          - check-success=test
+          - check-success=lint-only
+      - -conflict
+      - -draft
+    actions:
+      merge:
+        method: merge
 
   - name: Automatic merge for human PRs (approval required)
     description: Merge human PRs during office hours with approval. Hotfixes merge anytime.
