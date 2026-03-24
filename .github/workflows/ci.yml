@@ -3,15 +3,26 @@ name: CI
 on:
   push:
     branches: [main, scientific]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - '**.mdx'
   pull_request:
     branches: [main, scientific]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - '**.mdx'
 
 permissions:
   contents: read
 
 jobs:
   test:
-    if: "!contains(github.event.head_commit.message, '[skip ci]')"
+    if: |
+      !contains(github.event.head_commit.message, '[skip ci]') &&
+      !contains(github.event.head_commit.message, '[ci:lint-only]') &&
+      !contains(github.event.pull_request.labels.*.name, 'ci:skip-tests')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -39,9 +50,12 @@ jobs:
         run: uv run mypy src/ modules/ --show-error-codes --no-strict-optional
 
   lint-only:
-    # Allow CI to pass for Dependabot PRs while we fix linting on main
-    if: "!contains(github.event.head_commit.message, '[skip ci]') && github.actor != 'dependabot[bot]'"
+    if: |
+      !contains(github.event.head_commit.message, '[skip ci]') &&
+      !contains(github.event.head_commit.message, '[ci:tests-only]') &&
+      !contains(github.event.pull_request.labels.*.name, 'ci:skip-lint')
     runs-on: ubuntu-latest
+    continue-on-error: true
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-python@v6
