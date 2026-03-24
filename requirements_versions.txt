@@ -6,7 +6,7 @@ google-auth-oauthlib==1.2.0
 google-api-python-client==2.126.0
 gradio==6.7.0
 joblib==1.4.2
-nltk==3.8.1
+nltk==3.9.4
 psycopg2-binary==2.9.9
 pydantic==2.11.5
 pyngrok==7.1.6
