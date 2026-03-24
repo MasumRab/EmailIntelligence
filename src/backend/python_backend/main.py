@@ -15,11 +15,9 @@ import uuid
 from collections import defaultdict
 from datetime import datetime, timedelta
 
-from fastapi import Depends, FastAPI, HTTPException, Request, status
+from fastapi import FastAPI, HTTPException, Request, status
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, JSONResponse
-from fastapi.security import HTTPBearer
-from fastapi.staticfiles import StaticFiles
+from fastapi.responses import JSONResponse
 from pydantic import ValidationError
 from starlette.middleware.base import BaseHTTPMiddleware
 
@@ -44,7 +42,7 @@ from . import (
     workflow_routes,
 )
 from .ai_engine import AdvancedAIEngine
-from .auth import TokenData, create_access_token, get_current_user
+from .auth import create_access_token
 from .database import _db_manager_instance as db_manager
 from .exceptions import AppException, BaseAppException
 
@@ -312,6 +310,7 @@ except ImportError:
 async def login(username: str, password: str):
     """Login endpoint to get access token"""
     # Use the new authentication system
+    from .database import get_db
     db = await get_db()
     user = await authenticate_user(username, password, db)
 
