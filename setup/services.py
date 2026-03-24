@@ -362,9 +362,7 @@ def validate_services() -> Dict[str, bool]:
     frontend_config = config.get_service_config("frontend")
     if frontend_config:
         frontend_path = config.get_service_path("frontend")
-        package_json = frontend_path / frontend_config.get(
-            PACKAGE_JSON, PACKAGE_JSON
-        )
+        package_json = frontend_path / frontend_config.get(PACKAGE_JSON, PACKAGE_JSON)
         available_services["frontend"] = (
             frontend_path.exists() and package_json.exists()
         )
