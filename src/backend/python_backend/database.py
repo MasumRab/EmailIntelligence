@@ -687,10 +687,33 @@ class DatabaseManager:
         # based on actual week-over-week data
         return {"emails": total_count, "percentage": 0.0}
 
+    async def get_user_by_username(self, username: str) -> Optional[Dict[str, Any]]:
+        """Get a user by username."""
+        await self._ensure_initialized()
+        for user in self.users_data:
+            if user.get("username") == username:
+                return user
+        return None
+
+    async def create_user(self, user_data: Dict[str, Any]) -> None:
+        """Create a new user."""
+        await self._ensure_initialized()
+        self.users_data.append(user_data)
+        await self._save_data(DATA_TYPE_USERS)
+
+    async def connect(self) -> None:
+        """Connect to the database (ensure initialized)."""
+        await self._ensure_initialized()
+
+    async def close(self) -> None:
+        """Close the database connection (shutdown)."""
+        await self.shutdown()
+
 
 # Module-level variable to store the database manager instance
 # This is initialized via FastAPI startup event
-_db_manager_instance = None
+db_manager = DatabaseManager()
+_db_manager_instance = db_manager
 
 
 async def get_db() -> DatabaseManager:
@@ -707,9 +730,8 @@ async def get_db() -> DatabaseManager:
     """
     global _db_manager_instance
     if _db_manager_instance is None:
-        # This should ideally not be reached if startup event is properly set
-        _db_manager_instance = DatabaseManager()
-        await _db_manager_instance._ensure_initialized()
+        _db_manager_instance = db_manager
+    await _db_manager_instance._ensure_initialized()
     return _db_manager_instance
 
 
@@ -717,5 +739,5 @@ async def initialize_db():
     """Initialize the database manager. Should be called during application startup."""
     global _db_manager_instance
     if _db_manager_instance is None:
-        _db_manager_instance = DatabaseManager()
-        await _db_manager_instance._ensure_initialized()
+        _db_manager_instance = db_manager
+    await _db_manager_instance._ensure_initialized()

@@ -114,9 +114,19 @@ class SmartFilterManager:
             filename = PathValidator.sanitize_filename(os.path.basename(db_path))
             db_path = os.path.join(DATA_DIR, filename)
 
-        # Validate the final path
-        self.db_path = str(PathValidator.validate_database_path(db_path, DATA_DIR))
         self.logger = logging.getLogger(__name__)
+
+        # Validate the final path
+        try:
+            self.db_path = str(PathValidator.validate_and_resolve_db_path(db_path, DATA_DIR))
+        except ValueError as e:
+            self.logger.error(f"Path validation failed: {e}")
+            raise
+
+        # Ensure directory exists
+        if self.db_path != ":memory:":
+            db_dir = os.path.dirname(self.db_path)
+            os.makedirs(db_dir, exist_ok=True)
         self.conn = None
         if self.db_path == ":memory:":
             self.conn = sqlite3.connect(":memory:")
@@ -454,12 +464,14 @@ class SmartFilterManager:
 
 def main():
     """Demonstrates the usage of the SmartFilterManager."""
+    logging.basicConfig(level=logging.INFO)
+    logger = logging.getLogger(__name__)
     manager = SmartFilterManager()
     sample_emails = [{"senderEmail": "urgent@company.com", "subject": "Urgent: Action Required"}]
     filters = manager.create_intelligent_filters(sample_emails)
-    print(f"Created {len(filters)} filters.")
+    logger.info(f"Created {len(filters)} filters.")
     if filters:
-        print(
+        logger.info(
             f"Applied filters to sample email: {manager.apply_filters_to_email_data(sample_emails[0])}"
         )
 
