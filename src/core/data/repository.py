@@ -1,9 +1,8 @@
 from abc import ABC, abstractmethod
 from typing import Any, Dict, List, Optional
 from src.core.data_source import DataSource
-from src.core.caching import get_cache_manager, CacheConfig, CacheBackend
+from src.core.caching import get_cache_manager
 import asyncio
-import time
 
 
 class EmailRepository(ABC):

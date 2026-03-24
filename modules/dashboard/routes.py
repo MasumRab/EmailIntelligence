@@ -1,12 +1,11 @@
 import logging
 import json
-from datetime import datetime, timezone, timedelta
 from pathlib import Path
 from fastapi import APIRouter, Depends, HTTPException
 from src.core.data.repository import EmailRepository
 from src.core.factory import get_email_repository
 from src.core.auth import get_current_active_user
-from .models import DashboardStats, ConsolidatedDashboardStats, WeeklyGrowth
+from .models import ConsolidatedDashboardStats, WeeklyGrowth
 from collections import defaultdict
 
 logger = logging.getLogger(__name__)

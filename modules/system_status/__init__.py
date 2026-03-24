@@ -33,7 +33,7 @@ def create_system_status_ui():
             gr.Markdown("## System Health Dashboard")
             gr.Markdown("Monitor system performance, health metrics, and operational status.")
 
-        refresh_btn = gr.Button("🔄 Refresh", variant="secondary")
+        gr.Button("🔄 Refresh", variant="secondary")
 
     with gr.Tabs():
         with gr.TabItem("Overview"):
@@ -54,18 +54,18 @@ def create_overview_tab():
 
     with gr.Row():
         with gr.Column():
-            status_indicator = gr.Textbox(
+            gr.Textbox(
                 label="System Status",
                 value="🟢 Online",
                 interactive=False
             )
 
-            uptime_display = gr.Textbox(
+            gr.Textbox(
                 label="System Uptime",
                 interactive=False
             )
 
-            last_updated = gr.Textbox(
+            gr.Textbox(
                 label="Last Updated",
                 interactive=False
             )
@@ -73,15 +73,15 @@ def create_overview_tab():
     with gr.Row():
         with gr.Column():
             gr.Markdown("### Email Statistics")
-            total_emails = gr.Number(label="Total Emails", interactive=False)
-            unread_emails = gr.Number(label="Unread Emails", interactive=False)
-            categorized_plot = gr.Plot(label="Email Categories")
+            gr.Number(label="Total Emails", interactive=False)
+            gr.Number(label="Unread Emails", interactive=False)
+            gr.Plot(label="Email Categories")
 
         with gr.Column():
             gr.Markdown("### Performance Metrics")
-            avg_response_time = gr.Number(label="Avg Response Time (ms)", interactive=False)
-            total_operations = gr.Number(label="Total Operations", interactive=False)
-            performance_plot = gr.Plot(label="Operation Performance")
+            gr.Number(label="Avg Response Time (ms)", interactive=False)
+            gr.Number(label="Total Operations", interactive=False)
+            gr.Plot(label="Operation Performance")
 
 
 def create_performance_tab():
@@ -90,13 +90,13 @@ def create_performance_tab():
     with gr.Row():
         with gr.Column():
             gr.Markdown("### API Performance")
-            api_response_times = gr.Plot(label="API Response Times")
-            operation_counts = gr.Plot(label="Operation Counts")
+            gr.Plot(label="API Response Times")
+            gr.Plot(label="Operation Counts")
 
         with gr.Column():
             gr.Markdown("### System Performance")
-            cpu_usage_plot = gr.Plot(label="CPU Usage Over Time")
-            memory_usage_plot = gr.Plot(label="Memory Usage Over Time")
+            gr.Plot(label="CPU Usage Over Time")
+            gr.Plot(label="Memory Usage Over Time")
 
 
 def create_health_tab():
@@ -105,14 +105,14 @@ def create_health_tab():
     with gr.Row():
         with gr.Column():
             gr.Markdown("### Service Health")
-            backend_status = gr.Textbox(label="Backend API", interactive=False)
-            database_status = gr.Textbox(label="Database", interactive=False)
-            ai_engine_status = gr.Textbox(label="AI Engine", interactive=False)
+            gr.Textbox(label="Backend API", interactive=False)
+            gr.Textbox(label="Database", interactive=False)
+            gr.Textbox(label="AI Engine", interactive=False)
 
         with gr.Column():
             gr.Markdown("### Gmail Integration")
-            gmail_status = gr.Textbox(label="Gmail API", interactive=False)
-            gmail_performance = gr.JSON(label="Performance Metrics")
+            gr.Textbox(label="Gmail API", interactive=False)
+            gr.JSON(label="Performance Metrics")
 
 
 def create_resources_tab():
@@ -121,13 +121,13 @@ def create_resources_tab():
     with gr.Row():
         with gr.Column():
             gr.Markdown("### System Resources")
-            cpu_percent = gr.Number(label="CPU Usage (%)", interactive=False)
-            memory_percent = gr.Number(label="Memory Usage (%)", interactive=False)
-            disk_usage = gr.Number(label="Disk Usage (%)", interactive=False)
+            gr.Number(label="CPU Usage (%)", interactive=False)
+            gr.Number(label="Memory Usage (%)", interactive=False)
+            gr.Number(label="Disk Usage (%)", interactive=False)
 
         with gr.Column():
             gr.Markdown("### Network")
-            network_io = gr.JSON(label="Network I/O")
+            gr.JSON(label="Network I/O")
 
 
 async def get_system_status() -> SystemStatus:

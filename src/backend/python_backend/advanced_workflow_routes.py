@@ -6,24 +6,17 @@ API routes for advanced workflow features: node-based workflows, advanced proces
 and enterprise workflow management
 """
 
-import asyncio
 
 # Define a simple execution result class for compatibility
 from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
 # Use the new node-based workflow system instead of non-existent src.core module
-from backend.node_engine.node_base import Connection
 from backend.node_engine.node_base import Workflow as AdvancedWorkflow
-from backend.node_engine.workflow_engine import WorkflowEngine
 from backend.node_engine.workflow_manager import workflow_manager
 
-from ..python_nlp.smart_filters import SmartFilterManager
-from .ai_engine import AdvancedAIEngine
-from .dependencies import get_db
-from .model_manager import model_manager
 
 
 class WorkflowExecutionResult:
@@ -102,7 +95,7 @@ async def create_advanced_workflow(request: AdvancedWorkflowCreateRequest):
             pass
 
         # Save to workflow manager
-        file_path = workflow_manager.save_workflow(workflow)
+        workflow_manager.save_workflow(workflow)
 
         return AdvancedWorkflowResponse(
             workflow_id=workflow.workflow_id,
@@ -191,7 +184,7 @@ async def update_advanced_workflow(workflow_id: str, request: AdvancedWorkflowCr
         pass
 
     # Save updated workflow
-    file_path = workflow_manager.save_workflow(updated_workflow)
+    workflow_manager.save_workflow(updated_workflow)
 
     return AdvancedWorkflowResponse(
         workflow_id=updated_workflow.workflow_id,

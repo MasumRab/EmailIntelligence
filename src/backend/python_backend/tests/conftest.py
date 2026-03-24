@@ -4,7 +4,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from fastapi.testclient import TestClient
 
-from backend.python_backend.dependencies import _workflow_engine_instance, initialize_services
+from backend.python_backend.dependencies import initialize_services
 from backend.python_backend.main import app
 
 
@@ -102,7 +102,6 @@ def client_with_real_workflows(mock_db_manager, mock_ai_engine, mock_filter_mana
     from backend.python_backend.dependencies import (
         get_ai_engine,
         get_filter_manager,
-        get_workflow_engine,
     )
 
     # We are NOT mocking get_workflow_engine here.

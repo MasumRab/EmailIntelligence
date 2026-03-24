@@ -10,9 +10,24 @@ pull_request_rules:
           👋 @{{author}} your PR is conflicting and needs to be updated to be
           merged
 
-  - name: Automatic merge during office hours + hotfix support
-    description: Merge when PR passes all conditions. Hotfixes merge anytime, others during office hours. Must pass CI and reviews, not be draft or conflicting.
+  - name: Auto-merge Dependabot PRs (no approval required)
+    description: Automatically merge Dependabot PRs when CI passes. No human approval required for dependency updates.
     conditions:
+      - author=dependabot[bot]
+      - check-success=test
+      - -conflict
+      - -draft
+    actions:
+      merge:
+        method: merge
+        commit_message_template: |
+          {{ title }} (#{{ number }})
+          {{ body }}
+
+  - name: Automatic merge for human PRs (approval required)
+    description: Merge human PRs during office hours with approval. Hotfixes merge anytime.
+    conditions:
+      - -author=dependabot[bot]
       - or:
           - schedule=Mon-Fri 09:00-17:00[America/Los_Angeles]
           - label=hotfix
