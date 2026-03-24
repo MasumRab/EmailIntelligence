@@ -5,11 +5,10 @@ This module provides enhanced caching capabilities for the DatabaseManager,
 including LRU cache for frequently accessed data and query result caching.
 """
 
-import asyncio
 import logging
 import time
 from collections import OrderedDict
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, Optional, Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -64,16 +63,21 @@ class LRUCache:
             "size": len(self.cache),
             "hits": self.hits,
             "misses": self.misses,
-            "hit_rate": hit_rate
+            "hit_rate": hit_rate,
         }
 
 
 class QueryResultCache:
-    """Cache for query results with TTL (Time To Live) support."""
+    """Cache for query results with TTL (Time To Live) and capacity limit support."""
 
-    def __init__(self, ttl_seconds: int = 300):  # 5 minutes default
+    def __init__(
+        self, ttl_seconds: int = 300, capacity: int = 100
+    ):  # 5 minutes default
         self.ttl_seconds = ttl_seconds
-        self.cache: Dict[str, Tuple[Any, float]] = {}  # (value, timestamp)
+        self.capacity = capacity
+        self.cache: OrderedDict[str, Tuple[Any, float]] = (
+            OrderedDict()
+        )  # (value, timestamp)
         self.hits = 0
         self.misses = 0
 
@@ -82,6 +86,7 @@ class QueryResultCache:
         if key in self.cache:
             value, timestamp = self.cache[key]
             if time.time() - timestamp < self.ttl_seconds:
+                self.cache.move_to_end(key)
                 self.hits += 1
                 return value
             else:
@@ -91,7 +96,17 @@ class QueryResultCache:
         return None
 
     def put(self, key: str, value: Any) -> None:
-        """Put value in cache with current timestamp."""
+        """Put value in cache with current timestamp, evicting oldest if necessary."""
+        if key in self.cache:
+            # Update existing entry
+            self.cache.move_to_end(key)
+        else:
+            if len(self.cache) >= self.capacity:
+                self.clear_expired()
+            if len(self.cache) >= self.capacity:
+                # Remove least recently used item
+                self.cache.popitem(last=False)
+
         self.cache[key] = (value, time.time())
 
     def invalidate(self, key: str) -> None:
@@ -103,7 +118,8 @@ class QueryResultCache:
         """Remove all expired entries."""
         current_time = time.time()
         expired_keys = [
-            key for key, (_, timestamp) in self.cache.items()
+            key
+            for key, (_, timestamp) in self.cache.items()
             if current_time - timestamp >= self.ttl_seconds
         ]
         for key in expired_keys:
@@ -125,7 +141,7 @@ class QueryResultCache:
             "hits": self.hits,
             "misses": self.misses,
             "hit_rate": hit_rate,
-            "ttl_seconds": self.ttl_seconds
+            "ttl_seconds": self.ttl_seconds,
         }
 
 
@@ -138,7 +154,9 @@ class EnhancedCachingManager:
         self.category_record_cache = LRUCache(capacity=50)
 
         # Query result cache for complex queries
-        self.query_cache = QueryResultCache(ttl_seconds=300)  # 5 minutes
+        self.query_cache = QueryResultCache(
+            ttl_seconds=300, capacity=50
+        )  # 5 minutes, max 50 queries
 
         # Cache for email content (heavy data)
         self.email_content_cache = LRUCache(capacity=100)
@@ -152,7 +170,7 @@ class EnhancedCachingManager:
             "query_result_get": 0,
             "query_result_put": 0,
             "content_get": 0,
-            "content_put": 0
+            "content_put": 0,
         }
 
     def get_email_record(self, email_id: int) -> Optional[Dict[str, Any]]:
@@ -170,7 +188,9 @@ class EnhancedCachingManager:
         self.cache_operations["category_record_get"] += 1
         return self.category_record_cache.get(f"category_{category_id}")
 
-    def put_category_record(self, category_id: int, category_record: Dict[str, Any]) -> None:
+    def put_category_record(
+        self, category_id: int, category_record: Dict[str, Any]
+    ) -> None:
         """Put category record in cache."""
         self.cache_operations["category_record_put"] += 1
         self.category_record_cache.put(f"category_{category_id}", category_record)
@@ -230,5 +250,5 @@ class EnhancedCachingManager:
             "category_record_cache": self.category_record_cache.get_stats(),
             "query_cache": self.query_cache.get_stats(),
             "email_content_cache": self.email_content_cache.get_stats(),
-            "operations": self.cache_operations.copy()
+            "operations": self.cache_operations.copy(),
         }
