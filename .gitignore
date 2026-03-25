@@ -90,3 +90,6 @@ original_readme.md!.agent/
 
 # Dolt database files (added by bd init)
 .dolt/
+
+# Taskmaster
+.taskmaster/
