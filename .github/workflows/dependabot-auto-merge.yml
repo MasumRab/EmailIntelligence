@@ -13,7 +13,8 @@ jobs:
   auto-merge:
     runs-on: ubuntu-latest
     # Only run for Dependabot PRs that are not drafts
-    if: github.actor == 'dependabot[bot]' && !github.event.pull_request.draft
+    # Check PR author identity to handle reopened PRs
+    if: github.event.pull_request.user.login == 'dependabot[bot]' && !github.event.pull_request.draft
     
     steps:
       - name: Check if PR is from a fork
@@ -31,16 +32,18 @@ jobs:
             echo "is_fork=true" >> $GITHUB_OUTPUT
           fi
 
-      - name: Check if PR is mergeable
+      - name: Check if PR is mergeable via API
         id: check-mergeable
         if: steps.check-fork.outputs.is_fork == 'false'
         run: |
-          echo "Checking PR #${{ github.event.pull_request.number }} mergeable state..."
-          echo "Current mergeable state: ${{ github.event.pull_request.mergeable_state }}"
-          echo "Draft: ${{ github.event.pull_request.draft }}"
+          PR_NUM=${{ github.event.pull_request.number }}
+          echo "Checking PR #$PR_NUM mergeable state via API..."
           
-          # Get the PR mergeable state
-          PR_STATE="${{ github.event.pull_request.mergeable_state }}"
+          # Query API for fresh mergeable state
+          PR_STATE=$(gh pr view $PR_NUM --json mergeStateStatus -q '.mergeStateStatus')
+          echo "Current mergeable state from API: $PR_STATE"
+          
+          # Check if PR is in a mergeable state
           if [[ "$PR_STATE" == "clean" || "$PR_STATE" == "unstable" || "$PR_STATE" == "has_hooks" ]]; then
             echo "PR is in mergeable state: $PR_STATE"
             echo "mergeable=true" >> $GITHUB_OUTPUT
@@ -65,8 +68,9 @@ jobs:
         id: recheck-mergeable
         run: |
           echo "Re-checking mergeable state via API..."
+          PR_NUM=${{ github.event.pull_request.number }}
           # Use gh pr view to get fresh mergeable state
-          PR_STATE=$(gh pr view ${{ github.event.pull_request.number }} --json mergeableState -q '.mergeableState')
+          PR_STATE=$(gh pr view $PR_NUM --json mergeStateStatus -q '.mergeStateStatus')
           echo "Current mergeable state from API: $PR_STATE"
           
           if [[ "$PR_STATE" == "clean" || "$PR_STATE" == "unstable" || "$PR_STATE" == "has_hooks" ]]; then
@@ -82,14 +86,26 @@ jobs:
           PR_NUM=${{ github.event.pull_request.number }}
           echo "Processing Dependabot PR #$PR_NUM"
           
-          # Get current status
-          gh pr view $PR_NUM --json state,mergeable,mergeableState
+          # Check current review status
+          REVIEW_DECISION=$(gh pr view $PR_NUM --json reviewDecision -q '.reviewDecision')
+          echo "Current review decision: $REVIEW_DECISION"
           
-          # Approve the PR first
-          gh pr review $PR_NUM --approve --body "✅ CI checks passed! Auto-merging this Dependabot PR." || echo "PR already approved or review failed"
+          # Approve the PR only if not already approved
+          if [[ "$REVIEW_DECISION" != "APPROVED" ]]; then
+            gh pr review $PR_NUM --approve --body "✅ CI checks passed! Auto-merging this Dependabot PR."
+          else
+            echo "PR already approved"
+          fi
           
           # Enable auto-merge
-          gh pr merge --auto --merge $PR_NUM || echo "Auto-merge failed or already enabled"
+          gh pr merge --auto --merge $PR_NUM
+          
+          # Verify auto-merge was enabled
+          AUTO_MERGE=$(gh pr view $PR_NUM --json autoMergeRequest -q '.autoMergeRequest')
+          if [[ "$AUTO_MERGE" == "null" || -z "$AUTO_MERGE" ]]; then
+            echo "ERROR: Auto-merge was not enabled properly"
+            exit 1
+          fi
           
           echo "Auto-merge processing complete for PR #$PR_NUM"
         env:

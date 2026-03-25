@@ -23,6 +23,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from dotenv import load_dotenv
+from google.auth.exceptions import RefreshError
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
@@ -279,11 +280,34 @@ class GmailDataCollector:
         if creds and (creds.valid or (creds.expired and creds.refresh_token)):
             try:
                 if creds.expired and creds.refresh_token:
-                    creds.refresh(Request())
-                    self._store_credentials(creds)
+                    # Retry refresh with exponential backoff for transient failures
+                    max_retries = 3
+                    base_delay = 1
+                    for attempt in range(max_retries):
+                        try:
+                            creds.refresh(Request())
+                            self._store_credentials(creds)
+                            break
+                        except (RefreshError, HttpError) as e:
+                            if attempt < max_retries - 1:
+                                delay = base_delay * (2 ** attempt)
+                                self.logger.warning(
+                                    f"Credential refresh attempt {attempt + 1} failed: {e}. "
+                                    f"Retrying in {delay}s..."
+                                )
+                                time.sleep(delay)
+                            else:
+                                self.logger.error(
+                                    f"Credential refresh failed after {max_retries} attempts: {e}"
+                                )
+                                raise
                 self.gmail_service = build("gmail", "v1", credentials=creds)
+            except RefreshError as e:
+                self.logger.error(f"Error refreshing credentials: {e}")
+            except HttpError as e:
+                self.logger.error(f"Error building Gmail service: {e}")
             except Exception as e:
-                self.logger.error(f"Error with credentials: {e}")
+                self.logger.error(f"Unexpected error with credentials: {e}")
 
     def _store_credentials(self, creds):
         """Stores the API credentials to a token file."""
