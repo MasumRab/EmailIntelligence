@@ -126,3 +126,7 @@ ehthumbs.db
 !/.qwen/**
 !/.claude/**
 !docs/agents/**
+
+# Config analysis artifacts
+CONFIG_ANALYSIS.md
+CLEANUP_CHECKLIST.md
