@@ -8,6 +8,100 @@
 
 ---
 
+## Branch State Overview
+
+### Current Branch State for EmailIntelligenceAider
+- **Current checked out**: `orchestration-tools`
+- **Remote**: `origin`
+- **Status**: Clean, up to date with origin
+
+### Local Branches (12 total) - ALL have tracking remotes:
+
+| Branch | Tracking | Status |
+|--------|----------|--------|
+| 001-agent-context-control | origin/001-agent-context-control | |
+| 001-command-registry-integration | origin/001-command-registry-integration | |
+| 001-orchestration-tools-consistency | origin/001-orchestration-tools-consistency | |
+| 001-orchestration-tools-verification-review | origin/001-orchestration-tools-verification-review | |
+| feature/task-18-import-validation-test | origin/feature/task-18-import-validation-test | |
+| main | origin/main | |
+| migration-backend-to-src-backend | origin/migration-backend-to-src-backend | |
+| **orchestration-tools** | origin/orchestration-tools | **CHECKED OUT** ⭐ |
+| orchestration-tools-changes-emailintelligence-cli-20251112 | origin/orchestration-tools-changes-emailintelligence-cli-20251112 | |
+| orchestration-tools-changes-recovery-framework | origin/orchestration-tools-changes-recovery-framework | |
+| scientific | origin/scientific | |
+| task-15-backup-recovery | origin/task-15-backup-recovery | |
+
+### Key Observations:
+- All 12 local branches have tracking remotes ✓
+- No orphan local branches
+- No branches exist only on remote
+- `orchestration-tools` is the canonical source branch
+- `scientific` has significant divergence (247 ahead, 529 behind origin/scientific)
+
+---
+
+### Branch Checkout Instructions
+
+**Navigation:**
+```bash
+cd ~/github/EmailIntelligenceAider
+```
+
+**For each recommended action, specify the exact branch to checkout:**
+
+1. **To fix setup/launch.py conflicts (82 markers on main and orchestration-tools):**
+   ```bash
+   # Fix on main first
+   git checkout main
+   # Resolve conflicts in setup/launch.py
+   
+   # Then fix on orchestration-tools (canonical)
+   git checkout orchestration-tools
+   # Resolve conflicts and push
+   git push origin orchestration-tools
+   ```
+
+2. **To fix CLAUDE.md gitignore issue:**
+   ```bash
+   git checkout orchestration-tools
+   # Edit .gitignore line 241 to remove CLAUDE.md
+   # Commit and push
+   git add .gitignore
+   git commit -m "fix: remove CLAUDE.md from gitignore"
+   git push origin orchestration-tools
+   ```
+
+3. **To fix AGENTS.md conflicts on orchestration-tools-changes-recovery-framework:**
+   ```bash
+   git checkout orchestration-tools-changes-recovery-framework
+   # Resolve 3 conflict markers in AGENTS.md
+   git push origin orchestration-tools-changes-recovery-framework
+   ```
+
+4. **To sync with main (65 commits behind):**
+   ```bash
+   git checkout main
+   git pull origin main
+   # Or rebase onto main from orchestration-tools
+   git checkout orchestration-tools
+   git rebase main
+   ```
+
+**Push/pull commands for each branch:**
+```bash
+# Pull latest for tracked branch
+git pull origin <branch-name>
+
+# Push changes
+git push origin <branch-name>
+
+# Force push (if needed)
+git push --force-with-lease origin <branch-name>
+```
+
+---
+
 ## Latest Update (2026-03-25)
 
 **COMMIT c6238b87 PUSHED:** Comprehensive orchestration workflow and branch analysis tools
@@ -176,18 +270,18 @@ These are local-only, generated, or agent-specific files that should be gitignor
 
 Actions ordered by priority for the `orchestration-tools` branch (canonical source):
 
-| Priority | Action | Files Affected | Risk |
-|----------|--------|----------------|------|
-| **P0** | Resolve `setup/launch.py` conflict markers (82 markers) | 1 file | 🔴 HIGH — file is non-functional |
-| **P1** | Remove `CLAUDE.md` from `.gitignore` line 241 | .gitignore | 🔴 HIGH — project config missing from git |
-| **P1** | Re-add/create `CLAUDE.md` and track it | CLAUDE.md | 🔴 HIGH — project config must be tracked |
-| **P2** | Untrack 15 agent config files (see REMOVE list above) | 15 files | 🟡 MEDIUM — clutter, potential secret leak |
-| **P2** | Add missing `.gitignore` patterns (`.specify/templates/`, `.claude/settings.local.json`, `IFLOW.md`) | .gitignore | 🟡 MEDIUM — prevents re-tracking |
-| **P3** | Resolve `AGENTS.md` conflict markers on `orchestration-tools-changes-recovery-framework` | 1 file, 1 branch | 🟡 MEDIUM — 3 markers in 21751B file |
-| **P3** | Resolve `.gitignore` conflict markers on 3 branches | 1 file, 3 branches | 🟡 MEDIUM — 1 marker each |
-| **P4** | Push commit `136c1245` (76 files untracked) | n/a | 🟢 LOW — already committed, just needs push |
-| **P4** | Evaluate `pyproject.toml` strategy (root stub vs. full config) | 1 file | 🟢 LOW — functional divergence |
-| **P5** | Propagate cleanup to all 11 other branches | all config files | 🟢 LOW — after canonical is clean |
+| Priority | Action | Files Affected | Git Commands | Risk |
+|----------|--------|----------------|--------------|------|
+| **P0** | Resolve `setup/launch.py` conflict markers (82 markers) | 1 file | `git checkout main` → resolve → `git checkout orchestration-tools` → resolve → `git push origin orchestration-tools` | 🔴 HIGH — file is non-functional |
+| **P1** | Remove `CLAUDE.md` from `.gitignore` line 241 | .gitignore | `git checkout orchestration-tools` → edit .gitignore line 241 → `git add .gitignore` → `git commit -m "fix: remove CLAUDE.md from gitignore"` → `git push origin orchestration-tools` | 🔴 HIGH — project config missing from git |
+| **P1** | Re-add/create `CLAUDE.md` and track it | CLAUDE.md | `git checkout orchestration-tools` → create/restore CLAUDE.md → `git add CLAUDE.md` → `git commit -m "feat: add CLAUDE.md to tracking"` → `git push` | 🔴 HIGH — project config must be tracked |
+| **P2** | Untrack 15 agent config files (see REMOVE list above) | 15 files | `git checkout orchestration-tools` → update .gitignore → `git rm --cached <files>` → `git add .gitignore` → `git commit -m "chore: untrack local agent configs"` → `git push` | 🟡 MEDIUM — clutter, potential secret leak |
+| **P2** | Add missing `.gitignore` patterns (`.specify/templates/`, `.claude/settings.local.json`, `IFLOW.md`) | .gitignore | `git checkout orchestration-tools` → edit .gitignore → `git add .gitignore` → `git commit -m "chore: add missing gitignore patterns"` → `git push` | 🟡 MEDIUM — prevents re-tracking |
+| **P3** | Resolve `AGENTS.md` conflict markers on `orchestration-tools-changes-recovery-framework` | 1 file, 1 branch | `git checkout orchestration-tools-changes-recovery-framework` → resolve 3 markers → `git add AGENTS.md` → `git commit -m "fix: resolve AGENTS.md conflicts"` → `git push origin orchestration-tools-changes-recovery-framework` | 🟡 MEDIUM — 3 markers in 21751B file |
+| **P3** | Resolve `.gitignore` conflict markers on 3 branches | 1 file, 3 branches | For each branch: `git checkout <branch>` → resolve → `git add .gitignore` → `git commit` → `git push` | 🟡 MEDIUM — 1 marker each |
+| **P4** | Sync with main (65 commits behind) | n/a | `git checkout orchestration-tools` → `git rebase main` → resolve conflicts if any → `git push origin orchestration-tools` (force if needed) | 🟢 LOW — already committed, just needs push |
+| **P4** | Evaluate `pyproject.toml` strategy (root stub vs. full config) | 1 file | Review and decide → implement → commit → push | 🟢 LOW — functional divergence |
+| **P5** | Propagate cleanup to all 11 other branches | all config files | `git checkout <target-branch>` → `git merge orchestration-tools` or cherry-pick → resolve → push → repeat for all branches | 🟢 LOW — after canonical is clean |
 
 ---
 
