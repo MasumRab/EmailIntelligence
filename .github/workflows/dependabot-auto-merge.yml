@@ -35,12 +35,14 @@ jobs:
       - name: Check if PR is mergeable via API
         id: check-mergeable
         if: steps.check-fork.outputs.is_fork == 'false'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           PR_NUM=${{ github.event.pull_request.number }}
           echo "Checking PR #$PR_NUM mergeable state via API..."
           
-          # Query API for fresh mergeable state
-          PR_STATE=$(gh pr view $PR_NUM --json mergeStateStatus -q '.mergeStateStatus')
+          # Query API for fresh mergeable state (normalize to lowercase for comparison)
+          PR_STATE=$(gh pr view "$PR_NUM" --json mergeStateStatus -q '.mergeStateStatus' | tr '[:upper:]' '[:lower:]')
           echo "Current mergeable state from API: $PR_STATE"
           
           # Check if PR is in a mergeable state
@@ -66,11 +68,13 @@ jobs:
       - name: Re-check mergeable state after waiting
         if: steps.check-fork.outputs.is_fork == 'false' && steps.check-mergeable.outputs.mergeable == 'false'
         id: recheck-mergeable
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           echo "Re-checking mergeable state via API..."
           PR_NUM=${{ github.event.pull_request.number }}
-          # Use gh pr view to get fresh mergeable state
-          PR_STATE=$(gh pr view $PR_NUM --json mergeStateStatus -q '.mergeStateStatus')
+          # Use gh pr view to get fresh mergeable state (normalize to lowercase)
+          PR_STATE=$(gh pr view "$PR_NUM" --json mergeStateStatus -q '.mergeStateStatus' | tr '[:upper:]' '[:lower:]')
           echo "Current mergeable state from API: $PR_STATE"
           
           if [[ "$PR_STATE" == "clean" || "$PR_STATE" == "unstable" || "$PR_STATE" == "has_hooks" ]]; then
