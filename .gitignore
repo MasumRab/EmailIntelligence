@@ -130,3 +130,6 @@ ehthumbs.db
 # Config analysis artifacts
 CONFIG_ANALYSIS.md
 CLEANUP_CHECKLIST.md
+
+# Agent-specific directories
+.sisyphus/
