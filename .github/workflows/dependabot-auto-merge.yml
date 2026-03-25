@@ -3,8 +3,6 @@ name: Dependabot Auto-Merge
 on:
   pull_request:
     types: [opened, synchronize, reopened]
-  pull_request_target:
-    types: [opened, synchronize, reopened]
 
 permissions:
   contents: write
@@ -14,11 +12,28 @@ permissions:
 jobs:
   auto-merge:
     runs-on: ubuntu-latest
+    # Only run for Dependabot PRs that are not drafts
     if: github.actor == 'dependabot[bot]' && !github.event.pull_request.draft
     
     steps:
+      - name: Check if PR is from a fork
+        id: check-fork
+        run: |
+          echo "PR head repo: ${{ github.event.pull_request.head.repo.full_name }}"
+          echo "Base repo: ${{ github.repository }}"
+          
+          # Check if PR is from the same repository (not a fork)
+          if [[ "${{ github.event.pull_request.head.repo.full_name }}" == "${{ github.repository }}" ]]; then
+            echo "PR is from the same repository - safe to proceed"
+            echo "is_fork=false" >> $GITHUB_OUTPUT
+          else
+            echo "PR is from a fork - skipping for security"
+            echo "is_fork=true" >> $GITHUB_OUTPUT
+          fi
+
       - name: Check if PR is mergeable
         id: check-mergeable
+        if: steps.check-fork.outputs.is_fork == 'false'
         run: |
           echo "Checking PR #${{ github.event.pull_request.number }} mergeable state..."
           echo "Current mergeable state: ${{ github.event.pull_request.mergeable_state }}"
@@ -35,7 +50,7 @@ jobs:
           fi
       
       - name: Wait for required checks if not mergeable
-        if: steps.check-mergeable.outputs.mergeable == 'false'
+        if: steps.check-fork.outputs.is_fork == 'false' && steps.check-mergeable.outputs.mergeable == 'false'
         uses: fountainhead/action-wait-for-check@v1.2.0
         id: wait-for-ci
         with:
@@ -46,12 +61,14 @@ jobs:
           intervalSeconds: 10
         
       - name: Re-check mergeable state after waiting
-        if: steps.check-mergeable.outputs.mergeable == 'false'
+        if: steps.check-fork.outputs.is_fork == 'false' && steps.check-mergeable.outputs.mergeable == 'false'
         id: recheck-mergeable
         run: |
-          echo "Re-checking mergeable state after CI..."
-          PR_STATE="${{ github.event.pull_request.mergeable_state }}"
-          echo "Current mergeable state: $PR_STATE"
+          echo "Re-checking mergeable state via API..."
+          # Use gh pr view to get fresh mergeable state
+          PR_STATE=$(gh pr view ${{ github.event.pull_request.number }} --json mergeableState -q '.mergeableState')
+          echo "Current mergeable state from API: $PR_STATE"
+          
           if [[ "$PR_STATE" == "clean" || "$PR_STATE" == "unstable" || "$PR_STATE" == "has_hooks" ]]; then
             echo "mergeable=true" >> $GITHUB_OUTPUT
           else
@@ -59,7 +76,7 @@ jobs:
           fi
         
       - name: Auto-merge Dependabot PR
-        if: steps.check-mergeable.outputs.mergeable == 'true' || steps.recheck-mergeable.outputs.mergeable == 'true'
+        if: steps.check-fork.outputs.is_fork == 'false' && (steps.check-mergeable.outputs.mergeable == 'true' || steps.recheck-mergeable.outputs.mergeable == 'true')
         run: |
           set -e
           PR_NUM=${{ github.event.pull_request.number }}
