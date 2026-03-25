@@ -238,9 +238,9 @@ config.local.*
 # Agent-specific instruction MD files (local preferences)
 GEMINI.md
 QWEN.md
-CLAUDE.md
 CRUSH.md
 LLXPRT.md
+# Note: CLAUDE.md is project-level and MUST be tracked
 
 # Specify scripts (skeleton examples, not project-specific)
 .specify/scripts/
