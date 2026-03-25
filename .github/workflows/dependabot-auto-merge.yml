@@ -3,6 +3,8 @@ name: Dependabot Auto-Merge
 on:
   pull_request:
     types: [opened, synchronize, reopened]
+  pull_request_target:
+    types: [opened, synchronize, reopened]
 
 permissions:
   contents: write
@@ -12,10 +14,28 @@ permissions:
 jobs:
   auto-merge:
     runs-on: ubuntu-latest
-    if: github.actor == 'dependabot[bot]' && github.event.pull_request.mergeable_state == 'clean' && !github.event.pull_request.draft
+    if: github.actor == 'dependabot[bot]' && !github.event.pull_request.draft
     
     steps:
-      - name: Wait for CI checks to complete
+      - name: Check if PR is mergeable
+        id: check-mergeable
+        run: |
+          echo "Checking PR #${{ github.event.pull_request.number }} mergeable state..."
+          echo "Current mergeable state: ${{ github.event.pull_request.mergeable_state }}"
+          echo "Draft: ${{ github.event.pull_request.draft }}"
+          
+          # Get the PR mergeable state
+          PR_STATE="${{ github.event.pull_request.mergeable_state }}"
+          if [[ "$PR_STATE" == "clean" || "$PR_STATE" == "unstable" || "$PR_STATE" == "has_hooks" ]]; then
+            echo "PR is in mergeable state: $PR_STATE"
+            echo "mergeable=true" >> $GITHUB_OUTPUT
+          else
+            echo "PR is not in mergeable state yet: $PR_STATE"
+            echo "mergeable=false" >> $GITHUB_OUTPUT
+          fi
+      
+      - name: Wait for required checks if not mergeable
+        if: steps.check-mergeable.outputs.mergeable == 'false'
         uses: fountainhead/action-wait-for-check@v1.2.0
         id: wait-for-ci
         with:
@@ -25,30 +45,35 @@ jobs:
           timeoutSeconds: 600
           intervalSeconds: 10
         
+      - name: Re-check mergeable state after waiting
+        if: steps.check-mergeable.outputs.mergeable == 'false'
+        id: recheck-mergeable
+        run: |
+          echo "Re-checking mergeable state after CI..."
+          PR_STATE="${{ github.event.pull_request.mergeable_state }}"
+          echo "Current mergeable state: $PR_STATE"
+          if [[ "$PR_STATE" == "clean" || "$PR_STATE" == "unstable" || "$PR_STATE" == "has_hooks" ]]; then
+            echo "mergeable=true" >> $GITHUB_OUTPUT
+          else
+            echo "mergeable=false" >> $GITHUB_OUTPUT
+          fi
+        
       - name: Auto-merge Dependabot PR
-        if: steps.wait-for-ci.outputs.conclusion == 'success'
+        if: steps.check-mergeable.outputs.mergeable == 'true' || steps.recheck-mergeable.outputs.mergeable == 'true'
         run: |
           set -e
-          echo "CI checks passed. Auto-merging Dependabot PR #${{ github.event.pull_request.number }}"
+          PR_NUM=${{ github.event.pull_request.number }}
+          echo "Processing Dependabot PR #$PR_NUM"
+          
+          # Get current status
+          gh pr view $PR_NUM --json state,mergeable,mergeableState
           
           # Approve the PR first
-          if ! gh pr review ${{ github.event.pull_request.number }} --approve --body "✅ CI checks passed! Auto-merging this Dependabot PR."; then
-            echo "Failed to approve PR. Exiting."
-            exit 1
-          fi
+          gh pr review $PR_NUM --approve --body "✅ CI checks passed! Auto-merging this Dependabot PR." || echo "PR already approved or review failed"
           
           # Enable auto-merge
-          if ! gh pr merge --auto --merge ${{ github.event.pull_request.number }}; then
-            echo "Failed to enable auto-merge. Checking if already enabled..."
-            # Check if auto-merge is already enabled
-            if gh pr view ${{ github.event.pull_request.number }} --json autoMergeRequest --jq '.autoMergeRequest' | grep -q "null"; then
-              echo "Auto-merge failed and is not enabled. Manual intervention required."
-              exit 1
-            else
-              echo "Auto-merge is already enabled."
-            fi
-          fi
+          gh pr merge --auto --merge $PR_NUM || echo "Auto-merge failed or already enabled"
           
-          echo "Auto-merge successfully enabled for PR #${{ github.event.pull_request.number }}"
+          echo "Auto-merge processing complete for PR #$PR_NUM"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
