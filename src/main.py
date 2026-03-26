@@ -102,9 +102,14 @@ def create_app() -> FastAPI:
         app.add_middleware(ContextControlMiddleware)
     
     # Add CORS middleware as expected by both architectures
+    allowed_origins = os.environ.get("ALLOWED_ORIGINS", "").split(",")
+    if not allowed_origins or allowed_origins == [""]:
+        # Fallback to a restrictive default if not specified
+        allowed_origins = []
+
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=["*"],  # Should be configured based on environment
+        allow_origins=allowed_origins,
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],

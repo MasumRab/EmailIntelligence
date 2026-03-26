@@ -114,7 +114,7 @@ class SetupCommand(Command):
                 self._run_command(["sudo", "apt-get", "install", "-y", "notmuch", "python3-notmuch"], "Installing notmuch and python3-notmuch")
             python_exe = self._get_venv_executable("python")
             self._run_command([str(python_exe), "-m", "pip", "install", "uv"], "Installing uv")
-            self._run_command([str(python_exe), "-m", "uv", "pip", "install", "-e", "/home/masum/github/EmailIntelligenceGem/"], "Installing dependencies with uv", cwd=ROOT_DIR)
+            self._run_command([str(python_exe), "-m", "uv", "pip", "install", "-e", str(ROOT_DIR)], "Installing dependencies with uv", cwd=ROOT_DIR)
             logger.info("Dependencies installed successfully")
             return True
         except Exception as e:
