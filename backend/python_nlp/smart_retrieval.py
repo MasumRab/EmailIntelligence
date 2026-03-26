@@ -182,8 +182,8 @@ class GmailRetrievalService:
         if not self.service:
             self.authenticate()
         
-        # Use strategy's max_emails_per_run unless overridden
-        max_to_retrieve = max_emails or strategy.max_emails_per_run
+        # Use strategy's max_emails_per_run unless overridden (zero is a valid override)
+        max_to_retrieve = max_emails if max_emails is not None else strategy.max_emails_per_run
         
         # Get any existing checkpoint for this strategy
         checkpoint = self.get_checkpoint(strategy.name)
@@ -336,14 +336,10 @@ class GmailRetrievalService:
         Returns:
             The extracted email address
         """
-        import re
-        # Pattern to match email addresses in the form 'Name <email>' or just 'email'
-        pattern = r'<([^>]+)>|([^<>\s]+@[^<>\s]+)'
-        match = re.search(pattern, from_header)
-        if match:
-            # Group 1 is for <email> format, group 2 is for plain email format
-            return match.group(1) or match.group(2)
-        return from_header
+        from email.utils import parseaddr
+        # Use parseaddr to robustly extract the email address from the header
+        name, email_addr = parseaddr(from_header)
+        return email_addr if email_addr else from_header
 
 
 async def main():
