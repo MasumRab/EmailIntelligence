@@ -1,7 +1,8 @@
-import pytest
-from unittest.mock import AsyncMock, patch, MagicMock
-from googleapiclient.errors import HttpError
 from http.client import HTTPResponse
+from unittest.mock import AsyncMock, MagicMock, patch
+
+import pytest
+from googleapiclient.errors import HttpError
 
 
 @pytest.fixture

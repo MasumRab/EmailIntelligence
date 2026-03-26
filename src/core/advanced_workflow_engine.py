@@ -586,7 +586,9 @@ class WorkflowManager:
                 # This will raise ValueError if fullpath is not inside workflows_dir_resolved
                 fullpath.relative_to(workflows_dir_resolved)
             except ValueError:
-                logger.error(f"Access to file outside workflow directory is not allowed: {fullpath}")
+                logger.error(
+                    f"Access to file outside workflow directory is not allowed: {fullpath}"
+                )
                 return None
 
             if not fullpath.is_file():

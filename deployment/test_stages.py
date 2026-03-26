@@ -34,8 +34,7 @@ def get_python_executable() -> str:
 
 def _run_pytest(test_path: str, coverage: bool, debug: bool) -> bool:
     """Helper function to run pytest."""
-    python_exe = get_python_executable()
-    cmd = [python_exe, "-m", "pytest"] + test_path.split()
+    cmd = ["uv", "run", "python", "-m", "pytest"] + test_path.split()
     if coverage:
         cmd.extend(["--cov=src", "--cov-report=term-missing"])
     if debug:
@@ -55,7 +54,7 @@ def _run_pytest(test_path: str, coverage: bool, debug: bool) -> bool:
         print("Stderr:\n", e.stderr)
         return False
     except FileNotFoundError:
-        print(f"Error: Python executable not found at {python_exe}")
+        print("Error: uv command not found")
         return False
 
 
@@ -65,8 +64,8 @@ class TestStages:
     def run_unit_tests(self, coverage: bool, debug: bool) -> bool:
         """Runs unit tests."""
         print("\n--- Running Unit Tests ---")
-        # Run unit tests in tests/core and tests/modules
-        success = _run_pytest("tests/core tests/modules", coverage, debug)
+        # Run unit tests in tests directory
+        success = _run_pytest("tests/", coverage, debug)
         print(f"--- Unit Test Result: {'SUCCESS' if success else 'FAILURE'} ---")
         return success
 

@@ -17,7 +17,7 @@ async def demo_mfa():
     # 1. Generate MFA secret
     print("\n1. Generating MFA secret...")
     secret = mfa_service.generate_secret()
-    print(f"   Secret: {secret}")
+    print("   Secret generated and handled securely. (Not displayed)")
     
     # 2. Generate QR code for authenticator app
     print("\n2. Generating QR code for authenticator app setup...")

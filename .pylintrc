@@ -1,4 +1,33 @@
 [MASTER]
+ignore-patterns=
+    ^\.#,
+    __pycache__,
+    venv,
+    .venv,
+    env,
+    node_modules,
+    .eggs,
+    *.egg,
+    build,
+    dist,
+    .pytest_cache,
+    .mypy_cache,
+    temp-backup,
+    worktrees
+ignore-paths=
+    ^venv/,
+    ^\.venv/,
+    ^node_modules/,
+    ^__pycache__/,
+    ^build/,
+    ^dist/,
+    ^\.eggs/,
+    ^temp-backup/,
+    ^worktrees/
+max-line-length=120
+jobs=4
+
+[MESSAGES CONTROL]
 disable=
     C0111, # missing-docstring
     C0103, # invalid-name
@@ -12,12 +41,16 @@ disable=
     R0902, # too-many-instance-attributes
     R0903, # too-few-public-methods
     R0913, # too-many-arguments
+    R0914, # too-many-locals
+    W0212, # protected-access
+    R0801, # duplicate-code
+    C0302, # too-many-lines
+
+[DESIGN]
+max-attributes=7
+max-arguments=5
+max-statements=50
+max-locals=15
 
 [FORMAT]
-max-line-length=100
-
-[SIMILARITIES]
-min-similarity-lines=7
-ignore-comments=yes
-ignore-docstrings=yes
-ignore-imports=yes
+indent-string='    '

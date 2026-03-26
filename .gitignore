@@ -39,6 +39,8 @@ emailintelligence_env/
 .env
 .env.*
 !.env.example
+
+# Credentials and sensitive data
 token.json
 credentials.json
 apikey.json
@@ -86,11 +88,16 @@ coverage/
 diagnosis_message.txt
 performance_metrics_log.jsonl
 models/*.pkl
+logs/
 
 # Keep the docs placeholder
 !docs/.gitkeep
 !.semgrep/
 !.gitignore
+!.git/hooks/
+!.flake8
+!.pylintrc
+!.github/
 
 # Python cache
 __pycache__/
@@ -100,3 +107,11 @@ diagnosis_message.txt
 performance_metrics_log.jsonl
 config/llm_guidelines.local.json
 models/*.pkl
+worktrees/
+
+# Backup files
+*.bak
+*~
+*.backup
+backlog/config.yml.bak
+original_readme.md

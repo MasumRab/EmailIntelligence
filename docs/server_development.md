@@ -1,14 +1,14 @@
 # EmailIntelligence Server Components
 
-This directory contains the server-side components of the EmailIntelligence application. The server is split into multiple parts:
+The server-side components of the EmailIntelligence application are split into multiple parts:
 
-1. **Node.js/TypeScript Backend**: Handles the main application logic, database interactions, and serves the frontend
-2. **Python FastAPI Backend**: Provides AI and NLP capabilities through a REST API
-3. **Python NLP Engine**: Implements the core AI and NLP functionality
+1. **Node.js/TypeScript Backend** (`backend/server-ts/`): Handles the main application logic, database interactions, and serves the frontend
+2. **Python FastAPI Backend** (`src/`): Provides AI and NLP capabilities through a REST API
+3. **Python NLP Engine** (`backend/python_nlp/`): Implements the core AI and NLP functionality
 
 ## Directory Structure
 
-- **Root Directory**: Contains the Node.js/TypeScript backend files
+- **backend/server-ts/**: Contains the Node.js/TypeScript backend files
   - `index.ts` - Main entry point for the Node.js server
   - `routes.ts` - API route definitions
   - `db.ts` - Database connection and models
@@ -18,15 +18,13 @@ This directory contains the server-side components of the EmailIntelligence appl
   - `storage.ts` - File storage utilities
   - `vite.ts` - Vite configuration for serving the frontend
 
-- **backend/python_backend/**: Contains the Python FastAPI backend
+- **src/**: Contains the Python FastAPI backend
   - `main.py` - Main entry point for the FastAPI server
-  - `run_server.py` - Script to run the FastAPI server
-  - `ai_engine.py` - AI engine implementation
+  - `core/` - Core modules (ai_engine, database, etc.)
+  - `models/` - Pydantic models for API requests/responses
+
+- **backend/python_nlp/**: Contains the Python NLP engine
   - `gmail_service.py` - Gmail service implementation
-  - `models.py` - Pydantic models for API requests/responses
-  - `database.py` - Database connection and models
-  - `metrics.py` - Prometheus metrics for monitoring
-  - `performance_monitor.py` - Performance monitoring utilities
   - `smart_filters.py` - Smart filtering implementation
 
 - **backend/python_nlp/**: Contains the core NLP and AI functionality
@@ -53,7 +51,7 @@ npm run dev
 
 ```bash
 # From the project root
-python backend/python_backend/run_server.py
+python -m uvicorn src.main:create_app --factory --host 0.0.0.0 --port 8000
 ```
 
 Or use the unified launcher:

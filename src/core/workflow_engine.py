@@ -1,10 +1,11 @@
 import asyncio
 import logging
 import time
-import psutil  # For memory monitoring
-from typing import Any, Callable, Dict, List, Optional
-import networkx as nx
 from enum import Enum
+from typing import Any, Callable, Dict, List, Optional
+
+import networkx as nx
+import psutil  # For memory monitoring
 
 logger = logging.getLogger(__name__)
 
@@ -159,7 +160,7 @@ class Workflow:
                 source_node = self.nodes[from_node_id]
                 if expected_output not in source_node.outputs:
                     errors.append(
-                    f"Connection from {from_node_id} to {to_node_id}: "
+                        f"Connection from {from_node_id} to {to_node_id}: "
                         f"Output '{expected_output}' does not exist in source node"
                     )
 
@@ -168,7 +169,7 @@ class Workflow:
                 target_node = self.nodes[to_node_id]
                 if expected_input not in target_node.inputs:
                     errors.append(
-                    f"Connection from {from_node_id} to {to_node_id}: "
+                        f"Connection from {from_node_id} to {to_node_id}: "
                         f"Input '{expected_input}' does not exist in target node"
                     )
 
@@ -363,7 +364,7 @@ class WorkflowRunner:
 
                     if retry_count <= self.max_retries:
                         logger.warning(
-                        f"Node {node.name} failed, retrying "
+                            f"Node {node.name} failed, retrying "
                             f"({retry_count}/{self.max_retries}): {str(e)}"
                         )
                     else:
@@ -396,9 +397,8 @@ class WorkflowRunner:
                     if node_to_cleanup in self.node_results:
                         del self.node_results[node_to_cleanup]
                         logger.debug(
-                        f"Cleaned up results for node "
-                            f"{node_to_cleanup} to optimize memory"
-                                )
+                            f"Cleaned up results for node " f"{node_to_cleanup} to optimize memory"
+                        )
 
     async def _run_parallel(self, execution_order, cleanup_schedule):
         """Execute workflow nodes in parallel where possible"""
@@ -492,13 +492,13 @@ class WorkflowRunner:
                     if node_id in cleanup_schedule:
                         for node_to_cleanup in cleanup_schedule[node_id]:
                             if (
-                            node_to_cleanup in self.node_results and
-                            node_to_cleanup not in running_tasks and
-                            node_to_cleanup not in ready_nodes
+                                node_to_cleanup in self.node_results
+                                and node_to_cleanup not in running_tasks
+                                and node_to_cleanup not in ready_nodes
                             ):
                                 del self.node_results[node_to_cleanup]
                                 logger.debug(
-                                f"Cleaned up results for node "
+                                    f"Cleaned up results for node "
                                     f"{node_to_cleanup} to optimize memory"
                                 )
 
@@ -535,7 +535,7 @@ class WorkflowRunner:
 
                 if retry_count <= self.max_retries:
                     logger.warning(
-                    f"Node {node.name} failed, retrying "
+                        f"Node {node.name} failed, retrying "
                         f"({retry_count}/{self.max_retries}): {str(e)}"
                     )
                 else:
