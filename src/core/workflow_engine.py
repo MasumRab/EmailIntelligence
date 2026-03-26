@@ -578,29 +578,30 @@ class WorkflowRunner:
         Calculate which node results can be cleaned up after each node executes.
         This helps optimize memory usage by removing results that are no longer needed.
         """
-        cleanup_schedule = {}
+        cleanup_schedule = {node_id: [] for node_id in execution_order}
+
+        # Build an adjacency list mapping source nodes to all their target nodes
+        # This prevents having to loop through all connections repeatedly
+        node_targets = {node_id: set() for node_id in execution_order}
+        for conn in self.workflow.connections:
+            source = conn["from"]["node_id"]
+            target = conn["to"]["node_id"]
+            if source in node_targets:
+                node_targets[source].add(target)
 
         # For each node in the execution order, determine which previous nodes' results
         # are no longer needed after this node executes
         for i, node_id in enumerate(execution_order):
-            cleanup_schedule[node_id] = []
-
+            subsequent_nodes = set(execution_order[i + 1 :])
             # Check all previous nodes to see if their results are still needed
             for prev_node_id in execution_order[:i]:
                 # Check if any subsequent nodes need the result from prev_node_id
                 still_needed = False
 
-                for subsequent_node_id in execution_order[i + 1 :]:
-                    # Check if there's a connection from prev_node to subsequent_node
-                    for conn in self.workflow.connections:
-                        if (
-                            conn["from"]["node_id"] == prev_node_id
-                            and conn["to"]["node_id"] == subsequent_node_id
-                        ):
-                            still_needed = True
-                            break
-                    if still_needed:
-                        break
+                # If there's an intersection between subsequent nodes and the target nodes
+                # of the previous node, it means the result is still needed
+                if node_targets.get(prev_node_id, set()).intersection(subsequent_nodes):
+                    still_needed = True
 
                 # If not still needed by any subsequent nodes, it can be cleaned up
                 if not still_needed:
@@ -683,3 +684,26 @@ class WorkflowRunner:
         except Exception:
             logger.warning(f"Condition evaluation failed for: {condition}")
             return False
+
+    def _build_node_context(self, node_id: str) -> Dict[str, Any]:
+        """
+        Build the execution context for a specific node by gathering inputs
+        from previous node outputs and the initial context.
+        """
+        node_context = {}
+
+        # First, add variables from the initial context
+        node_context.update(getattr(self, 'execution_context', {}))
+
+        # Then, map outputs from previous nodes based on connections
+        for conn in self.workflow.connections:
+            if conn["to"]["node_id"] == node_id:
+                source_node = conn["from"]["node_id"]
+                source_output = conn["from"]["output"]
+                target_input = conn["to"]["input"]
+
+                # Check if the source node produced this output
+                if source_node in self.node_results and source_output in self.node_results[source_node]:
+                    node_context[target_input] = self.node_results[source_node][source_output]
+
+        return node_context
