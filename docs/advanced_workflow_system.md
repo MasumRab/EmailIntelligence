@@ -170,9 +170,9 @@ The system implements multiple layers of security:
 ### Creating a Simple Workflow
 
 ```python
-from backend.node_engine.workflow_manager import workflow_manager
-from backend.node_engine.node_base import Workflow
-from backend.node_engine.email_nodes import EmailSourceNode, PreprocessingNode, AIAnalysisNode
+from src.backend.node_engine.workflow_manager import workflow_manager
+from src.backend.node_engine.node_base import Workflow
+from src.backend.node_engine.email_nodes import EmailSourceNode, PreprocessingNode, AIAnalysisNode
 
 # Create a new workflow
 workflow = Workflow(name="Email Processing Pipeline")
@@ -187,7 +187,7 @@ workflow.add_node(nlp_node)
 workflow.add_node(output_node)
 
 # Connect nodes
-from backend.node_engine.node_base import Connection
+from src.backend.node_engine.node_base import Connection
 workflow.add_connection(Connection("input_1", "emails", "nlp_1", "emails"))
 workflow.add_connection(Connection("nlp_1", "processed_emails", "output_1", "emails"))
 
@@ -198,7 +198,7 @@ file_path = workflow_manager.save_workflow(workflow)
 ### Executing a Workflow
 
 ```python
-from backend.node_engine.workflow_engine import workflow_engine
+from src.backend.node_engine.workflow_engine import workflow_engine
 
 # Execute with sample data
 execution_context = await workflow_engine.execute_workflow(

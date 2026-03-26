@@ -1,18 +1,18 @@
 # EmailIntelligence Python Environment Management
 
-This document provides a summary of the Python Environment Management implementation for the EmailIntelligence project.
+This document summarizes the Python Environment Management implementation for the EmailIntelligence project.
 
 ## Overview and Recommended Setup
 
-The primary method for setting up and managing the Python environment for EmailIntelligence is through the main launcher script, `launch.py`. This script automates several key processes:
+The `launch.py` script is the primary method for setting up and managing the Python environment. It automates key processes:
 
-*   **Environment Management**: Automatically detects and uses conda environments if available, otherwise creates a Python virtual environment (named `venv` by default) to isolate project dependencies.
-*   **Dependency Installation**: Installs required Python packages from predefined requirements files using uv or Poetry.
+*   **Environment Management**: Automatically detects and uses Conda environments or creates a Python virtual environment (`venv`) to isolate dependencies.
+*   **Dependency Installation**: Installs required Python packages from predefined requirements files using `uv` or Poetry.
 *   **NLTK Data Download**: Ensures necessary NLTK (Natural Language Toolkit) data is available.
-*   **Application Launching**: Serves as the main entry point to run the application, tests, and other utilities.
+*   **Application Launching**: Serves as the main entry point for running the application, tests, and other utilities.
 
 **Note on `setup_python.sh`:**
-The shell script `scripts/setup_python.sh` is **DEPRECATED** and should no longer be used for environment setup. It is considered a **legacy script** and may be removed in future versions. **`launch.py` is the sole recommended and comprehensive tool for creating and managing the project's Python virtual environment and dependencies.** All users **must** prioritize using `launch.py` for a consistent and correct environment setup.
+The `scripts/setup_python.sh` script is **deprecated** and should no longer be used. It is a legacy script and may be removed. **`launch.py` is the sole recommended tool for consistent and correct environment setup and dependency management.** All users should prioritize its use.
 
 ## Key Components Managed by `launch.py`
 
@@ -133,48 +133,13 @@ The functionality previously associated with a separate `env_manager.py` is now 
 - System Information gathering
 -->
 
-### Extensions Framework Features
 
-The extensions framework provides the following features:
 
-- **Extension Discovery**: Automatically discovers available extensions
-- **Extension Loading**: Loads extensions at runtime
-- **Extension Initialization**: Initializes extensions with configuration
-- **Extension Shutdown**: Properly shuts down extensions
-- **Extension Management**: Installs, updates, and uninstalls extensions
-- **Extension Configuration**: Manages configuration for extensions
 
-### Models Management Features
 
-The models management system provides the following features:
 
-- **Model Download**: Downloads models from URLs
-- **Model Verification**: Verifies model integrity using checksums
-- **Model Configuration**: Manages configuration for different models
-- **Model Listing**: Lists available models
-- **Model Deletion**: Deletes models when no longer needed
 
-### Application Execution Features
 
-The application execution system provides the following features:
-
-- **Development Mode**: Runs with hot-reloading for quick development
-- **Testing Mode**: Runs in a testing environment
-- **Staging Mode**: Runs in a staging environment
-- **Production Mode**: Runs in a production environment
-- **API-Only Mode**: Runs only the API server
-- **Frontend-Only Mode**: Runs only the frontend
-
-### Testing Framework Features
-
-The testing framework provides the following features:
-
-- **Unit Testing**: Tests individual components
-- **Integration Testing**: Tests component interactions
-- **End-to-End Testing**: Tests the entire application
-- **Performance Testing**: Tests application performance
-- **Security Testing**: Tests application security
-- **Coverage Reporting**: Generates test coverage reports
 
 ## Usage Examples
 
@@ -225,38 +190,7 @@ python launch.py --loglevel DEBUG --stage dev
 5. **Maintainability**: Separates concerns into different modules for easier maintenance
 6. **Testability**: Includes comprehensive testing support for different stages
 
-## Extension System
 
-The extension system allows for modular enhancements to the application. Extensions are discovered automatically and loaded at runtime. Each extension can provide additional functionality or modify existing functionality.
-
-### Extension Structure
-
-An extension consists of the following files:
-
-- **Main Module**: Contains the extension code
-- **Metadata File**: Contains information about the extension
-- **README File**: Contains documentation for the extension
-- **Requirements File**: Contains dependencies for the extension
-
-### Extension Lifecycle
-
-Extensions go through the following lifecycle:
-
-1. **Discovery**: Extensions are discovered in the extensions directory
-2. **Loading**: Extension modules are loaded into memory
-3. **Initialization**: Extensions are initialized with configuration
-4. **Execution**: Extensions provide functionality during application execution
-5. **Shutdown**: Extensions are properly shut down when the application exits
-
-### Creating Extensions
-
-New extensions can be created using the `--create-extension` argument:
-
-```bash
-python launch.py --create-extension my_extension
-```
-
-This creates a template for a new extension with the necessary files.
 
 ## Conclusion
 
