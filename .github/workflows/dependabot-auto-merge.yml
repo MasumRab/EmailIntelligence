@@ -19,10 +19,6 @@ jobs:
         run: |
           echo "Waiting for CI checks to complete on PR #${{ github.event.pull_request.number }}"
           
-          # Extract the head branch SHA
-          PR_HEAD_SHA="${{ github.event.pull_request.head.sha }}"
-          echo "PR Head SHA: $PR_HEAD_SHA"
-          
           # Wait for up to 10 minutes for CI to complete
           MAX_ATTEMPTS=60
           INTERVAL=10
@@ -30,13 +26,35 @@ jobs:
           for ((i=1; i<=MAX_ATTEMPTS; i++)); do
             echo "Checking CI status... (attempt $i/$MAX_ATTEMPTS)"
             
-            # Get the status of all checks for this PR
-            STATUS=$(gh pr checks "${{ github.event.pull_request.number }}" --state pending --json status -q '. | length' 2>/dev/null || echo "0")
+            # Get the status of all checks for this PR - use set +e to detect failures
+            set +e
+            STATUS=$(gh pr checks "${{ github.event.pull_request.number }}" --state pending --json status -q '. | length' 2>/dev/null)
+            STATUS_EXIT=$?
+            set -e
+            
+            # Validate we got a numeric response; fail on any error
+            if [ $STATUS_EXIT -ne 0 ] || ! echo "$STATUS" | grep -qE '^[0-9]+$'; then
+              echo "Failed to query pending checks (exit: $STATUS_EXIT, output: '$STATUS'). Retrying..."
+              sleep $INTERVAL
+              continue
+            fi
+            
             echo "Pending checks: $STATUS"
             
             if [ "$STATUS" -eq "0" ]; then
               # No more pending checks, verify all passed
-              FAILURES=$(gh pr checks "${{ github.event.pull_request.number }}" --state failure -q '. | length' 2>/dev/null || echo "0")
+              set +e
+              FAILURES=$(gh pr checks "${{ github.event.pull_request.number }}" --state failure --json status -q '. | length' 2>/dev/null)
+              FAILURES_EXIT=$?
+              set -e
+              
+              # Validate we got a numeric response; fail on any error
+              if [ $FAILURES_EXIT -ne 0 ] || ! echo "$FAILURES" | grep -qE '^[0-9]+$'; then
+                echo "Failed to query failed checks (exit: $FAILURES_EXIT, output: '$FAILURES'). Retrying..."
+                sleep $INTERVAL
+                continue
+              fi
+              
               if [ "$FAILURES" -eq "0" ]; then
                 echo "All CI checks passed!"
                 exit 0
@@ -51,6 +69,8 @@ jobs:
           
           echo "Timeout waiting for CI checks"
           exit 1
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         
       - name: Auto-merge Dependabot PR
         run: |
