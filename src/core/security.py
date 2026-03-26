@@ -246,17 +246,10 @@ def validate_path_safety(path: Union[str, pathlib.Path], base_dir: Optional[Unio
 
 
 
-        # Common directory traversal patterns
-
-        traversal_patterns = ['..', '\\', '//', '/./', '\\./']
-
-        for pattern in traversal_patterns:
-
-            if pattern in str(path):
-
-                logger.warning(f"Potential directory traversal detected in path: {path}")
-
-                return False
+        # Check for directory traversal attempts by looking for '..' as a path segment
+        if any(part == '..' for part in path_obj.parts):
+            logger.warning(f"Potential directory traversal detected in path: {path}")
+            return False
 
 
 
