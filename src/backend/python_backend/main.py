@@ -90,12 +90,7 @@ class ErrorHandlingMiddleware(BaseHTTPMiddleware):
             with error_lock:
                 # Ensure status_code is defined before use
 
-                if isinstance(exc, AppException):
-                    status_code = exc.status_code
-                elif isinstance(exc, BaseAppException):
-
                 if isinstance(exc, (AppException, BaseAppException)):
-
                     status_code = exc.status_code
                 elif isinstance(exc, ValidationError):
                     status_code = 422
@@ -156,7 +151,6 @@ class ErrorHandlingMiddleware(BaseHTTPMiddleware):
 
 
 
->>>>>>> f92b72e (feat: Enhance core system with security, database backups, and performance improvements)
 # Initialize FastAPI app with settings
 app = FastAPI(
     title=settings.app_name,

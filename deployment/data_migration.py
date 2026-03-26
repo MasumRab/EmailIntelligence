@@ -19,18 +19,17 @@ import argparse
 import gzip
 import json
 import logging
-import os
 import sqlite3
 import sys
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 # Add src to path for imports (calculate relative to this script\'s location)
 script_dir = Path(__file__).parent
 project_root = script_dir.parent
 src_path = project_root / "src"
 sys.path.insert(0, str(src_path))
-from src.core.security import PathValidator, validate_path_safety
+from src.core.security import PathValidator, validate_path_safety  # noqa: E402
 
 # Configure logging
 logging.basicConfig(
