@@ -90,6 +90,8 @@ async def run_training(job_id: str, model_config: ModelConfig):
     """
     try:
         import os
+        import random
+        import time
 
         import pandas as pd
         from sklearn.feature_extraction.text import TfidfVectorizer

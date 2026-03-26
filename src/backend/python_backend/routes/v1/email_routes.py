@@ -6,7 +6,7 @@ Version 1 API routes for email operations
 Following the new architectural patterns with service layer and API versioning
 """
 
-from typing import Optional
+from typing import List, Optional
 import logging
 from fastapi import APIRouter, BackgroundTasks, Depends, Request
 

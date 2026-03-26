@@ -7,6 +7,7 @@ It provides a standardized way to specify model parameters and data paths.
 It also includes the PromptEngineer class for LLM interaction capabilities.
 """
 
+import json
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
 

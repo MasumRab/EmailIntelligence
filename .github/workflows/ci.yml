@@ -2,72 +2,48 @@ name: CI
 
 on:
   push:
-    branches: [main, scientific]
-    paths-ignore:
-      - '**.md'
-      - 'docs/**'
-      - '**.mdx'
+    branches: [ main, scientific ]
   pull_request:
-    branches: [main, scientific]
-    paths-ignore:
-      - '**.md'
-      - 'docs/**'
-      - '**.mdx'
-
-permissions:
-  contents: read
+    branches: [ main, scientific ]
 
 jobs:
   test:
-    if: |
-      !contains(github.event.head_commit.message, '[skip ci]') &&
-      !contains(github.event.head_commit.message, '[ci:lint-only]') &&
-      !contains(github.event.pull_request.labels.*.name, 'ci:skip-tests')
+    if: "!contains(github.event.head_commit.message, '[skip ci]')"
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v6
-      - uses: actions/setup-python@v6
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
         with:
-          python-version: '3.12'
-          cache: 'pip'
-      - uses: astral-sh/setup-uv@v7
+          python-version: '3.11'
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
         with:
-          enable-cache: true
+          version: "latest"
+
       - name: Install dependencies
-        run: uv sync --all-extras
+        run: |
+          uv sync --all-extras
+
       - name: Run tests
         run: |
-          uv run pytest tests/ src/ modules/ -v --tb=short \
-            --cov=src --cov=modules --cov-report=xml --cov-report=term-missing \
-            --cov-fail-under=80
+          uv run pytest tests/ src/ modules/ -v --tb=short --cov=src --cov=modules --cov-report=xml --cov-report=term-missing --cov-fail-under=80
+
       - name: Run Security Scans
-        run: uv run bandit -r src/ modules/
+        run: |
+          uv run bandit -r src/ modules/
+          # uv run safety check (temporarily disabled as it might not be installed or configured)
+
       - name: Run linting
         run: |
-          uv run ruff check src/ modules/
-          uv run ruff format --check src/ modules/
-      - name: Type checking
-        run: uv run mypy src/ modules/ --show-error-codes --no-strict-optional
+          uv run flake8 src/ modules/
+          uv run black --check src/ modules/
+          uv run isort --check-only src/ modules/
 
-  lint-only:
-    if: |
-      !contains(github.event.head_commit.message, '[skip ci]') &&
-      !contains(github.event.head_commit.message, '[ci:tests-only]') &&
-      !contains(github.event.pull_request.labels.*.name, 'ci:skip-lint')
-    runs-on: ubuntu-latest
-    continue-on-error: true
-    steps:
-      - uses: actions/checkout@v6
-      - uses: actions/setup-python@v6
-        with:
-          python-version: '3.12'
-          cache: 'pip'
-      - uses: astral-sh/setup-uv@v7
-        with:
-          enable-cache: true
-      - name: Install dependencies
-        run: uv sync --all-extras
-      - name: Run ruff
+      - name: Type checking
         run: |
-          uv run ruff check src/ modules/
-          uv run ruff format --check src/ modules/
+          uv run mypy src/ modules/ --show-error-codes --no-strict-optional

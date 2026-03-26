@@ -5,13 +5,16 @@ This module defines the API routes for the dashboard endpoints,
 including statistics and metrics for the Email Intelligence platform.
 """
 
+from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException
 from typing import Dict, Any
 
-from .models import DashboardStats
+from .models import DashboardStats, WeeklyGrowth
+from .database import get_db, DatabaseManager
 from .dependencies import get_email_service
 from .services.email_service import EmailService
 from src.core.auth import get_current_active_user
+from src.core.job_queue import get_job_queue, JobResult
 
 router = APIRouter(prefix="/api/dashboard", tags=["dashboard"])
 
@@ -80,6 +83,7 @@ def get_job_status(job_id: str, current_user: str = Depends(get_current_active_u
     """
     try:
         from src.core.job_queue import get_job_queue
+        import asyncio
 
         job_queue = get_job_queue()
         job_result = job_queue.get_job_status(job_id)
@@ -107,6 +111,7 @@ def trigger_weekly_growth_calculation(
     """
     try:
         from src.core.job_queue import get_job_queue
+        import asyncio
 
         job_queue = get_job_queue()
         job_id = job_queue.enqueue_weekly_growth_calculation(email_service)
@@ -130,6 +135,7 @@ def trigger_performance_metrics_aggregation(
     """
     try:
         from src.core.job_queue import get_job_queue
+        import asyncio
 
         job_queue = get_job_queue()
         job_id = job_queue.enqueue_performance_metrics_aggregation(email_service)

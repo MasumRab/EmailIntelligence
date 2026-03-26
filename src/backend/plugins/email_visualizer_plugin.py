@@ -7,7 +7,7 @@ Sample UI Component Plugin for Email Intelligence Platform
 Implements a sample UI component for the Gradio interface.
 """
 
-from typing import Any, List
+from typing import Any, Dict, List
 
 import gradio as gr
 

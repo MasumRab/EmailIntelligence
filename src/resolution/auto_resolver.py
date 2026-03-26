@@ -4,9 +4,9 @@ Auto resolver for EmailIntelligence CLI
 Implements automatic conflict resolution based on predefined rules and strategies.
 """
 
-from typing import Dict, Any
+from typing import List, Dict, Any
 from ..core.interfaces import IResolutionEngine
-from ..core.conflict_models import Conflict, ResolutionPlan
+from ..core.conflict_models import Conflict, ResolutionPlan, ValidationResult
 from ..utils.logger import get_logger
 from .semantic_merger import SemanticMerger
 from ..strategy.generator import StrategyGenerator

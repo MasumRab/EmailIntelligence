@@ -688,11 +688,11 @@ class ModelRegistry:
 
             # Test with sample data based on model type
             if instance.metadata.model_type == ModelType.SENTIMENT:
-                pass
+                test_input = "This is a great product!"
             elif instance.metadata.model_type == ModelType.TOPIC:
-                pass
+                test_input = "Meeting about project deadlines"
             else:
-                pass
+                test_input = "Test input for model validation"
 
             start_time = time.time()
             # This would need to be implemented based on the actual model interface

@@ -6,7 +6,6 @@
 - [Project Structure](#project-structure)
 - [Quick Start](#quick-start)
 - [Documentation](#documentation)
-- [CI/CD Guide](#cicd-guide)
 - [Prerequisites](#prerequisites)
 - [Setup](#setup)
   - [AI Models Setup](#ai-models-setup)
@@ -250,48 +249,6 @@ The application will typically be available at http://localhost:5173.
 - **AI Models:** The Quick Start will get the application running, but AI features require trained models. Please see the [AI Models Setup](#ai-models-setup) section below for critical information.
 
 This starts the application in a local development mode. For comprehensive setup instructions, alternative methods, and details on deploying to Docker, staging, or production environments, please refer to the [Launcher Guide](docs/launcher_guide.md) and the [Deployment Guide](docs/deployment_guide.md).
-
-## CI/CD Guide
-
-### Skip CI Checks
-
-For documentation-only changes or when you need to bypass CI:
-
-**In commit message:**
-- `[skip ci]` - Skip all CI checks
-- `[ci:tests-only]` - Run tests only, skip lint
-- `[ci:lint-only]` - Run lint only, skip tests
-
-**Example:**
-```bash
-git commit -m "docs: update README [skip ci]"
-git commit -m "fix: typo in comments [ci:lint-only]"
-```
-
-### PR Labels
-
-Add these labels to control CI behavior:
-
-| Label | Effect |
-|-------|--------|
-| `ci:skip-tests` | Skip test suite (for docs-only PRs) |
-| `ci:skip-lint` | Skip linting (for test-only changes) |
-| `automerge` | Auto-merge when CI passes |
-
-### Auto-Merge
-
-**Dependabot PRs:** Automatically merge when CI passes (no approval needed)
-
-**Human PRs:** Add `automerge` label to enable auto-merge after approval
-
-### Path-Based Triggers
-
-CI automatically skips for:
-- `**/*.md` - Markdown files
-- `docs/**` - Documentation directory
-- `**/*.mdx` - MDX files
-
-**Note:** Code changes always trigger full CI suite.
 
 ## Local Development Setup
 

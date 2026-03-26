@@ -199,13 +199,13 @@ class ConstitutionalEngine:
         report_lines = [
             "# Constitutional Compliance Report",
             "",
-            "## Summary",
+            f"## Summary",
             f"- Total Requirements: {total_count}",
             f"- Compliant: {compliant_count}",
             f"- Non-compliant: {total_count - compliant_count}",
             f"- Overall Compliance Score: {overall_score:.2%}",
             "",
-            "## Detailed Results",
+            f"## Detailed Results",
         ]
         
         for result in results:

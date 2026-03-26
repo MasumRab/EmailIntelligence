@@ -6,8 +6,11 @@ Email service for the Email Intelligence Platform
 Handles all email-related business logic
 """
 
-from typing import Optional, Dict, Any
+from typing import List, Optional, Dict, Any
+from datetime import datetime
 from .base_service import BaseService, BaseResponse
+from src.core.models import EmailResponse, EmailCreate, EmailUpdate
+from src.core.database import FIELD_ID, FIELD_MESSAGE_ID
 
 
 class EmailService(BaseService):

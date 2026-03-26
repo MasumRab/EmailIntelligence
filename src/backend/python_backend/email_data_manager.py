@@ -12,6 +12,7 @@ from functools import partial
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
+from .constants import DEFAULT_CATEGORY_COLOR
 from .performance_monitor import log_performance
 
 # File paths - now configurable via environment variable

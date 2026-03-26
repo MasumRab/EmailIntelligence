@@ -690,7 +690,7 @@ class NLPProcessorNode(BaseNode):
     async def process(self, inputs: Dict[str, Any]) -> Dict[str, Any]:
         # Mock NLP processing - in real implementation, this would call the AI engine
         content = inputs.get("content", "")
-        inputs.get("subject", "")
+        subject = inputs.get("subject", "")
 
         # Mock analysis results
         analysis = {

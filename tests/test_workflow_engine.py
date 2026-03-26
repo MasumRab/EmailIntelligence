@@ -188,6 +188,12 @@ def test_parallel_execution():
     workflow = Workflow(
         "parallel_workflow", {"A": node_a, "B": node_b, "C": node_c, "D": node_d}, connections
     )
+
+    node_a.dependencies = []
+    node_b.dependencies = ["A"]
+    node_c.dependencies = ["A"]
+    node_d.dependencies = ["B", "C"]
+
     runner = WorkflowRunner(workflow, max_concurrent=3)  # Allow up to 3 nodes to run in parallel
 
     # Run with parallel execution

@@ -7,6 +7,7 @@ Bridges FastAPI backend with existing AI/NLP services
 """
 
 import logging
+import os
 from datetime import datetime
 from typing import TYPE_CHECKING, Any, Dict, List, Optional
 

@@ -16,7 +16,7 @@ from functools import partial
 from pathlib import Path
 from typing import Any, Dict, List, Literal, Optional
 
-from .constants import DEFAULT_CATEGORY_COLOR
+from .constants import DEFAULT_CATEGORIES, DEFAULT_CATEGORY_COLOR
 from .performance_monitor import log_performance
 
 logger = logging.getLogger(__name__)

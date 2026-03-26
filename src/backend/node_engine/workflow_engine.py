@@ -8,6 +8,7 @@ This module manages the execution of node-based workflows, handling
 dependencies, execution order, and error management.
 """
 
+import asyncio
 import logging
 import time
 from datetime import datetime
@@ -15,6 +16,7 @@ from typing import Any, Dict, List, Optional
 
 from backend.node_engine.node_base import (
     BaseNode,
+    Connection,
     DataType,
     ExecutionContext,
     GenericType,

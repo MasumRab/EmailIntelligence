@@ -2,7 +2,7 @@
 Tests for AI model training routes.
 """
 
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 import numpy as np
 import pandas as pd
@@ -21,7 +21,7 @@ def test_start_training(client):
         "parameters": {"epochs": 5},
     }
 
-    with patch("backend.python_backend.training_routes.BackgroundTasks"):
+    with patch("backend.python_backend.training_routes.BackgroundTasks") as mock_bg:
         response = client.post("/api/training/start", json=config)
         assert response.status_code == 200
         data = response.json()

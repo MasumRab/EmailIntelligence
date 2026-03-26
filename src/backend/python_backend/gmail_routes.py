@@ -2,11 +2,13 @@ import json
 import logging
 from datetime import datetime
 
-from fastapi import APIRouter, BackgroundTasks, Depends, Request
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
 from googleapiclient.errors import HttpError as GoogleApiHttpError
 
 # Corrected import path for GmailAIService
 from ..python_nlp.gmail_service import GmailAIService
+from .ai_engine import AdvancedAIEngine
+from .database import DatabaseManager, get_db
 from .dependencies import get_gmail_service
 from .exceptions import GmailServiceError
 from .models import GmailSyncRequest, SmartRetrievalRequest  # Changed from .main to .models

@@ -88,6 +88,11 @@ def test_conditional_execution():
     ]
 
     workflow = Workflow("conditional_workflow", {"A": node_a, "B": node_b}, connections)
+
+    # Manually populate dependencies
+    node_b.dependencies = ["A"]
+    node_a.dependencies = []
+
     runner = WorkflowRunner(workflow)
 
     # Run with initial context that meets the condition
@@ -125,6 +130,9 @@ def test_error_handling_and_recovery():
     workflow = Workflow(
         "error_handling_workflow", {"A": node_a, "B": node_b, "C": node_c}, connections
     )
+    node_a.dependencies = []
+    node_b.dependencies = ["A"]
+    node_c.dependencies = ["B"]
     runner = WorkflowRunner(workflow, max_retries=2)
 
     # Run the workflow - node B will fail, but should continue
@@ -155,6 +163,10 @@ def test_memory_optimization():
     workflow = Workflow(
         "memory_opt_workflow", {"A": node_a, "B": node_b, "C": node_c, "D": node_d}, connections
     )
+    node_a.dependencies = []
+    node_b.dependencies = ["A"]
+    node_c.dependencies = ["B"]
+    node_d.dependencies = ["C"]
     runner = WorkflowRunner(workflow)
 
     # Run with memory optimization enabled
@@ -188,6 +200,10 @@ def test_parallel_execution():
     workflow = Workflow(
         "parallel_workflow", {"A": node_a, "B": node_b, "C": node_c, "D": node_d}, connections
     )
+    node_a.dependencies = []
+    node_b.dependencies = ["A"]
+    node_c.dependencies = ["A"]
+    node_d.dependencies = ["B", "C"]
     runner = WorkflowRunner(workflow, max_concurrent=3)  # Allow up to 3 nodes to run in parallel
 
     # Run with parallel execution
@@ -211,6 +227,10 @@ def test_metrics_collection():
     ]
 
     workflow = Workflow("metrics_workflow", {"A": node_a, "B": node_b}, connections)
+
+    node_a.dependencies = []
+    node_b.dependencies = ["A"]
+
     runner = WorkflowRunner(workflow)
 
     # Run the workflow

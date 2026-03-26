@@ -13,7 +13,7 @@ import statistics
 from collections import defaultdict, deque
 from dataclasses import asdict, dataclass
 from datetime import datetime, timedelta
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 RETRIEVAL_LOG_FILE = "retrieval_metrics_log.jsonl"
 LOG_INTERVAL_SECONDS = 300

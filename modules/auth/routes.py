@@ -6,7 +6,7 @@ This module provides authentication endpoints for the new modular architecture.
 
 import logging
 from datetime import timedelta
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
@@ -246,7 +246,7 @@ async def disable_mfa(
 @router.post("/register", response_model=Token)
 async def register(user_data: UserCreate, db: DataSource = Depends(get_data_source)):
     """Register a new user"""
-    {
+    user_dict = {
         "username": user_data.username,
         "hashed_password": hash_password(user_data.password),
         "role": user_data.role,

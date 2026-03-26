@@ -307,27 +307,8 @@ class NotmuchDataSource(DataSource):
         
         logger.info(f"Creating email with subject: {email_data.get('subject', 'No subject')}")
         
-        # For now, return a mock implementation
-        # In a full implementation, this would actually store the email
-        email_hash = str(hash(str(email_data)))[:8]
-        result = {
-            "id": f"mock_id_{email_hash}",
-            "message_id": f"mock_message_id_{email_hash}",
-            "subject": email_data.get("subject", ""),
-            "sender": email_data.get("sender", ""),
-            "date": datetime.now().isoformat(),
-            "tags": email_data.get("initial_tags", [])
-        }
-        
-        # If AI engine is available, perform analysis asynchronously
-        if self.ai_engine:
-            try:
-                # Schedule AI analysis as a background task
-                asyncio.create_task(self._analyze_and_tag_email_background(result["message_id"], email_data))
-            except Exception as e:
-                logger.warning(f"Failed to schedule background AI analysis: {e}")
-        
-        return result
+        # For read-only sources, this should be None or NotImplemented
+        return None
 
     async def _analyze_and_tag_email_background(self, message_id: str, email_data: Dict[str, Any]):
         """Perform background AI analysis and tagging for a new email."""
@@ -410,13 +391,8 @@ class NotmuchDataSource(DataSource):
         
         logger.info(f"Updating email {message_id} with data: {update_data}")
         
-        # For now, return a mock implementation
-        # In a full implementation, this would actually update the email
-        return {
-            "id": message_id,
-            "message_id": message_id,
-            "updated": True
-        }
+        # For read-only sources, this should be None or NotImplemented
+        return None
 
     async def get_emails_by_category(
         self, category_id: int, limit: int = 50, offset: int = 0
@@ -436,12 +412,8 @@ class NotmuchDataSource(DataSource):
         
         logger.info(f"Updating email ID {email_id} with data: {update_data}")
         
-        # For now, return a mock implementation
-        # In a full implementation, this would actually update the email
-        return {
-            "id": email_id,
-            "updated": True
-        }
+        # For read-only sources, this should be None or NotImplemented
+        return None
 
     async def delete_email(self, email_id: int) -> bool:
         """Delete an email by its internal ID."""
@@ -449,9 +421,8 @@ class NotmuchDataSource(DataSource):
         
         logger.info(f"Deleting email ID {email_id}")
         
-        # For now, return a mock implementation
-        # In a full implementation, this would actually delete the email
-        return True
+        # For read-only sources, this should be None or NotImplemented
+        return False
 
     @log_performance(operation="get_dashboard_aggregates")
     async def get_dashboard_aggregates(self) -> Dict[str, Any]:

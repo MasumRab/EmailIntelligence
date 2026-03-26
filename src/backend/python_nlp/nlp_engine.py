@@ -13,6 +13,7 @@ import logging
 import os
 import re
 import sys
+from dataclasses import dataclass
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
@@ -21,6 +22,10 @@ from transformers import AutoModelForSequenceClassification, AutoTokenizer, pipe
 from backend.python_nlp.text_utils import clean_text
 
 from .analysis_components.importance_model import ImportanceModel
+from .analysis_components.intent_model import IntentModel
+from .analysis_components.sentiment_model import SentimentModel
+from .analysis_components.topic_model import TopicModel
+from .analysis_components.urgency_model import UrgencyModel
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(name)s - %(message)s"

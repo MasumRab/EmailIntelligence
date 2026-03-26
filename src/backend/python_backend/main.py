@@ -15,9 +15,11 @@ import uuid
 from collections import defaultdict
 from datetime import datetime, timedelta
 
-from fastapi import FastAPI, HTTPException, Request, status
+from fastapi import Depends, FastAPI, HTTPException, Request, status
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import FileResponse, JSONResponse
+from fastapi.security import HTTPBearer
+from fastapi.staticfiles import StaticFiles
 from pydantic import ValidationError
 from starlette.middleware.base import BaseHTTPMiddleware
 
@@ -42,7 +44,7 @@ from . import (
     workflow_routes,
 )
 from .ai_engine import AdvancedAIEngine
-from .auth import create_access_token
+from .auth import TokenData, create_access_token, get_current_user
 from .database import db_manager
 from .exceptions import AppException, BaseAppException
 
