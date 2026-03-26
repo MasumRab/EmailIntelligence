@@ -1,0 +1,39 @@
+#!/bin/bash
+# Post-commit hook for setup file synchronization
+# This hook runs after each commit to keep setup files synchronized across worktrees
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
+
+# Function to check if setup files were modified
+setup_files_modified() {
+    # Check if any files in the setup directory were modified in the last commit
+    if git diff-tree --no-commit-id --name-only HEAD | grep -q "^worktrees/launch-setup-fixes/setup/"; then
+        return 0  # Files were modified
+    else
+        return 1  # No setup files were modified
+    fi
+}
+
+# Function to run setup synchronization
+run_setup_sync() {
+    echo "Setup files detected in commit, running synchronization..."
+    
+    # Run the sync script
+    if [[ -f "$PROJECT_ROOT/scripts/sync_setup_worktrees.sh" ]]; then
+        if bash "$PROJECT_ROOT/scripts/sync_setup_worktrees.sh"; then
+            echo "Setup synchronization completed successfully"
+        else
+            echo "Warning: Setup synchronization failed"
+        fi
+    else
+        echo "Warning: Setup sync script not found at $PROJECT_ROOT/scripts/sync_setup_worktrees.sh"
+    fi
+}
+
+# Main execution
+if setup_files_modified; then
+    run_setup_sync
+else
+    echo "No setup files modified in this commit, skipping setup sync"
+fi

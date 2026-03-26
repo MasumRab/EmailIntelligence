@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 """
 An example plugin that registers a new workflow.
 """
@@ -7,13 +8,13 @@ from typing import Any, Dict
 
 from src.core.ai_engine import AdvancedAIEngine
 from src.core.database import DatabaseManager
-from src.backend.python_nlp.smart_filters import SmartFilterManager
+from backend.python_nlp.smart_filters import SmartFilterManager
 
 # Note: Plugins need to import from the main application's modules.
 # This requires the main application to be installed as a package or
 # for the PYTHONPATH to be set up correctly.
-from src.backend.node_engine.node_base import BaseNode, DataType, ExecutionContext, NodePort
-from src.backend.node_engine.workflow_engine import WorkflowEngine
+from backend.node_engine.node_base import BaseNode, DataType, ExecutionContext, NodePort
+from backend.node_engine.workflow_engine import WorkflowEngine
 
 logger = logging.getLogger(__name__)
 
@@ -90,3 +91,5 @@ def register(
     # Register the custom node type
     workflow_engine.register_node_type(ExampleUppercaseNode)
     logger.info("ExampleUppercaseNode registered successfully")
+=======
+>>>>>>> origin/main

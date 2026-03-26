@@ -33,29 +33,6 @@ const catchAllLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-// Security headers middleware
-app.use((req, res, next) => {
-  // Set security headers
-  res.setHeader('X-Frame-Options', 'DENY');
-  res.setHeader('X-Content-Type-Options', 'nosniff');
-  res.setHeader('X-XSS-Protection', '1; mode=block');
-  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
-  res.setHeader('Content-Security-Policy', "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline';");
-  res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
-
-  // CORS headers for API routes
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Authorization, Content-Type, X-User-ID');
-
-  next();
-});
-
-// Handle preflight requests
-app.options('*', (req, res) => {
-  res.sendStatus(204);
-});
-
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));

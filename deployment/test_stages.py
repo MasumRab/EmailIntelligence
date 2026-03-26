@@ -95,5 +95,6 @@ class TestStages:
         print("No security tests configured. Skipping.")
         return True
 
+
 # The launch script expects to import this specific object.
 test_stages = TestStages()
