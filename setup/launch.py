@@ -42,7 +42,8 @@ from setup.services import (
 from setup.environment import (
     handle_setup, prepare_environment, setup_wsl_environment, check_wsl_requirements
 )
-from setup.utils import print_system_info, process_manager
+from setup.utils import print_system_info
+from setup.utils import process_manager_instance as process_manager
 
 # Import test stages
 from setup.test_stages import test_stages
