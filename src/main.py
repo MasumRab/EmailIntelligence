@@ -102,10 +102,19 @@ def create_app() -> FastAPI:
         app.add_middleware(ContextControlMiddleware)
     
     # Add CORS middleware as expected by both architectures
-    allowed_origins = os.environ.get("ALLOWED_ORIGINS", "").split(",")
-    if not allowed_origins or allowed_origins == [""]:
-        # Fallback to a restrictive default if not specified
-        allowed_origins = []
+    allowed_origins_env = os.environ.get("ALLOWED_ORIGINS", "")
+    allowed_origins = [o.strip() for o in allowed_origins_env.split(",") if o.strip()]
+    if not allowed_origins:
+        # Fallback to localhost for local development if not specified to prevent breaking existing functionality,
+        # but avoid the dangerous wildcard "*"
+        allowed_origins = [
+            "http://localhost",
+            "http://localhost:3000",
+            "http://localhost:5173",
+            "http://127.0.0.1",
+            "http://127.0.0.1:3000",
+            "http://127.0.0.1:5173"
+        ]
 
     app.add_middleware(
         CORSMiddleware,
