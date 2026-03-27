@@ -128,16 +128,25 @@ class ContextIsolator:
             Normalized path string
         """
         # Convert to Path object for normalization
-        path_obj = Path(file_path)
-
-        # Get relative path from repository root if possible
         try:
-            # This is a simplified approach - in practice, you'd want to
-            # resolve relative to the actual repository root
-            return str(path_obj.resolve())
-        except Exception:
-            # Fallback to original path
-            return file_path
+            path_obj = Path(file_path).resolve()
+            # Attempt to resolve the path relative to the repository root
+            base_dir = self.config.git_repo_path.resolve()
+
+            # Enforce that the path is strictly within the base directory
+            # This prevents path traversal vulnerabilities (e.g., ../../../etc/passwd)
+            # If it's outside the base_dir, relative_to will raise ValueError
+            rel_path = path_obj.relative_to(base_dir)
+            return str(rel_path)
+        except ValueError as e:
+            # Path traversal attempt or out-of-bounds file access detected
+            logger.warning(f"Security: Path traversal attempt or out-of-bounds path detected: {file_path}")
+            # Raise an error instead of returning a dummy string to prevent failing open
+            raise ContextIsolationError(f"Path traversal attempt or out-of-bounds file access detected: {file_path}") from e
+        except Exception as e:
+            # Fallback for other errors, ensuring we don't return an insecure path
+            logger.warning(f"Error normalizing path {file_path}: {e}")
+            raise ContextIsolationError(f"Error normalizing path: {file_path}") from e
 
     def _matches_patterns(self, file_path: str, patterns: List[str]) -> bool:
         """Check if a file path matches any of the given patterns.
