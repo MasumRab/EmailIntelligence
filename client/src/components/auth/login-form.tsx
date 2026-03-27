@@ -58,7 +58,7 @@ export function LoginForm() {
                 id="username"
                 type="text"
                 value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                onChange={(e: any) => setUsername(e.target.value)}
                 required
                 placeholder="Enter your username"
               />
@@ -72,7 +72,7 @@ export function LoginForm() {
                 id="password"
                 type="password"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e: any) => setPassword(e.target.value)}
                 required
                 placeholder="Enter your password"
               />
@@ -92,7 +92,7 @@ export function LoginForm() {
                 id="mfa-token"
                 type="text"
                 value={mfaToken}
-                onChange={(e) => setMfaToken(e.target.value)}
+                onChange={(e: any) => setMfaToken(e.target.value)}
                 required
                 placeholder="Enter your authenticator code"
               />

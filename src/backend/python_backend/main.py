@@ -310,6 +310,7 @@ except ImportError:
 async def login(username: str, password: str):
     """Login endpoint to get access token"""
     # Use the new authentication system
+    from .database import get_db
     db = await get_db()
     user = await authenticate_user(username, password, db)
 
