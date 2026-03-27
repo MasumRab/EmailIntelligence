@@ -1,0 +1,10 @@
+node_modules/
+dist/
+build/
+coverage/
+tailwind.config.ts
+client/src/components/advanced-filter-panel.tsx
+client/src/components/ai-analysis-panel.tsx
+client/src/hooks/use-auth.ts
+client/src/pages/dashboard.tsx
+server/index.ts
