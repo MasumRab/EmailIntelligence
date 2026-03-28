@@ -187,7 +187,3 @@ task-master set-status --id=3.1 --status=in-progress  # Start a subtask
 - Task 10: Task Management Testing Integration
 
 **Next Immediate Action:** Begin Task 3 work or proceed with hooks-validation
-
-## SENTINEL SECURITY TODOs
-- [ ] Thoroughly audit orchestration hooks to ensure they do not arbitrarily delete security-critical configurations (e.g. Dependabot files) during branch switching.
-- [ ] Review skipped assertions in `tests/test_launch.py` and `tests/test_launcher.py` and implement proper environment-aware mock injections to restore test coverage for orchestration logic.

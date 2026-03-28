@@ -206,7 +206,7 @@ original_readme.md
 !.flake8
 !.pylintrc
 !.github/
-!.specify/memory/
+!.specify/
 
 # Centralized Agent Markdown Files
 !docs/agents/
@@ -223,28 +223,6 @@ cognee-AGENTS.md
 *.local.yaml
 *.local.yml
 config.local.*
-
-# Agent Command Directories (IDE-specific, not for repo)
-.gemini/commands/
-.qwen/commands/
-.cursor/commands/
-.claude/commands/
-.claude/agents/
-.claude/memories/
-.iflow/commands/
-.opencode/command/
-.continue/
-
-# Agent-specific instruction MD files (local preferences)
-GEMINI.md
-QWEN.md
-CRUSH.md
-LLXPRT.md
-# Note: CLAUDE.md is project-level and MUST be tracked
-
-# Specify scripts (skeleton examples, not project-specific)
-.specify/scripts/
-
 # ck (seek) semantic search cache
 .ck/
 .env.local

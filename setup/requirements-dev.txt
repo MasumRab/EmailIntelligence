@@ -18,4 +18,3 @@ uvicorn[standard]>=0.30.0
 
 # Additional development dependencies
 # Add any development-specific packages here
-pytest-cov>=4.1.0
