@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 from datetime import datetime
 from unittest.mock import MagicMock
 
@@ -179,13 +178,9 @@ def test_plugin_workflow_e2e(client_with_real_workflows, mock_db_manager, mock_a
     # 1. Activate the workflow from the example plugin
     activate_response = client_with_real_workflows.put("/api/workflows/active/example_uppercase")
     assert activate_response.status_code == 200
-<<<<<<< HEAD
-    assert activate_response.json()["message"] == "Active workflow set to 'example_uppercase'."
-=======
     assert (
         activate_response.json()["message"] == "Active legacy workflow set to 'example_uppercase'."
     )
->>>>>>> scientific
 
     # 2. Prepare the email data
     new_email_data = {
@@ -215,5 +210,3 @@ def test_plugin_workflow_e2e(client_with_real_workflows, mock_db_manager, mock_a
 
     # Also assert that the AI engine was NOT called, since the uppercase workflow doesn't use it
     mock_ai_engine.analyze_email.assert_not_called()
-=======
->>>>>>> origin/main

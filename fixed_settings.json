@@ -1,0 +1,79 @@
+{
+  "mcpServers": {
+    "sequential-thinking": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-sequential-thinking"
+      ]
+    },
+    "memory-system": {
+      "command": "uvx",
+      "args": [
+        "--python",
+        "3.12.7",
+        "iflow-mcp_memory-system@latest",
+        "--workspace-path",
+        "/home/masum/.iflow/memory"
+      ]
+    },
+    "python-execute-server": {
+      "command": "uvx",
+      "args": [
+        "--python",
+        "3.12.7",
+        "iflow-mcp_python-execute-server@latest"
+      ]
+    },
+    "docx-edit-server": {
+      "command": "uvx",
+      "args": [
+        "--python",
+        "3.12.7",
+        "iflow-mcp_docx-edit-server@latest",
+        "--workspace-path",
+        "/home/masum/.iflow/memory"
+      ]
+    },
+    "excel-edit-server": {
+      "command": "uvx",
+      "args": [
+        "--python",
+        "3.12.7",
+        "iflow-mcp_excel-edit-server@latest",
+        "--workspace-path",
+        "/home/masum/github/EmailIntelligenceQwen"
+      ]
+    },
+    "mcp-show2user": {
+      "command": "uvx",
+      "args": [
+        "--python",
+        "3.12.7",
+        "iflow-mcp_show2user@latest"
+      ]
+    },
+    "image-search": {
+      "command": "uvx",
+      "args": [
+        "--python",
+        "3.12.7",
+        "iflow-mcp_image-search@latest",
+        "--workspace-path",
+        "/home/masum/.iflow/memory"
+      ]
+    },
+    "context7": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@iflow-mcp/context7-mcp@1.0.0"
+      ]
+    }
+  },
+  "selectedAuthType": "oauth-iflow",
+  "searchApiKey": "sk-cab7eebfc7a0983c341dd07770c89bb5",
+  "baseUrl": "https://apis.iflow.cn/v1",
+  "apiKey": "sk-cab7eebfc7a0983c341dd07770c89bb5",
+  "modelName": "glm-4.6"
+}

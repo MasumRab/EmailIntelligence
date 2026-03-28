@@ -1,0 +1,11 @@
+# Command: fix-todos
+# Description: Intelligently implement TODO fixes with context
+# Category: development
+# Version: 1
+# Author: 10169
+
+description = "Intelligently implement TODO fixes with context"
+
+prompt = """
+I'll intelligently implement TODO fixes based on previous analysis and your project context. I'll prioritize by impact and complexity, implement solutions that match your code style, add tests for new functionality, and verify no regressions. Integration with other commands includes following up on /create-todos and /find-todos. I'll create implementation reports and update related documentation.
+"""

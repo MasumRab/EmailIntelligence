@@ -139,6 +139,7 @@ class NLPEngine:
         if HAS_NLTK:
             try:
                 import nltk
+
                 nltk.data.find("corpora/stopwords")
             except LookupError:
                 logger.info("NLTK 'stopwords' resource not found. Downloading...")
@@ -176,6 +177,7 @@ class NLPEngine:
         try:
             if os.path.exists(model_path):
                 import joblib
+
                 model = joblib.load(model_path)
                 logger.info(f"Successfully loaded model from {model_path}")
                 return model
@@ -1247,7 +1249,7 @@ def _handle_backward_compatible_cli_invocation(
         if len(argv) < 3:  # Script name, subject, (optional) content
             # Allow content to be empty for old style, but subject must be there if any arg is given
             err_msg = {
-                "error": "Invalid arguments for old-style invocation. Subject is required. Usage: python nlp_engine.py \"<subject>\" \"[content]\""
+                "error": 'Invalid arguments for old-style invocation. Subject is required. Usage: python nlp_engine.py "<subject>" "[content]"'
             }
             if args.output_format == "json":
                 print(json.dumps(err_msg))
