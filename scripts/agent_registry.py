@@ -95,7 +95,7 @@ class AgentProfile:
 
 
 class AgentCapabilityRegistry:
-    def __init__(self, registry_file: Path = None):
+    def __init__(self, registry_file: Optional[Path] = None):
         self.registry_file = registry_file or Path("agent_registry.json")
         self.agents: Dict[str, AgentProfile] = {}
         self.capabilities: Dict[str, Capability] = {}
