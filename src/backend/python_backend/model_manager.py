@@ -20,5 +20,6 @@ class ModelManager:
         """Check model manager health. Stub implementation."""
         return True
 
+
 # Backward compatibility alias
 model_manager = ModelManager()
