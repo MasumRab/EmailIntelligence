@@ -24,6 +24,7 @@ router = APIRouter()
 class UserLogin(BaseModel):
     username: str
     password: str
+    mfa_token: Optional[str] = None
 
 
 class UserCreate(BaseModel):
@@ -31,12 +32,6 @@ class UserCreate(BaseModel):
     password: str
     role: Optional[str] = "user"
     permissions: Optional[List[str]] = []
-
-
-class UserLogin(BaseModel):
-    username: str
-    password: str
-    mfa_token: Optional[str] = None
 
 
 class EnableMFARequest(BaseModel):
