@@ -784,3 +784,23 @@ async def initialize_db():
     if _db_manager_instance is None:
         _db_manager_instance = DatabaseManager()
         await _db_manager_instance._ensure_initialized()
+# Backwards compatibility - lazy initialization
+_db_manager = None
+
+
+def get_db_manager_sync():
+    """Synchronous function to get database manager (for backwards compatibility)."""
+    global _db_manager
+    if _db_manager is None:
+        import asyncio
+
+        _db_manager = DatabaseManager()
+        asyncio.run(_db_manager._ensure_initialized())
+    return _db_manager
+
+
+# Backwards compatibility: export a synchronous db_manager
+try:
+    db_manager = get_db_manager_sync()
+except Exception:
+    db_manager = None
