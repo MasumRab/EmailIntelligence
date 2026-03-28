@@ -1094,7 +1094,7 @@ def _handle_test_or_setup(args):
     return False
 
 
-def _run_services():
+def _run_services(args):
     """Start all services and handle shutdown."""
     start_services(args)
     logger.info("All services started. Press Ctrl+C to shut down.")
