@@ -19,7 +19,7 @@ router = APIRouter()
 async def get_categories(
     request: Request,
     current_user: str = Depends(get_current_active_user),
-    db: DataSource = Depends(get_data_source)
+    db: DataSource = Depends(get_data_source),
 ):
     """
     Retrieves all categories from the database.
@@ -39,7 +39,7 @@ async def create_category(
     request: Request,
     category: CategoryCreate,
     current_user: str = Depends(get_current_active_user),
-    db: DataSource = Depends(get_data_source)
+    db: DataSource = Depends(get_data_source),
 ):
     """
     Creates a new category in the database.
