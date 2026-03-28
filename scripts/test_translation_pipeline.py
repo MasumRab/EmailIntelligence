@@ -201,7 +201,7 @@ def test_job_progress():
 
         # Get updated progress
         updated_progress = manager.get_job_progress(job_id)
-        assert updated_progress['completed_segments'] == 1, "Should have 1 completed segment"
+        assert updated_progress['completed_units'] == 1, "Should have 1 completed segment"
         assert updated_progress['progress_percentage'] == 33.333333333333336, "Progress should be ~33%"
 
         print("✓ Job progress tracking test passed")
