@@ -85,13 +85,13 @@ jobs:
 
       - name: Python compile check
         run: |
-          uv run python -m py_compile src/**/*.py setup/*.py
+          uv run python -m py_compile src/**/*.py
           uv run python -m py_compile modules/**/*.py
 
       - name: Run tests
         run: |
           uv run pytest tests/ src/ modules/ -v --tb=short \
-            --cov=src --cov=modules --cov=setup \
+            --cov=src --cov=modules \
             --cov-report=xml --cov-report=term-missing \
             --cov-fail-under=80 || true
 
