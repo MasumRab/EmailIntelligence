@@ -16,16 +16,13 @@ Features:
 
 # Import launch system modules
 from setup.validation import (
-    check_python_version, check_for_merge_conflicts, check_required_components,
-    validate_environment
+    check_python_version,
+    check_for_merge_conflicts,
+    check_required_components,
+    validate_environment,
 )
-from setup.services import (
-    get_python_executable
-)
-from setup.environment import (
-    setup_wsl_environment, check_wsl_requirements,
-    is_wsl
-)
+from setup.services import get_python_executable
+from setup.environment import setup_wsl_environment, check_wsl_requirements, is_wsl
 
 # Import test stages
 
@@ -62,6 +59,7 @@ except ImportError:
 
 # Configure logging
 import logging
+
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
@@ -77,8 +75,6 @@ PYTHON_MAX_VERSION = (3, 13)
 VENV_DIR = "venv"
 CONDA_ENV_NAME = os.getenv("CONDA_ENV_NAME", "base")
 USER_ENV_FILE = "launch-user.env"
-
-
 
 
 def setup_wsl_environment():
@@ -209,26 +205,54 @@ def _log_missing(missing, label):
 def check_critical_files() -> bool:  # noqa: PLR0912
     """Check for critical files that must exist in the orchestration-tools branch."""
     critical_files = [
-        "scripts/install-hooks.sh", "scripts/cleanup_orchestration.sh",
-        "scripts/sync_setup_worktrees.sh", "scripts/reverse_sync_orchestration.sh",
-        "scripts/hooks/pre-commit", "scripts/hooks/post-commit",
-        "scripts/hooks/post-commit-setup-sync", "scripts/hooks/post-merge",
-        "scripts/hooks/post-checkout", "scripts/hooks/post-push",
-        "scripts/lib/common.sh", "scripts/lib/error_handling.sh",
-        "scripts/lib/git_utils.sh", "scripts/lib/logging.sh",
-        "scripts/lib/validation.sh", "setup/launch.py", "setup/pyproject.toml",
-        "setup/requirements.txt", "setup/requirements-dev.txt",
-        "setup/setup_environment_system.sh", "setup/setup_environment_wsl.sh",
-        "setup/setup_python.sh", ".flake8", ".pylintrc", ".gitignore",
-        ".gitattributes", "launch.py", "deployment/deploy.py",
-        "deployment/test_stages.py", "deployment/docker-compose.yml",
+        "scripts/install-hooks.sh",
+        "scripts/cleanup_orchestration.sh",
+        "scripts/sync_setup_worktrees.sh",
+        "scripts/reverse_sync_orchestration.sh",
+        "scripts/hooks/pre-commit",
+        "scripts/hooks/post-commit",
+        "scripts/hooks/post-commit-setup-sync",
+        "scripts/hooks/post-merge",
+        "scripts/hooks/post-checkout",
+        "scripts/hooks/post-push",
+        "scripts/lib/common.sh",
+        "scripts/lib/error_handling.sh",
+        "scripts/lib/git_utils.sh",
+        "scripts/lib/logging.sh",
+        "scripts/lib/validation.sh",
+        "setup/launch.py",
+        "setup/pyproject.toml",
+        "setup/requirements.txt",
+        "setup/requirements-dev.txt",
+        "setup/setup_environment_system.sh",
+        "setup/setup_environment_wsl.sh",
+        "setup/setup_python.sh",
+        ".flake8",
+        ".pylintrc",
+        ".gitignore",
+        ".gitattributes",
+        "launch.py",
+        "deployment/deploy.py",
+        "deployment/test_stages.py",
+        "deployment/docker-compose.yml",
     ]
-    critical_dirs = ["scripts/", "scripts/hooks/", "scripts/lib/", "setup/", "deployment/", "docs/"]
+    critical_dirs = [
+        "scripts/",
+        "scripts/hooks/",
+        "scripts/lib/",
+        "setup/",
+        "deployment/",
+        "docs/",
+    ]
     orchestration_docs = [
-        "docs/orchestration_summary.md", "docs/orchestration_validation_tests.md",
-        "docs/orchestration_hook_management.md", "docs/orchestration_branch_scope.md",
-        "docs/env_management.md", "docs/git_workflow_plan.md",
-        "docs/current_orchestration_docs/", "docs/guides/",
+        "docs/orchestration_summary.md",
+        "docs/orchestration_validation_tests.md",
+        "docs/orchestration_hook_management.md",
+        "docs/orchestration_branch_scope.md",
+        "docs/env_management.md",
+        "docs/git_workflow_plan.md",
+        "docs/current_orchestration_docs/",
+        "docs/guides/",
     ]
 
     missing_files = _check_paths(critical_files + orchestration_docs, ROOT_DIR)
@@ -237,7 +261,9 @@ def check_critical_files() -> bool:  # noqa: PLR0912
     if missing_files or missing_dirs:
         _log_missing(missing_files, "files")
         _log_missing(missing_dirs, "directories")
-        logger.error("Please restore these critical files for proper orchestration functionality.")
+        logger.error(
+            "Please restore these critical files for proper orchestration functionality."
+        )
         return False
 
     logger.info("All critical files are present.")
@@ -247,31 +273,20 @@ def check_critical_files() -> bool:  # noqa: PLR0912
 def validate_orchestration_environment() -> bool:
     """Run comprehensive validation for the orchestration-tools branch."""
     logger.info("Running orchestration environment validation...")
-    
+
     # Check for merge conflicts first
     if not check_for_merge_conflicts():
         return False
-    
+
     # Check critical files
     if not check_critical_files():
         return False
-    
+
     logger.info("Orchestration environment validation passed.")
     return True
 
 
 # --- Input Validation ---
-
-
-
-
-
-
-
-
-
-
-
 
 
 def get_venv_executable(venv_path: Path, executable: str) -> Path:
@@ -327,12 +342,18 @@ def setup_dependencies(_venv_path=None, _use_poetry=False):
 
     if use_poetry:
         # Ensure pip is up-to-date before installing other packages
-        run_command([python_exe, "-m", "pip", "install", "--upgrade", "pip"], "Upgrading pip")
+        run_command(
+            [python_exe, "-m", "pip", "install", "--upgrade", "pip"], "Upgrading pip"
+        )
         # For poetry, we need to install it first if not available
         try:
-            subprocess.run([python_exe, "-c", "import poetry"], check=True, capture_output=True)
+            subprocess.run(
+                [python_exe, "-c", "import poetry"], check=True, capture_output=True
+            )
         except subprocess.CalledProcessError:
-            run_command([python_exe, "-m", "pip", "install", "poetry"], "Installing Poetry")
+            run_command(
+                [python_exe, "-m", "pip", "install", "poetry"], "Installing Poetry"
+            )
 
         run_command(
             [python_exe, "-m", "poetry", "install", "--with", "dev"],
@@ -341,15 +362,29 @@ def setup_dependencies(_venv_path=None, _use_poetry=False):
         )
     else:
         # Ensure pip is up-to-date before installing other packages
-        run_command([python_exe, "-m", "pip", "install", "--upgrade", "pip"], "Upgrading pip")
+        run_command(
+            [python_exe, "-m", "pip", "install", "--upgrade", "pip"], "Upgrading pip"
+        )
         # For uv, install if not available
         try:
-            subprocess.run([python_exe, "-c", "import uv"], check=True, capture_output=True)
+            subprocess.run(
+                [python_exe, "-c", "import uv"], check=True, capture_output=True
+            )
         except subprocess.CalledProcessError:
             run_command([python_exe, "-m", "pip", "install", "uv"], "Installing uv")
 
         run_command(
-            [python_exe, "-m", "uv", "pip", "install", "-e", ".[dev]", "--exclude", "notmuch"],
+            [
+                python_exe,
+                "-m",
+                "uv",
+                "pip",
+                "install",
+                "-e",
+                ".[dev]",
+                "--exclude",
+                "notmuch",
+            ],
             "Installing dependencies with uv (excluding notmuch)",
             cwd=ROOT_DIR,
         )
@@ -405,7 +440,10 @@ except Exception as e:
 
     logger.info("Downloading NLTK data...")
     result = subprocess.run(
-        [python_exe, "-c", nltk_download_script], cwd=ROOT_DIR, capture_output=True, text=True
+        [python_exe, "-c", nltk_download_script],
+        cwd=ROOT_DIR,
+        capture_output=True,
+        text=True,
     )
     if result.returncode != 0:
         logger.error(f"Failed to download NLTK data: {result.stderr}")
@@ -439,5 +477,3 @@ except Exception as e:
         logger.warning("Continuing setup without TextBlob corpora...")
     else:
         logger.info("TextBlob corpora downloaded successfully.")
-
-

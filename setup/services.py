@@ -33,7 +33,9 @@ def check_uvicorn_installed() -> bool:
             logger.error(f"Unsafe Python executable path: {python_exe}")
             return False
 
-        result = subprocess.run([python_exe, "-c", "import uvicorn"], capture_output=True)
+        result = subprocess.run(
+            [python_exe, "-c", "import uvicorn"], capture_output=True
+        )
         return result.returncode == 0
     except Exception:
         return False
@@ -86,7 +88,9 @@ def install_nodejs_dependencies(directory: str, update: bool = False) -> bool:
             logger.info(f"Node.js dependencies installed successfully in {directory}")
             return True
         else:
-            logger.error(f"Failed to install Node.js dependencies in {directory}: {result.stderr}")
+            logger.error(
+                f"Failed to install Node.js dependencies in {directory}: {result.stderr}"
+            )
             return False
     except Exception as e:
         logger.error(f"Error installing Node.js dependencies: {e}")
@@ -117,6 +121,7 @@ def start_client():
         logger.info("Starting client development server...")
         process = subprocess.Popen(["npm", "run", "dev"], cwd=client_dir)
         from setup.utils import process_manager
+
         process_manager.add_process(process)
     except Exception as e:
         logger.error(f"Failed to start client: {e}")
@@ -146,6 +151,7 @@ def start_server_ts():
         logger.info("Starting TypeScript backend server...")
         process = subprocess.Popen(["npm", "start"], cwd=server_dir)
         from setup.utils import process_manager
+
         process_manager.add_process(process)
     except Exception as e:
         logger.error(f"Failed to start TypeScript backend: {e}")
@@ -181,8 +187,9 @@ def start_backend(host: str, port: int = 8000, debug: bool = False):
 
     # Sanitize host parameter to prevent command injection
     import re
-    if not re.match(r'^[a-zA-Z0-9.-]+$', host):
-        logger.error(f'Invalid host parameter: {host}')
+
+    if not re.match(r"^[a-zA-Z0-9.-]+$", host):
+        logger.error(f"Invalid host parameter: {host}")
         return None
 
 
@@ -207,12 +214,13 @@ def start_node_service(service_path: Path, service_name: str, port: int, api_url
         env = os.environ.copy()
         env["PORT"] = str(port)
         # Sanitize the API URL to prevent injection
-        env["API_URL"] = api_url.replace('"', '').replace("'", "")
+        env["API_URL"] = api_url.replace('"', "").replace("'", "")
 
         if (service_path / PACKAGE_JSON).exists():
             # Check if it's a dev script or start script
             with open(service_path / PACKAGE_JSON, "r") as f:
                 import json
+
                 package_data = json.load(f)
                 scripts = package_data.get("scripts", {})
 
@@ -226,6 +234,7 @@ def start_node_service(service_path: Path, service_name: str, port: int, api_url
 
             process = subprocess.Popen(cmd, cwd=service_path, env=env)
             from setup.utils import process_manager
+
             process_manager.add_process(process)
         else:
             logger.error(f"No package.json found for {service_name}")
@@ -253,11 +262,15 @@ def setup_node_dependencies(service_path: Path, service_name: str):
     if not node_modules.exists():
         logger.info(f"Installing dependencies for {service_name}...")
         try:
-            result = subprocess.run(["npm", "install"], cwd=service_path, capture_output=True, text=True)
+            result = subprocess.run(
+                ["npm", "install"], cwd=service_path, capture_output=True, text=True
+            )
             if result.returncode == 0:
                 logger.info(f"Dependencies installed successfully for {service_name}")
             else:
-                logger.error(f"Failed to install dependencies for {service_name}: {result.stderr}")
+                logger.error(
+                    f"Failed to install dependencies for {service_name}: {result.stderr}"
+                )
         except Exception as e:
             logger.error(f"Error installing dependencies for {service_name}: {e}")
 
@@ -273,7 +286,8 @@ def start_gradio_ui(host, port, share, debug):
 
     # Sanitize host parameter to prevent command injection
     import re
-    if not re.match(r'^[a-zA-Z0-9.-]+$', host):
+
+    if not re.match(r"^[a-zA-Z0-9.-]+$", host):
         logger.error(f"Invalid host parameter: {host}")
         return
 
@@ -291,6 +305,7 @@ def start_gradio_ui(host, port, share, debug):
     try:
         process = subprocess.Popen(cmd, env=env, cwd=ROOT_DIR)
         from setup.utils import process_manager
+
         process_manager.add_process(process)
     except Exception as e:
         logger.error(f"Failed to start Gradio UI: {e}")
@@ -306,21 +321,27 @@ def validate_services() -> Dict[str, bool]:
     if python_backend_config:
         backend_path = config.get_service_path("python_backend")
         main_file = backend_path / python_backend_config.get("main_file", "main.py")
-        available_services["python_backend"] = backend_path.exists() and main_file.exists()
+        available_services["python_backend"] = (
+            backend_path.exists() and main_file.exists()
+        )
 
     # Check TypeScript backend
     ts_backend_config = config.get_service_config("typescript_backend")
     if ts_backend_config:
         ts_path = config.get_service_path("typescript_backend")
         package_json = ts_path / ts_backend_config.get(PACKAGE_JSON, PACKAGE_JSON)
-        available_services["typescript_backend"] = ts_path.exists() and package_json.exists()
+        available_services["typescript_backend"] = (
+            ts_path.exists() and package_json.exists()
+        )
 
     # Check frontend
     frontend_config = config.get_service_config("frontend")
     if frontend_config:
         frontend_path = config.get_service_path("frontend")
         package_json = frontend_path / frontend_config.get(PACKAGE_JSON, PACKAGE_JSON)
-        available_services["frontend"] = frontend_path.exists() and package_json.exists()
+        available_services["frontend"] = (
+            frontend_path.exists() and package_json.exists()
+        )
 
     return available_services
 
@@ -346,7 +367,12 @@ def start_services(args):
         if available_services.get("typescript_backend", False):
             ts_backend_config = config.get_service_config("typescript_backend")
             ts_backend_path = config.get_service_path("typescript_backend")
-            start_node_service(ts_backend_path, "TypeScript Backend", ts_backend_config.get("port", 8001), api_url)
+            start_node_service(
+                ts_backend_path,
+                "TypeScript Backend",
+                ts_backend_config.get("port", 8001),
+                api_url,
+            )
 
     if not args.api_only:
         start_gradio_ui(args.host, 7860, args.share, args.debug)
@@ -354,7 +380,9 @@ def start_services(args):
         # Start frontend if configured and available
         if available_services.get("frontend", False):
             frontend_path = config.get_service_path("frontend")
-            start_node_service(frontend_path, "Frontend Client", args.frontend_port, api_url)
+            start_node_service(
+                frontend_path, "Frontend Client", args.frontend_port, api_url
+            )
 
     cmd = [
         python_exe,
@@ -380,8 +408,7 @@ def start_services(args):
     try:
         process = subprocess.Popen(cmd, env=env, cwd=ROOT_DIR)
         from setup.utils import process_manager
+
         process_manager.add_process(process)
     except Exception as e:
         logger.error(f"Failed to start backend: {e}")
-
-

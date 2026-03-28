@@ -2,6 +2,7 @@
 Action routes for backward compatibility.
 The action functionality has been integrated into email_routes.
 """
+
 import logging
 
 from fastapi import APIRouter, HTTPException
@@ -13,7 +14,10 @@ router = APIRouter()
 @router.get("/api/actions/health")
 async def health_check():
     """Health check endpoint for action routes."""
-    return {"status": "ok", "message": "Action routes are deprecated. Use email routes instead."}
+    return {
+        "status": "ok",
+        "message": "Action routes are deprecated. Use email routes instead.",
+    }
 
 
 @router.post("/api/actions/extract")
@@ -24,5 +28,5 @@ async def extract_actions_placeholder():
     """
     raise HTTPException(
         status_code=410,
-        detail="This endpoint is deprecated. Use email analysis endpoints instead."
+        detail="This endpoint is deprecated. Use email analysis endpoints instead.",
     )
