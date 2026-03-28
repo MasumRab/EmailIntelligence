@@ -1145,7 +1145,7 @@ def _handle_legacy_args(args) -> int:  # noqa: PLR0912
     if not args.skip_prepare and not args.use_conda:
         prepare_environment(args)
 
-    _run_services()
+    _run_services(args)
     return 0
 
 
