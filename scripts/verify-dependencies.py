@@ -12,14 +12,19 @@ import argparse
 from typing import Dict, List, Set, Tuple
 import re
 import os
-import importlib.metadata
+try:
+    from importlib.metadata import distributions
+except ImportError:
+    # Fallback for older python versions if needed, though project requires >= 3.11
+    from importlib_metadata import distributions
+
 from packaging.requirements import Requirement
 from packaging.version import parse as parse_version
 
 # Mappings for packages where the import name differs from the package name
 PACKAGE_MAPPINGS = {
     "python-dotenv": "dotenv",
-    "python-multipart": "python_multipart",
+    "python-multipart": "multipart",
     "pyyaml": "yaml",
     "beautifulsoup4": "bs4",
     "pillow": "PIL",
@@ -31,24 +36,7 @@ PACKAGE_MAPPINGS = {
 
 def get_installed_packages() -> Dict[str, str]:
     """Get a dictionary of installed packages and their versions."""
-    installed = {}
-    try:
-        distributions = importlib.metadata.distributions()
-    except Exception:
-        distributions = []
-
-    for dist in distributions:
-        try:
-            name = dist.metadata["Name"].lower()
-            version = dist.version
-            installed[name] = version
-            # Handle normalized names (e.g. python-multipart -> python_multipart)
-            normalized_name = name.replace("-", "_")
-            if normalized_name != name:
-                installed[normalized_name] = version
-        except Exception:
-            pass
-    return installed
+    return {dist.metadata['Name'].lower(): dist.version for dist in distributions()}
 
 def parse_requirements(files: List[str]) -> List[Requirement]:
     """Parse requirements from multiple files."""

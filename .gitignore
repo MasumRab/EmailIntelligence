@@ -244,22 +244,3 @@ original_readme.md
 terminal-jarvis_AGENTS.md
 cognee-AGENTS.md
 >>>>>>> a7da61cf1f697de3c8c81f536bf579d36d88e613
-.claude/
-.windsurf/
-.opencode/
-.specify/
-.qwen/
-.trae/
-.serena/
-.kiro/
-.iflow/
-.kilo/
-.agents/
-backups/
-backlog/
-guidance/
-docs/orchestration*
-*SUMMARY*.md
-*COMPLETE*.md
-temp_untracked_files/
-.trunk/

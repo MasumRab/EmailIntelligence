@@ -138,6 +138,7 @@ class DatabaseManager(DataSource):
         # In-memory indexes
         self.emails_by_id: Dict[int, Dict[str, Any]] = {}
         self.emails_by_message_id: Dict[str, Dict[str, Any]] = {}
+        self.email_search_index: Dict[int, str] = {}  # Optimization: Maps email_id to lowercased search text
         self.categories_by_id: Dict[int, Dict[str, Any]] = {}
         self.categories_by_name: Dict[str, Dict[str, Any]] = {}
         self.category_counts: Dict[int, int] = {}
@@ -207,6 +208,15 @@ class DatabaseManager(DataSource):
     # TODO(P1, 4h): Remove hidden side effects from initialization per functional_analysis_report.md
     # TODO(P2, 3h): Implement lazy loading strategy that is more predictable and testable
 
+    def _get_search_text(self, email: Dict[str, Any]) -> str:
+        """Constructs the search text for an email record."""
+        parts = [
+            email.get(FIELD_SUBJECT, ""),
+            email.get(FIELD_SENDER, ""),
+            email.get(FIELD_SENDER_EMAIL, ""),
+        ]
+        return "\0".join(p for p in parts if p).lower()
+
     @log_performance(operation="build_indexes")
     def _build_indexes(self) -> None:
         """Builds or rebuilds all in-memory indexes from the loaded data."""
@@ -217,6 +227,13 @@ class DatabaseManager(DataSource):
             for email in self.emails_data
             if FIELD_MESSAGE_ID in email
         }
+
+        # Build search index
+        self.email_search_index = {
+            email[FIELD_ID]: self._get_search_text(email)
+            for email in self.emails_data
+        }
+
         self.categories_by_id = {cat[FIELD_ID]: cat for cat in self.categories_data}
         self.categories_by_name = {cat[FIELD_NAME].lower(): cat for cat in self.categories_data}
         self.category_counts = {cat_id: 0 for cat_id in self.categories_by_id}
@@ -413,6 +430,7 @@ class DatabaseManager(DataSource):
         message_id = email.get(FIELD_MESSAGE_ID)
         self.emails_data.append(email)
         self.emails_by_id[email_id] = email
+        self.email_search_index[email_id] = self._get_search_text(email)
         if message_id:
             self.emails_by_message_id[message_id] = email
 
@@ -688,16 +706,35 @@ class DatabaseManager(DataSource):
         logger.info(
             f"Starting email search for term: '{search_term_lower}'. This may be slow if searching content."
         )
-        for email_light in self.emails_data:
-            found_in_light = (
-                search_term_lower in email_light.get(FIELD_SUBJECT, "").lower()
-                or search_term_lower in email_light.get(FIELD_SENDER, "").lower()
-                or search_term_lower in email_light.get(FIELD_SENDER_EMAIL, "").lower()
+
+        # Optimization: Sort candidates by date first, then search.
+        # This allows early exit once we find 'limit' matches.
+        try:
+            sorted_candidates = sorted(
+                self.emails_data,
+                key=lambda e: e.get(FIELD_TIME, e.get(FIELD_CREATED_AT, "")),
+                reverse=True,
             )
+        except TypeError:
+            sorted_candidates = sorted(
+                self.emails_data, key=lambda e: e.get(FIELD_CREATED_AT, ""), reverse=True
+            )
+
+        for email_light in sorted_candidates:
+            if len(filtered_emails) >= limit:
+                break
+
+            email_id = email_light.get(FIELD_ID)
+
+            # Use pre-computed index for metadata search
+            search_text = self.email_search_index.get(email_id, "")
+            found_in_light = search_term_lower in search_text
+
             if found_in_light:
                 filtered_emails.append(email_light)
                 continue
-            email_id = email_light.get(FIELD_ID)
+
+            # If not in metadata, check content (disk I/O)
             content_path = self._get_email_content_path(email_id)
             if os.path.exists(content_path):
                 try:
@@ -709,7 +746,8 @@ class DatabaseManager(DataSource):
                 except (IOError, json.JSONDecodeError) as e:
                     logger.error(f"Could not search content for email {email_id}: {e}")
 
-        result = await self._sort_and_paginate_emails(filtered_emails, limit=limit)
+        # Result is already sorted by date due to candidates order
+        result = [self._add_category_details(email) for email in filtered_emails]
 
         # Cache result
         self.caching_manager.put_query_result(cache_key, result)
@@ -753,6 +791,7 @@ class DatabaseManager(DataSource):
         """Updates in-memory indexes for an email."""
         email_id = email[FIELD_ID]
         self.emails_by_id[email_id] = email
+        self.email_search_index[email_id] = self._get_search_text(email)
         if email.get(FIELD_MESSAGE_ID):
             self.emails_by_message_id[email[FIELD_MESSAGE_ID]] = email
         idx = next(
