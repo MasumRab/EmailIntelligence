@@ -1,6 +1,7 @@
 import react from 'eslint-plugin-react';
 import reactHooks from 'eslint-plugin-react-hooks';
-import typescriptEslint from 'typescript-eslint';
+import tseslint from '@typescript-eslint/eslint-plugin';
+import parser from '@typescript-eslint/parser';
 import reactRefresh from 'eslint-plugin-react-refresh';
 
 export default [
@@ -12,11 +13,13 @@ export default [
     plugins: {
       react,
       'react-hooks': reactHooks,
+      '@typescript-eslint': tseslint,
       'react-refresh': reactRefresh
     },
     languageOptions: {
       ecmaVersion: 'latest',
       sourceType: 'module',
+      parser: parser,
       parserOptions: {
         ecmaFeatures: {
           jsx: true
