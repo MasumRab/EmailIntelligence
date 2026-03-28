@@ -23,7 +23,7 @@ from setup.services import (
     start_services, start_backend, start_node_service, start_gradio_ui, PACKAGE_JSON
 )
 from setup.environment import (
-    handle_setup, prepare_environment, setup_wsl_environment, check_wsl_requirements
+    handle_setup, prepare_environment
 )
 from setup.utils import print_system_info, process_manager
 
