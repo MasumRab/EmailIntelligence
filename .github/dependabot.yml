@@ -1,17 +1,10 @@
 version: 2
 updates:
-<<<<<<< HEAD
-=======
   # Python dependencies
->>>>>>> origin/scientific
   - package-ecosystem: "pip"
     directory: "/"
     schedule:
       interval: "weekly"
-<<<<<<< HEAD
-    labels:
-      - "dependencies"
-=======
       day: "monday"
       time: "09:00"
       timezone: "America/Los_Angeles"
@@ -29,15 +22,10 @@ updates:
           - "patch"
   
   # GitHub Actions
->>>>>>> origin/scientific
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "weekly"
-<<<<<<< HEAD
-    labels:
-      - "dependencies"
-=======
       day: "monday"
       time: "09:00"
       timezone: "America/Los_Angeles"
@@ -69,4 +57,3 @@ updates:
         update-types:
           - "minor"
           - "patch"
->>>>>>> origin/scientific
