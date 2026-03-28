@@ -87,9 +87,7 @@ async def login(user_credentials: UserLogin, db: DataSource = Depends(get_data_s
         # Verify the MFA token
         secret = user.get("mfa_secret")
         if not secret:
-            logger.error(
-                f"MFA enabled for user {user_credentials.username} but no secret found"
-            )
+            logger.error("MFA enabled but no secret found for authenticated user")
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="Server configuration error",
