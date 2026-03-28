@@ -1,97 +1,132 @@
-/**
- * @file The main entry point for the Express server.
- *
- * This file is responsible for initializing the Express application, setting up
- * middleware, registering API routes, and starting the server. It also handles
- * database initialization and environment-specific configurations for development
- * and production.
- */
-import dotenv from "dotenv";
-// Load environment variables from .env file
-dotenv.config();
+#!/usr/bin/env node
 
-import express, { type Request, Response, NextFunction } from "express";
-import { registerRoutes } from "./routes";
-import { setupVite, serveStatic, log } from "./vite";
-import { initializeDatabase } from "./init-db";
+/**
+ * EmailIntelligence Node.js/TypeScript Backend Server
+ *
+ * Main entry point for the Node.js server that handles:
+ * - API routes
+ * - Database interactions
+ * - Frontend serving
+ * - Python backend communication
+ */
+
+import express from 'express';
+import { createServer } from 'http';
+import { WebSocketServer } from 'ws';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import rateLimit from 'express-rate-limit';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+const server = createServer(app);
+const wss = new WebSocketServer({ server });
 
-// Initialize database on startup
-initializeDatabase().catch(console.error);
+// Rate limiting configuration
+const catchAllLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // limit each IP to 100 requests per windowMs
+  message: 'Too many requests from this IP, please try again later.',
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 
-/**
- * Middleware for logging API requests.
- *
- * This middleware captures the start time of a request and logs the method,
- * path, status code, and duration upon completion. It also captures and logs
- * the JSON response body for API endpoints.
- *
- * @param {Request} req - The Express request object.
- * @param {Response} res - The Express response object.
- * @param {NextFunction} next - The next middleware function.
- */
+// Security headers middleware
 app.use((req, res, next) => {
-  const start = Date.now();
-  const path = req.path;
-  let capturedJsonResponse: Record<string, any> | undefined = undefined;
+  // Set security headers
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-XSS-Protection', '1; mode=block');
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  res.setHeader('Content-Security-Policy', "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline';");
+  res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
 
-  const originalResJson = res.json;
-  res.json = function (bodyJson, ...args) {
-    capturedJsonResponse = bodyJson;
-    return originalResJson.apply(res, [bodyJson, ...args]);
-  };
-
-  res.on("finish", () => {
-    const duration = Date.now() - start;
-    if (path.startsWith("/api")) {
-      let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
-      if (capturedJsonResponse) {
-        logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
-      }
-
-      if (logLine.length > 80) {
-        logLine = logLine.slice(0, 79) + "…";
-      }
-
-      log(logLine);
-    }
-  });
+  // CORS headers for API routes
+  const allowedOrigins = [
+    'http://localhost:5173',
+    'http://127.0.0.1:5173',
+    'http://localhost:8001',
+    'http://127.0.0.1:8001',
+    'http://localhost:7860',
+    'http://127.0.0.1:7860'
+  ];
+  const origin = req.headers.origin;
+  if (origin && allowedOrigins.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  }
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Authorization, Content-Type, X-User-ID');
 
   next();
 });
 
-import { errorHandler } from "./utils/errorHandler";
+// Handle preflight requests
+app.options('*', (req, res) => {
+  res.sendStatus(204);
+});
 
-/**
- * Main server setup and startup function.
- *
- * This async IIFE (Immediately Invoked Function Expression) orchestrates the
- * server startup process. It registers all API routes, sets up the global
- * error handler, configures Vite for development or serves static files for
- * production, and finally starts the server on the specified port.
- */
-(async () => {
-  const server = await registerRoutes(app);
+// Middleware
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-  app.use(errorHandler);
+// Basic API routes
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
 
-  // importantly only setup vite in development and after
-  // setting up all the other routes so the catch-all route
-  // doesn't interfere with the other routes
-  if (app.get("env") === "development") {
-    await setupVite(app, server);
-  } else {
-    serveStatic(app);
-  }
+// WebSocket handling
+wss.on('connection', (ws) => {
+  console.log('Client connected');
 
-  // ALWAYS serve the app on port 5000
-  // this serves both the API and the client.
-  // It is the only port that is not firewalled.
-  const port = parseInt(process.env.NODE_PORT || "5000", 10);
-  server.listen(port, "127.0.0.1", () => {
-    log(`serving on port ${port}`);
+  ws.on('message', (message) => {
+    console.log('Received:', message.toString());
+    // Echo back for now
+    ws.send(`Echo: ${message}`);
   });
-})();
+
+  ws.on('close', () => {
+    console.log('Client disconnected');
+  });
+});
+
+// Serve static files from client build (when built)
+const clientBuildPath = path.join(__dirname, '../client/dist');
+app.use(express.static(clientBuildPath));
+
+// Catch-all handler: send back index.html for client-side routing
+// Apply rate limiting specifically to the catch-all route serving index.html
+app.get('*', catchAllLimiter, (req, res) => {
+  res.sendFile(path.join(clientBuildPath, 'index.html'));
+});
+
+// Error handling
+app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+  console.error(err.stack);
+  res.status(500).json({ error: 'Internal server error' });
+});
+
+const PORT = process.env.PORT || 8001;
+const HOST = process.env.HOST || '127.0.0.1';
+
+server.listen(PORT, HOST, () => {
+  console.log(`🚀 EmailIntelligence server running on http://${HOST}:${PORT}`);
+  console.log(`📊 Health check: http://${HOST}:${PORT}/api/health`);
+});
+
+process.on('SIGTERM', () => {
+  console.log('Shutting down gracefully...');
+  server.close(() => {
+    console.log('Server closed');
+    process.exit(0);
+  });
+});
+
+process.on('SIGINT', () => {
+  console.log('Received SIGINT, shutting down gracefully...');
+  server.close(() => {
+    console.log('Server closed');
+    process.exit(0);
+  });
+});

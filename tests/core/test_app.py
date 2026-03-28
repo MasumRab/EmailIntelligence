@@ -1,5 +1,6 @@
 from fastapi.testclient import TestClient
 
+
 def test_app_startup(client: TestClient):
     """
     Tests that the main application starts up correctly and the Gradio UI is mounted.
@@ -7,6 +8,7 @@ def test_app_startup(client: TestClient):
     response = client.get("/")
     assert response.status_code == 200
     assert "Gradio" in response.text  # Check for Gradio UI content
+
 
 def test_api_docs_are_available(client: TestClient):
     """

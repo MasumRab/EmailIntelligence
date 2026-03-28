@@ -63,7 +63,6 @@ disable=
     C0303, # trailing-whitespace
     C0330, # bad-continuation
     C1801, # len-as-condition
-    W0511, # fixme
     R0903, # too-few-public-methods
     R0913, # too-many-arguments
 
@@ -78,11 +77,11 @@ ignore-imports=yes
 """
 
     # Create pyproject.toml for Black and isort
-    pyproject_toml = """[tool.black]
+    pyproject_toml = r"""[tool.black]
 line-length = 100
 target-version = ['py311']
 include = '\.pyi?$'
-exclude = '''
+exclude = r'''
 /(
     \.git
   | \.hg

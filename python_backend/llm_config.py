@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import json
-import os
 from pathlib import Path
 from typing import Any, Dict
 
@@ -23,7 +22,7 @@ def get_git_branch() -> str:
     git_head = repo_root / ".git" / "HEAD"
     try:
         text = git_head.read_text(encoding="utf-8").strip()
-    except Exception:
+    except OSError:
         return "unknown"
     if text.startswith("ref: "):
         return text.split("refs/heads/")[-1]

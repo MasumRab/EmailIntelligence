@@ -18,13 +18,13 @@ if git diff-tree --no-commit-id --name-only HEAD | grep -q "^docs/\|^backlog/"; 
 
     # Trigger Agent Workflow components for documentation processing
     echo "Triggering Agent Workflow components..."
-    
+
     if python "$SCRIPT_DIR/agent_workflow_integration.py"; then
         echo "Agent Workflow integration completed successfully"
     else
         echo "Warning: Agent Workflow integration failed"
     fi
-    
+
 else
     echo "No documentation changes detected, skipping sync and Agent Workflows"
 fi

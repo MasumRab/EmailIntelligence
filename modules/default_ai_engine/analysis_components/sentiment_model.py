@@ -12,6 +12,7 @@ from typing import Any, Dict, Optional
 
 try:
     from textblob import TextBlob
+
     HAS_NLTK = True
 except ImportError:
     TextBlob = None
@@ -32,6 +33,7 @@ class SentimentModel:
         has_nltk: A boolean indicating if NLTK and TextBlob are installed.
         logger: A logger for recording events and errors.
     """
+
     def __init__(self, sentiment_model: Optional[Any], has_nltk_installed: bool):
         """
         Initializes the SentimentModel.
@@ -62,8 +64,18 @@ class SentimentModel:
             prediction = self.model.predict([text])[0]
             probabilities = self.model.predict_proba([text])[0]
             confidence = float(max(probabilities))
-            polarity = confidence if prediction == "positive" else -confidence if prediction == "negative" else 0.0
-            return {"sentiment": str(prediction), "polarity": polarity, "subjectivity": 0.5, "confidence": confidence, "method_used": "model_sentiment"}
+            polarity = (
+                confidence
+                if prediction == "positive"
+                else -confidence if prediction == "negative" else 0.0
+            )
+            return {
+                "sentiment": str(prediction),
+                "polarity": polarity,
+                "subjectivity": 0.5,
+                "confidence": confidence,
+                "method_used": "model_sentiment",
+            }
         except Exception as e:
             self.logger.error(f"Error using sentiment model: {e}. Trying fallback.")
             return None
@@ -91,7 +103,13 @@ class SentimentModel:
                 sentiment, confidence = "negative", min(abs(polarity) + 0.5, 1.0)
             else:
                 sentiment, confidence = "neutral", 0.7
-            return {"sentiment": sentiment, "polarity": polarity, "subjectivity": subjectivity, "confidence": confidence, "method_used": "fallback_textblob_sentiment"}
+            return {
+                "sentiment": sentiment,
+                "polarity": polarity,
+                "subjectivity": subjectivity,
+                "confidence": confidence,
+                "method_used": "fallback_textblob_sentiment",
+            }
         except Exception as e:
             self.logger.error(f"Error during TextBlob analysis: {e}")
             return None
@@ -113,11 +131,29 @@ class SentimentModel:
         neg_count = sum(1 for word in negative_words if word in text_lower)
 
         if pos_count > neg_count:
-            return {"sentiment": "positive", "polarity": 0.5, "subjectivity": 0.5, "confidence": 0.6, "method_used": "fallback_keyword_sentiment"}
+            return {
+                "sentiment": "positive",
+                "polarity": 0.5,
+                "subjectivity": 0.5,
+                "confidence": 0.6,
+                "method_used": "fallback_keyword_sentiment",
+            }
         elif neg_count > pos_count:
-            return {"sentiment": "negative", "polarity": -0.5, "subjectivity": 0.5, "confidence": 0.6, "method_used": "fallback_keyword_sentiment"}
+            return {
+                "sentiment": "negative",
+                "polarity": -0.5,
+                "subjectivity": 0.5,
+                "confidence": 0.6,
+                "method_used": "fallback_keyword_sentiment",
+            }
         else:
-            return {"sentiment": "neutral", "polarity": 0.0, "subjectivity": 0.5, "confidence": 0.5, "method_used": "fallback_keyword_sentiment"}
+            return {
+                "sentiment": "neutral",
+                "polarity": 0.0,
+                "subjectivity": 0.5,
+                "confidence": 0.5,
+                "method_used": "fallback_keyword_sentiment",
+            }
 
     def analyze(self, text: str) -> Dict[str, Any]:
         """

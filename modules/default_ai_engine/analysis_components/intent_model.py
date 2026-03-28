@@ -25,6 +25,7 @@ class IntentModel:
         model: The pre-trained scikit-learn model for intent classification.
         logger: A logger for recording events and errors.
     """
+
     def __init__(self, intent_model: Optional[Any]):
         """
         Initializes the IntentModel.
@@ -53,7 +54,11 @@ class IntentModel:
             prediction = self.model.predict([text])[0]
             probabilities = self.model.predict_proba([text])[0]
             confidence = float(max(probabilities))
-            return {"intent": str(prediction), "confidence": confidence, "method_used": "model_intent"}
+            return {
+                "intent": str(prediction),
+                "confidence": confidence,
+                "method_used": "model_intent",
+            }
         except Exception as e:
             self.logger.error(f"Error using intent model: {e}. Trying fallback.")
             return None
@@ -79,14 +84,25 @@ class IntentModel:
             "confirmation": r"\b(confirm|confirmation|verify|check|acknowledge)\b",
         }
         text_lower = text.lower()
-        intent_scores = {intent: len(re.findall(pattern, text_lower)) for intent, pattern in intent_patterns.items()}
+        intent_scores = {
+            intent: len(re.findall(pattern, text_lower))
+            for intent, pattern in intent_patterns.items()
+        }
 
         if any(intent_scores.values()):
             best_intent = max(intent_scores, key=intent_scores.get)
             confidence = min(intent_scores[best_intent] / 3.0, 0.9)
-            return {"intent": best_intent, "confidence": max(0.1, confidence), "method_used": "fallback_regex_intent"}
+            return {
+                "intent": best_intent,
+                "confidence": max(0.1, confidence),
+                "method_used": "fallback_regex_intent",
+            }
         else:
-            return {"intent": "informational", "confidence": 0.6, "method_used": "fallback_regex_intent"}
+            return {
+                "intent": "informational",
+                "confidence": 0.6,
+                "method_used": "fallback_regex_intent",
+            }
 
     def analyze(self, text: str) -> Dict[str, Any]:
         """

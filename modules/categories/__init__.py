@@ -1,10 +1,12 @@
 import logging
-from fastapi import FastAPI
+
 import gradio as gr
+from fastapi import FastAPI
 
 from .routes import router as category_router
 
 logger = logging.getLogger(__name__)
+
 
 def register(app: FastAPI, gradio_app: gr.Blocks):
     """
@@ -13,7 +15,7 @@ def register(app: FastAPI, gradio_app: gr.Blocks):
     logger.info("Registering categories module.")
 
     # Add the API routes to the main FastAPI app
-    app.include_router(category_router, prefix="/modules/categories", tags=["Categories"])
+    app.include_router(category_router, prefix="/api/categories", tags=["Categories"])
 
     # This module does not have a Gradio UI component, but if it did,
     # it would be added here. For example:

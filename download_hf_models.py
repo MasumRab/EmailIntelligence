@@ -9,6 +9,7 @@ from a local cache instead of downloading them at runtime.
 To run the script, execute the following command in the terminal:
     python download_hf_models.py
 """
+
 import os
 
 from transformers import AutoModelForSequenceClassification, AutoTokenizer
