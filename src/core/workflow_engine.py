@@ -685,6 +685,7 @@ class WorkflowRunner:
             logger.warning(f"Condition evaluation failed for: {condition}")
             return False
 
+
     def _build_node_context(self, node_id: str) -> Dict[str, Any]:
         """
         Build the execution context for a specific node by gathering inputs
