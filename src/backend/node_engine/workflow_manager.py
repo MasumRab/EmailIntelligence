@@ -14,14 +14,14 @@ import os
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from backend.node_engine.email_nodes import (
+from src.backend.node_engine.email_nodes import (
     ActionNode,
     AIAnalysisNode,
     EmailSourceNode,
     FilterNode,
     PreprocessingNode,
 )
-from backend.node_engine.node_base import Connection, Workflow
+from src.backend.node_engine.node_base import Connection, Workflow
 
 
 class WorkflowManager:

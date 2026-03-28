@@ -9,7 +9,7 @@ import sqlite3
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 
-from backend.python_nlp.smart_filters import EmailFilter, SmartFilterManager
+from src.backend.python_nlp.smart_filters import EmailFilter, SmartFilterManager
 from src.core.auth import get_current_active_user
 
 from .database import DatabaseManager, get_db

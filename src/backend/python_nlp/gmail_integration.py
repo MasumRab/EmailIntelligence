@@ -149,7 +149,7 @@ class EmailCache:
         """Initializes the EmailCache."""
         # Secure path validation
         self.cache_path = str(
-            PathValidator.validate_database_path(cache_path, Path(cache_path).parent)
+            PathValidator.validate_and_resolve_db_path(cache_path, Path(cache_path).parent)
         )
         self.conn = sqlite3.connect(self.cache_path, check_same_thread=False)
         self._init_cache()

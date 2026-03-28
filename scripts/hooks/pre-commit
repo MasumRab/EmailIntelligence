@@ -1,0 +1,124 @@
+#!/bin/bash
+
+# Pre-commit hook for orchestration checks
+# Ensures code quality and consistency across branches
+
+# Recursion prevention: Exit if sync is already active
+if [[ "$ORCHESTRATION_SYNC_ACTIVE" == "1" ]]; then
+    exit 0
+fi
+
+# Check for disable flag
+if [[ "$DISABLE_ORCHESTRATION_CHECKS" == "1" ]]; then
+    echo "Orchestration checks disabled, skipping pre-commit checks"
+    exit 0
+fi
+
+set -e
+
+# Get current branch
+CURRENT_BRANCH="$(git rev-parse --abbrev-ref HEAD)"
+
+# Determine if this is an orchestration-tools variant branch
+IS_ORCHESTRATION_VARIANT=false
+if [[ "$CURRENT_BRANCH" == orchestration-tools* ]]; then
+    IS_ORCHESTRATION_VARIANT=true
+fi
+
+# Branch-specific checks
+case "$CURRENT_BRANCH" in
+    "main"|"scientific")
+        echo "Running pre-commit checks for $CURRENT_BRANCH branch..."
+
+        # Validate Task Master compatibility (warning only)
+        if [[ -d ".taskmaster" ]]; then
+            echo "✓ Task Master directory detected"
+
+            # Check Task Master configuration (info only)
+            if [[ ! -f ".taskmaster/config.json" ]]; then
+                echo "INFO: .taskmaster/config.json not found (may not be initialized)"
+            fi
+        fi
+
+        # Check for common files (info only, don't block)
+        if [[ ! -f "setup/setup_environment_system.sh" ]]; then
+            echo "INFO: setup/setup_environment_system.sh not found (may be normal for this branch)"
+        fi
+
+        echo "✓ Pre-commit checks passed for $CURRENT_BRANCH"
+        ;;
+
+    "orchestration-tools"|orchestration-tools-*)
+        echo "Running orchestration-tools pre-commit checks for: $CURRENT_BRANCH"
+
+        # NOTE: .taskmaster/ worktree is naturally protected by git
+        # (worktrees have their own .git/worktrees/* directory)
+        # No explicit blocking needed - git handles it automatically
+
+        # Ensure orchestration scripts are executable (non-blocking)
+        if [[ -d "scripts/bash" ]]; then
+            for script in scripts/bash/*.sh; do
+                if [[ -f "$script" && ! -x "$script" ]]; then
+                    echo "Making $script executable"
+                    chmod +x "$script"
+                fi
+            done
+        fi
+
+        # Validate orchestration configuration (info only, non-blocking)
+        if [[ ! -f "emailintelligence_cli.py" ]]; then
+            echo "INFO: emailintelligence_cli.py not found"
+        else
+            echo "✓ EmailIntelligence CLI present"
+        fi
+
+        echo "✓ Orchestration-tools pre-commit checks passed for: $CURRENT_BRANCH"
+        ;;
+
+    "taskmaster")
+        echo "Running Task Master branch pre-commit checks..."
+
+        # Validate Task Master files (info only, non-blocking)
+        if [[ ! -f "AGENT.md" ]]; then
+            echo "INFO: AGENT.md not found"
+        else
+            echo "✓ Task Master AGENT.md present"
+        fi
+
+        # Check for taskmaster scripts (info only)
+        if [[ ! -f "scripts/next_task.py" ]]; then
+            echo "INFO: scripts/next_task.py not found"
+        else
+            echo "✓ Task Master scripts present"
+        fi
+
+        echo "✓ Task Master pre-commit checks passed"
+        ;;
+
+    *)
+        echo "Running generic pre-commit checks for branch: $CURRENT_BRANCH"
+        ;;
+esac
+
+# Common checks for all branches
+echo "Running common pre-commit checks..."
+
+# Check for large files (safely handle empty file list)
+STAGED_FILES=$(git diff --cached --name-only 2>/dev/null || echo "")
+if [[ -n "$STAGED_FILES" ]]; then
+    LARGE_FILES=$(echo "$STAGED_FILES" | xargs ls -l 2>/dev/null | awk '$5 > 50000000 {print $9}' || true)
+    if [[ -n "$LARGE_FILES" ]]; then
+        echo "ERROR: Large files detected (>50MB):"
+        echo "$LARGE_FILES"
+        echo "Please remove or use Git LFS for large files"
+        exit 1
+    fi
+fi
+
+# Check for sensitive data
+if git diff --cached --name-only | xargs grep -l "password\|secret\|key\|token" >/dev/null 2>&1; then
+    echo "WARNING: Potential sensitive data detected in staged files"
+    echo "Please review and ensure no secrets are being committed"
+fi
+
+echo "✓ All pre-commit checks passed"

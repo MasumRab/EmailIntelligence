@@ -14,7 +14,7 @@ import time
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from backend.node_engine.node_base import (
+from src.backend.node_engine.node_base import (
     BaseNode,
     Connection,
     DataType,
@@ -22,8 +22,8 @@ from backend.node_engine.node_base import (
     SecurityContext,
     Workflow,
 )
-from backend.node_engine.security_manager import SecurityManager  # Import the SecurityManager class
-from backend.node_engine.security_manager import (
+from src.backend.node_engine.security_manager import SecurityManager  # Import the SecurityManager class
+from src.backend.node_engine.security_manager import (
     ExecutionSandbox,
     InputSanitizer,
     ResourceLimits,

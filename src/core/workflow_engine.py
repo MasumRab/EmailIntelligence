@@ -308,6 +308,7 @@ class WorkflowRunner:
                 "stats": self.execution_stats,
             }
 
+
     def _run_sequential(self, execution_order, cleanup_schedule):
         """Execute workflow nodes sequentially"""
         for node_id in execution_order:
@@ -578,33 +579,34 @@ class WorkflowRunner:
         Calculate which node results can be cleaned up after each node executes.
         This helps optimize memory usage by removing results that are no longer needed.
         """
-        cleanup_schedule = {}
+        cleanup_schedule = {node_id: [] for node_id in execution_order}
+        node_indices = {node_id: i for i, node_id in enumerate(execution_order)}
 
-        # For each node in the execution order, determine which previous nodes' results
-        # are no longer needed after this node executes
-        for i, node_id in enumerate(execution_order):
-            cleanup_schedule[node_id] = []
+        # Determine the last time each node is needed.
+        # Initialize with index + 1 (meaning it's not needed after itself runs, unless consumed later)
+        # We use i + 1 as the default cleanup time (immediately after execution) if it's unused.
+        last_needed_at = {node_id: i + 1 for node_id, i in node_indices.items()}
 
-            # Check all previous nodes to see if their results are still needed
-            for prev_node_id in execution_order[:i]:
-                # Check if any subsequent nodes need the result from prev_node_id
-                still_needed = False
+        # Check connections to find the latest consumer for each node
+        for conn in self.workflow.connections:
+            producer_id = conn["from"]["node_id"]
+            consumer_id = conn["to"]["node_id"]
 
-                for subsequent_node_id in execution_order[i + 1 :]:
-                    # Check if there's a connection from prev_node to subsequent_node
-                    for conn in self.workflow.connections:
-                        if (
-                            conn["from"]["node_id"] == prev_node_id
-                            and conn["to"]["node_id"] == subsequent_node_id
-                        ):
-                            still_needed = True
-                            break
-                    if still_needed:
-                        break
+            # Only consider nodes that are part of the current execution order
+            if producer_id in node_indices and consumer_id in node_indices:
+                consumer_index = node_indices[consumer_id]
 
-                # If not still needed by any subsequent nodes, it can be cleaned up
-                if not still_needed:
-                    cleanup_schedule[node_id].append(prev_node_id)
+                # Update last needed index for producer
+                if consumer_index > last_needed_at[producer_id]:
+                    last_needed_at[producer_id] = consumer_index
+
+        # Populate cleanup schedule
+        for producer_id, cleanup_index in last_needed_at.items():
+            # If cleanup_index is within bounds, schedule the cleanup
+            if cleanup_index < len(execution_order):
+                # The node that runs at cleanup_index is the one after which we clean up
+                cleanup_node_id = execution_order[cleanup_index]
+                cleanup_schedule[cleanup_node_id].append(producer_id)
 
         return cleanup_schedule
 

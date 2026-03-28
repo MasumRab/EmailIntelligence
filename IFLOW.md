@@ -1,15 +1,22 @@
-# EmailIntelligence - Unified Development Environment (iFlow Context)
+# Iflow Cursor Integration Guide
 
-## Project Overview
+> **Note:** This file works alongside `AGENTS.md` (generic AI agent instructions). AGENTS.md contains the core Task Master commands and workflows for all AI agents. This file contains Iflow cursor-specific features and integrations.
 
+<<<<<<< HEAD
 EmailIntelligence is a full-stack application designed to provide intelligent email analysis and management capabilities. The project combines a Python FastAPI backend for AI/NLP tasks with a React frontend and a Gradio-based UI for scientific exploration, offering features such as sentiment analysis, topic classification, intent recognition, urgency detection, and smart filtering.
 
 The application uses a modular architecture with a unified launcher system (`launch.py`), comprehensive environment management, and an extensions framework for customization. It supports multiple interfaces including a standard web interface, a Gradio-based UI for scientific exploration, and a node-based workflow system for creating complex email processing pipelines.
+=======
+## About Iflow Cursor
 
-## iFlow CLI Overview
+Iflow is a cursor-extension-based development environment providing inline AI suggestions and code completion while maintaining full control over the codebase.
+>>>>>>> a7da61cf1f697de3c8c81f536bf579d36d88e613
 
-iFlow CLI is an interactive command-line interface agent designed to assist with software engineering tasks in the EmailIntelligence project. It specializes in helping developers with code understanding, refactoring, testing, and implementation while strictly following project conventions.
+## MCP Configuration for Iflow
 
+Configure Task Master MCP server in your Iflow/Cursor configuration:
+
+<<<<<<< HEAD
 ## Key Technologies
 
 - **Backend**: Python 3.12+, FastAPI, NLTK, scikit-learn, PyTorch, Transformers
@@ -48,35 +55,94 @@ EmailIntelligence/
 ```
 
 ## Building and Running
+=======
+```json
+{
+  "mcpServers": {
+    "task-master-ai": {
+      "command": "npx",
+      "args": ["-y", "task-master-ai"]
+    }
+  }
+}
+```
 
-### Prerequisites
+**Note:** API keys are configured via `task-master models --setup`, not in MCP configuration.
 
+## Iflow-Specific Features
+
+### Inline AI Assistance
+
+- Real-time code completion suggestions
+- Inline refactoring recommendations
+- Quick explanations via hover
+- Context-aware code generation
+
+Both `AGENTS.md` and `IFLOW.md` are auto-loaded in Iflow Cursor context.
+
+### Cursor-Based Workflows
+
+```bash
+# Leverage Iflow's inline suggestions
+# Select code → Right-click → "Ask Iflow" for explanations
+# Type comment → Iflow auto-completes implementation
+
+# Terminal integration
+task-master next    # Get next task from inline terminal
+```
+
+### Smart Context
+
+- Iflow tracks open files automatically
+- Maintains context across edits
+- Understands your coding patterns
+- Provides continuity between sessions
+
+## Important Differences from Other Agents
+
+### Non-Intrusive Assistance
+Iflow provides suggestions without forcing actions - you maintain full control.
+
+### Keyboard-Centric
+Optimized for keyboard shortcuts and efficient typing workflows.
+
+### File-Aware Context
+Automatically loads context from open files without explicit commands.
+
+### Seamless Integration
+Works naturally within Cursor environment - no context switching needed.
+>>>>>>> a7da61cf1f697de3c8c81f536bf579d36d88e613
+
+## Recommended Model Configuration
+
+<<<<<<< HEAD
 - Python 3.12 or later
 - Node.js 18 or later
 - Git
+=======
+For Iflow Cursor users:
+>>>>>>> a7da61cf1f697de3c8c81f536bf579d36d88e613
 
-### Quick Start
+```bash
+# Set Iflow/Cursor-compatible model as primary
+task-master models --set-main <cursor-compatible-model>
+task-master models --set-research perplexity-llama-3.1-sonar-large-128k-online
+task-master models --set-fallback <backup-model>
+```
 
-1. Clone the repository:
-   ```bash
-   git clone <repository_url>
-   cd EmailIntelligence
-   ```
+## Your Role with Iflow Cursor
 
-2. Install Node.js dependencies:
-   ```bash
-   npm install
-   ```
+As an Iflow Cursor assistant with Task Master:
 
-3. Run the application using the launcher:
-   ```bash
-   # Windows
-   launch.bat --stage dev
+1. **Provide inline suggestions** - Use Iflow's inline context for recommendations
+2. **Respect user control** - Suggest without forcing changes
+3. **Keyboard efficiency** - Optimize for keyboard-centric workflows
+4. **File context awareness** - Leverage automatically loaded file context
+5. **Quick explanations** - Provide concise, on-demand explanations
 
-   # Linux/macOS
-   ./launch.sh --stage dev
-   ```
+**Key Principle:** Iflow Cursor is about intelligent, non-intrusive assistance. Task Master integrates for structured task management within this flow-based workflow.
 
+<<<<<<< HEAD
 This will:
 - Set up the Python virtual environment or conda environment
 - Install Python dependencies using uv
@@ -84,11 +150,19 @@ This will:
 - Create placeholder AI model files
 - Start the Python FastAPI server (default: port 8000)
 - Start the React frontend development server (default: port 5173)
+=======
+---
+>>>>>>> a7da61cf1f697de3c8c81f536bf579d36d88e613
 
-### Launcher Usage
+## Iflow Best Practices
 
-The `launch.py` script is the central tool for managing the development environment:
+- Keep files open for context continuity
+- Use quick-fix suggestions for refactoring
+- Maintain cursor position for task continuity
+- Leverage auto-completion for implementation speed
+- Reference loaded files implicitly (Iflow tracks them)
 
+<<<<<<< HEAD
 - Setup: `python launch.py --setup`
 - Run all services: `python launch.py`
 - Run specific services:
@@ -329,3 +403,8 @@ The project is currently undergoing a migration from a monolithic structure to a
 - Use dependency injection over global state
 - Check existing dependencies before adding new libraries
 - Follow security best practices
+=======
+---
+
+*See AGENTS.md for complete Task Master commands, workflows, and best practices.*
+>>>>>>> a7da61cf1f697de3c8c81f536bf579d36d88e613
