@@ -1,4 +1,11 @@
 import asyncio
+import os
+import tempfile
+
+# Set up test environment BEFORE any other imports
+TEST_DATA_DIR = tempfile.mkdtemp()
+os.environ["DATA_DIR"] = TEST_DATA_DIR
+
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
