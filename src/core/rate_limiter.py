@@ -7,7 +7,6 @@ Implements token bucket algorithm for API endpoint rate limiting with Redis back
 import asyncio
 import logging
 import time
-from collections import OrderedDict
 from dataclasses import dataclass
 from typing import Dict, Tuple
 
@@ -21,7 +20,6 @@ class RateLimitConfig:
     requests_per_minute: int = 60
     burst_limit: int = 10
     window_seconds: int = 60
-    max_clients: int = 1000
 
 
 @dataclass
@@ -41,7 +39,7 @@ class RateLimiter:
 
     def __init__(self, config: RateLimitConfig):
         self.config = config
-        self._limits: OrderedDict[str, RateLimitState] = OrderedDict()
+        self._limits: Dict[str, RateLimitState] = {}
         self._lock = asyncio.Lock()
 
     async def is_allowed(self, key: str) -> Tuple[bool, Dict[str, int]]:
@@ -62,12 +60,6 @@ class RateLimiter:
                 # First request for this key
                 state = RateLimitState(tokens=self.config.burst_limit, last_refill=now)
                 self._limits[key] = state
-                # Enforce capacity limit
-                if len(self._limits) > self.config.max_clients:
-                    self._limits.popitem(last=False)
-            else:
-                # Move to end to mark as recently used
-                self._limits.move_to_end(key)
 
             # Refill tokens based on time passed
             time_passed = now - state.last_refill
@@ -95,19 +87,14 @@ class RateLimiter:
 
     async def get_remaining_tokens(self, key: str) -> int:
         """Get remaining tokens for a key."""
-        async with self._lock:
-            state = self._limits.get(key)
-            if state is None:
-                return self.config.burst_limit
-            # Move to end to mark as recently used
-            self._limits.move_to_end(key)
+        state = self._limits.get(key)
+        if state is None:
+            return self.config.burst_limit
 
         # Calculate current tokens (refill if needed)
         now = time.time()
         time_passed = now - state.last_refill
-        refill_amount = time_passed * (
-            self.config.requests_per_minute / self.config.window_seconds
-        )
+        refill_amount = time_passed * (self.config.requests_per_minute / self.config.window_seconds)
         current_tokens = min(self.config.burst_limit, state.tokens + refill_amount)
 
         return max(0, int(current_tokens))
@@ -132,9 +119,7 @@ class APIRateLimiter:
             self._limiters[endpoint] = RateLimiter(self._default_config)
         return self._limiters[endpoint]
 
-    async def check_rate_limit(
-        self, endpoint: str, client_key: str
-    ) -> Tuple[bool, Dict[str, int]]:
+    async def check_rate_limit(self, endpoint: str, client_key: str) -> Tuple[bool, Dict[str, int]]:
         """
         Check rate limit for an endpoint and client.
 

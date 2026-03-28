@@ -20,9 +20,6 @@ logger = logging.getLogger(__name__)
 # Global paths
 ROOT_DIR = Path(__file__).resolve().parent.parent
 
-# Constants
-PACKAGE_JSON = "package.json"
-
 
 def check_uvicorn_installed() -> bool:
     """Check if uvicorn is installed."""
@@ -64,7 +61,7 @@ def install_nodejs_dependencies(directory: str, update: bool = False) -> bool:
         logger.error(f"Unsafe directory path: {dir_path}")
         return False
 
-    package_json = dir_path / PACKAGE_JSON
+    package_json = dir_path / "package.json"
     if not package_json.exists():
         logger.warning(f"No package.json in {directory}, skipping npm install")
         return False
@@ -164,14 +161,8 @@ def get_python_executable() -> str:
     return sys.executable
 
 
-def start_backend(host: str, port: int = 8000, debug: bool = False):
-    """Start the Python backend server.
-
-    Args:
-        host: The host to bind to.
-        port: The port to bind to (default: 8000).
-        debug: Enable debug mode.
-    """
+def start_backend(host: str, port: int, debug: bool = False):
+    """Start the Python backend server."""
     python_exe = get_python_executable()
 
     # Validate the python executable path to prevent command injection
@@ -181,9 +172,7 @@ def start_backend(host: str, port: int = 8000, debug: bool = False):
 
     # Sanitize host parameter to prevent command injection
     import re
-    if not re.match(r'^[a-zA-Z0-9.-]+$', host):
-        logger.error(f'Invalid host parameter: {host}')
-        return None
+    if not re.match(r'^[a-zA-Z0-9.-]+
 
 
 def start_node_service(service_path: Path, service_name: str, port: int, api_url: str):
@@ -209,9 +198,9 @@ def start_node_service(service_path: Path, service_name: str, port: int, api_url
         # Sanitize the API URL to prevent injection
         env["API_URL"] = api_url.replace('"', '').replace("'", "")
 
-        if (service_path / PACKAGE_JSON).exists():
+        if (service_path / "package.json").exists():
             # Check if it's a dev script or start script
-            with open(service_path / PACKAGE_JSON, "r") as f:
+            with open(service_path / "package.json", "r") as f:
                 import json
                 package_data = json.load(f)
                 scripts = package_data.get("scripts", {})
@@ -244,7 +233,7 @@ def setup_node_dependencies(service_path: Path, service_name: str):
         logger.error(f"Unsafe service path: {service_path}")
         return
 
-    package_json = service_path / PACKAGE_JSON
+    package_json = service_path / "package.json"
     if not package_json.exists():
         logger.warning(f"No package.json found for {service_name}")
         return
@@ -312,14 +301,14 @@ def validate_services() -> Dict[str, bool]:
     ts_backend_config = config.get_service_config("typescript_backend")
     if ts_backend_config:
         ts_path = config.get_service_path("typescript_backend")
-        package_json = ts_path / ts_backend_config.get(PACKAGE_JSON, PACKAGE_JSON)
+        package_json = ts_path / ts_backend_config.get("package_json", "package.json")
         available_services["typescript_backend"] = ts_path.exists() and package_json.exists()
 
     # Check frontend
     frontend_config = config.get_service_config("frontend")
     if frontend_config:
         frontend_path = config.get_service_path("frontend")
-        package_json = frontend_path / frontend_config.get(PACKAGE_JSON, PACKAGE_JSON)
+        package_json = frontend_path / frontend_config.get("package_json", "package.json")
         available_services["frontend"] = frontend_path.exists() and package_json.exists()
 
     return available_services
@@ -353,8 +342,11 @@ def start_services(args):
 
         # Start frontend if configured and available
         if available_services.get("frontend", False):
+            frontend_config = config.get_service_config("frontend")
             frontend_path = config.get_service_path("frontend")
-            start_node_service(frontend_path, "Frontend Client", args.frontend_port, api_url)
+            start_node_service(frontend_path, "Frontend Client", args.frontend_port, api_url), host):
+        logger.error(f"Invalid host parameter: {host}")
+        return
 
     cmd = [
         python_exe,
@@ -408,9 +400,9 @@ def start_node_service(service_path: Path, service_name: str, port: int, api_url
         # Sanitize the API URL to prevent injection
         env["API_URL"] = api_url.replace('"', '').replace("'", "")
 
-        if (service_path / PACKAGE_JSON).exists():
+        if (service_path / "package.json").exists():
             # Check if it's a dev script or start script
-            with open(service_path / PACKAGE_JSON, "r") as f:
+            with open(service_path / "package.json", "r") as f:
                 import json
                 package_data = json.load(f)
                 scripts = package_data.get("scripts", {})
@@ -443,7 +435,7 @@ def setup_node_dependencies(service_path: Path, service_name: str):
         logger.error(f"Unsafe service path: {service_path}")
         return
 
-    package_json = service_path / PACKAGE_JSON
+    package_json = service_path / "package.json"
     if not package_json.exists():
         logger.warning(f"No package.json found for {service_name}")
         return
@@ -480,14 +472,14 @@ def validate_services() -> Dict[str, bool]:
     ts_backend_config = config.get_service_config("typescript_backend")
     if ts_backend_config:
         ts_path = config.get_service_path("typescript_backend")
-        package_json = ts_path / ts_backend_config.get(PACKAGE_JSON, PACKAGE_JSON)
+        package_json = ts_path / ts_backend_config.get("package_json", "package.json")
         available_services["typescript_backend"] = ts_path.exists() and package_json.exists()
 
     # Check frontend
     frontend_config = config.get_service_config("frontend")
     if frontend_config:
         frontend_path = config.get_service_path("frontend")
-        package_json = frontend_path / frontend_config.get(PACKAGE_JSON, PACKAGE_JSON)
+        package_json = frontend_path / frontend_config.get("package_json", "package.json")
         available_services["frontend"] = frontend_path.exists() and package_json.exists()
 
     return available_services
@@ -521,5 +513,6 @@ def start_services(args):
 
         # Start frontend if configured and available
         if available_services.get("frontend", False):
+            frontend_config = config.get_service_config("frontend")
             frontend_path = config.get_service_path("frontend")
             start_node_service(frontend_path, "Frontend Client", args.frontend_port, api_url)
