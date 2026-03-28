@@ -5,14 +5,16 @@ import tempfile
 # Set up test environment BEFORE any other imports
 TEST_DATA_DIR = tempfile.mkdtemp()
 os.environ["DATA_DIR"] = TEST_DATA_DIR
+os.environ["SECRET_KEY"] = "test-secret-key"
 
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from fastapi.testclient import TestClient
 
-from backend.python_backend.dependencies import initialize_services
-from backend.python_backend.main import app
+# Use src-prefixed imports
+from src.backend.python_backend.dependencies import initialize_services
+from src.backend.python_backend.main import app
 
 
 # Create a single mock for each manager, scoped to the entire test session.
@@ -64,8 +66,8 @@ def client(mock_db_manager, mock_ai_engine, mock_filter_manager, mock_workflow_e
     Provides a TestClient with all external services mocked.
     This fixture resets mocks for each test and handles dependency overrides.
     """
-    from backend.python_backend.database import get_db
-    from backend.python_backend.dependencies import (
+    from src.backend.python_backend.database import get_db
+    from src.backend.python_backend.dependencies import (
         get_ai_engine,
         get_filter_manager,
         get_workflow_engine,
@@ -91,7 +93,7 @@ def client(mock_db_manager, mock_ai_engine, mock_filter_manager, mock_workflow_e
     app.dependency_overrides[get_filter_manager] = lambda: mock_filter_manager
     app.dependency_overrides[get_workflow_engine] = lambda: mock_workflow_engine
 
-    decorator_path = "backend.python_backend.performance_monitor.log_performance"
+    decorator_path = "src.backend.python_backend.performance_monitor.log_performance"
     with patch(decorator_path, lambda *args, **kwargs: lambda func: func):
         yield TestClient(app)
 
@@ -105,8 +107,8 @@ def client_with_real_workflows(mock_db_manager, mock_ai_engine, mock_filter_mana
     Provides a TestClient with a REAL WorkflowEngine but mocks other services.
     This is for testing the workflow and plugin discovery process.
     """
-    from backend.python_backend.database import get_db
-    from backend.python_backend.dependencies import (
+    from src.backend.python_backend.database import get_db
+    from src.backend.python_backend.dependencies import (
         get_ai_engine,
         get_filter_manager,
     )
@@ -134,7 +136,7 @@ def client_with_real_workflows(mock_db_manager, mock_ai_engine, mock_filter_mana
     # We need to run the async startup event in a sync context for the test fixture
     asyncio.run(run_startup())
 
-    decorator_path = "backend.python_backend.performance_monitor.log_performance"
+    decorator_path = "src.backend.python_backend.performance_monitor.log_performance"
     with patch(decorator_path, lambda *args, **kwargs: lambda func: func):
         yield TestClient(app)
 
