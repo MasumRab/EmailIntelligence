@@ -57,6 +57,7 @@
 - **Circular Dependencies**: Avoid circular imports, especially between AIEngine and DatabaseManager
 - **Inconsistent Exception Handling**: Use specific exceptions with meaningful error messages
 - **Hard-coded Paths**: Never hard-code file paths or URLs
+- **Shell Injection**: Never use `shell=True` with string interpolation in subprocess calls
 
 ### Medium Priority (Address Soon)
 - **Missing Type Hints**: Add type hints to all function parameters and return values
@@ -64,6 +65,8 @@
 - **Large Classes**: Break down classes violating Single Responsibility Principle
 - **Inconsistent Naming**: Follow established naming conventions strictly
 - **Global State Management**: Avoid global variables; use dependency injection
+- **Bare Exception Catching**: Use specific exception types instead of `Exception`
+- **Inline Imports**: Always import at module scope, not inside functions
 
 ### General
 - **Commits**: Meaningful messages focusing on "why" not "what"
