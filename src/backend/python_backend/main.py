@@ -242,11 +242,27 @@ if os.getenv("NODE_ENV") in ["production", "staging"]:
 
     setup_metrics(app)
 
+# Lazy initialization of SmartFilterManager to avoid SQLite errors during test collection
+_filter_manager = None
+
+
+def get_main_filter_manager():
+    """Lazily initialize and return the SmartFilterManager instance."""
+    global _filter_manager
+    if _filter_manager is None:
+        try:
+            _filter_manager = SmartFilterManager()
+        except Exception as e:
+            logger.warning(f"Could not initialize SmartFilterManager: {e}")
+            _filter_manager = None
+    return _filter_manager
+
+
 # Initialize services
 # Services are now initialized within their respective route files
 # or kept here if they are used by multiple route files or for general app setup.
 gmail_service = GmailAIService()  # Used by gmail_routes
-filter_manager = SmartFilterManager()  # Used by filter_routes
+filter_manager = get_main_filter_manager()  # Used by filter_routes
 ai_engine = AdvancedAIEngine(model_manager)  # Used by email_routes, action_routes
 performance_monitor = (
     performance_monitor  # Used by all routes via @performance_monitor.track

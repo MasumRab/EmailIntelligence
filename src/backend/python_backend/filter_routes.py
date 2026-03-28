@@ -16,7 +16,25 @@ from .performance_monitor import PerformanceMonitor, log_performance
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
-filter_manager = SmartFilterManager()
+
+# Lazy initialization of SmartFilterManager to avoid SQLite errors during test collection
+_filter_manager = None
+
+
+def get_filter_manager():
+    """Lazily initialize and return the SmartFilterManager instance."""
+    global _filter_manager
+    if _filter_manager is None:
+        try:
+            _filter_manager = SmartFilterManager()
+        except Exception as e:
+            logger.warning(f"Could not initialize SmartFilterManager: {e}")
+            _filter_manager = None
+    return _filter_manager
+
+
+filter_manager = get_filter_manager()
+
 performance_monitor = PerformanceMonitor()
 
 
