@@ -43,8 +43,9 @@ class EmailNotFoundException(BaseAppException):
     def __init__(self, email_id: str = None, message: str = None):
         self.email_id = email_id
         if message:
-            super().__init__(message)
+            detail = message
         elif email_id:
-            super().__init__(f"Email not found: {email_id}")
+            detail = f"Email not found: {email_id}"
         else:
-            super().__init__("Email not found")
+            detail = "Email not found"
+        super().__init__(status_code=404, detail=detail)
