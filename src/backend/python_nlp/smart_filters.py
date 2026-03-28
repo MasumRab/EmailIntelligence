@@ -11,10 +11,10 @@ import logging
 import os
 import re
 import sqlite3
-from collections import Counter, defaultdict
+from collections import Counter
 from dataclasses import dataclass
-from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional, Set
+from datetime import datetime
+from typing import Any, Dict, List, Optional
 
 from src.core.security import PathValidator
 

@@ -5,17 +5,12 @@ It will be removed in a future release.
 Category-specific data management functionality
 """
 
-import asyncio
-import gzip
-import json
 import logging
 import os
-from datetime import datetime, timezone
-from functools import partial
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from .constants import DEFAULT_CATEGORIES, DEFAULT_CATEGORY_COLOR
+from .constants import DEFAULT_CATEGORY_COLOR
 
 # File paths - now configurable via environment variable
 DATA_DIR = Path(os.getenv("DATA_DIR", "./data"))

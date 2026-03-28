@@ -8,7 +8,7 @@ with AI analysis, smart filtering, and tagging functionality.
 import asyncio
 import logging
 from typing import Any, Dict, List, Optional
-from datetime import datetime, timezone
+from datetime import datetime
 import email
 
 # Import notmuch only when needed to allow import in environments without it
@@ -31,7 +31,7 @@ from .enhanced_error_reporting import (
     ErrorCategory, 
     create_error_context
 )
-from .security import PathValidator, validate_path_safety
+from .security import PathValidator
 
 logger = logging.getLogger(__name__)
 
@@ -65,7 +65,7 @@ class NotmuchDataSource(DataSource):
         else:
             try:
                 # Import DatabaseManager locally to avoid circular imports
-                from .database import DatabaseManager, SQLiteManager
+                from .database import SQLiteManager
                 # Use SQLiteManager as concrete implementation instead of abstract DatabaseManager
                 self.db = SQLiteManager()
             except Exception as e:

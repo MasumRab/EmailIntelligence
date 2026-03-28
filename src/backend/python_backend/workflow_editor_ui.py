@@ -9,11 +9,10 @@ node-based workflows, inspired by ComfyUI's interface design.
 """
 
 import json
-from typing import Any, Dict, List, Optional
 
 import gradio as gr
 
-from backend.node_engine.node_base import Connection, Workflow
+from backend.node_engine.node_base import Workflow
 from backend.node_engine.workflow_manager import get_workflow_manager
 from backend.plugins.plugin_manager import plugin_manager
 
@@ -70,8 +69,8 @@ def create_workflow_editor_ui():
                 )
 
                 with gr.Row():
-                    create_workflow_btn = gr.Button("➕ Create New", variant="secondary")
-                    delete_workflow_btn = gr.Button("🗑️ Delete", variant="secondary")
+                    gr.Button("➕ Create New", variant="secondary")
+                    gr.Button("🗑️ Delete", variant="secondary")
 
                 gr.Markdown("### 🚀 Execute Workflow")
                 execute_btn = gr.Button("▶️ Execute Workflow", variant="primary")
@@ -117,7 +116,7 @@ def create_workflow_editor_ui():
                 </script>
                 """
 
-                canvas = gr.HTML(canvas_html, label="Workflow Visualization")
+                gr.HTML(canvas_html, label="Workflow Visualization")
 
                 # JSON representation of workflow (for debugging/serialization)
                 workflow_json = gr.Code(
