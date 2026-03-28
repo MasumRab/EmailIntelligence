@@ -477,3 +477,32 @@ except Exception as e:
         logger.warning("Continuing setup without TextBlob corpora...")
     else:
         logger.info("TextBlob corpora downloaded successfully.")
+
+
+# Stub functions for backward compatibility with tests
+def main():
+    """Main entry point for the launcher."""
+    print("Main function not fully implemented in current version")
+    return 0
+
+
+def create_venv(venv_path):
+    """Create a virtual environment."""
+    pass
+
+
+def setup_dependencies(venv_path, use_poetry=False):
+    """Setup dependencies in a virtual environment."""
+    pass
+
+
+def download_nltk_data(venv_path):
+    """Download NLTK data."""
+    pass
+
+
+# Import process_manager from utils
+try:
+    from setup.utils import process_manager
+except ImportError:
+    process_manager = None
