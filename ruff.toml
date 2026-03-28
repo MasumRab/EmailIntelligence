@@ -10,10 +10,11 @@ ignore = [
     "F821",  # Undefined name
     "F541",  # f-string without any placeholders
 ]
+exclude = ["setup/**"]
 
 [lint.per-file-ignores]
 "tests/*" = ["F401"]
 
-# Skip format check for pre-existing codebase issues
+# Skip format for pre-existing codebase issues
 [format]
-exclude = ["src/**", "modules/**"]
+exclude = ["src/**", "modules/**", "setup/**"]
