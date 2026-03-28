@@ -4,14 +4,17 @@ It will be removed in a future release.
 """
 
 import json
-
-import gradio as gr
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 import requests
-
+import gradio as gr
 from backend.python_nlp.nlp_engine import NLPEngine
+
+topic_chart = None
+sentiment_chart = None
+
+
 
 # Initialize the NLP Engine
 nlp_engine = NLPEngine()

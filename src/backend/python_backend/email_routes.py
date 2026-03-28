@@ -4,7 +4,7 @@ from typing import List, Optional
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
 
-from backend.node_engine.workflow_engine import WorkflowEngine
+from src.core.workflow_engine import WorkflowEngine
 from src.core.auth import get_current_active_user
 
 from .dependencies import get_email_service, get_workflow_engine
@@ -13,7 +13,6 @@ from .models import EmailCreate, EmailResponse, EmailUpdate
 from .performance_monitor import log_performance
 from .services.email_service import EmailService
 from .utils import create_log_data
-from .workflow_engine import WorkflowEngine
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
