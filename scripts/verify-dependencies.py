@@ -18,9 +18,7 @@ import sys
 import subprocess
 import importlib
 import platform
-import os
 from typing import Dict, List, Set, Tuple
-from pathlib import Path
 
 class DependencyVerifier:
     """Verify and test project dependencies for system-managed Python environments."""
@@ -192,13 +190,13 @@ class DependencyVerifier:
         cpu_reqs = [req for req in cpu_reqs if not req.endswith('[cuda]')]
 
         # GPU requirements
-        gpu_reqs = cpu_reqs + categories['gpu']
+        cpu_reqs + categories['gpu']
 
         # Minimal requirements (no ML/AI)
-        minimal_reqs = base_reqs + ['nltk', 'textblob']  # Basic NLP only
+        base_reqs + ['nltk', 'textblob']  # Basic NLP only
 
         # Development requirements
-        dev_reqs = cpu_reqs + categories['dev']
+        cpu_reqs + categories['dev']
 
         nl = '\n'
         nl_hash = '\n# '
@@ -228,11 +226,12 @@ class DependencyVerifier:
 
         return requirements_content
 
-    def _print_conditional_results(self, check_gpu: bool, minimal: bool, system_packages: bool) -> None:
+    @staticmethod
+    def _print_conditional_results(has_gpu: bool, check_gpu: bool, minimal: bool, system_packages: bool, system_packages_set: set) -> None:
         """Print conditionally formatted results to reduce cognitive complexity."""
         if check_gpu:
-            print(f"\n🎮 GPU Status: {'Available' if self.has_gpu else 'Not detected'}")
-            if not self.has_gpu:
+            print(f"\n🎮 GPU Status: {'Available' if has_gpu else 'Not detected'}")
+            if not has_gpu:
                 print("  ⚠️  Avoid installing CUDA/GPU packages to save disk space and bandwidth")
 
         if minimal:
@@ -242,8 +241,8 @@ class DependencyVerifier:
 
         if system_packages:
             print("\n📥 System Package Detection:")
-            if self.system_packages:
-                print(f"  ✅ Detected: {', '.join(self.system_packages)}")
+            if system_packages_set:
+                print(f"  ✅ Detected: {', '.join(system_packages_set)}")
                 print("  💡 Consider using system packages instead of pip installs")
             else:
                 print("  ⚠️  No system packages detected")
@@ -281,7 +280,7 @@ class DependencyVerifier:
         for rec in results['recommendations']:
             print(f"  • {rec}")
 
-        self._print_conditional_results(check_gpu, minimal, system_packages)
+        self._print_conditional_results(self.has_gpu, check_gpu, minimal, system_packages, self.system_packages)
 
         # Generate conditional requirements
         print("\n📝 Generating conditional requirements file...")
