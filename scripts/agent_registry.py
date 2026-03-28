@@ -51,7 +51,7 @@ class AgentProfile:
             self.certifications.append(certification)
             self.last_updated = datetime.now().isoformat()
             
-    def add_training(self, training_name: str, completion_date: str, score: float = None):
+    def add_training(self, training_name: str, completion_date: str, score: Optional[float] = None):
         """Add completed training to the agent's record."""
         training_record = {
             'training_name': training_name,
@@ -65,32 +65,44 @@ class AgentProfile:
     def update_performance(self, tasks_completed: int = 0, success_rate: float = None, 
                           avg_completion_time: float = None, quality_score: float = None):
         """Update performance metrics."""
-        if tasks_completed > 0:
-            self.performance_metrics['tasks_completed'] += tasks_completed
-            
-        if success_rate is not None:
-            # Calculate weighted average
-            current_tasks = self.performance_metrics['tasks_completed']
-            current_rate = self.performance_metrics['success_rate']
+        # Capture previous tasks before any mutation
+        prev_tasks = self.performance_metrics['tasks_completed']
+        new_total = prev_tasks + tasks_completed
+        
+        # Read current metrics from storage
+        current_rate = self.performance_metrics['success_rate']
+        current_time = self.performance_metrics['avg_completion_time']
+        current_quality = self.performance_metrics['quality_score']
+        
+        if success_rate is not None and new_total > 0:
+            # Calculate weighted average using prev_tasks and tasks_completed
             self.performance_metrics['success_rate'] = (
-                (current_rate * current_tasks + success_rate * tasks_completed) / 
-                (current_tasks + tasks_completed)
-            ) if (current_tasks + tasks_completed) > 0 else success_rate
+                (current_rate * prev_tasks + success_rate * tasks_completed) / new_total
+            )
+        elif success_rate is not None:
+            # Fallback when new_total is 0
+            self.performance_metrics['success_rate'] = success_rate
             
-        if avg_completion_time is not None:
-            current_time = self.performance_metrics['avg_completion_time']
+        if avg_completion_time is not None and new_total > 0:
+            # Calculate weighted average using prev_tasks and tasks_completed
             self.performance_metrics['avg_completion_time'] = (
-                (current_time * current_tasks + avg_completion_time * tasks_completed) / 
-                (current_tasks + tasks_completed)
-            ) if (current_tasks + tasks_completed) > 0 else avg_completion_time
+                (current_time * prev_tasks + avg_completion_time * tasks_completed) / new_total
+            )
+        elif avg_completion_time is not None:
+            # Fallback when new_total is 0
+            self.performance_metrics['avg_completion_time'] = avg_completion_time
             
-        if quality_score is not None:
-            current_quality = self.performance_metrics['quality_score']
+        if quality_score is not None and new_total > 0:
+            # Calculate weighted average using prev_tasks and tasks_completed
             self.performance_metrics['quality_score'] = (
-                (current_quality * current_tasks + quality_score * tasks_completed) / 
-                (current_tasks + tasks_completed)
-            ) if (current_tasks + tasks_completed) > 0 else quality_score
-            
+                (current_quality * prev_tasks + quality_score * tasks_completed) / new_total
+            )
+        elif quality_score is not None:
+            # Fallback when new_total is 0
+            self.performance_metrics['quality_score'] = quality_score
+        
+        # Only update tasks_completed after all metric calculations
+        self.performance_metrics['tasks_completed'] = new_total
         self.last_updated = datetime.now().isoformat()
 
 

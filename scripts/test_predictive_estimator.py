@@ -5,6 +5,8 @@ Test script for predictive completion time estimator
 
 import sys
 import os
+import tempfile
+from pathlib import Path
 sys.path.append(os.path.join(os.path.dirname(__file__)))
 
 from predictive_estimator import PredictiveTimeEstimator
@@ -13,43 +15,53 @@ def test_predictive_estimator():
     """Test the predictive completion time estimator."""
     print("Testing Predictive Completion Time Estimator...")
 
-    # Create estimator
-    estimator = PredictiveTimeEstimator()
+    # Create a per-run temporary history file for hermetic testing
+    with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as tmp_file:
+        tmp_history_path = tmp_file.name
+        tmp_file.write('[]')  # Initialize empty history
 
-    # Add some sample data for training
-    sample_data = [
-        ("api-doc-1", "api", 15, 12, "api-writer", True),
-        ("guide-doc-1", "guide", 20, 25, "guide-writer", True),
-        ("arch-doc-1", "arch", 30, 28, "architect", True),
-        ("api-doc-2", "api", 10, 8, "api-writer", True),
-        ("guide-doc-2", "guide", 25, 30, "guide-writer", True),
-        ("api-doc-3", "api", 18, 20, "api-writer", True),
-        ("guide-doc-3", "guide", 22, 24, "guide-writer", True),
-        ("arch-doc-2", "arch", 35, 32, "architect", True),
-    ]
+    try:
+        # Create estimator with temp history file (use Path object)
+        estimator = PredictiveTimeEstimator(history_file=Path(tmp_history_path))
 
-    for task_id, task_type, est_time, actual_time, agent, success in sample_data:
-        estimator.add_task_result(task_id, task_type, est_time, actual_time, agent, success)
+        # Add some sample data for training
+        sample_data = [
+            ("api-doc-1", "api", 15, 12, "api-writer", True),
+            ("guide-doc-1", "guide", 20, 25, "guide-writer", True),
+            ("arch-doc-1", "arch", 30, 28, "architect", True),
+            ("api-doc-2", "api", 10, 8, "api-writer", True),
+            ("guide-doc-2", "guide", 25, 30, "guide-writer", True),
+            ("api-doc-3", "api", 18, 20, "api-writer", True),
+            ("guide-doc-3", "guide", 22, 24, "guide-writer", True),
+            ("arch-doc-2", "arch", 35, 32, "architect", True),
+        ]
 
-    # Make predictions
-    predicted_api = estimator.predict_completion_time("api", 15, "api-writer")
-    predicted_guide = estimator.predict_completion_time("guide", 20, "guide-writer")
-    predicted_arch = estimator.predict_completion_time("arch", 30, "architect")
+        for task_id, task_type, est_time, actual_time, agent, success in sample_data:
+            estimator.add_task_result(task_id, task_type, est_time, actual_time, agent, success)
 
-    print(f"Predicted completion time for API task: {predicted_api:.1f} minutes")
-    print(f"Predicted completion time for Guide task: {predicted_guide:.1f} minutes")
-    print(f"Predicted completion time for Arch task: {predicted_arch:.1f} minutes")
+        # Make predictions
+        predicted_api = estimator.predict_completion_time("api", 15, "api-writer")
+        predicted_guide = estimator.predict_completion_time("guide", 20, "guide-writer")
+        predicted_arch = estimator.predict_completion_time("arch", 30, "architect")
 
-    # Get accuracy stats
-    accuracy = estimator.get_prediction_accuracy()
-    print(f"Prediction accuracy: {accuracy['accuracy']:.2%}")
-    print(f"Total predictions: {accuracy['total_predictions']}")
+        print(f"Predicted completion time for API task: {predicted_api:.1f} minutes")
+        print(f"Predicted completion time for Guide task: {predicted_guide:.1f} minutes")
+        print(f"Predicted completion time for Arch task: {predicted_arch:.1f} minutes")
 
-    # Get performance trends
-    trends = estimator.get_performance_trends()
-    print(f"Performance trends calculated for {len(trends)} weeks")
+        # Get accuracy stats
+        accuracy = estimator.get_prediction_accuracy()
+        print(f"Prediction accuracy: {accuracy['accuracy']:.2%}")
+        print(f"Total predictions: {accuracy['total_predictions']}")
 
-    print("Predictive estimator test completed successfully!")
+        # Get performance trends
+        trends = estimator.get_performance_trends()
+        print(f"Performance trends calculated for {len(trends)} weeks")
+
+        print("Predictive estimator test completed successfully!")
+    finally:
+        # Clean up temp file
+        if os.path.exists(tmp_history_path):
+            os.unlink(tmp_history_path)
 
 if __name__ == "__main__":
     test_predictive_estimator()

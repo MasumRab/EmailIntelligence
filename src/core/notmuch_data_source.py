@@ -7,11 +7,11 @@ with AI analysis, smart filtering, and tagging functionality.
 
 import asyncio
 import logging
-from typing import Any, Dict, List, Optional
+from typing import TYPE_CHECKING, Any, Dict, List, Optional
 from datetime import datetime
 import email
 
-# Import notmuch only when needed to allow import in environments without it
+# Import notmuch only when allowed import in environments without it
 try:
     import notmuch
 
@@ -22,8 +22,10 @@ except ImportError:
 
 from .data_source import DataSource
 
-# Import DatabaseManager locally to avoid circular imports
-# from .database import DatabaseManager
+# Import DatabaseManager only for type checking to avoid circular imports
+if TYPE_CHECKING:
+    from .database import DatabaseManager
+
 from .smart_filter_manager import SmartFilterManager
 from .ai_engine import ModernAIEngine
 from .performance_monitor import log_performance

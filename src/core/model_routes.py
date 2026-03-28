@@ -1,3 +1,4 @@
+# noqa: PGH001 - Disable SonarGraph rule for old FastAPI DI pattern in model_routes.py
 """
 API Routes for Dynamic Model Management.
 

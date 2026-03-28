@@ -6,12 +6,9 @@ This script verifies completed backlog tasks against their acceptance criteria.
 It performs automated checks where possible and generates a verification report.
 """
 
-import os
 import re
-import glob
-import subprocess
 from pathlib import Path
-from typing import Dict, List, Tuple
+from typing import Dict, List
 
 class TaskVerifier:
     def __init__(self, repo_root: str = "."):
@@ -96,14 +93,17 @@ class TaskVerifier:
             'code_changes': False
         }
 
-        notes = task_data['implementation_notes'].lower()
-        title = task_data['title'].lower()
+        # Keep original implementation_notes for parsing (preserve case)
+        notes = task_data['implementation_notes']
+        title = task_data['title'].lower()  # Only lowercase for keyword matching
 
-        # Check for file creation mentions
-        file_mentions = re.findall(r'created?\s+([^,\n.]+)', notes)
+        # Check for file creation mentions - capture filenames including dots and paths
+        file_mentions = re.findall(r'created?\s+([^\s,]+)', notes, re.IGNORECASE)
         for mention in file_mentions:
             if '.' in mention:  # Likely a file
-                checks['files_exist'].append(self.check_file_exists(mention.strip()))
+                # Trim surrounding punctuation from the capture
+                cleaned = mention.strip().strip('.,;:!?')
+                checks['files_exist'].append(self.check_file_exists(cleaned))
 
         # Check for test mentions
         if 'test' in notes or 'testing' in notes:
