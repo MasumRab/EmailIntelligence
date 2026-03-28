@@ -64,7 +64,8 @@ class RealTimePerformanceMonitor:
         self.monitoring_thread: Optional[threading.Thread] = None
         self.monitoring_interval = 5.0  # seconds
         self._lock = threading.RLock()
-        
+
+        self.load_metrics()
     def start_monitoring(self, interval: float = 5.0):
         """Start real-time monitoring in a background thread."""
         if self.monitoring_active:
