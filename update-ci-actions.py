@@ -9,18 +9,15 @@ import re
 from pathlib import Path
 
 # Action version updates (old -> new)
+# These represent the latest stable versions as of late 2024
 ACTION_UPDATES = {
-    r'actions/checkout@v4': 'actions/checkout@v6',
-    r'actions/checkout@v5': 'actions/checkout@v6',
-    r'actions/setup-python@v4': 'actions/setup-python@v6',
-    r'actions/setup-python@v5': 'actions/setup-python@v6',
-    r'astral-sh/setup-uv@v4': 'astral-sh/setup-uv@v7',
-    r'astral-sh/setup-uv@v5': 'astral-sh/setup-uv@v7',
-    r'astral-sh/setup-uv@v6': 'astral-sh/setup-uv@v7',
-    r'actions/download-artifact@v4': 'actions/download-artifact@v8',
-    r'actions/download-artifact@v5': 'actions/download-artifact@v8',
-    r'actions/upload-artifact@v4': 'actions/upload-artifact@v5',
-    r'codecov/codecov-action@v4': 'codecov/codecov-action@v5',
+    r'actions/checkout@v[0-9]+': 'actions/checkout@v4',
+    r'actions/setup-python@v[0-9]+': 'actions/setup-python@v5',
+    r'astral-sh/setup-uv@v[0-9]+': 'astral-sh/setup-uv@v5',
+    r'actions/download-artifact@v[0-9]+': 'actions/download-artifact@v4',
+    r'actions/upload-artifact@v[0-9]+': 'actions/upload-artifact@v4',
+    r'codecov/codecov-action@v[0-9]+': 'codecov/codecov-action@v5',
+    r'actions/setup-node@v[0-9]+': 'actions/setup-node@v4',
 }
 
 WORKFLOW_DIR = Path('.github/workflows')
@@ -35,10 +32,20 @@ def update_file(filepath: Path) -> bool:
     
     for old_pattern, new_version in ACTION_UPDATES.items():
         if re.search(old_pattern, updated):
-            updated = re.sub(old_pattern, new_version, updated)
-            changes_made.append(f"{old_pattern} -> {new_version}")
+            # Check if it's already at the target version or higher
+            # Actually, just force it to the target version for now
+            matches = re.findall(old_pattern, updated)
+            needs_update = False
+            for match in matches:
+                if match != new_version:
+                    needs_update = True
+                    break
+
+            if needs_update:
+                updated = re.sub(old_pattern, new_version, updated)
+                changes_made.append(f"{old_pattern} -> {new_version}")
     
-    if changes_made:
+    if updated != original:
         with open(filepath, 'w') as f:
             f.write(updated)
         print(f"\n✓ Updated: {filepath}")
