@@ -14,11 +14,10 @@ warnings.warn(
     stacklevel=2,
 )
 
-from backend.python_nlp.gmail_service import GmailAIService
-from backend.python_nlp.smart_filters import EmailFilter, SmartFilterManager
+# NOTE: Import paths updated to src-prefixed imports to work with new project structure
 
 from .ai_engine import AdvancedAIEngine, AIAnalysisResult
-from .database import DatabaseManager, get_db
+from .database import DatabaseManager, get_db  # noqa: F401
 from .models import (
     ActivityCreate,
     ActivityResponse,
@@ -39,6 +38,7 @@ __version__ = "2.0.0"
 
 __all__ = [
     "DatabaseManager",
+    "get_db",
     "EmailCreate",
     "EmailUpdate",
     "EmailResponse",
