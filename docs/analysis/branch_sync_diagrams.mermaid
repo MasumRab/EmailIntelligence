@@ -1,0 +1,170 @@
+# Branch Analysis & Sync Architecture Diagrams
+
+## System Architecture Overview
+
+```mermaid
+graph TB
+    subgraph "CLI Layer"
+        A[main.py] --> B[commands.py]
+        B --> C[cli_class.py]
+    end
+    
+    subgraph "Orchestration Layer"
+        C --> D[branch.sh]
+        C --> E[safety.sh]
+        C --> F[validate.sh]
+        C --> G[config.sh]
+    end
+    
+    subgraph "Sync Engine"
+        C --> H[parallel_sync.py]
+        C --> I[sync_prioritizer.py]
+        C --> J[script_sync.py]
+        H --> I
+    end
+    
+    subgraph "Git Operations"
+        D --> K[Git Commands]
+        E --> K
+        F --> K
+        H --> K
+        J --> K
+    end
+    
+    subgraph "Analysis Tools"
+        L[branch_analysis_check.sh] --> K
+        M[update-all-branches.sh] --> K
+        N[sync_orchestration_files.sh] --> D
+        N --> G
+    end
+    
+    style C fill:#ffd93d,stroke:#333,stroke-width:2px
+    style H fill:#ff6b6b,stroke:#333,stroke-width:2px
+    style M fill:#ff6b6b,stroke:#333,stroke-width:2px
+```
+
+## Component Dependency Graph
+
+```mermaid
+graph LR
+    subgraph "Python Components"
+        A[cli/main.py]
+        B[cli/commands.py]
+        C[cli/cli_class.py]
+        D[scripts/parallel_sync.py]
+        E[scripts/sync_prioritizer.py]
+        F[scripts/script_sync.py]
+    end
+    
+    subgraph "Shell Components"
+        G[modules/branch.sh]
+        H[modules/safety.sh]
+        I[modules/validate.sh]
+        J[scripts/branch_analysis_check.sh]
+        K[scripts/update-all-branches.sh]
+        L[scripts/sync_orchestration_files.sh]
+    end
+    
+    A --> B
+    B --> C
+    C --> D
+    C --> E
+    C --> F
+    C --> G
+    C --> H
+    C --> I
+    D --> E
+    L --> G
+    L --> H
+    J -.->|calls| G
+    K -.->|calls| G
+    
+    style D fill:#ff6b6b,stroke:#333,stroke-width:2px
+    style K fill:#ff6b6b,stroke:#333,stroke-width:2px
+    style C fill:#ffd93d,stroke:#333,stroke-width:2px
+```
+
+## Issue Priority Breakdown
+
+```mermaid
+pie title Issues by Priority
+    "Critical (P0) : 3" : 3
+    "High (P1) : 7" : 7
+    "Medium (P2) : 12" : 12
+    "Low (P3) : 5" : 5
+```
+
+## Implementation Timeline
+
+```mermaid
+gantt
+    title Branch Analysis & Sync Improvement Roadmap
+    dateFormat  YYYY-MM-DD
+    section Phase 1: Critical Fixes
+    Fix missing import       :crit, done, 2026-03-15, 1d
+    Add error handling       :crit, active, 2026-03-16, 3d
+    Fix security vulnerability :crit, 2026-03-19, 2d
+    
+    section Phase 2: Stability
+    Implement rollback       :2026-03-22, 5d
+    Add input validation     :2026-03-27, 3d
+    Reduce code duplication  :2026-03-30, 4d
+    
+    section Phase 3: Refactoring
+    Split god class          :2026-04-03, 10d
+    Implement tests          :2026-04-13, 8d
+    Refactor shell scripts   :2026-04-21, 5d
+    
+    section Phase 4: Quality
+    Add logging framework    :2026-04-26, 3d
+    Create documentation     :2026-04-29, 4d
+    Performance optimization :2026-05-03, 3d
+```
+
+## Code Complexity Distribution
+
+```mermaid
+pie title Cyclomatic Complexity Distribution
+    "Low (1-5) : 65%" : 65
+    "Medium (6-10) : 25%" : 25
+    "High (11-20) : 8%" : 8
+    "Very High (>20) : 2%" : 2
+```
+
+## Shell vs Python Decision Tree
+
+```mermaid
+flowchart TD
+    A[New Feature Needed] --> B{Requires Git Operations?}
+    
+    B -->|Yes| C{Complex Logic?}
+    B -->|No| D{System Integration?}
+    
+    C -->|Yes| E[Use Python]
+    C -->|No| F{Fast Startup Critical?}
+    
+    F -->|Yes| G[Use Shell]
+    F -->|No| E
+    
+    D -->|Yes| H{Simple Commands?}
+    D -->|No| E
+    
+    H -->|Yes| G
+    H -->|No| E
+    
+    E --> I[Benefits:<br/>- Testable<br/>- Maintainable<br/>- Type-safe]
+    G --> J[Benefits:<br/>- Fast startup<br/>- Lightweight<br/>- Direct git access]
+    
+    style E fill:#6bcb77,stroke:#333
+    style G fill:#6bcb77,stroke:#333
+    style I fill:#e8f5e9,stroke:#333
+    style J fill:#e8f5e9,stroke:#333
+```
+
+---
+
+**Generated**: 2026-03-15  
+**Tool**: Mermaid.js  
+**Version**: 10.6.1
+
+View these diagrams online: https://mermaid.live/
