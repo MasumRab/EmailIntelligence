@@ -1094,7 +1094,7 @@ def _handle_test_or_setup(args):
     return False
 
 
-def _run_services():
+def _run_services(args):
     """Start all services and handle shutdown."""
     start_services(args)
     logger.info("All services started. Press Ctrl+C to shut down.")
@@ -1145,7 +1145,7 @@ def _handle_legacy_args(args) -> int:  # noqa: PLR0912
     if not args.skip_prepare and not args.use_conda:
         prepare_environment(args)
 
-    _run_services()
+    _run_services(args)
     return 0
 
 
