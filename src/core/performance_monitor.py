@@ -191,7 +191,7 @@ logger = logging.getLogger(__name__)
 
 
 @dataclass
-class PerformanceMetric:
+class OptimizedPerformanceMetric:
     """Represents a performance metric with minimal overhead."""
 
     name: str
@@ -245,7 +245,7 @@ class OptimizedPerformanceMonitor:
         self.log_file.parent.mkdir(parents=True, exist_ok=True)
 
         # Metrics storage
-        self._metrics_buffer: deque[PerformanceMetric] = deque(maxlen=max_metrics_buffer)
+        self._metrics_buffer: deque[OptimizedPerformanceMetric] = deque(maxlen=max_metrics_buffer)
         self._aggregated_metrics: Dict[str, AggregatedMetric] = {}
 
         # Threading and async
@@ -262,54 +262,6 @@ class OptimizedPerformanceMonitor:
         atexit.register(self.shutdown)
 
         logger.info("OptimizedPerformanceMonitor initialized")
-
-    def log_performance(self, log_entry: Dict[str, Any]) -> None:
-        """Compatibility method for legacy log_performance decorator."""
-        # Extract fields from log_entry to map to record_metric
-        operation = log_entry.get("operation", "unknown_operation")
-        duration_ms = log_entry.get("duration_seconds", 0) * 1000
-        self.record_metric(
-            name=operation,
-            value=duration_ms,
-            unit="ms"
-        )
-
-    def record_metric(
-        self,
-        name: str,
-        value: Union[int, float],
-        unit: str = "ms",
-        tags: Optional[Dict[str, str]] = None,
-        sample_rate: float = 1.0,
-    ):
-        """
-        Record a performance metric with optional sampling.
-
-        Args:
-            name: Metric name (e.g., "api_response_time")
-            value: Metric value
-            unit: Unit of measurement
-            tags: Additional tags for categorization
-            sample_rate: Sampling rate (0.0-1.0)
-        """
-        import random
-
-        # Apply sampling
-        if sample_rate < 1.0 and random.random() > sample_rate:
-            return
-
-        metric = PerformanceMetric(
-            name=name,
-            value=value,
-            unit=unit,
-            timestamp=time.time(),
-            tags=tags or {},
-            sample_rate=sample_rate,
-        )
-
-        # Add to buffer (thread-safe)
-        with self._buffer_lock:
-            self._metrics_buffer.append(metric)
 
     def log_performance(self, log_entry: Dict[str, Any]) -> None:
         """Compatibility method for legacy log_performance decorator."""
@@ -386,7 +338,7 @@ class OptimizedPerformanceMonitor:
             )
         return self._aggregated_metrics.copy()
 
-    def get_recent_metrics(self, name: str, limit: int = 100) -> List[PerformanceMetric]:
+    def get_recent_metrics(self, name: str, limit: int = 100) -> List[OptimizedPerformanceMetric]:
         """Get recent raw metrics for a specific name."""
         with self._buffer_lock:
             return [m for m in self._metrics_buffer if m.name == name][-limit:]
