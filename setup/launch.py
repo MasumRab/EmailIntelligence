@@ -501,6 +501,21 @@ def download_nltk_data(venv_path):
     pass
 
 
+def start_backend():
+    """Start the backend server."""
+    pass
+
+
+def start_gradio_ui():
+    """Start the Gradio UI."""
+    pass
+
+
+def install_nodejs_dependencies():
+    """Install Node.js dependencies."""
+    pass
+
+
 # Import process_manager from utils
 try:
     from setup.utils import process_manager
