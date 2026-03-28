@@ -149,8 +149,15 @@ class AtomicCommitManager:
             # Add files to git
             for file_path in files:
                 full_path = worktree_path / file_path
+                # Prevent path traversal
+                try:
+                    full_path = full_path.resolve()
+                    full_path.relative_to(worktree_path.resolve())
+                except ValueError:
+                    print(f"Invalid file path (outside worktree): {file_path}")
+                    continue
                 if full_path.exists():
-                    subprocess.run(["git", "add", str(full_path)],
+                    subprocess.run(["git", "add", str(full_path)], 
                                  cwd=worktree_path, check=True, capture_output=True)
 
             # Create commit
