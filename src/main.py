@@ -1,6 +1,4 @@
 import configparser
-configparser.SafeConfigParser = configparser.ConfigParser
-
 import argparse
 import logging
 
@@ -25,6 +23,9 @@ logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
 )
 logger = logging.getLogger(__name__)
+
+# Monkey patch for backward compatibility (must be after all imports)
+configparser.SafeConfigParser = configparser.ConfigParser
 
 
 def create_system_status_tab():
