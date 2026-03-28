@@ -116,6 +116,12 @@ class SmartFilterManager:
 
         # Validate the final path
         self.db_path = str(PathValidator.validate_and_resolve_db_path(db_path, DATA_DIR))
+        
+        # Ensure the data directory exists
+        db_dir = os.path.dirname(self.db_path)
+        if db_dir and not os.path.exists(db_dir):
+            os.makedirs(db_dir, exist_ok=True)
+        
         self.logger = logging.getLogger(__name__)
         self.conn = None
         if self.db_path == ":memory:":
