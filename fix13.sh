@@ -1,3 +1,4 @@
+cat << 'INNER_EOF' > /tmp/repl.txt
 from backend.python_nlp.gmail_service import GmailAIService
 from backend.python_nlp.smart_filters import EmailFilter, SmartFilterManager
 from .ai_engine import AdvancedAIEngine, AIAnalysisResult
@@ -49,3 +50,5 @@ __all__ = [
     "SmartFilterManager",
     "EmailFilter",
 ]
+INNER_EOF
+cat /tmp/repl.txt > src/backend/python_backend/__init__.py
