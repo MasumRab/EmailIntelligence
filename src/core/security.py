@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 """
 Security Framework for Email Intelligence Platform
 
@@ -217,10 +218,17 @@ class DataSanitizer:
                 # This regex will find 'key: value' and replace it with 'key: [REDACTED]'
                 # It handles optional whitespace and stops at the next comma or end of string.
                 data = re.sub(
+<<<<<<< HEAD
+                    rf'(\b{re.escape(key)}\b\s*:\s*)[^\s,]+',
+                    r'\1[REDACTED]',
+                    data,
+                    flags=re.IGNORECASE
+=======
                     rf"(\b{re.escape(key)}\b\s*:\s*)[^\s,]+",
                     r"\1[REDACTED]",
                     data,
                     flags=re.IGNORECASE,
+>>>>>>> scientific
                 )
             return data
         elif isinstance(data, dict):
@@ -653,28 +661,22 @@ def sanitize_path(
         # Convert to string if it's a Path object
         path_str = str(path)
 
-        # Use pathlib's resolve and relative_to for more robust directory traversal prevention
-        # instead of simple string replacement
-        base_path = pathlib.Path(base_dir) if base_dir else pathlib.Path.cwd()
-        input_path = pathlib.Path(path_str)
-        
-        # Resolve the path to handle relative paths and symbolic links
-        resolved_path = input_path.resolve()
-        
-        # Verify that the resolved path is within the allowed base directory
-        if base_dir and not resolved_path.is_relative_to(base_path):
-            logger.warning(f"Path escapes base directory: {path_str}")
-            return None
-        
+        # Basic sanitization - remove dangerous sequences
+        path_str = path_str.replace("../", "").replace("..\\", "")
+        path_str = path_str.replace("<!--", "").replace("-->", "")  # Prevent comment injection
+        path_str = path_str.replace("<script", "").replace(
+            "script>", ""
+        )  # Prevent script injection
+
         # Normalize path separators
-        normalized_path = str(resolved_path).replace("\\", "/")
+        path_str = path_str.replace("\\", "/")
 
         # Additional checks to ensure validity
-        if any(char in normalized_path for char in ["<", ">", "|", "?", "*"]):
-            logger.warning(f"Invalid characters in path after sanitization: {normalized_path}")
+        if any(char in path_str for char in ["<", ">", "|", "?", "*"]):
+            logger.warning(f"Invalid characters in path after sanitization: {path_str}")
             return None
 
-        return normalized_path
+        return path_str
     except Exception as e:
         logger.warning(f"Error during path sanitization: {e}")
         return None
@@ -720,3 +722,5 @@ def secure_path_join(
     except Exception as e:
         logger.error(f"Error joining paths: {e}")
         return None
+=======
+>>>>>>> origin/main

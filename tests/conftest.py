@@ -1,17 +1,8 @@
+<<<<<<< HEAD
 import os
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
-
-# Set up test environment immediately on import to handle early imports
-def _setup_test_env_early():
-    """Set up minimal environment for early imports."""
-    import secrets
-    if "SECRET_KEY" not in os.environ:
-        os.environ["SECRET_KEY"] = secrets.token_urlsafe(32)
-    os.environ.setdefault("DATA_DIR", "./test_data")
-
-_setup_test_env_early()
 
 import subprocess
 from unittest.mock import AsyncMock
@@ -45,36 +36,17 @@ def create_test_app():
     return app
 
 
-def setup_test_environment():
-    """Set up environment variables required for testing."""
-    import secrets
+from src.core.database import get_db
 
-    # Generate a random secret key for testing
-    if "SECRET_KEY" not in os.environ:
-        test_secret_key = secrets.token_urlsafe(32)
-        os.environ["SECRET_KEY"] = test_secret_key
-
-    # Set other required environment variables for testing
-    os.environ.setdefault("DATA_DIR", "./test_data")
-    os.environ.setdefault("DEBUG", "true")
-
-    # Create test data directory if it doesn't exist
-    test_data_dir = os.path.join(os.path.dirname(__file__), "..", "test_data")
-    os.makedirs(test_data_dir, exist_ok=True)
-
-
-# from src.core.database import get_db  # FIXME: get_db function doesn't exist
-from src.core.factory import get_data_source
+try:
+    from src.core.factory import get_data_source
+    HAS_NOTMUCH = True
+except ImportError:
+    HAS_NOTMUCH = False
+    get_data_source = None
 
 # Use the test app instead of the main app
-# Use the create_test_app function defined above
-create_app = create_test_app
-
-
-@pytest.fixture(scope="session", autouse=True)
-def setup_test_session():
-    """Set up the test environment before any tests run."""
-    setup_test_environment()
+from tests.conftest import create_test_app as create_app
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -152,11 +124,15 @@ def client(mock_db_manager: AsyncMock):
     This fixture ensures that API endpoints use the mock_db_manager instead of a real database.
     """
     app = create_app()
-    # app.dependency_overrides[get_db] = lambda: mock_db_manager  # FIXME: get_db doesn't exist
-    app.dependency_overrides[get_data_source] = lambda: mock_db_manager
+    app.dependency_overrides[get_db] = lambda: mock_db_manager
+    if HAS_NOTMUCH:
+        app.dependency_overrides[get_data_source] = lambda: mock_db_manager
 
     with TestClient(app) as test_client:
         yield test_client
 
-    # del app.dependency_overrides[get_db]  # FIXME: get_db doesn't exist
-    del app.dependency_overrides[get_data_source]
+    del app.dependency_overrides[get_db]
+    if HAS_NOTMUCH:
+        del app.dependency_overrides[get_data_source]
+=======
+>>>>>>> origin/main

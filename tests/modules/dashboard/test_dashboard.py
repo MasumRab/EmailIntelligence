@@ -7,8 +7,9 @@ import json
 import sys
 import os
 
-# Environment variables are now set automatically by conftest.py setup_test_session fixture
-# The SECRET_KEY is generated randomly for each test session for security
+# Set required environment variables for testing
+os.environ.setdefault("SECRET_KEY", "test-secret-key-for-testing")
+os.environ.setdefault("DATA_DIR", "./data")
 
 # Add the project root to the path to avoid gradio import issues
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', '..'))

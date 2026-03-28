@@ -17,8 +17,22 @@ from src.core.data_source import DataSource
 from src.core.mfa import get_mfa_service
 from src.core.settings import settings
 
+
 logger = logging.getLogger(__name__)
 router = APIRouter()
+
+
+# MFA Models
+class MFASetupResponse(BaseModel):
+    """Response model for MFA setup endpoint"""
+    secret: str
+    qr_code: str
+    backup_codes: List[str]
+
+
+class EnableMFARequest(BaseModel):
+    """Request model for enabling MFA"""
+    token: str
 
 
 class UserLogin(BaseModel):
@@ -29,29 +43,13 @@ class UserLogin(BaseModel):
 class UserCreate(BaseModel):
     username: str
     password: str
-    role: Optional[str] = "user"
+    role: Optional[UserRole] = UserRole.USER
     permissions: Optional[List[str]] = []
-
-
-class UserLogin(BaseModel):
-    username: str
-    password: str
-    mfa_token: Optional[str] = None
-
-
-class EnableMFARequest(BaseModel):
-    token: str
 
 
 class Token(BaseModel):
     access_token: str
     token_type: str
-
-
-class MFASetupResponse(BaseModel):
-    secret: str
-    qr_code: str
-    backup_codes: List[str]
 
 
 @router.post("/login", response_model=Token)
@@ -66,57 +64,9 @@ async def login(user_credentials: UserLogin, db: DataSource = Depends(get_data_s
             headers={"WWW-Authenticate": "Bearer"},
         )
     
-    # Check if user has MFA enabled
-    if user.get("mfa_enabled", False):
-        mfa_service = get_mfa_service()
-        
-        # If MFA token was not provided, return a special response indicating MFA is required
-        if not user_credentials.mfa_token:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="MFA token required",
-                headers={"WWW-Authenticate": "Bearer", "X-MFA-Required": "true"},
-            )
-        
-        # Verify the MFA token
-        secret = user.get("mfa_secret")
-        if not secret:
-            logger.error(f"MFA enabled for user {user_credentials.username} but no secret found")
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="Server configuration error",
-            )
-        
-        # First, try to verify with TOTP
-        token_verified = mfa_service.verify_token(secret, user_credentials.mfa_token)
-        
-        # If TOTP failed, try backup codes
-        if not token_verified:
-            backup_codes = user.get("mfa_backup_codes", [])
-            is_backup_code, updated_codes = mfa_service.verify_backup_code(
-                backup_codes, user_credentials.mfa_token
-            )
-            
-            if is_backup_code:
-                # Update the user's backup codes to remove the used one
-                for i, u in enumerate(db.users_data):
-                    if u.get("username") == user_credentials.username:
-                        db.users_data[i]["mfa_backup_codes"] = updated_codes
-                        await db._save_data("users")
-                        break
-                token_verified = True
-        
-        # If neither TOTP nor backup code worked, deny access
-        if not token_verified:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid MFA token",
-                headers={"WWW-Authenticate": "Bearer"},
-            )
-    
     access_token_expires = timedelta(minutes=settings.access_token_expire_minutes)
     access_token = create_access_token(
-        data={"sub": user_credentials.username, "role": user.get("role", "user")}, expires_delta=access_token_expires
+        data={"sub": user_credentials.username}, expires_delta=access_token_expires
     )
     
     return {"access_token": access_token, "token_type": "bearer"}
@@ -265,19 +215,13 @@ async def register(user_data: UserCreate, db: DataSource = Depends(get_data_sour
     
     access_token_expires = timedelta(minutes=settings.access_token_expire_minutes)
     access_token = create_access_token(
-        data={"sub": user_data.username, "role": user_data.role}, expires_delta=access_token_expires
+        data={"sub": user_data.username}, expires_delta=access_token_expires
     )
     
     return {"access_token": access_token, "token_type": "bearer"}
 
 
 @router.get("/me")
-async def get_current_user_info(current_user: TokenData = Depends(get_current_active_user)):
+async def get_current_user_info(current_user: str = Depends(get_current_active_user)):
     """Get information about the current authenticated user"""
-    return {"username": current_user.username, "role": current_user.role}
-
-
-@router.get("/admin-only")
-async def admin_only_endpoint(current_user: TokenData = Depends(require_role(UserRole.ADMIN))):
-    """Protected endpoint that only admins can access"""
-    return {"message": "Hello admin!", "user": current_user.username}
+    return {"username": current_user}

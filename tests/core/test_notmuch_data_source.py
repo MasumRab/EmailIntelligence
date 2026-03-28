@@ -10,7 +10,6 @@ from unittest.mock import patch, MagicMock, AsyncMock
 from typing import Dict, List, Any, Optional
 
 from src.core.notmuch_data_source import NotmuchDataSource
-from src.core.database import DatabaseManager
 
 
 class TestNotmuchDataSourceInitialization:
@@ -23,7 +22,7 @@ class TestNotmuchDataSourceInitialization:
         mock_db = MagicMock()
         mock_notmuch.Database.return_value = mock_db
         
-        ds = NotmuchDataSource(db_manager=AsyncMock(spec=DatabaseManager))
+        ds = NotmuchDataSource()
         assert ds is not None
         assert isinstance(ds, NotmuchDataSource)
 
@@ -36,7 +35,7 @@ class TestNotmuchDataSourceInitialization:
         mock_db = MagicMock()
         mock_notmuch.Database.return_value = mock_db
 
-        ds = NotmuchDataSource(db_manager=AsyncMock(spec=DatabaseManager))
+        ds = NotmuchDataSource()
         assert isinstance(ds, DataSource)
 
 
@@ -44,20 +43,13 @@ class TestNotmuchDataSourceEmailOperations:
     """Test email-related operations in NotmuchDataSource."""
 
     @pytest.fixture
-    def mock_db_manager(self):
-        """Create a mocked DatabaseManager instance for NotmuchDataSource."""
-        db_manager = AsyncMock(spec=DatabaseManager)
-        db_manager._ensure_initialized = AsyncMock()
-        return db_manager
-
-    @pytest.fixture
     @patch('src.core.notmuch_data_source.notmuch')
-    def data_source(self, mock_notmuch, mock_db_manager):
+    def data_source(self, mock_notmuch):
         """Create a fresh NotmuchDataSource for each test."""
         # Mock the notmuch database
         mock_db = MagicMock()
         mock_notmuch.Database.return_value = mock_db
-        return NotmuchDataSource(db_manager=mock_db_manager)
+        return NotmuchDataSource()
 
     @pytest.mark.asyncio
     @patch('src.core.notmuch_data_source.notmuch')
@@ -67,7 +59,7 @@ class TestNotmuchDataSourceEmailOperations:
         mock_db = MagicMock()
         mock_notmuch.Database.return_value = mock_db
         
-        data_source = NotmuchDataSource(db_manager=AsyncMock(spec=DatabaseManager))
+        data_source = NotmuchDataSource()
         email_data = {
             "subject": "Test Email",
             "content": "This is test content",
@@ -87,7 +79,7 @@ class TestNotmuchDataSourceEmailOperations:
         mock_db = MagicMock()
         mock_notmuch.Database.return_value = mock_db
         
-        data_source = NotmuchDataSource(db_manager=AsyncMock(spec=DatabaseManager))
+        data_source = NotmuchDataSource()
         result = await data_source.get_email_by_id(123)
 
         assert result is None  # Not implemented for notmuch (uses message IDs instead)
@@ -100,7 +92,7 @@ class TestNotmuchDataSourceEmailOperations:
         mock_db = MagicMock()
         mock_notmuch.Database.return_value = mock_db
         
-        data_source = NotmuchDataSource(db_manager=AsyncMock(spec=DatabaseManager))
+        data_source = NotmuchDataSource()
         result = await data_source.get_email_by_id(123, include_content=False)
 
         assert result is None  # Not implemented for notmuch (uses message IDs instead)
@@ -126,7 +118,7 @@ class TestNotmuchDataSourceEmailOperations:
         mock_db.create_query.return_value = mock_query
         mock_notmuch.Database.return_value = mock_db
         
-        data_source = NotmuchDataSource(db_manager=AsyncMock(spec=DatabaseManager))
+        data_source = NotmuchDataSource()
         result = await data_source.get_all_emails()
 
         assert isinstance(result, list)
@@ -153,7 +145,7 @@ class TestNotmuchDataSourceEmailOperations:
         mock_db.create_query.return_value = mock_query
         mock_notmuch.Database.return_value = mock_db
         
-        data_source = NotmuchDataSource(db_manager=AsyncMock(spec=DatabaseManager))
+        data_source = NotmuchDataSource()
         result = await data_source.get_all_emails(limit=25, offset=10)
 
         assert isinstance(result, list)
@@ -166,7 +158,7 @@ class TestNotmuchDataSourceEmailOperations:
         mock_db = MagicMock()
         mock_notmuch.Database.return_value = mock_db
         
-        data_source = NotmuchDataSource(db_manager=AsyncMock(spec=DatabaseManager))
+        data_source = NotmuchDataSource()
         update_data = {"is_read": True, "tags": ["important"]}
         result = await data_source.update_email(123, update_data)
 
@@ -180,7 +172,7 @@ class TestNotmuchDataSourceEmailOperations:
         mock_db = MagicMock()
         mock_notmuch.Database.return_value = mock_db
         
-        data_source = NotmuchDataSource(db_manager=AsyncMock(spec=DatabaseManager))
+        data_source = NotmuchDataSource()
         result = await data_source.delete_email(123)
 
         assert result is False  # Not implemented for read-only source
@@ -190,20 +182,13 @@ class TestNotmuchDataSourceSearchOperations:
     """Test search and query operations in NotmuchDataSource."""
 
     @pytest.fixture
-    def mock_db_manager(self):
-        """Create a mocked DatabaseManager instance for NotmuchDataSource."""
-        db_manager = AsyncMock(spec=DatabaseManager)
-        db_manager._ensure_initialized = AsyncMock()
-        return db_manager
-
-    @pytest.fixture
     @patch('src.core.notmuch_data_source.notmuch')
-    def data_source(self, mock_notmuch, mock_db_manager):
+    def data_source(self, mock_notmuch):
         """Create a fresh NotmuchDataSource for each test."""
         # Mock the notmuch database
         mock_db = MagicMock()
         mock_notmuch.Database.return_value = mock_db
-        return NotmuchDataSource(db_manager=mock_db_manager)
+        return NotmuchDataSource()
 
     @pytest.mark.asyncio
     @patch('src.core.notmuch_data_source.notmuch')
@@ -227,7 +212,7 @@ class TestNotmuchDataSourceSearchOperations:
         mock_db.create_query.return_value = mock_query
         mock_notmuch.Database.return_value = mock_db
         
-        data_source = NotmuchDataSource(db_manager=AsyncMock(spec=DatabaseManager))
+        data_source = NotmuchDataSource()
         result = await data_source.search_emails("important meeting")
 
         assert isinstance(result, list)
@@ -244,7 +229,7 @@ class TestNotmuchDataSourceSearchOperations:
         mock_db.create_query.return_value = mock_query
         mock_notmuch.Database.return_value = mock_db
         
-        data_source = NotmuchDataSource(db_manager=AsyncMock(spec=DatabaseManager))
+        data_source = NotmuchDataSource()
         result = await data_source.search_emails("")
 
         assert isinstance(result, list)
@@ -258,7 +243,7 @@ class TestNotmuchDataSourceSearchOperations:
         mock_db = MagicMock()
         mock_notmuch.Database.return_value = mock_db
         
-        data_source = NotmuchDataSource(db_manager=AsyncMock(spec=DatabaseManager))
+        data_source = NotmuchDataSource()
         result = await data_source.get_emails_by_category("work")
 
         assert isinstance(result, list)
@@ -285,7 +270,7 @@ class TestNotmuchDataSourceSearchOperations:
         mock_db.create_query.return_value = mock_query
         mock_notmuch.Database.return_value = mock_db
         
-        data_source = NotmuchDataSource(db_manager=AsyncMock(spec=DatabaseManager))
+        data_source = NotmuchDataSource()
         result = await data_source.get_emails(
             limit=20,
             offset=5,
@@ -300,20 +285,13 @@ class TestNotmuchDataSourceCategoryOperations:
     """Test category-related operations in NotmuchDataSource."""
 
     @pytest.fixture
-    def mock_db_manager(self):
-        """Create a mocked DatabaseManager instance for NotmuchDataSource."""
-        db_manager = AsyncMock(spec=DatabaseManager)
-        db_manager._ensure_initialized = AsyncMock()
-        return db_manager
-
-    @pytest.fixture
     @patch('src.core.notmuch_data_source.notmuch')
-    def data_source(self, mock_notmuch, mock_db_manager):
+    def data_source(self, mock_notmuch):
         """Create a fresh NotmuchDataSource for each test."""
         # Mock the notmuch database
         mock_db = MagicMock()
         mock_notmuch.Database.return_value = mock_db
-        return NotmuchDataSource(db_manager=mock_db_manager)
+        return NotmuchDataSource()
 
     @pytest.mark.asyncio
     @patch('src.core.notmuch_data_source.notmuch')
@@ -324,7 +302,7 @@ class TestNotmuchDataSourceCategoryOperations:
         mock_db.get_all_tags.return_value = ["inbox", "work", "personal"]
         mock_notmuch.Database.return_value = mock_db
         
-        data_source = NotmuchDataSource(db_manager=AsyncMock(spec=DatabaseManager))
+        data_source = NotmuchDataSource()
         result = await data_source.get_all_categories()
 
         assert isinstance(result, list)
@@ -338,7 +316,7 @@ class TestNotmuchDataSourceCategoryOperations:
         mock_db = MagicMock()
         mock_notmuch.Database.return_value = mock_db
         
-        data_source = NotmuchDataSource(db_manager=AsyncMock(spec=DatabaseManager))
+        data_source = NotmuchDataSource()
         category_data = {
             "name": "Important",
             "color": "#FF0000",
@@ -354,20 +332,13 @@ class TestNotmuchDataSourceMessageOperations:
     """Test message ID-based operations in NotmuchDataSource."""
 
     @pytest.fixture
-    def mock_db_manager(self):
-        """Create a mocked DatabaseManager instance for NotmuchDataSource."""
-        db_manager = AsyncMock(spec=DatabaseManager)
-        db_manager._ensure_initialized = AsyncMock()
-        return db_manager
-
-    @pytest.fixture
     @patch('src.core.notmuch_data_source.notmuch')
-    def data_source(self, mock_notmuch, mock_db_manager):
+    def data_source(self, mock_notmuch):
         """Create a fresh NotmuchDataSource for each test."""
         # Mock the notmuch database
         mock_db = MagicMock()
         mock_notmuch.Database.return_value = mock_db
-        return NotmuchDataSource(db_manager=mock_db_manager)
+        return NotmuchDataSource()
 
     @pytest.mark.asyncio
     @patch('src.core.notmuch_data_source.notmuch')
@@ -405,7 +376,7 @@ class TestNotmuchDataSourceMessageOperations:
             return original_open(filename, *args, **kwargs)
         
         with patch('builtins.open', side_effect=mock_open):
-            data_source = NotmuchDataSource(db_manager=AsyncMock(spec=DatabaseManager))
+            data_source = NotmuchDataSource()
             message_id = "<abc123@example.com>"
             result = await data_source.get_email_by_message_id(message_id)
 
@@ -448,7 +419,7 @@ class TestNotmuchDataSourceMessageOperations:
             return original_open(filename, *args, **kwargs)
         
         with patch('builtins.open', side_effect=mock_open):
-            data_source = NotmuchDataSource(db_manager=AsyncMock(spec=DatabaseManager))
+            data_source = NotmuchDataSource()
             message_id = "<abc123@example.com>"
             result = await data_source.get_email_by_message_id(message_id, include_content=False)
 
@@ -462,7 +433,7 @@ class TestNotmuchDataSourceMessageOperations:
         mock_db = MagicMock()
         mock_notmuch.Database.return_value = mock_db
         
-        data_source = NotmuchDataSource(db_manager=AsyncMock(spec=DatabaseManager))
+        data_source = NotmuchDataSource()
         message_id = "<abc123@example.com>"
         update_data = {"tags": ["replied"], "is_read": True}
 
@@ -476,20 +447,13 @@ class TestNotmuchDataSourceDashboard:
     """Test dashboard statistics operations in NotmuchDataSource."""
 
     @pytest.fixture
-    def mock_db_manager(self):
-        """Create a mocked DatabaseManager instance for NotmuchDataSource."""
-        db_manager = AsyncMock(spec=DatabaseManager)
-        db_manager._ensure_initialized = AsyncMock()
-        return db_manager
-
-    @pytest.fixture
     @patch('src.core.notmuch_data_source.notmuch')
-    def data_source(self, mock_notmuch, mock_db_manager):
+    def data_source(self, mock_notmuch):
         """Create a fresh NotmuchDataSource for each test."""
         # Mock the notmuch database
         mock_db = MagicMock()
         mock_notmuch.Database.return_value = mock_db
-        return NotmuchDataSource(db_manager=mock_db_manager)
+        return NotmuchDataSource()
 
     @pytest.mark.asyncio
     @patch('src.core.notmuch_data_source.notmuch')
@@ -505,7 +469,7 @@ class TestNotmuchDataSourceDashboard:
         mock_db.get_all_tags.return_value = ["inbox", "work", "personal", "unread", "sent"]
         mock_notmuch.Database.return_value = mock_db
         
-        data_source = NotmuchDataSource(db_manager=AsyncMock(spec=DatabaseManager))
+        data_source = NotmuchDataSource()
         result = await data_source.get_dashboard_aggregates()
 
         assert isinstance(result, dict)
@@ -529,7 +493,7 @@ class TestNotmuchDataSourceDashboard:
         mock_db.create_query.return_value = mock_query
         mock_notmuch.Database.return_value = mock_db
         
-        data_source = NotmuchDataSource(db_manager=AsyncMock(spec=DatabaseManager))
+        data_source = NotmuchDataSource()
         result = await data_source.get_category_breakdown(limit=5)
 
         assert isinstance(result, dict)
@@ -542,7 +506,7 @@ class TestNotmuchDataSourceDashboard:
         # Mock the notmuch database as None
         mock_notmuch.Database.return_value = None
         
-        data_source = NotmuchDataSource(db_manager=AsyncMock(spec=DatabaseManager))
+        data_source = NotmuchDataSource()
         result = await data_source.get_dashboard_aggregates()
 
         assert isinstance(result, dict)
@@ -556,7 +520,7 @@ class TestNotmuchDataSourceDashboard:
         # Mock the notmuch database as None
         mock_notmuch.Database.return_value = None
         
-        data_source = NotmuchDataSource(db_manager=AsyncMock(spec=DatabaseManager))
+        data_source = NotmuchDataSource()
         result = await data_source.get_category_breakdown(limit=5)
 
         assert isinstance(result, dict)
