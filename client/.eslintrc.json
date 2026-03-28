@@ -1,5 +1,0 @@
-// Client-specific ESLint configuration
-{
-  "extends": ["../.eslintrc.json"],
-  "rules": {}
-}
