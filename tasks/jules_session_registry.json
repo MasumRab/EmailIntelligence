@@ -1,0 +1,86 @@
+{
+  "repository": "MasumRab/EmailIntelligence",
+  "last_sync": "2026-03-24T14:35:00Z",
+  "sessions": [
+    {
+      "pr_number": 169,
+      "task_id": "17280940896223333459",
+      "console_link": "https://jules.google.com/session/17280940896223333459",
+      "status": "RUNNING",
+      "head_branch": "feat/modular-ai-platform",
+      "base_branch": "main",
+      "intervention_required": false,
+      "last_update_msg": "Session started successfully. Monitoring for CI failures and logic parity."
+    },
+    {
+      "pr_number": 211,
+      "task_id": "13941376577602437089",
+      "console_link": "https://jules.google.com/session/13941376577602437089",
+      "status": "RUNNING",
+      "head_branch": "main-1",
+      "base_branch": "main",
+      "intervention_required": false,
+      "last_update_msg": "Priority PR audit session started"
+    },
+    {
+      "pr_number": 286,
+      "task_id": "8645133856938915124",
+      "console_link": "https://jules.google.com/session/8645133856938915124",
+      "status": "RUNNING",
+      "head_branch": "bolt-optimize-pattern-matching-7371064084655869135",
+      "base_branch": "scientific",
+      "intervention_required": false,
+      "last_update_msg": "Restarted with environment isolation constraints"
+    },
+    {
+      "pr_number": 300,
+      "task_id": "17065719860896443446",
+      "console_link": "https://jules.google.com/session/17065719860896443446",
+      "status": "RUNNING",
+      "head_branch": "bolt-context-control-performance-8783619865872562669",
+      "base_branch": "scientific",
+      "intervention_required": false,
+      "last_update_msg": "Priority PR audit session started"
+    },
+    {
+      "pr_number": 236,
+      "task_id": "13091824377716859301",
+      "console_link": "https://jules.google.com/session/13091824377716859301",
+      "status": "RUNNING",
+      "head_branch": "bolt-optimize-pattern-matching-10172118564768457831",
+      "base_branch": "scientific",
+      "intervention_required": false,
+      "last_update_msg": "Restarted with environment isolation constraints"
+    },
+    {
+      "pr_number": 271,
+      "task_id": "14410989945895259602",
+      "console_link": "https://jules.google.com/session/14410989945895259602",
+      "status": "RUNNING",
+      "head_branch": "lazy-loading-db-12470278036898642197",
+      "base_branch": "main",
+      "intervention_required": false,
+      "last_update_msg": "Priority PR audit session started"
+    },
+    {
+      "pr_number": 527,
+      "task_id": "804955492758980486",
+      "console_link": "https://jules.google.com/session/804955492758980486",
+      "status": "RUNNING",
+      "head_branch": "fix/issue-114-merge-nested-ifs-1095776210587247285",
+      "base_branch": "main",
+      "intervention_required": false,
+      "last_update_msg": "Next priority task initialized"
+    },
+    {
+      "pr_number": 440,
+      "task_id": "7592875515078415283",
+      "console_link": "https://jules.google.com/session/7592875515078415283",
+      "status": "RUNNING",
+      "head_branch": "bolt-workflow-cleanup-optimization-47100...",
+      "base_branch": "main",
+      "intervention_required": false,
+      "last_update_msg": "Nudged for updates"
+    }
+  ]
+}

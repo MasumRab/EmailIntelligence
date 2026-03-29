@@ -1,0 +1,32 @@
+# Rigorous Code Review Recipe
+# Purpose: Internal-first diagnostic review leveraging consolidated CLI tools.
+# Usage: gemini --recipe audit:review
+
+[recipe]
+name = "audit:review"
+description = "Rigorous internal-first review using consolidate CLI diagnostic suite."
+
+[[steps]]
+name = "Topology Analysis"
+command = "python3 dev.py branch-cluster --mode hybrid"
+description = "Analyze where these changes sit in the repository's branch topology."
+
+[[steps]]
+name = "Forensic Logic Check"
+command = "python3 dev.py logic-compare HEAD~1 HEAD"
+description = "Verify 100% logic DNA parity for any ported or refactored functions."
+
+[[steps]]
+name = "AST Risk Audit"
+command = "python3 dev.py code-audit --path src/cli/commands/ --severity MEDIUM"
+description = "Perform AST-based structural scanning for fragile intent and security risks."
+
+[[steps]]
+name = "Import Layer Audit"
+command = "python3 dev.py import-audit --path src/cli/ --legacy-roots 'backend,core' --new-prefix 'src'"
+description = "Verify that all imports adhere to the new unified architectural layers."
+
+[[steps]]
+name = "External Context (Optional)"
+command = "coderabbit review --base-commit HEAD~1 --plain"
+description = "Supplement internal diagnostics with industrial AI review."
