@@ -11,7 +11,7 @@ to the new node-based workflow format.
 import json
 import logging
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 from backend.node_engine.email_nodes import (
     ActionNode,
@@ -44,7 +44,7 @@ class WorkflowMigrationService:
         }
 
     def migrate_legacy_workflow(
-        self, workflow_config: Dict[str, Any], workflow_name: str = None
+        self, workflow_config: dict[str, Any], workflow_name: str = None
     ) -> NodeWorkflow:
         """
         Migrate a legacy workflow configuration to a node-based workflow.
@@ -69,7 +69,7 @@ class WorkflowMigrationService:
             raise WorkflowMigrationError(f"Migration failed: {str(e)}")
 
     def _migrate_file_based_workflow(
-        self, config: Dict[str, Any], workflow_name: str = None
+        self, config: dict[str, Any], workflow_name: str = None
     ) -> NodeWorkflow:
         """
         Migrate a file-based legacy workflow to node-based format.
@@ -182,7 +182,7 @@ class WorkflowMigrationService:
         return node_workflow
 
     def _migrate_default_workflow(
-        self, config: Dict[str, Any], workflow_name: str = None
+        self, config: dict[str, Any], workflow_name: str = None
     ) -> NodeWorkflow:
         """
         Migrate a default legacy workflow to node-based format.
@@ -206,7 +206,7 @@ class WorkflowMigrationService:
         """
         try:
             # Read legacy workflow file
-            with open(file_path, "r", encoding="utf-8") as f:
+            with open(file_path, encoding="utf-8") as f:
                 legacy_config = json.load(f)
 
             # Perform migration
@@ -226,7 +226,7 @@ class WorkflowMigrationService:
             logger.error(f"Failed to migrate workflow file {file_path}: {e}")
             raise WorkflowMigrationError(f"File migration failed: {str(e)}")
 
-    def get_migration_report(self, legacy_config: Dict[str, Any]) -> Dict[str, Any]:
+    def get_migration_report(self, legacy_config: dict[str, Any]) -> dict[str, Any]:
         """
         Generate a report about what would be migrated from a legacy configuration.
 
@@ -258,11 +258,9 @@ class WorkflowMigrationManager:
 
     def __init__(self):
         self.migration_service = WorkflowMigrationService()
-        self.logger = logging.getLogger(
-            f"{self.__class__.__module__}.{self.__class__.__name__}"
-        )
+        self.logger = logging.getLogger(f"{self.__class__.__module__}.{self.__class__.__name__}")
 
-    def migrate_all_legacy_workflows(self, legacy_workflows_dir: str) -> Dict[str, Any]:
+    def migrate_all_legacy_workflows(self, legacy_workflows_dir: str) -> dict[str, Any]:
         """
         Migrate all legacy workflows in a directory to node-based format.
 
@@ -288,13 +286,9 @@ class WorkflowMigrationManager:
         for workflow_file in legacy_dir.glob("*.json"):
             try:
                 # Migrate individual file
-                result = self.migration_service.migrate_workflow_file(
-                    str(workflow_file)
-                )
+                result = self.migration_service.migrate_workflow_file(str(workflow_file))
                 summary["successful_migrations"] += 1
-                summary["migrated_files"].append(
-                    {"original": str(workflow_file), "result": result}
-                )
+                summary["migrated_files"].append({"original": str(workflow_file), "result": result})
                 self.logger.info(f"Successfully migrated: {workflow_file.name}")
             except Exception as e:
                 summary["failed_migrations"] += 1
@@ -303,7 +297,7 @@ class WorkflowMigrationManager:
 
         return summary
 
-    def generate_migration_plan(self, legacy_config: Dict[str, Any]) -> Dict[str, Any]:
+    def generate_migration_plan(self, legacy_config: dict[str, Any]) -> dict[str, Any]:
         """
         Generate a detailed migration plan for a legacy workflow.
 
@@ -334,8 +328,7 @@ class WorkflowMigrationManager:
                 "action": "ActionNode",
             },
             "connection_pattern": (
-                "Linear pipeline: source -> preprocessing -> "
-                "ai_analysis -> filter -> action"
+                "Linear pipeline: source -> preprocessing -> ai_analysis -> filter -> action"
             ),
         }
 
@@ -348,31 +341,27 @@ migration_manager = WorkflowMigrationManager()
 
 # Convenience functions for direct usage
 def migrate_legacy_workflow(
-    legacy_config: Dict[str, Any], workflow_name: str = None
+    legacy_config: dict[str, Any], workflow_name: str = None
 ) -> NodeWorkflow:
     """Migrate a legacy workflow configuration to node-based format."""
-    return migration_manager.migration_service.migrate_legacy_workflow(
-        legacy_config, workflow_name
-    )
+    return migration_manager.migration_service.migrate_legacy_workflow(legacy_config, workflow_name)
 
 
 def migrate_workflow_file(file_path: str, output_path: str = None) -> str:
     """Migrate a legacy workflow file to node-based format."""
-    return migration_manager.migration_service.migrate_workflow_file(
-        file_path, output_path
-    )
+    return migration_manager.migration_service.migrate_workflow_file(file_path, output_path)
 
 
-def get_migration_report(legacy_config: Dict[str, Any]) -> Dict[str, Any]:
+def get_migration_report(legacy_config: dict[str, Any]) -> dict[str, Any]:
     """Generate a migration report for a legacy configuration."""
     return migration_manager.migration_service.get_migration_report(legacy_config)
 
 
-def migrate_all_legacy_workflows(legacy_workflows_dir: str) -> Dict[str, Any]:
+def migrate_all_legacy_workflows(legacy_workflows_dir: str) -> dict[str, Any]:
     """Migrate all legacy workflows in a directory."""
     return migration_manager.migrate_all_legacy_workflows(legacy_workflows_dir)
 
 
-def generate_migration_plan(legacy_config: Dict[str, Any]) -> Dict[str, Any]:
+def generate_migration_plan(legacy_config: dict[str, Any]) -> dict[str, Any]:
     """Generate a detailed migration plan for a legacy workflow."""
     return migration_manager.generate_migration_plan(legacy_config)

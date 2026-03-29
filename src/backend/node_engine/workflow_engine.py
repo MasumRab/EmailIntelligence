@@ -11,7 +11,7 @@ dependencies, execution order, and error management.
 import logging
 import time
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from backend.node_engine.node_base import (
     BaseNode,
@@ -22,15 +22,13 @@ from backend.node_engine.node_base import (
     Workflow,
 )
 from backend.node_engine.security_manager import (
-    SecurityManager,
-)  # Import the SecurityManager class
-from backend.node_engine.security_manager import (
     ExecutionSandbox,
     InputSanitizer,
     ResourceLimits,
+    SecurityManager,
     audit_logger,
     resource_manager,
-)
+)  # Import the SecurityManager class
 
 
 class WorkflowExecutionException(Exception):
@@ -42,12 +40,10 @@ class WorkflowExecutionException(Exception):
 class WorkflowEngine:
     """Manages execution of node-based workflows."""
 
-    def __init__(self, security_manager: Optional[SecurityManager] = None):
-        self.logger = logging.getLogger(
-            f"{self.__class__.__module__}.{self.__class__.__name__}"
-        )
-        self.active_executions: Dict[str, ExecutionContext] = {}
-        self.node_registry: Dict[str, type] = {}
+    def __init__(self, security_manager: SecurityManager | None = None):
+        self.logger = logging.getLogger(f"{self.__class__.__module__}.{self.__class__.__name__}")
+        self.active_executions: dict[str, ExecutionContext] = {}
+        self.node_registry: dict[str, type] = {}
         # Initialize with a default SecurityManager if not provided, for flexibility
         self.security_manager = (
             security_manager if security_manager else SecurityManager(user_roles={})
@@ -58,14 +54,14 @@ class WorkflowEngine:
         self.node_registry[node_class.__name__] = node_class
         self.logger.info(f"Registered node type: {node_class.__name__}")
 
-    def get_registered_node_types(self) -> List[str]:
+    def get_registered_node_types(self) -> list[str]:
         """Get list of all registered node types."""
         return list(self.node_registry.keys())
 
     async def execute_workflow(
         self,
         workflow: Workflow,
-        initial_inputs: Dict[str, Any] = None,
+        initial_inputs: dict[str, Any] = None,
         user_id: str = None,
     ) -> ExecutionContext:
         """
@@ -81,9 +77,7 @@ class WorkflowEngine:
         """
         execution_id = workflow.workflow_id
         start_time = time.time()
-        self.logger.info(
-            f"Starting execution of workflow: {workflow.name} (ID: {execution_id})"
-        )
+        self.logger.info(f"Starting execution of workflow: {workflow.name} (ID: {execution_id})")
 
         # --- SECURITY CHECK: VERIFY USER PERMISSION TO EXECUTE WORKFLOW ---
         class MockUser:
@@ -164,9 +158,7 @@ class WorkflowEngine:
                 if not self.security_manager.validate_node_execution(
                     node_type, getattr(node, "config", {})
                 ):
-                    error_msg = (
-                        f"Security validation failed for node {node_id} ({node_type})"
-                    )
+                    error_msg = f"Security validation failed for node {node_id} ({node_type})"
                     context.add_error(node_id, error_msg)
                     audit_logger.log_security_event(
                         "NODE_EXECUTION_BLOCKED",
@@ -254,9 +246,7 @@ class WorkflowEngine:
             total_execution_time = end_time - start_time
             context.metadata["end_time"] = datetime.now()
             context.metadata["execution_duration"] = total_execution_time
-            context.metadata["performance"]["total_execution_time"] = (
-                total_execution_time
-            )
+            context.metadata["performance"]["total_execution_time"] = total_execution_time
             context.metadata["status"] = "completed"
 
             self.logger.info(
@@ -275,9 +265,7 @@ class WorkflowEngine:
             context.metadata["status"] = "failed"
             context.metadata["error"] = str(e)
 
-            self.logger.error(
-                f"Workflow {workflow.name} execution failed: {str(e)}", exc_info=True
-            )
+            self.logger.error(f"Workflow {workflow.name} execution failed: {str(e)}", exc_info=True)
 
             # Re-raise the exception to indicate failure
             raise
@@ -300,29 +288,23 @@ class WorkflowEngine:
         self,
         workflow: Workflow,
         context: ExecutionContext,
-        initial_inputs: Dict[str, Any],
+        initial_inputs: dict[str, Any],
     ):
         """Set initial input values to appropriate source nodes."""
         # For now, set all initial inputs as shared state
         # In the future, we might want to map initial inputs to specific nodes based on metadata
         context.shared_state.update(initial_inputs)
 
-    async def _set_node_inputs(
-        self, node: BaseNode, workflow: Workflow, context: ExecutionContext
-    ):
+    async def _set_node_inputs(self, node: BaseNode, workflow: Workflow, context: ExecutionContext):
         """Set input values for a node based on connected node outputs with type validation."""
         connections = workflow.get_connections_for_node(node.node_id)
 
         # Find connections where this node is the target
-        input_connections = [
-            conn for conn in connections if conn.target_node_id == node.node_id
-        ]
+        input_connections = [conn for conn in connections if conn.target_node_id == node.node_id]
 
         # Set inputs based on connected outputs with type validation
         for conn in input_connections:
-            source_output = context.get_node_output(
-                conn.source_node_id, conn.source_port
-            )
+            source_output = context.get_node_output(conn.source_node_id, conn.source_port)
             if source_output is not None:
                 # Validate type compatibility between source output and target input
                 target_port = next(
@@ -333,11 +315,7 @@ class WorkflowEngine:
                     source_node = workflow.nodes.get(conn.source_node_id)
                     if source_node:
                         source_port = next(
-                            (
-                                p
-                                for p in source_node.output_ports
-                                if p.name == conn.source_port
-                            ),
+                            (p for p in source_node.output_ports if p.name == conn.source_port),
                             None,
                         )
                         if source_port:
@@ -413,9 +391,7 @@ class WorkflowEngine:
             return True
 
         # If both are GenericType
-        if isinstance(source_type, GenericType) and isinstance(
-            target_type, GenericType
-        ):
+        if isinstance(source_type, GenericType) and isinstance(target_type, GenericType):
             if source_type.base_type != target_type.base_type:
                 return False
 
@@ -432,10 +408,7 @@ class WorkflowEngine:
 
         # Handle backward compatibility: EMAIL_LIST is equivalent to List[Email]
         if source_type == DataType.EMAIL_LIST:
-            if (
-                isinstance(target_type, GenericType)
-                and target_type.base_type == DataType.LIST
-            ):
+            if isinstance(target_type, GenericType) and target_type.base_type == DataType.LIST:
                 if (
                     len(target_type.type_parameters) > 0
                     and target_type.type_parameters[0] == DataType.EMAIL
@@ -443,10 +416,7 @@ class WorkflowEngine:
                     return True
 
         if target_type == DataType.EMAIL_LIST:
-            if (
-                isinstance(source_type, GenericType)
-                and source_type.base_type == DataType.LIST
-            ):
+            if isinstance(source_type, GenericType) and source_type.base_type == DataType.LIST:
                 if (
                     len(source_type.type_parameters) > 0
                     and source_type.type_parameters[0] == DataType.EMAIL
@@ -481,7 +451,7 @@ class WorkflowEngine:
     # - Add coercion cost and safety ratings
 
     async def execute_workflow_async(
-        self, workflow: Workflow, initial_inputs: Dict[str, Any] = None
+        self, workflow: Workflow, initial_inputs: dict[str, Any] = None
     ) -> ExecutionContext:
         """
         Execute a workflow asynchronously without blocking.
@@ -506,7 +476,7 @@ class WorkflowEngine:
             del self.active_executions[execution_id]
             self.logger.info(f"Execution {execution_id} cancelled")
 
-    def get_execution_status(self, execution_id: str) -> Dict[str, Any]:
+    def get_execution_status(self, execution_id: str) -> dict[str, Any]:
         """Get the status of an execution."""
         if execution_id in self.active_executions:
             context = self.active_executions[execution_id]

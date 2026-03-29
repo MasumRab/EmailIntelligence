@@ -18,7 +18,7 @@ import time
 from collections import deque
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from dotenv import load_dotenv
 from google.auth.transport.requests import Request
@@ -82,7 +82,7 @@ class EmailBatch:
         total_count: The total number of emails in the batch.
     """
 
-    messages: List[Dict[str, Any]]
+    messages: list[dict[str, Any]]
     batch_id: str
     timestamp: datetime
     query_filter: str
@@ -173,11 +173,9 @@ class EmailCache:
         )
         self.conn.commit()
 
-    def get_cached_email(self, message_id: str) -> Optional[Dict[str, Any]]:
+    def get_cached_email(self, message_id: str) -> dict[str, Any] | None:
         """Retrieves a cached email by its message ID."""
-        cursor = self.conn.execute(
-            "SELECT * FROM emails WHERE message_id = ?", (message_id,)
-        )
+        cursor = self.conn.execute("SELECT * FROM emails WHERE message_id = ?", (message_id,))
         row = cursor.fetchone()
         if row:
             return {
@@ -194,11 +192,9 @@ class EmailCache:
             }
         return None
 
-    def cache_email(self, email_data: Dict[str, Any]) -> None:
+    def cache_email(self, email_data: dict[str, Any]) -> None:
         """Caches a single email's data."""
-        content_hash = hashlib.sha256(
-            email_data.get("content", "").encode()
-        ).hexdigest()
+        content_hash = hashlib.sha256(email_data.get("content", "").encode()).hexdigest()
         self.conn.execute(
             "INSERT OR REPLACE INTO emails VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
             (
@@ -216,7 +212,7 @@ class EmailCache:
         )
         self.conn.commit()
 
-    def get_sync_state(self, query_filter: str) -> Optional[Dict[str, Any]]:
+    def get_sync_state(self, query_filter: str) -> dict[str, Any] | None:
         """Retrieves the synchronization state for a given query filter."""
         cursor = self.conn.execute(
             "SELECT * FROM sync_metadata WHERE query_filter = ?", (query_filter,)
@@ -233,7 +229,7 @@ class EmailCache:
             }
         return None
 
-    def update_sync_state(self, sync_data: Dict[str, Any]) -> None:
+    def update_sync_state(self, sync_data: dict[str, Any]) -> None:
         """Updates the synchronization state in the cache."""
         self.conn.execute(
             "INSERT OR REPLACE INTO sync_metadata VALUES (?, ?, ?, ?, ?, ?)",
@@ -258,7 +254,7 @@ class GmailDataCollector:
     efficient and reliable data collection.
     """
 
-    def __init__(self, config: Optional[RateLimitConfig] = None):
+    def __init__(self, config: RateLimitConfig | None = None):
         """Initializes the GmailDataCollector."""
         self.config = config or RateLimitConfig()
         self.rate_limiter = RateLimiter(self.config)
@@ -276,9 +272,7 @@ class GmailDataCollector:
             try:
                 creds = Credentials.from_authorized_user_file(TOKEN_JSON_PATH, SCOPES)
             except Exception as e:
-                self.logger.error(
-                    f"Error loading credentials from {TOKEN_JSON_PATH}: {e}"
-                )
+                self.logger.error(f"Error loading credentials from {TOKEN_JSON_PATH}: {e}")
         if creds and creds.valid:
             self.gmail_service = build("gmail", "v1", credentials=creds)
         elif creds and creds.expired and creds.refresh_token:
@@ -331,16 +325,14 @@ class GmailDataCollector:
 
     def set_gmail_service(self, service):
         """Sets the Gmail API service instance."""
-        self.logger.warning(
-            "set_gmail_service is deprecated as auth is handled internally."
-        )
+        self.logger.warning("set_gmail_service is deprecated as auth is handled internally.")
         self.gmail_service = service
 
     async def collect_emails_incremental(
         self,
         query_filter: str = "",
-        max_emails: Optional[int] = None,
-        since_date: Optional[datetime] = None,
+        max_emails: int | None = None,
+        since_date: datetime | None = None,
     ) -> EmailBatch:
         """
         Collects emails incrementally, using caching and rate limiting.
@@ -353,9 +345,7 @@ class GmailDataCollector:
         Returns:
             An EmailBatch object containing the collected emails.
         """
-        sync_id = hashlib.sha256(
-            f"{query_filter}_{datetime.now().date()}".encode()
-        ).hexdigest()
+        sync_id = hashlib.sha256(f"{query_filter}_{datetime.now().date()}".encode()).hexdigest()
         sync_state = self.cache.get_sync_state(query_filter) or {
             "sync_id": sync_id,
             "query_filter": query_filter,
@@ -365,11 +355,9 @@ class GmailDataCollector:
             "next_page_token": None,
         }
         if since_date:
-            query_filter = (
-                f"{query_filter} after:{since_date.strftime('%Y/%m/%d')}".strip()
-            )
+            query_filter = f"{query_filter} after:{since_date.strftime('%Y/%m/%d')}".strip()
 
-        collected_messages: List[Dict[str, Any]] = []
+        collected_messages: list[dict[str, Any]] = []
         page_token = sync_state.get("next_page_token")
         try:
             while len(collected_messages) < (max_emails or float("inf")):
@@ -384,9 +372,7 @@ class GmailDataCollector:
                 )
                 if not message_list.get("messages"):
                     break
-                batch_messages = await self._process_message_batch(
-                    message_list["messages"]
-                )
+                batch_messages = await self._process_message_batch(message_list["messages"])
                 collected_messages.extend(batch_messages)
                 sync_state.update(
                     {
@@ -400,9 +386,7 @@ class GmailDataCollector:
                 if not message_list.get("nextPageToken"):
                     break
                 page_token = message_list["nextPageToken"]
-                self.logger.info(
-                    f"Collected {len(collected_messages)} emails so far..."
-                )
+                self.logger.info(f"Collected {len(collected_messages)} emails so far...")
         except Exception as e:
             self.logger.error(f"Error collecting emails: {e}")
             self.cache.update_sync_state(sync_state)
@@ -416,8 +400,8 @@ class GmailDataCollector:
         )
 
     async def _get_message_list(
-        self, query: str, page_token: Optional[str] = None, max_results: int = 100
-    ) -> Dict[str, Any]:
+        self, query: str, page_token: str | None = None, max_results: int = 100
+    ) -> dict[str, Any]:
         """Retrieves a list of message IDs from the Gmail API."""
         if self.gmail_service:
             try:
@@ -442,8 +426,8 @@ class GmailDataCollector:
         return await self._simulate_gmail_response(query, page_token, max_results)
 
     async def _simulate_gmail_response(
-        self, query: str, page_token: Optional[str], max_results: int
-    ) -> Dict[str, Any]:
+        self, query: str, page_token: str | None, max_results: int
+    ) -> dict[str, Any]:
         """Simulates a Gmail API response for development purposes."""
         base_time = int(time.time())
         messages = [
@@ -459,26 +443,25 @@ class GmailDataCollector:
         return response
 
     async def _process_message_batch(
-        self, message_ids: List[Dict[str, str]]
-    ) -> List[Dict[str, Any]]:
+        self, message_ids: list[dict[str, str]]
+    ) -> list[dict[str, Any]]:
         """Processes a batch of message IDs to retrieve their full content."""
         semaphore = asyncio.Semaphore(self.config.max_concurrent_requests)
         tasks = [
-            self._get_message_with_semaphore(semaphore, msg_info["id"])
-            for msg_info in message_ids
+            self._get_message_with_semaphore(semaphore, msg_info["id"]) for msg_info in message_ids
         ]
         results = await asyncio.gather(*tasks, return_exceptions=True)
         return [res for res in results if res and not isinstance(res, Exception)]  # type: ignore [misc]
 
     async def _get_message_with_semaphore(
         self, semaphore: asyncio.Semaphore, message_id: str
-    ) -> Optional[Dict[str, Any]]:
+    ) -> dict[str, Any] | None:
         """Retrieves message content under the control of a semaphore."""
         async with semaphore:
             await self.rate_limiter.acquire()
             return await self._get_message_content(message_id)
 
-    async def _get_message_content(self, message_id: str) -> Optional[Dict[str, Any]]:
+    async def _get_message_content(self, message_id: str) -> dict[str, Any] | None:
         """
         Retrieves the full content of a message, using a cache to avoid
         redundant API calls.
@@ -506,31 +489,24 @@ class GmailDataCollector:
         self.cache.cache_email(email_data)
         return email_data
 
-    def _parse_message_payload(
-        self, message: Dict[str, Any]
-    ) -> Optional[Dict[str, Any]]:
+    def _parse_message_payload(self, message: dict[str, Any]) -> dict[str, Any] | None:
         """Parses the raw payload of a message from the Gmail API."""
         try:
-            headers = {
-                h["name"]: h["value"]
-                for h in message.get("payload", {}).get("headers", [])
-            }
+            headers = {h["name"]: h["value"] for h in message.get("payload", {}).get("headers", [])}
             content = ""
             if "parts" in message["payload"]:
                 for part in message["payload"]["parts"]:
                     if part["mimeType"] == "text/plain" and "data" in part["body"]:
                         import base64
 
-                        content = base64.urlsafe_b64decode(part["body"]["data"]).decode(
-                            "utf-8"
-                        )
+                        content = base64.urlsafe_b64decode(part["body"]["data"]).decode("utf-8")
                         break
             elif "body" in message["payload"] and "data" in message["payload"]["body"]:
                 import base64
 
-                content = base64.urlsafe_b64decode(
-                    message["payload"]["body"]["data"]
-                ).decode("utf-8")
+                content = base64.urlsafe_b64decode(message["payload"]["body"]["data"]).decode(
+                    "utf-8"
+                )
             return {
                 "message_id": message["id"],
                 "thread_id": message.get("threadId", ""),
@@ -544,9 +520,7 @@ class GmailDataCollector:
                 ).isoformat(),
             }
         except Exception as e:
-            self.logger.error(
-                f"Error parsing message payload for {message.get('id')}: {e}"
-            )
+            self.logger.error(f"Error parsing message payload for {message.get('id')}: {e}")
             return None
 
     def _extract_email_address(self, sender_header: str) -> str:
@@ -557,7 +531,7 @@ class GmailDataCollector:
         name, email_addr = parseaddr(sender_header)
         return email_addr if email_addr else sender_header
 
-    async def _simulate_email_content(self, message_id: str) -> Dict[str, Any]:
+    async def _simulate_email_content(self, message_id: str) -> dict[str, Any]:
         """Simulates email content for development and testing."""
         templates = [
             {
@@ -591,7 +565,7 @@ class GmailDataCollector:
             "timestamp": datetime.now().isoformat(),
         }
 
-    def get_collection_strategies(self) -> Dict[str, Dict[str, Any]]:
+    def get_collection_strategies(self) -> dict[str, dict[str, Any]]:
         """Defines a set of named strategies for collecting emails."""
         return {
             "daily_sync": {
@@ -617,9 +591,7 @@ class GmailDataCollector:
         if strategy_name not in strategies:
             raise ValueError(f"Unknown strategy: {strategy_name}")
         strategy = strategies[strategy_name]
-        self.logger.info(
-            f"Executing strategy: {strategy_name} - {strategy['description']}"
-        )
+        self.logger.info(f"Executing strategy: {strategy_name} - {strategy['description']}")
         return await self.collect_emails_incremental(
             query_filter=strategy["query"], max_emails=strategy["max_emails"]
         )

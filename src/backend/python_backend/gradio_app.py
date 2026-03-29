@@ -63,9 +63,7 @@ def generate_topic_pie(categories):
     """Generate a pie chart for categories."""
     if not categories:
         categories = ["General"]
-    fig = px.pie(
-        values=[1] * len(categories), names=categories, title="Topic Categories"
-    )
+    fig = px.pie(values=[1] * len(categories), names=categories, title="Topic Categories")
     return fig
 
 
@@ -181,9 +179,7 @@ with gr.Blocks(title="Email Intelligence", theme=gr.themes.Soft()) as iface:
                             "error": "Input must be a JSON array of email objects"
                         }
                     if len(emails) > 100:
-                        return pd.DataFrame(), {
-                            "error": "Too many emails, maximum 100 allowed"
-                        }
+                        return pd.DataFrame(), {"error": "Too many emails, maximum 100 allowed"}
                     results = []
                     for email in emails:
                         if (
@@ -198,9 +194,7 @@ with gr.Blocks(title="Email Intelligence", theme=gr.themes.Soft()) as iface:
                             result = nlp_engine.analyze_email(subject, content)
                             results.append(result)
                         except Exception as e:
-                            results.append(
-                                {"error": f"Failed to analyze email: {str(e)}"}
-                            )
+                            results.append({"error": f"Failed to analyze email: {str(e)}"})
                     df = pd.DataFrame(results)
                     stats = df.describe(include="all").to_dict()
                     return df, stats

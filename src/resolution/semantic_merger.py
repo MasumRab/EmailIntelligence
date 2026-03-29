@@ -4,10 +4,10 @@ Semantic merger for EmailIntelligence CLI
 Implements intelligent merging of code based on semantic understanding.
 """
 
-from typing import List, Dict, Any, Optional
+from typing import Any
+
 from ..core.conflict_models import Conflict, ConflictBlock
 from ..utils.logger import get_logger
-
 
 logger = get_logger(__name__)
 
@@ -26,7 +26,7 @@ class SemanticMerger:
             "code_blocks": self._merge_code_blocks,
         }
 
-    async def merge_conflicts(self, conflicts: List[Conflict]) -> List[Dict[str, Any]]:
+    async def merge_conflicts(self, conflicts: list[Conflict]) -> list[dict[str, Any]]:
         """
         Perform semantic merging of conflicts.
 
@@ -47,7 +47,7 @@ class SemanticMerger:
         logger.info(f"Semantic merge completed for {len(merge_results)} conflicts")
         return merge_results
 
-    async def _merge_single_conflict(self, conflict: Conflict) -> Dict[str, Any]:
+    async def _merge_single_conflict(self, conflict: Conflict) -> dict[str, Any]:
         """Merge a single conflict using semantic understanding."""
         logger.info(f"Merging conflict in file: {conflict.file_path}")
 
@@ -77,9 +77,7 @@ class SemanticMerger:
 
         return merge_result
 
-    def _merge_conflict_block(
-        self, block: ConflictBlock, file_path: str
-    ) -> Optional[Dict[str, Any]]:
+    def _merge_conflict_block(self, block: ConflictBlock, file_path: str) -> dict[str, Any] | None:
         """Merge a single conflict block using appropriate strategy."""
         # Determine the type of content in the conflict block
         content_type = self._determine_content_type(block, file_path)
@@ -133,7 +131,7 @@ class SemanticMerger:
 
         return "code_blocks"
 
-    def _merge_function_signatures(self, block: ConflictBlock) -> Dict[str, Any]:
+    def _merge_function_signatures(self, block: ConflictBlock) -> dict[str, Any]:
         """Merge function signature conflicts."""
         # This is a simplified implementation
         # In a real system, this would use AST parsing to understand function signatures
@@ -155,7 +153,7 @@ class SemanticMerger:
             "confidence": 0.8,
         }
 
-    def _extract_function_params(self, content_lines: List[str]) -> List[str]:
+    def _extract_function_params(self, content_lines: list[str]) -> list[str]:
         """Extract function parameters from content."""
         params = []
         for line in content_lines:
@@ -167,28 +165,24 @@ class SemanticMerger:
                 if start != -1 and end != -1 and end > start:
                     param_str = line[start + 1 : end]
                     # Split by comma and clean up
-                    params.extend(
-                        [p.strip() for p in param_str.split(",") if p.strip()]
-                    )
+                    params.extend([p.strip() for p in param_str.split(",") if p.strip()])
         return params
 
-    def _merge_parameters(
-        self, before_params: List[str], after_params: List[str]
-    ) -> List[str]:
+    def _merge_parameters(self, before_params: list[str], after_params: list[str]) -> list[str]:
         """Merge function parameters."""
         # Create a set of all parameters
         all_params = list(set(before_params + after_params))
         return all_params
 
     def _create_merged_function_signature(
-        self, block: ConflictBlock, params: List[str]
-    ) -> List[str]:
+        self, block: ConflictBlock, params: list[str]
+    ) -> list[str]:
         """Create a merged function signature."""
         # This is a simplified implementation
         # In a real system, this would reconstruct the function properly
         return ["# Merged function signature", "# Parameters: " + ", ".join(params)]
 
-    def _merge_variable_assignments(self, block: ConflictBlock) -> Dict[str, Any]:
+    def _merge_variable_assignments(self, block: ConflictBlock) -> dict[str, Any]:
         """Merge variable assignment conflicts."""
         # Identify variables being assigned
         before_vars = self._extract_variables(block.content_before)
@@ -222,7 +216,7 @@ class SemanticMerger:
             "confidence": 0.7,
         }
 
-    def _extract_variables(self, content_lines: List[str]) -> Dict[str, str]:
+    def _extract_variables(self, content_lines: list[str]) -> dict[str, str]:
         """Extract variable assignments from content."""
         variables = {}
         for line in content_lines:
@@ -246,7 +240,7 @@ class SemanticMerger:
         # For other cases, we might prefer one over the other or mark for manual review
         return f"/* CONFLICT: Choose between {value1} and {value2} */"
 
-    def _merge_imports(self, block: ConflictBlock) -> Dict[str, Any]:
+    def _merge_imports(self, block: ConflictBlock) -> dict[str, Any]:
         """Merge import statement conflicts."""
         # Extract imports from both sides
         before_imports = self._extract_imports(block.content_before)
@@ -263,7 +257,7 @@ class SemanticMerger:
             "confidence": 0.95,
         }
 
-    def _extract_imports(self, content_lines: List[str]) -> List[str]:
+    def _extract_imports(self, content_lines: list[str]) -> list[str]:
         """Extract import statements from content."""
         imports = []
         for line in content_lines:
@@ -272,21 +266,17 @@ class SemanticMerger:
                 imports.append(line)
         return imports
 
-    def _merge_comments(self, block: ConflictBlock) -> Dict[str, Any]:
+    def _merge_comments(self, block: ConflictBlock) -> dict[str, Any]:
         """Merge comment conflicts."""
         # Combine comments from both sides
         all_comments = []
 
         # Add comments from both sides, avoiding duplicates
         before_comments = [
-            line
-            for line in block.content_before
-            if line.strip().startswith(("#", "//", "/*", "*"))
+            line for line in block.content_before if line.strip().startswith(("#", "//", "/*", "*"))
         ]
         after_comments = [
-            line
-            for line in block.content_after
-            if line.strip().startswith(("#", "//", "/*", "*"))
+            line for line in block.content_after if line.strip().startswith(("#", "//", "/*", "*"))
         ]
 
         # Combine unique comments
@@ -299,7 +289,7 @@ class SemanticMerger:
             "confidence": 0.9,
         }
 
-    def _merge_code_blocks(self, block: ConflictBlock) -> Dict[str, Any]:
+    def _merge_code_blocks(self, block: ConflictBlock) -> dict[str, Any]:
         """Merge general code blocks."""
         # For complex code blocks, we might need to defer to manual resolution
         # but we can try some basic strategies
@@ -319,9 +309,7 @@ class SemanticMerger:
             "requires_manual_review": True,
         }
 
-    def validate_merge(
-        self, original_content: str, merged_content: str
-    ) -> Dict[str, Any]:
+    def validate_merge(self, original_content: str, merged_content: str) -> dict[str, Any]:
         """
         Validate that the merge produced valid content.
 

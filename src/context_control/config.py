@@ -2,7 +2,8 @@
 
 import os
 from pathlib import Path
-from typing import Dict, Optional, Any
+from typing import Any
+
 from pydantic import BaseModel, Field, validator
 
 
@@ -21,28 +22,18 @@ class ContextControlConfig(BaseModel):
 
     # Logging configuration
     log_level: str = Field(default="INFO", description="Logging level")
-    log_file: Optional[Path] = Field(default=None, description="Optional log file path")
+    log_file: Path | None = Field(default=None, description="Optional log file path")
 
     # Git configuration
-    git_repo_path: Path = Field(
-        default=Path("."), description="Path to the Git repository"
-    )
+    git_repo_path: Path = Field(default=Path("."), description="Path to the Git repository")
 
     # Security configuration
-    enable_isolation: bool = Field(
-        default=True, description="Enable context isolation mechanisms"
-    )
-    strict_validation: bool = Field(
-        default=True, description="Enable strict context validation"
-    )
+    enable_isolation: bool = Field(default=True, description="Enable context isolation mechanisms")
+    strict_validation: bool = Field(default=True, description="Enable strict context validation")
 
     # Performance configuration
-    cache_enabled: bool = Field(
-        default=True, description="Enable caching for performance"
-    )
-    cache_ttl_seconds: int = Field(
-        default=300, description="Cache time-to-live in seconds"
-    )
+    cache_enabled: bool = Field(default=True, description="Enable caching for performance")
+    cache_ttl_seconds: int = Field(default=300, description="Cache time-to-live in seconds")
 
     @validator("log_level")
     def validate_log_level(cls, v):
@@ -65,7 +56,7 @@ class ContextControlConfig(BaseModel):
         arbitrary_types_allowed = True
 
 
-def load_config_from_env() -> Dict[str, Any]:
+def load_config_from_env() -> dict[str, Any]:
     """Load configuration from environment variables.
 
     Returns:
@@ -105,7 +96,7 @@ def load_config_from_env() -> Dict[str, Any]:
     return config
 
 
-def load_config_from_file(config_file: Path) -> Dict[str, Any]:
+def load_config_from_file(config_file: Path) -> dict[str, Any]:
     """Load configuration from a JSON file.
 
     Args:
@@ -120,7 +111,7 @@ def load_config_from_file(config_file: Path) -> Dict[str, Any]:
         return {}
 
     try:
-        with open(config_file, "r") as f:
+        with open(config_file) as f:
             data = json.load(f)
 
         # Convert string paths to Path objects
@@ -129,12 +120,12 @@ def load_config_from_file(config_file: Path) -> Dict[str, Any]:
                 data[key] = Path(data[key])
 
         return data
-    except (json.JSONDecodeError, IOError):
+    except (OSError, json.JSONDecodeError):
         return {}
 
 
 def get_config(
-    config_file: Optional[Path] = None, override_config: Optional[Dict[str, Any]] = None
+    config_file: Path | None = None, override_config: dict[str, Any] | None = None
 ) -> ContextControlConfig:
     """Get the complete configuration, merging defaults, file, env, and overrides.
 
@@ -162,11 +153,11 @@ def get_config(
 
 
 # Global configuration instance
-_config: Optional[ContextControlConfig] = None
+_config: ContextControlConfig | None = None
 
 
 def init_config(
-    config_file: Optional[Path] = None, override_config: Optional[Dict[str, Any]] = None
+    config_file: Path | None = None, override_config: dict[str, Any] | None = None
 ) -> ContextControlConfig:
     """Initialize the global configuration.
 

@@ -4,23 +4,24 @@ configparser.SafeConfigParser = configparser.ConfigParser
 
 import argparse
 import logging
-
-import gradio as gr
-import uvicorn
-import psutil
 import platform
 from datetime import datetime
+
+import gradio as gr
+import psutil
 import requests
+import uvicorn
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, RedirectResponse
 from pydantic import ValidationError
-from .core.module_manager import ModuleManager
+
+from .core.audit_logger import AuditEventType, AuditSeverity, audit_logger
 from .core.middleware import (
-    create_security_middleware,
     create_security_headers_middleware,
+    create_security_middleware,
 )
-from .core.audit_logger import audit_logger, AuditEventType, AuditSeverity
+from .core.module_manager import ModuleManager
 from .core.performance_monitor import performance_monitor
 
 # Configure logging
@@ -56,9 +57,7 @@ def create_system_status_tab():
                     "http://127.0.0.1:8000/api/dashboard/stats", timeout=2
                 )
                 dashboard_data = (
-                    dashboard_response.json()
-                    if dashboard_response.status_code == 200
-                    else {}
+                    dashboard_response.json() if dashboard_response.status_code == 200 else {}
                 )
             except (requests.RequestException, ValueError) as e:
                 dashboard_data = {"error": f"Dashboard API unavailable: {str(e)}"}
@@ -68,9 +67,7 @@ def create_system_status_tab():
                 gmail_response = requests.get(
                     "http://127.0.0.1:8000/api/gmail/performance", timeout=2
                 )
-                gmail_data = (
-                    gmail_response.json() if gmail_response.status_code == 200 else {}
-                )
+                gmail_data = gmail_response.json() if gmail_response.status_code == 200 else {}
             except (requests.RequestException, ValueError) as e:
                 gmail_data = {"error": f"Gmail API unavailable: {str(e)}"}
 
@@ -81,9 +78,7 @@ def create_system_status_tab():
                 "disk_usage": f"{disk.percent:.1f}%",
                 "total_emails": dashboard_data.get("total_emails", "N/A"),
                 "unread_emails": dashboard_data.get("unread_emails", "N/A"),
-                "gmail_status": "Connected"
-                if not gmail_data.get("error")
-                else "Disconnected",
+                "gmail_status": "Connected" if not gmail_data.get("error") else "Disconnected",
                 "last_updated": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             }
         except (psutil.Error, OSError, ValueError, KeyError) as e:
@@ -102,9 +97,7 @@ def create_system_status_tab():
     with gr.Row():
         with gr.Column(scale=1):
             gr.Markdown("# System Status Dashboard")
-            gr.Markdown(
-                "Monitor system performance, health metrics, and operational status."
-            )
+            gr.Markdown("Monitor system performance, health metrics, and operational status.")
 
         refresh_btn = gr.Button("🔄 Refresh", variant="secondary")
 
@@ -112,9 +105,7 @@ def create_system_status_tab():
         with gr.TabItem("Overview"):
             with gr.Row():
                 with gr.Column():
-                    gr.Textbox(
-                        label="System Status", value="🟢 Online", interactive=False
-                    )
+                    gr.Textbox(label="System Status", value="🟢 Online", interactive=False)
 
                     system_info = gr.JSON(label="System Information")
 
@@ -241,9 +232,7 @@ def create_ai_lab_tab():
             return "No email content provided", []
 
         try:
-            emails = [
-                email.strip() for email in email_texts.split("\n\n") if email.strip()
-            ]
+            emails = [email.strip() for email in email_texts.split("\n\n") if email.strip()]
             results = []
 
             for i, email_content in enumerate(emails[:10]):  # Limit to 10 emails
@@ -264,9 +253,7 @@ def create_ai_lab_tab():
                         results.append(
                             {
                                 "email_id": i + 1,
-                                "subject": subject[:50] + "..."
-                                if len(subject) > 50
-                                else subject,
+                                "subject": subject[:50] + "..." if len(subject) > 50 else subject,
                                 "sentiment": result.get("sentiment", "unknown"),
                                 "topic": result.get("topic", "unknown"),
                                 "intent": result.get("intent", "unknown"),
@@ -277,9 +264,7 @@ def create_ai_lab_tab():
                         results.append(
                             {
                                 "email_id": i + 1,
-                                "subject": subject[:50] + "..."
-                                if len(subject) > 50
-                                else subject,
+                                "subject": subject[:50] + "..." if len(subject) > 50 else subject,
                                 "error": f"API Error: {response.status_code}",
                             }
                         )
@@ -389,15 +374,11 @@ def create_ai_lab_tab():
                     gr.Markdown("### Model Status")
                     model_status = gr.JSON(label="Available Models")
 
-                    refresh_models_btn = gr.Button(
-                        "🔄 Refresh Models", variant="secondary"
-                    )
+                    refresh_models_btn = gr.Button("🔄 Refresh Models", variant="secondary")
 
                 with gr.Column():
                     gr.Markdown("### Model Testing")
-                    gr.Textbox(
-                        label="Test Input", placeholder="Enter text to test model..."
-                    )
+                    gr.Textbox(label="Test Input", placeholder="Enter text to test model...")
                     gr.Button("🧪 Test Model", variant="secondary")
                     gr.JSON(label="Test Results")
 
@@ -465,9 +446,7 @@ def create_gmail_integration_tab():
     def get_gmail_performance():
         """Get Gmail performance metrics."""
         try:
-            response = requests.get(
-                "http://127.0.0.1:8000/api/gmail/performance", timeout=10
-            )
+            response = requests.get("http://127.0.0.1:8000/api/gmail/performance", timeout=10)
 
             if response.status_code == 200:
                 data = response.json()
@@ -488,9 +467,7 @@ def create_gmail_integration_tab():
     def get_gmail_strategies():
         """Get available Gmail retrieval strategies."""
         try:
-            response = requests.get(
-                "http://127.0.0.1:8000/api/gmail/strategies", timeout=10
-            )
+            response = requests.get("http://127.0.0.1:8000/api/gmail/strategies", timeout=10)
 
             if response.status_code == 200:
                 data = response.json()
@@ -531,9 +508,7 @@ def create_gmail_integration_tab():
                         placeholder="e.g., newer_than:7d is:unread",
                         value="",
                     )
-                    include_ai_checkbox = gr.Checkbox(
-                        label="Include AI Analysis", value=True
-                    )
+                    include_ai_checkbox = gr.Checkbox(label="Include AI Analysis", value=True)
                     sync_btn = gr.Button("🚀 Start Sync", variant="primary")
 
                 with gr.Column():
@@ -551,14 +526,10 @@ def create_gmail_integration_tab():
             with gr.Row():
                 with gr.Column():
                     gr.Markdown("### Performance Metrics")
-                    refresh_performance_btn = gr.Button(
-                        "📊 Refresh Metrics", variant="secondary"
-                    )
+                    refresh_performance_btn = gr.Button("📊 Refresh Metrics", variant="secondary")
 
                 with gr.Column():
-                    performance_summary = gr.Textbox(
-                        label="Summary", interactive=False, lines=8
-                    )
+                    performance_summary = gr.Textbox(label="Summary", interactive=False, lines=8)
                     performance_details = gr.JSON(label="Detailed Metrics")
 
             refresh_performance_btn.click(
@@ -575,9 +546,7 @@ def create_gmail_integration_tab():
             with gr.Row():
                 with gr.Column():
                     gr.Markdown("### Retrieval Strategies")
-                    refresh_strategies_btn = gr.Button(
-                        "🔄 Refresh Strategies", variant="secondary"
-                    )
+                    refresh_strategies_btn = gr.Button("🔄 Refresh Strategies", variant="secondary")
 
                 with gr.Column():
                     strategies_summary = gr.Textbox(
@@ -609,12 +578,8 @@ def create_gmail_integration_tab():
 
                 with gr.Column():
                     gr.Markdown("### Quick Actions")
-                    test_connection_btn = gr.Button(
-                        "🔗 Test Connection", variant="secondary"
-                    )
-                    connection_test_result = gr.Textbox(
-                        label="Test Result", interactive=False
-                    )
+                    test_connection_btn = gr.Button("🔗 Test Connection", variant="secondary")
+                    connection_test_result = gr.Textbox(label="Test Result", interactive=False)
 
             def test_gmail_connection():
                 """Test Gmail API connection."""
@@ -629,9 +594,7 @@ def create_gmail_integration_tab():
                 except Exception as e:
                     return f"❌ Connection failed: {str(e)}"
 
-            test_connection_btn.click(
-                fn=test_gmail_connection, outputs=[connection_test_result]
-            )
+            test_connection_btn.click(fn=test_gmail_connection, outputs=[connection_test_result])
 
             # Initialize connection test
             connection_test_result.value = test_gmail_connection()
@@ -680,9 +643,7 @@ def create_app():
         response.headers["X-Content-Type-Options"] = "nosniff"
         response.headers["X-Frame-Options"] = "DENY"
         response.headers["X-XSS-Protection"] = "1; mode=block"
-        response.headers["Strict-Transport-Security"] = (
-            "max-age=31536000; includeSubDomains"
-        )
+        response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
         response.headers["Content-Security-Policy"] = (
             "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'"
         )
@@ -722,9 +683,7 @@ def create_app():
 
     # Create the main Gradio UI as a placeholder
     # Modules will add their own tabs and components to this.
-    with gr.Blocks(
-        theme=gr.themes.Soft(), title="Email Intelligence Platform"
-    ) as gradio_app:
+    with gr.Blocks(theme=gr.themes.Soft(), title="Email Intelligence Platform") as gradio_app:
         gr.Markdown("# Email Intelligence Platform")
 
         with gr.Tabs():
@@ -813,12 +772,8 @@ def main():
     Main entry point to run the server.
     """
     parser = argparse.ArgumentParser(description="Run the Email Intelligence Platform.")
-    parser.add_argument(
-        "--host", type=str, default="127.0.0.1", help="Host to run the server on."
-    )
-    parser.add_argument(
-        "--port", type=int, default=7860, help="Port to run the server on."
-    )
+    parser.add_argument("--host", type=str, default="127.0.0.1", help="Host to run the server on.")
+    parser.add_argument("--port", type=int, default=7860, help="Port to run the server on.")
     parser.add_argument("--reload", action="store_true", help="Enable auto-reloading.")
     args = parser.parse_args()
 

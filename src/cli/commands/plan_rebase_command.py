@@ -5,7 +5,7 @@ Implements the plan-rebase command for generating rebase plans.
 """
 
 from argparse import Namespace
-from typing import Any, Dict
+from typing import Any
 
 from .interface import Command
 
@@ -36,11 +36,9 @@ class PlanRebaseCommand(Command):
         parser.add_argument(
             "--branch", default="HEAD", help="Branch to plan rebase for (default: HEAD)"
         )
-        parser.add_argument(
-            "--output", required=True, help="Output file for rebase plan"
-        )
+        parser.add_argument("--output", required=True, help="Output file for rebase plan")
 
-    def get_dependencies(self) -> Dict[str, Any]:
+    def get_dependencies(self) -> dict[str, Any]:
         """
         Get required dependencies for this command.
 
@@ -53,7 +51,7 @@ class PlanRebaseCommand(Command):
             "planner": "RebasePlanner",
         }
 
-    def set_dependencies(self, dependencies: Dict[str, Any]) -> None:
+    def set_dependencies(self, dependencies: dict[str, Any]) -> None:
         """
         Set command dependencies.
 

@@ -8,7 +8,7 @@ Data validation and serialization models
 
 from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from pydantic import BaseModel, Field, validator
 
@@ -55,11 +55,11 @@ class EmailBase(BaseModel):
 class EmailCreate(EmailBase):
     """Model for creating a new email record."""
 
-    messageId: Optional[str] = None
-    threadId: Optional[str] = None
-    contentHtml: Optional[str] = None
-    preview: Optional[str] = None
-    labels: List[str] = Field(default_factory=list)
+    messageId: str | None = None
+    threadId: str | None = None
+    contentHtml: str | None = None
+    preview: str | None = None
+    labels: list[str] = Field(default_factory=list)
     isImportant: bool = False
     isStarred: bool = False
     isUnread: bool = True
@@ -81,26 +81,26 @@ class EmailCreate(EmailBase):
 class EmailUpdate(BaseModel):
     """Model for updating an existing email record."""
 
-    subject: Optional[str] = None
-    content: Optional[str] = None
-    categoryId: Optional[int] = None
-    labels: Optional[List[str]] = None
-    isImportant: Optional[bool] = None
-    isStarred: Optional[bool] = None
-    isUnread: Optional[bool] = None
-    isRead: Optional[bool] = None
+    subject: str | None = None
+    content: str | None = None
+    categoryId: int | None = None
+    labels: list[str] | None = None
+    isImportant: bool | None = None
+    isStarred: bool | None = None
+    isUnread: bool | None = None
+    isRead: bool | None = None
 
 
 class EmailResponse(EmailBase):
     """Model for the response when an email is retrieved."""
 
     id: int
-    messageId: Optional[str]
-    threadId: Optional[str]
+    messageId: str | None
+    threadId: str | None
     preview: str
-    category: Optional[str]
-    categoryId: Optional[int]
-    labels: List[str]
+    category: str | None
+    categoryId: int | None
+    labels: list[str]
     confidence: int = Field(ge=0, le=100)
     isImportant: bool
     isStarred: bool
@@ -108,8 +108,8 @@ class EmailResponse(EmailBase):
     hasAttachments: bool
     attachmentCount: int
     sizeEstimate: int
-    aiAnalysis: Dict[str, Any] = Field(default_factory=dict)
-    filterResults: Dict[str, Any] = Field(default_factory=dict)
+    aiAnalysis: dict[str, Any] = Field(default_factory=dict)
+    filterResults: dict[str, Any] = Field(default_factory=dict)
 
 
 # Category Models
@@ -117,7 +117,7 @@ class CategoryBase(BaseModel):
     """Base model for an email category."""
 
     name: str = Field(..., min_length=1, max_length=255)
-    description: Optional[str] = None
+    description: str | None = None
     color: str = Field(default="#6366f1", pattern=r"^#[0-9A-Fa-f]{6}$")
 
 
@@ -140,8 +140,8 @@ class ActivityBase(BaseModel):
 
     type: ActivityType
     description: str = Field(..., min_length=1)
-    emailId: Optional[int] = None
-    metadata: Dict[str, Any] = Field(default_factory=dict)
+    emailId: int | None = None
+    metadata: dict[str, Any] = Field(default_factory=dict)
 
 
 class ActivityCreate(ActivityBase):
@@ -154,7 +154,7 @@ class ActivityResponse(ActivityBase):
     """Model for the response when an activity is retrieved."""
 
     id: int
-    emailSubject: Optional[str] = None
+    emailSubject: str | None = None
     createdAt: datetime
 
 
@@ -162,9 +162,7 @@ class ActionItem(BaseModel):
     """Represents an actionable item identified in an email."""
 
     description: str = Field(..., description="The description of the action item.")
-    due_date: Optional[datetime] = Field(
-        None, description="The due date for the action item."
-    )
+    due_date: datetime | None = Field(None, description="The due date for the action item.")
     completed: bool = Field(False, description="Whether the action item is completed.")
 
 
@@ -183,13 +181,13 @@ class AIAnalysisResponse(BaseModel):
     urgency: EmailPriority
     isImportant: bool = False
     confidence: float = Field(ge=0.0, le=1.0)
-    categories: List[str]
-    keywords: List[str]
+    categories: list[str]
+    keywords: list[str]
     reasoning: str
-    suggestedLabels: List[str] = Field(alias="suggested_labels")
-    riskFlags: List[str] = Field(alias="risk_flags")
-    actionItems: List[ActionItem] = Field(default_factory=list)
-    categoryId: Optional[int] = None
+    suggestedLabels: list[str] = Field(alias="suggested_labels")
+    riskFlags: list[str] = Field(alias="risk_flags")
+    actionItems: list[ActionItem] = Field(default_factory=list)
+    categoryId: int | None = None
 
     class Config:
         allow_population_by_field_name = True
@@ -198,22 +196,22 @@ class AIAnalysisResponse(BaseModel):
 class AICategorizeRequest(BaseModel):
     emailId: int
     autoAnalyze: bool
-    categoryId: Optional[int] = None
-    confidence: Optional[int] = None
+    categoryId: int | None = None
+    confidence: int | None = None
 
 
 class AICategorizeResponse(BaseModel):
     success: bool
-    email: Optional[EmailResponse] = None
-    analysis: Optional[AIAnalysisResponse] = None
-    categoryAssigned: Optional[str] = None
-    message: Optional[str] = None
+    email: EmailResponse | None = None
+    analysis: AIAnalysisResponse | None = None
+    categoryAssigned: str | None = None
+    message: str | None = None
 
 
 class AIValidateRequest(BaseModel):
     emailId: int
     userFeedback: str
-    correctCategory: Optional[str] = None
+    correctCategory: str | None = None
 
 
 class AIValidateResponse(BaseModel):
@@ -225,7 +223,7 @@ class AIValidateResponse(BaseModel):
 class ActionExtractionRequest(BaseModel):
     """Model for a request to extract action items from an email."""
 
-    subject: Optional[str] = None
+    subject: str | None = None
     content: str
 
 
@@ -236,7 +234,7 @@ class GmailSyncRequest(BaseModel):
     maxEmails: int = Field(default=500, ge=1, le=5000)
     queryFilter: str = "newer_than:1d"
     includeAIAnalysis: bool = True
-    strategies: List[str] = Field(default_factory=list)
+    strategies: list[str] = Field(default_factory=list)
     timeBudgetMinutes: int = Field(default=15, ge=1, le=120)
 
 
@@ -247,16 +245,16 @@ class GmailSyncResponse(BaseModel):
     processedCount: int
     emailsCreated: int = 0
     errorsCount: int = 0
-    batchInfo: Dict[str, Any]
-    statistics: Dict[str, Any]
-    error: Optional[str] = None
+    batchInfo: dict[str, Any]
+    statistics: dict[str, Any]
+    error: str | None = None
 
 
 # Smart Retrieval Models
 class SmartRetrievalRequest(BaseModel):
     """Model for a request to perform a smart retrieval of emails from Gmail."""
 
-    strategies: List[str] = Field(default_factory=list)
+    strategies: list[str] = Field(default_factory=list)
     maxApiCalls: int = Field(default=100, ge=1, le=1000)
     timeBudgetMinutes: int = Field(default=30, ge=1, le=180)
 
@@ -270,8 +268,8 @@ class RetrievalStrategy(BaseModel):
     batchSize: int = Field(ge=1, le=500)
     frequency: str
     maxEmailsPerRun: int = Field(ge=1, le=2000)
-    includeFolders: List[str] = Field(default_factory=list)
-    excludeFolders: List[str] = Field(default_factory=list)
+    includeFolders: list[str] = Field(default_factory=list)
+    excludeFolders: list[str] = Field(default_factory=list)
     dateRangeDays: int = Field(ge=1, le=365)
 
 
@@ -279,11 +277,11 @@ class RetrievalStrategy(BaseModel):
 class EmailFilterCriteria(BaseModel):
     """Model representing the criteria for an email filter."""
 
-    fromPatterns: Optional[List[str]] = Field(default=None, alias="from_patterns")
-    subjectKeywords: Optional[List[str]] = Field(default=None, alias="subject_keywords")
-    contentKeywords: Optional[List[str]] = Field(default=None, alias="content_keywords")
-    excludePatterns: Optional[List[str]] = Field(default=None, alias="exclude_patterns")
-    timeSensitivity: Optional[str] = Field(default=None, alias="time_sensitivity")
+    fromPatterns: list[str] | None = Field(default=None, alias="from_patterns")
+    subjectKeywords: list[str] | None = Field(default=None, alias="subject_keywords")
+    contentKeywords: list[str] | None = Field(default=None, alias="content_keywords")
+    excludePatterns: list[str] | None = Field(default=None, alias="exclude_patterns")
+    timeSensitivity: str | None = Field(default=None, alias="time_sensitivity")
 
     class Config:
         allow_population_by_field_name = True
@@ -292,11 +290,11 @@ class EmailFilterCriteria(BaseModel):
 class EmailFilterActions(BaseModel):
     """Model representing the actions to be taken by an email filter."""
 
-    addLabel: Optional[str] = Field(default=None, alias="add_label")
+    addLabel: str | None = Field(default=None, alias="add_label")
     markImportant: bool = Field(default=False, alias="mark_important")
     markRead: bool = Field(default=False, alias="mark_read")
     archive: bool = False
-    forwardTo: Optional[str] = Field(default=None, alias="forward_to")
+    forwardTo: str | None = Field(default=None, alias="forward_to")
     autoReply: bool = Field(default=False, alias="auto_reply")
 
     class Config:
@@ -307,7 +305,7 @@ class FilterRequest(BaseModel):
     """Model for a request to create a new email filter."""
 
     name: str = Field(..., min_length=1, max_length=255)
-    description: Optional[str] = None
+    description: str | None = None
     criteria: EmailFilterCriteria
     actions: EmailFilterActions
     priority: int = Field(default=5, ge=1, le=10)
@@ -318,9 +316,9 @@ class FilterResponse(BaseModel):
 
     filterId: str = Field(alias="filter_id")
     name: str
-    description: Optional[str]
-    criteria: Dict[str, Any]
-    actions: Dict[str, Any]
+    description: str | None
+    criteria: dict[str, Any]
+    actions: dict[str, Any]
     priority: int
     effectivenessScore: float = Field(alias="effectiveness_score")
     createdDate: datetime = Field(alias="created_date")
@@ -340,7 +338,7 @@ class PerformanceMetric(BaseModel):
     metricType: str = Field(alias="metric_type")
     metricName: str = Field(alias="metric_name")
     metricValue: float = Field(alias="metric_value")
-    metadata: Dict[str, Any] = Field(default_factory=dict)
+    metadata: dict[str, Any] = Field(default_factory=dict)
     recordedAt: datetime = Field(alias="recorded_at")
 
     class Config:
@@ -350,8 +348,8 @@ class PerformanceMetric(BaseModel):
 class QuotaStatus(BaseModel):
     """Model representing the status of API usage quotas."""
 
-    dailyUsage: Dict[str, Any] = Field(alias="daily_usage")
-    hourlyUsage: Dict[str, Any] = Field(alias="hourly_usage")
+    dailyUsage: dict[str, Any] = Field(alias="daily_usage")
+    hourlyUsage: dict[str, Any] = Field(alias="hourly_usage")
     projectedDailyUsage: int = Field(alias="projected_daily_usage")
 
     class Config:
@@ -386,11 +384,11 @@ class PerformanceOverview(BaseModel):
     """Model for a comprehensive overview of system performance."""
 
     timestamp: datetime
-    overallStatus: Dict[str, Any] = Field(alias="overall_status")
+    overallStatus: dict[str, Any] = Field(alias="overall_status")
     quotaStatus: QuotaStatus = Field(alias="quota_status")
-    strategyPerformance: List[Dict[str, Any]] = Field(alias="strategy_performance")
-    alerts: List[PerformanceAlert]
-    recommendations: List[PerformanceRecommendation]
+    strategyPerformance: list[dict[str, Any]] = Field(alias="strategy_performance")
+    alerts: list[PerformanceAlert]
+    recommendations: list[PerformanceRecommendation]
 
     class Config:
         allow_population_by_field_name = True
@@ -422,16 +420,12 @@ class TrainingRequest(BaseModel):
     """Model for a request to train the AI models."""
 
     trainingQuery: str = Field(default="newer_than:30d", alias="training_query")
-    maxTrainingEmails: int = Field(
-        default=5000, ge=100, le=10000, alias="max_training_emails"
-    )
-    modelTypes: List[str] = Field(
+    maxTrainingEmails: int = Field(default=5000, ge=100, le=10000, alias="max_training_emails")
+    modelTypes: list[str] = Field(
         default_factory=lambda: ["sentiment", "topic", "intent", "urgency"],
         alias="model_types",
     )
-    validationSplit: float = Field(
-        default=0.2, ge=0.1, le=0.5, alias="validation_split"
-    )
+    validationSplit: float = Field(default=0.2, ge=0.1, le=0.5, alias="validation_split")
 
     class Config:
         allow_population_by_field_name = True
@@ -441,12 +435,12 @@ class TrainingResponse(BaseModel):
     """Model for the response after an AI model training task."""
 
     success: bool
-    modelsTrained: List[str] = Field(alias="models_trained")
-    trainingAccuracy: Dict[str, float] = Field(alias="training_accuracy")
-    validationAccuracy: Dict[str, float] = Field(alias="validation_accuracy")
+    modelsTrained: list[str] = Field(alias="models_trained")
+    trainingAccuracy: dict[str, float] = Field(alias="training_accuracy")
+    validationAccuracy: dict[str, float] = Field(alias="validation_accuracy")
     trainingTime: float = Field(alias="training_time")
     emailsProcessed: int = Field(alias="emails_processed")
-    error: Optional[str] = None
+    error: str | None = None
 
     class Config:
         allow_population_by_field_name = True
@@ -457,9 +451,9 @@ class ServiceHealth(BaseModel):
     """Model representing the health status of a single service."""
 
     status: str = Field(pattern=r"^(healthy|degraded|unhealthy)$")
-    error: Optional[str] = None
+    error: str | None = None
     timestamp: datetime
-    responseTime: Optional[float] = Field(alias="response_time")
+    responseTime: float | None = Field(alias="response_time")
 
     class Config:
         allow_population_by_field_name = True
@@ -471,8 +465,8 @@ class SystemHealth(BaseModel):
     status: str
     timestamp: datetime
     version: str = "2.0.0"
-    services: Dict[str, ServiceHealth]
-    uptime: Optional[float] = None
+    services: dict[str, ServiceHealth]
+    uptime: float | None = None
 
 
 # Search Models
@@ -480,12 +474,12 @@ class SearchRequest(BaseModel):
     """Model for a request to search for emails."""
 
     query: str = Field(..., min_length=1)
-    category: Optional[int] = None
-    dateFrom: Optional[datetime] = Field(alias="date_from")
-    dateTo: Optional[datetime] = Field(alias="date_to")
-    labels: Optional[List[str]] = None
-    isImportant: Optional[bool] = Field(alias="is_important")
-    isUnread: Optional[bool] = Field(alias="is_unread")
+    category: int | None = None
+    dateFrom: datetime | None = Field(alias="date_from")
+    dateTo: datetime | None = Field(alias="date_to")
+    labels: list[str] | None = None
+    isImportant: bool | None = Field(alias="is_important")
+    isUnread: bool | None = Field(alias="is_unread")
     limit: int = Field(default=50, ge=1, le=200)
     offset: int = Field(default=0, ge=0)
 
@@ -496,7 +490,7 @@ class SearchRequest(BaseModel):
 class SearchResponse(BaseModel):
     """Model for the response of an email search."""
 
-    emails: List[EmailResponse]
+    emails: list[EmailResponse]
     totalCount: int = Field(alias="total_count")
     hasMore: bool = Field(alias="has_more")
     searchTime: float = Field(alias="search_time")
@@ -509,7 +503,7 @@ class SearchResponse(BaseModel):
 class BatchEmailUpdate(BaseModel):
     """Model for a request to update a batch of emails."""
 
-    emailIds: List[int] = Field(alias="email_ids", min_items=1)
+    emailIds: list[int] = Field(alias="email_ids", min_items=1)
     updates: EmailUpdate
 
     class Config:
@@ -523,7 +517,7 @@ class BatchOperationResponse(BaseModel):
     processedCount: int = Field(alias="processed_count")
     successCount: int = Field(alias="success_count")
     errorCount: int = Field(alias="error_count")
-    errors: List[Dict[str, Any]] = Field(default_factory=list)
+    errors: list[dict[str, Any]] = Field(default_factory=list)
 
     class Config:
         allow_population_by_field_name = True
@@ -535,5 +529,5 @@ class BaseResponse(BaseModel):
 
     success: bool
     message: str
-    data: Optional[Any] = None
-    error: Optional[str] = None
+    data: Any | None = None
+    error: str | None = None

@@ -8,7 +8,7 @@ including LRU cache for frequently accessed data and query result caching.
 import logging
 import time
 from collections import OrderedDict
-from typing import Any, Dict, Optional, Tuple
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -22,7 +22,7 @@ class LRUCache:
         self.hits = 0
         self.misses = 0
 
-    def get(self, key: str) -> Optional[Any]:
+    def get(self, key: str) -> Any | None:
         """Get value from cache, marking it as recently used."""
         if key in self.cache:
             # Move to end to mark as recently used
@@ -54,7 +54,7 @@ class LRUCache:
         self.hits = 0
         self.misses = 0
 
-    def get_stats(self) -> Dict[str, Any]:
+    def get_stats(self) -> dict[str, Any]:
         """Get cache statistics."""
         total = self.hits + self.misses
         hit_rate = self.hits / total if total > 0 else 0
@@ -72,11 +72,11 @@ class QueryResultCache:
 
     def __init__(self, ttl_seconds: int = 300):  # 5 minutes default
         self.ttl_seconds = ttl_seconds
-        self.cache: Dict[str, Tuple[Any, float]] = {}  # (value, timestamp)
+        self.cache: dict[str, tuple[Any, float]] = {}  # (value, timestamp)
         self.hits = 0
         self.misses = 0
 
-    def get(self, key: str) -> Optional[Any]:
+    def get(self, key: str) -> Any | None:
         """Get value from cache if not expired."""
         if key in self.cache:
             value, timestamp = self.cache[key]
@@ -115,7 +115,7 @@ class QueryResultCache:
         self.hits = 0
         self.misses = 0
 
-    def get_stats(self) -> Dict[str, Any]:
+    def get_stats(self) -> dict[str, Any]:
         """Get cache statistics."""
         total = self.hits + self.misses
         hit_rate = self.hits / total if total > 0 else 0
@@ -155,29 +155,27 @@ class EnhancedCachingManager:
             "content_put": 0,
         }
 
-    def get_email_record(self, email_id: int) -> Optional[Dict[str, Any]]:
+    def get_email_record(self, email_id: int) -> dict[str, Any] | None:
         """Get email record from cache."""
         self.cache_operations["email_record_get"] += 1
         return self.email_record_cache.get(f"email_{email_id}")
 
-    def put_email_record(self, email_id: int, email_record: Dict[str, Any]) -> None:
+    def put_email_record(self, email_id: int, email_record: dict[str, Any]) -> None:
         """Put email record in cache."""
         self.cache_operations["email_record_put"] += 1
         self.email_record_cache.put(f"email_{email_id}", email_record)
 
-    def get_category_record(self, category_id: int) -> Optional[Dict[str, Any]]:
+    def get_category_record(self, category_id: int) -> dict[str, Any] | None:
         """Get category record from cache."""
         self.cache_operations["category_record_get"] += 1
         return self.category_record_cache.get(f"category_{category_id}")
 
-    def put_category_record(
-        self, category_id: int, category_record: Dict[str, Any]
-    ) -> None:
+    def put_category_record(self, category_id: int, category_record: dict[str, Any]) -> None:
         """Put category record in cache."""
         self.cache_operations["category_record_put"] += 1
         self.category_record_cache.put(f"category_{category_id}", category_record)
 
-    def get_query_result(self, query_key: str) -> Optional[Any]:
+    def get_query_result(self, query_key: str) -> Any | None:
         """Get query result from cache."""
         self.cache_operations["query_result_get"] += 1
         return self.query_cache.get(query_key)
@@ -187,12 +185,12 @@ class EnhancedCachingManager:
         self.cache_operations["query_result_put"] += 1
         self.query_cache.put(query_key, result)
 
-    def get_email_content(self, email_id: int) -> Optional[Dict[str, Any]]:
+    def get_email_content(self, email_id: int) -> dict[str, Any] | None:
         """Get email content from cache."""
         self.cache_operations["content_get"] += 1
         return self.email_content_cache.get(f"content_{email_id}")
 
-    def put_email_content(self, email_id: int, content: Dict[str, Any]) -> None:
+    def put_email_content(self, email_id: int, content: dict[str, Any]) -> None:
         """Put email content in cache."""
         self.cache_operations["content_put"] += 1
         self.email_content_cache.put(f"content_{email_id}", content)
@@ -225,7 +223,7 @@ class EnhancedCachingManager:
         for key in self.cache_operations:
             self.cache_operations[key] = 0
 
-    def get_cache_statistics(self) -> Dict[str, Any]:
+    def get_cache_statistics(self) -> dict[str, Any]:
         """Get comprehensive cache statistics."""
         return {
             "email_record_cache": self.email_record_cache.get_stats(),

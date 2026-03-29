@@ -1,6 +1,5 @@
 import json
 import logging
-from typing import List, Optional
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
 
@@ -19,15 +18,15 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
-@router.get("/api/emails", response_model=List[EmailResponse])
+@router.get("/api/emails", response_model=list[EmailResponse])
 @log_performance(operation="get_emails")
 async def get_emails(
     request: Request,
-    category_id: Optional[int] = None,
-    search: Optional[str] = None,
+    category_id: int | None = None,
+    search: str | None = None,
     limit: int = 50,
     offset: int = 0,
-    is_unread: Optional[bool] = None,
+    is_unread: bool | None = None,
     current_user: str = Depends(get_current_active_user),
     email_service: EmailService = Depends(get_email_service),
 ):
@@ -50,18 +49,14 @@ async def get_emails(
         if search:
             result = await email_service.search_emails(search, limit)
         else:
-            result = await email_service.get_emails(
-                category_id, limit, offset, is_unread
-            )
+            result = await email_service.get_emails(category_id, limit, offset, is_unread)
         return [EmailResponse(**email) for email in result]
     except Exception as e:
         logger.error(f"Failed to get emails: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail="Failed to retrieve emails")
 
 
-@router.get(
-    "/api/emails/{email_id}", response_model=EmailResponse
-)  # Changed to EmailResponse
+@router.get("/api/emails/{email_id}", response_model=EmailResponse)  # Changed to EmailResponse
 @log_performance(operation="get_email")
 async def get_email_by_id(
     email_id: int,
@@ -134,9 +129,7 @@ async def create_email(
         )
 
 
-@router.put(
-    "/api/emails/{email_id}", response_model=EmailResponse
-)  # Changed to EmailResponse
+@router.put("/api/emails/{email_id}", response_model=EmailResponse)  # Changed to EmailResponse
 @log_performance(operation="update_email")
 async def update_email(
     request: Request,

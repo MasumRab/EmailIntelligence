@@ -4,14 +4,14 @@ Auto resolver for EmailIntelligence CLI
 Implements automatic conflict resolution based on predefined rules and strategies.
 """
 
-from typing import Dict, Any
-from ..core.interfaces import IResolutionEngine
+from typing import Any
+
 from ..core.conflict_models import Conflict, ResolutionPlan
-from ..utils.logger import get_logger
-from .semantic_merger import SemanticMerger
+from ..core.interfaces import IResolutionEngine
 from ..strategy.generator import StrategyGenerator
 from ..strategy.risk_assessor import RiskAssessor
-
+from ..utils.logger import get_logger
+from .semantic_merger import SemanticMerger
 
 logger = get_logger(__name__)
 
@@ -27,7 +27,7 @@ class AutoResolver(IResolutionEngine):
         self.risk_assessor = RiskAssessor()
         self.confidence_threshold = 0.7  # Minimum confidence to auto-resolve
 
-    async def execute_resolution(self, plan: ResolutionPlan) -> Dict[str, Any]:
+    async def execute_resolution(self, plan: ResolutionPlan) -> dict[str, Any]:
         """
         Execute a resolution plan automatically.
 
@@ -37,9 +37,7 @@ class AutoResolver(IResolutionEngine):
         Returns:
             Execution results
         """
-        logger.info(
-            f"Starting automatic resolution for {len(plan.conflicts)} conflicts"
-        )
+        logger.info(f"Starting automatic resolution for {len(plan.conflicts)} conflicts")
 
         execution_result = {
             "plan_id": id(plan),  # Simple ID for tracking
@@ -71,9 +69,7 @@ class AutoResolver(IResolutionEngine):
         # Process each conflict according to the plan
         for i, conflict in enumerate(plan.conflicts):
             try:
-                resolution_step = await self._resolve_single_conflict(
-                    conflict, plan.strategy
-                )
+                resolution_step = await self._resolve_single_conflict(conflict, plan.strategy)
                 execution_result["resolution_steps"].append(resolution_step)
 
                 if resolution_step["success"]:
@@ -102,9 +98,7 @@ class AutoResolver(IResolutionEngine):
         )
         return execution_result
 
-    async def _resolve_single_conflict(
-        self, conflict: Conflict, strategy
-    ) -> Dict[str, Any]:
+    async def _resolve_single_conflict(self, conflict: Conflict, strategy) -> dict[str, Any]:
         """Resolve a single conflict using the appropriate strategy."""
         logger.info(f"Resolving conflict in {conflict.file_path}")
 
@@ -135,9 +129,7 @@ class AutoResolver(IResolutionEngine):
             resolution_step["method"] = "manual_review"
             resolution_step["success"] = False
             resolution_step["requires_manual_review"] = True
-            resolution_step["details"] = {
-                "reason": "No suitable auto-resolution method found"
-            }
+            resolution_step["details"] = {"reason": "No suitable auto-resolution method found"}
 
         return resolution_step
 
@@ -157,7 +149,7 @@ class AutoResolver(IResolutionEngine):
         # Default fallback
         return "semantic_merge"
 
-    async def _resolve_with_semantic_merge(self, conflict: Conflict) -> Dict[str, Any]:
+    async def _resolve_with_semantic_merge(self, conflict: Conflict) -> dict[str, Any]:
         """Resolve conflict using semantic merging."""
         try:
             # Use the semantic merger to handle the conflict
@@ -168,9 +160,7 @@ class AutoResolver(IResolutionEngine):
                     "method": "semantic_merge",
                     "success": True,
                     "details": merge_results[0],
-                    "requires_manual_review": merge_results[0].get(
-                        "requires_manual_review", False
-                    ),
+                    "requires_manual_review": merge_results[0].get("requires_manual_review", False),
                 }
             else:
                 return {
@@ -189,7 +179,7 @@ class AutoResolver(IResolutionEngine):
                 "requires_manual_review": True,
             }
 
-    async def _resolve_with_patterns(self, conflict: Conflict) -> Dict[str, Any]:
+    async def _resolve_with_patterns(self, conflict: Conflict) -> dict[str, Any]:
         """Resolve conflict using pattern-based rules."""
         # This would implement pattern recognition and resolution
         # For now, we'll use a simplified approach
@@ -226,15 +216,13 @@ class AutoResolver(IResolutionEngine):
             "requires_manual_review": not resolution_details["success"],
         }
 
-    def _resolve_timestamp_conflicts(self, conflict: Conflict) -> Dict[str, Any]:
+    def _resolve_timestamp_conflicts(self, conflict: Conflict) -> dict[str, Any]:
         """Resolve conflicts related to timestamps or version numbers."""
         # Check if conflict involves timestamps or version numbers
         before_text = " ".join(
             [" ".join(block.content_before) for block in conflict.conflict_blocks]
         )
-        after_text = " ".join(
-            [" ".join(block.content_after) for block in conflict.conflict_blocks]
-        )
+        after_text = " ".join([" ".join(block.content_after) for block in conflict.conflict_blocks])
 
         # Look for timestamp/version patterns
         import re
@@ -242,18 +230,14 @@ class AutoResolver(IResolutionEngine):
         timestamp_pattern = r"\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}"
         version_pattern = r"\d+\.\d+\.\d+"
 
-        if re.search(timestamp_pattern, before_text) or re.search(
-            timestamp_pattern, after_text
-        ):
+        if re.search(timestamp_pattern, before_text) or re.search(timestamp_pattern, after_text):
             # For timestamps, we might prefer the more recent one or generate a new one
             return {
                 "success": True,
                 "resolution": "timestamp_conflict_resolved",
                 "details": "Timestamp conflict resolved by preferring newer timestamp",
             }
-        elif re.search(version_pattern, before_text) or re.search(
-            version_pattern, after_text
-        ):
+        elif re.search(version_pattern, before_text) or re.search(version_pattern, after_text):
             # For versions, we might increment or choose the higher version
             return {
                 "success": True,
@@ -263,16 +247,14 @@ class AutoResolver(IResolutionEngine):
 
         return {"success": False}
 
-    def _resolve_formatting_conflicts(self, conflict: Conflict) -> Dict[str, Any]:
+    def _resolve_formatting_conflicts(self, conflict: Conflict) -> dict[str, Any]:
         """Resolve conflicts related to code formatting."""
         # Check if conflict is primarily about formatting (whitespace, etc.)
         before_lines = [block.content_before for block in conflict.conflict_blocks]
         after_lines = [block.content_after for block in conflict.conflict_blocks]
 
         # If differences are only in whitespace, we can resolve automatically
-        before_normalized = [
-            line.strip() for sublist in before_lines for line in sublist
-        ]
+        before_normalized = [line.strip() for sublist in before_lines for line in sublist]
         after_normalized = [line.strip() for sublist in after_lines for line in sublist]
 
         if before_normalized == after_normalized:
@@ -284,36 +266,23 @@ class AutoResolver(IResolutionEngine):
 
         return {"success": False}
 
-    def _resolve_comment_conflicts(self, conflict: Conflict) -> Dict[str, Any]:
+    def _resolve_comment_conflicts(self, conflict: Conflict) -> dict[str, Any]:
         """Resolve conflicts related to comments."""
         # Check if conflict is primarily about comments
-        all_before = [
-            line for block in conflict.conflict_blocks for line in block.content_before
-        ]
-        all_after = [
-            line for block in conflict.conflict_blocks for line in block.content_after
-        ]
+        all_before = [line for block in conflict.conflict_blocks for line in block.content_before]
+        all_after = [line for block in conflict.conflict_blocks for line in block.content_after]
 
         # Check if lines are mostly comments
         before_comments = [
-            line
-            for line in all_before
-            if line.strip().startswith(("#", "//", "/*", "*"))
+            line for line in all_before if line.strip().startswith(("#", "//", "/*", "*"))
         ]
         after_comments = [
-            line
-            for line in all_after
-            if line.strip().startswith(("#", "//", "/*", "*"))
+            line for line in all_after if line.strip().startswith(("#", "//", "/*", "*"))
         ]
 
-        if (
-            len(before_comments) + len(after_comments)
-            > max(len(all_before), len(all_after)) * 0.5
-        ):
+        if len(before_comments) + len(after_comments) > max(len(all_before), len(all_after)) * 0.5:
             # Mostly comments, combine them
-            combined_comments = list(
-                set(before_comments + after_comments)
-            )  # Remove duplicates
+            combined_comments = list(set(before_comments + after_comments))  # Remove duplicates
             return {
                 "success": True,
                 "resolution": "comment_conflict_resolved",
@@ -322,7 +291,7 @@ class AutoResolver(IResolutionEngine):
 
         return {"success": False}
 
-    async def _resolve_with_rules(self, conflict: Conflict) -> Dict[str, Any]:
+    async def _resolve_with_rules(self, conflict: Conflict) -> dict[str, Any]:
         """Resolve conflict using rule-based system."""
         # Apply domain-specific rules for resolution
         rules = [
@@ -352,18 +321,18 @@ class AutoResolver(IResolutionEngine):
             "requires_manual_review": True,
         }
 
-    def _apply_additive_change_rule(self, conflict: Conflict) -> Dict[str, Any]:
+    def _apply_additive_change_rule(self, conflict: Conflict) -> dict[str, Any]:
         """Apply rule for additive changes (one side adds code, other doesn't modify)."""
         # Check if one side is adding code while the other side doesn't change the same area
         # This is a simplified check
         return {"success": False}  # Placeholder implementation
 
-    def _apply_deletion_preference_rule(self, conflict: Conflict) -> Dict[str, Any]:
+    def _apply_deletion_preference_rule(self, conflict: Conflict) -> dict[str, Any]:
         """Apply rule for deletion vs modification conflicts."""
         # When one side deletes and another modifies, typically prefer modification
         return {"success": False}  # Placeholder implementation
 
-    def _apply_function_addition_rule(self, conflict: Conflict) -> Dict[str, Any]:
+    def _apply_function_addition_rule(self, conflict: Conflict) -> dict[str, Any]:
         """Apply rule for function addition conflicts."""
         # When both sides add different functions, combine them
         return {"success": False}  # Placeholder implementation

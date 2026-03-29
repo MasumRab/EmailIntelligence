@@ -1,6 +1,7 @@
 import logging
 from abc import ABC, abstractmethod
-from typing import Any, Dict, List, Optional
+from typing import Any
+
 from .dynamic_model_manager import DynamicModelManager
 
 logger = logging.getLogger(__name__)
@@ -13,20 +14,20 @@ class AIAnalysisResult:
     return data in a consistent format.
     """
 
-    def __init__(self, data: Dict[str, Any]):
+    def __init__(self, data: dict[str, Any]):
         self.topic: str = data.get("topic", "unknown")
         self.sentiment: str = data.get("sentiment", "neutral")
         self.intent: str = data.get("intent", "unknown")
         self.urgency: str = data.get("urgency", "low")
         self.confidence: float = data.get("confidence", 0.0)
-        self.categories: List[str] = data.get("categories", [])
-        self.keywords: List[str] = data.get("keywords", [])
+        self.categories: list[str] = data.get("categories", [])
+        self.keywords: list[str] = data.get("keywords", [])
         self.reasoning: str = data.get("reasoning", "")
-        self.suggested_labels: List[str] = data.get("suggested_labels", [])
-        self.risk_flags: List[str] = data.get("risk_flags", [])
-        self.category_id: Optional[int] = data.get("category_id")
+        self.suggested_labels: list[str] = data.get("suggested_labels", [])
+        self.risk_flags: list[str] = data.get("risk_flags", [])
+        self.category_id: int | None = data.get("category_id")
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Converts the analysis result to a dictionary."""
         return self.__dict__
 
@@ -53,7 +54,7 @@ class BaseAIEngine(ABC):
         self,
         subject: str,
         content: str,
-        categories: Optional[List[Dict[str, Any]]] = None,
+        categories: list[dict[str, Any]] | None = None,
     ) -> AIAnalysisResult:
         """
         Analyzes the content of an email to extract insights.
@@ -69,7 +70,7 @@ class BaseAIEngine(ABC):
         pass
 
     @abstractmethod
-    def health_check(self) -> Dict[str, Any]:
+    def health_check(self) -> dict[str, Any]:
         """
         Performs a health check of the AI engine and its components.
 
@@ -87,7 +88,7 @@ class BaseAIEngine(ABC):
         pass
 
     @abstractmethod
-    def train_models(self, training_data: Optional[Dict[str, Any]] = None):
+    def train_models(self, training_data: dict[str, Any] | None = None):
         """
         Trains or retrains the AI models using provided training data.
         """
@@ -128,11 +129,9 @@ class ModernAIEngine(BaseAIEngine):
             # Injected model manager might fail to initialize
             self._model_manager = None
             self._initialized = True
-            logger.warning(
-                "ModernAIEngine initialized without a functional model manager"
-            )
+            logger.warning("ModernAIEngine initialized without a functional model manager")
 
-    async def health_check(self) -> Dict[str, Any]:
+    async def health_check(self) -> dict[str, Any]:
         """Perform a comprehensive health check of the AI engine."""
         health_status = {
             "engine": "ModernAIEngine",
@@ -180,8 +179,7 @@ class ModernAIEngine(BaseAIEngine):
 
         # Overall status
         component_statuses = [
-            comp.get("status", "unknown")
-            for comp in health_status["components"].values()
+            comp.get("status", "unknown") for comp in health_status["components"].values()
         ]
         if "unhealthy" in component_statuses:
             health_status["status"] = "unhealthy"
@@ -196,7 +194,7 @@ class ModernAIEngine(BaseAIEngine):
         self,
         subject: str,
         content: str,
-        categories: Optional[List[Dict[str, Any]]] = None,
+        categories: list[dict[str, Any]] | None = None,
     ) -> AIAnalysisResult:
         """Analyze an email using modern AI techniques."""
         if not self._initialized:
@@ -214,9 +212,7 @@ class ModernAIEngine(BaseAIEngine):
 
             # Generate comprehensive result
             result_data = {
-                "sentiment": sentiment.get("label", "neutral")
-                if sentiment
-                else "neutral",
+                "sentiment": sentiment.get("label", "neutral") if sentiment else "neutral",
                 "topic": topics[0] if topics else "general",
                 "intent": intent.get("type", "unknown") if intent else "unknown",
                 "urgency": urgency.get("level", "low") if urgency else "low",
@@ -248,13 +244,11 @@ class ModernAIEngine(BaseAIEngine):
                 }
             )
 
-    async def _analyze_sentiment(self, text: str) -> Optional[Dict[str, Any]]:
+    async def _analyze_sentiment(self, text: str) -> dict[str, Any] | None:
         """Analyze sentiment using available models."""
         try:
             # Try to use sentiment model from model manager
-            if self._model_manager and hasattr(
-                self._model_manager, "get_sentiment_model"
-            ):
+            if self._model_manager and hasattr(self._model_manager, "get_sentiment_model"):
                 model = self._model_manager.get_sentiment_model()
                 if model:
                     return await model.analyze(text)
@@ -264,7 +258,7 @@ class ModernAIEngine(BaseAIEngine):
         # Fallback to simple keyword-based analysis
         return await self._simple_sentiment_analysis(text)
 
-    async def _analyze_topics(self, text: str) -> List[str]:
+    async def _analyze_topics(self, text: str) -> list[str]:
         """Analyze topics using available models."""
         try:
             if self._model_manager and hasattr(self._model_manager, "get_topic_model"):
@@ -278,7 +272,7 @@ class ModernAIEngine(BaseAIEngine):
         # Fallback to rule-based topic detection
         return await self._rule_based_topics(text)
 
-    async def _analyze_intent(self, text: str) -> Optional[Dict[str, Any]]:
+    async def _analyze_intent(self, text: str) -> dict[str, Any] | None:
         """Analyze intent using available models."""
         try:
             if self._model_manager and hasattr(self._model_manager, "get_intent_model"):
@@ -290,12 +284,10 @@ class ModernAIEngine(BaseAIEngine):
 
         return await self._simple_intent_analysis(text)
 
-    async def _analyze_urgency(self, text: str) -> Optional[Dict[str, Any]]:
+    async def _analyze_urgency(self, text: str) -> dict[str, Any] | None:
         """Analyze urgency using available models."""
         try:
-            if self._model_manager and hasattr(
-                self._model_manager, "get_urgency_model"
-            ):
+            if self._model_manager and hasattr(self._model_manager, "get_urgency_model"):
                 model = self._model_manager.get_urgency_model()
                 if model:
                     return await model.analyze(text)
@@ -304,7 +296,7 @@ class ModernAIEngine(BaseAIEngine):
 
         return await self._simple_urgency_analysis(text)
 
-    async def _simple_sentiment_analysis(self, text: str) -> Dict[str, Any]:
+    async def _simple_sentiment_analysis(self, text: str) -> dict[str, Any]:
         """Simple keyword-based sentiment analysis."""
         positive_words = [
             "good",
@@ -338,7 +330,7 @@ class ModernAIEngine(BaseAIEngine):
 
         return {"label": sentiment, "confidence": 0.5}
 
-    async def _rule_based_topics(self, text: str) -> List[str]:
+    async def _rule_based_topics(self, text: str) -> list[str]:
         """Rule-based topic detection."""
         text_lower = text.lower()
         topics = []
@@ -357,17 +349,13 @@ class ModernAIEngine(BaseAIEngine):
 
         return topics[:3] if topics else ["general"]
 
-    async def _simple_intent_analysis(self, text: str) -> Dict[str, Any]:
+    async def _simple_intent_analysis(self, text: str) -> dict[str, Any]:
         """Simple intent analysis based on keywords."""
         text_lower = text.lower()
 
-        if any(
-            word in text_lower for word in ["?", "what", "how", "when", "where", "why"]
-        ):
+        if any(word in text_lower for word in ["?", "what", "how", "when", "where", "why"]):
             intent_type = "question"
-        elif any(
-            word in text_lower for word in ["please", "can you", "would you", "help"]
-        ):
+        elif any(word in text_lower for word in ["please", "can you", "would you", "help"]):
             intent_type = "request"
         elif any(word in text_lower for word in ["sorry", "apologize", "mistake"]):
             intent_type = "apology"
@@ -378,7 +366,7 @@ class ModernAIEngine(BaseAIEngine):
 
         return {"type": intent_type, "confidence": 0.6}
 
-    async def _simple_urgency_analysis(self, text: str) -> Dict[str, Any]:
+    async def _simple_urgency_analysis(self, text: str) -> dict[str, Any]:
         """Simple urgency analysis."""
         text_lower = text.lower()
         urgency_indicators = [
@@ -397,9 +385,7 @@ class ModernAIEngine(BaseAIEngine):
             "confidence": 0.7 if has_urgency else 0.5,
         }
 
-    def _calculate_overall_confidence(
-        self, sentiment, topics, intent, urgency
-    ) -> float:
+    def _calculate_overall_confidence(self, sentiment, topics, intent, urgency) -> float:
         """Calculate overall confidence score."""
         confidences = []
         if sentiment and "confidence" in sentiment:
@@ -411,7 +397,7 @@ class ModernAIEngine(BaseAIEngine):
 
         return sum(confidences) / len(confidences) if confidences else 0.5
 
-    def _extract_keywords(self, text: str) -> List[str]:
+    def _extract_keywords(self, text: str) -> list[str]:
         """Extract important keywords from text."""
         # Simple keyword extraction - could be enhanced with NLP
         words = text.lower().split()
@@ -435,9 +421,7 @@ class ModernAIEngine(BaseAIEngine):
         keywords = [word for word in words if len(word) > 3 and word not in stop_words]
         return list(set(keywords))[:10]  # Return unique keywords, max 10
 
-    def _generate_suggested_labels(
-        self, sentiment, topics, intent, urgency
-    ) -> List[str]:
+    def _generate_suggested_labels(self, sentiment, topics, intent, urgency) -> list[str]:
         """Generate suggested labels based on analysis."""
         labels = []
 
@@ -459,7 +443,7 @@ class ModernAIEngine(BaseAIEngine):
 
         return labels
 
-    def _assess_risks(self, sentiment, urgency) -> List[str]:
+    def _assess_risks(self, sentiment, urgency) -> list[str]:
         """Assess potential risks based on analysis."""
         risks = []
 
@@ -478,7 +462,7 @@ class ModernAIEngine(BaseAIEngine):
             pass
         logger.info("ModernAIEngine cleanup completed")
 
-    def train_models(self, training_data: Optional[Dict[str, Any]] = None):
+    def train_models(self, training_data: dict[str, Any] | None = None):
         """Train or retrain AI models."""
         # Implementation for model training
         logger.info("Model training requested but not yet implemented")
@@ -486,7 +470,7 @@ class ModernAIEngine(BaseAIEngine):
 
 
 # Global instance management
-_active_ai_engine: Optional[BaseAIEngine] = None
+_active_ai_engine: BaseAIEngine | None = None
 
 
 def set_active_ai_engine(engine: BaseAIEngine):
@@ -495,6 +479,6 @@ def set_active_ai_engine(engine: BaseAIEngine):
     _active_ai_engine = engine
 
 
-def get_active_ai_engine() -> Optional[BaseAIEngine]:
+def get_active_ai_engine() -> BaseAIEngine | None:
     """Get the globally active AI engine instance."""
     return _active_ai_engine

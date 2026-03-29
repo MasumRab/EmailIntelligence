@@ -3,7 +3,7 @@ A simple, placeholder sentiment analysis model.
 """
 
 import logging
-from typing import Any, Dict
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -16,7 +16,7 @@ class SentimentModel:
         self.model = None  # Placeholder for future model
         self.has_nltk = False  # Placeholder for NLTK availability
 
-    def analyze(self, text: str) -> Dict[str, Any]:
+    def analyze(self, text: str) -> dict[str, Any]:
         """
         Performs a very basic sentiment analysis.
         """

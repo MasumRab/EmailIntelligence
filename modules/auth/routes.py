@@ -6,23 +6,22 @@ This module provides authentication endpoints for the new modular architecture.
 
 import logging
 from datetime import timedelta
-from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
 
 from src.core.auth import (
+    TokenData,
+    UserRole,
     authenticate_user,
     create_access_token,
     create_user,
     get_current_active_user,
     hash_password,
-    TokenData,
     require_role,
-    UserRole,
 )
-from src.core.factory import get_data_source
 from src.core.data_source import DataSource
+from src.core.factory import get_data_source
 from src.core.mfa import get_mfa_service
 from src.core.settings import settings
 
@@ -33,14 +32,14 @@ router = APIRouter()
 class UserCreate(BaseModel):
     username: str
     password: str
-    role: Optional[str] = "user"
-    permissions: Optional[List[str]] = []
+    role: str | None = "user"
+    permissions: list[str] | None = []
 
 
 class UserLogin(BaseModel):
     username: str
     password: str
-    mfa_token: Optional[str] = None
+    mfa_token: str | None = None
 
 
 class EnableMFARequest(BaseModel):
@@ -55,15 +54,13 @@ class Token(BaseModel):
 class MFASetupResponse(BaseModel):
     secret: str
     qr_code: str
-    backup_codes: List[str]
+    backup_codes: list[str]
 
 
 @router.post("/login", response_model=Token)
 async def login(user_credentials: UserLogin, db: DataSource = Depends(get_data_source)):
     """Login endpoint to get access token"""
-    user = await authenticate_user(
-        user_credentials.username, user_credentials.password, db
-    )
+    user = await authenticate_user(user_credentials.username, user_credentials.password, db)
 
     if not user:
         raise HTTPException(
@@ -87,9 +84,7 @@ async def login(user_credentials: UserLogin, db: DataSource = Depends(get_data_s
         # Verify the MFA token
         secret = user.get("mfa_secret")
         if not secret:
-            logger.error(
-                f"MFA enabled for user {user_credentials.username} but no secret found"
-            )
+            logger.error(f"MFA enabled for user {user_credentials.username} but no secret found")
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="Server configuration error",
@@ -141,9 +136,7 @@ async def setup_mfa(
     # Get the user from database
     user = await db.get_user_by_username(current_user.username)
     if not user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
 
     mfa_service = get_mfa_service()
 
@@ -185,9 +178,7 @@ async def enable_mfa(
     # Get the user from database
     user = await db.get_user_by_username(current_user.username)
     if not user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
 
     # Check if MFA is already enabled
     if user.get("mfa_enabled", False):
@@ -232,9 +223,7 @@ async def disable_mfa(
     # Get the user from database
     user = await db.get_user_by_username(current_user.username)
     if not user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
 
     # Find and update the user record to disable MFA
     for i, u in enumerate(db.users_data):

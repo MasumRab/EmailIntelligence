@@ -8,7 +8,7 @@ It also includes the PromptEngineer class for LLM interaction capabilities.
 """
 
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 
 @dataclass
@@ -17,8 +17,8 @@ class ModelConfig:
 
     model_name: str = "default"
     model_type: str = "classification"
-    parameters: Dict[str, Any] = field(default_factory=dict)
-    training_data_path: Optional[str] = None
+    parameters: dict[str, Any] = field(default_factory=dict)
+    training_data_path: str | None = None
 
 
 class PromptEngineer:
@@ -63,9 +63,7 @@ class PromptEngineer:
         try:
             return template.format(**kwargs)
         except KeyError as e:
-            raise ValueError(
-                f"Missing required variable {e} for template '{template_name}'"
-            )
+            raise ValueError(f"Missing required variable {e} for template '{template_name}'")
 
     def fill(self, **kwargs) -> str:
         """
@@ -84,7 +82,7 @@ class PromptEngineer:
         return f"Executing prompt: {filled}"
 
     def create_email_categorization_prompt(
-        self, subject: str, content: str, categories: List[str]
+        self, subject: str, content: str, categories: list[str]
     ) -> str:
         """
         Create a prompt for email categorization based on available categories.
@@ -125,9 +123,7 @@ class PromptEngineer:
         )
         return prompt
 
-    def create_summary_prompt(
-        self, subject: str, content: str, max_length: int = 100
-    ) -> str:
+    def create_summary_prompt(self, subject: str, content: str, max_length: int = 100) -> str:
         """
         Create a prompt for summarizing an email.
 

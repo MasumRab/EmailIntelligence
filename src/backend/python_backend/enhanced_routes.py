@@ -5,7 +5,7 @@ It will be removed in a future release.
 API routes for enhanced features: model management, workflows, and performance monitoring
 """
 
-from typing import Any, Dict, List
+from typing import Any
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
@@ -26,11 +26,11 @@ class ModelInfoResponse(BaseModel):
     size_mb: float
     status: str
     load_time: float | None
-    performance_metrics: Dict[str, Any] | None
+    performance_metrics: dict[str, Any] | None
     last_used: float | None
 
 
-@router.get("/models", response_model=List[ModelInfoResponse])
+@router.get("/models", response_model=list[ModelInfoResponse])
 async def get_models():
     """Get information about all available models."""
     models = model_manager.get_all_models()
@@ -53,9 +53,7 @@ async def load_model(model_name: str):
     """Load a specific model into memory."""
     success = model_manager.load_model(model_name)
     if not success:
-        raise HTTPException(
-            status_code=400, detail=f"Failed to load model {model_name}"
-        )
+        raise HTTPException(status_code=400, detail=f"Failed to load model {model_name}")
     return {"message": f"Model {model_name} loaded successfully"}
 
 
@@ -64,9 +62,7 @@ async def unload_model(model_name: str):
     """Unload a specific model from memory."""
     success = model_manager.unload_model(model_name)
     if not success:
-        raise HTTPException(
-            status_code=400, detail=f"Failed to unload model {model_name}"
-        )
+        raise HTTPException(status_code=400, detail=f"Failed to unload model {model_name}")
     return {"message": f"Model {model_name} unloaded successfully"}
 
 
@@ -80,11 +76,11 @@ class WorkflowResponse(BaseModel):
     workflow_id: str
     name: str
     description: str
-    nodes: Dict[str, Any]
-    connections: List[Dict[str, Any]]
+    nodes: dict[str, Any]
+    connections: list[dict[str, Any]]
 
 
-@router.get("/workflows", response_model=List[Dict[str, Any]])
+@router.get("/workflows", response_model=list[dict[str, Any]])
 async def list_workflows():
     """List all available workflow files."""
     return workflow_manager.list_workflows()
@@ -149,9 +145,7 @@ async def create_workflow(request: WorkflowCreateRequest):
     from backend.node_engine.node_base import Connection
 
     workflow.add_connection(Connection("input_1", "emails", "processor_1", "emails"))
-    workflow.add_connection(
-        Connection("processor_1", "processed_emails", "output_1", "emails")
-    )
+    workflow.add_connection(Connection("processor_1", "processed_emails", "output_1", "emails"))
 
     file_path = workflow_manager.save_workflow(workflow)
 
@@ -170,7 +164,7 @@ class PerformanceMetricResponse(BaseModel):
     source: str
 
 
-@router.get("/performance/metrics", response_model=List[PerformanceMetricResponse])
+@router.get("/performance/metrics", response_model=list[PerformanceMetricResponse])
 async def get_performance_metrics(minutes: int = 5, source_filter: str = None):
     """Get recent performance metrics."""
     metrics = performance_monitor.get_recent_metrics(minutes, source_filter)
@@ -185,7 +179,7 @@ async def get_performance_metrics(minutes: int = 5, source_filter: str = None):
     ]
 
 
-@router.get("/performance/system-stats", response_model=Dict[str, float])
+@router.get("/performance/system-stats", response_model=dict[str, float])
 async def get_system_stats():
     """Get current system statistics."""
     return performance_monitor.get_system_stats()

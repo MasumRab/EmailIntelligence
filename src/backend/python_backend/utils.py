@@ -6,14 +6,14 @@ Utility functions to reduce code duplication across the backend.
 """
 
 import logging
-from typing import Any, List
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
 
 async def handle_pydantic_validation(
-    items: List[Any], model_class: Any, operation_name: str
-) -> List[Any]:
+    items: list[Any], model_class: Any, operation_name: str
+) -> list[Any]:
     """
     Utility function to handle Pydantic model validation for lists of items.
 

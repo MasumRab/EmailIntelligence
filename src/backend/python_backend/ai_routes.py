@@ -89,16 +89,12 @@ async def categorize_email(
                     success=False,
                     message="AI analysis did not result in a category.",
                     analysis=(
-                        AIAnalysisResponse(**analysis_result.to_dict())
-                        if analysis_result
-                        else None
+                        AIAnalysisResponse(**analysis_result.to_dict()) if analysis_result else None
                     ),
                 )
         except Exception as e:
             logger.error(f"Error in AI categorization: {e}", exc_info=True)
-            raise HTTPException(
-                status_code=500, detail="Failed to categorize email with AI."
-            )
+            raise HTTPException(status_code=500, detail="Failed to categorize email with AI.")
     else:
         if request.categoryId is None:
             raise HTTPException(
@@ -127,9 +123,7 @@ async def validate_analysis(
     """
     Validates AI analysis based on user feedback.
     """
-    logger.info(
-        f"Received validation feedback for email {request.emailId}: {request.userFeedback}"
-    )
+    logger.info(f"Received validation feedback for email {request.emailId}: {request.userFeedback}")
 
     if request.userFeedback == "incorrect" and request.correctCategory:
         email = await db.get_email_by_id(request.emailId)
@@ -166,9 +160,7 @@ async def validate_analysis(
                 f"Error updating email category based on validation feedback: {e}",
                 exc_info=True,
             )
-            raise HTTPException(
-                status_code=500, detail="Failed to update email category."
-            )
+            raise HTTPException(status_code=500, detail="Failed to update email category.")
 
     # In a real application, this feedback would be stored and used for model retraining
     return AIValidateResponse(success=True, message="Feedback recorded successfully")

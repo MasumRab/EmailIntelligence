@@ -1,7 +1,9 @@
-import gradio as gr
 import asyncio
-from src.core.factory import get_data_source
+
+import gradio as gr
 import pandas as pd
+
+from src.core.factory import get_data_source
 
 
 async def search_notmuch(query):
@@ -31,9 +33,7 @@ def create_notmuch_ui():
         gr.Markdown("## Notmuch Email Search")
 
         with gr.Row():
-            search_bar = gr.Textbox(
-                label="Search Query", placeholder="Enter notmuch query..."
-            )
+            search_bar = gr.Textbox(label="Search Query", placeholder="Enter notmuch query...")
             search_button = gr.Button("Search")
 
         # Hidden DataFrame to store full email data
@@ -54,9 +54,7 @@ def create_notmuch_ui():
                     lambda x: ", ".join(x) if isinstance(x, list) else x
                 )
                 return df, display_df
-            return pd.DataFrame(), pd.DataFrame(
-                columns=["Subject", "From", "Date", "Tags"]
-            )
+            return pd.DataFrame(), pd.DataFrame(columns=["Subject", "From", "Date", "Tags"])
 
         def on_select(evt: gr.SelectData, df: pd.DataFrame):
             if evt.index is not None and not df.empty:

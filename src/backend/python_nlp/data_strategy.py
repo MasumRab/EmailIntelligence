@@ -12,7 +12,7 @@ import logging
 import re
 from dataclasses import asdict, dataclass
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 
 @dataclass
@@ -35,10 +35,10 @@ class EmailSample:
     content: str
     sender: str
     timestamp: str
-    labels: Dict[str, Any]
-    metadata: Dict[str, Any]
+    labels: dict[str, Any]
+    metadata: dict[str, Any]
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Converts the EmailSample object to a dictionary."""
         return asdict(self)
 
@@ -63,8 +63,8 @@ class AnnotationSchema:
     sentiment: str
     intent: str
     urgency: str
-    entities: List[str]
-    keywords: List[str]
+    entities: list[str]
+    keywords: list[str]
     confidence: float
     annotator_id: str
 
@@ -83,7 +83,7 @@ class DataCollectionStrategy:
         self.annotation_guidelines = self._load_annotation_guidelines()
         self.preprocessing_rules = self._load_preprocessing_rules()
 
-    def _load_annotation_guidelines(self) -> Dict[str, Any]:
+    def _load_annotation_guidelines(self) -> dict[str, Any]:
         """Loads internal guidelines and standards for annotation."""
         return {
             "topics": {
@@ -114,7 +114,7 @@ class DataCollectionStrategy:
             },
         }
 
-    def _load_preprocessing_rules(self) -> Dict[str, Any]:
+    def _load_preprocessing_rules(self) -> dict[str, Any]:
         """Loads rules and patterns for text preprocessing."""
         return {
             "email_patterns": {
@@ -133,9 +133,7 @@ class DataCollectionStrategy:
             },
         }
 
-    def collect_email_samples(
-        self, source: str, limit: Optional[int] = None
-    ) -> List[EmailSample]:
+    def collect_email_samples(self, source: str, limit: int | None = None) -> list[EmailSample]:
         """
         Collects email samples from a given source.
 
@@ -180,9 +178,7 @@ class DataCollectionStrategy:
                 break
 
             sample = EmailSample(
-                id=self._generate_sample_id(
-                    email_data["subject"], email_data["sender"]
-                ),
+                id=self._generate_sample_id(email_data["subject"], email_data["sender"]),
                 subject=email_data["subject"],
                 content=email_data["content"],
                 sender=email_data["sender"],
@@ -253,7 +249,7 @@ class DataCollectionStrategy:
         text = text.strip()
         return text
 
-    def _extract_basic_features(self, content: str, subject: str) -> Dict[str, Any]:
+    def _extract_basic_features(self, content: str, subject: str) -> dict[str, Any]:
         """Extracts a set of basic features from the email text."""
         combined_text = f"{subject} {content}".lower()
         features = {
@@ -275,25 +271,17 @@ class DataCollectionStrategy:
                 )
             ),
             "has_url": bool(
-                re.search(
-                    self.preprocessing_rules["email_patterns"]["urls"], combined_text
-                )
+                re.search(self.preprocessing_rules["email_patterns"]["urls"], combined_text)
             ),
-            "urgency_keywords": self._count_pattern_matches(
-                combined_text, "urgency_signals"
-            ),
+            "urgency_keywords": self._count_pattern_matches(combined_text, "urgency_signals"),
             "sentiment_keywords": self._count_pattern_matches(
                 combined_text, "sentiment_indicators"
             ),
-            "intent_keywords": self._count_pattern_matches(
-                combined_text, "intent_patterns"
-            ),
+            "intent_keywords": self._count_pattern_matches(combined_text, "intent_patterns"),
         }
         return features
 
-    def _count_pattern_matches(
-        self, text: str, pattern_category: str
-    ) -> Dict[str, int]:
+    def _count_pattern_matches(self, text: str, pattern_category: str) -> dict[str, int]:
         """Counts keyword matches for a specific pattern category."""
         counts = {}
         patterns = self.annotation_guidelines.get(pattern_category, {})
@@ -306,7 +294,7 @@ class DataCollectionStrategy:
         self,
         email: EmailSample,
         annotator_id: str = "auto",
-        external_analysis_results: Optional[Dict[str, Any]] = None,
+        external_analysis_results: dict[str, Any] | None = None,
     ) -> AnnotationSchema:
         """
         Creates a structured annotation for an email sample.
@@ -324,9 +312,7 @@ class DataCollectionStrategy:
             An AnnotationSchema object containing the structured annotations.
         """
         if external_analysis_results:
-            self.logger.info(
-                f"Using external analysis results for email ID: {email.id}"
-            )
+            self.logger.info(f"Using external analysis results for email ID: {email.id}")
             topic = external_analysis_results.get(
                 "topic", self._predict_topic(email.content, is_fallback=True)
             )
@@ -348,9 +334,7 @@ class DataCollectionStrategy:
             confidence = external_analysis_results.get("confidence", 0.9)
             annotator_id_suffix = "_external"
         else:
-            self.logger.info(
-                f"Using internal basic prediction for email ID: {email.id}"
-            )
+            self.logger.info(f"Using internal basic prediction for email ID: {email.id}")
             topic = self._predict_topic(email.content)
             sentiment = self._predict_sentiment(email.content)
             intent = self._predict_intent(email.content)
@@ -380,11 +364,7 @@ class DataCollectionStrategy:
         for topic, keywords in self.annotation_guidelines["topics"].items():
             score = sum(1 for keyword in keywords if keyword in text_lower)
             topic_scores[topic] = score
-        result = (
-            max(topic_scores, key=topic_scores.get)
-            if any(topic_scores.values())
-            else "other"
-        )
+        result = max(topic_scores, key=topic_scores.get) if any(topic_scores.values()) else "other"
         self.logger.debug(f"{prefix}Predicted topic: {result}")
         return result
 
@@ -394,9 +374,7 @@ class DataCollectionStrategy:
         self.logger.debug(f"{prefix}Predicting sentiment for text: '{text[:50]}...'")
         text_lower = text.lower()
         sentiment_scores = {}
-        for sentiment, keywords in self.annotation_guidelines[
-            "sentiment_indicators"
-        ].items():
+        for sentiment, keywords in self.annotation_guidelines["sentiment_indicators"].items():
             score = sum(1 for keyword in keywords if keyword in text_lower)
             sentiment_scores[sentiment] = score
         if sentiment_scores.get("positive", 0) > 0 and sentiment_scores[
@@ -443,23 +421,17 @@ class DataCollectionStrategy:
             score = sum(1 for signal in signals if signal in text_lower)
             urgency_scores[urgency] = score
         result = (
-            max(urgency_scores, key=urgency_scores.get)
-            if any(urgency_scores.values())
-            else "low"
+            max(urgency_scores, key=urgency_scores.get) if any(urgency_scores.values()) else "low"
         )
         self.logger.debug(f"{prefix}Predicted urgency: {result}")
         return result
 
-    def _extract_entities(self, text: str) -> List[str]:
+    def _extract_entities(self, text: str) -> list[str]:
         """Extracts named entities (email, phone, URL, date) from text."""
         entities = []
-        emails = re.findall(
-            self.preprocessing_rules["email_patterns"]["email_addresses"], text
-        )
+        emails = re.findall(self.preprocessing_rules["email_patterns"]["email_addresses"], text)
         entities.extend([f"EMAIL:{email}" for email in emails])
-        phones = re.findall(
-            self.preprocessing_rules["email_patterns"]["phone_numbers"], text
-        )
+        phones = re.findall(self.preprocessing_rules["email_patterns"]["phone_numbers"], text)
         entities.extend([f"PHONE:{phone}" for phone in phones])
         urls = re.findall(self.preprocessing_rules["email_patterns"]["urls"], text)
         entities.extend([f"URL:{url}" for url in urls])
@@ -467,7 +439,7 @@ class DataCollectionStrategy:
         entities.extend([f"DATE:{date}" for date in dates])
         return entities
 
-    def _extract_keywords(self, text: str) -> List[str]:
+    def _extract_keywords(self, text: str) -> list[str]:
         """Extracts important keywords from text using frequency analysis."""
         words = re.findall(r"\b\w+\b", text.lower())
         stopwords = {
@@ -499,7 +471,7 @@ class DataCollectionStrategy:
         word_freq = Counter(keywords)
         return [word for word, _ in word_freq.most_common(10)]
 
-    def create_training_dataset(self, samples: List[EmailSample]) -> Dict[str, Any]:
+    def create_training_dataset(self, samples: list[EmailSample]) -> dict[str, Any]:
         """
         Creates a structured training dataset from a list of email samples.
 
@@ -541,9 +513,7 @@ class DataCollectionStrategy:
 
         return dataset
 
-    def _calculate_dataset_statistics(
-        self, samples: List[EmailSample]
-    ) -> Dict[str, Any]:
+    def _calculate_dataset_statistics(self, samples: list[EmailSample]) -> dict[str, Any]:
         """Calculates and returns statistics for the dataset."""
         if not samples:
             return {}
@@ -556,7 +526,7 @@ class DataCollectionStrategy:
             "unique_senders": len(set(sample.sender for sample in samples)),
         }
 
-    def export_dataset(self, dataset: Dict[str, Any], filepath: str) -> None:
+    def export_dataset(self, dataset: dict[str, Any], filepath: str) -> None:
         """
         Exports the dataset to a JSON file.
 
@@ -568,11 +538,11 @@ class DataCollectionStrategy:
             with open(filepath, "w", encoding="utf-8") as f:
                 json.dump(dataset, f, indent=2, ensure_ascii=False)
             self.logger.info(f"Dataset exported successfully to {filepath}")
-        except (IOError, json.JSONEncodeError) as e:
+        except (OSError, json.JSONEncodeError) as e:
             self.logger.error(f"Failed to export dataset to {filepath}: {e}")
             raise
 
-    def load_dataset(self, filepath: str) -> Dict[str, Any]:
+    def load_dataset(self, filepath: str) -> dict[str, Any]:
         """
         Loads a dataset from a JSON file.
 
@@ -583,11 +553,11 @@ class DataCollectionStrategy:
             The loaded dataset as a dictionary.
         """
         try:
-            with open(filepath, "r", encoding="utf-8") as f:
+            with open(filepath, encoding="utf-8") as f:
                 dataset = json.load(f)
             self.logger.info(f"Dataset loaded successfully from {filepath}")
             return dataset
-        except (FileNotFoundError, IOError, json.JSONDecodeError) as e:
+        except (OSError, FileNotFoundError, json.JSONDecodeError) as e:
             self.logger.error(f"Failed to load dataset from {filepath}: {e}")
             raise
 

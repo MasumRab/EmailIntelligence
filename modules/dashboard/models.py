@@ -1,5 +1,4 @@
 from pydantic import BaseModel
-from typing import Dict, Optional
 
 
 class WeeklyGrowth(BaseModel):
@@ -16,23 +15,21 @@ class ConsolidatedDashboardStats(BaseModel):
     total_emails: int
 
     # Category-related statistics
-    categorized_emails: Optional[Dict[str, int]] = None  # From modular implementation
-    categories: Optional[int] = None  # From legacy implementation
+    categorized_emails: dict[str, int] | None = None  # From modular implementation
+    categories: int | None = None  # From legacy implementation
 
     # Email processing statistics
-    unread_emails: Optional[int] = None  # From modular implementation
-    auto_labeled: Optional[int] = None  # From legacy implementation
+    unread_emails: int | None = None  # From modular implementation
+    auto_labeled: int | None = None  # From legacy implementation
 
     # Time and productivity metrics
-    time_saved: Optional[str] = None  # From legacy implementation
+    time_saved: str | None = None  # From legacy implementation
 
     # Growth and trend analysis
-    weekly_growth: Optional[WeeklyGrowth] = None  # From legacy implementation
+    weekly_growth: WeeklyGrowth | None = None  # From legacy implementation
 
     # Performance monitoring
-    performance_metrics: Optional[Dict[str, float]] = (
-        None  # From modular implementation
-    )
+    performance_metrics: dict[str, float] | None = None  # From modular implementation
 
     class Config:
         # Allow both field names and aliases during validation
@@ -45,7 +42,7 @@ class DashboardStats(BaseModel):
     """Legacy modular dashboard stats - kept for backward compatibility."""
 
     total_emails: int
-    categorized_emails: Dict[str, int]
+    categorized_emails: dict[str, int]
     unread_emails: int
-    performance_metrics: Dict[str, float]
+    performance_metrics: dict[str, float]
     time_saved: str = "0h 0m"  # Time saved from auto-labeling (Xh Ym format)

@@ -2,7 +2,6 @@
 Rebase strategy planning module.
 """
 
-from typing import List
 from ..git.history import Commit
 from ..resolution.types import RiskLevel
 
@@ -12,7 +11,7 @@ class RebasePlanner:
     Generates optimized rebase plans.
     """
 
-    def generate_plan(self, commits: List[Commit]) -> str:
+    def generate_plan(self, commits: list[Commit]) -> str:
         """
         Generate a rebase todo list markdown content.
         """

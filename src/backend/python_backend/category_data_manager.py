@@ -8,7 +8,7 @@ Category-specific data management functionality
 import logging
 import os
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from .constants import DEFAULT_CATEGORY_COLOR
 
@@ -33,12 +33,12 @@ class CategoryDataManager:
         self.categories_file = categories_file
 
         # In-memory data stores
-        self.categories_data: List[Dict[str, Any]] = []
+        self.categories_data: list[dict[str, Any]] = []
 
         # In-memory indexes
-        self.categories_by_id: Dict[int, Dict[str, Any]] = {}
-        self.categories_by_name: Dict[str, Dict[str, Any]] = {}
-        self.category_counts: Dict[int, int] = {}
+        self.categories_by_id: dict[int, dict[str, Any]] = {}
+        self.categories_by_name: dict[str, dict[str, Any]] = {}
+        self.category_counts: dict[int, int] = {}
 
         # State
         self._dirty_data: set[str] = set()
@@ -48,24 +48,18 @@ class CategoryDataManager:
         logger = logging.getLogger(__name__)
         logger.info("Building category indexes...")
         self.categories_by_id = {cat[FIELD_ID]: cat for cat in self.categories_data}
-        self.categories_by_name = {
-            cat[FIELD_NAME].lower(): cat for cat in self.categories_data
-        }
+        self.categories_by_name = {cat[FIELD_NAME].lower(): cat for cat in self.categories_data}
         self.category_counts = {cat_id: 0 for cat_id in self.categories_by_id}
         logger.info("Category indexes built successfully.")
 
-    async def get_all_categories(self) -> List[Dict[str, Any]]:
+    async def get_all_categories(self) -> list[dict[str, Any]]:
         """Get all categories with their counts from cache."""
         for cat_id, count in self.category_counts.items():
             if cat_id in self.categories_by_id:
                 self.categories_by_id[cat_id][FIELD_COUNT] = count
-        return sorted(
-            self.categories_by_id.values(), key=lambda c: c.get(FIELD_NAME, "")
-        )
+        return sorted(self.categories_by_id.values(), key=lambda c: c.get(FIELD_NAME, ""))
 
-    async def create_category(
-        self, category_data: Dict[str, Any]
-    ) -> Optional[Dict[str, Any]]:
+    async def create_category(self, category_data: dict[str, Any]) -> dict[str, Any] | None:
         """Create a new category and update indexes."""
         logger = logging.getLogger(__name__)
 
@@ -98,9 +92,7 @@ class CategoryDataManager:
         logger = logging.getLogger(__name__)
 
         if category_id not in self.category_counts:
-            logger.warning(
-                f"Attempted to update count for non-existent category ID: {category_id}"
-            )
+            logger.warning(f"Attempted to update count for non-existent category ID: {category_id}")
             return
         if increment:
             self.category_counts[category_id] += 1
@@ -108,7 +100,7 @@ class CategoryDataManager:
             self.category_counts[category_id] -= 1
         self._dirty_data.add(DATA_TYPE_CATEGORIES)
 
-    def _generate_id(self, data_list: List[Dict[str, Any]]) -> int:
+    def _generate_id(self, data_list: list[dict[str, Any]]) -> int:
         """Generates a new unique integer ID."""
         if not data_list:
             return 1

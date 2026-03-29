@@ -8,14 +8,17 @@ Manages service dependencies and provides them to route handlers
 
 import logging
 from typing import Optional
+
 from fastapi import Depends
+
+from backend.python_backend.services.category_service import CategoryService
 
 # Updated to use the new src architecture where available
 from backend.python_backend.services.email_service import EmailService
-from backend.python_backend.services.category_service import CategoryService
-from src.core.database import get_db, DatabaseManager
-from .model_manager import ModelManager
+from src.core.database import DatabaseManager, get_db
+
 from .ai_engine import AdvancedAIEngine
+from .model_manager import ModelManager
 from .smart_filters import SmartFilterManager
 from .workflow_engine import WorkflowEngine
 
@@ -102,9 +105,7 @@ async def initialize_services():
                 db_manager=db, advanced_ai_engine=_ai_engine_instance
             )
         else:
-            logger.warning(
-                "GmailAIService not available, Gmail integration will be disabled."
-            )
+            logger.warning("GmailAIService not available, Gmail integration will be disabled.")
 
 
 def get_model_manager() -> "ModelManager":
@@ -172,9 +173,7 @@ def get_gmail_service(
                 "GmailAIService module is not available. Ensure required dependencies are installed."
             )
         ai_engine = get_ai_engine()
-        _gmail_service_instance = GmailAIService(
-            db_manager=db, advanced_ai_engine=ai_engine
-        )
+        _gmail_service_instance = GmailAIService(db_manager=db, advanced_ai_engine=ai_engine)
     return _gmail_service_instance
 
 

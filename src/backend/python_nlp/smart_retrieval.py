@@ -3,7 +3,7 @@ import os
 import sqlite3
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from dotenv import load_dotenv
 from google.oauth2.credentials import Credentials
@@ -15,9 +15,7 @@ CREDENTIALS_PATH = "credentials.json"
 GMAIL_CREDENTIALS_ENV_VAR = "GMAIL_CREDENTIALS_JSON"
 
 # Define the project's root directory and default path for the checkpoint database
-PROJECT_ROOT = os.path.dirname(
-    os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-)
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 DEFAULT_CHECKPOINT_DB_PATH = os.path.join(PROJECT_ROOT, "sync_checkpoints.db")
 
 
@@ -29,8 +27,8 @@ class RetrievalStrategy:
     batch_size: int
     frequency: str
     max_emails_per_run: int
-    include_folders: List[str]
-    exclude_folders: List[str]
+    include_folders: list[str]
+    exclude_folders: list[str]
     date_range_days: int
 
 
@@ -40,7 +38,7 @@ class SyncCheckpoint:
     last_sync_date: datetime
     last_history_id: str
     processed_count: int
-    next_page_token: Optional[str]
+    next_page_token: str | None
     errors_count: int
 
 
@@ -96,13 +94,13 @@ class SmartRetrievalManager:
             )
             return None
 
-    def get_optimized_retrieval_strategies(self) -> List[RetrievalStrategy]:
+    def get_optimized_retrieval_strategies(self) -> list[RetrievalStrategy]:
         """Get optimized retrieval strategies."""
         # Implementation would go here
         return []
 
     def get_incremental_query(
-        self, strategy: RetrievalStrategy, checkpoint: Optional[SyncCheckpoint] = None
+        self, strategy: RetrievalStrategy, checkpoint: SyncCheckpoint | None = None
     ) -> str:
         """
         Generate incremental query for a strategy.
@@ -127,10 +125,10 @@ class SmartRetrievalManager:
 
     async def execute_smart_retrieval(
         self,
-        strategies: Optional[List[RetrievalStrategy]] = None,
+        strategies: list[RetrievalStrategy] | None = None,
         max_api_calls: int = 100,
         time_budget_minutes: int = 30,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Execute smart retrieval using the provided strategies.
 
@@ -153,9 +151,7 @@ class SmartRetrievalManager:
 
             # Convert datetime to ISO format string for storage
             last_sync_str = (
-                checkpoint.last_sync_date.isoformat()
-                if checkpoint.last_sync_date
-                else None
+                checkpoint.last_sync_date.isoformat() if checkpoint.last_sync_date else None
             )
 
             # Use INSERT OR REPLACE to handle both new and existing checkpoints
@@ -176,9 +172,7 @@ class SmartRetrievalManager:
             )
 
             conn.commit()
-            self.logger.info(
-                f"Checkpoint saved for strategy: {checkpoint.strategy_name}"
-            )
+            self.logger.info(f"Checkpoint saved for strategy: {checkpoint.strategy_name}")
 
         except sqlite3.Error as e:
             self.logger.error(f"Failed to save checkpoint: {e}")

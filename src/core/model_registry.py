@@ -12,7 +12,7 @@ import time
 from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -50,14 +50,14 @@ class ModelMetadata:
     framework: str  # "sklearn", "transformers", "tensorflow", etc.
     size_bytes: int = 0
     created_at: float = field(default_factory=time.time)
-    last_loaded: Optional[float] = None
-    last_used: Optional[float] = None
+    last_loaded: float | None = None
+    last_used: float | None = None
     load_count: int = 0
     usage_count: int = 0
-    performance_metrics: Dict[str, Any] = field(default_factory=dict)
+    performance_metrics: dict[str, Any] = field(default_factory=dict)
     health_status: str = "unknown"
-    dependencies: List[str] = field(default_factory=list)
-    config: Dict[str, Any] = field(default_factory=dict)
+    dependencies: list[str] = field(default_factory=list)
+    config: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -81,8 +81,8 @@ class ModelRegistry:
 
     def __init__(self, models_dir: Path = None):
         self.models_dir = models_dir or Path("models")
-        self._registry: Dict[str, ModelMetadata] = {}
-        self._loaded_models: Dict[str, ModelInstance] = {}
+        self._registry: dict[str, ModelMetadata] = {}
+        self._loaded_models: dict[str, ModelInstance] = {}
         self._model_lock = asyncio.Lock()
         self._max_memory_mb = 2048  # 2GB default limit
         self._max_gpu_memory_mb = 4096  # 4GB GPU limit
@@ -92,11 +92,9 @@ class ModelRegistry:
         # Create models directory if it doesn't exist
         self.models_dir.mkdir(parents=True, exist_ok=True)
 
-        logger.info(
-            f"ModelRegistry initialized with models directory: {self.models_dir}"
-        )
+        logger.info(f"ModelRegistry initialized with models directory: {self.models_dir}")
 
-    async def discover_models(self) -> List[str]:
+    async def discover_models(self) -> list[str]:
         """Discover and register all available models in the models directory."""
         async with self._model_lock:
             discovered_models = []
@@ -110,16 +108,14 @@ class ModelRegistry:
                     if metadata_file.exists():
                         # Load existing metadata
                         try:
-                            with open(metadata_file, "r") as f:
+                            with open(metadata_file) as f:
                                 data = json.load(f)
                                 metadata = ModelMetadata(**data)
                                 self._registry[model_id] = metadata
                                 discovered_models.append(model_id)
                                 logger.info(f"Loaded existing model: {model_id}")
                         except Exception as e:
-                            logger.warning(
-                                f"Failed to load metadata for {model_id}: {e}"
-                            )
+                            logger.warning(f"Failed to load metadata for {model_id}: {e}")
                     else:
                         # Try to auto-discover model files
                         model_files = list(model_dir.glob("*.pkl")) + list(
@@ -177,7 +173,7 @@ class ModelRegistry:
 
             return False
 
-    async def load_model(self, model_id: str) -> Optional[ModelInstance]:
+    async def load_model(self, model_id: str) -> ModelInstance | None:
         """Load a model into memory with memory management."""
         async with self._model_lock:
             if model_id not in self._registry:
@@ -212,9 +208,7 @@ class ModelRegistry:
                     metadata=metadata,
                     model_object=model_object,
                     memory_usage=await self._estimate_memory_usage(model_object),
-                    gpu_memory_usage=await self._estimate_gpu_memory_usage(
-                        model_object
-                    ),
+                    gpu_memory_usage=await self._estimate_gpu_memory_usage(model_object),
                 )
 
                 self._loaded_models[model_id] = instance
@@ -265,7 +259,7 @@ class ModelRegistry:
                 logger.error(f"Failed to unload model {model_id}: {e}")
                 return False
 
-    async def get_model(self, model_id: str) -> Optional[ModelInstance]:
+    async def get_model(self, model_id: str) -> ModelInstance | None:
         """Get a loaded model instance, loading it if necessary."""
         instance = self._loaded_models.get(model_id)
         if instance:
@@ -276,7 +270,7 @@ class ModelRegistry:
         # Try to load the model
         return await self.load_model(model_id)
 
-    async def list_models(self, include_loaded: bool = True) -> List[Dict[str, Any]]:
+    async def list_models(self, include_loaded: bool = True) -> list[dict[str, Any]]:
         """List all registered models with their status."""
         async with self._model_lock:
             models = []
@@ -315,7 +309,7 @@ class ModelRegistry:
 
             return models
 
-    async def get_model_performance_metrics(self, model_id: str) -> Dict[str, Any]:
+    async def get_model_performance_metrics(self, model_id: str) -> dict[str, Any]:
         """Get comprehensive performance metrics for a model."""
         async with self._model_lock:
             if model_id not in self._registry:
@@ -326,22 +320,12 @@ class ModelRegistry:
                 "model_id": model_id,
                 "load_count": metadata.load_count,
                 "usage_count": metadata.usage_count,
-                "average_load_time": metadata.performance_metrics.get(
-                    "avg_load_time", 0
-                ),
-                "average_inference_time": metadata.performance_metrics.get(
-                    "avg_inference_time", 0
-                ),
+                "average_load_time": metadata.performance_metrics.get("avg_load_time", 0),
+                "average_inference_time": metadata.performance_metrics.get("avg_inference_time", 0),
                 "error_rate": metadata.performance_metrics.get("error_rate", 0),
-                "memory_efficiency": metadata.performance_metrics.get(
-                    "memory_efficiency", 1.0
-                ),
-                "last_health_check": metadata.performance_metrics.get(
-                    "last_health_check"
-                ),
-                "uptime_percentage": metadata.performance_metrics.get(
-                    "uptime_percentage", 100.0
-                ),
+                "memory_efficiency": metadata.performance_metrics.get("memory_efficiency", 1.0),
+                "last_health_check": metadata.performance_metrics.get("last_health_check"),
+                "uptime_percentage": metadata.performance_metrics.get("uptime_percentage", 100.0),
             }
 
             if model_id in self._loaded_models:
@@ -356,7 +340,7 @@ class ModelRegistry:
 
             return metrics
 
-    async def validate_model(self, model_id: str) -> Dict[str, Any]:
+    async def validate_model(self, model_id: str) -> dict[str, Any]:
         """Perform comprehensive validation on a model."""
         validation_results = {
             "model_id": model_id,
@@ -381,36 +365,24 @@ class ModelRegistry:
         validation_results["checks"]["metadata"] = self._validate_metadata(metadata)
 
         # Check model file integrity
-        validation_results["checks"][
-            "file_integrity"
-        ] = await self._validate_model_file(metadata)
+        validation_results["checks"]["file_integrity"] = await self._validate_model_file(metadata)
 
         # Check dependencies
-        validation_results["checks"]["dependencies"] = self._validate_dependencies(
-            metadata
-        )
+        validation_results["checks"]["dependencies"] = self._validate_dependencies(metadata)
 
         # Load test
-        validation_results["checks"]["load_test"] = await self._test_model_loading(
-            model_id
-        )
+        validation_results["checks"]["load_test"] = await self._test_model_loading(model_id)
 
         # Performance test
-        validation_results["checks"][
-            "performance"
-        ] = await self._test_model_performance(model_id)
+        validation_results["checks"]["performance"] = await self._test_model_performance(model_id)
 
         # Calculate overall validity
         checks_passed = sum(
-            1
-            for check in validation_results["checks"].values()
-            if check.get("passed", False)
+            1 for check in validation_results["checks"].values() if check.get("passed", False)
         )
         total_checks = len(validation_results["checks"])
         validation_results["valid"] = checks_passed == total_checks
-        validation_results["score"] = (
-            checks_passed / total_checks if total_checks > 0 else 0
-        )
+        validation_results["score"] = checks_passed / total_checks if total_checks > 0 else 0
 
         # Update health status
         if validation_results["valid"]:
@@ -427,7 +399,7 @@ class ModelRegistry:
 
         return validation_results
 
-    async def optimize_memory(self) -> Dict[str, Any]:
+    async def optimize_memory(self) -> dict[str, Any]:
         """Perform automatic memory optimization by unloading unused models."""
         optimization_results = {
             "freed_memory": 0,
@@ -452,8 +424,7 @@ class ModelRegistry:
                 # Unload if not used in last hour and memory usage is high
                 if (
                     time_since_access > 3600
-                    and memory_usage
-                    > self._auto_unload_threshold_mb * 1024 * 1024  # 1 hour
+                    and memory_usage > self._auto_unload_threshold_mb * 1024 * 1024  # 1 hour
                 ):
                     models_to_unload.append(model_id)
 
@@ -463,18 +434,12 @@ class ModelRegistry:
                     instance = self._loaded_models.get(model_id)
                     if instance:
                         optimization_results["freed_memory"] += instance.memory_usage
-                        optimization_results["freed_gpu_memory"] += (
-                            instance.gpu_memory_usage
-                        )
+                        optimization_results["freed_gpu_memory"] += instance.gpu_memory_usage
                         optimization_results["unloaded_models"].append(model_id)
 
             # Update current usage
-            total_memory = sum(
-                inst.memory_usage for inst in self._loaded_models.values()
-            )
-            total_gpu_memory = sum(
-                inst.gpu_memory_usage for inst in self._loaded_models.values()
-            )
+            total_memory = sum(inst.memory_usage for inst in self._loaded_models.values())
+            total_gpu_memory = sum(inst.gpu_memory_usage for inst in self._loaded_models.values())
 
             optimization_results["current_memory_usage"] = total_memory
             optimization_results["current_gpu_memory_usage"] = total_gpu_memory
@@ -484,7 +449,7 @@ class ModelRegistry:
 
     # Private helper methods
 
-    async def _load_model_object(self, metadata: ModelMetadata) -> Optional[Any]:
+    async def _load_model_object(self, metadata: ModelMetadata) -> Any | None:
         """Load the actual model object based on framework and type."""
         try:
             if metadata.framework == "sklearn":
@@ -500,7 +465,7 @@ class ModelRegistry:
             logger.error(f"Error loading model {metadata.model_id}: {e}")
             return None
 
-    async def _load_sklearn_model(self, metadata: ModelMetadata) -> Optional[Any]:
+    async def _load_sklearn_model(self, metadata: ModelMetadata) -> Any | None:
         """Load a scikit-learn model."""
         try:
             import joblib
@@ -517,7 +482,7 @@ class ModelRegistry:
             logger.error(f"Failed to load sklearn model {metadata.model_id}: {e}")
             return None
 
-    async def _load_transformers_model(self, metadata: ModelMetadata) -> Optional[Any]:
+    async def _load_transformers_model(self, metadata: ModelMetadata) -> Any | None:
         """Load a transformers model."""
         try:
             from transformers import AutoModelForSequenceClassification, AutoTokenizer
@@ -542,7 +507,7 @@ class ModelRegistry:
             logger.error(f"Failed to load transformers model {metadata.model_id}: {e}")
             return None
 
-    async def _load_tensorflow_model(self, metadata: ModelMetadata) -> Optional[Any]:
+    async def _load_tensorflow_model(self, metadata: ModelMetadata) -> Any | None:
         """Load a TensorFlow model."""
         try:
             import tensorflow as tf
@@ -584,9 +549,7 @@ class ModelRegistry:
     async def _check_memory_limits(self) -> bool:
         """Check if loading a new model would exceed memory limits."""
         total_memory = sum(inst.memory_usage for inst in self._loaded_models.values())
-        total_gpu_memory = sum(
-            inst.gpu_memory_usage for inst in self._loaded_models.values()
-        )
+        total_gpu_memory = sum(inst.gpu_memory_usage for inst in self._loaded_models.values())
 
         memory_ok = total_memory < (self._max_memory_mb * 1024 * 1024)
         gpu_memory_ok = total_gpu_memory < (self._max_gpu_memory_mb * 1024 * 1024)
@@ -648,7 +611,7 @@ class ModelRegistry:
         except Exception as e:
             logger.error(f"Failed to save metadata for {metadata.model_id}: {e}")
 
-    def _validate_metadata(self, metadata: ModelMetadata) -> Dict[str, Any]:
+    def _validate_metadata(self, metadata: ModelMetadata) -> dict[str, Any]:
         """Validate model metadata."""
         issues = []
 
@@ -663,7 +626,7 @@ class ModelRegistry:
 
         return {"passed": len(issues) == 0, "issues": issues}
 
-    async def _validate_model_file(self, metadata: ModelMetadata) -> Dict[str, Any]:
+    async def _validate_model_file(self, metadata: ModelMetadata) -> dict[str, Any]:
         """Validate model file integrity."""
         try:
             if metadata.framework == "sklearn":
@@ -683,7 +646,7 @@ class ModelRegistry:
                     return {"passed": False, "issues": ["Config file not found"]}
 
                 # Basic validation
-                with open(config_file, "r") as f:
+                with open(config_file) as f:
                     config = json.load(f)
 
                 if "model_type" not in config:
@@ -696,12 +659,12 @@ class ModelRegistry:
         except Exception as e:
             return {"passed": False, "issues": [f"File validation error: {e}"]}
 
-    def _validate_dependencies(self, metadata: ModelMetadata) -> Dict[str, Any]:
+    def _validate_dependencies(self, metadata: ModelMetadata) -> dict[str, Any]:
         """Validate model dependencies."""
         # Basic validation - could be enhanced
         return {"passed": True, "dependencies": metadata.dependencies}
 
-    async def _test_model_loading(self, model_id: str) -> Dict[str, Any]:
+    async def _test_model_loading(self, model_id: str) -> dict[str, Any]:
         """Test if model can be loaded successfully."""
         try:
             start_time = time.time()
@@ -718,9 +681,9 @@ class ModelRegistry:
 
                     # Calculate average
                     load_times = metadata.performance_metrics["load_times"]
-                    metadata.performance_metrics["avg_load_time"] = sum(
+                    metadata.performance_metrics["avg_load_time"] = sum(load_times) / len(
                         load_times
-                    ) / len(load_times)
+                    )
 
                 return {"passed": True, "load_time": load_time}
             else:
@@ -729,7 +692,7 @@ class ModelRegistry:
         except Exception as e:
             return {"passed": False, "issues": [f"Load test error: {e}"]}
 
-    async def _test_model_performance(self, model_id: str) -> Dict[str, Any]:
+    async def _test_model_performance(self, model_id: str) -> dict[str, Any]:
         """Test model performance with sample data."""
         try:
             instance = await self.get_model(model_id)
@@ -757,9 +720,9 @@ class ModelRegistry:
 
             # Calculate average
             inference_times = metadata.performance_metrics["inference_times"]
-            metadata.performance_metrics["avg_inference_time"] = sum(
+            metadata.performance_metrics["avg_inference_time"] = sum(inference_times) / len(
                 inference_times
-            ) / len(inference_times)
+            )
 
             return {"passed": True, "inference_time": inference_time}
 

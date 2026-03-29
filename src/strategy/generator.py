@@ -4,11 +4,11 @@ Strategy generator for EmailIntelligence CLI
 Implements logic for generating resolution strategies.
 """
 
-from typing import List, Dict, Any
-from ..core.interfaces import IResolutionStrategy
-from ..core.conflict_models import Conflict, ResolutionStrategy, RiskLevel
-from ..utils.logger import get_logger
+from typing import Any
 
+from ..core.conflict_models import Conflict, ResolutionStrategy, RiskLevel
+from ..core.interfaces import IResolutionStrategy
+from ..utils.logger import get_logger
 
 logger = get_logger(__name__)
 
@@ -21,9 +21,7 @@ class StrategyGenerator(IResolutionStrategy):
     def __init__(self):
         self.strategies = {}
 
-    async def generate_resolution_strategy(
-        self, conflicts: List[Conflict]
-    ) -> ResolutionStrategy:
+    async def generate_resolution_strategy(self, conflicts: list[Conflict]) -> ResolutionStrategy:
         """
         Generate a resolution strategy for the given conflicts.
 
@@ -54,12 +52,10 @@ class StrategyGenerator(IResolutionStrategy):
             risk_assessment=risk_assessment,
         )
 
-        logger.info(
-            f"Resolution strategy generated: {strategy_type} with {len(steps)} steps"
-        )
+        logger.info(f"Resolution strategy generated: {strategy_type} with {len(steps)} steps")
         return strategy
 
-    def _determine_strategy_type(self, conflicts: List[Conflict]) -> str:
+    def _determine_strategy_type(self, conflicts: list[Conflict]) -> str:
         """Determine the appropriate strategy type based on conflicts."""
         if not conflicts:
             return "no_conflicts"
@@ -69,12 +65,8 @@ class StrategyGenerator(IResolutionStrategy):
         type_counts = {}
 
         for conflict in conflicts:
-            severity_counts[conflict.severity] = (
-                severity_counts.get(conflict.severity, 0) + 1
-            )
-            type_counts[conflict.conflict_type] = (
-                type_counts.get(conflict.conflict_type, 0) + 1
-            )
+            severity_counts[conflict.severity] = severity_counts.get(conflict.severity, 0) + 1
+            type_counts[conflict.conflict_type] = type_counts.get(conflict.conflict_type, 0) + 1
 
         # Determine strategy based on highest severity
         if severity_counts.get(RiskLevel.CRITICAL, 0) > 0:
@@ -86,9 +78,7 @@ class StrategyGenerator(IResolutionStrategy):
         else:
             return "low_priority_resolution"
 
-    def _generate_resolution_steps(
-        self, conflicts: List[Conflict]
-    ) -> List[Dict[str, Any]]:
+    def _generate_resolution_steps(self, conflicts: list[Conflict]) -> list[dict[str, Any]]:
         """Generate specific steps for resolving conflicts."""
         steps = []
 
@@ -118,7 +108,7 @@ class StrategyGenerator(IResolutionStrategy):
         else:
             return "standard_merge"
 
-    def _estimate_resolution_time(self, conflicts: List[Conflict]) -> int:
+    def _estimate_resolution_time(self, conflicts: list[Conflict]) -> int:
         """Estimate total resolution time."""
         if not conflicts:
             return 0
@@ -140,7 +130,7 @@ class StrategyGenerator(IResolutionStrategy):
         total_time = int((base_time + overhead) * severity_multiplier)
         return max(total_time, 10)  # Minimum 10 minutes
 
-    def _assess_resolution_risks(self, conflicts: List[Conflict]) -> Dict[str, Any]:
+    def _assess_resolution_risks(self, conflicts: list[Conflict]) -> dict[str, Any]:
         """Assess risks associated with the resolution."""
         risk_assessment = {
             "overall_risk_level": self._determine_overall_risk_level(conflicts),
@@ -152,7 +142,7 @@ class StrategyGenerator(IResolutionStrategy):
 
         return risk_assessment
 
-    def _determine_overall_risk_level(self, conflicts: List[Conflict]) -> str:
+    def _determine_overall_risk_level(self, conflicts: list[Conflict]) -> str:
         """Determine the overall risk level."""
         if not conflicts:
             return "none"
@@ -169,40 +159,31 @@ class StrategyGenerator(IResolutionStrategy):
         else:
             return "low"
 
-    def _assess_breaking_changes_risk(self, conflicts: List[Conflict]) -> str:
+    def _assess_breaking_changes_risk(self, conflicts: list[Conflict]) -> str:
         """Assess risk of breaking changes."""
         for conflict in conflicts:
-            if (
-                "api" in conflict.file_path.lower()
-                or "interface" in conflict.file_path.lower()
-            ):
+            if "api" in conflict.file_path.lower() or "interface" in conflict.file_path.lower():
                 return "high"
 
         return "medium" if len(conflicts) > 3 else "low"
 
-    def _assess_performance_risk(self, conflicts: List[Conflict]) -> str:
+    def _assess_performance_risk(self, conflicts: list[Conflict]) -> str:
         """Assess performance impact risk."""
         for conflict in conflicts:
-            if (
-                "performance" in conflict.file_path.lower()
-                or "cache" in conflict.file_path.lower()
-            ):
+            if "performance" in conflict.file_path.lower() or "cache" in conflict.file_path.lower():
                 return "high"
 
         return "low"
 
-    def _assess_security_risk(self, conflicts: List[Conflict]) -> str:
+    def _assess_security_risk(self, conflicts: list[Conflict]) -> str:
         """Assess security risk."""
         for conflict in conflicts:
-            if (
-                "auth" in conflict.file_path.lower()
-                or "security" in conflict.file_path.lower()
-            ):
+            if "auth" in conflict.file_path.lower() or "security" in conflict.file_path.lower():
                 return "high"
 
         return "medium" if len(conflicts) > 5 else "low"
 
-    def _generate_risk_recommendations(self, conflicts: List[Conflict]) -> List[str]:
+    def _generate_risk_recommendations(self, conflicts: list[Conflict]) -> list[str]:
         """Generate risk mitigation recommendations."""
         recommendations = []
 

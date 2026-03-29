@@ -1,13 +1,12 @@
 """Storage layer for context profile persistence."""
 
-from pathlib import Path
-from typing import List, Optional, Dict, Any
 import json
+from pathlib import Path
+from typing import Any
 
-from .models import ContextProfile
-from .logging import get_context_logger
 from .config import get_current_config
-
+from .logging import get_context_logger
+from .models import ContextProfile
 
 logger = get_context_logger()
 
@@ -22,9 +21,9 @@ class ProfileStorage:
             config: Optional configuration override
         """
         self.config = config or get_current_config()
-        self._cache: Dict[str, ContextProfile] = {}
+        self._cache: dict[str, ContextProfile] = {}
 
-    def load_all_profiles(self) -> List[ContextProfile]:
+    def load_all_profiles(self) -> list[ContextProfile]:
         """Load all available context profiles.
 
         Returns:
@@ -48,7 +47,7 @@ class ProfileStorage:
         logger.debug(f"Loaded {len(profiles)} context profiles")
         return profiles
 
-    def load_profile_from_file(self, profile_file: Path) -> Optional[ContextProfile]:
+    def load_profile_from_file(self, profile_file: Path) -> ContextProfile | None:
         """Load a context profile from a JSON file.
 
         Args:
@@ -63,7 +62,7 @@ class ProfileStorage:
             return self._cache[cache_key]
 
         try:
-            with open(profile_file, "r", encoding="utf-8") as f:
+            with open(profile_file, encoding="utf-8") as f:
                 data = json.load(f)
 
             profile = ContextProfile(**data)
@@ -77,7 +76,7 @@ class ProfileStorage:
             return None
 
     def save_profile_to_file(
-        self, profile: ContextProfile, profile_file: Optional[Path] = None
+        self, profile: ContextProfile, profile_file: Path | None = None
     ) -> bool:
         """Save a context profile to a JSON file.
 
@@ -109,7 +108,7 @@ class ProfileStorage:
             logger.error(f"Failed to save profile to {profile_file}: {e}")
             return False
 
-    def find_profile_by_id(self, profile_id: str) -> Optional[ContextProfile]:
+    def find_profile_by_id(self, profile_id: str) -> ContextProfile | None:
         """Find a profile by its ID.
 
         Args:
@@ -129,7 +128,7 @@ class ProfileStorage:
         self._cache.clear()
         logger.debug("Profile cache cleared")
 
-    def get_cache_info(self) -> Dict[str, Any]:
+    def get_cache_info(self) -> dict[str, Any]:
         """Get information about the current cache state.
 
         Returns:

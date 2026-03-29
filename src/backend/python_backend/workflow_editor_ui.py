@@ -61,12 +61,8 @@ def create_workflow_editor_ui():
                 workflow_description = gr.Textbox(label="Description", lines=2)
 
                 with gr.Row():
-                    save_workflow_btn = gr.Button(
-                        "💾 Save Workflow", variant="secondary"
-                    )
-                    load_workflow_btn = gr.Button(
-                        "📂 Load Workflow", variant="secondary"
-                    )
+                    save_workflow_btn = gr.Button("💾 Save Workflow", variant="secondary")
+                    load_workflow_btn = gr.Button("📂 Load Workflow", variant="secondary")
 
                 workflow_list = gr.Dropdown(
                     choices=workflow_manager.list_workflows(), label="Saved Workflows"
@@ -256,9 +252,7 @@ def create_workflow_editor_ui():
                 return {"error": str(e)}
 
         # Connect events
-        add_node_btn.click(
-            fn=add_node_to_workflow, inputs=available_nodes, outputs=workflow_json
-        )
+        add_node_btn.click(fn=add_node_to_workflow, inputs=available_nodes, outputs=workflow_json)
 
         save_workflow_btn.click(
             fn=save_current_workflow,

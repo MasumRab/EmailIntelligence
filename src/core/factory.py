@@ -1,15 +1,15 @@
 import os
+from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
-from typing import AsyncGenerator
 
-from .data_source import DataSource
 from .ai_engine import ModernAIEngine
+from .caching import CacheBackend, CacheConfig, init_cache_manager
 from .data.repository import (
-    DatabaseEmailRepository,
     CachingEmailRepository,
+    DatabaseEmailRepository,
     EmailRepository,
 )
-from .caching import init_cache_manager, CacheConfig, CacheBackend
+from .data_source import DataSource
 from .dynamic_model_manager import DynamicModelManager
 from .model_registry import ModelRegistry
 from .smart_filter_manager import SmartFilterManager

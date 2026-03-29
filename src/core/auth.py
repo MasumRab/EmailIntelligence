@@ -5,24 +5,24 @@ This module implements JWT-based authentication for API endpoints and integrates
 """
 
 import logging
+import secrets
+import time
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import Optional, Dict, Any, List
-import time
-import secrets
-from argon2 import PasswordHasher
-from argon2 import exceptions as argon2_exceptions
+from typing import Any
 
 import jwt
-from fastapi import HTTPException, status, Depends
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from argon2 import PasswordHasher
+from argon2 import exceptions as argon2_exceptions
+from fastapi import Depends, HTTPException, status
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel
+
+# Import the security framework components
+from .security import Permission, SecurityContext, SecurityLevel
 
 # Database imports removed - use dependency injection with create_database_manager
 from .settings import settings
-
-# Import the security framework components
-from .security import SecurityContext, Permission, SecurityLevel
 
 logger = logging.getLogger(__name__)
 
@@ -30,8 +30,8 @@ logger = logging.getLogger(__name__)
 class TokenData(BaseModel):
     """Data structure for JWT token payload"""
 
-    username: Optional[str] = None
-    role: Optional[str] = "user"
+    username: str | None = None
+    role: str | None = "user"
 
 
 class UserRole(str, Enum):
@@ -48,14 +48,14 @@ class User(BaseModel):
     username: str
     hashed_password: str
     role: UserRole = UserRole.USER
-    permissions: Optional[List[str]] = []
+    permissions: list[str] | None = []
 
 
 # Initialize security scheme
 security = HTTPBearer()
 
 
-def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
+def create_access_token(data: dict, expires_delta: timedelta | None = None) -> str:
     """
     Create a JWT access token with the provided data.
 
@@ -72,9 +72,7 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -
     else:
         expire = datetime.utcnow() + timedelta(minutes=15)
     to_encode.update({"exp": expire})
-    encoded_jwt = jwt.encode(
-        to_encode, settings.secret_key, algorithm=settings.algorithm
-    )
+    encoded_jwt = jwt.encode(to_encode, settings.secret_key, algorithm=settings.algorithm)
     return encoded_jwt
 
 
@@ -119,9 +117,7 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
         return False
 
 
-async def authenticate_user(
-    username: str, password: str, db
-) -> Optional[Dict[str, Any]]:
+async def authenticate_user(username: str, password: str, db) -> dict[str, Any] | None:
     """
     Authenticate a user by username and password.
 
@@ -145,7 +141,9 @@ async def authenticate_user(
             # This is a valid Argon2 hash for "dummy" to prevent early exit
             # We calculate it once or use a fixed one. Using a fixed one is faster but consistent.
             # Ideally this should be pre-calculated.
-            stored_hash = "$argon2id$v=19$m=65536,t=3,p=4$DnF1/L/JzW/0QZ3r5Y/y0w$K7g/6Z5x4y3w2v1u0t9s8"
+            stored_hash = (
+                "$argon2id$v=19$m=65536,t=3,p=4$DnF1/L/JzW/0QZ3r5Y/y0w$K7g/6Z5x4y3w2v1u0t9s8"
+            )
 
         is_valid = verify_password(password, stored_hash)
 
@@ -278,7 +276,7 @@ def require_role(required_role: UserRole):
     return role_checker
 
 
-def require_any_role(required_roles: List[UserRole]):
+def require_any_role(required_roles: list[UserRole]):
     """
     Dependency to require any of the specified roles for accessing an endpoint.
 

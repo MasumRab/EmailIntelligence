@@ -1,6 +1,7 @@
-import gradio as gr
 import json
 import os
+
+import gradio as gr
 
 SENDER_LABELS_FILE = "data/sender_labels.json"
 
@@ -11,7 +12,7 @@ def save_sender_label(sender_email, label):
 
     labels = {}
     if os.path.exists(SENDER_LABELS_FILE) and os.path.getsize(SENDER_LABELS_FILE) > 0:
-        with open(SENDER_LABELS_FILE, "r") as f:
+        with open(SENDER_LABELS_FILE) as f:
             labels = json.load(f)
 
     labels[sender_email] = label
@@ -26,7 +27,7 @@ def get_sender_label(sender_email):
     if not os.path.exists(SENDER_LABELS_FILE):
         return "No labels saved yet."
 
-    with open(SENDER_LABELS_FILE, "r") as f:
+    with open(SENDER_LABELS_FILE) as f:
         labels = json.load(f)
 
     return labels.get(sender_email, "No label found for this sender.")
@@ -62,12 +63,8 @@ with gr.Blocks() as imbox_tab:
         with gr.Column():
             gr.Markdown("## Sender Labeling")
             sender_email = gr.Textbox(label="Sender Email")
-            label = gr.Dropdown(
-                label="Label", choices=["Important", "Not Important", "Spam"]
-            )
+            label = gr.Dropdown(label="Label", choices=["Important", "Not Important", "Spam"])
             save_label_button = gr.Button("Save Label")
             status = gr.Textbox(label="Status", interactive=False)
 
-    save_label_button.click(
-        fn=save_sender_label, inputs=[sender_email, label], outputs=[status]
-    )
+    save_label_button.click(fn=save_sender_label, inputs=[sender_email, label], outputs=[status])

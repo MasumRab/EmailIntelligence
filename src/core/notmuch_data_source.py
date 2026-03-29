@@ -6,10 +6,10 @@ with AI analysis, smart filtering, and tagging functionality.
 """
 
 import asyncio
-import logging
-from typing import Any, Dict, List, Optional
-from datetime import datetime
 import email
+import logging
+from datetime import datetime
+from typing import Any, Optional
 
 # Import notmuch only when needed to allow import in environments without it
 try:
@@ -20,20 +20,20 @@ except ImportError:
     notmuch = None
     NOTMUCH_AVAILABLE = False
 
+from .ai_engine import ModernAIEngine
 from .data_source import DataSource
+from .enhanced_error_reporting import (
+    ErrorCategory,
+    ErrorSeverity,
+    create_error_context,
+    log_error,
+)
+from .performance_monitor import log_performance
+from .security import PathValidator
 
 # Import DatabaseManager locally to avoid circular imports
 # from .database import DatabaseManager
 from .smart_filter_manager import SmartFilterManager
-from .ai_engine import ModernAIEngine
-from .performance_monitor import log_performance
-from .enhanced_error_reporting import (
-    log_error,
-    ErrorSeverity,
-    ErrorCategory,
-    create_error_context,
-)
-from .security import PathValidator
 
 logger = logging.getLogger(__name__)
 
@@ -48,7 +48,7 @@ class NotmuchDataSource(DataSource):
 
     def __init__(
         self,
-        db_path: Optional[str] = None,
+        db_path: str | None = None,
         db_manager: Optional["DatabaseManager"] = None,
     ):
         # Validate the database path for security if provided
@@ -76,9 +76,7 @@ class NotmuchDataSource(DataSource):
                 # Use SQLiteManager as concrete implementation instead of abstract DatabaseManager
                 self.db = SQLiteManager()
             except Exception as e:
-                logger.warning(
-                    f"Could not initialize DatabaseManager, proceeding without: {e}"
-                )
+                logger.warning(f"Could not initialize DatabaseManager, proceeding without: {e}")
                 self.db = None  # Allow operation without database manager
         self.ai_engine = None
         self.filter_manager = None
@@ -88,9 +86,7 @@ class NotmuchDataSource(DataSource):
         if NOTMUCH_AVAILABLE:
             try:
                 self.notmuch_db = (
-                    notmuch.Database(self.db_path)
-                    if self.db_path
-                    else notmuch.Database()
+                    notmuch.Database(self.db_path) if self.db_path else notmuch.Database()
                 )
             except Exception as e:
                 logger.error(f"Error initializing notmuch database: {e}")
@@ -109,9 +105,7 @@ class NotmuchDataSource(DataSource):
             try:
                 # Validate the database path before opening
                 if self.db_path is not None:
-                    validated_path = PathValidator.validate_and_resolve_db_path(
-                        self.db_path
-                    )
+                    validated_path = PathValidator.validate_and_resolve_db_path(self.db_path)
                     self.notmuch_db = notmuch.Database(str(validated_path))
                 else:
                     self.notmuch_db = notmuch.Database()
@@ -127,9 +121,7 @@ class NotmuchDataSource(DataSource):
             try:
                 await self.db._ensure_initialized()
             except Exception as e:
-                logger.warning(
-                    f"DatabaseManager initialization failed, proceeding without: {e}"
-                )
+                logger.warning(f"DatabaseManager initialization failed, proceeding without: {e}")
                 self.db = None  # Allow operation without database manager
 
         # Initialize AI engine if needed for analysis
@@ -153,9 +145,7 @@ class NotmuchDataSource(DataSource):
         logger.info("NotmuchDataSource initialized")
 
     @log_performance(operation="search_emails")
-    async def search_emails(
-        self, search_term: str, limit: int = 50
-    ) -> List[Dict[str, Any]]:
+    async def search_emails(self, search_term: str, limit: int = 50) -> list[dict[str, Any]]:
         """Searches emails using a notmuch query string."""
         await self._ensure_initialized()
 
@@ -186,7 +176,7 @@ class NotmuchDataSource(DataSource):
     @log_performance(operation="get_email_by_message_id")
     async def get_email_by_message_id(
         self, message_id: str, include_content: bool = True
-    ) -> Optional[Dict[str, Any]]:
+    ) -> dict[str, Any] | None:
         """Retrieves an email by its notmuch message ID with improved content extraction."""
         await self._ensure_initialized()
 
@@ -207,18 +197,15 @@ class NotmuchDataSource(DataSource):
 
             try:
                 # Parse email content from file
-                with open(filename, "r", encoding="utf-8", errors="ignore") as f:
+                with open(filename, encoding="utf-8", errors="ignore") as f:
                     email_message = email.message_from_file(f)
 
                 email_data = {
                     "id": message.get_message_id(),
                     "message_id": message.get_message_id(),
-                    "subject": message.get_header("subject")
-                    or email_message.get("Subject", ""),
-                    "sender": message.get_header("from")
-                    or email_message.get("From", ""),
-                    "recipients": message.get_header("to")
-                    or email_message.get("To", ""),
+                    "subject": message.get_header("subject") or email_message.get("Subject", ""),
+                    "sender": message.get_header("from") or email_message.get("From", ""),
+                    "recipients": message.get_header("to") or email_message.get("To", ""),
                     "date": message.get_date(),
                     "tags": list(message.get_tags()),
                 }
@@ -237,9 +224,7 @@ class NotmuchDataSource(DataSource):
                                 if not content:
                                     payload = part.get_payload(decode=True)
                                     if payload:
-                                        content = payload.decode(
-                                            "utf-8", errors="ignore"
-                                        )
+                                        content = payload.decode("utf-8", errors="ignore")
                     else:
                         payload = email_message.get_payload(decode=True)
                         if payload:
@@ -269,9 +254,9 @@ class NotmuchDataSource(DataSource):
         self,
         limit: int = 50,
         offset: int = 0,
-        category_id: Optional[int] = None,
-        is_unread: Optional[bool] = None,
-    ) -> List[Dict[str, Any]]:
+        category_id: int | None = None,
+        is_unread: bool | None = None,
+    ) -> list[dict[str, Any]]:
         """
         Retrieves emails. This is a basic implementation that maps parameters to a notmuch query.
         """
@@ -307,14 +292,12 @@ class NotmuchDataSource(DataSource):
             logger.error(f"Error getting emails from notmuch: {e}")
             return []
 
-    async def get_all_emails(
-        self, limit: int = 50, offset: int = 0
-    ) -> List[Dict[str, Any]]:
+    async def get_all_emails(self, limit: int = 50, offset: int = 0) -> list[dict[str, Any]]:
         """Get all emails with pagination."""
         return await self.get_emails(limit=limit, offset=offset)
 
     @log_performance(operation="get_all_categories")
-    async def get_all_categories(self) -> List[Dict[str, Any]]:
+    async def get_all_categories(self) -> list[dict[str, Any]]:
         """In notmuch, categories are tags."""
         await self._ensure_initialized()
 
@@ -329,15 +312,11 @@ class NotmuchDataSource(DataSource):
             return []
 
     @log_performance(operation="create_email")
-    async def create_email(
-        self, email_data: Dict[str, Any]
-    ) -> Optional[Dict[str, Any]]:
+    async def create_email(self, email_data: dict[str, Any]) -> dict[str, Any] | None:
         """Create a new email entry with AI analysis."""
         await self._ensure_initialized()
 
-        logger.info(
-            f"Creating email with subject: {email_data.get('subject', 'No subject')}"
-        )
+        logger.info(f"Creating email with subject: {email_data.get('subject', 'No subject')}")
 
         # For now, return a mock implementation
         # In a full implementation, this would actually store the email
@@ -356,18 +335,14 @@ class NotmuchDataSource(DataSource):
             try:
                 # Schedule AI analysis as a background task
                 asyncio.create_task(
-                    self._analyze_and_tag_email_background(
-                        result["message_id"], email_data
-                    )
+                    self._analyze_and_tag_email_background(result["message_id"], email_data)
                 )
             except Exception as e:
                 logger.warning(f"Failed to schedule background AI analysis: {e}")
 
         return result
 
-    async def _analyze_and_tag_email_background(
-        self, message_id: str, email_data: Dict[str, Any]
-    ):
+    async def _analyze_and_tag_email_background(self, message_id: str, email_data: dict[str, Any]):
         """Perform background AI analysis and tagging for a new email."""
         try:
             # Get the full email content for analysis
@@ -393,9 +368,7 @@ class NotmuchDataSource(DataSource):
                     if topics:
                         analysis_results["topics"] = topics
             except Exception as e:
-                logger.warning(
-                    f"Topic classification failed for email {message_id}: {e}"
-                )
+                logger.warning(f"Topic classification failed for email {message_id}: {e}")
 
             # Apply smart filters for categorization
             try:
@@ -423,9 +396,7 @@ class NotmuchDataSource(DataSource):
             except Exception as e:
                 logger.warning(f"Smart filtering failed for email {message_id}: {e}")
 
-            logger.info(
-                f"Completed background AI analysis and tagging for email {message_id}"
-            )
+            logger.info(f"Completed background AI analysis and tagging for email {message_id}")
         except Exception as e:
             logger.error(
                 f"Critical error in background email analysis and tagging for {message_id}: {e}"
@@ -433,16 +404,14 @@ class NotmuchDataSource(DataSource):
 
     async def get_email_by_id(
         self, email_id: int, include_content: bool = True
-    ) -> Optional[Dict[str, Any]]:
+    ) -> dict[str, Any] | None:
         """Get email by ID - Notmuch uses string message IDs, not integer IDs."""
         # This is a compatibility method for the DataSource interface
         # In a real implementation, this would map internal IDs to message IDs
         logger.warning("get_email_by_id called but Notmuch uses string message IDs")
         return None
 
-    async def create_category(
-        self, category_data: Dict[str, Any]
-    ) -> Optional[Dict[str, Any]]:
+    async def create_category(self, category_data: dict[str, Any]) -> dict[str, Any] | None:
         """Create a new category - Notmuch uses tags, not categories."""
         # This is a compatibility method for the DataSource interface
         # In Notmuch, categories are tags, so this would create a tag
@@ -451,8 +420,8 @@ class NotmuchDataSource(DataSource):
 
     @log_performance(operation="update_email_by_message_id")
     async def update_email_by_message_id(
-        self, message_id: str, update_data: Dict[str, Any]
-    ) -> Optional[Dict[str, Any]]:
+        self, message_id: str, update_data: dict[str, Any]
+    ) -> dict[str, Any] | None:
         """Update an email by its message ID."""
         await self._ensure_initialized()
 
@@ -464,7 +433,7 @@ class NotmuchDataSource(DataSource):
 
     async def get_emails_by_category(
         self, category_id: int, limit: int = 50, offset: int = 0
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """Get emails by category - Notmuch uses string tags, not integer category IDs."""
         # This is a compatibility method for the DataSource interface
         # In Notmuch, categories are tags, so this would search by tag
@@ -473,8 +442,8 @@ class NotmuchDataSource(DataSource):
 
     @log_performance(operation="update_email")
     async def update_email(
-        self, email_id: int, update_data: Dict[str, Any]
-    ) -> Optional[Dict[str, Any]]:
+        self, email_id: int, update_data: dict[str, Any]
+    ) -> dict[str, Any] | None:
         """Update an email by its internal ID."""
         await self._ensure_initialized()
 
@@ -495,7 +464,7 @@ class NotmuchDataSource(DataSource):
         return True
 
     @log_performance(operation="get_dashboard_aggregates")
-    async def get_dashboard_aggregates(self) -> Dict[str, Any]:
+    async def get_dashboard_aggregates(self) -> dict[str, Any]:
         """Retrieves aggregated dashboard statistics for efficient server-side calculations."""
         await self._ensure_initialized()
 
@@ -564,7 +533,7 @@ class NotmuchDataSource(DataSource):
             }
 
     @log_performance(operation="get_category_breakdown")
-    async def get_category_breakdown(self, limit: int = 10) -> Dict[str, int]:
+    async def get_category_breakdown(self, limit: int = 10) -> dict[str, int]:
         """Retrieves category breakdown statistics with configurable limit.
 
         In Notmuch, categories are mapped to tags. This implementation counts emails per tag
@@ -612,7 +581,7 @@ class NotmuchDataSource(DataSource):
             return {}
 
     @log_performance(operation="update_tags_for_message")
-    async def update_tags_for_message(self, message_id: str, tags: List[str]) -> bool:
+    async def update_tags_for_message(self, message_id: str, tags: list[str]) -> bool:
         """
         Updates the tags for a given message ID in notmuch.
         """
@@ -670,9 +639,7 @@ class NotmuchDataSource(DataSource):
                 try:
                     asyncio.create_task(self._reanalyze_email(message_id))
                 except Exception as e:
-                    logger.warning(
-                        f"Failed to schedule re-analysis for email {message_id}: {e}"
-                    )
+                    logger.warning(f"Failed to schedule re-analysis for email {message_id}: {e}")
 
             return True
 
@@ -689,9 +656,7 @@ class NotmuchDataSource(DataSource):
                 context=error_context,
                 details={"error_type": type(e).__name__},
             )
-            logger.error(
-                f"Error updating tags for message {message_id}: {e}. Error ID: {error_id}"
-            )
+            logger.error(f"Error updating tags for message {message_id}: {e}. Error ID: {error_id}")
             return False
 
     async def _reanalyze_email(self, message_id: str):
@@ -700,13 +665,9 @@ class NotmuchDataSource(DataSource):
             logger.info(f"Re-analyzing email {message_id} after tag update")
 
             # Get email content
-            email_data = await self.get_email_by_message_id(
-                message_id, include_content=True
-            )
+            email_data = await self.get_email_by_message_id(message_id, include_content=True)
             if not email_data:
-                logger.error(
-                    f"Could not retrieve email data for re-analysis {message_id}"
-                )
+                logger.error(f"Could not retrieve email data for re-analysis {message_id}")
                 return
 
             # Perform AI analysis
@@ -732,9 +693,7 @@ class NotmuchDataSource(DataSource):
                     if topics:
                         analysis_results["topics"] = topics
             except Exception as e:
-                logger.warning(
-                    f"Topic classification failed for email {message_id}: {e}"
-                )
+                logger.warning(f"Topic classification failed for email {message_id}: {e}")
 
             logger.info(f"Completed re-analysis for email {message_id}")
         except Exception as e:
@@ -752,9 +711,7 @@ class NotmuchDataSource(DataSource):
 
         try:
             # Get email content
-            email_data = await self.get_email_by_message_id(
-                message_id, include_content=True
-            )
+            email_data = await self.get_email_by_message_id(message_id, include_content=True)
             if not email_data:
                 logger.error(f"Could not retrieve email data for {message_id}")
                 return False
@@ -782,9 +739,7 @@ class NotmuchDataSource(DataSource):
                     if topics:
                         analysis_results["topics"] = topics
             except Exception as e:
-                logger.warning(
-                    f"Topic classification failed for email {message_id}: {e}"
-                )
+                logger.warning(f"Topic classification failed for email {message_id}: {e}")
 
             # Apply smart filters for categorization
             try:
@@ -818,9 +773,7 @@ class NotmuchDataSource(DataSource):
             return True
 
         except Exception as e:
-            logger.error(
-                f"Critical error in email analysis and tagging for {message_id}: {e}"
-            )
+            logger.error(f"Critical error in email analysis and tagging for {message_id}: {e}")
             return False
 
     async def shutdown(self) -> None:

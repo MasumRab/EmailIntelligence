@@ -5,7 +5,7 @@ Implements the Factory pattern for creating command instances.
 This factory manages command creation and provides dependency injection.
 """
 
-from typing import Any, Dict, Optional, Type
+from typing import Any
 
 from .interface import Command
 
@@ -21,7 +21,7 @@ class CommandFactory:
     - Consistent initialization across commands
     """
 
-    def __init__(self, dependencies: Optional[Dict[str, Any]] = None):
+    def __init__(self, dependencies: dict[str, Any] | None = None):
         """
         Initialize the command factory.
 
@@ -29,9 +29,9 @@ class CommandFactory:
             dependencies: Global dependencies available to all commands
         """
         self._dependencies = dependencies or {}
-        self._command_classes: Dict[str, Type[Command]] = {}
+        self._command_classes: dict[str, type[Command]] = {}
 
-    def register_command(self, command_class: Type[Command]) -> None:
+    def register_command(self, command_class: type[Command]) -> None:
         """
         Register a command class with the factory.
 
@@ -41,7 +41,7 @@ class CommandFactory:
         command_instance = command_class()
         self._command_classes[command_instance.name] = command_class
 
-    def create_command(self, command_name: str) -> Optional[Command]:
+    def create_command(self, command_name: str) -> Command | None:
         """
         Create an instance of the specified command.
 
@@ -82,7 +82,7 @@ class CommandFactory:
 
         return command
 
-    def get_available_commands(self) -> Dict[str, str]:
+    def get_available_commands(self) -> dict[str, str]:
         """
         Get all available commands with their descriptions.
 

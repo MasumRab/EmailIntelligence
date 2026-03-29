@@ -8,7 +8,6 @@ and performance monitoring with minimal overhead.
 import ipaddress
 import logging
 import time
-from typing import Optional
 
 from fastapi import Request
 from fastapi.responses import JSONResponse
@@ -31,7 +30,7 @@ class SecurityMiddleware:
         enable_rate_limiting: bool = True,
         enable_audit_logging: bool = True,
         enable_performance_monitoring: bool = True,
-        trusted_proxies: Optional[list] = None,
+        trusted_proxies: list | None = None,
     ):
         self.app = app
         self.enable_rate_limiting = enable_rate_limiting
@@ -168,8 +167,7 @@ class SecurityMiddleware:
                 try:
                     proxy_ip = ipaddress.ip_address(request.client.host)
                     if any(
-                        proxy_ip in ipaddress.ip_network(proxy)
-                        for proxy in self.trusted_proxies
+                        proxy_ip in ipaddress.ip_network(proxy) for proxy in self.trusted_proxies
                     ):
                         return real_ip
                 except (ValueError, ipaddress.AddressValueError):
@@ -180,15 +178,13 @@ class SecurityMiddleware:
         # Fall back to direct client IP
         return request.client.host if request.client else "unknown"
 
-    def _get_user_id(self, request: Request) -> Optional[str]:
+    def _get_user_id(self, request: Request) -> str | None:
         """Extract user ID from request (JWT token, session, etc.)."""
         # This is a placeholder - in a real implementation, you'd extract
         # the user ID from JWT tokens, session cookies, etc.
         # For now, we'll look for a simple header or query param
 
-        user_id = request.headers.get("X-User-ID") or request.query_params.get(
-            "user_id"
-        )
+        user_id = request.headers.get("X-User-ID") or request.query_params.get("user_id")
         return user_id
 
 
@@ -233,7 +229,7 @@ def create_security_middleware(
     enable_rate_limiting: bool = True,
     enable_audit_logging: bool = True,
     enable_performance_monitoring: bool = True,
-    trusted_proxies: Optional[list] = None,
+    trusted_proxies: list | None = None,
 ):
     """Create security middleware with specified options."""
     return SecurityMiddleware(

@@ -6,8 +6,9 @@ Email service for the Email Intelligence Platform
 Handles all email-related business logic
 """
 
-from typing import Optional, Dict, Any
-from .base_service import BaseService, BaseResponse
+from typing import Any
+
+from .base_service import BaseResponse, BaseService
 
 
 class EmailService(BaseService):
@@ -63,8 +64,8 @@ class EmailService(BaseService):
         self,
         limit: int = 50,
         offset: int = 0,
-        category_id: Optional[int] = None,
-        is_unread: Optional[bool] = None,
+        category_id: int | None = None,
+        is_unread: bool | None = None,
     ) -> BaseResponse:
         """Get all emails with optional filtering and pagination"""
         try:
@@ -72,13 +73,11 @@ class EmailService(BaseService):
             emails = await db.get_emails(
                 limit=limit, offset=offset, category_id=category_id, is_unread=is_unread
             )
-            return BaseResponse(
-                success=True, message="Emails retrieved successfully", data=emails
-            )
+            return BaseResponse(success=True, message="Emails retrieved successfully", data=emails)
         except Exception as e:
             return await self.handle_error(e, "get_all_emails")
 
-    async def create_email(self, email_data: Dict[str, Any]) -> BaseResponse:
+    async def create_email(self, email_data: dict[str, Any]) -> BaseResponse:
         """Create a new email"""
         try:
             db = await self.get_db()
@@ -98,9 +97,7 @@ class EmailService(BaseService):
         except Exception as e:
             return await self.handle_error(e, "create_email")
 
-    async def update_email(
-        self, email_id: int, update_data: Dict[str, Any]
-    ) -> BaseResponse:
+    async def update_email(self, email_id: int, update_data: dict[str, Any]) -> BaseResponse:
         """Update an email by its ID"""
         try:
             db = await self.get_db()
@@ -121,7 +118,7 @@ class EmailService(BaseService):
             return await self.handle_error(e, "update_email")
 
     async def update_email_by_message_id(
-        self, message_id: str, update_data: Dict[str, Any]
+        self, message_id: str, update_data: dict[str, Any]
     ) -> BaseResponse:
         """Update an email by its message ID"""
         try:
@@ -185,7 +182,7 @@ class EmailService(BaseService):
             # Return a default value in case of error
             return 0
 
-    async def get_weekly_growth(self) -> Dict[str, Any]:
+    async def get_weekly_growth(self) -> dict[str, Any]:
         """Get the weekly growth statistics."""
         try:
             db = await self.get_db()

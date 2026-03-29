@@ -8,7 +8,7 @@ This module provides API endpoints for training AI models used in email analysis
 """
 
 import logging
-from typing import Any, Dict
+from typing import Any
 
 from fastapi import APIRouter, BackgroundTasks, HTTPException
 
@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 # In-memory storage for training jobs (in production, use database)
-training_jobs: Dict[str, Dict[str, Any]] = {}
+training_jobs: dict[str, dict[str, Any]] = {}
 
 
 @router.post("/api/training/start")
@@ -63,9 +63,7 @@ async def start_training(
 
 @router.get("/api/training/status/{job_id}")
 @log_performance(operation="get_training_status")
-async def get_training_status(
-    job_id: str, current_user: str = Depends(get_current_active_user)
-):
+async def get_training_status(job_id: str, current_user: str = Depends(get_current_active_user)):
     """
     Get the status of a training job.
 

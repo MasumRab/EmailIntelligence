@@ -5,7 +5,7 @@ Implements the validate command for running validation checks.
 """
 
 from argparse import Namespace
-from typing import Any, Dict
+from typing import Any
 
 from .interface import Command
 
@@ -35,7 +35,7 @@ class ValidateCommand(Command):
         # No arguments required for basic validation
         pass
 
-    def get_dependencies(self) -> Dict[str, Any]:
+    def get_dependencies(self) -> dict[str, Any]:
         """
         Get required dependencies for this command.
 
@@ -46,7 +46,7 @@ class ValidateCommand(Command):
             "validator": "Validator",
         }
 
-    def set_dependencies(self, dependencies: Dict[str, Any]) -> None:
+    def set_dependencies(self, dependencies: dict[str, Any]) -> None:
         """
         Set command dependencies.
 

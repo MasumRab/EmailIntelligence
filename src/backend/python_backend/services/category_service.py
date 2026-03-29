@@ -6,8 +6,9 @@ Category service for the Email Intelligence Platform
 Handles all category-related business logic
 """
 
-from typing import Dict, Any
-from .base_service import BaseService, BaseResponse
+from typing import Any
+
+from .base_service import BaseResponse, BaseService
 
 
 class CategoryService(BaseService):
@@ -36,7 +37,7 @@ class CategoryService(BaseService):
         except Exception as e:
             return await self.handle_error(e, "get_all_categories")
 
-    async def create_category(self, category_data: Dict[str, Any]) -> BaseResponse:
+    async def create_category(self, category_data: dict[str, Any]) -> BaseResponse:
         """Create a new category"""
         try:
             db = await self.get_db()
@@ -56,9 +57,7 @@ class CategoryService(BaseService):
         except Exception as e:
             return await self.handle_error(e, "create_category")
 
-    async def update_category(
-        self, category_id: int, update_data: Dict[str, Any]
-    ) -> BaseResponse:
+    async def update_category(self, category_id: int, update_data: dict[str, Any]) -> BaseResponse:
         """Update a category by its ID"""
         try:
             db = await self.get_db()
@@ -84,9 +83,7 @@ class CategoryService(BaseService):
             db = await self.get_db()
             deleted = await db.delete_category(category_id)
             if deleted:
-                return BaseResponse(
-                    success=True, message="Category deleted successfully"
-                )
+                return BaseResponse(success=True, message="Category deleted successfully")
             else:
                 return BaseResponse(
                     success=False,

@@ -1,5 +1,4 @@
 import logging
-from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 
@@ -18,7 +17,7 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
-@router.get("/", response_model=List[EmailResponse])
+@router.get("/", response_model=list[EmailResponse])
 @log_performance
 async def get_emails(
     current_user: str = Depends(get_current_active_user),
@@ -58,9 +57,7 @@ async def get_email(
             return email
         raise HTTPException(status_code=404, detail="Email not found")
     except DatabaseError as e:
-        logger.error(
-            f"Database error while fetching email {email_id}: {e}", exc_info=True
-        )
+        logger.error(f"Database error while fetching email {email_id}: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail="Database error occurred.")
 
 
@@ -100,7 +97,5 @@ async def update_email(
             return updated_email
         raise HTTPException(status_code=404, detail="Email not found")
     except DatabaseError as e:
-        logger.error(
-            f"Database error while updating email {email_id}: {e}", exc_info=True
-        )
+        logger.error(f"Database error while updating email {email_id}: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail="Database error occurred.")

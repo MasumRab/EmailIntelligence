@@ -11,9 +11,9 @@ import logging
 import threading
 import time
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from functools import wraps
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import psutil
 
@@ -37,21 +37,21 @@ class ProcessingEvent:
     """Represents a processing event in the system"""
 
     event_type: str  # 'model_load', 'model_unload', 'workflow_execute', etc.
-    model_name: Optional[str]
-    workflow_name: Optional[str]
+    model_name: str | None
+    workflow_name: str | None
     start_time: float
-    end_time: Optional[float]
+    end_time: float | None
     success: bool
-    details: Dict[str, Any]
+    details: dict[str, Any]
 
 
 class PerformanceMonitor:
     """Monitors and tracks performance metrics across the system"""
 
     def __init__(self):
-        self._metrics: List[PerformanceMetric] = []
-        self._events: List[ProcessingEvent] = []
-        self._model_performance: Dict[str, List[PerformanceMetric]] = {}
+        self._metrics: list[PerformanceMetric] = []
+        self._events: list[ProcessingEvent] = []
+        self._model_performance: dict[str, list[PerformanceMetric]] = {}
         self._lock = threading.Lock()
 
         # Monitor system resources
@@ -169,10 +169,10 @@ class PerformanceMonitor:
     def record_event(
         self,
         event_type: str,
-        model_name: Optional[str] = None,
-        workflow_name: Optional[str] = None,
+        model_name: str | None = None,
+        workflow_name: str | None = None,
         success: bool = True,
-        details: Optional[Dict[str, Any]] = None,
+        details: dict[str, Any] | None = None,
     ) -> str:
         """Record a processing event in the system"""
         with self._lock:
@@ -202,8 +202,8 @@ class PerformanceMonitor:
     def get_recent_metrics(
         self,
         minutes: int = 5,
-        source_filter: Optional[str] = None,
-    ) -> List[PerformanceMetric]:
+        source_filter: str | None = None,
+    ) -> list[PerformanceMetric]:
         """Get metrics from the last specified minutes"""
         with self._lock:
             cutoff_time = time.time() - (minutes * 60)
@@ -215,9 +215,7 @@ class PerformanceMonitor:
             ]
             return sorted(filtered_metrics, key=lambda m: m.timestamp)
 
-    def get_model_performance(
-        self, model_name: str, minutes: int = 5
-    ) -> List[PerformanceMetric]:
+    def get_model_performance(self, model_name: str, minutes: int = 5) -> list[PerformanceMetric]:
         """Get performance metrics for a specific model"""
         with self._lock:
             if model_name not in self._model_performance:
@@ -231,9 +229,7 @@ class PerformanceMonitor:
             ]
             return sorted(filtered_metrics, key=lambda m: m.timestamp)
 
-    def get_avg_model_performance(
-        self, model_name: str, minutes: int = 5
-    ) -> Optional[float]:
+    def get_avg_model_performance(self, model_name: str, minutes: int = 5) -> float | None:
         """Get average performance for a model in the last specified minutes"""
         metrics = self.get_model_performance(model_name, minutes)
         if not metrics:
@@ -245,7 +241,7 @@ class PerformanceMonitor:
 
         return sum(execution_times) / len(execution_times)
 
-    def get_system_stats(self) -> Dict[str, float]:
+    def get_system_stats(self) -> dict[str, float]:
         """Get current system stats"""
         with self._lock:
             # Get the most recent values for CPU, memory, and disk usage
@@ -263,9 +259,7 @@ class PerformanceMonitor:
         """Get the error rate in the last specified minutes"""
         with self._lock:
             cutoff_time = time.time() - (minutes * 60)
-            recent_events = [
-                event for event in self._events if event.start_time >= cutoff_time
-            ]
+            recent_events = [event for event in self._events if event.start_time >= cutoff_time]
 
             if not recent_events:
                 return 0.0
@@ -277,7 +271,7 @@ class PerformanceMonitor:
         """Stop the system resource monitoring"""
         self._system_monitoring = False
 
-    def log_performance(self, log_entry: Dict[str, Any]) -> None:
+    def log_performance(self, log_entry: dict[str, Any]) -> None:
         """Log a performance entry to file"""
         try:
             with open(LOG_FILE, "a", encoding="utf-8") as f:
@@ -335,7 +329,7 @@ def _create_decorator(func, op_name):
             duration = end_time - start_time
 
             log_entry = {
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
                 "operation": op_name,
                 "duration_seconds": duration,
             }
@@ -343,7 +337,7 @@ def _create_decorator(func, op_name):
             try:
                 with open(LOG_FILE, "a") as f:
                     f.write(json.dumps(log_entry) + "\n")
-            except IOError as e:
+            except OSError as e:
                 logger.error(f"Failed to write performance log: {e}")
 
             return result
@@ -359,7 +353,7 @@ def _create_decorator(func, op_name):
             duration = end_time - start_time
 
             log_entry = {
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
                 "operation": op_name,
                 "duration_seconds": duration,
             }
@@ -367,7 +361,7 @@ def _create_decorator(func, op_name):
             try:
                 with open(LOG_FILE, "a") as f:
                     f.write(json.dumps(log_entry) + "\n")
-            except IOError as e:
+            except OSError as e:
                 logger.error(f"Failed to write performance log: {e}")
 
             return result

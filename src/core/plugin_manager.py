@@ -14,7 +14,7 @@ import time
 import zipfile
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Set
+from typing import Any
 from urllib.parse import urlparse
 
 import httpx
@@ -44,7 +44,7 @@ class PluginMarketplaceEntry:
     description: str
     download_url: str
     checksum: str
-    tags: List[str] = field(default_factory=list)
+    tags: list[str] = field(default_factory=list)
     rating: float = 0.0
     downloads: int = 0
     last_updated: float = field(default_factory=time.time)
@@ -62,10 +62,10 @@ class PluginManager:
             marketplace_url or "https://api.emailintelligence.plugins/marketplace"
         )
         self.registry = PluginRegistry(plugins_dir)
-        self._marketplace_cache: Dict[str, PluginMarketplaceEntry] = {}
+        self._marketplace_cache: dict[str, PluginMarketplaceEntry] = {}
         self._marketplace_cache_time: float = 0
         self._cache_ttl = 3600  # 1 hour
-        self._background_tasks: Set[asyncio.Task] = set()
+        self._background_tasks: set[asyncio.Task] = set()
 
         # Create plugins directory
         self.plugins_dir.mkdir(parents=True, exist_ok=True)
@@ -146,8 +146,8 @@ class PluginManager:
             return False
 
     async def load_plugin(
-        self, plugin_id: str, config: Dict[str, Any] = None
-    ) -> Optional[PluginInstance]:
+        self, plugin_id: str, config: dict[str, Any] = None
+    ) -> PluginInstance | None:
         """Load a plugin into memory."""
         return await self.registry.load_plugin(plugin_id, config)
 
@@ -163,11 +163,11 @@ class PluginManager:
         """Disable a plugin."""
         return await self.registry.disable_plugin(plugin_id)
 
-    def list_plugins(self) -> List[Dict[str, Any]]:
+    def list_plugins(self) -> list[dict[str, Any]]:
         """List all installed plugins."""
         return self.registry.list_plugins()
 
-    async def get_plugin_info(self, plugin_id: str) -> Optional[Dict[str, Any]]:
+    async def get_plugin_info(self, plugin_id: str) -> dict[str, Any] | None:
         """Get detailed information about a plugin."""
         plugins = self.list_plugins()
         return next((p for p in plugins if p["id"] == plugin_id), None)
@@ -196,7 +196,7 @@ class PluginManager:
             logger.error(f"Failed to update plugin {plugin_id}: {e}")
             return False
 
-    async def validate_plugin(self, plugin_id: str) -> Dict[str, Any]:
+    async def validate_plugin(self, plugin_id: str) -> dict[str, Any]:
         """Validate a plugin's integrity and security."""
         return await self.registry.validate_model(plugin_id)  # Reuse validation logic
 
@@ -208,9 +208,7 @@ class PluginManager:
         """Get the security sandbox."""
         return self.registry.get_security_sandbox()
 
-    async def get_marketplace_plugins(
-        self, refresh: bool = False
-    ) -> List[Dict[str, Any]]:
+    async def get_marketplace_plugins(self, refresh: bool = False) -> list[dict[str, Any]]:
         """Get available plugins from the marketplace."""
         try:
             if refresh or self._should_refresh_marketplace_cache():
@@ -243,7 +241,7 @@ class PluginManager:
             logger.error(f"Failed to get marketplace plugins: {e}")
             return []
 
-    def get_system_status(self) -> Dict[str, Any]:
+    def get_system_status(self) -> dict[str, Any]:
         """Get comprehensive plugin system status."""
         plugins = self.list_plugins()
         loaded_plugins = [p for p in plugins if p.get("loaded", False)]
@@ -258,16 +256,12 @@ class PluginManager:
             "background_tasks_active": len(self._background_tasks),
             "plugins_dir": str(self.plugins_dir),
             "security_levels": {
-                level.value: len(
-                    [p for p in plugins if p.get("security_level") == level.value]
-                )
+                level.value: len([p for p in plugins if p.get("security_level") == level.value])
                 for level in PluginSecurityLevel
             },
         }
 
-    async def execute_plugin_method(
-        self, plugin_id: str, method_name: str, *args, **kwargs
-    ) -> Any:
+    async def execute_plugin_method(self, plugin_id: str, method_name: str, *args, **kwargs) -> Any:
         """Execute a method on a loaded plugin safely."""
         if plugin_id not in self.registry._instances:
             raise ValueError(f"Plugin {plugin_id} is not loaded")
@@ -285,12 +279,8 @@ class PluginManager:
 
         # Execute with security validation
         security_level = instance.metadata.security_level
-        if not self._validate_method_execution(
-            plugin_object, method_name, security_level
-        ):
-            raise SecurityError(
-                f"Method execution not allowed for security level {security_level}"
-            )
+        if not self._validate_method_execution(plugin_object, method_name, security_level):
+            raise SecurityError(f"Method execution not allowed for security level {security_level}")
 
         try:
             if asyncio.iscoroutinefunction(method):
@@ -298,14 +288,12 @@ class PluginManager:
             else:
                 return method(*args, **kwargs)
         except Exception as e:
-            logger.error(
-                f"Plugin method execution failed: {plugin_id}.{method_name}: {e}"
-            )
+            logger.error(f"Plugin method execution failed: {plugin_id}.{method_name}: {e}")
             raise
 
     async def _get_plugin_from_marketplace(
         self, plugin_id: str, version: str = None
-    ) -> Optional[PluginMarketplaceEntry]:
+    ) -> PluginMarketplaceEntry | None:
         """Get plugin information from marketplace."""
         try:
             if self._should_refresh_marketplace_cache():
@@ -318,9 +306,7 @@ class PluginManager:
 
             # Check version
             if version and entry.version != version:
-                logger.warning(
-                    f"Requested version {version} not available for {plugin_id}"
-                )
+                logger.warning(f"Requested version {version} not available for {plugin_id}")
                 return None
 
             return entry
@@ -329,9 +315,7 @@ class PluginManager:
             logger.error(f"Failed to get plugin from marketplace: {e}")
             return None
 
-    async def _download_and_install_plugin(
-        self, plugin_info: PluginMarketplaceEntry
-    ) -> bool:
+    async def _download_and_install_plugin(self, plugin_info: PluginMarketplaceEntry) -> bool:
         """Download and install a plugin from the marketplace."""
         try:
             with tempfile.TemporaryDirectory() as temp_dir:
@@ -343,9 +327,7 @@ class PluginManager:
 
                 # Verify checksum
                 if not await self._verify_checksum(download_path, plugin_info.checksum):
-                    logger.error(
-                        f"Checksum verification failed for {plugin_info.plugin_id}"
-                    )
+                    logger.error(f"Checksum verification failed for {plugin_info.plugin_id}")
                     return False
 
                 # Extract archive
@@ -377,9 +359,7 @@ class PluginManager:
                     plugin_dir.mkdir()
                     for file_path in extract_path.iterdir():
                         if file_path.is_file():
-                            shutil.move(
-                                str(file_path), str(plugin_dir / file_path.name)
-                            )
+                            shutil.move(str(file_path), str(plugin_dir / file_path.name))
 
                 # Register the plugin
                 metadata = PluginMetadata(
@@ -393,9 +373,7 @@ class PluginManager:
                 return await self.registry.register_plugin(metadata)
 
         except Exception as e:
-            logger.error(
-                f"Failed to download and install plugin {plugin_info.plugin_id}: {e}"
-            )
+            logger.error(f"Failed to download and install plugin {plugin_info.plugin_id}: {e}")
             return False
 
     async def _download_file(self, url: str, dest_path: Path):
@@ -503,9 +481,7 @@ class PluginManager:
                     try:
                         validation = await self.validate_plugin(plugin_id)
                         if not validation.get("valid", True):
-                            logger.warning(
-                                f"Plugin {plugin_id} health check failed: {validation}"
-                            )
+                            logger.warning(f"Plugin {plugin_id} health check failed: {validation}")
                     except Exception as e:
                         logger.error(f"Health check failed for plugin {plugin_id}: {e}")
 

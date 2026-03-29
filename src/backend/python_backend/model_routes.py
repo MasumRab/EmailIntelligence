@@ -3,7 +3,7 @@ API routes for managing AI models.
 """
 
 import logging
-from typing import Any, Dict, List
+from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException
 
@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
-@router.get("/api/models", response_model=List[Dict[str, Any]])
+@router.get("/api/models", response_model=list[dict[str, Any]])
 async def list_models(
     current_user: str = Depends(get_current_active_user),
     model_manager: ModelManager = Depends(get_model_manager),
@@ -43,9 +43,7 @@ async def load_model(
         return {"message": f"Model '{model_name}' loaded successfully."}
     except Exception as e:
         logger.error(f"Error loading model {model_name}: {e}")
-        raise HTTPException(
-            status_code=500, detail=f"Failed to load model '{model_name}'"
-        )
+        raise HTTPException(status_code=500, detail=f"Failed to load model '{model_name}'")
 
 
 @router.post("/api/models/{model_name}/unload", response_model=dict)
@@ -63,6 +61,4 @@ async def unload_model(
         return {"message": f"Model '{model_name}' unloaded successfully."}
     except Exception as e:
         logger.error(f"Error unloading model {model_name}: {e}")
-        raise HTTPException(
-            status_code=500, detail=f"Failed to unload model '{model_name}'"
-        )
+        raise HTTPException(status_code=500, detail=f"Failed to unload model '{model_name}'")

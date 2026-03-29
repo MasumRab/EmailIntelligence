@@ -1,20 +1,21 @@
-import logging
 import json
+import logging
+from collections import defaultdict
 from pathlib import Path
+
 from fastapi import APIRouter, Depends, HTTPException
+
+from src.core.auth import get_current_active_user
 from src.core.data.repository import EmailRepository
 from src.core.factory import get_email_repository
-from src.core.auth import get_current_active_user
+
 from .models import ConsolidatedDashboardStats, WeeklyGrowth
-from collections import defaultdict
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
 
 # Use absolute path for performance log file
-LOG_FILE = (
-    Path(__file__).resolve().parent.parent.parent / "performance_metrics_log.jsonl"
-)
+LOG_FILE = Path(__file__).resolve().parent.parent.parent / "performance_metrics_log.jsonl"
 
 
 @router.get("/stats", response_model=ConsolidatedDashboardStats)
@@ -60,7 +61,7 @@ async def get_dashboard_stats(
         # Performance metrics (keep existing logic for now)
         performance_metrics = defaultdict(lambda: {"total_duration": 0, "count": 0})
         try:
-            with open(LOG_FILE, "r", encoding="utf-8") as f:
+            with open(LOG_FILE, encoding="utf-8") as f:
                 for line in f:
                     try:
                         log_entry = json.loads(line)

@@ -4,11 +4,12 @@ import logging
 import gradio as gr
 
 # Import from the new advanced workflow engine in the core
-from src.core.advanced_workflow_engine import Workflow, get_workflow_manager
 from src.core.advanced_workflow_engine import (
     EmailInputNode,
-    NLPProcessorNode,
     EmailOutputNode,
+    NLPProcessorNode,
+    Workflow,
+    get_workflow_manager,
 )
 
 logger = logging.getLogger(__name__)

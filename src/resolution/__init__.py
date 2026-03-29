@@ -4,11 +4,12 @@ Constitutional Engine
 Implements constitutional analysis for code compliance and standards.
 """
 
-from typing import List, Dict, Any, Optional
-from dataclasses import dataclass
 import json
-import yaml
+from dataclasses import dataclass
 from pathlib import Path
+from typing import Any, Dict, List, Optional
+
+import yaml
 
 
 @dataclass
@@ -41,9 +42,9 @@ class ConstitutionalValidationResult:
 
     overall_score: float  # 0.0 to 1.0
     compliance_level: ComplianceLevel
-    detailed_results: List[ComplianceResult]
+    detailed_results: list[ComplianceResult]
     summary: str = ""
-    recommendations: List[str] = None
+    recommendations: list[str] = None
 
     def __post_init__(self):
         if self.recommendations is None:
@@ -58,17 +59,17 @@ class ComplianceResult:
     is_compliant: bool
     score: float  # 0.0 to 1.0
     details: str
-    suggestions: List[str]
+    suggestions: list[str]
 
 
 class ConstitutionalEngine:
     """Engine for constitutional analysis and compliance checking"""
 
-    def __init__(self, constitution_file: Optional[str] = None):
-        self.requirements: List[ConstitutionalRequirement] = []
+    def __init__(self, constitution_file: str | None = None):
+        self.requirements: list[ConstitutionalRequirement] = []
         self.load_constitution(constitution_file)
 
-    def load_constitution(self, constitution_file: Optional[str] = None):
+    def load_constitution(self, constitution_file: str | None = None):
         """Load constitutional requirements from file or default set"""
         if constitution_file and Path(constitution_file).exists():
             self._load_from_file(constitution_file)
@@ -79,7 +80,7 @@ class ConstitutionalEngine:
         """Load constitution from file"""
         file_path = Path(constitution_file)
 
-        with open(file_path, "r", encoding="utf-8") as f:
+        with open(file_path, encoding="utf-8") as f:
             if file_path.suffix.lower() in [".yaml", ".yml"]:
                 data = yaml.safe_load(f)
             else:
@@ -144,8 +145,8 @@ class ConstitutionalEngine:
         self.requirements = default_requirements
 
     def analyze_compliance(
-        self, code: str, context: Dict[str, Any] = None
-    ) -> List[ComplianceResult]:
+        self, code: str, context: dict[str, Any] = None
+    ) -> list[ComplianceResult]:
         """Analyze code compliance against constitutional requirements"""
         results = []
 
@@ -159,7 +160,7 @@ class ConstitutionalEngine:
         self,
         code: str,
         requirement: ConstitutionalRequirement,
-        context: Dict[str, Any] = None,
+        context: dict[str, Any] = None,
     ) -> ComplianceResult:
         """Check compliance with a single requirement"""
         # This is a simplified implementation - in a real system, this would be more sophisticated
@@ -205,13 +206,11 @@ class ConstitutionalEngine:
             suggestions=suggestions,
         )
 
-    def generate_compliance_report(self, results: List[ComplianceResult]) -> str:
+    def generate_compliance_report(self, results: list[ComplianceResult]) -> str:
         """Generate a compliance report from analysis results"""
         compliant_count = sum(1 for r in results if r.is_compliant)
         total_count = len(results)
-        overall_score = (
-            sum(r.score for r in results) / total_count if total_count > 0 else 0.0
-        )
+        overall_score = sum(r.score for r in results) / total_count if total_count > 0 else 0.0
 
         report_lines = [
             "# Constitutional Compliance Report",
@@ -237,8 +236,8 @@ class ConstitutionalEngine:
         return "\n".join(report_lines)
 
     def get_non_compliant_requirements(
-        self, results: List[ComplianceResult]
-    ) -> List[ComplianceResult]:
+        self, results: list[ComplianceResult]
+    ) -> list[ComplianceResult]:
         """Get only non-compliant requirements"""
         return [r for r in results if not r.is_compliant]
 
@@ -249,7 +248,7 @@ class ConstitutionalEngine:
         pass
 
     async def validate_specification_template(
-        self, template_content: str, template_type: str, context: Dict[str, Any] = None
+        self, template_content: str, template_type: str, context: dict[str, Any] = None
     ) -> ConstitutionalValidationResult:
         """Validate a specification template against constitutional requirements"""
         # Perform analysis on the template content
@@ -257,9 +256,7 @@ class ConstitutionalEngine:
 
         # Calculate overall score
         if compliance_results:
-            overall_score = sum(r.score for r in compliance_results) / len(
-                compliance_results
-            )
+            overall_score = sum(r.score for r in compliance_results) / len(compliance_results)
         else:
             overall_score = 1.0  # Perfect compliance if no requirements checked
 

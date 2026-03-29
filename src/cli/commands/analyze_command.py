@@ -6,7 +6,7 @@ Implements the analyze command for conflict analysis between branches.
 
 from argparse import Namespace
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 from .interface import Command
 
@@ -46,7 +46,7 @@ class AnalyzeCommand(Command):
             help="Head branch for conflict detection (default: current branch)",
         )
 
-    def get_dependencies(self) -> Dict[str, Any]:
+    def get_dependencies(self) -> dict[str, Any]:
         """
         Get required dependencies for this command.
 
@@ -60,7 +60,7 @@ class AnalyzeCommand(Command):
             "repository_ops": "RepositoryOperations",
         }
 
-    def set_dependencies(self, dependencies: Dict[str, Any]) -> None:
+    def set_dependencies(self, dependencies: dict[str, Any]) -> None:
         """
         Set command dependencies.
 
@@ -127,9 +127,7 @@ class AnalyzeCommand(Command):
                         ["rev-parse", "--verify", branch_var]
                     )
                     if rc != 0:
-                        print(
-                            f"Error: {branch_name.title()} branch '{branch_var}' not found"
-                        )
+                        print(f"Error: {branch_name.title()} branch '{branch_var}' not found")
                         print(f"Git error: {stderr}")
                         return 1
                 except Exception as e:
@@ -164,9 +162,7 @@ class AnalyzeCommand(Command):
                     )
 
                     # Generate resolution strategy
-                    strategy = await self._strategy_gen.generate_resolution_strategy(
-                        [conflict]
-                    )
+                    strategy = await self._strategy_gen.generate_resolution_strategy([conflict])
 
                     # Print conflict info
                     print(
@@ -174,17 +170,13 @@ class AnalyzeCommand(Command):
                         f"Risk={conflict.severity.value}, "
                         f"Score={getattr(analysis, 'compliance_score', 'N/A'):.2f}"
                     )
-                    print(
-                        f"  Strategy: {getattr(strategy, 'strategy_type', 'unknown')}"
-                    )
+                    print(f"  Strategy: {getattr(strategy, 'strategy_type', 'unknown')}")
 
                     # Show first few steps if available
                     steps = getattr(strategy, "steps", [])
                     for step in steps[:3]:  # Limit to first 3 steps
                         desc = (
-                            step.get("description", "Step")
-                            if isinstance(step, dict)
-                            else str(step)
+                            step.get("description", "Step") if isinstance(step, dict) else str(step)
                         )
                         print(f"    - {desc}")
 

@@ -1,7 +1,8 @@
-from typing import List, Dict, Any
-from .data_source import DataSource
-from ..database import DatabaseManager, create_database_manager, DatabaseConfig
+from typing import Any
+
+from ..database import DatabaseConfig, DatabaseManager, create_database_manager
 from ..factory import get_data_source
+from .data_source import DataSource
 
 
 class DatabaseDataSource(DataSource):
@@ -24,7 +25,7 @@ class DatabaseDataSource(DataSource):
         offset: int = 0,
         category_id: int = None,
         is_unread: bool = None,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """
         Fetches a list of emails from the database.
         """
@@ -32,33 +33,31 @@ class DatabaseDataSource(DataSource):
             limit=limit, offset=offset, category_id=category_id, is_unread=is_unread
         )
 
-    async def create_email(self, email_data: Dict[str, Any]) -> Dict[str, Any]:
+    async def create_email(self, email_data: dict[str, Any]) -> dict[str, Any]:
         """
         Creates a new email in the database.
         """
         return await self.db.create_email(email_data)
 
-    async def update_email(
-        self, email_id: Any, email_data: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    async def update_email(self, email_id: Any, email_data: dict[str, Any]) -> dict[str, Any]:
         """
         Updates an existing email in the database.
         """
         return await self.db.update_email(email_id, email_data)
 
-    async def get_email_by_id(self, email_id: Any) -> Dict[str, Any]:
+    async def get_email_by_id(self, email_id: Any) -> dict[str, Any]:
         """
         Fetches a single email by its ID from the database.
         """
         return await self.db.get_email_by_id(email_id)
 
-    async def search_emails(self, query: str) -> List[Dict[str, Any]]:
+    async def search_emails(self, query: str) -> list[dict[str, Any]]:
         """
         Searches for emails matching a query in the database.
         """
         return await self.db.search_emails(query)
 
-    async def add_tags(self, email_id: Any, tags: List[str]) -> bool:
+    async def add_tags(self, email_id: Any, tags: list[str]) -> bool:
         """
         Adds tags to an email in the database.
         """
@@ -72,7 +71,7 @@ class DatabaseDataSource(DataSource):
         updated_email = await self.db.update_email(email_id, {"tags": new_tags})
         return updated_email is not None
 
-    async def remove_tags(self, email_id: Any, tags: List[str]) -> bool:
+    async def remove_tags(self, email_id: Any, tags: list[str]) -> bool:
         """
         Removes tags from an email in the database.
         """
@@ -86,13 +85,13 @@ class DatabaseDataSource(DataSource):
         updated_email = await self.db.update_email(email_id, {"tags": updated_tags})
         return updated_email is not None
 
-    async def get_all_categories(self) -> List[Dict[str, Any]]:
+    async def get_all_categories(self) -> list[dict[str, Any]]:
         """
         Fetches all categories from the database.
         """
         return await self.db.get_all_categories()
 
-    async def create_category(self, category_data: Dict[str, Any]) -> Dict[str, Any]:
+    async def create_category(self, category_data: dict[str, Any]) -> dict[str, Any]:
         """
         Creates a new category in the database.
         """

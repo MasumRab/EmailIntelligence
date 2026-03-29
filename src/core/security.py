@@ -7,20 +7,20 @@ including access controls, data sanitization, execution sandboxing, and audit lo
 Also includes security utilities for path validation and sanitization.
 """
 
-import pathlib
 import hashlib
-import html
 import hmac
+import html
 import json
 import logging
+import pathlib
 import re
 import secrets
 import time
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Dict, List, Optional, Union
-from uuid import uuid4
 from pathlib import Path
+from typing import Any
+from uuid import uuid4
 
 logger = logging.getLogger(__name__)
 
@@ -48,23 +48,21 @@ class SecurityContext:
     """Holds security information for an execution context"""
 
     user_id: str
-    permissions: List[Permission]
+    permissions: list[Permission]
     security_level: SecurityLevel
     session_token: str
     created_at: float
     expires_at: float
-    allowed_resources: List[str]
-    ip_address: Optional[str] = None
-    origin: Optional[str] = None
+    allowed_resources: list[str]
+    ip_address: str | None = None
+    origin: str | None = None
 
 
 class SecurityValidator:
     """Validates security requirements for operations"""
 
     @staticmethod
-    def validate_access(
-        context: SecurityContext, resource: str, permission: Permission
-    ) -> bool:
+    def validate_access(context: SecurityContext, resource: str, permission: Permission) -> bool:
         """
         Validate if a security context has permission to access a resource
         """
@@ -82,7 +80,7 @@ class SecurityValidator:
         return True
 
     @staticmethod
-    def validate_data_access(context: SecurityContext, data: Dict[str, Any]) -> bool:
+    def validate_data_access(context: SecurityContext, data: dict[str, Any]) -> bool:
         """
         Validate if the security context can access the provided data
         """
@@ -100,7 +98,7 @@ class SecurityValidator:
 
 
 def validate_path_safety(
-    path: Union[str, pathlib.Path], base_dir: Optional[Union[str, pathlib.Path]] = None
+    path: str | pathlib.Path, base_dir: str | pathlib.Path | None = None
 ) -> bool:
     """
     Validate that a path is safe and doesn't contain directory traversal attempts.
@@ -149,8 +147,8 @@ def validate_path_safety(
 
 
 def sanitize_path(
-    path: Union[str, pathlib.Path], base_dir: Optional[Union[str, pathlib.Path]] = None
-) -> Optional[pathlib.Path]:
+    path: str | pathlib.Path, base_dir: str | pathlib.Path | None = None
+) -> pathlib.Path | None:
     """
     Sanitize a path by resolving it and ensuring it's within a base directory.
 
@@ -182,8 +180,8 @@ class DataSanitizer:
         elif isinstance(data, dict):
             sanitized_dict = {}
             for key, value in data.items():
-                sanitized_dict[DataSanitizer.sanitize_input(key)] = (
-                    DataSanitizer.sanitize_input(value)
+                sanitized_dict[DataSanitizer.sanitize_input(key)] = DataSanitizer.sanitize_input(
+                    value
                 )
             return sanitized_dict
         elif isinstance(data, list):
@@ -226,8 +224,7 @@ class DataSanitizer:
             for key, value in data.items():
                 # Redact sensitive fields
                 if any(
-                    sensitive in key.lower()
-                    for sensitive in ["password", "token", "key", "secret"]
+                    sensitive in key.lower() for sensitive in ["password", "token", "key", "secret"]
                 ):
                     sanitized_dict[key] = "[REDACTED]"
                 else:
@@ -270,8 +267,8 @@ class AuditLogger:
         self,
         context: SecurityContext,
         node_type: str,
-        inputs: Dict[str, Any],
-        outputs: Dict[str, Any],
+        inputs: dict[str, Any],
+        outputs: dict[str, Any],
     ):
         """Log a node execution for audit purposes"""
         log_entry = {
@@ -281,15 +278,11 @@ class AuditLogger:
             "node_type": node_type,
             "execution_id": str(uuid4()),
             "ip_address": context.ip_address,
-            "input_keys": list(inputs.keys())
-            if isinstance(inputs, dict)
-            else "unknown",
+            "input_keys": list(inputs.keys()) if isinstance(inputs, dict) else "unknown",
         }
         self.logger.info(f"EXECUTION: {json.dumps(log_entry)}")
 
-    def log_security_violation(
-        self, context: SecurityContext, violation_type: str, details: str
-    ):
+    def log_security_violation(self, context: SecurityContext, violation_type: str, details: str):
         """Log a security violation"""
         log_entry = {
             "timestamp": time.time(),
@@ -316,9 +309,7 @@ class ExecutionSandbox:
         # Log the execution attempt
         self.audit_logger.log_execution(
             context=self.context,
-            node_type=execute_func.__name__
-            if hasattr(execute_func, "__name__")
-            else "unknown",
+            node_type=execute_func.__name__ if hasattr(execute_func, "__name__") else "unknown",
             inputs=kwargs,
             outputs={},
         )
@@ -334,9 +325,7 @@ class ExecutionSandbox:
 
         # Sanitize inputs
         sanitized_args = [DataSanitizer.sanitize_input(arg) for arg in args]
-        sanitized_kwargs = {
-            k: DataSanitizer.sanitize_input(v) for k, v in kwargs.items()
-        }
+        sanitized_kwargs = {k: DataSanitizer.sanitize_input(v) for k, v in kwargs.items()}
 
         try:
             # Execute the function in a controlled environment
@@ -363,20 +352,18 @@ class SecurityManager:
         self.validator = SecurityValidator()
         self.sanitizer = DataSanitizer()
         self.audit_logger = AuditLogger()
-        self.active_sessions: Dict[str, SecurityContext] = {}
-        self.secret_key = secrets.token_urlsafe(
-            32
-        )  # In production, load from secure storage
+        self.active_sessions: dict[str, SecurityContext] = {}
+        self.secret_key = secrets.token_urlsafe(32)  # In production, load from secure storage
 
     def create_session(
         self,
         user_id: str,
-        permissions: List[Permission],
+        permissions: list[Permission],
         security_level: SecurityLevel,
-        allowed_resources: Optional[List[str]] = None,
+        allowed_resources: list[str] | None = None,
         duration_hours: float = 8.0,
-        ip_address: Optional[str] = None,
-        origin: Optional[str] = None,
+        ip_address: str | None = None,
+        origin: str | None = None,
     ) -> SecurityContext:
         """Create a new security session"""
         session_token = secrets.token_urlsafe(32)
@@ -396,7 +383,7 @@ class SecurityManager:
         self.active_sessions[session_token] = context
         return context
 
-    def validate_session(self, session_token: str) -> Optional[SecurityContext]:
+    def validate_session(self, session_token: str) -> SecurityContext | None:
         """Validate a session token and return the context"""
         if session_token not in self.active_sessions:
             return None
@@ -410,7 +397,7 @@ class SecurityManager:
 
         return context
 
-    def generate_signed_token(self, data: Dict[str, Any]) -> str:
+    def generate_signed_token(self, data: dict[str, Any]) -> str:
         """Generate a signed token for secure data transmission"""
         json_data = json.dumps(data, sort_keys=True, separators=(",", ":"))
         signature = hmac.new(
@@ -418,7 +405,7 @@ class SecurityManager:
         ).hexdigest()
         return f"{json_data}.{signature}"
 
-    def verify_signed_token(self, token: str) -> Optional[Dict[str, Any]]:
+    def verify_signed_token(self, token: str) -> dict[str, Any] | None:
         """Verify a signed token and return the data"""
         if "." not in token:
             return None
@@ -452,8 +439,8 @@ class SecurityManager:
             logger.info(f"Cleaned up {len(expired_tokens)} expired sessions")
 
     async def secure_execute_node(
-        self, session_token: str, node_type: str, inputs: Dict[str, Any], execute_func
-    ) -> Dict[str, Any]:
+        self, session_token: str, node_type: str, inputs: dict[str, Any], execute_func
+    ) -> dict[str, Any]:
         """Securely execute a node with full security checks"""
         context = self.validate_session(session_token)
         if not context:
@@ -507,9 +494,7 @@ class PathValidator:
     """Secure path validation to prevent directory traversal attacks"""
 
     @staticmethod
-    def is_safe_path(
-        base_path: Union[str, Path], requested_path: Union[str, Path]
-    ) -> bool:
+    def is_safe_path(base_path: str | Path, requested_path: str | Path) -> bool:
         """
         Check if a requested path is safe (doesn't escape the base directory)
 
@@ -532,7 +517,7 @@ class PathValidator:
 
     @staticmethod
     def validate_and_resolve_db_path(
-        db_path: Union[str, Path], allowed_dir: Optional[Union[str, Path]] = None
+        db_path: str | Path, allowed_dir: str | Path | None = None
     ) -> Path:
         """
         Validate and resolve a database path with security checks
@@ -570,9 +555,7 @@ class PathValidator:
         if allowed_dir:
             allowed_dir = Path(allowed_dir).resolve()
             if not resolved_path.is_relative_to(allowed_dir):
-                raise ValueError(
-                    f"Database path escapes allowed directory: {allowed_dir}"
-                )
+                raise ValueError(f"Database path escapes allowed directory: {allowed_dir}")
 
         # Additional security checks
         if any(part.startswith(".") for part in resolved_path.parts):
@@ -607,8 +590,8 @@ class PathValidator:
 
 
 def secure_path_join(
-    base_dir: Union[str, pathlib.Path], *paths: Union[str, pathlib.Path]
-) -> Optional[pathlib.Path]:
+    base_dir: str | pathlib.Path, *paths: str | pathlib.Path
+) -> pathlib.Path | None:
     """
     Securely join paths, preventing directory traversal attacks.
 

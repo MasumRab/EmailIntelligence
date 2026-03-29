@@ -1,13 +1,13 @@
 import logging
-import psutil
 import platform
 from datetime import datetime
 
 import gradio as gr
-from fastapi import FastAPI, HTTPException
+import psutil
 import requests
+from fastapi import FastAPI, HTTPException
 
-from .models import SystemStatus, HealthCheck
+from .models import HealthCheck, SystemStatus
 
 logger = logging.getLogger(__name__)
 
@@ -30,9 +30,7 @@ def create_system_status_ui():
     with gr.Row():
         with gr.Column(scale=1):
             gr.Markdown("## System Health Dashboard")
-            gr.Markdown(
-                "Monitor system performance, health metrics, and operational status."
-            )
+            gr.Markdown("Monitor system performance, health metrics, and operational status.")
 
         gr.Button("🔄 Refresh", variant="secondary")
 
@@ -154,21 +152,15 @@ async def get_system_status() -> SystemStatus:
                 "http://127.0.0.1:8000/api/dashboard/stats", timeout=5
             )
             dashboard_data = (
-                dashboard_response.json()
-                if dashboard_response.status_code == 200
-                else {}
+                dashboard_response.json() if dashboard_response.status_code == 200 else {}
             )
         except (requests.RequestException, ValueError):
             dashboard_data = {}
 
         # Get Gmail performance metrics
         try:
-            gmail_response = requests.get(
-                "http://127.0.0.1:8000/api/gmail/performance", timeout=5
-            )
-            gmail_data = (
-                gmail_response.json() if gmail_response.status_code == 200 else {}
-            )
+            gmail_response = requests.get("http://127.0.0.1:8000/api/gmail/performance", timeout=5)
+            gmail_data = gmail_response.json() if gmail_response.status_code == 200 else {}
         except (requests.RequestException, ValueError):
             gmail_data = {}
 
@@ -190,9 +182,7 @@ async def get_system_status() -> SystemStatus:
 
     except Exception as e:
         logger.error(f"Error getting system status: {e}")
-        raise HTTPException(
-            status_code=500, detail=f"Failed to get system status: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Failed to get system status: {str(e)}")
 
 
 async def perform_health_checks() -> HealthCheck:
@@ -206,9 +196,7 @@ async def perform_health_checks() -> HealthCheck:
         health_results["backend_api"] = {
             "status": "healthy" if response.status_code == 200 else "unhealthy",
             "response_time": response.elapsed.total_seconds() * 1000,
-            "details": response.json()
-            if response.status_code == 200
-            else {"error": response.text},
+            "details": response.json() if response.status_code == 200 else {"error": response.text},
         }
     except Exception as e:
         health_results["backend_api"] = {"status": "unhealthy", "error": str(e)}
@@ -239,9 +227,7 @@ async def perform_health_checks() -> HealthCheck:
 
     # Gmail API health check
     try:
-        response = requests.get(
-            "http://127.0.0.1:8000/api/gmail/performance", timeout=5
-        )
+        response = requests.get("http://127.0.0.1:8000/api/gmail/performance", timeout=5)
         health_results["gmail_api"] = {
             "status": "healthy" if response.status_code == 200 else "unhealthy",
             "response_time": response.elapsed.total_seconds() * 1000,

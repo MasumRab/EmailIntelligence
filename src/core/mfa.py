@@ -9,7 +9,6 @@ import logging
 import secrets
 from base64 import b64encode
 from io import BytesIO
-from typing import List, Optional, Tuple
 
 import pyotp
 import qrcode
@@ -88,7 +87,7 @@ class MFAService:
             logger.error(f"Error verifying TOTP token: {e}")
             return False
 
-    def generate_backup_codes(self, count: int = 10) -> List[str]:
+    def generate_backup_codes(self, count: int = 10) -> list[str]:
         """
         Generate backup codes for MFA.
 
@@ -106,8 +105,8 @@ class MFAService:
         return codes
 
     def verify_backup_code(
-        self, backup_codes: List[str], code: str
-    ) -> Tuple[bool, Optional[List[str]]]:
+        self, backup_codes: list[str], code: str
+    ) -> tuple[bool, list[str] | None]:
         """
         Verify a backup code and return updated list without the used code.
 

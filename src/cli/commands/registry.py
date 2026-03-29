@@ -5,8 +5,6 @@ Manages registration and discovery of commands.
 Provides centralized command management for the CLI system.
 """
 
-from typing import Dict, List, Type
-
 from .factory import CommandFactory
 from .interface import Command
 
@@ -30,12 +28,10 @@ class CommandRegistry:
             factory: The command factory to use for command creation
         """
         self._factory = factory
-        self._agent_assignments: Dict[str, str] = {}
-        self._command_metadata: Dict[str, Dict] = {}
+        self._agent_assignments: dict[str, str] = {}
+        self._command_metadata: dict[str, dict] = {}
 
-    def register_command(
-        self, command_class: Type[Command], agent: str = "system"
-    ) -> None:
+    def register_command(self, command_class: type[Command], agent: str = "system") -> None:
         """
         Register a command class with the registry.
 
@@ -90,7 +86,7 @@ class CommandRegistry:
         """
         return self._agent_assignments.get(command_name, "system")
 
-    def get_commands_by_agent(self, agent: str) -> List[str]:
+    def get_commands_by_agent(self, agent: str) -> list[str]:
         """
         Get all commands assigned to a specific agent.
 
@@ -100,13 +96,9 @@ class CommandRegistry:
         Returns:
             List of command names
         """
-        return [
-            cmd
-            for cmd, cmd_agent in self._agent_assignments.items()
-            if cmd_agent == agent
-        ]
+        return [cmd for cmd, cmd_agent in self._agent_assignments.items() if cmd_agent == agent]
 
-    def get_all_commands(self) -> Dict[str, Dict]:
+    def get_all_commands(self) -> dict[str, dict]:
         """
         Get metadata for all registered commands.
 
@@ -127,7 +119,7 @@ class CommandRegistry:
         """
         return self._factory.has_command(command_name)
 
-    def get_available_commands(self) -> Dict[str, str]:
+    def get_available_commands(self) -> dict[str, str]:
         """
         Get all available commands with descriptions.
 
@@ -136,7 +128,7 @@ class CommandRegistry:
         """
         return self._factory.get_available_commands()
 
-    def get_registry_status(self) -> Dict:
+    def get_registry_status(self) -> dict:
         """
         Get comprehensive registry status for debugging/monitoring.
 
@@ -152,7 +144,6 @@ class CommandRegistry:
             "agents": list(agent_counts.keys()),
             "agent_counts": agent_counts,
             "commands_by_agent": {
-                agent: self.get_commands_by_agent(agent)
-                for agent in agent_counts.keys()
+                agent: self.get_commands_by_agent(agent) for agent in agent_counts.keys()
             },
         }

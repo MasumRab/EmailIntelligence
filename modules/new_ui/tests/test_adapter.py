@@ -1,8 +1,8 @@
-import sys
-import os
-import unittest
-from unittest.mock import MagicMock, AsyncMock, patch
 import asyncio
+import os
+import sys
+import unittest
+from unittest.mock import AsyncMock, MagicMock, patch
 
 # Add project root to path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../")))
@@ -40,9 +40,7 @@ class TestBackendClient(unittest.TestCase):
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
         try:
-            result = loop.run_until_complete(
-                self.client.analyze_text("Subject\nContent")
-            )
+            result = loop.run_until_complete(self.client.analyze_text("Subject\nContent"))
         finally:
             loop.close()
 

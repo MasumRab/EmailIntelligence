@@ -1,9 +1,10 @@
-import gradio as gr
 import json
-import time
-import os
 import logging
+import os
+import time
 from datetime import datetime
+
+import gradio as gr
 
 # Import Adapter
 from modules.new_ui.backend_adapter import BackendClient
@@ -208,9 +209,7 @@ def get_system_health() -> tuple:
         disk = psutil.disk_usage("/")
 
         health = {
-            "status": "healthy"
-            if cpu_percent < 80 and memory.percent < 80
-            else "degraded",
+            "status": "healthy" if cpu_percent < 80 and memory.percent < 80 else "degraded",
             "cpu_usage": f"{cpu_percent}%",
             "memory_usage": f"{memory.percent}%",
             "disk_usage": f"{disk.percent}%",
@@ -287,9 +286,7 @@ with gr.Blocks() as demo:
                         placeholder="Subject: First email\nContent here...\n---\nSubject: Second email\nMore content...",
                         lines=10,
                     )
-                    batch_analyze_btn = gr.Button(
-                        "📊 Batch Analyze", variant="secondary"
-                    )
+                    batch_analyze_btn = gr.Button("📊 Batch Analyze", variant="secondary")
 
                 with gr.Column():
                     batch_summary = gr.Textbox(label="Summary", interactive=False)
@@ -311,9 +308,7 @@ with gr.Blocks() as demo:
 
             with gr.Row():
                 with gr.Column():
-                    refresh_workflows_btn = gr.Button(
-                        "🔄 Refresh Workflows", variant="secondary"
-                    )
+                    refresh_workflows_btn = gr.Button("🔄 Refresh Workflows", variant="secondary")
                     workflows_table = gr.Dataframe(
                         label="Available Workflows",
                         headers=["ID", "Name", "Description"],
@@ -323,12 +318,8 @@ with gr.Blocks() as demo:
                 with gr.Column():
                     gr.Markdown("### Run Workflow on Email")
                     # Note: Choices would need to be dynamic in a real app, updated by backend
-                    workflow_select = gr.Textbox(
-                        label="Workflow ID", placeholder="e.g. workflow_1"
-                    )
-                    wf_subject = gr.Textbox(
-                        label="Email Subject", placeholder="Test subject..."
-                    )
+                    workflow_select = gr.Textbox(label="Workflow ID", placeholder="e.g. workflow_1")
+                    wf_subject = gr.Textbox(label="Email Subject", placeholder="Test subject...")
                     wf_content = gr.TextArea(
                         label="Email Content", placeholder="Test content...", lines=4
                     )
@@ -385,9 +376,7 @@ with gr.Blocks() as demo:
             gr.Markdown("### System Statistics & Metrics")
 
             with gr.Row():
-                refresh_stats_btn = gr.Button(
-                    "🔄 Refresh Statistics", variant="secondary"
-                )
+                refresh_stats_btn = gr.Button("🔄 Refresh Statistics", variant="secondary")
 
             with gr.Row():
                 with gr.Column():

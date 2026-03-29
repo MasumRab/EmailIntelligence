@@ -148,9 +148,7 @@ async def test_analyze_email_model_failure(
     subject = "Test Subject"
     content = "Test Content"
 
-    mock_model_manager.mock_sentiment_model.analyze.side_effect = Exception(
-        "Model exploded"
-    )
+    mock_model_manager.mock_sentiment_model.analyze.side_effect = Exception("Model exploded")
 
     result = await ai_engine_instance.analyze_email(
         subject, content, models_to_use=DEFAULT_MODELS_TO_USE

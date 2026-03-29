@@ -17,11 +17,12 @@ import logging
 import threading
 import time
 from collections import defaultdict, deque
+from collections.abc import Callable
 from dataclasses import asdict, dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from functools import wraps
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Union
+from typing import Any
 
 import psutil
 
@@ -45,20 +46,20 @@ class ProcessingEvent:
     """Represents a processing event in the system"""
 
     event_type: str  # 'model_load', 'model_unload', 'workflow_execute', etc.
-    model_name: Optional[str]
-    workflow_name: Optional[str]
+    model_name: str | None
+    workflow_name: str | None
     start_time: float
-    end_time: Optional[float]
+    end_time: float | None
     success: bool
-    details: Dict[str, Any]
+    details: dict[str, Any]
 
 
 class PerformanceMonitor:
     """Monitors and tracks performance metrics across the system"""
 
     def __init__(self):
-        self.metrics: List[PerformanceMetric] = []
-        self.processing_events: List[ProcessingEvent] = []
+        self.metrics: list[PerformanceMetric] = []
+        self.processing_events: list[ProcessingEvent] = []
         self.lock = threading.Lock()
         self._ensure_log_file_exists()
 
@@ -70,7 +71,7 @@ class PerformanceMonitor:
         except Exception as e:
             logger.warning(f"Failed to create performance log file: {e}")
 
-    def log_performance(self, log_entry: Dict[str, Any]) -> None:
+    def log_performance(self, log_entry: dict[str, Any]) -> None:
         """Log a performance entry to the log file"""
         try:
             with self.lock:
@@ -79,7 +80,7 @@ class PerformanceMonitor:
         except Exception as e:
             logger.warning(f"Failed to log performance: {e}")
 
-    def get_system_metrics(self) -> Dict[str, Any]:
+    def get_system_metrics(self) -> dict[str, Any]:
         """Get current system metrics"""
         try:
             cpu_percent = psutil.cpu_percent()
@@ -88,7 +89,7 @@ class PerformanceMonitor:
                 "cpu_percent": cpu_percent,
                 "memory_percent": memory.percent,
                 "memory_available": memory.available,
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
             }
         except Exception as e:
             logger.warning(f"Failed to get system metrics: {e}")
@@ -144,7 +145,7 @@ def _create_decorator(func, op_name):
             duration = end_time - start_time
 
             log_entry = {
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
                 "operation": op_name,
                 "duration_seconds": duration,
             }
@@ -167,7 +168,7 @@ def _create_decorator(func, op_name):
             duration = end_time - start_time
 
             log_entry = {
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
                 "operation": op_name,
                 "duration_seconds": duration,
             }
@@ -190,10 +191,10 @@ class PerformanceMetricV2:
     """Represents a performance metric with minimal overhead."""
 
     name: str
-    value: Union[int, float]
+    value: int | float
     unit: str
     timestamp: float
-    tags: Dict[str, str]
+    tags: dict[str, str]
     sample_rate: float = 1.0  # 1.0 = 100% sampling, 0.1 = 10% sampling
 
 
@@ -210,7 +211,7 @@ class AggregatedMetric:
     p95: float
     p99: float
     timestamp: float
-    tags: Dict[str, str]
+    tags: dict[str, str]
 
 
 class OptimizedPerformanceMonitor:
@@ -240,10 +241,8 @@ class OptimizedPerformanceMonitor:
         self.log_file.parent.mkdir(parents=True, exist_ok=True)
 
         # Metrics storage
-        self._metrics_buffer: deque[PerformanceMetric] = deque(
-            maxlen=max_metrics_buffer
-        )
-        self._aggregated_metrics: Dict[str, AggregatedMetric] = {}
+        self._metrics_buffer: deque[PerformanceMetric] = deque(maxlen=max_metrics_buffer)
+        self._aggregated_metrics: dict[str, AggregatedMetric] = {}
 
         # Threading and async
         self._buffer_lock = threading.Lock()
@@ -265,9 +264,9 @@ class OptimizedPerformanceMonitor:
     def record_metric(
         self,
         name: str,
-        value: Union[int, float],
+        value: int | float,
         unit: str = "ms",
-        tags: Optional[Dict[str, str]] = None,
+        tags: dict[str, str] | None = None,
         sample_rate: float = 1.0,
     ):
         """
@@ -299,7 +298,7 @@ class OptimizedPerformanceMonitor:
         with self._buffer_lock:
             self._metrics_buffer.append(metric)
 
-    def log_performance(self, log_entry: Dict[str, Any]) -> None:
+    def log_performance(self, log_entry: dict[str, Any]) -> None:
         """Compatibility method for legacy log_performance decorator."""
         operation = log_entry.get("operation", "unknown")
         duration = log_entry.get("duration_seconds", 0) * 1000  # Convert to ms
@@ -311,7 +310,7 @@ class OptimizedPerformanceMonitor:
         )
 
     def time_function(
-        self, name: str, tags: Optional[Dict[str, str]] = None, sample_rate: float = 1.0
+        self, name: str, tags: dict[str, str] | None = None, sample_rate: float = 1.0
     ):
         """
         Decorator/context manager to time function execution.
@@ -332,9 +331,7 @@ class OptimizedPerformanceMonitor:
                 try:
                     return func(*args, **kwargs)
                 finally:
-                    duration = (
-                        time.perf_counter() - start_time
-                    ) * 1000  # Convert to milliseconds
+                    duration = (time.perf_counter() - start_time) * 1000  # Convert to milliseconds
                     self.record_metric(
                         name=name,
                         value=duration,
@@ -372,9 +369,7 @@ class OptimizedPerformanceMonitor:
 
             return TimerContext()
 
-    def get_aggregated_metrics(
-        self, name: Optional[str] = None
-    ) -> Dict[str, AggregatedMetric]:
+    def get_aggregated_metrics(self, name: str | None = None) -> dict[str, AggregatedMetric]:
         """
         Get current aggregated metrics.
 
@@ -389,9 +384,7 @@ class OptimizedPerformanceMonitor:
             )
         return self._aggregated_metrics.copy()
 
-    def get_recent_metrics(
-        self, name: str, limit: int = 100
-    ) -> List[PerformanceMetric]:
+    def get_recent_metrics(self, name: str, limit: int = 100) -> list[PerformanceMetric]:
         """Get recent raw metrics for a specific name."""
         with self._buffer_lock:
             return [m for m in self._metrics_buffer if m.name == name][-limit:]
@@ -416,7 +409,7 @@ class OptimizedPerformanceMonitor:
         cutoff_time = current_time - self.aggregation_window
 
         # Collect metrics within window
-        metric_values: Dict[str, List[float]] = defaultdict(list)
+        metric_values: dict[str, list[float]] = defaultdict(list)
 
         with self._buffer_lock:
             for metric in self._metrics_buffer:

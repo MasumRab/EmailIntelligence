@@ -2,13 +2,13 @@
 Utility functions for the Email Intelligence Platform
 """
 
-import re
 import hashlib
-from typing import List, Dict, Any, Optional, Union
-from datetime import datetime, timezone
+import re
+from datetime import UTC, datetime
+from typing import Any
 
 
-def clean_text(text: Optional[str]) -> str:
+def clean_text(text: str | None) -> str:
     """Clean and normalize text for analysis"""
     if not text:
         return ""
@@ -51,15 +51,13 @@ def extract_domain(email_address: str) -> str:
 
 def generate_id(prefix: str, content: str) -> str:
     """Generate a unique ID based on content hash"""
-    timestamp = datetime.now(timezone.utc).timestamp()
+    timestamp = datetime.now(UTC).timestamp()
     hash_input = f"{content}_{timestamp}"
     content_hash = hashlib.sha256(hash_input.encode()).hexdigest()[:8]
     return f"{prefix}_{content_hash}"
 
 
-def extract_keywords(
-    text: str, min_length: int = 4, max_keywords: int = 10
-) -> List[str]:
+def extract_keywords(text: str, min_length: int = 4, max_keywords: int = 10) -> list[str]:
     """Extract keywords from text"""
     if not text:
         return []
@@ -122,14 +120,14 @@ def extract_keywords(
     return [word for word, _ in word_freq.most_common(max_keywords)]
 
 
-def format_timestamp(dt: Optional[datetime] = None) -> str:
+def format_timestamp(dt: datetime | None = None) -> str:
     """Format datetime to ISO string"""
     if dt is None:
-        dt = datetime.now(timezone.utc)
+        dt = datetime.now(UTC)
     return dt.isoformat()
 
 
-def parse_json_safely(json_str: Union[str, Dict, List], default: Any = None) -> Any:
+def parse_json_safely(json_str: str | dict | list, default: Any = None) -> Any:
     """Safely parse JSON string"""
     import json
 
@@ -148,7 +146,7 @@ def truncate_text(text: str, max_length: int = 100, suffix: str = "...") -> str:
     return text[: max_length - len(suffix)] + suffix
 
 
-def calculate_confidence(scores: List[float]) -> float:
+def calculate_confidence(scores: list[float]) -> float:
     """Calculate average confidence from a list of scores"""
     if not scores:
         return 0.0

@@ -248,9 +248,7 @@ if os.getenv("NODE_ENV") in ["production", "staging"]:
 gmail_service = GmailAIService()  # Used by gmail_routes
 filter_manager = SmartFilterManager()  # Used by filter_routes
 ai_engine = AdvancedAIEngine(model_manager)  # Used by email_routes, action_routes
-performance_monitor = (
-    performance_monitor  # Used by all routes via @performance_monitor.track
-)
+performance_monitor = performance_monitor  # Used by all routes via @performance_monitor.track
 
 from .routes.v1.category_routes import router as category_router_v1
 
@@ -287,9 +285,7 @@ app.include_router(workflow_router, prefix="", tags=["workflows"])
 # Include advanced workflow routes (will use node-based system)
 from .advanced_workflow_routes import router as advanced_workflow_router
 
-app.include_router(
-    advanced_workflow_router, prefix="/api/workflows", tags=["advanced-workflows"]
-)
+app.include_router(advanced_workflow_router, prefix="/api/workflows", tags=["advanced-workflows"])
 
 # Include node-based workflow routes
 from .node_workflow_routes import router as node_workflow_router
@@ -335,9 +331,7 @@ async def login(username: str, password: str):
         # Use a default if settings are not available
         access_token_expires = timedelta(minutes=30)
 
-    access_token = create_access_token(
-        data={"sub": username}, expires_delta=access_token_expires
-    )
+    access_token = create_access_token(data={"sub": username}, expires_delta=access_token_expires)
     return {"access_token": access_token, "token_type": "bearer"}
 
 

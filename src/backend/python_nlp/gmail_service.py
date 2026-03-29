@@ -12,7 +12,7 @@ import logging
 import os
 import sys
 from datetime import datetime
-from typing import TYPE_CHECKING, Any, Dict, List, Optional
+from typing import TYPE_CHECKING, Any
 
 # To avoid circular imports with type hints
 if TYPE_CHECKING:
@@ -45,7 +45,7 @@ class GmailAIService:
 
     def __init__(
         self,
-        rate_config: Optional[RateLimitConfig] = None,
+        rate_config: RateLimitConfig | None = None,
         advanced_ai_engine=None,
         db_manager=None,
     ):
@@ -81,8 +81,8 @@ class GmailAIService:
         }
 
     async def _execute_async_command(
-        self, cmd: List[str], cwd: Optional[str] = None
-    ) -> Dict[str, Any]:
+        self, cmd: list[str], cwd: str | None = None
+    ) -> dict[str, Any]:
         """
         Executes a shell command asynchronously.
 
@@ -102,9 +102,7 @@ class GmailAIService:
             )
             stdout, stderr = await process.communicate()
             if process.returncode != 0:
-                error_msg = (
-                    stderr.decode().strip() if stderr else ""
-                ) or "Unknown error"
+                error_msg = (stderr.decode().strip() if stderr else "") or "Unknown error"
                 self.logger.error(f"Async command failed: {cmd}, Error: {error_msg}")
                 return {"success": False, "error": error_msg}
             if stdout:
@@ -114,9 +112,7 @@ class GmailAIService:
                     return {"success": True, "output": stdout.decode()}
             return {"success": True, "output": ""}
         except (FileNotFoundError, PermissionError, Exception) as e:
-            self.logger.error(
-                f"Async command execution failed for {cmd}: {e}", exc_info=True
-            )
+            self.logger.error(f"Async command execution failed for {cmd}: {e}", exc_info=True)
             return {"success": False, "error": str(e)}
 
     async def sync_gmail_emails(
@@ -124,7 +120,7 @@ class GmailAIService:
         query_filter: str = "newer_than:7d",
         max_emails: int = 1000,
         include_ai_analysis: bool = True,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Performs a comprehensive sync of Gmail emails.
 
@@ -168,7 +164,7 @@ class GmailAIService:
 
     async def _fetch_emails_from_gmail(
         self, query_filter: str, max_emails: int
-    ) -> Optional[EmailBatch]:
+    ) -> EmailBatch | None:
         """Fetches a batch of emails from Gmail using the data collector."""
         try:
             return await self.collector.collect_emails_incremental(
@@ -180,26 +176,20 @@ class GmailAIService:
 
     async def _process_and_analyze_batch(
         self, email_batch: EmailBatch, include_ai_analysis: bool
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """Processes a batch of emails, including metadata extraction and AI analysis."""
         processed_emails = []
         for gmail_msg in email_batch.messages:
             try:
-                gmail_metadata = self.metadata_extractor.extract_complete_metadata(
-                    gmail_msg
-                )
+                gmail_metadata = self.metadata_extractor.extract_complete_metadata(gmail_msg)
                 email_data = {
                     "subject": gmail_metadata.subject,
                     "content": gmail_metadata.body_plain or gmail_metadata.snippet,
                 }
                 ai_analysis_result = (
-                    await self._perform_ai_analysis(email_data)
-                    if include_ai_analysis
-                    else None
+                    await self._perform_ai_analysis(email_data) if include_ai_analysis else None
                 )
-                db_email = self._convert_to_db_format(
-                    gmail_metadata, ai_analysis_result
-                )
+                db_email = self._convert_to_db_format(gmail_metadata, ai_analysis_result)
                 processed_emails.append(db_email)
                 self.stats["successful_extractions"] += 1
             except Exception as e:
@@ -210,22 +200,16 @@ class GmailAIService:
                 self.stats["failed_extractions"] += 1
         return processed_emails
 
-    async def _perform_ai_analysis(
-        self, email_data: Dict[str, Any]
-    ) -> Optional[Dict[str, Any]]:
+    async def _perform_ai_analysis(self, email_data: dict[str, Any]) -> dict[str, Any] | None:
         """Performs AI analysis on a single email."""
         if not self.advanced_ai_engine:
             self.logger.error("AI engine not available for AI analysis.")
-            return self._get_basic_fallback_analysis_structure(
-                "AI engine not configured"
-            )
+            return self._get_basic_fallback_analysis_structure("AI engine not configured")
 
         # Pass the db manager (which could be None) to the AI engine
         db_for_analysis = self.db_manager
 
-        self.logger.debug(
-            f"Performing AI analysis for email ID: {email_data.get('id', 'unknown')}"
-        )
+        self.logger.debug(f"Performing AI analysis for email ID: {email_data.get('id', 'unknown')}")
         try:
             # AdvancedAIEngine is expected to have an `analyze_email` method
             # that takes subject and content, and returns an object or dict with analysis.
@@ -244,9 +228,7 @@ class GmailAIService:
                 self.logger.error(
                     f"Unexpected AI analysis result type for email {email_data.get('id', 'unknown')}"
                 )
-                return self._get_basic_fallback_analysis_structure(
-                    "Unexpected AI result type"
-                )
+                return self._get_basic_fallback_analysis_structure("Unexpected AI result type")
 
             self.stats["ai_analyses_completed"] += 1
             return analysis_dict
@@ -254,9 +236,7 @@ class GmailAIService:
             self.logger.error(f"AI analysis failed for email: {e}", exc_info=True)
             return None
 
-    def _get_basic_fallback_analysis_structure(
-        self, error_message: str
-    ) -> Dict[str, Any]:
+    def _get_basic_fallback_analysis_structure(self, error_message: str) -> dict[str, Any]:
         """Provides a fallback structure for AI analysis results in case of an error."""
         return {
             "error": error_message,
@@ -268,8 +248,8 @@ class GmailAIService:
         }
 
     def _convert_to_db_format(
-        self, gmail_metadata: GmailMessage, ai_analysis_result: Optional[Dict[str, Any]]
-    ) -> Dict[str, Any]:
+        self, gmail_metadata: GmailMessage, ai_analysis_result: dict[str, Any] | None
+    ) -> dict[str, Any]:
         """Converts extracted metadata and AI results into the database schema format."""
         analysis_payload = ai_analysis_result or {}
         return {
@@ -286,7 +266,7 @@ class GmailAIService:
 
     async def train_models_from_gmail_data(
         self, training_query: str = "newer_than:30d", max_training_emails: int = 5000
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Trains AI models using data fetched directly from Gmail.
 
@@ -297,9 +277,7 @@ class GmailAIService:
         Returns:
             A dictionary with the results of the training process.
         """
-        self.logger.info(
-            f"Starting model training from Gmail data with query: {training_query}"
-        )
+        self.logger.info(f"Starting model training from Gmail data with query: {training_query}")
         try:
             batch = await self.collector.collect_emails_incremental(
                 query_filter=training_query, max_emails=max_training_emails
@@ -328,9 +306,7 @@ class GmailAIService:
 
     def _infer_sentiment_from_metadata(self, metadata: GmailMessage) -> str:
         """Infers a sentiment label from email metadata."""
-        return (
-            "positive" if metadata.is_important and metadata.is_starred else "neutral"
-        )
+        return "positive" if metadata.is_important and metadata.is_starred else "neutral"
 
     def _infer_intent_from_metadata(self, metadata: GmailMessage) -> str:
         """Infers an intent label from email metadata."""
@@ -340,11 +316,11 @@ class GmailAIService:
         """Infers an urgency label from email metadata."""
         return "high" if metadata.is_important else "low"
 
-    def get_processing_statistics(self) -> Dict[str, Any]:
+    def get_processing_statistics(self) -> dict[str, Any]:
         """Returns a dictionary of processing statistics."""
         return {"processing_stats": self.stats}
 
-    async def get_performance_metrics(self) -> Dict[str, Any]:
+    async def get_performance_metrics(self) -> dict[str, Any]:
         """
         Get detailed performance metrics for Gmail operations.
 
@@ -362,16 +338,12 @@ class GmailAIService:
 
             # Calculate success rate
             success_rate = (
-                (successful_operations / total_operations * 100)
-                if total_operations > 0
-                else 0
+                (successful_operations / total_operations * 100) if total_operations > 0 else 0
             )
 
             # Calculate average sync time
             total_sync_time = self.stats.get("total_sync_time_seconds", 0)
-            avg_sync_time = (
-                total_sync_time / total_operations if total_operations > 0 else 0
-            )
+            avg_sync_time = total_sync_time / total_operations if total_operations > 0 else 0
 
             # Get API usage metrics
             api_calls_made = self.stats.get("api_calls_made", 0)
@@ -397,18 +369,12 @@ class GmailAIService:
                 "api_usage": {
                     "total_api_calls": api_calls_made,
                     "rate_limit_hits": rate_limit_hits,
-                    "api_call_efficiency": round(
-                        api_calls_made / max(emails_processed, 1), 2
-                    ),
+                    "api_call_efficiency": round(api_calls_made / max(emails_processed, 1), 2),
                 },
                 "performance_trends": {
                     "last_sync_time": self.stats.get("last_sync_timestamp"),
-                    "average_response_time_ms": self.stats.get(
-                        "avg_response_time_ms", 0
-                    ),
-                    "peak_sync_duration_seconds": self.stats.get(
-                        "peak_sync_duration", 0
-                    ),
+                    "average_response_time_ms": self.stats.get("avg_response_time_ms", 0),
+                    "peak_sync_duration_seconds": self.stats.get("peak_sync_duration", 0),
                 },
                 "error_analysis": {
                     "error_rate_percent": round(
@@ -425,9 +391,7 @@ class GmailAIService:
                     "memory_peak_usage_mb": self.stats.get("memory_peak_mb", 0),
                 },
                 "timestamp": current_time.isoformat(),
-                "status": "active"
-                if self.stats.get("service_active", True)
-                else "inactive",
+                "status": "active" if self.stats.get("service_active", True) else "inactive",
             }
 
             return performance_metrics
@@ -442,10 +406,10 @@ class GmailAIService:
 
     async def execute_smart_retrieval(
         self,
-        strategies: List[str] = None,
+        strategies: list[str] = None,
         max_api_calls: int = 100,
         time_budget_minutes: int = 30,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Args:
             strategies: A list of retrieval strategies to execute.
@@ -468,7 +432,7 @@ class GmailAIService:
             cmd.extend(["--strategies"] + strategies)
         return await self._execute_async_command(cmd, cwd=self.nlp_path)
 
-    async def get_retrieval_strategies(self) -> List[Dict[str, Any]]:
+    async def get_retrieval_strategies(self) -> list[dict[str, Any]]:
         """
         Retrieves available email retrieval strategies.
 

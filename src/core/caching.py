@@ -13,7 +13,7 @@ from abc import ABC, abstractmethod
 from collections import OrderedDict
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Dict, List, Optional, Set
+from typing import Any
 
 try:
     import redis.asyncio as redis
@@ -46,7 +46,7 @@ class CacheConfig:
     """Configuration for cache backends"""
 
     backend: CacheBackend = CacheBackend.MEMORY
-    redis_url: Optional[str] = None
+    redis_url: str | None = None
     redis_db: int = 0
     max_memory_items: int = 10000
     default_ttl: int = 3600  # 1 hour
@@ -74,12 +74,12 @@ class CacheBackendInterface(ABC):
     """Abstract interface for cache backends"""
 
     @abstractmethod
-    async def get(self, key: str) -> Optional[Any]:
+    async def get(self, key: str) -> Any | None:
         """Get value from cache"""
         pass
 
     @abstractmethod
-    async def set(self, key: str, value: Any, ttl: Optional[int] = None) -> bool:
+    async def set(self, key: str, value: Any, ttl: int | None = None) -> bool:
         """Set value in cache with optional TTL"""
         pass
 
@@ -109,10 +109,10 @@ class MemoryCacheBackend(CacheBackendInterface):
 
     def __init__(self, config: CacheConfig):
         self.config = config
-        self._cache: OrderedDict[str, Dict[str, Any]] = OrderedDict()
+        self._cache: OrderedDict[str, dict[str, Any]] = OrderedDict()
         self._stats = CacheStats()
 
-    async def get(self, key: str) -> Optional[Any]:
+    async def get(self, key: str) -> Any | None:
         """Get value from memory cache"""
         if key in self._cache:
             # Move to end to mark as recently used
@@ -130,7 +130,7 @@ class MemoryCacheBackend(CacheBackendInterface):
             self._stats.misses += 1
             return None
 
-    async def set(self, key: str, value: Any, ttl: Optional[int] = None) -> bool:
+    async def set(self, key: str, value: Any, ttl: int | None = None) -> bool:
         """Set value in memory cache"""
         expires_at = time.time() + ttl if ttl else None
 
@@ -186,12 +186,10 @@ class RedisCacheBackend(CacheBackendInterface):
 
     def __init__(self, config: CacheConfig):
         if not REDIS_AVAILABLE:
-            raise ImportError(
-                "Redis is not available. Install redis-py to use Redis caching."
-            )
+            raise ImportError("Redis is not available. Install redis-py to use Redis caching.")
 
         self.config = config
-        self._redis: Optional[redis.Redis] = None
+        self._redis: redis.Redis | None = None
         self._stats = CacheStats()
 
     async def _ensure_connection(self):
@@ -203,7 +201,7 @@ class RedisCacheBackend(CacheBackendInterface):
                 decode_responses=True,
             )
 
-    async def get(self, key: str) -> Optional[Any]:
+    async def get(self, key: str) -> Any | None:
         """Get value from Redis cache"""
         await self._ensure_connection()
         try:
@@ -219,7 +217,7 @@ class RedisCacheBackend(CacheBackendInterface):
             self._stats.misses += 1
             return None
 
-    async def set(self, key: str, value: Any, ttl: Optional[int] = None) -> bool:
+    async def set(self, key: str, value: Any, ttl: int | None = None) -> bool:
         """Set value in Redis cache"""
         await self._ensure_connection()
         try:
@@ -276,8 +274,8 @@ class CacheManager:
     def __init__(self, config: CacheConfig):
         self.config = config
         self.backend: CacheBackendInterface = self._create_backend()
-        self._tags: Dict[str, Set[str]] = {}  # tag -> set of keys
-        self._warming_tasks: Set[str] = set()
+        self._tags: dict[str, set[str]] = {}  # tag -> set of keys
+        self._warming_tasks: set[str] = set()
 
     def _create_backend(self) -> CacheBackendInterface:
         """Create the appropriate cache backend"""
@@ -286,7 +284,7 @@ class CacheManager:
         else:
             return MemoryCacheBackend(self.config)
 
-    async def get(self, key: str) -> Optional[Any]:
+    async def get(self, key: str) -> Any | None:
         """Get value from cache"""
         return await self.backend.get(key)
 
@@ -294,8 +292,8 @@ class CacheManager:
         self,
         key: str,
         value: Any,
-        ttl: Optional[int] = None,
-        tags: Optional[List[str]] = None,
+        ttl: int | None = None,
+        tags: list[str] | None = None,
     ) -> bool:
         """Set value in cache with optional tags"""
         success = await self.backend.set(key, value, ttl)
@@ -319,7 +317,7 @@ class CacheManager:
 
         return success
 
-    async def invalidate_tags(self, tags: List[str]) -> int:
+    async def invalidate_tags(self, tags: list[str]) -> int:
         """Invalidate all keys with given tags"""
         keys_to_delete = set()
         for tag in tags:
@@ -381,7 +379,7 @@ class CacheManager:
 
 
 # Global cache manager instance
-_cache_manager: Optional[CacheManager] = None
+_cache_manager: CacheManager | None = None
 
 
 def get_cache_manager() -> CacheManager:

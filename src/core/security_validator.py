@@ -9,7 +9,7 @@ import logging
 import re
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from .audit_logger import AuditEventType, AuditSeverity, audit_logger
 
@@ -30,9 +30,9 @@ class ValidationResult:
     """Result of security validation."""
 
     is_valid: bool
-    violations: List[str]
-    warnings: List[str]
-    recommendations: List[str]
+    violations: list[str]
+    warnings: list[str]
+    recommendations: list[str]
 
 
 class NodeSecurityValidator:
@@ -108,7 +108,7 @@ class NodeSecurityValidator:
         code: str,
         security_level: SecurityLevel,
         node_name: str,
-        user_id: Optional[str] = None,
+        user_id: str | None = None,
     ) -> ValidationResult:
         """
         Validate node code for security violations.
@@ -160,13 +160,9 @@ class NodeSecurityValidator:
 
         # Recommendations
         if violations:
-            recommendations.append(
-                "Review and sanitize node code to remove security violations"
-            )
+            recommendations.append("Review and sanitize node code to remove security violations")
         if warnings:
-            recommendations.append(
-                "Consider code review for potential security implications"
-            )
+            recommendations.append("Consider code review for potential security implications")
 
         result = ValidationResult(
             is_valid=len(violations) == 0,
@@ -194,7 +190,7 @@ class NodeSecurityValidator:
         return result
 
     def validate_node_config(
-        self, config: Dict[str, Any], security_level: SecurityLevel, node_name: str
+        self, config: dict[str, Any], security_level: SecurityLevel, node_name: str
     ) -> ValidationResult:
         """
         Validate node configuration for security issues.
@@ -243,7 +239,7 @@ class WorkflowSecurityValidator:
 
     def validate_workflow_execution(
         self,
-        workflow_config: Dict[str, Any],
+        workflow_config: dict[str, Any],
         user_id: str,
         security_level: SecurityLevel,
     ) -> ValidationResult:
@@ -271,14 +267,10 @@ class WorkflowSecurityValidator:
 
         # Check for resource-intensive operations
         resource_intensive_nodes = ["ai_model", "batch_processor", "external_api"]
-        resource_count = sum(
-            1 for node in nodes if node.get("type") in resource_intensive_nodes
-        )
+        resource_count = sum(1 for node in nodes if node.get("type") in resource_intensive_nodes)
 
         if security_level == SecurityLevel.UNTRUSTED and resource_count > 0:
-            violations.append(
-                "Resource-intensive operations not allowed at untrusted level"
-            )
+            violations.append("Resource-intensive operations not allowed at untrusted level")
         elif security_level == SecurityLevel.LIMITED and resource_count > 2:
             warnings.append("Multiple resource-intensive operations detected")
 
@@ -289,7 +281,7 @@ class WorkflowSecurityValidator:
             recommendations=recommendations,
         )
 
-    def _has_cycles(self, edges: List[Dict[str, Any]]) -> bool:
+    def _has_cycles(self, edges: list[dict[str, Any]]) -> bool:
         """Simple cycle detection in workflow graph."""
         # Build adjacency list
         graph = {}

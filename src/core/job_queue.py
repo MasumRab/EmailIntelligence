@@ -6,13 +6,13 @@ providing async processing for weekly growth and performance metrics.
 """
 
 import logging
-from typing import Any, Optional
 from dataclasses import dataclass
 from datetime import datetime
+from typing import Any
 
 try:
-    from rq import Queue, Connection, Worker
     from redis import Redis
+    from rq import Connection, Queue, Worker
 
     RQ_AVAILABLE = True
 except ImportError:
@@ -29,16 +29,16 @@ class JobResult:
 
     job_id: str
     status: str  # 'queued', 'started', 'finished', 'failed'
-    result: Optional[Any] = None
-    error: Optional[str] = None
-    created_at: Optional[datetime] = None
-    completed_at: Optional[datetime] = None
+    result: Any | None = None
+    error: str | None = None
+    created_at: datetime | None = None
+    completed_at: datetime | None = None
 
 
 class JobQueue:
     """RQ-based job queue for dashboard background processing"""
 
-    def __init__(self, redis_url: Optional[str] = None):
+    def __init__(self, redis_url: str | None = None):
         if not RQ_AVAILABLE:
             raise ImportError("RQ is not available. Install rq to use job queue.")
 
@@ -89,7 +89,7 @@ class JobQueue:
 
         return result
 
-    async def get_job_result(self, job_id: str) -> Optional[Any]:
+    async def get_job_result(self, job_id: str) -> Any | None:
         """Get completed job result from cache or job store"""
         # Try cache first
         cache_key = f"job_result:{job_id}"
@@ -108,7 +108,7 @@ class JobQueue:
 
 
 # Global job queue instance
-_job_queue: Optional[JobQueue] = None
+_job_queue: JobQueue | None = None
 
 
 def get_job_queue() -> JobQueue:

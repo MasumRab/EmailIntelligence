@@ -6,8 +6,6 @@ Custom exceptions for the Email Intelligence Platform
 Provides consistent error handling across the application
 """
 
-from typing import Optional
-
 from fastapi import HTTPException, status
 from pydantic import BaseModel
 
@@ -18,7 +16,7 @@ class APIError(BaseModel):
     success: bool = False
     message: str
     error_code: str
-    details: Optional[str] = None
+    details: str | None = None
 
 
 class AppException(HTTPException):
@@ -29,7 +27,7 @@ class AppException(HTTPException):
         status_code: int,
         message: str,
         error_code: str = "GENERAL_ERROR",
-        details: Optional[str] = None,
+        details: str | None = None,
     ):
         error_response = APIError(
             success=False, message=message, error_code=error_code, details=details
@@ -72,7 +70,7 @@ class CategoryNotFoundException(AppException):
 class ValidationError(AppException):
     """Raised when validation fails"""
 
-    def __init__(self, message: str, details: Optional[str] = None):
+    def __init__(self, message: str, details: str | None = None):
         super().__init__(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             message=message,
@@ -84,7 +82,7 @@ class ValidationError(AppException):
 class DatabaseError(AppException):
     """Raised when a database operation fails"""
 
-    def __init__(self, message: str, details: Optional[str] = None):
+    def __init__(self, message: str, details: str | None = None):
         super().__init__(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             message=message,

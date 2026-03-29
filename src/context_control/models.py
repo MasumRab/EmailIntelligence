@@ -1,8 +1,9 @@
 """Base data models for Agent Context Control library."""
 
-from typing import Dict, List, Optional, Any
-from pydantic import BaseModel, Field
 from datetime import datetime
+from typing import Any
+
+from pydantic import BaseModel, Field
 
 
 class ProjectConfig(BaseModel):
@@ -10,32 +11,26 @@ class ProjectConfig(BaseModel):
 
     # Project identification
     project_name: str = Field(..., description="Name of the project")
-    project_type: str = Field(
-        ..., description="Type of project (web, api, library, etc.)"
-    )
+    project_type: str = Field(..., description="Type of project (web, api, library, etc.)")
 
     # Agent behavior settings
-    max_context_length: int = Field(
-        default=4096, description="Maximum context length for agents"
-    )
+    max_context_length: int = Field(default=4096, description="Maximum context length for agents")
     enable_code_execution: bool = Field(
         default=False, description="Whether agents can execute code"
     )
-    enable_file_writing: bool = Field(
-        default=False, description="Whether agents can write files"
-    )
+    enable_file_writing: bool = Field(default=False, description="Whether agents can write files")
     enable_shell_commands: bool = Field(
         default=False, description="Whether agents can run shell commands"
     )
 
     # Model preferences
-    preferred_models: List[str] = Field(
+    preferred_models: list[str] = Field(
         default_factory=lambda: ["gpt-4", "claude-3"],
         description="Preferred AI models for this project",
     )
 
     # Custom agent settings
-    custom_settings: Dict[str, Any] = Field(
+    custom_settings: dict[str, Any] = Field(
         default_factory=dict, description="Project-specific custom settings"
     )
 
@@ -54,30 +49,28 @@ class ContextProfile(BaseModel):
 
     id: str = Field(..., description="Unique identifier for the context profile")
     name: str = Field(..., description="Human-readable name for the profile")
-    description: Optional[str] = Field(
-        None, description="Optional description of the profile"
-    )
+    description: str | None = Field(None, description="Optional description of the profile")
 
     # Environment mapping
-    branch_patterns: List[str] = Field(
+    branch_patterns: list[str] = Field(
         default_factory=list, description="Git branch patterns that match this profile"
     )
 
     # Context content
-    allowed_files: List[str] = Field(
+    allowed_files: list[str] = Field(
         default_factory=list, description="File patterns that agents can access"
     )
-    blocked_files: List[str] = Field(
+    blocked_files: list[str] = Field(
         default_factory=list, description="File patterns that agents cannot access"
     )
 
     # Agent behavior configuration
-    agent_settings: Dict[str, Any] = Field(
+    agent_settings: dict[str, Any] = Field(
         default_factory=dict, description="Agent-specific configuration settings"
     )
 
     # Project configuration (User Story 2)
-    project_config: Optional[ProjectConfig] = Field(
+    project_config: ProjectConfig | None = Field(
         default=None, description="Project-specific configuration settings"
     )
 
@@ -99,38 +92,34 @@ class AgentContext(BaseModel):
     agent_id: str = Field(..., description="Unique identifier for the agent")
 
     # Environment information
-    branch_name: Optional[str] = Field(None, description="Current Git branch name")
-    environment_type: str = Field(
-        ..., description="Type of environment (dev, staging, prod)"
-    )
+    branch_name: str | None = Field(None, description="Current Git branch name")
+    environment_type: str = Field(..., description="Type of environment (dev, staging, prod)")
 
     # Context boundaries
-    accessible_files: List[str] = Field(
+    accessible_files: list[str] = Field(
         default_factory=list, description="Files the agent can currently access"
     )
-    restricted_files: List[str] = Field(
+    restricted_files: list[str] = Field(
         default_factory=list, description="Files the agent cannot access"
     )
 
     # Project configuration (User Story 2)
-    profile_config: Optional[ProjectConfig] = Field(
+    profile_config: ProjectConfig | None = Field(
         default=None, description="Project-specific configuration settings"
     )
 
     # Agent settings (inherited from profile)
-    agent_settings: Dict[str, Any] = Field(
+    agent_settings: dict[str, Any] = Field(
         default_factory=dict, description="Agent-specific configuration settings"
     )
 
     # Runtime state
-    is_active: bool = Field(
-        default=True, description="Whether this context is currently active"
-    )
+    is_active: bool = Field(default=True, description="Whether this context is currently active")
     activated_at: datetime = Field(default_factory=datetime.utcnow)
-    last_validated: Optional[datetime] = Field(None)
+    last_validated: datetime | None = Field(None)
 
     # Security tracking
-    access_log: List[Dict[str, Any]] = Field(
+    access_log: list[dict[str, Any]] = Field(
         default_factory=list, description="Log of file access attempts"
     )
 
@@ -144,11 +133,9 @@ class ContextValidationResult(BaseModel):
     """Result of context validation operations."""
 
     is_valid: bool = Field(..., description="Whether the context is valid")
-    errors: List[str] = Field(
-        default_factory=list, description="Validation error messages"
-    )
-    warnings: List[str] = Field(default_factory=list, description="Validation warnings")
+    errors: list[str] = Field(default_factory=list, description="Validation error messages")
+    warnings: list[str] = Field(default_factory=list, description="Validation warnings")
 
     # Additional metadata
     validated_at: datetime = Field(default_factory=datetime.utcnow)
-    context_id: Optional[str] = Field(None, description="ID of the validated context")
+    context_id: str | None = Field(None, description="ID of the validated context")

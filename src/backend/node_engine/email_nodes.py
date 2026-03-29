@@ -10,7 +10,7 @@ functionality, following the node-based architecture.
 
 import asyncio
 from datetime import datetime
-from typing import Any, Dict, List
+from typing import Any
 
 from backend.node_engine.node_base import BaseNode, DataType, ExecutionContext, NodePort
 from backend.node_engine.workflow_engine import workflow_engine
@@ -99,12 +99,8 @@ class EmailSourceNode(BaseNode):
     Node that sources emails from various providers (Gmail, etc.).
     """
 
-    def __init__(
-        self, config: Dict[str, Any] = None, node_id: str = None, name: str = None
-    ):
-        super().__init__(
-            node_id, name or "Email Source", "Sources emails from email provider"
-        )
+    def __init__(self, config: dict[str, Any] = None, node_id: str = None, name: str = None):
+        super().__init__(node_id, name or "Email Source", "Sources emails from email provider")
         self.config = config or {}
         self.input_ports = []
         self.output_ports = [
@@ -122,7 +118,7 @@ class EmailSourceNode(BaseNode):
             ),
         ]
 
-    async def execute(self, context: ExecutionContext) -> Dict[str, Any]:
+    async def execute(self, context: ExecutionContext) -> dict[str, Any]:
         """Execute the email source operation."""
         try:
             # For now, we'll simulate email retrieval
@@ -150,7 +146,7 @@ class EmailSourceNode(BaseNode):
                 },
             }
 
-    async def _fetch_emails(self) -> List[Dict[str, Any]]:
+    async def _fetch_emails(self) -> list[dict[str, Any]]:
         """Fetch emails from the configured provider."""
         # This is a placeholder - in real implementation, it would use GmailAIService
         # or other email providers
@@ -175,12 +171,8 @@ class PreprocessingNode(BaseNode):
     Node that preprocesses email data (cleaning, normalization, etc.).
     """
 
-    def __init__(
-        self, config: Dict[str, Any] = None, node_id: str = None, name: str = None
-    ):
-        super().__init__(
-            node_id, name or "Email Preprocessor", "Preprocesses email data"
-        )
+    def __init__(self, config: dict[str, Any] = None, node_id: str = None, name: str = None):
+        super().__init__(node_id, name or "Email Preprocessor", "Preprocesses email data")
         self.config = config or {}
         self.input_ports = [
             NodePort(
@@ -205,7 +197,7 @@ class PreprocessingNode(BaseNode):
             ),
         ]
 
-    async def execute(self, context: ExecutionContext) -> Dict[str, Any]:
+    async def execute(self, context: ExecutionContext) -> dict[str, Any]:
         """Execute the preprocessing operation."""
         try:
             input_emails = self.inputs.get("emails", [])
@@ -252,7 +244,7 @@ class PreprocessingNode(BaseNode):
                 },
             }
 
-    async def _process_email(self, email: Dict[str, Any]) -> Dict[str, Any]:
+    async def _process_email(self, email: dict[str, Any]) -> dict[str, Any]:
         """Process a single email."""
         # Simulate some preprocessing steps
         processed_email = email.copy()
@@ -279,12 +271,8 @@ class AIAnalysisNode(BaseNode):
     Node that performs AI analysis on emails (sentiment, topic, intent, etc.).
     """
 
-    def __init__(
-        self, config: Dict[str, Any] = None, node_id: str = None, name: str = None
-    ):
-        super().__init__(
-            node_id, name or "AI Analyzer", "Performs AI analysis on emails"
-        )
+    def __init__(self, config: dict[str, Any] = None, node_id: str = None, name: str = None):
+        super().__init__(node_id, name or "AI Analyzer", "Performs AI analysis on emails")
         self.config = config or {}
         self.nlp_engine = NLPEngine()
         self.input_ports = [
@@ -310,7 +298,7 @@ class AIAnalysisNode(BaseNode):
             ),
         ]
 
-    async def execute(self, context: ExecutionContext) -> Dict[str, Any]:
+    async def execute(self, context: ExecutionContext) -> dict[str, Any]:
         """Execute the AI analysis operation."""
         try:
             input_emails = self.inputs.get("emails", [])
@@ -357,12 +345,8 @@ class FilterNode(BaseNode):
     Node that applies filtering rules to emails.
     """
 
-    def __init__(
-        self, config: Dict[str, Any] = None, node_id: str = None, name: str = None
-    ):
-        super().__init__(
-            node_id, name or "Email Filter", "Filters emails based on criteria"
-        )
+    def __init__(self, config: dict[str, Any] = None, node_id: str = None, name: str = None):
+        super().__init__(node_id, name or "Email Filter", "Filters emails based on criteria")
         self.config = config or {}
         self.input_ports = [
             NodePort(
@@ -399,7 +383,7 @@ class FilterNode(BaseNode):
             ),
         ]
 
-    async def execute(self, context: ExecutionContext) -> Dict[str, Any]:
+    async def execute(self, context: ExecutionContext) -> dict[str, Any]:
         """Execute the filtering operation."""
         try:
             input_emails = self.inputs.get("emails", [])
@@ -447,9 +431,7 @@ class FilterNode(BaseNode):
                 },
             }
 
-    def _matches_criteria(
-        self, email: Dict[str, Any], criteria: Dict[str, Any]
-    ) -> bool:
+    def _matches_criteria(self, email: dict[str, Any], criteria: dict[str, Any]) -> bool:
         """Check if an email matches the filtering criteria."""
         # If no criteria provided, pass everything through
         if not criteria:
@@ -468,9 +450,7 @@ class FilterNode(BaseNode):
         email_date = None
         if timestamp_str:
             try:
-                email_date = datetime.fromisoformat(
-                    timestamp_str.replace("Z", "+00:00")
-                )
+                email_date = datetime.fromisoformat(timestamp_str.replace("Z", "+00:00"))
             except ValueError:
                 pass  # If timestamp format is invalid, keep email_date as None
 
@@ -504,47 +484,31 @@ class FilterNode(BaseNode):
         required_recipients = criteria.get("required_recipients", [])
         excluded_recipients = criteria.get("excluded_recipients", [])
 
-        if required_recipients and not any(
-            r.lower() in recipients for r in required_recipients
-        ):
+        if required_recipients and not any(r.lower() in recipients for r in required_recipients):
             return False
 
-        if excluded_recipients and any(
-            r.lower() in recipients for r in excluded_recipients
-        ):
+        if excluded_recipients and any(r.lower() in recipients for r in excluded_recipients):
             return False
 
         # 4. Category-based filtering
-        required_categories = [
-            cat.lower() for cat in criteria.get("required_categories", [])
-        ]
-        excluded_categories = [
-            cat.lower() for cat in criteria.get("excluded_categories", [])
-        ]
+        required_categories = [cat.lower() for cat in criteria.get("required_categories", [])]
+        excluded_categories = [cat.lower() for cat in criteria.get("excluded_categories", [])]
 
-        if required_categories and not any(
-            cat.lower() in category for cat in required_categories
-        ):
+        if required_categories and not any(cat.lower() in category for cat in required_categories):
             return False
 
-        if excluded_categories and any(
-            cat.lower() in category for cat in excluded_categories
-        ):
+        if excluded_categories and any(cat.lower() in category for cat in excluded_categories):
             return False
 
         # 5. Date/time-based filtering
         date_criteria = criteria.get("date_criteria", {})
         if date_criteria and email_date:
             if "after" in date_criteria:
-                after_date = datetime.fromisoformat(
-                    date_criteria["after"].replace("Z", "+00:00")
-                )
+                after_date = datetime.fromisoformat(date_criteria["after"].replace("Z", "+00:00"))
                 if email_date < after_date:
                     return False
             if "before" in date_criteria:
-                before_date = datetime.fromisoformat(
-                    date_criteria["before"].replace("Z", "+00:00")
-                )
+                before_date = datetime.fromisoformat(date_criteria["before"].replace("Z", "+00:00"))
                 if email_date > before_date:
                     return False
 
@@ -600,9 +564,7 @@ class FilterNode(BaseNode):
         # Default: if all conditions pass, return True
         return True
 
-    def _evaluate_condition(
-        self, email: Dict[str, Any], condition: Dict[str, Any]
-    ) -> bool:
+    def _evaluate_condition(self, email: dict[str, Any], condition: dict[str, Any]) -> bool:
         """Evaluate a single boolean condition against an email."""
         # This is a helper for the boolean logic implementation
         # It checks individual conditions within complex boolean operations
@@ -629,12 +591,8 @@ class ActionNode(BaseNode):
     Node that executes actions on emails (move, label, forward, etc.).
     """
 
-    def __init__(
-        self, config: Dict[str, Any] = None, node_id: str = None, name: str = None
-    ):
-        super().__init__(
-            node_id, name or "Action Executor", "Executes actions on emails"
-        )
+    def __init__(self, config: dict[str, Any] = None, node_id: str = None, name: str = None):
+        super().__init__(node_id, name or "Action Executor", "Executes actions on emails")
         self.config = config or {}
         self.input_ports = [
             NodePort(
@@ -665,7 +623,7 @@ class ActionNode(BaseNode):
             ),
         ]
 
-    async def execute(self, context: ExecutionContext) -> Dict[str, Any]:
+    async def execute(self, context: ExecutionContext) -> dict[str, Any]:
         """Execute the action operation."""
         try:
             input_emails = self.inputs.get("emails", [])
@@ -707,8 +665,8 @@ class ActionNode(BaseNode):
             }
 
     async def _execute_actions_on_email(
-        self, email: Dict[str, Any], actions: List[Dict[str, Any]]
-    ) -> Dict[str, Any]:
+        self, email: dict[str, Any], actions: list[dict[str, Any]]
+    ) -> dict[str, Any]:
         """Execute actions on a single email."""
         # Simulate action execution
         # In a real implementation, this would interact with email APIs

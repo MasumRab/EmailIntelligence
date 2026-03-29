@@ -9,7 +9,7 @@ This follows patterns similar to leading AI frameworks like ComfyUI.
 """
 
 from abc import ABC, abstractmethod
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import gradio as gr
 
@@ -46,14 +46,14 @@ class BasePlugin(ABC):
         """
         pass
 
-    def get_config_schema(self) -> Dict[str, Any]:
+    def get_config_schema(self) -> dict[str, Any]:
         """
         Return the configuration schema for this plugin.
         Override this method to provide custom configuration requirements.
         """
         return {}
 
-    def validate_config(self, config: Dict[str, Any]) -> bool:
+    def validate_config(self, config: dict[str, Any]) -> bool:
         """
         Validate the plugin configuration.
         """
@@ -66,21 +66,21 @@ class UIComponentPlugin(BasePlugin):
     """
 
     @abstractmethod
-    def get_ui_components(self) -> List[gr.components.Component]:
+    def get_ui_components(self) -> list[gr.components.Component]:
         """
         Return Gradio UI components that this plugin provides.
         """
         pass
 
     @abstractmethod
-    def get_input_widgets(self) -> List[gr.components.Component]:
+    def get_input_widgets(self) -> list[gr.components.Component]:
         """
         Return custom input widgets that this plugin provides.
         """
         pass
 
     @abstractmethod
-    def get_visualization_components(self) -> List[gr.components.Component]:
+    def get_visualization_components(self) -> list[gr.components.Component]:
         """
         Return visualization components for displaying results.
         """
@@ -102,25 +102,25 @@ class ProcessingNode(BasePlugin):
 
     @property
     @abstractmethod
-    def input_types(self) -> Dict[str, type]:
+    def input_types(self) -> dict[str, type]:
         """Define expected input types for this node."""
         pass
 
     @property
     @abstractmethod
-    def output_types(self) -> Dict[str, type]:
+    def output_types(self) -> dict[str, type]:
         """Define output types for this node."""
         pass
 
     @abstractmethod
-    def run(self, **kwargs) -> Dict[str, Any]:
+    def run(self, **kwargs) -> dict[str, Any]:
         """
         Execute the node with the provided inputs.
         Returns a dictionary of outputs based on output_types.
         """
         pass
 
-    def get_ui_elements(self) -> Optional[Dict[str, Any]]:
+    def get_ui_elements(self) -> dict[str, Any] | None:
         """
         Return UI elements for configuring this node in the workflow editor.
         Override this method to provide custom UI for node configuration.

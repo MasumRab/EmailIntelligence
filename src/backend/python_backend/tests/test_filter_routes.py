@@ -1,6 +1,5 @@
 from datetime import datetime
 
-
 from backend.python_nlp.smart_filters import EmailFilter
 
 

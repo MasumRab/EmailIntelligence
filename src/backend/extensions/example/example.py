@@ -10,7 +10,7 @@ sentiment analysis enhancement to the EmailIntelligence application.
 """
 
 import logging
-from typing import Any, Dict
+from typing import Any
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -34,7 +34,7 @@ def initialize():
         original_analyze_sentiment = NLPEngine._analyze_sentiment
 
         # Define the enhanced method
-        def enhanced_analyze_sentiment(self, text: str) -> Dict[str, Any]:
+        def enhanced_analyze_sentiment(self, text: str) -> dict[str, Any]:
             # Call the original method
             result = original_analyze_sentiment(self, text)
 
@@ -80,7 +80,7 @@ def get_sentiment_emoji(sentiment: str) -> str:
     return SENTIMENT_EMOJIS.get(sentiment, "❓")
 
 
-def analyze_text_with_emojis(text: str) -> Dict[str, Any]:
+def analyze_text_with_emojis(text: str) -> dict[str, Any]:
     """Analyze text and add emojis to the result."""
     # This is a simple example that could be called directly from the application
     result = {

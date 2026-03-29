@@ -14,7 +14,7 @@ SAVED_FILTERS_FILE = "saved_filters.json"
 def get_saved_filters():
     if not os.path.exists(SAVED_FILTERS_FILE):
         return []
-    with open(SAVED_FILTERS_FILE, "r", encoding="utf-8") as f:
+    with open(SAVED_FILTERS_FILE, encoding="utf-8") as f:
         filters = [json.loads(line) for line in f]
     return filters
 
@@ -345,9 +345,7 @@ with gr.Blocks() as email_retrieval_tab:
     def refresh_filters():
         return gr.update(choices=get_saved_filter_names())
 
-    refresh_filters_button.click(
-        fn=refresh_filters, inputs=[], outputs=[saved_filters_dropdown]
-    )
+    refresh_filters_button.click(fn=refresh_filters, inputs=[], outputs=[saved_filters_dropdown])
 
     save_button.click(
         fn=save_filter,

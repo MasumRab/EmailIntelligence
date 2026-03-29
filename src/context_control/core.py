@@ -1,15 +1,13 @@
 """Core context control functionality for Agent Context Control."""
 
 from pathlib import Path
-from typing import Optional, Dict, List
 
 from .config import get_current_config
-from .models import ContextProfile, AgentContext, ContextValidationResult
 from .environment import detect_branch, get_current_branch
-from .logging import get_context_logger
 from .exceptions import ContextNotFoundError
+from .logging import get_context_logger
+from .models import AgentContext, ContextProfile, ContextValidationResult
 from .storage import ProfileStorage
-
 
 logger = get_context_logger()
 
@@ -33,16 +31,14 @@ class ContextController:
             from .config import init_config
 
             init_config(
-                override_config=self.config.dict()
-                if hasattr(self.config, "dict")
-                else None
+                override_config=self.config.dict() if hasattr(self.config, "dict") else None
             )
         self.storage = ProfileStorage(self.config)
-        self._context_cache: Dict[str, AgentContext] = {}
+        self._context_cache: dict[str, AgentContext] = {}
         logger.info("Context controller initialized")
 
     def get_context_for_branch(
-        self, branch_name: Optional[str] = None, agent_id: str = "default"
+        self, branch_name: str | None = None, agent_id: str = "default"
     ) -> AgentContext:
         # Ensure branch_name is a string
         if branch_name is None:
@@ -110,7 +106,7 @@ class ContextController:
         logger.info(f"Created context for branch '{branch_name}', agent '{agent_id}'")
         return context
 
-    def _find_profile_for_branch(self, branch_name: str) -> Optional[ContextProfile]:
+    def _find_profile_for_branch(self, branch_name: str) -> ContextProfile | None:
         """Find the best matching context profile for a branch.
 
         Args:
@@ -159,7 +155,7 @@ class ContextController:
 
         return branch_name == pattern
 
-    def _load_all_profiles(self) -> List[ContextProfile]:
+    def _load_all_profiles(self) -> list[ContextProfile]:
         """Load all available context profiles.
 
         Returns:
@@ -167,7 +163,7 @@ class ContextController:
         """
         return self.storage.load_all_profiles()
 
-    def _load_profile_from_file(self, profile_file: Path) -> Optional[ContextProfile]:
+    def _load_profile_from_file(self, profile_file: Path) -> ContextProfile | None:
         """Load a context profile from a JSON file.
 
         Args:
@@ -202,7 +198,7 @@ class ContextController:
         else:
             return "development"
 
-    def _resolve_accessible_files(self, profile: ContextProfile) -> List[str]:
+    def _resolve_accessible_files(self, profile: ContextProfile) -> list[str]:
         """Resolve the list of accessible files for a profile.
 
         Args:
@@ -215,7 +211,7 @@ class ContextController:
         # In future, this could resolve globs, check permissions, etc.
         return profile.allowed_files
 
-    def _resolve_restricted_files(self, profile: ContextProfile) -> List[str]:
+    def _resolve_restricted_files(self, profile: ContextProfile) -> list[str]:
         """Resolve the list of restricted files for a profile.
 
         Args:

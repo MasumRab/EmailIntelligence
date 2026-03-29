@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 
 class DataSource(ABC):
@@ -12,9 +12,9 @@ class DataSource(ABC):
         self,
         limit: int = 100,
         offset: int = 0,
-        category_id: Optional[int] = None,
-        is_unread: Optional[bool] = None,
-    ) -> List[Dict[str, Any]]:
+        category_id: int | None = None,
+        is_unread: bool | None = None,
+    ) -> list[dict[str, Any]]:
         """
         Fetches a list of emails.
 
@@ -30,7 +30,7 @@ class DataSource(ABC):
         pass
 
     @abstractmethod
-    async def create_email(self, email_data: Dict[str, Any]) -> Dict[str, Any]:
+    async def create_email(self, email_data: dict[str, Any]) -> dict[str, Any]:
         """
         Creates a new email.
 
@@ -43,9 +43,7 @@ class DataSource(ABC):
         pass
 
     @abstractmethod
-    async def update_email(
-        self, email_id: Any, email_data: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    async def update_email(self, email_id: Any, email_data: dict[str, Any]) -> dict[str, Any]:
         """
         Updates an existing email.
 
@@ -59,7 +57,7 @@ class DataSource(ABC):
         pass
 
     @abstractmethod
-    async def get_email_by_id(self, email_id: Any) -> Dict[str, Any]:
+    async def get_email_by_id(self, email_id: Any) -> dict[str, Any]:
         """
         Fetches a single email by its ID.
 
@@ -72,7 +70,7 @@ class DataSource(ABC):
         pass
 
     @abstractmethod
-    async def search_emails(self, query: str) -> List[Dict[str, Any]]:
+    async def search_emails(self, query: str) -> list[dict[str, Any]]:
         """
         Searches for emails matching a query.
 
@@ -85,7 +83,7 @@ class DataSource(ABC):
         pass
 
     @abstractmethod
-    async def add_tags(self, email_id: Any, tags: List[str]) -> bool:
+    async def add_tags(self, email_id: Any, tags: list[str]) -> bool:
         """
         Adds tags to an email.
 
@@ -99,7 +97,7 @@ class DataSource(ABC):
         pass
 
     @abstractmethod
-    async def remove_tags(self, email_id: Any, tags: List[str]) -> bool:
+    async def remove_tags(self, email_id: Any, tags: list[str]) -> bool:
         """
         Removes tags from an email.
 
@@ -113,14 +111,14 @@ class DataSource(ABC):
         pass
 
     @abstractmethod
-    async def get_all_categories(self) -> List[Dict[str, Any]]:
+    async def get_all_categories(self) -> list[dict[str, Any]]:
         """
         Fetches all categories.
         """
         pass
 
     @abstractmethod
-    async def create_category(self, category_data: Dict[str, Any]) -> Dict[str, Any]:
+    async def create_category(self, category_data: dict[str, Any]) -> dict[str, Any]:
         """
         Creates a new category.
         """
