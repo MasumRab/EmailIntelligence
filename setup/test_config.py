@@ -10,7 +10,8 @@ from pathlib import Path
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from setup.project_config import get_project_config, ProjectConfig
+from setup.project_config import get_project_config
+
 
 def test_config():
     """Test the project configuration system."""
@@ -52,11 +53,14 @@ def test_config():
         service_path = config.get_service_path(service_name)
         if service_config:
             exists = service_path.exists() if service_path else False
-            print(f"  - {service_name}: {service_config['path']} ({'EXISTS' if exists else 'MISSING'})")
+            print(
+                f"  - {service_name}: {service_config['path']} ({'EXISTS' if exists else 'MISSING'})"
+            )
         else:
             print(f"  - {service_name}: NOT CONFIGURED")
 
     print("\nConfiguration test completed!")
+
 
 if __name__ == "__main__":
     test_config()

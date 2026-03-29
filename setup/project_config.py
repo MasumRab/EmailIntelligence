@@ -6,7 +6,6 @@ structure, allowing paths and components to be defined dynamically rather than h
 This prevents issues during major refactors when file locations change.
 """
 
-import os
 from pathlib import Path
 from typing import Dict, List, Optional, Set
 from dataclasses import dataclass, field
@@ -15,6 +14,7 @@ from dataclasses import dataclass, field
 @dataclass
 class ProjectPaths:
     """Configuration for project directory structure."""
+
     root: Path
 
     # Core directories
@@ -50,51 +50,68 @@ class ProjectComponents:
     """Configuration for project components and their locations."""
 
     # Required directories (must exist)
-    required_dirs: Set[str] = field(default_factory=lambda: {
-        "backend", "client", "shared", "tests"
-    })
+    required_dirs: Set[str] = field(
+        default_factory=lambda: {"backend", "client", "shared", "tests"}
+    )
 
     # Required files (must exist in root)
-    required_files: Set[str] = field(default_factory=lambda: {
-        "pyproject.toml", "README.md", "requirements.txt"
-    })
+    required_files: Set[str] = field(
+        default_factory=lambda: {"pyproject.toml", "README.md", "requirements.txt"}
+    )
 
     # Critical files to check for merge conflicts (Python backend files)
-    critical_backend_files: Set[str] = field(default_factory=lambda: {
-        "main.py", "database.py", "email_routes.py", "category_routes.py",
-        "gmail_routes.py", "filter_routes.py", "action_routes.py",
-        "dashboard_routes.py", "workflow_routes.py", "performance_monitor.py"
-    })
+    critical_backend_files: Set[str] = field(
+        default_factory=lambda: {
+            "main.py",
+            "database.py",
+            "email_routes.py",
+            "category_routes.py",
+            "gmail_routes.py",
+            "filter_routes.py",
+            "action_routes.py",
+            "dashboard_routes.py",
+            "workflow_routes.py",
+            "performance_monitor.py",
+        }
+    )
 
     # Critical NLP files
-    critical_nlp_files: Set[str] = field(default_factory=lambda: {
-        "nlp_engine.py", "gmail_integration.py", "gmail_service.py",
-        "smart_filters.py", "smart_retrieval.py", "ai_training.py"
-    })
+    critical_nlp_files: Set[str] = field(
+        default_factory=lambda: {
+            "nlp_engine.py",
+            "gmail_integration.py",
+            "gmail_service.py",
+            "smart_filters.py",
+            "smart_retrieval.py",
+            "ai_training.py",
+        }
+    )
 
     # Service configurations
-    services: Dict[str, Dict] = field(default_factory=lambda: {
-        "python_backend": {
-            "path": "backend/python_backend",
-            "main_file": "main.py",
-            "port": 8000
-        },
-        "typescript_backend": {
-            "path": "backend/server-ts",
-            "package_json": "package.json",
-            "port": 8001
-        },
-        "frontend": {
-            "path": "client",
-            "package_json": "package.json",
-            "port": 3000
-        },
-        "gradio_ui": {
-            "path": "backend/python_backend",
-            "main_file": "main.py",
-            "port": 7860
+    services: Dict[str, Dict] = field(
+        default_factory=lambda: {
+            "python_backend": {
+                "path": "backend/python_backend",
+                "main_file": "main.py",
+                "port": 8000,
+            },
+            "typescript_backend": {
+                "path": "backend/server-ts",
+                "package_json": "package.json",
+                "port": 8001,
+            },
+            "frontend": {
+                "path": "client",
+                "package_json": "package.json",
+                "port": 3000,
+            },
+            "gradio_ui": {
+                "path": "backend/python_backend",
+                "main_file": "main.py",
+                "port": 7860,
+            },
         }
-    })
+    )
 
 
 class ProjectConfig:
@@ -183,7 +200,9 @@ class ProjectConfig:
         for service_name, service_config in self.components.services.items():
             service_path = self.root_dir / service_config["path"]
             if not service_path.exists():
-                issues.append(f"Service '{service_name}' path '{service_config['path']}' does not exist.")
+                issues.append(
+                    f"Service '{service_name}' path '{service_config['path']}' does not exist."
+                )
 
         return issues
 
@@ -196,7 +215,7 @@ class ProjectConfig:
             discovered_services["python_backend"] = {
                 "path": "backend/python_backend",
                 "type": "python",
-                "main_file": "main.py"
+                "main_file": "main.py",
             }
 
         # Check for TypeScript backend
@@ -204,7 +223,7 @@ class ProjectConfig:
             discovered_services["typescript_backend"] = {
                 "path": "backend/server-ts",
                 "type": "typescript",
-                "package_json": "package.json"
+                "package_json": "package.json",
             }
 
         # Check for frontend
@@ -212,7 +231,7 @@ class ProjectConfig:
             discovered_services["frontend"] = {
                 "path": "client",
                 "type": "javascript",
-                "package_json": "package.json"
+                "package_json": "package.json",
             }
 
         return discovered_services

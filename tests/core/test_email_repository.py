@@ -3,7 +3,7 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 
 from src.core.data.database_source import DatabaseDataSource
-from src.core.data.repository import EmailRepository
+from src.core.data.repository import DatabaseEmailRepository
 
 
 @pytest.fixture
@@ -26,8 +26,8 @@ def db_data_source(mock_db_manager):
 
 @pytest.fixture
 def email_repository(db_data_source):
-    """Fixture to create an EmailRepository with a mock DatabaseDataSource."""
-    return EmailRepository(db_data_source)
+    """Fixture to create a DatabaseEmailRepository with a mock DatabaseDataSource."""
+    return DatabaseEmailRepository(db_data_source)
 
 
 @pytest.mark.asyncio

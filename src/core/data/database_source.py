@@ -3,6 +3,7 @@ from .data_source import DataSource
 from ..database import DatabaseManager, create_database_manager, DatabaseConfig
 from ..factory import get_data_source
 
+
 class DatabaseDataSource(DataSource):
     """
     A data source for emails that uses the database.
@@ -17,11 +18,19 @@ class DatabaseDataSource(DataSource):
         db_manager = await create_database_manager(config)
         return cls(db_manager)
 
-    async def get_emails(self, limit: int = 100, offset: int = 0, category_id: int = None, is_unread: bool = None) -> List[Dict[str, Any]]:
+    async def get_emails(
+        self,
+        limit: int = 100,
+        offset: int = 0,
+        category_id: int = None,
+        is_unread: bool = None,
+    ) -> List[Dict[str, Any]]:
         """
         Fetches a list of emails from the database.
         """
-        return await self.db.get_emails(limit=limit, offset=offset, category_id=category_id, is_unread=is_unread)
+        return await self.db.get_emails(
+            limit=limit, offset=offset, category_id=category_id, is_unread=is_unread
+        )
 
     async def create_email(self, email_data: Dict[str, Any]) -> Dict[str, Any]:
         """
@@ -29,7 +38,9 @@ class DatabaseDataSource(DataSource):
         """
         return await self.db.create_email(email_data)
 
-    async def update_email(self, email_id: Any, email_data: Dict[str, Any]) -> Dict[str, Any]:
+    async def update_email(
+        self, email_id: Any, email_data: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """
         Updates an existing email in the database.
         """
@@ -87,6 +98,7 @@ class DatabaseDataSource(DataSource):
         """
         return await self.db.create_category(category_data)
 
+
 async def get_database_data_source() -> DatabaseDataSource:
     """
     Provides a singleton instance of the DatabaseDataSource.
@@ -97,7 +109,7 @@ async def get_database_data_source() -> DatabaseDataSource:
     if isinstance(data_source, DatabaseDataSource):
         return data_source
     # Otherwise, create a new DatabaseDataSource with the DatabaseManager
-    elif hasattr(data_source, '_db'):  # DatabaseManager instance
+    elif hasattr(data_source, "_db"):  # DatabaseManager instance
         return DatabaseDataSource(data_source)
     else:
         # Create a new DatabaseDataSource with proper configuration

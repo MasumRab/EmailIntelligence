@@ -6,7 +6,6 @@ dependency installation, and system configuration.
 """
 
 import logging
-from argparse import Namespace
 from pathlib import Path
 
 from .command_interface import Command
@@ -80,13 +79,18 @@ class SetupCommand(Command):
     def _validate_environment(self) -> bool:
         """Validate the environment before setup."""
         import sys
+
         logger.info("Validating environment...")
 
         # Check for system Python that might cause permission issues
         if self._is_system_python():
             logger.warning("⚠️  System Python detected at: {}".format(sys.executable))
-            logger.warning("❌ This will cause 'Permission denied' errors when running 'pip install'")
-            logger.info("✅ The setup will create a virtual environment to avoid permission issues.")
+            logger.warning(
+                "❌ This will cause 'Permission denied' errors when running 'pip install'"
+            )
+            logger.info(
+                "✅ The setup will create a virtual environment to avoid permission issues."
+            )
             logger.info("💡 After setup, always use: source venv/bin/activate")
             logger.info("   Or run commands with: ./venv/bin/pip install <package>")
 
@@ -99,19 +103,23 @@ class SetupCommand(Command):
 
         # Check Python version
         import sys
+
         python_version = sys.version_info
         if python_version < (3, 8):
-            logger.error(f"Python {python_version.major}.{python_version.minor} is too old. Minimum required: 3.8")
+            logger.error(
+                f"Python {python_version.major}.{python_version.minor} is too old. Minimum required: 3.8"
+            )
             return False
 
-        logger.info(f"Python version: {python_version.major}.{python_version.minor}.{python_version.micro}")
+        logger.info(
+            f"Python version: {python_version.major}.{python_version.minor}.{python_version.micro}"
+        )
         logger.info("Environment validation passed")
         return True
 
     def _is_system_python(self) -> bool:
         """Check if we're using system-installed Python."""
         import sys
-        from pathlib import Path
 
         python_path = Path(sys.executable)
 
@@ -144,10 +152,10 @@ class SetupCommand(Command):
 
         # Check for common venv indicators
         return (
-            hasattr(sys, 'real_prefix') or
-            (hasattr(sys, 'base_prefix') and sys.base_prefix != sys.prefix) or
-            os.environ.get('VIRTUAL_ENV') is not None or
-            os.environ.get('CONDA_DEFAULT_ENV') is not None
+            hasattr(sys, "real_prefix")
+            or (hasattr(sys, "base_prefix") and sys.base_prefix != sys.prefix)
+            or os.environ.get("VIRTUAL_ENV") is not None
+            or os.environ.get("CONDA_DEFAULT_ENV") is not None
         )
 
     def _get_venv_path(self) -> str:
@@ -155,19 +163,20 @@ class SetupCommand(Command):
         import os
 
         # Check various indicators
-        venv_path = os.environ.get('VIRTUAL_ENV')
+        venv_path = os.environ.get("VIRTUAL_ENV")
         if venv_path:
             return venv_path
 
-        conda_env = os.environ.get('CONDA_DEFAULT_ENV')
+        conda_env = os.environ.get("CONDA_DEFAULT_ENV")
         if conda_env:
             return f"conda:{conda_env}"
 
         # Try to infer from sys.prefix
         import sys
-        if hasattr(sys, 'real_prefix'):
+
+        if hasattr(sys, "real_prefix"):
             return sys.real_prefix
-        elif hasattr(sys, 'base_prefix') and sys.base_prefix != sys.prefix:
+        elif hasattr(sys, "base_prefix") and sys.base_prefix != sys.prefix:
             return sys.prefix
 
         return "Unknown"
@@ -184,9 +193,9 @@ class SetupCommand(Command):
 
             # Create args object with defaults for setup
             args = argparse.Namespace(
-                use_conda=getattr(self.args, 'use_conda', False),
-                force_recreate_venv=getattr(self.args, 'force_recreate_venv', False),
-                no_download_nltk=getattr(self.args, 'no_download_nltk', False)
+                use_conda=getattr(self.args, "use_conda", False),
+                force_recreate_venv=getattr(self.args, "force_recreate_venv", False),
+                no_download_nltk=getattr(self.args, "no_download_nltk", False),
             )
 
             # Get venv path
@@ -229,8 +238,13 @@ class SetupCommand(Command):
 
             # Try to run a simple python command to verify venv works
             import subprocess
-            result = subprocess.run([str(python_exe), "-c", "print('Venv validation successful')"],
-                                  capture_output=True, text=True, timeout=10)
+
+            result = subprocess.run(
+                [str(python_exe), "-c", "print('Venv validation successful')"],
+                capture_output=True,
+                text=True,
+                timeout=10,
+            )
 
             if result.returncode != 0:
                 logger.error(f"Venv validation failed: {result.stderr}")

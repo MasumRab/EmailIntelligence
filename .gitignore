@@ -83,6 +83,8 @@ config/llm_guidelines.local.json
 !.github/workflows/
 !client/.eslintrc.json
 !/server/.eslintrc.json
+!.ruff.toml
+!setup/pyproject.toml
 
 # Python cache
 __pycache__/

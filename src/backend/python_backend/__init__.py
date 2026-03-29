@@ -8,17 +8,12 @@ Use the modular architecture in src/ and modules/ instead.
 
 import warnings
 
-warnings.warn(
-    "backend.python_backend is deprecated. Use src.main:create_app() for the new modular architecture.",
-    DeprecationWarning,
-    stacklevel=2,
-)
-
+# Core imports at top
 from backend.python_nlp.gmail_service import GmailAIService
 from backend.python_nlp.smart_filters import EmailFilter, SmartFilterManager
-
 from .ai_engine import AdvancedAIEngine, AIAnalysisResult
 from .database import DatabaseManager, get_db
+from . import action_routes
 from .models import (
     ActivityCreate,
     ActivityResponse,
@@ -33,6 +28,13 @@ from .models import (
     GmailSyncRequest,
     GmailSyncResponse,
     SmartRetrievalRequest,
+)
+
+# Emit deprecation warning after imports
+warnings.warn(
+    "backend.python_backend is deprecated. Use src.main:create_app() for the new modular architecture.",
+    DeprecationWarning,
+    stacklevel=2,
 )
 
 __version__ = "2.0.0"
@@ -57,4 +59,5 @@ __all__ = [
     "AIAnalysisResult",
     "SmartFilterManager",
     "EmailFilter",
+    "action_routes",
 ]
