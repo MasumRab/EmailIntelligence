@@ -325,3 +325,23 @@ def create_security_context_for_user(username: str) -> SecurityContext:
     )
 
     return context
+
+
+# Backward compatibility class
+class AuthManager:
+    """Authentication manager for backward compatibility with imports."""
+
+    def __init__(self):
+        pass
+
+    def create_access_token(self, data: dict, expires_delta: Optional[timedelta] = None) -> str:
+        return create_access_token(data, expires_delta)
+
+    async def authenticate_user(self, username: str, password: str, db) -> Optional[Dict[str, Any]]:
+        return await authenticate_user(username, password, db)
+
+    def hash_password(self, password: str) -> str:
+        return hash_password(password)
+
+    def verify_password(self, plain_password: str, hashed_password: str) -> bool:
+        return verify_password(plain_password, hashed_password)
