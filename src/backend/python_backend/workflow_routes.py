@@ -2,6 +2,8 @@
 DEPRECATED: This module is part of the deprecated `backend` package.
 It will be removed in a future release.
 
+CURRENT STATE (2026-03-28): Contains broken imports (from backend.*) - non-functional. Use src/core/ instead.
+
 API routes for managing both legacy and node-based workflows.
 """
 
