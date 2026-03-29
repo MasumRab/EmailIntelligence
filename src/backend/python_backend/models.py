@@ -11,6 +11,7 @@ from enum import Enum
 from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel, Field, validator
+from src.core.models import ActionItem
 
 
 # Enums
@@ -158,15 +159,17 @@ class ActivityResponse(ActivityBase):
     createdAt: datetime
 
 
-class ActionItem(BaseModel):
-    """Represents an actionable item identified in an email."""
-
-    description: str = Field(..., description="The description of the action item.")
-    due_date: Optional[datetime] = Field(None, description="The due date for the action item.")
-    completed: bool = Field(False, description="Whether the action item is completed.")
-
-
 # AI Analysis Models
+class ActionItem(BaseModel):
+    """Model representing a single extracted action item from an email."""
+
+    action_phrase: str
+    verb: Optional[str] = None
+    object: Optional[str] = None
+    raw_due_date_text: Optional[str] = None
+    context: str
+
+
 class AIAnalysisRequest(BaseModel):
     subject: str
     content: str
@@ -188,6 +191,7 @@ class AIAnalysisResponse(BaseModel):
     riskFlags: List[str] = Field(alias="risk_flags")
     actionItems: List[ActionItem] = Field(default_factory=list)
     categoryId: Optional[int] = None
+    isImportant: bool = False
 
     class Config:
         allow_population_by_field_name = True

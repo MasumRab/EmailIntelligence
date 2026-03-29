@@ -107,7 +107,7 @@
 - **Communicates with**: FastAPI backend via HTTP
 - **Relationships**:
   - Consumes API endpoints
-  - Displays data from backend
+  - Displays data from src.backend
   - Provides user interface
 
 ### 14. Gradio UI (`src/main.py`)
