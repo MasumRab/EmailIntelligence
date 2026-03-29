@@ -168,6 +168,40 @@ class ActivityResponse(ActivityBase):
 
 
 # AI Analysis Models
+class AIAnalysisRequest(BaseModel):
+    """Model for a request to analyze an email with AI."""
+    subject: str
+    content: str
+    models: Optional[Dict[str, str]] = None
+
+
+class AICategorizeRequest(BaseModel):
+    """Model for a request to categorize an email with AI."""
+    emailId: int
+    autoAnalyze: bool
+    categoryId: Optional[int] = None
+    confidence: Optional[int] = None
+
+
+class AICategorizeResponse(BaseModel):
+    """Model for the response of an AI categorization request."""
+    success: bool
+    email: Optional["EmailResponse"] = None
+    analysis: Optional["AIAnalysisResponse"] = None
+
+
+class AIValidateRequest(BaseModel):
+    """Model for a request to validate AI analysis with user feedback."""
+    emailId: int
+    userFeedback: str
+    correctCategory: Optional[str] = None
+
+
+class AIValidateResponse(BaseModel):
+    """Model for the response of an AI validation request."""
+    success: bool
+    message: str
+
 class AIAnalysisResponse(BaseModel):
     """Model representing the detailed output of an AI email analysis."""
 

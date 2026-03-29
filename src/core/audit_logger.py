@@ -2,6 +2,7 @@
 Advanced Audit Logging System for Email Intelligence Platform
 
 Provides comprehensive event tracking, security monitoring, and compliance logging
+import asyncio
 with structured JSON output and configurable log levels.
 """
 

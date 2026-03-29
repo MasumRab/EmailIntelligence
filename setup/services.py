@@ -320,3 +320,7 @@ def start_services(args):
             frontend_config = config.get_service_config("frontend")
             frontend_path = config.get_service_path("frontend")
             start_node_service(frontend_path, "Frontend Client", args.frontend_port, api_url)
+
+# Constants
+PACKAGE_JSON = "package.json"
+
