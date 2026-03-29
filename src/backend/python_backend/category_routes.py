@@ -27,6 +27,7 @@ async def get_categories(
 ):
     """
     Retrieves all categories from the database.
+
     Requires authentication.
     """
     try:
@@ -54,11 +55,11 @@ async def create_category(
 ):
     """
     Creates a new category in the database.
-    Requires authentication.
 
     Args:
         request (Request): The incoming request object.
         category (CategoryCreate): The category data for creation.
+        current_user: The authenticated user making the request.
         db (DatabaseManager): The database manager dependency.
 
     Returns:

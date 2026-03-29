@@ -1,8 +1,6 @@
 """
-Gradio UI for the Email Intelligence Platform.
-
-This module provides a web-based interface for interacting with the email analysis features
-using Gradio. It includes tabs for dashboard, inbox, email analysis, and visualization.
+DEPRECATED: This module is part of the deprecated `backend` package.
+It will be removed in a future release.
 """
 
 import json
@@ -208,6 +206,11 @@ with gr.Blocks(title="Email Intelligence", theme=gr.themes.Soft()) as iface:
             analyze_data_button.click(
                 fn=analyze_batch, inputs=data_input, outputs=[batch_output, stats_output]
             )
+
+        with gr.TabItem("Workflow Editor"):
+            gr.Markdown("### 🔄 Node-Based Workflow Editor")
+            from .workflow_editor_ui import create_workflow_editor_ui
+            workflow_editor_component = create_workflow_editor_ui()
 
         with gr.TabItem("Jupyter Notebook"):
             gr.Markdown("### Interactive Jupyter Analysis")

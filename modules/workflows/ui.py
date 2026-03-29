@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import json
 import logging
 
@@ -185,5 +184,3 @@ def create_workflow_ui():
             outputs=output_json,
         )
     return workflow_tab
-=======
->>>>>>> origin/main

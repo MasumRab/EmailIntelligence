@@ -1,0 +1,15 @@
+{
+  "plugin_id": "example_ai_enhancer",
+  "name": "AI Analysis Enhancer",
+  "version": "1.0.0",
+  "author": "EmailIntelligence Team",
+  "description": "Example plugin that enhances AI analysis with additional processing and insights",
+  "license": "MIT",
+  "homepage": "https://emailintelligence.com",
+  "repository": "https://github.com/example/ai-enhancer",
+  "dependencies": [],
+  "permissions": ["ai_access", "data_read"],
+  "security_level": "standard",
+  "tags": ["ai", "enhancement", "analysis", "example"],
+  "created_at": 1640995200.0
+}

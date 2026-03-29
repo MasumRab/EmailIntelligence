@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 """
 DEPRECATED: This module is part of the deprecated `backend` package.
 It will be removed in a future release.
@@ -12,8 +11,8 @@ import logging
 from fastapi import APIRouter, Depends, Request
 
 from src.core.models import CategoryResponse, CategoryCreate
-from backend.python_backend.services.category_service import CategoryService
-from backend.python_backend.dependencies import get_category_service
+from src.backend.python_backend.services.category_service import CategoryService
+from src.backend.python_backend.dependencies import get_category_service
 from src.core.performance_monitor import log_performance
 
 logger = logging.getLogger(__name__)
@@ -85,5 +84,3 @@ async def create_category_v1(
         from fastapi import HTTPException
 
         raise HTTPException(status_code=500, detail=result.error)
-=======
->>>>>>> origin/main

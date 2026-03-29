@@ -2,6 +2,7 @@ import logging
 
 from fastapi import APIRouter, Depends, HTTPException
 
+from . import models
 from .ai_engine import AdvancedAIEngine
 from .database import DatabaseManager
 from .dependencies import get_ai_engine, get_db
@@ -14,7 +15,6 @@ from .models import (
     AIValidateResponse,
     EmailResponse,
 )
-from src.core.auth import get_current_active_user
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -25,11 +25,9 @@ async def analyze_email(
     request: AIAnalysisRequest,
     ai_engine: AdvancedAIEngine = Depends(get_ai_engine),
     db: DatabaseManager = Depends(get_db),
-    current_user = Depends(get_current_active_user),
 ):
     """
     Analyzes email content and returns AI-driven insights.
-    Requires authentication.
     """
     try:
         default_models = {"sentiment": "sentiment-default", "topic": "topic-default"}
@@ -47,11 +45,9 @@ async def categorize_email(
     request: AICategorizeRequest,
     db: DatabaseManager = Depends(get_db),
     ai_engine: AdvancedAIEngine = Depends(get_ai_engine),
-    current_user = Depends(get_current_active_user),
 ):
     """
     Categorizes an email, either automatically using AI or manually.
-    Requires authentication.
     """
     email = await db.get_email_by_id(request.emailId)
     if not email:
@@ -117,11 +113,9 @@ async def categorize_email(
 async def validate_analysis(
     request: AIValidateRequest,
     db: DatabaseManager = Depends(get_db),
-    current_user = Depends(get_current_active_user),
 ):
     """
     Validates AI analysis based on user feedback.
-    Requires authentication.
     """
     logger.info(f"Received validation feedback for email {request.emailId}: {request.userFeedback}")
 
