@@ -1,0 +1,27 @@
+--- .github/workflows/ci.yml
++++ .github/workflows/ci.yml
+@@ -33,19 +33,19 @@ jobs:
+
+       - name: Run tests
+         run: |
+-          uv run pytest tests/ src/ modules/ -v --tb=short --cov=src --cov=modules --cov-report=xml --cov-report=term-missing --cov-fail-under=80 || true
++          uv run pytest tests/ src/ modules/ -v --tb=short --cov=src --cov=modules --cov-report=xml --cov-report=term-missing --cov-fail-under=80
+
+       - name: Run Security Scans
+         run: |
+-          uv run bandit -r src/ modules/ || true
++          uv run bandit -r src/ modules/
+           # uv run safety check (temporarily disabled as it might not be installed or configured)
+
+       - name: Run linting
+         run: |
+-          uv run flake8 src/ modules/ || true
+-          uv run black --check src/ modules/ || true
+-          uv run isort --check-only src/ modules/ || true
++          uv run flake8 src/ modules/
++          uv run black --check src/ modules/
++          uv run isort --check-only src/ modules/
+
+       - name: Type checking
+         run: |
+-          uv run mypy src/ modules/ --show-error-codes --no-strict-optional || true+          uv run mypy src/ modules/ --show-error-codes --no-strict-optional

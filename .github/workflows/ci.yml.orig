@@ -1,0 +1,74 @@
+name: CI
+
+on:
+  push:
+    branches: [main, scientific]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - '**.mdx'
+  pull_request:
+    branches: [main, scientific]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - '**.mdx'
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    if: |
+      !contains(github.event.head_commit.message, '[skip ci]') &&
+      !contains(github.event.head_commit.message, '[ci:lint-only]') &&
+      !contains(github.event.pull_request.labels.*.name, 'ci:skip-tests')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+      - name: Install dependencies
+        run: uv sync --all-extras
+      - name: Run tests
+        run: |
+          uv run pytest tests/ src/ modules/ -v --tb=short \
+            --cov=src --cov=modules --cov-report=xml --cov-report=term-missing \
+            --cov-fail-under=70
+      - name: Run Security Scans
+        run: uv run bandit -r src/ modules/
+      - name: Run linting
+        run: |
+          uv run ruff check src/ modules/
+          uv run ruff format --check src/ modules/
+      - name: Type checking
+        run: uv run mypy src/ modules/ --show-error-codes --no-strict-optional
+        continue-on-error: true
+
+  lint-only:
+    if: |
+      !contains(github.event.head_commit.message, '[skip ci]') &&
+      !contains(github.event.head_commit.message, '[ci:tests-only]') &&
+      !contains(github.event.pull_request.labels.*.name, 'ci:skip-lint')
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+      - name: Install dependencies
+        run: uv sync --all-extras
+      - name: Run ruff
+        run: |
+          uv run ruff check src/ modules/
+          uv run ruff format --check src/ modules/
