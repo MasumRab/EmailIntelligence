@@ -19,15 +19,15 @@ class DataSourceFactory:
     """
     Factory class for creating DataSource instances.
     """
-    
+
     @staticmethod
     async def create_data_source(source_type: str = "database") -> DataSource:
         """
         Creates a DataSource instance based on the specified type.
-        
+
         Args:
             source_type: The type of data source to create ("database", "notmuch", etc.)
-            
+
         Returns:
             A DataSource instance
         """

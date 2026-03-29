@@ -1,4 +1,7 @@
+<<<<<<< HEAD
 """
+DEPRECATED: This module is part of the deprecated `backend` package.
+It will be removed in a future release.
 
 Base classes for the node-based workflow system.
 
@@ -318,3 +321,5 @@ class Workflow:
             f"Workflow(name={self.name}, nodes={len(self.nodes)}"
             f", connections={len(self.connections)})"
         )
+=======
+>>>>>>> origin/main

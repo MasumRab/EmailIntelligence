@@ -8,7 +8,7 @@ This document outlines the specific integration strategy for merging scientific 
 ### Tier 1: Critical - MUST PRESERVE (No Exceptions)
 
 #### AI-Integrated Email Processing
-**Preservation Strategy**: 
+**Preservation Strategy**:
 - Do NOT modify the `NotmuchDataSource.create_email()` method
 - Do NOT change the `NotmuchDataSource._analyze_email_async()` method
 - Do NOT refactor the AI engine integration points

@@ -1,10 +1,11 @@
+<<<<<<< HEAD
 import os
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from src.backend.python_backend.ai_engine import AdvancedAIEngine, AIAnalysisResult
-from src.backend.python_backend.model_manager import ModelManager
+from backend.python_backend.ai_engine import AdvancedAIEngine, AIAnalysisResult
+from backend.python_backend.model_manager import ModelManager
 
 # This mock is for the database, which is used for category lookups
 mock_db_manager_for_ai_engine = MagicMock()
@@ -150,3 +151,5 @@ async def test_analyze_email_model_failure(
     assert isinstance(result, AIAnalysisResult)
     assert "Critical failure" in result.reasoning
     assert "Model exploded" in result.reasoning
+=======
+>>>>>>> origin/main

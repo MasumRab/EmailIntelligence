@@ -17,7 +17,7 @@ import plotly.graph_objects as go
 import requests
 import seaborn as sns
 
-from src.backend.python_nlp.nlp_engine import NLPEngine
+from backend.python_nlp.nlp_engine import NLPEngine
 
 # Initialize the NLP Engine
 nlp_engine = NLPEngine()

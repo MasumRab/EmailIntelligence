@@ -1,4 +1,7 @@
+<<<<<<< HEAD
+<<<<<<< HEAD
 import pytest
+=======
 """
 Unit tests for the enhanced workflow engine.
 Tests all the new functionality implemented for workflow engine enhancement.
@@ -10,6 +13,7 @@ import sys
 # Add the project root to the path to import correctly
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
+>>>>>>> scientific
 from src.core.workflow_engine import Node, Workflow, WorkflowRunner
 
 def test_node_execution():
@@ -83,9 +87,11 @@ def test_workflow_runner_node_exception():
     }
     workflow = Workflow(name="test_workflow", nodes=nodes, connections=connections)
     runner = WorkflowRunner(workflow)
+<<<<<<< HEAD
     initial_context = {"a": 1, "b": 2, "d": 0}
     result = runner.run(initial_context)
     assert "error" in result
+=======
 
     # Run with memory optimization enabled
     result = runner.run({"input": 1}, memory_optimized=True)
@@ -181,3 +187,6 @@ if __name__ == "__main__":
     print("✓ Metrics collection test passed")
 
     print("\nAll tests passed! 🎉")
+>>>>>>> scientific
+=======
+>>>>>>> origin/main

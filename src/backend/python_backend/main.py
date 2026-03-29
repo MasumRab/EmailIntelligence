@@ -1,9 +1,6 @@
 """
-
-- Has broken imports: uses `from backend.` instead of `from src.backend.`
-- Import fails due to circular import issues and path problems
-- Use src/core/ modules instead for new development
-- This file is non-functional and needs migration to src/core/
+DEPRECATED: This module is part of the deprecated `backend` package.
+It will be removed in a future release.
 
 FastAPI Backend for Gmail AI Email Management
 Unified Python backend with optimized performance and integrated NLP
@@ -26,10 +23,10 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import ValidationError
 from starlette.middleware.base import BaseHTTPMiddleware
 
-from src.backend.python_nlp.gmail_service import GmailAIService
+from backend.python_nlp.gmail_service import GmailAIService
 
 # Removed: from .smart_filters import EmailFilter (as per instruction)
-from src.backend.python_nlp.smart_filters import SmartFilterManager
+from backend.python_nlp.smart_filters import SmartFilterManager
 from src.core.auth import authenticate_user
 
 from ..plugins.plugin_manager import plugin_manager
@@ -262,7 +259,7 @@ app.include_router(node_workflow_router, prefix="/api/nodes", tags=["node-workfl
 
 # Initialize workflow manager instance (using the node-based workflow manager)
 try:
-    from src.backend.node_engine.workflow_manager import workflow_manager as node_workflow_manager
+    from backend.node_engine.workflow_manager import workflow_manager as node_workflow_manager
 
     workflow_manager_instance = node_workflow_manager
 except ImportError:

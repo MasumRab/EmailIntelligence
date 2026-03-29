@@ -25,7 +25,7 @@ Systematically align feature branch `feature/backlog-ac-updates` with the scient
 
 ## Target Branch
 - Base: `scientific` (source of latest improvements)
-- Feature branch to align: `feature/backlog-ac-updates` 
+- Feature branch to align: `feature/backlog-ac-updates`
 
 ## Alignment Approach
 Following the documented merge direction strategy where the scientific branch contains superior architectural implementations:

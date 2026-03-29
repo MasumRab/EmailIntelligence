@@ -1,11 +1,6 @@
 # EmailIntelligence Python Requirements
-<<<<<<< HEAD
-<<<<<<< HEAD
 packaging>=23.0
-=======
 argon2-cffi==25.1.0
->>>>>>> scientific
-=======
 >>>>>>> origin/main
 # Install in virtual environment only
 

@@ -1,27 +1,21 @@
-import os
-from typing import Optional
+"""
+Settings for the Email Intelligence Platform core modules.
+"""
 
-
+<<<<<<< HEAD
 class Settings:
     """Settings class for core modules."""
-
-    secret_key: str = os.getenv("SECRET_KEY", "your-secret-key-here")
+    secret_key = "your-secret-key-here"
     algorithm = "HS256"
-    access_token_expire_minutes: int = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "30"))
-    
-    # Rate limiting settings
-    rate_limit_window: int = int(os.getenv("RATE_LIMIT_WINDOW", "60"))
-    rate_limit_requests: int = int(os.getenv("RATE_LIMIT_REQUESTS", "100"))
-    
-    # Redis settings
-    redis_url: str = os.getenv("REDIS_URL", "redis://localhost:6379")
-
-    def __init__(self):
-        pass
+    access_token_expire_minutes = 30
 
 
 class SettingsManager:
-    """Settings manager for the Email Intelligence Platform."""
+    """
+    Settings manager for the Email Intelligence Platform.
+
+    This class handles application settings and configuration.
+    """
 
     def __init__(self):
         self.settings = Settings()
@@ -40,3 +34,23 @@ class SettingsManager:
 
 
 settings = Settings()
+=======
+import os
+from typing import Optional
+
+
+class Settings:
+    """Settings class for core modules."""
+
+    secret_key: str = os.getenv("SECRET_KEY", "")
+    algorithm = "HS256"
+    access_token_expire_minutes: int = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "30"))
+
+    def __init__(self):
+        # Ensure a secret key is provided
+        if not self.secret_key:
+            raise ValueError("SECRET_KEY environment variable must be set")
+
+
+settings = Settings()
+>>>>>>> scientific

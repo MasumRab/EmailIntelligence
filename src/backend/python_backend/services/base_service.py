@@ -1,4 +1,7 @@
+<<<<<<< HEAD
 """
+DEPRECATED: This module is part of the deprecated `backend` package.
+It will be removed in a future release.
 
 Base service class for the Email Intelligence Platform
 Provides common functionality for all services
@@ -41,3 +44,5 @@ class BaseService(ABC):
 
 # Generic type for model operations
 ModelType = TypeVar("ModelType", bound=BaseModel)
+=======
+>>>>>>> origin/main

@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 """
 API routes for managing AI models.
 """
@@ -22,8 +23,13 @@ async def list_models(
     model_manager: ModelManager = Depends(get_model_manager),
 ):
     """Lists all discovered models and their current status.
+<<<<<<< HEAD
     Requires authentication."""
+=======
 
+    Requires authentication.
+    """
+>>>>>>> scientific
     return model_manager.list_models()
 
 
@@ -34,7 +40,13 @@ async def load_model(
     model_manager: ModelManager = Depends(get_model_manager),
 ):
     """Loads a specific model into memory.
+<<<<<<< HEAD
     Requires authentication."""
+=======
+
+    Requires authentication.
+    """
+>>>>>>> scientific
     try:
         model_manager.load_model(model_name)
         return {"message": f"Model '{model_name}' loaded successfully."}
@@ -55,7 +67,13 @@ async def unload_model(
     model_manager: ModelManager = Depends(get_model_manager),
 ):
     """Unloads a specific model from memory.
+<<<<<<< HEAD
     Requires authentication."""
+=======
+
+    Requires authentication.
+    """
+>>>>>>> scientific
     try:
         model_manager.unload_model(model_name)
         return {"message": f"Model '{model_name}' unloaded successfully."}
@@ -67,3 +85,5 @@ async def unload_model(
             status_code=500,
             detail=f"An unexpected error occurred while unloading model '{model_name}'.",
         )
+=======
+>>>>>>> origin/main

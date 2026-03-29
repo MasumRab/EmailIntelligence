@@ -12,10 +12,10 @@ def register(app: FastAPI, gradio_app: gr.Blocks):
     Registers the analysis module with the main application.
     """
     logger.info("Registering analysis module.")
-    
+
     # Add the analysis UI component to the main Gradio app
     with gradio_app:
         with gr.TabItem("🔬 Analysis"):
             create_analysis_ui()
-    
+
     logger.info("Analysis module registered successfully.")

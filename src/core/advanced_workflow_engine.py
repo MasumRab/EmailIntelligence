@@ -114,7 +114,7 @@ class BaseNode(ABC):
         if security_available and self._security_context:
             # Validate access and sanitize inputs
             sanitized_inputs = DataSanitizer.sanitize_input(inputs)
-            
+
             # Log execution for audit purposes
             if security_manager:
                 security_manager.audit_logger.log_execution(
@@ -135,7 +135,7 @@ class BaseNode(ABC):
             # If security is available, sanitize outputs
             if security_available and self._security_context:
                 final_output = DataSanitizer.sanitize_output(output)
-                
+
                 # Log successful execution
                 if security_manager:
                     security_manager.audit_logger.log_execution(
@@ -157,7 +157,7 @@ class BaseNode(ABC):
             execution_time = time.time() - start_time
             self._status = NodeExecutionStatus.FAILED
             logger.error(f"Node {self.name} failed: {str(e)}", exc_info=True)
-            
+
             # Log security violation if security is available
             if security_available and self._security_context and security_manager:
                 security_manager.audit_logger.log_security_violation(
@@ -165,7 +165,7 @@ class BaseNode(ABC):
                     violation_type="EXECUTION_ERROR",
                     details=f"Node {self.name} failed with error: {str(e)}"
                 )
-            
+
             raise
 
     def get_status(self) -> NodeExecutionStatus:

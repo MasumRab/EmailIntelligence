@@ -18,7 +18,7 @@ from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, Set
 from pathlib import Path
 
-from .constants import DATA_DIR
+from .database import DATA_DIR
 from .performance_monitor import log_performance
 from .caching import get_cache_manager
 from .enhanced_error_reporting import (

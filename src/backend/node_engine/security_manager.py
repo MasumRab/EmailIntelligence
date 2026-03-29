@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import asyncio
 import json
 import logging
@@ -122,11 +123,11 @@ class SecurityManager:
     def validate_node_execution(self, node_type: str, config: Dict[str, Any]) -> bool:
         """
         Validate if a node execution is allowed based on security policies.
-        
+
         Args:
             node_type: The type of node being executed
             config: The configuration parameters for the node
-            
+
         Returns:
             True if the node execution is allowed, False otherwise
         """
@@ -424,3 +425,5 @@ for node_type in [
 
 audit_logger = AuditLogger()
 resource_manager = ResourceManager()
+=======
+>>>>>>> origin/main

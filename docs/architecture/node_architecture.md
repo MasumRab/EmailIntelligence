@@ -92,11 +92,11 @@ class CustomEmailNode(BaseNode):
         input_emails = self.inputs.get("emails", [])
 
 =======
-    
+
     async def execute(self, context):
         # Implement node logic here
         input_emails = self.inputs.get("emails", [])
-        
+
 >>>>>>> scientific
         # Process emails
         processed_emails = []
@@ -108,7 +108,7 @@ class CustomEmailNode(BaseNode):
 <<<<<<< HEAD
 
 =======
-        
+
 >>>>>>> scientific
         return {
             "processed_emails": processed_emails,
@@ -187,7 +187,7 @@ The node-based system includes comprehensive testing:
 <<<<<<< HEAD
 - `test_security.py`: Security and scalability features
 =======
-- `test_security.py`: Security and scalability features  
+- `test_security.py`: Security and scalability features
 >>>>>>> scientific
 - `test_integration.py`: Complete system integration
 

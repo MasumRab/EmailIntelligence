@@ -5,23 +5,35 @@ This module implements JWT-based authentication for API endpoints using the new
 core architecture and database management system.
 """
 
-import logging
 from datetime import datetime, timedelta
+<<<<<<< HEAD
+from typing import Optional
+=======
 from typing import Optional, Dict, Any, List
 import hashlib
 import secrets
 from argon2 import PasswordHasher
 
+>>>>>>> scientific
 import jwt
 from fastapi import HTTPException, status, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel
+import hashlib
+import secrets
 
+<<<<<<< HEAD
 from .database import get_db, DatabaseManager
-from .security import DataSanitizer, SecurityContext, Permission, SecurityLevel
+from .security import DataSanitizer
+=======
+from .database import get_db
 from .settings import settings
 
+# Import the security framework components
+from .security import SecurityContext, Permission, SecurityLevel
+
 logger = logging.getLogger(__name__)
+>>>>>>> scientific
 
 
 class TokenData(BaseModel):
@@ -31,23 +43,23 @@ class TokenData(BaseModel):
 class AuthManager:
     """
     Authentication manager for the Email Intelligence Platform.
-    
+
     This class handles user authentication, token management, and authorization.
     """
-    
+
     def __init__(self):
         self.db_manager = None
-        
+
     async def initialize(self):
         """Initialize the AuthManager with database connection."""
         from .database import get_db
         self.db_manager = await get_db()
-        
+
     async def authenticate_user(self, username: str, password: str) -> Optional[dict]:
         """Authenticate a user with username and password."""
         if not self.db_manager:
             await self.initialize()
-            
+
         # In a real implementation, this would check against the database
         # For now, we'll return a mock user
         return {
@@ -55,7 +67,7 @@ class AuthManager:
             "username": username,
             "email": f"{username}@example.com"
         }
-        
+
     def create_access_token(self, data: dict, expires_delta: Optional[timedelta] = None) -> str:
         """Create a JWT access token."""
         to_encode = data.copy()
@@ -66,7 +78,7 @@ class AuthManager:
         to_encode.update({"exp": expire})
         encoded_jwt = jwt.encode(to_encode, "SECRET_KEY", algorithm="HS256")
         return encoded_jwt
-        
+
     async def get_current_user(self, token: str) -> Optional[dict]:
         """Get the current user from a JWT token."""
         # In a real implementation, this would decode the token and get user from database
@@ -157,6 +169,8 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     return encoded_jwt
 
 
+<<<<<<< HEAD
+=======
 def hash_password(password: str) -> str:
     """
     Hash a password using Argon2.
@@ -247,6 +261,7 @@ async def create_user(username: str, password: str, db) -> bool:
         return False
 
 
+>>>>>>> scientific
 async def verify_token(
     credentials: HTTPAuthorizationCredentials = Depends(security)
 ) -> TokenData:
@@ -305,7 +320,7 @@ async def get_current_active_user(current_user: str = Depends(get_current_user))
     """
     db = await get_db()
     users = db.users_data
-    
+
     for user in users:
         if user.get("username") == current_user and user.get("is_active", True):
             return current_user
@@ -320,7 +335,9 @@ def create_authentication_middleware():
     This is a placeholder function that could be expanded to implement
     custom authentication middleware if needed.
     """
+<<<<<<< HEAD
     pass
+=======
     def role_checker(token_data: TokenData = Depends(verify_token)) -> TokenData:
         # In a real implementation, you would check the user's actual role from the database
         # For now, we'll check the role from the token
@@ -361,3 +378,4 @@ def create_security_context_for_user(username: str) -> SecurityContext:
     )
     
     return context
+>>>>>>> scientific

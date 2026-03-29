@@ -25,7 +25,7 @@ Systematically align feature branch `docs-cleanup` with the scientific branch ba
 
 ## Target Branch
 - Base: `scientific` (source of latest improvements)
-- Feature branch to align: `docs-cleanup` 
+- Feature branch to align: `docs-cleanup`
 
 ## Alignment Approach
 Following the documented merge direction strategy where the scientific branch contains superior architectural implementations:

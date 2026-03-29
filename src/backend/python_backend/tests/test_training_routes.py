@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 """
 Tests for training routes.
 """
@@ -6,7 +7,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from src.backend.python_backend.training_routes import run_training
+from backend.python_backend.training_routes import run_training
 
 
 def test_start_training(client):
@@ -58,7 +59,7 @@ def test_get_training_status_not_found(client):
 @pytest.mark.asyncio
 async def test_run_training():
     """Test the background training function."""
-    from src.backend.python_nlp.ai_training import ModelConfig
+    from backend.python_nlp.ai_training import ModelConfig
 
     config = ModelConfig(
         model_name="test",
@@ -72,6 +73,7 @@ async def test_run_training():
         mock_jobs.__setitem__ = MagicMock()
         mock_jobs.__getitem__ = MagicMock(return_value={"status": "running"})
 
+<<<<<<< HEAD
         # Mock the sklearn imports to avoid actual computation
         with (
             patch("sklearn.model_selection.train_test_split") as mock_split,
@@ -90,6 +92,7 @@ async def test_run_training():
             mock_lr_instance = MagicMock()
             mock_lr_instance.predict.return_value = ["neu"]
             mock_lr.return_value = mock_lr_instance
+=======
     # Mock dependencies to avoid actual file I/O and heavy computation
     with (
         patch("pandas.DataFrame") as mock_df,
@@ -119,9 +122,12 @@ async def test_run_training():
         mock_model_instance = mock_model.return_value
         mock_model_instance.predict.return_value = np.array(["positive"] * 20)
         mock_accuracy.return_value = 0.95
+>>>>>>> scientific
 
             mock_acc.return_value = 0.5
 
             await run_training("test_job", config)
 
             # Since training completed successfully (as seen in logs), the test passes
+=======
+>>>>>>> origin/main

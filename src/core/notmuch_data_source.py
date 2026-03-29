@@ -147,7 +147,7 @@ class NotmuchDataSource(DataSource):
     async def get_all_categories(self) -> List[Dict[str, Any]]:
         """Retrieves all categories from Notmuch."""
         await self._ensure_initialized()
-        
+
         # In a real implementation, this would retrieve categories from Notmuch
         # For now, we'll return mock categories
         return [
@@ -159,7 +159,7 @@ class NotmuchDataSource(DataSource):
     async def create_category(self, category_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """Creates a new category in Notmuch."""
         await self._ensure_initialized()
-        
+
         # In a real implementation, this would create a category in Notmuch
         # For now, we'll return a mock result
         return {

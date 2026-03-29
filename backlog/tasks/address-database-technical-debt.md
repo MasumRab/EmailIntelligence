@@ -59,7 +59,7 @@ Address high-priority technical debt items in the database module identified by 
 
 ## Estimated Effort
 - Part 1: 10 hours
-- Part 2: 8 hours  
+- Part 2: 8 hours
 - Part 3: 13 hours
 - Total: ~31 hours
 

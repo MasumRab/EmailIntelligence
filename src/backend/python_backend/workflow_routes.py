@@ -1,5 +1,7 @@
+<<<<<<< HEAD
 """
-
+DEPRECATED: This module is part of the deprecated `backend` package.
+It will be removed in a future release.
 
 API routes for managing both legacy and node-based workflows.
 """
@@ -124,7 +126,7 @@ async def create_workflow(
                 node_config = node_data.get("config", {})
 
                 # Import and create the appropriate node based on type
-                from src.backend.node_engine.email_nodes import (
+                from backend.node_engine.email_nodes import (
                     ActionNode,
                     AIAnalysisNode,
                     EmailSourceNode,
@@ -149,7 +151,7 @@ async def create_workflow(
 
             # Create connections
             for conn_data in workflow_data.connections:
-                from src.backend.node_engine.node_base import Connection
+                from backend.node_engine.node_base import Connection
 
                 connection = Connection(
                     source_node_id=conn_data["source_node_id"],
@@ -356,3 +358,5 @@ async def delete_workflow(
         raise HTTPException(
             status_code=500, detail="An unexpected error occurred while deleting the workflow."
         )
+=======
+>>>>>>> origin/main

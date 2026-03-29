@@ -33,13 +33,13 @@ async def analyze_email(
         ai_engine = get_active_ai_engine()
         if not ai_engine:
             raise HTTPException(status_code=503, detail="AI engine not available")
-            
+
         analysis_result = await ai_engine.analyze_email(
             subject=request.subject,
             content=request.content,
             models=request.models if request.models else {}
         )
-        
+
         return AIAnalysisResponse(**analysis_result.to_dict())
     except Exception as e:
         logger.error(f"Error during email analysis: {str(e)}")
@@ -59,12 +59,12 @@ async def categorize_email(
         ai_engine = get_active_ai_engine()
         if not ai_engine:
             raise HTTPException(status_code=503, detail="AI engine not available")
-            
+
         categorization_result = await ai_engine.categorize_email(
             subject=request.subject,
             content=request.content
         )
-        
+
         return AICategorizeResponse(**categorization_result)
     except Exception as e:
         logger.error(f"Error during email categorization: {str(e)}")
@@ -83,7 +83,7 @@ async def validate_ai_models(
         ai_engine = get_active_ai_engine()
         if not ai_engine:
             raise HTTPException(status_code=503, detail="AI engine not available")
-            
+
         validation_result = await ai_engine.validate_models()
         return validation_result
     except Exception as e:

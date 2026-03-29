@@ -23,12 +23,12 @@ async def analyze_email_interface(subject, content):
         if hasattr(data_source, 'ai_engine') and data_source.ai_engine:
             # Use the AI engine directly
             ai_engine = data_source.ai_engine
-            
+
             full_text = f"{subject} {content}"
-            
+
             # Perform AI analysis
             analysis_results = {}
-            
+
             # Sentiment analysis
             try:
                 sentiment = ai_engine.analyze_sentiment(full_text)
@@ -36,7 +36,7 @@ async def analyze_email_interface(subject, content):
             except Exception as e:
                 logger.warning(f"Sentiment analysis failed: {e}")
                 analysis_results["sentiment"] = {"label": "N/A", "confidence": 0.0}
-            
+
             # Topic classification
             try:
                 topics = ai_engine.classify_topic(full_text)
@@ -44,7 +44,7 @@ async def analyze_email_interface(subject, content):
             except Exception as e:
                 logger.warning(f"Topic classification failed: {e}")
                 analysis_results["topics"] = ["General"]
-            
+
             # Intent recognition
             try:
                 intent = ai_engine.recognize_intent(full_text)
@@ -52,7 +52,7 @@ async def analyze_email_interface(subject, content):
             except Exception as e:
                 logger.warning(f"Intent recognition failed: {e}")
                 analysis_results["intent"] = {"type": "N/A", "confidence": 0.0}
-            
+
             # Urgency detection
             try:
                 urgency = ai_engine.detect_urgency(full_text)
@@ -60,7 +60,7 @@ async def analyze_email_interface(subject, content):
             except Exception as e:
                 logger.warning(f"Urgency detection failed: {e}")
                 analysis_results["urgency"] = {"level": "N/A", "confidence": 0.0}
-            
+
             return analysis_results
         else:
             return {"error": "AI engine not available"}
@@ -76,21 +76,21 @@ def generate_sentiment_chart(sentiment_result):
             label = sentiment_result.get("label", "neutral").lower()
         else:
             label = str(sentiment_result).lower()
-            
+
         if label == "positive":
             value = 1
         elif label == "negative":
             value = -1
         else:
             value = 0
-            
+
         fig = go.Figure(
             go.Indicator(
                 mode="gauge+number",
                 value=value,
                 title={"text": "Sentiment Gauge"},
                 gauge={
-                    "axis": {"range": [-1, 1]}, 
+                    "axis": {"range": [-1, 1]},
                     "bar": {"color": "darkblue"},
                     "steps": [
                         {"range": [-1, -0.33], "color": "red"},
@@ -116,10 +116,10 @@ def generate_topic_pie(topics_result):
             topics = [topics_result.get("category", "General")]
         else:
             topics = ["General"]
-            
+
         if not topics:
             topics = ["General"]
-            
+
         # Create values for the pie chart (equal distribution for demo)
         values = [1] * len(topics)
         fig = px.pie(values=values, names=topics, title="Topic Categories")
@@ -135,7 +135,7 @@ def create_analysis_ui():
     with gr.Blocks() as analysis_tab:
         gr.Markdown("# Single Email Analysis")
         gr.Markdown("## Analyze individual emails for sentiment, topics, and intent")
-        
+
         with gr.Row():
             with gr.Column(scale=2):
                 email_subject = gr.Textbox(
@@ -145,7 +145,7 @@ def create_analysis_ui():
                     label="Email Content", lines=10, placeholder="Enter email content..."
                 )
                 analyze_button = gr.Button("Analyze Email", variant="primary")
-                
+
             with gr.Column(scale=1):
                 gr.Markdown("### Analysis Results")
                 topic_output = gr.Label(label="Topic")
@@ -165,7 +165,7 @@ def create_analysis_ui():
         async def update_outputs(subject, content):
             """Update all outputs based on email analysis."""
             result = await analyze_email_interface(subject, content)
-            
+
             if "error" in result:
                 error_msg = result.get("error", "An error occurred.")
                 return (
@@ -193,7 +193,7 @@ def create_analysis_ui():
                 else:
                     topic = str(result["topics"])
                     topics_list = [topic]
-            
+
             sentiment = "Neutral"
             sentiment_label = "neutral"
             if "sentiment" in result:
@@ -203,38 +203,38 @@ def create_analysis_ui():
                 else:
                     sentiment = str(result["sentiment"])
                     sentiment_label = sentiment.lower()
-            
+
             intent = "N/A"
             if "intent" in result:
                 if isinstance(result["intent"], dict):
                     intent = result["intent"].get("type", "N/A")
                 else:
                     intent = str(result["intent"])
-            
+
             urgency = "N/A"
             if "urgency" in result:
                 if isinstance(result["urgency"], dict):
                     urgency = result["urgency"].get("level", "N/A")
                 else:
                     urgency = str(result["urgency"])
-            
+
             # Extract keywords (simplified for demo)
             keywords = []
             if "sentiment" in result and isinstance(result["sentiment"], dict):
                 confidence = result["sentiment"].get("confidence", 0)
                 keywords.append((sentiment, f"Confidence: {confidence:.2f}"))
-            
+
             # Create detailed reasoning
             reasoning = f"Analyzed email with {len(subject.split()) + len(content.split())} words.\n"
             reasoning += f"Detected topic: {topic}\n"
             reasoning += f"Sentiment: {sentiment}\n"
             reasoning += f"Intent: {intent}\n"
             reasoning += f"Urgency: {urgency}"
-            
+
             # Generate charts
             sentiment_chart_fig = generate_sentiment_chart(sentiment_label)
             topic_chart_fig = generate_topic_pie(topics_list)
-            
+
             return (
                 {topic: 1.0},  # topic label format
                 {sentiment: 1.0},  # sentiment label format
@@ -246,7 +246,7 @@ def create_analysis_ui():
                 sentiment_chart_fig,
                 topic_chart_fig
             )
-        
+
         # Set up event handlers
         analyze_button.click(
             fn=lambda s, c: asyncio.run(update_outputs(s, c)),
@@ -263,5 +263,5 @@ def create_analysis_ui():
                 topic_chart,
             ],
         )
-    
+
     return analysis_tab

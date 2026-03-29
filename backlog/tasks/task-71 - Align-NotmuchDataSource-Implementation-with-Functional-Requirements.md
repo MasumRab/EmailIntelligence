@@ -60,7 +60,7 @@ Align the NotmuchDataSource implementation with functional requirements to ensur
 <<<<<<< HEAD
 The current NotmuchDataSource implementation is a mock with print statements. This task requires replacing it with a fully functional implementation that properly integrates with the notmuch database, implements all interface methods, and provides the same functionality as the DatabaseDataSource but for notmuch data.
 =======
-The NotmuchDataSource implementation has been completely rewritten to provide a functional implementation that properly integrates with the notmuch database, implements all interface methods, and provides the same functionality as the DatabaseDataSource but for notmuch data. 
+The NotmuchDataSource implementation has been completely rewritten to provide a functional implementation that properly integrates with the notmuch database, implements all interface methods, and provides the same functionality as the DatabaseDataSource but for notmuch data.
 
 Key improvements include:
 1. Proper content extraction from email files using Python's email library

@@ -1,4 +1,7 @@
+<<<<<<< HEAD
 """
+DEPRECATED: This module is part of the deprecated `backend` package.
+It will be removed in a future release.
 
 Version 1 API routes for category operations
 Following the new architectural patterns with service layer and API versioning
@@ -82,3 +85,5 @@ async def create_category_v1(
         from fastapi import HTTPException
 
         raise HTTPException(status_code=500, detail=result.error)
+=======
+>>>>>>> origin/main

@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import argparse
 import asyncio
 import json
@@ -88,7 +89,7 @@ class SmartRetrievalManager:
         finally:
             if conn:
                 conn.close()
-# 
+#
     def _store_credentials(self, creds: Credentials):
         try:
             with open(TOKEN_JSON_PATH, "w") as token_file:
@@ -105,8 +106,10 @@ class SmartRetrievalManager:
     def get_incremental_query(
         self, strategy: RetrievalStrategy, checkpoint: Optional[SyncCheckpoint] = None
     ) -> str:
+<<<<<<< HEAD
         base_query = strategy.query_filter
         if checkpoint and checkpoint.last_sync_date:
+=======
         """
         Generate incremental query for a strategy.
 
@@ -126,6 +129,7 @@ class SmartRetrievalManager:
                 return f"{base_query} after:{date_filter}"
             else:
                 return f"after:{date_filter}"
+>>>>>>> scientific
         return base_query
 
     async def execute_smart_retrieval(
@@ -140,6 +144,7 @@ class SmartRetrievalManager:
             max_api_calls: The maximum number of API calls to make.
             time_budget_minutes: The time limit in minutes for the retrieval process.
 
+<<<<<<< HEAD
         row = cursor.fetchone()
             if row:
                 return SyncCheckpoint(
@@ -148,6 +153,7 @@ class SmartRetrievalManager:
         return None
 
     def _save_checkpoint(self, checkpoint: SyncCheckpoint):
+=======
         Returns:
             A dictionary with retrieval results.
         """
@@ -159,14 +165,17 @@ class SmartRetrievalManager:
         try:
             conn = sqlite3.connect(self.checkpoint_db_path)
             cursor = conn.cursor()
+>>>>>>> scientific
 
             # Convert datetime to ISO format string for storage
             last_sync_str = checkpoint.last_sync_date.isoformat() if checkpoint.last_sync_date else None
 
+<<<<<<< HEAD
 async def main_cli():
     """Provides a command-line interface for the SmartGmailRetriever."""
     parser = argparse.ArgumentParser(description="Smart Gmail Retriever CLI")
     asyncio.run(main_cli())
+=======
             # Use INSERT OR REPLACE to handle both new and existing checkpoints
             cursor.execute('''
             INSERT OR REPLACE INTO sync_checkpoints
@@ -190,8 +199,8 @@ async def main_cli():
         finally:
             if conn:
                 conn.close()
-# 
-# 
+#
+#
 # async def main_cli():
 #     """Provides a command-line interface for the SmartGmailRetriever."""
 #     parser = argparse.ArgumentParser(description="Smart Gmail Retriever CLI")
@@ -200,17 +209,17 @@ async def main_cli():
 #     parser.add_argument("--time-budget", type=int, default=30, help="Time budget in minutes")
 #     parser.add_argument("--output", help="Output file path (JSON format)")
 #     parser.add_argument("--verbose", "-v", action="store_true", help="Verbose output")
-#     
+#
 #     args = parser.parse_args()
-#     
+#
 #     # Set up logging based on verbose flag
 #     log_level = logging.DEBUG if args.verbose else logging.INFO
 #     logging.basicConfig(level=log_level, format="%(asctime)s - %(levelname)s - %(message)s")
-#     
+#
 #     try:
 #         # Initialize SmartRetrievalManager
 #         retriever = SmartRetrievalManager()
-#     
+#
 #         # Parse strategies if provided (for now, just use defaults)
 #         strategies = None
 #         if args.strategies:
@@ -228,14 +237,14 @@ async def main_cli():
 #                     exclude_folders=[],
 #                         date_range_days=30
 #                 ))
-#     
+#
 #             # Execute smart retrieval
 #             result = await retriever.execute_smart_retrieval(
 #                 strategies=strategies,
 #                 max_api_calls=args.max_api_calls,
 #                 time_budget_minutes=args.time_budget
 #             )
-#     
+#
 #             # Handle output
 #             if args.output:
 #                 # Save to JSON file
@@ -245,14 +254,17 @@ async def main_cli():
 #             else:
 #                 # Print to console
 #                 print(json.dumps(result, indent=2, default=str))
-#     
+#
 #     except Exception as e:
 #         print(f"Error: {e}", file=sys.stderr)
 #         if args.verbose:
 #             import traceback
 #             traceback.print_exc()
 #         sys.exit(1)
-#     
-#     
+#
+#
 #     if __name__ == "__main__":
 #     asyncio.run(main_cli())
+>>>>>>> scientific
+=======
+>>>>>>> origin/main

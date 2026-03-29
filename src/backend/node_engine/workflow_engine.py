@@ -1,4 +1,7 @@
+<<<<<<< HEAD
 """
+DEPRECATED: This module is part of the deprecated `backend` package.
+It will be removed in a future release.
 
 Workflow Execution Engine for the Email Intelligence Platform.
 
@@ -11,7 +14,7 @@ import logging
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from src.backend.node_engine.node_base import (
+from backend.node_engine.node_base import (
     BaseNode,
     Connection,
     DataType,
@@ -19,7 +22,7 @@ from src.backend.node_engine.node_base import (
     SecurityContext,
     Workflow,
 )
-from src.backend.node_engine.security_manager import (
+from backend.node_engine.security_manager import (
     ExecutionSandbox,
     InputSanitizer,
     ResourceLimits,
@@ -234,7 +237,7 @@ class WorkflowEngine:
             total_execution_time = (
                 context.metadata["end_time"] - context.metadata["start_time"]
             ).total_seconds()
-            
+
             self.logger.info(
                 f"Workflow {workflow.name} completed successfully in "
                 f"{total_execution_time:.3f}s ({context.metadata['performance']['nodes_executed']} nodes)"
@@ -427,3 +430,5 @@ class WorkflowEngine:
 workflow_engine = WorkflowEngine(
     SecurityManager(user_roles={})
 )  # Instantiate with a default SecurityManager
+=======
+>>>>>>> origin/main

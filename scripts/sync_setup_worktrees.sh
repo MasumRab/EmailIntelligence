@@ -69,7 +69,7 @@ sync_setup_files() {
         echo -e "${YELLOW}Warning: launch-setup-fixes worktree not found${NC}"
         exit 0
     fi
-    
+
     # Check if setup directory exists in launch-setup-fixes worktree
     if [[ ! -d "worktrees/launch-setup-fixes/setup" ]]; then
         echo -e "${YELLOW}Warning: setup directory not found in launch-setup-fixes worktree${NC}"
@@ -103,7 +103,7 @@ sync_setup_files() {
         if [[ "$(basename "$worktree")" == "launch-setup-fixes" ]]; then
             continue
         fi
-        
+
         # Skip docs worktrees (docs-main, docs-scientific) as they're for documentation only
         if [[ "$(basename "$worktree")" == "docs-main" ]] || [[ "$(basename "$worktree")" == "docs-scientific" ]]; then
             if [[ "$verbose" == true ]]; then
@@ -111,12 +111,12 @@ sync_setup_files() {
             fi
             continue
         fi
-        
+
         # Skip if not a directory
         if [[ ! -d "$worktree" ]]; then
             continue
         fi
-        
+
         # Create setup directory if it doesn't exist
         if [[ ! -d "$worktree/setup" ]]; then
             if [[ "$dry_run" == false ]]; then
@@ -126,12 +126,12 @@ sync_setup_files() {
                 echo -e "${BLUE}[DRY RUN] Would create setup directory in $worktree${NC}"
             fi
         fi
-        
+
         # Synchronize each setup file
         for file in "${setup_files[@]}"; do
             local source_file="worktrees/launch-setup-fixes/setup/$file"
             local dest_file="$worktree/setup/$file"
-            
+
             # Check if source file exists
             if [[ ! -f "$source_file" ]]; then
                 if [[ "$verbose" == true ]]; then
@@ -139,7 +139,7 @@ sync_setup_files() {
                 fi
                 continue
             fi
-            
+
             # Check if destination file exists and is different
             local should_copy=true
             if [[ -f "$dest_file" ]]; then
@@ -150,7 +150,7 @@ sync_setup_files() {
                     fi
                 fi
             fi
-            
+
             # Copy file if needed
             if [[ "$should_copy" == true ]]; then
                 if [[ "$dry_run" == false ]]; then

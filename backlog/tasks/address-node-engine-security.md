@@ -60,7 +60,7 @@ Address critical security TODOs in the node engine that relate to RBAC implement
 
 ## Estimated Effort
 - Part 1: 14 hours
-- Part 2: 14 hours  
+- Part 2: 14 hours
 - Part 3: 12 hours
 - Total: ~40 hours
 

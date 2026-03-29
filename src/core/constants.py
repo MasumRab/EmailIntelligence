@@ -2,11 +2,6 @@
 Constants for the Email Intelligence Platform.
 """
 
-import os
-
-# Data directory - defined here to avoid circular imports
-DATA_DIR = os.environ.get("DATA_DIR", "data")
-
 # Field name constants (avoid circular import)
 FIELD_NAME = "name"
 FIELD_COLOR = "color"

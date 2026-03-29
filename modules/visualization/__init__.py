@@ -12,10 +12,10 @@ def register(app: FastAPI, gradio_app: gr.Blocks):
     Registers the visualization module with the main application.
     """
     logger.info("Registering visualization module.")
-    
+
     # Add the visualization UI component to the main Gradio app
     with gradio_app:
         with gr.TabItem("📊 Visualization"):
             create_visualization_ui()
-    
+
     logger.info("Visualization module registered successfully.")

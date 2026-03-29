@@ -1,4 +1,6 @@
 """
+DEPRECATED: This module is part of the deprecated `backend` package.
+It will be removed in a future release.
 
 Sample UI Component Plugin for Email Intelligence Platform
 

@@ -49,7 +49,7 @@ Following the documented merge direction strategy where the scientific branch co
 ### Phase 3: Systematic Alignment (Days 2-4)
 1. **Create Alignment Branch**: Create backup of scientific branch before alignment
 2. **Strategic Merge**: Merge feature-notmuch-tagging-1 enhancements into scientific branch
-3. **Conflict Resolution**: 
+3. **Conflict Resolution**:
    - Favor scientific branch architecture for core systems
    - Preserve feature branch's AI and tagging functionality
    - Integrate performance monitoring and error reporting

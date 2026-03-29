@@ -3,9 +3,9 @@ from abc import ABC, abstractmethod
 from typing import Any, Dict, List, Optional
 
 from .enhanced_error_reporting import (
-    log_error, 
-    ErrorSeverity, 
-    ErrorCategory, 
+    log_error,
+    ErrorSeverity,
+    ErrorCategory,
     create_error_context
 )
 
@@ -101,7 +101,7 @@ class ModernAIEngine(BaseAIEngine):
     """
     A modern implementation of the AI engine that integrates with the
     latest NLP models and provides enhanced analysis capabilities.
-    
+
     This engine includes:
     - Sentiment analysis
     - Topic classification
@@ -109,12 +109,12 @@ class ModernAIEngine(BaseAIEngine):
     - Urgency detection
     - Smart filtering integration
     """
-    
+
     def __init__(self):
         self.initialized = False
         self.models_loaded = False
         logger.info("ModernAIEngine initialized")
-    
+
     def initialize(self):
         """
         Initializes the AI engine, loading models and preparing resources.
@@ -130,7 +130,7 @@ class ModernAIEngine(BaseAIEngine):
         except Exception as e:
             logger.error(f"Failed to initialize ModernAIEngine: {e}")
             raise
-    
+
     async def analyze_email(
         self, subject: str, content: str, categories: Optional[List[Dict[str, Any]]] = None
     ) -> AIAnalysisResult:
@@ -147,10 +147,10 @@ class ModernAIEngine(BaseAIEngine):
         """
         if not self.initialized:
             raise RuntimeError("ModernAIEngine not initialized")
-        
+
         # Combine subject and content for analysis
         full_text = f"{subject} {content}"
-        
+
         # Mock analysis results - in a real implementation, this would call actual models
         analysis_data = {
             "topic": self.classify_topic(full_text),
@@ -164,9 +164,9 @@ class ModernAIEngine(BaseAIEngine):
             "suggested_labels": self.suggest_labels(full_text),
             "risk_flags": self.detect_risks(full_text),
         }
-        
+
         return AIAnalysisResult(analysis_data)
-    
+
     def classify_topic(self, text: str) -> str:
         """Classify the topic of the text."""
         # Mock implementation
@@ -181,7 +181,7 @@ class ModernAIEngine(BaseAIEngine):
             return "work"
         else:
             return "personal"
-    
+
     def analyze_sentiment(self, text: str) -> str:
         """Analyze the sentiment of the text."""
         # Mock implementation
@@ -192,7 +192,7 @@ class ModernAIEngine(BaseAIEngine):
             return "negative"
         else:
             return "neutral"
-    
+
     def recognize_intent(self, text: str) -> str:
         """Recognize the intent of the text."""
         # Mock implementation
@@ -205,7 +205,7 @@ class ModernAIEngine(BaseAIEngine):
             return "help_request"
         else:
             return "informational"
-    
+
     def detect_urgency(self, text: str) -> str:
         """Detect the urgency of the text."""
         # Mock implementation
@@ -216,24 +216,24 @@ class ModernAIEngine(BaseAIEngine):
             return "medium"
         else:
             return "low"
-    
+
     def suggest_categories(self, text: str, categories: Optional[List[Dict[str, Any]]] = None) -> List[str]:
         """Suggest categories for the text."""
         # Mock implementation
         categories_list = categories or []
         suggestions = []
-        
+
         # If categories are provided, try to match
         for cat in categories_list:
             if cat.get("name", "").lower() in text.lower():
                 suggestions.append(cat.get("name", ""))
-        
+
         # If no matches found, return a default suggestion
         if not suggestions:
             suggestions = [self.classify_topic(text)]
-        
+
         return suggestions
-    
+
     def extract_keywords(self, text: str) -> List[str]:
         """Extract keywords from the text."""
         # Mock implementation
@@ -244,7 +244,7 @@ class ModernAIEngine(BaseAIEngine):
         stop_words = {"this", "that", "with", "from", "have", "they", "were", "been", "this"}
         keywords = [word for word in words if word not in stop_words][:5]
         return keywords
-    
+
     def suggest_labels(self, text: str) -> List[str]:
         """Suggest labels for the text."""
         # Mock implementation
@@ -258,9 +258,9 @@ class ModernAIEngine(BaseAIEngine):
             labels.append("finance")
         if "todo" in text_lower or "action" in text_lower:
             labels.append("action-required")
-        
+
         return labels if labels else ["inbox"]
-    
+
     def detect_risks(self, text: str) -> List[str]:
         """Detect potential risks in the text."""
         # Mock implementation
@@ -270,9 +270,9 @@ class ModernAIEngine(BaseAIEngine):
             risks.append("security-risk")
         if any(word in text_lower for word in ["password", "login", "credentials", "account"]):
             risks.append("privacy-risk")
-        
+
         return risks
-    
+
     def health_check(self) -> Dict[str, Any]:
         """
         Performs a health check of the AI engine and its components.
@@ -286,7 +286,7 @@ class ModernAIEngine(BaseAIEngine):
             "models_loaded": self.models_loaded,
             "engine_type": "ModernAIEngine"
         }
-    
+
     def cleanup(self):
         """
         Cleans up any resources used by the AI engine.
@@ -295,7 +295,7 @@ class ModernAIEngine(BaseAIEngine):
         logger.info("Cleaning up ModernAIEngine resources")
         self.initialized = False
         self.models_loaded = False
-    
+
     def train_models(self, training_data: Optional[Dict[str, Any]] = None):
         """
         Trains or retrains the AI models using provided training data.

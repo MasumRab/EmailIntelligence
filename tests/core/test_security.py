@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import pytest
 import time
 from src.core.security import (
@@ -125,6 +126,7 @@ def test_verify_invalid_token():
     assert manager.verify_signed_token(tampered_token) is None
     # Test invalid format
     assert manager.verify_signed_token("invalid-token-format") is None
+=======
 """
 Tests for security utilities.
 """
@@ -325,3 +327,4 @@ class TestDataMigrationSecurity:
         # Should exit with error due to unsafe path
         assert result.returncode == 1
         assert "Unsafe data directory path" in result.stderr
+>>>>>>> scientific

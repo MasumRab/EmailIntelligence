@@ -1,4 +1,6 @@
 """
+DEPRECATED: This module is part of the deprecated `backend` package.
+It will be removed in a future release.
 
 Workflow Migration Utilities for the Email Intelligence Platform.
 
@@ -11,16 +13,16 @@ import logging
 from pathlib import Path
 from typing import Any, Dict
 
-from src.backend.node_engine.email_nodes import (
+from backend.node_engine.email_nodes import (
     ActionNode,
     AIAnalysisNode,
     EmailSourceNode,
     FilterNode,
     PreprocessingNode,
 )
-from src.backend.node_engine.node_base import Connection
-from src.backend.node_engine.node_base import Workflow as NodeWorkflow
-from src.backend.node_engine.workflow_manager import workflow_manager
+from backend.node_engine.node_base import Connection
+from backend.node_engine.node_base import Workflow as NodeWorkflow
+from backend.node_engine.workflow_manager import workflow_manager
 
 logger = logging.getLogger(__name__)
 

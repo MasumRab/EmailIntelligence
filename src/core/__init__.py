@@ -45,7 +45,7 @@ __all__ = [
     "DynamicModelManager",
     "ModelRegistry",
     "PluginManager",
-    
+
     # Managers and factories
     "DataSourceFactory",
     "AuthManager",
@@ -54,22 +54,22 @@ __all__ = [
     "PerformanceMonitor",
     "EnhancedCachingManager",
     "ErrorReporter",
-    
+
     # Models
     "Email",
     "Category",
-    
+
     # Constants
     "DEFAULT_CATEGORY_COLOR",
     "DEFAULT_CATEGORIES",
-    
+
     # Exceptions
     "EmailIntelligenceError",
     "DatabaseError",
     "AuthenticationError",
     "ValidationError",
     "WorkflowError",
-    
+
     # Functions
     "initialize_workflow_system",
     "get_workflow_manager",

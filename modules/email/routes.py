@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import logging
 from typing import List
 
@@ -13,7 +14,10 @@ from src.core.models import (
     EmailUpdate,
 )
 from src.core.performance_monitor import log_performance
+<<<<<<< HEAD
 from src.core.auth import get_current_active_user
+=======
+>>>>>>> scientific
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -105,3 +109,5 @@ async def update_email(
     except DatabaseError as e:
         logger.error(f"Database error while updating email {email_id}: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail="Database error occurred.")
+=======
+>>>>>>> origin/main

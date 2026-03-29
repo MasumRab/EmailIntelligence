@@ -1,4 +1,6 @@
 """
+DEPRECATED: This module is part of the deprecated `backend` package.
+It will be removed in a future release.
 
 Test module for the node-based workflow system.
 
@@ -8,16 +10,16 @@ This module contains tests to verify that the node system works as expected.
 import asyncio
 import json
 
-from src.backend.node_engine.email_nodes import (
+from backend.node_engine.email_nodes import (
     ActionNode,
     AIAnalysisNode,
     EmailSourceNode,
     FilterNode,
     PreprocessingNode,
 )
-from src.backend.node_engine.node_base import Workflow
-from src.backend.node_engine.workflow_engine import workflow_engine
-from src.backend.node_engine.workflow_manager import workflow_manager
+from backend.node_engine.node_base import Workflow
+from backend.node_engine.workflow_engine import workflow_engine
+from backend.node_engine.workflow_manager import workflow_manager
 
 
 async def test_basic_workflow():
@@ -175,6 +177,6 @@ async def main():
 
 if __name__ == "__main__":
     # Import here to avoid circular dependency issues
-    from src.backend.node_engine.node_base import Connection
+    from backend.node_engine.node_base import Connection
 
     asyncio.run(main())

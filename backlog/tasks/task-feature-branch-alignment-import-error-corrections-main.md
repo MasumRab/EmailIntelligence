@@ -25,7 +25,7 @@ Systematically align feature branch `fix/import-error-corrections` with the main
 
 ## Target Branch
 - Base: `main` (source of stable improvements)
-- Feature branch to align: `fix/import-error-corrections` 
+- Feature branch to align: `fix/import-error-corrections`
 
 ## Alignment Approach
 Following the documented merge direction strategy where the main branch contains stable architectural implementations:

@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 #!/usr/bin/env python3
 """
 Data Migration Utility for EmailIntelligence
@@ -209,7 +210,7 @@ def migrate_json_to_sqlite(
             for category in categories_data:
                 cursor.execute(
                     """
-                    INSERT OR REPLACE INTO categories 
+                    INSERT OR REPLACE INTO categories
                     (id, name, description, color, count)
                     VALUES (?, ?, ?, ?, ?)
                 """,
@@ -324,8 +325,8 @@ def migrate_json_to_sqlite(
                 is_signed, priority, is_auto_reply, mailing_list, in_reply_to,
                 "references", is_first_in_thread, category_id, confidence,
                 analysis_metadata, is_read, created_at, updated_at)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 
-                ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
+                ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
                 ?, ?, ?, ?, ?, ?)
             """,
                 email_records,
@@ -341,7 +342,7 @@ def migrate_json_to_sqlite(
             for user in users_data:
                 cursor.execute(
                     """
-                    INSERT OR REPLACE INTO users 
+                    INSERT OR REPLACE INTO users
                     (id, username, password)
                     VALUES (?, ?, ?)
                 """,
@@ -574,3 +575,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+=======
+>>>>>>> origin/main

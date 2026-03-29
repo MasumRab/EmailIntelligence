@@ -1,4 +1,6 @@
 """
+DEPRECATED: This module is part of the deprecated `backend` package.
+It will be removed in a future release.
 
 Workflow Editor UI for Email Intelligence Platform
 
