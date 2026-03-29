@@ -1,5 +1,4 @@
 """
-<<<<<<< HEAD
 Data module for the Email Intelligence Platform.
 
 This module provides data access components and repository patterns
@@ -20,8 +19,3 @@ __all__ = [
     "Repository",
     "DataSourceFactory",
 ]
-=======
-Data package for the Email Intelligence Platform.
-Contains repository patterns for data access.
-"""
->>>>>>> scientific

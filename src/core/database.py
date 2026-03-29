@@ -17,7 +17,7 @@ import hashlib
 # NOTE: These dependencies will be moved to the core framework as well.
 # For now, we are assuming they will be available in the new location.
 from .performance_monitor import log_performance
-from .constants import DEFAULT_CATEGORY_COLOR, DEFAULT_CATEGORIES
+from .constants import DEFAULT_CATEGORY_COLOR, DEFAULT_CATEGORIES, DATA_DIR
 from .data.data_source import DataSource
 
 from .security import validate_path_safety, sanitize_path
@@ -25,7 +25,7 @@ from .security import validate_path_safety, sanitize_path
 logger = logging.getLogger(__name__)
 
 # Globalized data directory at the project root
-DATA_DIR = os.environ.get("DATA_DIR", "data")
+# Note: DATA_DIR is imported from constants to avoid circular imports
 EMAIL_CONTENT_DIR = os.path.join(DATA_DIR, "email_content")
 EMAILS_FILE = os.path.join(DATA_DIR, "emails.json.gz")
 CATEGORIES_FILE = os.path.join(DATA_DIR, "categories.json.gz")

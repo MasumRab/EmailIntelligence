@@ -1,5 +1,4 @@
 """
-<<<<<<< HEAD
 Utility functions for the launch system.
 
 This module contains shared utility functions used across the launch system.
@@ -69,7 +68,6 @@ class ProcessManager:
         except KeyboardInterrupt:
             logger.info("Received interrupt signal, shutting down...")
             self.cleanup()
-=======
 Utility functions for EmailIntelligence launcher
 """
 
@@ -104,14 +102,12 @@ class ProcessManager:
             except Exception as e:
                 logger.warning(f"Error terminating process: {e}")
         self.processes.clear()
->>>>>>> a7da61cf1f697de3c8c81f536bf579d36d88e613
 
 
 # Global process manager instance
 process_manager = ProcessManager()
 
 
-<<<<<<< HEAD
 def find_project_root() -> Path:
     """Find the project root directory by looking for key files."""
     current = Path.cwd()
@@ -247,7 +243,6 @@ def print_system_info():
         print(f"  Virtual Environment: {venv_python.parent.parent}")
     else:
         print("  Virtual Environment: None")
-=======
 def get_python_executable():
     """Get the path to the Python executable to use."""
     # Check if we're in a virtual environment
@@ -337,4 +332,3 @@ def print_system_info():
     for cf in config_files:
         exists = (ROOT_DIR / cf).exists()
         print(f"{cf}: {'Found' if exists else 'Not found'}")
->>>>>>> a7da61cf1f697de3c8c81f536bf579d36d88e613

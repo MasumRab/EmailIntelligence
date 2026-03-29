@@ -1,18 +1,14 @@
 """
-<<<<<<< HEAD
 Environment management for the launch system.
 
 This module handles virtual environment creation, dependency installation,
 and environment setup operations.
-=======
 Environment setup utilities for EmailIntelligence launcher
->>>>>>> a7da61cf1f697de3c8c81f536bf579d36d88e613
 """
 
 import logging
 import os
 import platform
-<<<<<<< HEAD
 import shutil
 import subprocess
 import sys
@@ -40,7 +36,6 @@ def is_wsl():
 
 def setup_wsl_environment():
     """Setup WSL-specific environment variables if in WSL."""
-=======
 import subprocess
 from pathlib import Path
 
@@ -61,7 +56,6 @@ def is_wsl():
 
 def setup_wsl_environment():
     """Setup WSL-specific environment variables if in WSL"""
->>>>>>> a7da61cf1f697de3c8c81f536bf579d36d88e613
     if not is_wsl():
         return
 
@@ -83,11 +77,8 @@ def setup_wsl_environment():
 
 
 def check_wsl_requirements():
-<<<<<<< HEAD
     """Check WSL-specific requirements and warn if needed."""
-=======
     """Check WSL-specific requirements and warn if needed"""
->>>>>>> a7da61cf1f697de3c8c81f536bf579d36d88e613
     if not is_wsl():
         return
 
@@ -96,7 +87,6 @@ def check_wsl_requirements():
         result = subprocess.run(["xset", "-q"], capture_output=True, timeout=2)
         if result.returncode != 0:
             logger.warning("X11 server not accessible - GUI applications may not work")
-<<<<<<< HEAD
             logger.info("Install VcXsrv, MobaXterm, or similar X11 server on Windows")
     except (subprocess.TimeoutExpired, FileNotFoundError):
         pass  # Silently ignore X11 check failures
@@ -283,7 +273,6 @@ def handle_setup(args, venv_path):
     logger.info("Starting environment setup...")
 
     if args.use_conda:
-=======
     except (subprocess.TimeoutExpired, FileNotFoundError):
         logger.warning("X11 server check failed - GUI applications may not work")
 
@@ -331,13 +320,11 @@ def handle_setup(args, venv_path):
     logger.info("Starting environment setup...")
 
     if getattr(args, 'use_conda', False):
->>>>>>> a7da61cf1f697de3c8c81f536bf579d36d88e613
         # For Conda, we assume the environment is already set up
         # Could add Conda environment creation here in the future
         logger.info("Using Conda environment - assuming dependencies are already installed")
     else:
         # Use venv
-<<<<<<< HEAD
         create_venv(venv_path, args.force_recreate_venv)
         install_package_manager(venv_path, "uv")
         setup_dependencies(venv_path, False)
@@ -358,7 +345,6 @@ def handle_setup(args, venv_path):
         if ts_backend_path and ts_backend_path.exists():
             from setup.services import setup_node_dependencies
             setup_node_dependencies(ts_backend_path, "TypeScript Backend")
-=======
         try:
             from setup.launch import create_venv, install_package_manager, setup_dependencies, download_nltk_data
             create_venv(venv_path, getattr(args, 'force_recreate_venv', False))
@@ -376,13 +362,11 @@ def handle_setup(args, venv_path):
             setup_node_dependencies(ROOT_DIR / "backend" / "server-ts", "TypeScript Backend")
         except ImportError:
             logger.warning("Node setup functions not available yet")
->>>>>>> a7da61cf1f697de3c8c81f536bf579d36d88e613
 
     logger.info("Setup complete.")
 
 
 def prepare_environment(args):
-<<<<<<< HEAD
     """Prepare the environment for running the application."""
     if not args.no_venv:
         # Try conda first
@@ -390,7 +374,6 @@ def prepare_environment(args):
         if not activate_conda_env():
             # Fall back to venv setup
             handle_setup(args, ROOT_DIR / "venv")
-=======
     """Prepares the environment for running the application."""
     if not getattr(args, 'no_venv', False):
         # Try conda first
@@ -415,4 +398,3 @@ def prepare_environment(args):
             download_nltk_data()
         except ImportError:
             logger.warning("download_nltk_data function not available yet")
->>>>>>> a7da61cf1f697de3c8c81f536bf579d36d88e613

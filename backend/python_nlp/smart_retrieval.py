@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import argparse
 import asyncio
 import json
@@ -106,10 +105,8 @@ class SmartRetrievalManager:
     def get_incremental_query(
         self, strategy: RetrievalStrategy, checkpoint: Optional[SyncCheckpoint] = None
     ) -> str:
-<<<<<<< HEAD
         base_query = strategy.query_filter
         if checkpoint and checkpoint.last_sync_date:
-=======
         """
         Generate incremental query for a strategy.
 
@@ -129,7 +126,6 @@ class SmartRetrievalManager:
                 return f"{base_query} after:{date_filter}"
             else:
                 return f"after:{date_filter}"
->>>>>>> scientific
         return base_query
 
     async def execute_smart_retrieval(
@@ -144,7 +140,6 @@ class SmartRetrievalManager:
             max_api_calls: The maximum number of API calls to make.
             time_budget_minutes: The time limit in minutes for the retrieval process.
 
-<<<<<<< HEAD
         row = cursor.fetchone()
             if row:
                 return SyncCheckpoint(
@@ -153,7 +148,6 @@ class SmartRetrievalManager:
         return None
 
     def _save_checkpoint(self, checkpoint: SyncCheckpoint):
-=======
         Returns:
             A dictionary with retrieval results.
         """
@@ -165,17 +159,14 @@ class SmartRetrievalManager:
         try:
             conn = sqlite3.connect(self.checkpoint_db_path)
             cursor = conn.cursor()
->>>>>>> scientific
 
             # Convert datetime to ISO format string for storage
             last_sync_str = checkpoint.last_sync_date.isoformat() if checkpoint.last_sync_date else None
 
-<<<<<<< HEAD
 async def main_cli():
     """Provides a command-line interface for the SmartGmailRetriever."""
     parser = argparse.ArgumentParser(description="Smart Gmail Retriever CLI")
     asyncio.run(main_cli())
-=======
             # Use INSERT OR REPLACE to handle both new and existing checkpoints
             cursor.execute('''
             INSERT OR REPLACE INTO sync_checkpoints
@@ -265,6 +256,3 @@ async def main_cli():
 #     
 #     if __name__ == "__main__":
 #     asyncio.run(main_cli())
->>>>>>> scientific
-=======
->>>>>>> origin/main

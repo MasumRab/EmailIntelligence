@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 """
 DEPRECATED: This module is part of the deprecated `backend` package.
 It will be removed in a future release.
@@ -321,5 +320,3 @@ class Workflow:
             f"Workflow(name={self.name}, nodes={len(self.nodes)}"
             f", connections={len(self.connections)})"
         )
-=======
->>>>>>> origin/main

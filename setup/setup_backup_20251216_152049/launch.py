@@ -144,8 +144,7 @@ def check_python_version():
 # --- Environment Validation ---
 def check_for_merge_conflicts() -> bool:
     """Check for unresolved merge conflict markers in critical files."""
-    conflict_markers = ["<<<<<<< ", "======= ", ">>>>>>> "]
-    critical_files = [
+    conflict_markers = ["    critical_files = [
         "backend/python_backend/main.py",
         "backend/python_nlp/nlp_engine.py",
         "backend/python_backend/database.py",
@@ -1073,13 +1072,10 @@ def _add_legacy_args(parser):
     parser.add_argument(
         "--system-info", action="store_true", help="Print system information then exit."
     )
-<<<<<<< HEAD
     parser.add_argument(
         "--env-file", type=str, help="Specify environment file to load."
     )
-=======
     parser.add_argument("--env-file", type=str, help="Specify environment file to load.")
->>>>>>> 776f291eace8dd8c8310fa49b07b9f0ee9152d5e
     parser.add_argument("--share", action="store_true", help="Create a public URL.")
     parser.add_argument(
         "--listen", action="store_true", help="Make the server listen on network."
@@ -1104,7 +1100,6 @@ def main():
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
 
     # Setup command
-<<<<<<< HEAD
     setup_parser = subparsers.add_parser(
         "setup", help="Set up the development environment"
     )
@@ -1118,7 +1113,6 @@ def main():
     run_parser.add_argument(
         "--dev", action="store_true", help="Run in development mode"
     )
-=======
     setup_parser = subparsers.add_parser("setup", help="Set up the development environment")
     _add_common_args(setup_parser)
 
@@ -1126,13 +1120,11 @@ def main():
     run_parser = subparsers.add_parser("run", help="Run the EmailIntelligence application")
     _add_common_args(run_parser)
     run_parser.add_argument("--dev", action="store_true", help="Run in development mode")
->>>>>>> 776f291eace8dd8c8310fa49b07b9f0ee9152d5e
 
     # Test command
     test_parser = subparsers.add_parser("test", help="Run tests")
     _add_common_args(test_parser)
     test_parser.add_argument("--unit", action="store_true", help="Run unit tests")
-<<<<<<< HEAD
     test_parser.add_argument(
         "--integration", action="store_true", help="Run integration tests"
     )
@@ -1161,7 +1153,6 @@ def main():
         choices=["dev", "test"],
         default="dev",
         help="Application mode (legacy)",
-=======
     test_parser.add_argument("--integration", action="store_true", help="Run integration tests")
     test_parser.add_argument("--e2e", action="store_true", help="Run end-to-end tests")
     test_parser.add_argument("--performance", action="store_true", help="Run performance tests")
@@ -1175,7 +1166,6 @@ def main():
     parser.add_argument("--setup", action="store_true", help="Set up the environment (legacy)")
     parser.add_argument(
         "--stage", choices=["dev", "test"], default="dev", help="Application mode (legacy)"
->>>>>>> 776f291eace8dd8c8310fa49b07b9f0ee9152d5e
     )
 
     # Add all legacy arguments for backward compatibility
@@ -1197,21 +1187,18 @@ def _execute_command(command_name: str, args) -> int:
     # Handle check command directly in orchestration-tools branch
     if command_name == "check":
         return _execute_check_command(args)
-<<<<<<< HEAD
 
     # For other commands, use command pattern if available
     if COMMAND_PATTERN_AVAILABLE:
         factory = get_command_factory()
         command = factory.create_command(command_name, args)
 
-=======
     
     # For other commands, use command pattern if available
     if COMMAND_PATTERN_AVAILABLE:
         factory = get_command_factory()
         command = factory.create_command(command_name, args)
 
->>>>>>> 776f291eace8dd8c8310fa49b07b9f0ee9152d5e
         if command is None:
             logger.error(f"Unknown command: {command_name}")
             return 1
@@ -1221,55 +1208,40 @@ def _execute_command(command_name: str, args) -> int:
         finally:
             command.cleanup()
     else:
-<<<<<<< HEAD
         logger.error(
             f"Command pattern not available and '{command_name}' is not a built-in command"
         )
-=======
         logger.error(f"Command pattern not available and '{command_name}' is not a built-in command")
->>>>>>> 776f291eace8dd8c8310fa49b07b9f0ee9152d5e
         return 1
 
 
 def _execute_check_command(args) -> int:
     """Execute the check command for orchestration validation."""
     logger.info("Running orchestration checks...")
-<<<<<<< HEAD
 
     success = True
 
-=======
     
     success = True
     
->>>>>>> 776f291eace8dd8c8310fa49b07b9f0ee9152d5e
     # Run critical files check if requested
     if args.critical_files or (not args.env):
         if not check_critical_files():
             success = False
-<<<<<<< HEAD
 
-=======
     
->>>>>>> 776f291eace8dd8c8310fa49b07b9f0ee9152d5e
     # Run environment validation if requested
     if args.env:
         if not validate_orchestration_environment():
             success = False
-<<<<<<< HEAD
 
-=======
     
->>>>>>> 776f291eace8dd8c8310fa49b07b9f0ee9152d5e
     # If no specific check was requested, run all checks
     if not args.critical_files and not args.env:
         if not validate_orchestration_environment():
             success = False
-<<<<<<< HEAD
 
-=======
     
->>>>>>> 776f291eace8dd8c8310fa49b07b9f0ee9152d5e
     if success:
         logger.info("All orchestration checks passed!")
         return 0
@@ -1282,21 +1254,15 @@ def _handle_legacy_args(args) -> int:
     """Handle legacy argument parsing for backward compatibility."""
     # Setup WSL environment if applicable (early setup)
     from setup.environment import setup_wsl_environment, check_wsl_requirements
-<<<<<<< HEAD
 
-=======
->>>>>>> 776f291eace8dd8c8310fa49b07b9f0ee9152d5e
     setup_wsl_environment()
     check_wsl_requirements()
 
     if not args.skip_python_version_check:
         check_python_version()
 
-<<<<<<< HEAD
     logging.getLogger().setLevel(getattr(args, "loglevel", "INFO"))
-=======
     logging.getLogger().setLevel(getattr(args, 'loglevel', 'INFO'))
->>>>>>> 776f291eace8dd8c8310fa49b07b9f0ee9152d5e
 
     if DOTENV_AVAILABLE:
         # Load user customizations from launch-user.env if it exists
@@ -1347,16 +1313,13 @@ def _handle_legacy_args(args) -> int:
         return 0
 
     # Handle Conda environment if requested
-<<<<<<< HEAD
     from setup.environment import (
         is_conda_available,
         get_conda_env_info,
         activate_conda_env,
     )
 
-=======
     from setup.environment import is_conda_available, get_conda_env_info, activate_conda_env
->>>>>>> 776f291eace8dd8c8310fa49b07b9f0ee9152d5e
     if args.use_conda:
         if not is_conda_available():
             logger.error("Conda is not available. Please install Conda or use venv.")
@@ -1382,10 +1345,7 @@ def _handle_legacy_args(args) -> int:
     # Handle test stage
     if hasattr(args, "stage") and args.stage == "test":
         from setup.test_stages import handle_test_stage
-<<<<<<< HEAD
 
-=======
->>>>>>> 776f291eace8dd8c8310fa49b07b9f0ee9152d5e
         handle_test_stage(args)
         return 0
 
@@ -1396,10 +1356,7 @@ def _handle_legacy_args(args) -> int:
         or getattr(args, "coverage", False)
     ):
         from setup.test_stages import handle_test_stage
-<<<<<<< HEAD
 
-=======
->>>>>>> 776f291eace8dd8c8310fa49b07b9f0ee9152d5e
         handle_test_stage(args)
         return 0
 
@@ -1433,26 +1390,20 @@ def _check_setup_warnings():
     ]
 
     if any(system_indicators):
-<<<<<<< HEAD
         logger.warning(
             "⚠️  You're using system Python. This may cause permission errors with pip."
         )
-=======
         logger.warning("⚠️  You're using system Python. This may cause permission errors with pip.")
->>>>>>> 776f291eace8dd8c8310fa49b07b9f0ee9152d5e
         logger.info("💡  Run 'python launch.py setup' to create a virtual environment")
         logger.info("   Then use: source venv/bin/activate")
 
     # Check if venv exists but not activated
     venv_path = ROOT_DIR / "venv" / "bin" / "python"
     if venv_path.exists() and python_path != venv_path:
-<<<<<<< HEAD
         logger.info(
             "💡  Virtual environment exists. Activate it with: source venv/bin/activate"
         )
-=======
         logger.info("💡  Virtual environment exists. Activate it with: source venv/bin/activate")
->>>>>>> 776f291eace8dd8c8310fa49b07b9f0ee9152d5e
 
 
 if __name__ == "__main__":
