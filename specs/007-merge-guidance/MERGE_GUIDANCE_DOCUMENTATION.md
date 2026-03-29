@@ -57,7 +57,7 @@ This document provides comprehensive guidance for merging branches with differen
 - **Lesson**: Distinguish between import-time and runtime initialization, use lazy initialization where appropriate
 
 ### 5. Assuming File Locations Were Consistent
-- **Issue**: Files existed in different locations between branches (e.g., `backend/` vs `src/backend/`)
+- **Issue**: Files existed in different locations between branches (e.g., `src/backend/` vs `src/backend/`)
 - **Problem**: Import statements pointed to non-existent locations
 - **Impact**: Failed imports and runtime errors
 - **Lesson**: Always verify file locations when merging branches with different directory structures
@@ -145,7 +145,7 @@ This document provides comprehensive guidance for merging branches with differen
 - [ ] Check that constitutional analysis meets compliance standards
 
 ### 4. Identifying Incomplete Migration Branches
-- [ ] Check for mixed directory structures (both old `backend/` and new `src/` patterns)
+- [ ] Check for mixed directory structures (both old `src/backend/` and new `src/` patterns)
 - [ ] Look for inconsistent import paths in the same files
 - [ ] Verify that all related components were moved together
 - [ ] Test if service startup configurations work properly

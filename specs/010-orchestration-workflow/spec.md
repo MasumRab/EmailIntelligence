@@ -71,7 +71,7 @@ The orchestration system uses a **hub-and-spoke model**:
 - `ORCHESTRATION_*.md` — Orchestration documentation
 
 **OUT of scope** (NOT in orchestration-tools):
-- Application source code (`src/`, `backend/`, `client/`)
+- Application source code (`src/`, `src/backend/`, `src/client/`)
 - Spec files (`specs/`)
 - Agent configurations (`.claude/`, `.cursor/`, etc.)
 

@@ -8,12 +8,12 @@ This document provides a comprehensive analysis of the node-based workflow syste
 ### Core Architecture
 The system includes:
 - A core workflow engine in `src/core/advanced_workflow_engine.py`
-- Security framework in `src/core/security.py` and `backend/node_engine/security_manager.py`
-- Node implementations in `backend/node_engine/email_nodes.py`
-- API routes in `backend/python_backend/advanced_workflow_routes.py`
-- UI components in `backend/python_backend/workflow_editor_ui.py`
-- Workflow manager in `backend/python_backend/workflow_manager.py`
-- Comprehensive tests in `backend/node_engine/test_*.py` files
+- Security framework in `src/core/security.py` and `src/backend/node_engine/security_manager.py`
+- Node implementations in `src/backend/node_engine/email_nodes.py`
+- API routes in `src/backend/python_src/backend/advanced_workflow_routes.py`
+- UI components in `src/backend/python_src/backend/workflow_editor_ui.py`
+- Workflow manager in `src/backend/python_src/backend/workflow_manager.py`
+- Comprehensive tests in `src/backend/node_engine/test_*.py` files
 
 ### Successfully Implemented Components
 

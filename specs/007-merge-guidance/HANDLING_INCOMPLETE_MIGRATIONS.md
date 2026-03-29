@@ -26,7 +26,7 @@ Check if some components were moved but dependencies weren't:
 ```bash
 # Verify that related components were moved together
 ls -la src/backend/  # Should have complete backend implementation
-ls -la backend/      # Should be empty or have deprecated files only
+ls -la src/backend/      # Should be empty or have deprecated files only
 ```
 
 ## Safe Merge Strategy for Incomplete Migration Branches

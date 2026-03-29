@@ -90,8 +90,8 @@ The Email Intelligence Platform is a sophisticated email analysis application th
 The system follows a modular design where core functionality is separated into distinct modules:
 - Core components in `src/core/`
 - Feature modules in `modules/`
-- Backend services in `backend/`
-- Frontend components in `client/src/`
+- Backend services in `src/backend/`
+- Frontend components in `src/client/src/`
 
 ### 2. Node-Based Processing
 Inspired by ComfyUI, automatic1111, and Stability-AI frameworks:

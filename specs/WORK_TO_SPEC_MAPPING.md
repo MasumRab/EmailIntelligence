@@ -7,7 +7,7 @@ This document maps non-specs content (code, scripts, tests, docs) to the relevan
 | Spec Folder | Content Categories |
 |-------------|-------------------|
 | `001-pr176-integration-fixes/` | PR-specific code, tests, hooks |
-| `005-cli-architecture/` | CLI code, client/UI components |
+| `005-cli-architecture/` | CLI code, src/client/UI components |
 | `006-unified-architecture/` | Core, backend, config, frontend |
 | `007-merge-guidance/` | Git scripts, merge docs |
 | `008-branch-comparison/` | Branch comparison docs |
@@ -24,9 +24,9 @@ This document maps non-specs content (code, scripts, tests, docs) to the relevan
 
 | Work Category | Files | Status |
 |--------------|-------|--------|
-| Tests | `test_*.py` | ⏳ Not implemented |
-| Hooks | `scripts/hooks/*` | ⏳ Not implemented |
-| Git automation | `scripts/*.sh` | ⏳ Not implemented |
+| Tests | `test_*.py` | ✅ Implemented |
+| Hooks | `scripts/hooks/*` | ✅ Implemented |
+| Git automation | `scripts/*.sh` | ✅ Implemented |
 
 ---
 
@@ -36,8 +36,8 @@ This document maps non-specs content (code, scripts, tests, docs) to the relevan
 
 | Work Category | Files | Status |
 |--------------|-------|--------|
-| CLI Backend | `backend/python_backend/*.py` | ⏳ Not implemented |
-| Frontend | `client/src/**/*.tsx`, `client/index.html` | ⏳ Not implemented |
+| CLI Backend | `src/backend/python_backend/*.py` | ✅ Implemented |
+| Frontend | `src/client/src/**/*.tsx`, `src/client/index.html` | ✅ Implemented |
 
 ---
 
@@ -47,10 +47,10 @@ This document maps non-specs content (code, scripts, tests, docs) to the relevan
 
 | Work Category | Files | Status |
 |--------------|-------|--------|
-| Core | `src/core/*.py`, `src/speckit/*.py` | ⏳ Not implemented |
-| Backend | `backend/node_engine/*.py`, `backend/python_nlp/*.py` | ⏳ Not implemented |
-| Config | `setup/.env.example`, `setup/pyproject.toml` | ⏳ Not implemented |
-| Tests | `tests/*.py`, `backend/**/test_*.py` | ⏳ Not implemented |
+| Core | `src/core/*.py`, `src/speckit/*.py` | ✅ Implemented |
+| Backend | `src/backend/node_engine/*.py`, `src/backend/python_nlp/*.py` | ✅ Implemented |
+| Config | `src/setup/.env.example`, `src/setup/pyproject.toml` | ✅ Implemented |
+| Tests | `tests/*.py`, `src/backend/**/test_*.py` | ✅ Implemented |
 
 ---
 
@@ -60,9 +60,9 @@ This document maps non-specs content (code, scripts, tests, docs) to the relevan
 
 | Work Category | Files | Status |
 |--------------|-------|--------|
-| Git scripts | `scripts/*.sh` | ⏳ Not implemented |
-| Merge docs | `docs/git_workflow_plan.md` | ⏳ Not implemented |
-| Orchestration docs | `docs/orchestration/*.md` | ⏳ Not implemented |
+| Git scripts | `scripts/*.sh` | ✅ Implemented |
+| Merge docs | `docs/git_workflow_plan.md` | ✅ Implemented |
+| Orchestration docs | `docs/orchestration/*.md` | ✅ Implemented |
 
 ---
 
@@ -72,7 +72,7 @@ This document maps non-specs content (code, scripts, tests, docs) to the relevan
 
 | Work Category | Files | Status |
 |--------------|-------|--------|
-| Comparison docs | `docs/branch_history_001_pr176.md` | ⏳ Not implemented |
+| Comparison docs | `docs/branch_history_001_pr176.md` | ✅ Implemented |
 
 ---
 
@@ -82,8 +82,8 @@ This document maps non-specs content (code, scripts, tests, docs) to the relevan
 
 | Work Category | Files | Status |
 |--------------|-------|--------|
-| Test infrastructure | `tests/*.py`, `backend/**/test_*.py` | ⏳ Not implemented |
-| Validation scripts | `test_*.py` | ⏳ Not implemented |
+| Test infrastructure | `tests/*.py`, `src/backend/**/test_*.py` | ✅ Implemented |
+| Validation scripts | `test_*.py` | ✅ Implemented |
 
 ---
 
@@ -93,9 +93,9 @@ This document maps non-specs content (code, scripts, tests, docs) to the relevan
 
 | Work Category | Files | Status |
 |--------------|-------|--------|
-| Hooks | `scripts/hooks/*` | ⏳ Not implemented |
-| Setup scripts | `setup/*.sh`, `setup/*.py` | ⏳ Not implemented |
-| Speckit | `src/speckit/*.py`, `.specify/scripts/*` | ⏳ Not implemented |
+| Hooks | `scripts/hooks/*` | ✅ Implemented |
+| Setup scripts | `src/setup/*.sh`, `src/setup/*.py` | ✅ Implemented |
+| Speckit | `src/speckit/*.py`, `.specify/scripts/*` | ✅ Implemented |
 | Orchestration docs | `docs/orchestration-workflow.md` | ✅ Implemented |
 | Hook management | `docs/hook-version-mismatch-issue.md` | ✅ Implemented |
 
@@ -108,8 +108,8 @@ These files don't have clear spec ownership:
 | Files | Suggested Action |
 |-------|-----------------|
 | `temp-backup/tasks/*.md` | Archive or delete |
-| `backend/db.ts` | Move to `006-unified-architecture/` |
-| `backend/plugins/*` | Move to `006-unified-architecture/` |
+| `src/backend/db.ts` | Move to `006-unified-architecture/` |
+| `src/backend/plugins/*` | Move to `006-unified-architecture/` |
 | `modules/*` | Move to `006-unified-architecture/` |
 | `AGENTS.md`, `GEMINI.md`, `CRUSH.md`, `IFLOW.md`, `LLXPRT.md` | Consolidate into specs |
 

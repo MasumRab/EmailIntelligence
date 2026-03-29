@@ -20,10 +20,10 @@ The orchestration workflow system is largely implemented with the following comp
 
 ### Node-Based Workflow System (Advanced)
 - ✅ Core workflow engine (`src/core/advanced_workflow_engine.py`)
-- ✅ Security framework (`src/core/security.py`, `backend/node_engine/security_manager.py`)
-- ✅ Node implementations (`backend/node_engine/email_nodes.py`)
-- ✅ REST API for workflow management (`backend/python_backend/advanced_workflow_routes.py`)
-- ✅ Gradio-based workflow editor UI (`backend/python_backend/workflow_editor_ui.py`)
+- ✅ Security framework (`src/core/security.py`, `src/backend/node_engine/security_manager.py`)
+- ✅ Node implementations (`src/backend/node_engine/email_nodes.py`)
+- ✅ REST API for workflow management (`src/backend/python_src/backend/advanced_workflow_routes.py`)
+- ✅ Gradio-based workflow editor UI (`src/backend/python_src/backend/workflow_editor_ui.py`)
 - ✅ Comprehensive test suite (nodes, security, integration)
 
 ### Remaining

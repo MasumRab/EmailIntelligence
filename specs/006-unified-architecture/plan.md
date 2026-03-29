@@ -10,7 +10,7 @@ Consolidate three competing workflow systems (Basic System, Node Engine, Advance
 
 **Language/Version**: Python 3.11, TypeScript (frontend), SQL (database)
 **Primary Dependencies**: FastAPI, NetworkX, Pydantic, React, Gradio
-**Target System**: `backend/node_engine/` — async execution with enterprise-grade security
+**Target System**: `src/backend/node_engine/` — async execution with enterprise-grade security
 **Storage**: SQLite database, file system for models and data
 **Testing**: pytest, pytest-asyncio, React Testing Library
 **Target Platform**: Linux/Unix, production deployment ready

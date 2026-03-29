@@ -32,7 +32,7 @@ The Email Intelligence Platform implements a node-based workflow system inspired
    - ActionNode — Email actions (archive, label, forward)
 
 4. **API & UI**
-   - REST API (`src/backend/python_backend/advanced_workflow_routes.py`)
+   - REST API (`src/backend/python_src/backend/advanced_workflow_routes.py`)
    - Gradio workflow editor (`workflow_editor_ui.py`)
    - Workflow manager (`workflow_manager.py`)
 

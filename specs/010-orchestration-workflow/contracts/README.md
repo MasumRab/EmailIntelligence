@@ -13,8 +13,8 @@ This document defines which files belong to the orchestration-tools branch vs. a
 ### Application-Only Files (NEVER in orchestration-tools)
 
 - `src/` — Application source code
-- `backend/` — Backend implementation
-- `client/` — Frontend code
+- `src/backend/` — Backend implementation
+- `src/client/` — Frontend code
 - `specs/` — Feature specifications
 - `tests/` — Test suites
 - `docs/` — Application documentation (except orchestration docs)

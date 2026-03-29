@@ -8,12 +8,12 @@ This comprehensive plan outlines the consolidation and enhancement of the Email 
 
 ### Three Competing Workflow Systems (To Be Consolidated)
 
-1. **Basic System** (`src/core/workflow_engine.py`, `backend/python_backend/workflow_engine.py`)
+1. **Basic System** (`src/core/workflow_engine.py`, `src/backend/python_src/backend/workflow_engine.py`)
    - Synchronous DAG execution
    - No security features
    - Simple node/workflow/runner classes
 
-2. **Node Engine** (`backend/node_engine/`)
+2. **Node Engine** (`src/backend/node_engine/`)
    - **TARGET SYSTEM** - Async execution with security
    - Enterprise-grade security (path traversal protection, input sanitization)
    - Modular node implementations with comprehensive testing

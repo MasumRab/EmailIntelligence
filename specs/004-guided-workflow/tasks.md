@@ -134,7 +134,7 @@
 ## Phase 12: Developer Experience & Shell (US1, US6)
 
 - [ ] T079 [US1] Implement shell completion scripts for zsh, bash, and powershell using Typer in `src/cli/main.py`.
-- [ ] T080 [US1] Implement interactive wizard patterns for complex setup/sync workflows in `src/cli/ui/wizard.py`.
+- [ ] T080 [US1] Implement interactive wizard patterns for complex src/setup/sync workflows in `src/cli/ui/wizard.py`.
 - [ ] T081 [US1] Implement command aliases (br, an, etc.) and registration validation in `src/cli/main.py`.
 - [ ] T082 [US6] Implement environment variable overrides for output modes (DEV_JSON, etc.) in `src/cli/main.py`.
 - [ ] T083 [US1] Implement `git push` logic gated by the `--enable-remote` flag with lease safety in `src/core/git/plumbing.py`.

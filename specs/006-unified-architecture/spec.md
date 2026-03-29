@@ -20,7 +20,7 @@ This spec outlines the consolidation and enhancement of the Email Intelligence P
 ### Session 2025-10-20
 
 - Q: What are the three competing workflow systems? → A: Basic System (synchronous DAG), Node Engine (async with security), Advanced Core (NetworkX graphs)
-- Q: Which workflow system is the target? → A: Node Engine (`backend/node_engine/`) — async execution with enterprise-grade security
+- Q: Which workflow system is the target? → A: Node Engine (`src/backend/node_engine/`) — async execution with enterprise-grade security
 - Q: What security features are required? → A: Path traversal protection, input sanitization, comprehensive testing
 - Q: What is the backend framework? → A: Python FastAPI with modular architecture, React (Vite) + Gradio UI frontend
 

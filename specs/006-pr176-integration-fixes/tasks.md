@@ -22,7 +22,7 @@ description: "Task list for PR176 Integration Fixes feature implementation"
 
 - **Repository root**: Codebase files in appropriate directories
 - **Documentation**: docs/, README.md, etc.
-- **Source code**: src/, backend/, frontend/ (if applicable)
+- **Source code**: src/, src/backend/, frontend/ (if applicable)
 
 ## Phase 1: Setup (Shared Infrastructure)
 
@@ -46,7 +46,7 @@ Tasks for foundational setup:
 - [ ] T005 Identify all merge conflicts between PR #176 and target branch via `git merge` command
 - [ ] T006 [P] Document current state of PR #176 functionality by running existing tests in `tests/` directory
 - [ ] T007 [P] Create backup of current PR #176 state using `git stash` or branch creation
-- [ ] T008 Set up test environment by running `setup/launch.py` or equivalent setup scripts
+- [ ] T008 Set up test environment by running `src/setup/launch.py` or equivalent setup scripts
 - [ ] T009 [P] Install security scanning tools as specified in project constitution
 
 **Checkpoint**: Foundation ready - user story implementation can now begin in parallel
@@ -103,11 +103,11 @@ Tasks for foundational setup:
 ### Implementation for User Story 3
 
 - [ ] T025 [P] [US3] Identify missing files by running static analysis tools and checking import statements in `src/**/*.py`
-- [ ] T026 [P] [US3] Identify incorrect paths in imports, configurations, or references by analyzing `src/**/*.py`, `setup/`, and config files
+- [ ] T026 [P] [US3] Identify incorrect paths in imports, configurations, or references by analyzing `src/**/*.py`, `src/setup/`, and config files
 - [ ] T027 [US3] Create missing files identified in T025 by adding them to appropriate directories in `src/`
 - [ ] T028 [US3] Fix incorrect file paths identified in T026 by updating import statements and file references
 - [ ] T029 [US3] Verify file placement follows current architectural patterns by comparing with other modules in the codebase
-- [ ] T030 [US3] Update configurations in `setup/`, `pyproject.toml`, or other config files to align with latest architecture
+- [ ] T030 [US3] Update configurations in `src/setup/`, `pyproject.toml`, or other config files to align with latest architecture
 - [ ] T031 [US3] Update imports and references in `src/**/*.py` to use correct paths identified in T026
 - [ ] T032 [US3] Run tests with `pytest` to ensure all path updates work correctly
 

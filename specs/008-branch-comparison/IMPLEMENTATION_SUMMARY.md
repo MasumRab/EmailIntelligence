@@ -31,11 +31,11 @@ This document summarizes the implementation of architecture alignment between th
 
 ### Core Architecture Files
 - `src/main.py` - Factory pattern implementation
-- `src/backend/python_backend/dependencies.py` - Import path fixes
-- `src/backend/python_backend/filter_routes.py` - Import path fixes
+- `src/backend/python_src/backend/dependencies.py` - Import path fixes
+- `src/backend/python_src/backend/filter_routes.py` - Import path fixes
 - `src/backend/python_nlp/smart_filters.py` - Deferred initialization
 - `src/backend/node_engine/workflow_engine.py` - Import path fixes
-- `src/backend/python_backend/tests/conftest.py` - Import path fixes
+- `src/backend/python_src/backend/tests/conftest.py` - Import path fixes
 
 ### Constants and Configuration
 - `src/core/constants.py` - Created to satisfy import requirements

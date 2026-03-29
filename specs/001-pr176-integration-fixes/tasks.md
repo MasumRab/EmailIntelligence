@@ -22,7 +22,7 @@ description: "Task list for PR176 Integration Fixes feature implementation"
 
 - **Repository root**: Codebase files in appropriate directories
 - **Documentation**: docs/, README.md, etc.
-- **Source code**: src/, backend/, frontend/ (if applicable)
+- **Source code**: src/, src/backend/, frontend/ (if applicable)
 
 ## Phase 1: Setup (Shared Infrastructure)
 
@@ -52,7 +52,7 @@ Tasks for foundational setup:
 - [ ] T011 Identify all merge conflicts between the specified PR and target branch via `gh pr diff [PR_NUMBER]` and `git merge` commands
 - [ ] T012 [P] Document current state of specified PR functionality by running existing tests in `tests/` directory
 - [ ] T013 [P] Create backup of current PR state using `git stash` or branch creation
-- [ ] T014 Set up test environment by running `setup/launch.py` or equivalent setup scripts
+- [ ] T014 Set up test environment by running `src/setup/launch.py` or equivalent setup scripts
 - [ ] T015 [P] Install security scanning tools as specified in project constitution
 - [ ] T016 [P] Install and authenticate GitHub CLI (gh) tool for PR inspection
 - [ ] T017 [P] Retrieve complete PR information using `gh pr view [PR_NUMBER] --json` command
@@ -117,11 +117,11 @@ Tasks for foundational setup:
 ### Implementation for User Story 3
 
 - [ ] T039 [P] [US3] Identify missing files by running static analysis tools and checking import statements in `src/**/*.py`
-- [ ] T040 [P] [US3] Identify incorrect paths in imports, configurations, or references by analyzing `src/**/*.py`, `setup/`, and config files
+- [ ] T040 [P] [US3] Identify incorrect paths in imports, configurations, or references by analyzing `src/**/*.py`, `src/setup/`, and config files
 - [ ] T041 [US3] Create missing files identified in T039 by adding them to appropriate directories in `src/`
 - [ ] T042 [US3] Fix incorrect file paths identified in T040 by updating import statements and file references
 - [ ] T043 [US3] Verify file placement follows current architectural patterns by comparing with other modules in the codebase
-- [ ] T044 [US3] Update configurations in `setup/`, `pyproject.toml`, or other config files to align with latest architecture
+- [ ] T044 [US3] Update configurations in `src/setup/`, `pyproject.toml`, or other config files to align with latest architecture
 - [ ] T045 [US3] Update imports and references in `src/**/*.py` to use correct paths identified in T040
 - [ ] T046 [US3] Run tests with `pytest` to ensure all path updates work correctly
 
