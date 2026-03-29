@@ -10,7 +10,6 @@ import os
 import subprocess
 import sys
 import re
-import shlex
 from pathlib import Path
 from typing import Dict, Optional
 
@@ -53,12 +52,11 @@ def check_uvicorn_installed() -> bool:
             logger.error(f"Unsafe Python executable path: {python_exe}")
             return False
             
-        result = subprocess.run([python_exe, "-c", "import uvicorn"], capture_output=True)
+        result = subprocess.run([str(python_exe), "-c", "import uvicorn"], capture_output=True)
         return result.returncode == 0
     except Exception:
         return False
 
-# install_nodejs_dependencies and check_node_npm_installed removed (now in utils)
 
 def start_backend(host: str, port: int, debug: bool = False):
     """Start the Python backend server."""
@@ -76,7 +74,7 @@ def start_backend(host: str, port: int, debug: bool = False):
 
     # Use list of arguments - SAFER than shell=True
     cmd = [
-        python_exe,
+        str(python_exe),
         "-m",
         "uvicorn",
         "src.main:create_app",
@@ -120,7 +118,7 @@ def start_node_service(service_path: Path, service_name: str, port: int, api_url
 
     try:
         # Ensure dependencies are installed
-        setup_node_dependencies(service_path, service_name)
+        install_nodejs_dependencies(str(service_path.relative_to(ROOT_DIR)))
 
         # Start the service
         env = os.environ.copy()
@@ -143,10 +141,6 @@ def start_node_service(service_path: Path, service_name: str, port: int, api_url
                     logger.warning(f"No suitable npm script found for {service_name}")
                     return
 
-            # Construct safe shell command
-            # cmd is static ["npm", "run", ...]
-            # but we want to be consistent.
-            # Using shell=False with static args is fine, but for consistency...
             process = subprocess.Popen(cmd, cwd=service_path, env=env)
             from setup.utils import process_manager
             process_manager.add_process(process)
@@ -154,35 +148,6 @@ def start_node_service(service_path: Path, service_name: str, port: int, api_url
             logger.error(f"No package.json found for {service_name}")
     except Exception as e:
         logger.error(f"Failed to start {service_name}: {e}")
-
-
-def setup_node_dependencies(service_path: Path, service_name: str):
-    """Set up Node.js dependencies for a service."""
-    if not service_path.exists():
-        logger.warning(f"Service path {service_path} does not exist")
-        return
-
-    # Validate service path to prevent directory traversal
-    if not validate_path_safety(str(service_path), str(ROOT_DIR)):
-        logger.error(f"Unsafe service path: {service_path}")
-        return
-
-    package_json = service_path / "package.json"
-    if not package_json.exists():
-        logger.warning(f"No package.json found for {service_name}")
-        return
-
-    node_modules = service_path / "node_modules"
-    if not node_modules.exists():
-        logger.info(f"Installing dependencies for {service_name}...")
-        try:
-            # Use run_command wrapper instead of direct subprocess.run
-            if run_command(["npm", "install"], f"Installing dependencies for {service_name}", cwd=str(service_path)):
-                logger.info(f"Dependencies installed successfully for {service_name}")
-            else:
-                logger.error(f"Failed to install dependencies for {service_name}")
-        except Exception as e:
-            logger.error(f"Error installing dependencies for {service_name}: {e}")
 
 
 def start_gradio_ui(host, port, share, debug):
@@ -199,7 +164,7 @@ def start_gradio_ui(host, port, share, debug):
         logger.error(f"Invalid host parameter: {host}")
         return
 
-    cmd = [python_exe, "-m", "src.main", "--host", host, "--port", str(port)]
+    cmd = [str(python_exe), "-m", "src.main", "--host", host, "--port", str(port)]
 
     if share:
         cmd.append("--share")

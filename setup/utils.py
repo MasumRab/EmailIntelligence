@@ -12,7 +12,6 @@ import subprocess
 import sys
 import threading
 import time
-import shlex
 from pathlib import Path
 from typing import List
 

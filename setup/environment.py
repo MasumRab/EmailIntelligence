@@ -12,7 +12,6 @@ import shutil
 import subprocess
 import sys
 import venv
-import shlex
 from pathlib import Path
 from typing import List
 
@@ -135,7 +134,6 @@ def setup_dependencies(venv_path: Path, use_poetry: bool = False):
     if use_poetry:
         # For poetry, we need to install it first if not available
         try:
-            # Explicitly quote dynamic path to satisfy linter, pass as list (shell=False)
             subprocess.run([str(python_exe), "-c", "import poetry"], check=True, capture_output=True)
         except subprocess.CalledProcessError:
             run_command([str(python_exe), "-m", "pip", "install", "poetry"], "Installing Poetry")
@@ -148,7 +146,6 @@ def setup_dependencies(venv_path: Path, use_poetry: bool = False):
     else:
         # For uv, install if not available
         try:
-            # Explicitly quote dynamic path to satisfy linter, pass as list (shell=False)
             subprocess.run([str(python_exe), "-c", "import uv"], check=True, capture_output=True)
         except subprocess.CalledProcessError:
             run_command([str(python_exe), "-m", "pip", "install", "uv"], "Installing uv")
@@ -215,7 +212,7 @@ def install_environment_specific_requirements(python_exe: str):
     try:
         # Check for CUDA availability (simple check)
         result = subprocess.run(
-            [python_exe, "-c", "import torch; print(torch.cuda.is_available())"],
+            [str(python_exe), "-c", "import torch; print(torch.cuda.is_available())"],
             capture_output=True, text=True, timeout=10
         )
         has_cuda = result.stdout.strip() == "True"
@@ -234,7 +231,7 @@ def install_environment_specific_requirements(python_exe: str):
         if req_path.exists():
             logger.info(f"Installing environment-specific requirements from {req_file}")
             run_command(
-                [python_exe, "-m", "pip", "install", "-r", str(req_path)],
+                [str(python_exe), "-m", "pip", "install", "-r", str(req_path)],
                 f"Installing {req_file}",
                 cwd=ROOT_DIR,
             )
@@ -269,7 +266,6 @@ def download_nltk_data(venv_path=None):
     except Exception as e:
         logger.warning(f"Failed to download NLTK data: {e}")
 
-# Removed check_node_npm_installed and install_nodejs_dependencies as they are now in setup/utils.py
 
 def handle_setup(args, venv_path):
     """Handle the complete setup process."""
