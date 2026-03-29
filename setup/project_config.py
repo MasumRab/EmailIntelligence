@@ -1,4 +1,5 @@
 """
+<<<<<<< HEAD
 Project Configuration System
 
 This module provides a centralized configuration system for the EmailIntelligence project
@@ -234,3 +235,25 @@ def reload_config() -> None:
     """Reload the project configuration."""
     global _project_config
     _project_config = ProjectConfig()
+=======
+Project configuration utilities
+"""
+
+from pathlib import Path
+
+class ProjectConfig:
+    """Project configuration container."""
+
+    def __init__(self):
+        self.root_dir = Path(__file__).parent.parent
+
+# Global configuration instance
+_project_config = None
+
+def get_project_config():
+    """Get the project configuration."""
+    global _project_config
+    if _project_config is None:
+        _project_config = ProjectConfig()
+    return _project_config
+>>>>>>> a7da61cf1f697de3c8c81f536bf579d36d88e613

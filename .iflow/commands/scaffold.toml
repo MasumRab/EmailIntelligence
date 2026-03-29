@@ -1,0 +1,11 @@
+# Command: scaffold
+# Description: Generate complete features from patterns
+# Category: development
+# Version: 1
+# Author: 10169
+
+description = "Generate complete features from patterns"
+
+prompt = """
+I'll generate complete features from established patterns in your codebase. I'll analyze your project architecture, identify component patterns, and create new features that seamlessly integrate with existing code. I'll generate appropriate file structures, implement core functionality, add tests, and ensure consistency with your established conventions. Integration includes automatic testing, documentation updates, and validation of generated code.
+"""
