@@ -1,0 +1,47 @@
+[MASTER]
+ignore-patterns=
+    ^\.#,
+    __pycache__,
+    venv,
+    .venv,
+    env,
+    node_modules,
+    .eggs,
+    *.egg,
+    build,
+    dist,
+    .pytest_cache,
+    .mypy_cache,
+    temp-backup,
+    worktrees
+ignore-paths=
+    ^venv/,
+    ^\.venv/,
+    ^node_modules/,
+    ^__pycache__/,
+    ^build/,
+    ^dist/,
+    ^\.eggs/,
+    ^temp-backup/,
+    ^worktrees/
+max-line-length=120
+jobs=4
+
+[MESSAGES CONTROL]
+disable=
+    C0111,
+    C0103,
+    R0913,
+    R0914,
+    W0212,
+    R0801,
+    C0302
+
+[DESIGN]
+max-attributes=7
+max-arguments=5
+max-statements=50
+max-locals=15
+
+[FORMAT]
+indent-string='    '
