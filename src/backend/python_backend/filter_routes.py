@@ -3,9 +3,7 @@ DEPRECATED: This module is part of the deprecated `backend` package.
 It will be removed in a future release.
 """
 
-import json
 import logging
-import sqlite3
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 

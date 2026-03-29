@@ -1,17 +1,14 @@
 """Core context control functionality for Agent Context Control."""
 
 from pathlib import Path
-from typing import Optional, Dict, Any, List
-import json
-import hashlib
+from typing import Optional, Dict, List
 
 from .config import get_current_config
 from .models import ContextProfile, AgentContext, ContextValidationResult
 from .environment import detect_branch, get_current_branch
 from .logging import get_context_logger
-from .exceptions import ContextNotFoundError, ContextValidationError
+from .exceptions import ContextNotFoundError
 from .storage import ProfileStorage
-from .project import load_project_config
 
 
 logger = get_context_logger()

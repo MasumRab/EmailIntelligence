@@ -12,7 +12,7 @@ import time
 from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Set
+from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -484,8 +484,8 @@ class ModelRegistry:
 
             model_path = metadata.path
             if model_path.exists():
-                model = AutoModelForSequenceClassification.from_pretrained(str(model_path))
-                tokenizer = AutoTokenizer.from_pretrained(str(model_path))
+                model = await asyncio.to_thread(AutoModelForSequenceClassification.from_pretrained, str(model_path), local_files_only=True)
+                tokenizer = await asyncio.to_thread(AutoTokenizer.from_pretrained, str(model_path), local_files_only=True)
                 return {"model": model, "tokenizer": tokenizer}
             else:
                 logger.error(f"Transformers model path not found: {model_path}")
@@ -688,11 +688,11 @@ class ModelRegistry:
 
             # Test with sample data based on model type
             if instance.metadata.model_type == ModelType.SENTIMENT:
-                test_input = "This is a great product!"
+                pass
             elif instance.metadata.model_type == ModelType.TOPIC:
-                test_input = "Meeting about project deadlines"
+                pass
             else:
-                test_input = "Test input for model validation"
+                pass
 
             start_time = time.time()
             # This would need to be implemented based on the actual model interface
