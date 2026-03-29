@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import json
 import logging
 
@@ -7,15 +6,12 @@ import gradio as gr
 # Import from the new advanced workflow engine in the core
 from src.core.advanced_workflow_engine import (
     Workflow,
-    WorkflowRunner,
-    WorkflowManager,
     get_workflow_manager
 )
 from src.core.advanced_workflow_engine import (
-    EmailInputNode, 
-    NLPProcessorNode, 
-    EmailOutputNode,
-    BaseNode
+    EmailInputNode,
+    NLPProcessorNode,
+    EmailOutputNode
 )
 
 logger = logging.getLogger(__name__)
@@ -79,9 +75,9 @@ async def run_workflow_from_json(workflow_json: str, initial_context_json: str) 
         for node_def in workflow_data.get("nodes", []):
             node_type = node_def.get("type")
             if node_type in AVAILABLE_NODE_CLASSES:
-                node_class = AVAILABLE_NODE_CLASSES[node_type]
+                AVAILABLE_NODE_CLASSES[node_type]
                 # Create node using new workflow's add_node method
-                node_id = workflow.add_node(
+                workflow.add_node(
                     node_type=node_type,
                     node_id=node_def["id"],
                     **node_def.get("config", {})
@@ -101,7 +97,7 @@ async def run_workflow_from_json(workflow_json: str, initial_context_json: str) 
         # Run the workflow using the new Node Engine
         workflow_manager = get_workflow_manager()  # Use the global workflow manager
         execution_result = await workflow_manager.execute_workflow(
-            workflow.workflow_id, 
+            workflow.workflow_id,
             initial_inputs=initial_context
         )
 
@@ -185,5 +181,3 @@ def create_workflow_ui():
             outputs=output_json,
         )
     return workflow_tab
-=======
->>>>>>> origin/main

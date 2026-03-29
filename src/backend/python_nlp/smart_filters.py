@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 """
 A system for managing and applying intelligent email filters.
 
@@ -12,10 +11,10 @@ import logging
 import os
 import re
 import sqlite3
-from collections import Counter, defaultdict
+from collections import Counter
 from dataclasses import dataclass
-from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional, Set
+from datetime import datetime
+from typing import Any, Dict, List, Optional
 
 from src.core.security import PathValidator
 
@@ -98,19 +97,16 @@ class SmartFilterManager:
     of email filters, using a SQLite database for persistence.
     """
 
-    def __init__(self, db_path: str = DEFAULT_DB_PATH):
+    def __init__(self, db_path: str = None):
         """
         Initializes the SmartFilterManager.
 
         Args:
             db_path: Path to the SQLite database file. If None, uses the default
-                    path in the project's data directory. Relative paths are
-                    resolved relative to the project's data directory to prevent
-                    path traversal attacks and ensure consistent behavior.
+                     path in the project's data directory. Relative paths are
+                     resolved relative to the project's data directory to prevent
+                     path traversal attacks and ensure consistent behavior.
         """
-<<<<<<< HEAD
-        self.db_path = db_path
-=======
         if db_path is None:
             db_path = DEFAULT_DB_PATH
         elif not os.path.isabs(db_path):
@@ -120,7 +116,6 @@ class SmartFilterManager:
 
         # Validate the final path
         self.db_path = str(PathValidator.validate_database_path(db_path, DATA_DIR))
->>>>>>> scientific
         self.logger = logging.getLogger(__name__)
         self.conn = None
         if self.db_path == ":memory:":
@@ -471,5 +466,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-=======
->>>>>>> origin/main

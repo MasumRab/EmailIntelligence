@@ -1,7 +1,7 @@
 """Model manager module."""
 
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 logger = logging.getLogger(__name__)
 
@@ -19,11 +19,3 @@ class ModelManager:
     def check_health(self) -> bool:
         """Check model manager health. Stub implementation."""
         return True
-<<<<<<< HEAD
-
-
-model_manager = ModelManager()
-
-
-=======
->>>>>>> scientific

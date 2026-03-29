@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 """
 A high-level service for comprehensive Gmail integration.
 
@@ -17,13 +16,10 @@ from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
 # To avoid circular imports with type hints
 if TYPE_CHECKING:
-    from ..python_backend.ai_engine import AdvancedAIEngine
-    from ..python_backend.database import DatabaseManager
-    from .protocols import AIEngineProtocol, DatabaseProtocol
+    pass
 
 # AI Training and PromptEngineer might not be directly used by GmailAIService after refactoring
 # if all AI analysis is delegated to AdvancedAIEngine.
-from .ai_training import ModelConfig
 from .data_strategy import DataCollectionStrategy
 from .gmail_integration import EmailBatch, GmailDataCollector, RateLimitConfig
 from .gmail_metadata import GmailMessage, GmailMetadataExtractor
@@ -316,8 +312,6 @@ class GmailAIService:
         """Returns a dictionary of processing statistics."""
         return {"processing_stats": self.stats}
 
-<<<<<<< HEAD
-=======
     async def get_performance_metrics(self) -> Dict[str, Any]:
         """
         Get detailed performance metrics for Gmail operations.
@@ -402,7 +396,6 @@ class GmailAIService:
                 "status": "error",
             }
 
->>>>>>> scientific
     async def execute_smart_retrieval(
         self, strategies: List[str] = None, max_api_calls: int = 100, time_budget_minutes: int = 30
     ) -> Dict[str, Any]:
@@ -453,5 +446,3 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
-=======
->>>>>>> origin/main

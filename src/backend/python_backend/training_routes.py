@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 """
 DEPRECATED: This module is part of the deprecated `backend` package.
 It will be removed in a future release.
@@ -11,7 +10,7 @@ This module provides API endpoints for training AI models used in email analysis
 import logging
 from typing import Any, Dict
 
-from fastapi import APIRouter, BackgroundTasks, HTTPException, Depends
+from fastapi import APIRouter, BackgroundTasks, HTTPException
 
 from src.core.auth import get_current_active_user
 
@@ -34,10 +33,10 @@ async def start_training(
 ):
     """
     Start training a model with the given configuration.
-    Requires authentication.
 
     Args:
         model_config: Configuration for the model to train
+        current_user: The authenticated user making the request
         background_tasks: FastAPI background tasks
 
     Returns:
@@ -64,20 +63,13 @@ async def start_training(
 
 @router.get("/api/training/status/{job_id}")
 @log_performance(operation="get_training_status")
-<<<<<<< HEAD
-async def get_training_status(
-    job_id: str,
-    current_user: str = Depends(get_current_active_user),
-):
-=======
 async def get_training_status(job_id: str, current_user: str = Depends(get_current_active_user)):
->>>>>>> scientific
     """
     Get the status of a training job.
-    Requires authentication.
 
     Args:
         job_id: The ID of the training job
+        current_user: The authenticated user making the request
 
     Returns:
         Dict with job status information
@@ -98,8 +90,6 @@ async def run_training(job_id: str, model_config: ModelConfig):
     """
     try:
         import os
-        import random
-        import time
 
         import pandas as pd
         from sklearn.feature_extraction.text import TfidfVectorizer
@@ -176,5 +166,3 @@ async def run_training(job_id: str, model_config: ModelConfig):
         training_jobs[job_id]["status"] = "failed"
         training_jobs[job_id]["message"] = f"Training failed: {str(e)}"
         logger.error(f"Training job {job_id} failed: {e}")
-=======
->>>>>>> origin/main
