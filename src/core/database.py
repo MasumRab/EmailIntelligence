@@ -586,7 +586,7 @@ class DatabaseManager(DataSource):
         cache_key = f"get_emails_{limit}_{offset}_{category_id}_{is_unread}"
         cached_result = self.caching_manager.get_query_result(cache_key)
         if cached_result is not None:
-            return cached_result
+            return [email.copy() for email in cached_result]
 
         filtered_emails = self.emails_data
         if category_id is not None:
@@ -601,7 +601,7 @@ class DatabaseManager(DataSource):
         )
 
         # Cache result
-        self.caching_manager.put_query_result(cache_key, result)
+        self.caching_manager.put_query_result(cache_key, [e.copy() for e in result])
         return result
 
     async def update_email_by_message_id(
@@ -716,7 +716,7 @@ class DatabaseManager(DataSource):
         cache_key = f"search_{search_term}_{limit}"
         cached_result = self.caching_manager.get_query_result(cache_key)
         if cached_result is not None:
-            return cached_result
+            return [email.copy() for email in cached_result]
 
         search_term_lower = search_term.lower()
         filtered_emails = []
@@ -758,7 +758,7 @@ class DatabaseManager(DataSource):
         result = await self._sort_and_paginate_emails(filtered_emails, limit=limit)
 
         # Cache result
-        self.caching_manager.put_query_result(cache_key, result)
+        self.caching_manager.put_query_result(cache_key, [e.copy() for e in result])
         return result
 
     # TODO(P1, 6h): Optimize search performance to avoid disk I/O per STATIC_ANALYSIS_REPORT.md
