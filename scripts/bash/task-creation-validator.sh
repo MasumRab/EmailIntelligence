@@ -44,8 +44,8 @@ print_section() {
 }
 
 print_result() {
-    local status=$1
-    local message=$2
+    status=$1
+    message=$2
     
     if [ "$status" = "pass" ]; then
         echo -e "${GREEN}✓${NC} $message"
@@ -92,7 +92,7 @@ check_files_exist() {
     print_result "pass" "Task database found: .taskmaster/tasks/tasks.json"
     
     if [ -d "$TASKS_DIR" ]; then
-        local count=$(find "$TASKS_DIR" -name "*.md" 2>/dev/null | wc -l)
+        count=$(find "$TASKS_DIR" -name "*.md" 2>/dev/null | wc -l)
         print_result "pass" "Task markdown files found: $count files"
     fi
 }
@@ -101,7 +101,7 @@ search_task_database() {
     print_section "Searching Task Database"
     
     # Extract first few words from task title for search
-    local search_term=$(echo "$TASK_TITLE" | awk '{print $1}' | tr '[:upper:]' '[:lower:]')
+    search_term=$(echo "$TASK_TITLE" | awk '{print $1}' | tr '[:upper:]' '[:lower:]')
     
     echo "Searching for tasks related to: '$search_term'"
     echo ""
@@ -141,11 +141,11 @@ PYTHON_EOF
 search_markdown_files() {
     print_section "Searching Markdown Files"
     
-    local search_term=$(echo "$TASK_TITLE" | awk '{print tolower($1)}')
+    search_term=$(echo "$TASK_TITLE" | awk '{print tolower($1)}')
     
     echo "Searching .taskmaster/tasks/ for markdown files..."
     if [ -d "$TASKS_DIR" ]; then
-        local matches=$(grep -ri "$search_term" "$TASKS_DIR" 2>/dev/null | wc -l)
+        matches=$(grep -ri "$search_term" "$TASKS_DIR" 2>/dev/null | wc -l)
         if [ "$matches" -gt 0 ]; then
             print_result "warn" "Found $matches matching lines in task markdown files"
             echo ""
@@ -161,7 +161,7 @@ search_backlog() {
     print_section "Searching Backlog Directory"
     
     if [ -d "$BACKLOG_DIR" ]; then
-        local matches=$(grep -ri "$TASK_TITLE" "$BACKLOG_DIR" 2>/dev/null | wc -l)
+        matches=$(grep -ri "$TASK_TITLE" "$BACKLOG_DIR" 2>/dev/null | wc -l)
         if [ "$matches" -gt 0 ]; then
             print_result "warn" "Found $matches matches in backlog/"
             echo ""
@@ -178,7 +178,7 @@ search_specs() {
     print_section "Searching Specifications"
     
     if [ -d "$SPECS_DIR" ]; then
-        local matches=$(grep -ri "$TASK_TITLE" "$SPECS_DIR" 2>/dev/null | wc -l)
+        matches=$(grep -ri "$TASK_TITLE" "$SPECS_DIR" 2>/dev/null | wc -l)
         if [ "$matches" -gt 0 ]; then
             print_result "warn" "Found $matches matches in specs/"
         else
@@ -192,8 +192,8 @@ search_specs() {
 search_root_markdown() {
     print_section "Searching Root-Level Markdown"
     
-    local search_term=$(echo "$TASK_TITLE" | awk '{print tolower($1)}')
-    local matches=$(grep -ri "$search_term" "$REPO_ROOT" --include="*.md" \
+    search_term=$(echo "$TASK_TITLE" | awk '{print tolower($1)}')
+    matches=$(grep -ri "$search_term" "$REPO_ROOT" --include="*.md" \
                    --exclude-dir=.taskmaster --exclude-dir=backlog \
                    --exclude-dir=specs --exclude-dir=.git --exclude-dir=node_modules \
                    2>/dev/null | wc -l)
@@ -293,7 +293,7 @@ check_keywords() {
         
         for keyword in $KEYWORDS; do
             echo "Searching for: '$keyword'"
-            local matches=$(grep -ri "$keyword" "$TASKS_JSON" "$TASKS_DIR" 2>/dev/null | wc -l)
+            matches=$(grep -ri "$keyword" "$TASKS_JSON" "$TASKS_DIR" 2>/dev/null | wc -l)
             if [ "$matches" -gt 0 ]; then
                 print_result "warn" "Found $matches matches for '$keyword'"
             else

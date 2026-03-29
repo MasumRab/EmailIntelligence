@@ -291,7 +291,7 @@ summarize_stashes() {
 
 # Function to get stash statistics
 get_stash_stats() {
-    local stash_count
+    stash_count
     stash_count=$(get_stash_count)
     
     if [ "$stash_count" -eq 0 ]; then
@@ -303,10 +303,10 @@ get_stash_stats() {
     echo "Total stashes: $stash_count"
     
     # Count by type
-    local orchestration_count=$(git stash list | grep -c "orchestration-tools" || echo 0)
-    local main_count=$(git stash list | grep -c "main" || echo 0) 
-    local feature_count=$(git stash list | grep -c "feature/" || echo 0)
-    local other_count=$((stash_count - orchestration_count - main_count - feature_count))
+    orchestration_count=$(git stash list | grep -c "orchestration-tools" || echo 0)
+    main_count=$(git stash list | grep -c "main" || echo 0)
+    feature_count=$(git stash list | grep -c "feature/" || echo 0)
+    other_count=$((stash_count - orchestration_count - main_count - feature_count))
     
     echo "  - orchestration-tools: $orchestration_count"
     echo "  - main: $main_count" 
@@ -315,8 +315,8 @@ get_stash_stats() {
     
     # Show oldest and newest
     if [ "$stash_count" -gt 0 ]; then
-        local newest=$(git stash list | head -n1)
-        local oldest=$(git stash list | tail -n1)
+        newest=$(git stash list | head -n1)
+        oldest=$(git stash list | tail -n1)
         echo ""
         echo "Newest stash: $newest"
         echo "Oldest stash: $oldest"
@@ -345,7 +345,7 @@ if [ "$confirm" = "analyze-only" ]; then
     exit 0
 elif [ "$confirm" = "yes" ]; then
     # Process each stash in order (starting from newest - index 0)
-    local stash_count
+    stash_count
     stash_count=$(get_stash_count)
     
     if [ "$stash_count" -eq 0 ]; then

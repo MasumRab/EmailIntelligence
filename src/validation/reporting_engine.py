@@ -454,8 +454,8 @@ class ValidationReportingEngine:
 
             for gate_name, gate_data in report_data.quality_gates.items():
                 if isinstance(gate_data, dict):
-                    score = gate_data.get("score", 0.0)
-                    threshold = gate_data.get("threshold", 0.0)
+                    score = float(gate_data.get("score", 0.0) or 0.0)
+                    threshold = float(gate_data.get("threshold", 0.0) or 0.0)
                     status = "✅ PASS" if gate_data.get("passed", False) else "❌ FAIL"
                     md_content += (
                         f"| {gate_name.replace('_', ' ').title()} | {score:.3f} | "
@@ -472,7 +472,7 @@ class ValidationReportingEngine:
                     "basic_checks"
                 ].items():
                     status = "✅ PASS" if check_result.get("passed", False) else "❌ FAIL"
-                    score = check_result.get("score", 0.0)
+                    score = float(check_result.get("score", 0.0) or 0.0)
                     md_content += (
                         f"- **{check_name.replace('_', ' ').title()}**: {status} "
                         f"(Score: {score:.3f})\n"
@@ -502,8 +502,8 @@ class ValidationReportingEngine:
             benchmarks = report_data.detailed_results.get("performance_benchmarks", {})
             if isinstance(benchmarks.get("benchmarks"), dict):
                 for component, result in benchmarks["benchmarks"].items():
-                    actual = result.get("actual_time", 0.0)
-                    target = result.get("target_time", 0.0)
+                    actual = float(result.get("actual_time", 0.0) or 0.0)
+                    target = float(result.get("target_time", 0.0) or 0.0)
                     passed = "✅ PASS" if result.get("passed", False) else "❌ FAIL"
                     md_content += (
                         f"- **{component.title()}**: {passed} ({actual:.2f}s / {target:.2f}s)\n"
@@ -604,8 +604,8 @@ class ValidationReportingEngine:
         if isinstance(report_data.quality_gates, dict):
             for gate_name, gate_data in report_data.quality_gates.items():
                 if isinstance(gate_data, dict):
-                    score = gate_data.get("score", 0.0)
-                    threshold = gate_data.get("threshold", 0.0)
+                    score = float(gate_data.get("score", 0.0) or 0.0)
+                    threshold = float(gate_data.get("threshold", 0.0) or 0.0)
                     status = "✅ PASS" if gate_data.get("passed", False) else "❌ FAIL"
                     html_content += f"""            <tr>
                 <td>{gate_name.replace('_', ' ').title()}</td>
