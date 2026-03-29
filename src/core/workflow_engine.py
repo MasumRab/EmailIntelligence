@@ -634,6 +634,37 @@ class WorkflowRunner:
 
         return cleanup_schedule
 
+    def _build_node_context(self, node_id: str) -> Dict[str, Any]:
+        """
+        Build context for executing a specific node based on workflow connections.
+        Extracts input values from the execution context and previous node results.
+        """
+        node = self.workflow.nodes.get(node_id)
+        if not node:
+            return {}
+
+        node_context = {}
+
+        # First, check execution context for initial inputs
+        for input_key in node.inputs:
+            if input_key in self.execution_context:
+                node_context[input_key] = self.execution_context[input_key]
+
+        # Then, check connections to find which previous nodes produce which inputs
+        for conn in self.workflow.connections:
+            if conn["to"]["node_id"] == node_id:
+                from_node_id = conn["from"]["node_id"]
+                output_key = conn["from"]["output"]
+                input_key = conn["to"]["input"]
+
+                # Get the result from the source node
+                if from_node_id in self.node_results:
+                    from_result = self.node_results[from_node_id]
+                    if output_key in from_result:
+                        node_context[input_key] = from_result[output_key]
+
+        return node_context
+
     def _evaluate_condition(self, condition: str) -> bool:
         """
         Evaluate a condition expression for conditional node execution.
