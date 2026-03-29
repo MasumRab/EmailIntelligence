@@ -8,23 +8,23 @@ Test module for security and scalability features of the node-based workflow sys
 import asyncio
 from datetime import datetime
 
-from backend.node_engine.email_nodes import (
+from src.backend.node_engine.email_nodes import (
     ActionNode,
     AIAnalysisNode,
     EmailSourceNode,
     FilterNode,
     PreprocessingNode,
 )
-from backend.node_engine.node_base import Connection, Workflow
-from backend.node_engine.security_manager import (
+from src.backend.node_engine.node_base import Connection, Workflow
+from src.backend.node_engine.security_manager import (
     ResourceLimits,
     SecurityLevel,
     audit_logger,
     resource_manager,
     security_manager,
 )
-from backend.node_engine.workflow_engine import workflow_engine
-from backend.node_engine.workflow_manager import workflow_manager
+from src.backend.node_engine.workflow_engine import workflow_engine
+from src.backend.node_engine.workflow_manager import workflow_manager
 
 # TODO(P1, 3h): Fix bare except clauses in test files per CODEREVIEW_REPORT.md
 # TODO(P2, 2h): Add missing type hints to all test functions
@@ -132,7 +132,7 @@ async def test_input_sanitization():
     """Test input sanitization."""
     print("\nTesting input sanitization...")
 
-    from backend.node_engine.security_manager import InputSanitizer
+    from src.backend.node_engine.security_manager import InputSanitizer
 
     # Test sanitizing a potentially dangerous string
     dangerous_input = '<script>alert("xss")</script> Hello <img src="x" onerror="alert(\'xss\')">'

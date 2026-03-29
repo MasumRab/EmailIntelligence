@@ -7,6 +7,10 @@ marketplace integration, and runtime monitoring for extensible functionality.
 
 import asyncio
 import hashlib
+<<<<<<< HEAD
+=======
+import json
+>>>>>>> ralph-hub-assembly-1774754264
 import logging
 import shutil
 import tempfile
@@ -15,20 +19,31 @@ import zipfile
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Set
+<<<<<<< HEAD
 from urllib.parse import urlparse
 
 import httpx
+=======
+from urllib.request import urlopen
+>>>>>>> ralph-hub-assembly-1774754264
 
 from .plugin_base import (
     HookSystem,
     PluginInstance,
+<<<<<<< HEAD
+=======
+    PluginInterface,
+>>>>>>> ralph-hub-assembly-1774754264
     PluginMetadata,
     PluginRegistry,
     PluginSecurityLevel,
     PluginStatus,
     SecuritySandbox,
 )
+<<<<<<< HEAD
 from .security import validate_path_safety
+=======
+>>>>>>> ralph-hub-assembly-1774754264
 
 logger = logging.getLogger(__name__)
 
@@ -335,12 +350,15 @@ class PluginManager:
                 extract_path.mkdir()
 
                 with zipfile.ZipFile(download_path, "r") as zip_ref:
+<<<<<<< HEAD
                     # Secure extraction - validate all paths first
                     for member in zip_ref.infolist():
                         if not validate_path_safety(member.filename, extract_path):
                             raise SecurityError(f"Malicious file path detected in plugin archive: {member.filename}")
 
                     # Safe to extract
+=======
+>>>>>>> ralph-hub-assembly-1774754264
                     zip_ref.extractall(extract_path)
 
                 # Move to plugins directory
@@ -377,6 +395,7 @@ class PluginManager:
     async def _download_file(self, url: str, dest_path: Path):
         """Download a file from URL."""
         try:
+<<<<<<< HEAD
             # Enforce URL scheme validation (SSRF protection)
             parsed_url = urlparse(url)
             if parsed_url.scheme not in ('http', 'https'):
@@ -390,6 +409,11 @@ class PluginManager:
                     with open(dest_path, "wb") as f:
                         async for chunk in response.aiter_bytes():
                             f.write(chunk)
+=======
+            with urlopen(url) as response:
+                with open(dest_path, "wb") as f:
+                    f.write(response.read())
+>>>>>>> ralph-hub-assembly-1774754264
         except Exception as e:
             logger.error(f"Failed to download file from {url}: {e}")
             raise

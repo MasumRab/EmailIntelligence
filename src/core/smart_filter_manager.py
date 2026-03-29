@@ -15,12 +15,20 @@ import sqlite3
 from collections import Counter
 from dataclasses import dataclass
 from datetime import datetime, timezone
+<<<<<<< HEAD
 from typing import Any, Dict, List, Optional, Set, Union
+=======
+from typing import Any, Dict, List, Optional, Set
+>>>>>>> ralph-hub-assembly-1774754264
 from pathlib import Path
 
 from .database import DATA_DIR
 from .performance_monitor import log_performance
+<<<<<<< HEAD
 from .caching import get_cache_manager
+=======
+from .enhanced_caching import EnhancedCachingManager
+>>>>>>> ralph-hub-assembly-1774754264
 from .enhanced_error_reporting import (
     log_error,
     ErrorSeverity,
@@ -100,6 +108,7 @@ class FilterPerformance:
     false_negatives: int
 
 
+<<<<<<< HEAD
 @dataclass
 class _EmailContext:
     """
@@ -113,6 +122,8 @@ class _EmailContext:
     sender_lower: str
 
 
+=======
+>>>>>>> ralph-hub-assembly-1774754264
 class SmartFilterManager:
     """
     Advanced manager for the lifecycle of smart email filters.
@@ -141,10 +152,17 @@ class SmartFilterManager:
         self._init_filter_db()
         self.filter_templates = self._load_filter_templates()
         self.pruning_criteria = self._load_pruning_criteria()
+<<<<<<< HEAD
 
         # Enhanced caching system
         self.caching_manager = get_cache_manager()
 
+=======
+        
+        # Enhanced caching system
+        self.caching_manager = EnhancedCachingManager()
+        
+>>>>>>> ralph-hub-assembly-1774754264
         # State
         self._dirty_data: set[str] = set()
         self._initialized = False
@@ -210,6 +228,7 @@ class SmartFilterManager:
             finally:
                 self._close_db_connection(conn)
 
+<<<<<<< HEAD
     def _db_executemany(self, query: str, params_list: List[tuple], retries: int = 3):
         """Execute a batch query (INSERT, UPDATE) with retry logic for robustness."""
         for attempt in range(retries):
@@ -258,6 +277,8 @@ class SmartFilterManager:
             finally:
                 self._close_db_connection(conn)
 
+=======
+>>>>>>> ralph-hub-assembly-1774754264
     def _db_fetchone(self, query: str, params: tuple = ()) -> Optional[sqlite3.Row]:
         """Executes a read query and fetches a single row."""
         conn = self._get_db_connection()
@@ -333,7 +354,11 @@ class SmartFilterManager:
             return
 
         # Initialize caching manager
+<<<<<<< HEAD
         # CacheManager doesn't need explicit initialization
+=======
+        await self.caching_manager._ensure_initialized()
+>>>>>>> ralph-hub-assembly-1774754264
 
         self._initialized = True
         logger.info("SmartFilterManager fully initialized")
@@ -382,7 +407,11 @@ class SmartFilterManager:
             A list of the newly created `EmailFilter` objects.
         """
         await self._ensure_initialized()
+<<<<<<< HEAD
 
+=======
+        
+>>>>>>> ralph-hub-assembly-1774754264
         created_filters = []
         patterns = self._analyze_email_patterns(email_samples)
         template_filters = await self._create_filters_from_templates(patterns)
@@ -471,21 +500,33 @@ class SmartFilterManager:
     async def _create_custom_filters(self, patterns: Dict[str, Any]) -> List[EmailFilter]:
         """Creates custom filters based on frequently observed patterns."""
         filters = []
+<<<<<<< HEAD
 
+=======
+        
+>>>>>>> ralph-hub-assembly-1774754264
         # Create filter based on frequent sender domains
         for domain, count in patterns["sender_domains"].most_common(3):
             if count >= 3:  # Only create if domain appears in 3+ emails
                 filter_obj = self._create_domain_filter(domain)
                 await self._save_filter_async(filter_obj)
                 filters.append(filter_obj)
+<<<<<<< HEAD
 
+=======
+        
+>>>>>>> ralph-hub-assembly-1774754264
         # Create filter based on frequent subject keywords
         for keyword, count in patterns["subject_keywords"].most_common(5):
             if count >= 2:  # Only create if keyword appears in 2+ emails
                 filter_obj = self._create_keyword_filter(keyword)
                 await self._save_filter_async(filter_obj)
                 filters.append(filter_obj)
+<<<<<<< HEAD
 
+=======
+        
+>>>>>>> ralph-hub-assembly-1774754264
         return filters
 
     def _create_domain_filter(self, domain: str) -> EmailFilter:
@@ -549,7 +590,11 @@ class SmartFilterManager:
             The newly created `EmailFilter` object.
         """
         await self._ensure_initialized()
+<<<<<<< HEAD
 
+=======
+        
+>>>>>>> ralph-hub-assembly-1774754264
         filter_id = f"custom_{name.replace(' ', '_')}_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S_%f')[:17]}"
         new_filter = EmailFilter(
             filter_id=filter_id,
@@ -578,10 +623,17 @@ class SmartFilterManager:
             A dictionary summarizing the results of the pruning process.
         """
         await self._ensure_initialized()
+<<<<<<< HEAD
 
         pruned_filters = []
         disabled_filters = []
 
+=======
+        
+        pruned_filters = []
+        disabled_filters = []
+        
+>>>>>>> ralph-hub-assembly-1774754264
         active_filters = await self.get_active_filters_sorted()
         for filter_obj in active_filters:
             decision = await self._evaluate_filter_for_pruning(filter_obj)
@@ -599,13 +651,18 @@ class SmartFilterManager:
         # Check effectiveness score
         if filter_obj.effectiveness_score < self.pruning_criteria["effectiveness_threshold"]:
             return "disable"
+<<<<<<< HEAD
 
+=======
+        
+>>>>>>> ralph-hub-assembly-1774754264
         # Check usage count
         if filter_obj.usage_count < self.pruning_criteria["usage_threshold"]:
             # Check age - if filter is old and not used much, consider for pruning
             age_days = (datetime.now(timezone.utc) - filter_obj.created_at).days
             if age_days > self.pruning_criteria["age_threshold_days"]:
                 return "prune"
+<<<<<<< HEAD
 
         return "keep"
 
@@ -653,6 +710,40 @@ class SmartFilterManager:
             if not any(re.search(p, ctx.sender_lower, re.IGNORECASE) for p in criteria["from_patterns"]):
                 return False
 
+=======
+        
+        return "keep"
+
+    async def _apply_filter_to_email(self, filter_obj: EmailFilter, email: Dict[str, Any]) -> bool:
+        """Applies a single filter's criteria to an email."""
+        criteria = filter_obj.criteria
+        
+        # Check sender domain criteria
+        if "sender_domain" in criteria:
+            sender_email = email.get("sender_email", email.get("sender", ""))
+            domain = self._extract_domain(sender_email)
+            if domain != criteria["sender_domain"]:
+                return False
+        
+        # Check subject keywords
+        if "subject_keywords" in criteria:
+            subject = email.get("subject", "").lower()
+            if not any(keyword.lower() in subject for keyword in criteria["subject_keywords"]):
+                return False
+        
+        # Check content keywords
+        if "content_keywords" in criteria:
+            content = email.get("content", email.get("body", "")).lower()
+            if not any(keyword.lower() in content for keyword in criteria["content_keywords"]):
+                return False
+        
+        # Check from patterns
+        if "from_patterns" in criteria:
+            sender_email = email.get("sender_email", email.get("sender", "")).lower()
+            if not any(re.search(p, sender_email, re.IGNORECASE) for p in criteria["from_patterns"]):
+                return False
+        
+>>>>>>> ralph-hub-assembly-1774754264
         return True
 
     async def _save_filter_async(self, filter_obj: EmailFilter):
@@ -676,7 +767,11 @@ class SmartFilterManager:
             filter_obj.is_active,
         )
         self._db_execute(query, params)
+<<<<<<< HEAD
 
+=======
+        
+>>>>>>> ralph-hub-assembly-1774754264
         # Update cache
         cache_key = f"filter_{filter_obj.filter_id}"
         await self.caching_manager.set(cache_key, filter_obj)
@@ -685,7 +780,11 @@ class SmartFilterManager:
     async def get_active_filters_sorted(self) -> List[EmailFilter]:
         """Loads all active filters from the database, sorted by priority."""
         await self._ensure_initialized()
+<<<<<<< HEAD
 
+=======
+        
+>>>>>>> ralph-hub-assembly-1774754264
         # Check cache first
         cache_key = "active_filters_sorted"
         cached_result = await self.caching_manager.get(cache_key)
@@ -713,10 +812,17 @@ class SmartFilterManager:
             )
             for row in rows
         ]
+<<<<<<< HEAD
 
         # Cache the result
         await self.caching_manager.set(cache_key, filters)
 
+=======
+        
+        # Cache the result
+        await self.caching_manager.set(cache_key, filters)
+        
+>>>>>>> ralph-hub-assembly-1774754264
         return filters
 
     @log_performance(operation="apply_filters_to_email")
@@ -731,6 +837,7 @@ class SmartFilterManager:
             A dictionary summarizing the matched filters and actions taken.
         """
         await self._ensure_initialized()
+<<<<<<< HEAD
 
         summary = {"filters_matched": [], "actions_taken": [], "categories": []}
 
@@ -754,13 +861,28 @@ class SmartFilterManager:
             try:
                 if await self._apply_filter_to_email(filter_obj, email_context):
                     matched_filters.append(filter_obj)
+=======
+        
+        summary = {"filters_matched": [], "actions_taken": [], "categories": []}
+        
+        # Get active filters sorted by priority
+        active_filters = await self.get_active_filters_sorted()
+        
+        for filter_obj in active_filters:
+            try:
+                if await self._apply_filter_to_email(filter_obj, email_data):
+>>>>>>> ralph-hub-assembly-1774754264
                     # Record that this filter matched
                     summary["filters_matched"].append({
                         "filter_id": filter_obj.filter_id,
                         "name": filter_obj.name,
                         "priority": filter_obj.priority
                     })
+<<<<<<< HEAD
 
+=======
+                    
+>>>>>>> ralph-hub-assembly-1774754264
                     # Execute actions
                     for action_key, action_value in filter_obj.actions.items():
                         if action_key == "add_label":
@@ -772,7 +894,14 @@ class SmartFilterManager:
                         elif action_key == "move_to_folder":
                             if isinstance(action_value, str):
                                 summary["actions_taken"].append(f"moved_to_{action_value}")
+<<<<<<< HEAD
 
+=======
+                    
+                    # Update filter usage stats
+                    await self._update_filter_usage(filter_obj.filter_id)
+                    
+>>>>>>> ralph-hub-assembly-1774754264
             except Exception as e:
                 error_context = create_error_context(
                     component="SmartFilterManager",
@@ -786,6 +915,7 @@ class SmartFilterManager:
                     context=error_context
                 )
                 self.logger.warning(f"Error applying filter {filter_obj.filter_id} to email {email_data.get('id')}: {e}. Error ID: {error_id}")
+<<<<<<< HEAD
 
         # Batch update usage statistics for all matched filters
         if matched_filters:
@@ -797,18 +927,30 @@ class SmartFilterManager:
         # Update the last_used timestamp for the email
         email_data["last_filtered_at"] = datetime.now(timezone.utc).isoformat()
 
+=======
+        
+        # Update the last_used timestamp for the email
+        email_data["last_filtered_at"] = datetime.now(timezone.utc).isoformat()
+        
+>>>>>>> ralph-hub-assembly-1774754264
         return summary
 
     async def _update_filter_usage(self, filter_id: str):
         """Updates the usage statistics for a filter."""
         # Update usage count and last used time
         update_query = """
+<<<<<<< HEAD
             UPDATE email_filters
             SET usage_count = usage_count + 1, last_used = ?
+=======
+            UPDATE email_filters 
+            SET usage_count = usage_count + 1, last_used = ? 
+>>>>>>> ralph-hub-assembly-1774754264
             WHERE filter_id = ?
         """
         current_time = datetime.now(timezone.utc).isoformat()
         self._db_execute(update_query, (current_time, filter_id))
+<<<<<<< HEAD
 
         # Invalidate cache for active filters
         await self.caching_manager.delete("active_filters_sorted")
@@ -853,11 +995,21 @@ class SmartFilterManager:
         # holds references to these objects, the cached list is automatically up-to-date.
         # This avoids expensive cache invalidation and rebuilding on every match.
 
+=======
+        
+        # Invalidate cache for active filters
+        await self.caching_manager.delete("active_filters_sorted")
+
+>>>>>>> ralph-hub-assembly-1774754264
     @log_performance(operation="get_filter_by_id")
     async def get_filter_by_id(self, filter_id: str) -> Optional[EmailFilter]:
         """Retrieves a specific filter by its ID."""
         await self._ensure_initialized()
+<<<<<<< HEAD
 
+=======
+        
+>>>>>>> ralph-hub-assembly-1774754264
         # Check cache first
         cache_key = f"filter_{filter_id}"
         cached_result = await self.caching_manager.get(cache_key)
@@ -867,10 +1019,17 @@ class SmartFilterManager:
         row = self._db_fetchone(
             "SELECT * FROM email_filters WHERE filter_id = ?", (filter_id,)
         )
+<<<<<<< HEAD
 
         if not row:
             return None
 
+=======
+        
+        if not row:
+            return None
+            
+>>>>>>> ralph-hub-assembly-1774754264
         filter_obj = EmailFilter(
             filter_id=row["filter_id"],
             name=row["name"],
@@ -886,17 +1045,28 @@ class SmartFilterManager:
             performance_metrics=json.loads(row["performance_metrics"]),
             is_active=bool(row["is_active"]),
         )
+<<<<<<< HEAD
 
         # Cache the result
         await self.caching_manager.set(cache_key, filter_obj)
 
+=======
+        
+        # Cache the result
+        await self.caching_manager.set(cache_key, filter_obj)
+        
+>>>>>>> ralph-hub-assembly-1774754264
         return filter_obj
 
     @log_performance(operation="update_filter")
     async def update_filter(self, filter_id: str, **kwargs) -> bool:
         """Updates a filter's properties."""
         await self._ensure_initialized()
+<<<<<<< HEAD
 
+=======
+        
+>>>>>>> ralph-hub-assembly-1774754264
         # Get the existing filter
         existing_filter = await self.get_filter_by_id(filter_id)
         if not existing_filter:
@@ -909,17 +1079,26 @@ class SmartFilterManager:
 
         # Save the updated filter
         await self._save_filter_async(existing_filter)
+<<<<<<< HEAD
 
         # Invalidate cache
         await self.caching_manager.delete(f"filter_{filter_id}")
         await self.caching_manager.delete("active_filters_sorted")
 
+=======
+        
+        # Invalidate cache
+        await self.caching_manager.delete(f"filter_{filter_id}")
+        await self.caching_manager.delete("active_filters_sorted")
+        
+>>>>>>> ralph-hub-assembly-1774754264
         return True
 
     @log_performance(operation="update_filter_status")
     async def update_filter_status(self, filter_id: str, is_active: bool) -> bool:
         """Updates a filter's active status."""
         await self._ensure_initialized()
+<<<<<<< HEAD
 
         update_query = "UPDATE email_filters SET is_active = ? WHERE filter_id = ?"
         self._db_execute(update_query, (is_active, filter_id))
@@ -928,12 +1107,23 @@ class SmartFilterManager:
         await self.caching_manager.delete(f"filter_{filter_id}")
         await self.caching_manager.delete("active_filters_sorted")
 
+=======
+        
+        update_query = "UPDATE email_filters SET is_active = ? WHERE filter_id = ?"
+        self._db_execute(update_query, (is_active, filter_id))
+        
+        # Invalidate cache
+        await self.caching_manager.delete(f"filter_{filter_id}")
+        await self.caching_manager.delete("active_filters_sorted")
+        
+>>>>>>> ralph-hub-assembly-1774754264
         return True
 
     @log_performance(operation="delete_filter")
     async def delete_filter(self, filter_id: str) -> bool:
         """Deletes a filter from the system."""
         await self._ensure_initialized()
+<<<<<<< HEAD
 
         delete_query = "DELETE FROM email_filters WHERE filter_id = ?"
         self._db_execute(delete_query, (filter_id,))
@@ -946,19 +1136,41 @@ class SmartFilterManager:
         await self.caching_manager.delete(f"filter_{filter_id}")
         await self.caching_manager.delete("active_filters_sorted")
 
+=======
+        
+        delete_query = "DELETE FROM email_filters WHERE filter_id = ?"
+        self._db_execute(delete_query, (filter_id,))
+        
+        # Also delete associated performance data
+        delete_perf_query = "DELETE FROM filter_performance WHERE filter_id = ?"
+        self._db_execute(delete_perf_query, (filter_id,))
+        
+        # Invalidate cache
+        await self.caching_manager.delete(f"filter_{filter_id}")
+        await self.caching_manager.delete("active_filters_sorted")
+        
+>>>>>>> ralph-hub-assembly-1774754264
         return True
 
     @log_performance(operation="get_filters_by_category")
     async def get_filters_by_category(self, category: str) -> List[EmailFilter]:
         """Retrieves filters that are associated with a specific category."""
         await self._ensure_initialized()
+<<<<<<< HEAD
 
+=======
+        
+>>>>>>> ralph-hub-assembly-1774754264
         # This looks for filters that have actions related to the category
         rows = self._db_fetchall(
             "SELECT * FROM email_filters WHERE actions LIKE ? AND is_active = 1",
             (f'%{category}%',)
         )
+<<<<<<< HEAD
 
+=======
+        
+>>>>>>> ralph-hub-assembly-1774754264
         filters = [
             EmailFilter(
                 filter_id=row["filter_id"],
@@ -977,10 +1189,30 @@ class SmartFilterManager:
             )
             for row in rows
         ]
+<<<<<<< HEAD
 
+=======
+        
+>>>>>>> ralph-hub-assembly-1774754264
         return filters
 
     async def cleanup(self):
         """Performs cleanup operations."""
         await self.close()
+<<<<<<< HEAD
         # CacheManager doesn't have a close method and is global/shared
+=======
+        await self.caching_manager.close()
+
+
+# Global smart filter manager instance
+smart_filter_manager: Optional[SmartFilterManager] = None
+
+
+def get_smart_filter_manager() -> SmartFilterManager:
+    """Get the global smart filter manager instance."""
+    global smart_filter_manager
+    if not smart_filter_manager:
+        smart_filter_manager = SmartFilterManager()
+    return smart_filter_manager
+>>>>>>> ralph-hub-assembly-1774754264

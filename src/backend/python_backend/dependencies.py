@@ -11,6 +11,7 @@ import logging
 from typing import TYPE_CHECKING, Optional
 from fastapi import Depends
 # Updated to use the new src architecture where available
+<<<<<<< HEAD
 from backend.python_backend.services.email_service import EmailService
 from backend.python_backend.services.category_service import CategoryService
 from src.core.database import get_db, DatabaseManager
@@ -33,6 +34,25 @@ except ImportError:
         from .gmail_service import GmailAIService
     except ImportError:
         GmailAIService = None  # type: ignore
+=======
+from src.backend.python_backend.services.email_service import EmailService
+from src.backend.python_backend.services.category_service import CategoryService
+from src.core.database import get_db, DatabaseManager
+from .model_manager import ModelManager  # Assuming this is in the same package for now
+from .ai_engine import AdvancedAIEngine  # This might need to be updated to src version
+from .smart_filters import SmartFilterManager  # This might need to be updated to src version
+from .workflow_engine import WorkflowEngine  # This might need to be updated to src version
+from src.backend.plugins.plugin_manager import PluginManager
+from src.backend.python_nlp.gmail_service import GmailAIService  # This might be backend-specific
+
+if TYPE_CHECKING:
+    from .model_manager import ModelManager
+    from .ai_engine import AdvancedAIEngine
+    from .smart_filters import SmartFilterManager
+    from .workflow_engine import WorkflowEngine
+    from src.backend.plugins.plugin_manager import PluginManager
+    from src.backend.python_nlp.gmail_service import GmailAIService
+>>>>>>> ralph-hub-assembly-1774754264
 
 logger = logging.getLogger(__name__)
 
@@ -45,8 +65,87 @@ _plugin_manager_instance: Optional["PluginManager"] = None
 _gmail_service_instance: Optional["GmailAIService"] = None
 
 
+<<<<<<< HEAD
 # Initial implementations removed to avoid conflicts with singleton accessors below.
 # The singleton pattern accessors defined later in this file are the correct ones to use.
+=======
+# Dependency functions for services
+async def get_email_service() -> AsyncGenerator[EmailService, None]:
+    """Provides an EmailService instance"""
+    service = EmailService()
+    try:
+        yield service
+    finally:
+        # Perform any cleanup if needed
+        pass
+
+
+async def get_category_service() -> AsyncGenerator[CategoryService, None]:
+    """Provides a CategoryService instance"""
+    service = CategoryService()
+    try:
+        yield service
+    finally:
+        # Perform any cleanup if needed
+        pass
+
+
+async def get_ai_engine() -> AsyncGenerator[AdvancedAIEngine, None]:
+    """Provides an AdvancedAIEngine instance"""
+    engine = AdvancedAIEngine()
+    try:
+        yield engine
+    finally:
+        # Perform any cleanup if needed
+        pass
+
+
+async def get_filter_manager() -> AsyncGenerator[SmartFilterManager, None]:
+    """Provides a SmartFilterManager instance"""
+    manager = SmartFilterManager()
+    try:
+        yield manager
+    finally:
+        # Perform any cleanup if needed
+        pass
+
+
+async def get_workflow_engine() -> AsyncGenerator[WorkflowEngine, None]:
+    """Provides a WorkflowEngine instance"""
+    engine = WorkflowEngine()
+    try:
+        yield engine
+    finally:
+        # Perform any cleanup if needed
+        pass
+
+
+async def get_gmail_service() -> AsyncGenerator[GmailAIService, None]:
+    """Provides a GmailAIService instance"""
+    service = GmailAIService()
+    try:
+        yield service
+    finally:
+        # Perform any cleanup if needed
+        pass
+
+
+async def get_model_manager() -> AsyncGenerator[ModelManager, None]:
+    """Provides a ModelManager instance"""
+    manager = ModelManager()
+    try:
+        yield manager
+    finally:
+        # Perform any cleanup if needed
+        pass
+
+
+# For backward compatibility with existing code
+async def get_database():
+    """Provides database instance (for existing code that uses direct database access)"""
+    db = await get_db()
+    return db
+>>>>>>> ralph-hub-assembly-1774754264
 
 
 async def initialize_services():
@@ -75,6 +174,7 @@ async def initialize_services():
 
     # Initialize Plugin Manager, which may need other managers
     if _plugin_manager_instance is None:
+<<<<<<< HEAD
         if PluginManager:
             _plugin_manager_instance = PluginManager()
             _plugin_manager_instance.discover_and_load_plugins(
@@ -95,6 +195,22 @@ async def initialize_services():
             )
         else:
             logger.warning("GmailAIService not available, Gmail integration will be disabled.")
+=======
+        _plugin_manager_instance = PluginManager()
+        _plugin_manager_instance.discover_and_load_plugins(
+            model_manager=_model_manager_instance,
+            workflow_engine=_workflow_engine_instance,
+            ai_engine=_ai_engine_instance,
+            filter_manager=_filter_manager_instance,
+            db=db,
+        )
+
+    # Initialize services that depend on the core managers
+    if _gmail_service_instance is None:
+        _gmail_service_instance = GmailAIService(
+            db_manager=db, advanced_ai_engine=_ai_engine_instance
+        )
+>>>>>>> ralph-hub-assembly-1774754264
 
 
 def get_model_manager() -> "ModelManager":
@@ -134,8 +250,11 @@ def get_plugin_manager() -> "PluginManager":
     """Dependency injector for PluginManager."""
     global _plugin_manager_instance
     if _plugin_manager_instance is None:
+<<<<<<< HEAD
         if not PluginManager:
             raise ImportError("PluginManager module is not available. Ensure required dependencies are installed.")
+=======
+>>>>>>> ralph-hub-assembly-1774754264
         _plugin_manager_instance = PluginManager()
         _plugin_manager_instance.discover_and_load_plugins()
     return _plugin_manager_instance
@@ -155,23 +274,35 @@ def get_gmail_service(
     """Dependency injector for GmailAIService."""
     global _gmail_service_instance
     if _gmail_service_instance is None:
+<<<<<<< HEAD
         if not GmailAIService:
             raise ImportError("GmailAIService module is not available. Ensure required dependencies are installed.")
+=======
+>>>>>>> ralph-hub-assembly-1774754264
         ai_engine = get_ai_engine()
         _gmail_service_instance = GmailAIService(db_manager=db, advanced_ai_engine=ai_engine)
     return _gmail_service_instance
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> ralph-hub-assembly-1774754264
 async def get_email_service() -> "EmailService":
     """Provides an EmailService instance"""
     return EmailService()
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> ralph-hub-assembly-1774754264
 async def get_category_service() -> "CategoryService":
     """Provides a CategoryService instance"""
     return CategoryService()
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> ralph-hub-assembly-1774754264
 async def get_database():
     """Provides database instance (for existing code that uses direct database access)"""
     db = await get_db()

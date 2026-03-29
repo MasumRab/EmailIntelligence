@@ -1,6 +1,10 @@
 import unittest
 
+<<<<<<< HEAD
 from backend.python_nlp.ai_training import PromptEngineer
+=======
+from src.backend.python_nlp.ai_training import PromptEngineer
+>>>>>>> ralph-hub-assembly-1774754264
 
 
 class TestPromptEngineer(unittest.TestCase):

@@ -1,0 +1,70 @@
+#!/bin/bash
+
+# Post-checkout hook - minimal operations only
+# Does NOT force synchronization or require approval
+# Allows free branch switching without blocking
+
+# Recursion prevention
+if [[ "$ORCHESTRATION_SYNC_ACTIVE" == "1" ]]; then
+    exit 0
+fi
+
+# Check for disable flag
+if [[ "$DISABLE_ORCHESTRATION_CHECKS" == "1" ]]; then
+    exit 0
+fi
+
+CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null)
+
+echo "Switched to branch: $CURRENT_BRANCH"
+
+# IMPORTANT: Do NOT force sync or require approval on branch switch
+# Branch switching must be fast and unblocked for normal workflows
+
+# Only safe, non-blocking operations:
+
+# 1. Update git hooks if on orchestration-tools or orchestration-tools-* branch
+if [[ "$CURRENT_BRANCH" == "orchestration-tools" || "$CURRENT_BRANCH" == orchestration-tools-* ]]; then
+    echo "On orchestration-tools branch"
+    
+    # Check if hook installation script exists
+    if [[ -f "scripts/install-hooks.sh" ]]; then
+        # Only update hooks if they've changed in orchestration-tools
+        CURRENT_ORCH_COMMIT=$(git rev-parse "orchestration-tools" 2>/dev/null)
+        LAST_INSTALLED_ORCH_COMMIT=$(cat .git/hooks/.orchestration_commit_id 2>/dev/null)
+        
+        if [[ -z "$LAST_INSTALLED_ORCH_COMMIT" ]] || [[ "$CURRENT_ORCH_COMMIT" != "$LAST_INSTALLED_ORCH_COMMIT" ]]; then
+            echo "Updating git hooks from orchestration-tools branch..."
+            if bash scripts/install-hooks.sh --quiet 2>/dev/null; then
+                echo "$CURRENT_ORCH_COMMIT" > .git/hooks/.orchestration_commit_id
+                echo "✓ Hooks updated"
+            fi
+        fi
+    fi
+fi
+
+# 2. Ensure important files are present (info only)
+case "$CURRENT_BRANCH" in
+    "orchestration-tools")
+        if [[ ! -f "emailintelligence_cli.py" ]]; then
+            echo "INFO: emailintelligence_cli.py not found on orchestration-tools"
+        fi
+        ;;
+    "taskmaster")
+        if [[ ! -f "AGENT.md" ]]; then
+            echo "INFO: AGENT.md not found on taskmaster branch"
+        fi
+        ;;
+esac
+
+# 3. Verify .taskmaster/ is isolated (reminder, non-blocking)
+if [[ -d ".taskmaster" && "$CURRENT_BRANCH" != "taskmaster" ]]; then
+    # Taskmaster worktree exists on non-taskmaster branch
+    # This is OK - it's a separate worktree - just note it
+    TASKMASTER_BRANCH=$(.taskmaster/.git/rev-parse --abbrev-ref HEAD 2>/dev/null || echo "unknown")
+    if [[ -n "$TASKMASTER_BRANCH" ]]; then
+        echo "ℹ Task Master worktree is on branch: $TASKMASTER_BRANCH (separate)"
+    fi
+fi
+
+echo "✓ Post-checkout complete"

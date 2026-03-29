@@ -1,9 +1,17 @@
 """Context isolation mechanisms to prevent contamination between agents."""
 
+<<<<<<< HEAD
 from pathlib import Path
 from typing import Set, List, Optional, Dict, Any
 import fnmatch
 import hashlib
+=======
+from typing import Set, List, Optional, Dict, Any, Pattern
+import fnmatch
+import hashlib
+import os
+import re
+>>>>>>> ralph-hub-assembly-1774754264
 
 from .models import AgentContext, ContextProfile
 from .logging import get_context_logger
@@ -27,8 +35,52 @@ class ContextIsolator:
         self.context = context
         self.config = config or get_current_config()
         self._access_log: List[Dict[str, Any]] = []
+<<<<<<< HEAD
         logger.info(f"Context isolator initialized for agent '{context.agent_id}'")
 
+=======
+
+        # Pre-compile patterns for performance
+        self._restricted_patterns = self._compile_patterns(context.restricted_files)
+        self._accessible_patterns = self._compile_patterns(context.accessible_files)
+
+        logger.info(f"Context isolator initialized for agent '{context.agent_id}'")
+
+    def _compile_patterns(self, patterns: List[str]) -> Optional[Pattern]:
+        """Compile glob patterns into a single optimized regex object.
+
+        Args:
+            patterns: List of glob patterns
+
+        Returns:
+            Compiled regex object or None if no valid patterns
+        """
+        if not patterns:
+            return None
+
+        regex_parts = []
+        for p in patterns:
+            try:
+                # Use fnmatch.translate to convert glob to regex
+                # It returns a regex string that we can compile
+                # Example: '*.py' -> '(?s:.*\\.py)\\Z'
+                regex_str = fnmatch.translate(p)
+                regex_parts.append(f"(?:{regex_str})")
+            except Exception as e:
+                logger.error(f"Failed to compile pattern '{p}': {e}")
+
+        if not regex_parts:
+            return None
+
+        try:
+            # Combine all patterns with OR operator for O(1) matching complexity
+            combined_regex = "|".join(regex_parts)
+            return re.compile(combined_regex)
+        except Exception as e:
+            logger.error(f"Failed to compile combined patterns: {e}")
+            return None
+
+>>>>>>> ralph-hub-assembly-1774754264
     def is_file_accessible(self, file_path: str) -> bool:
         """Check if a file is accessible within the current context.
 
@@ -42,12 +94,20 @@ class ContextIsolator:
         normalized_path = self._normalize_path(file_path)
 
         # Check blocked files first (deny list)
+<<<<<<< HEAD
         if self._matches_patterns(normalized_path, self.context.restricted_files):
+=======
+        if self._matches_patterns(normalized_path, self._restricted_patterns):
+>>>>>>> ralph-hub-assembly-1774754264
             self._log_access(normalized_path, False, "blocked")
             return False
 
         # Check allowed files (allow list)
+<<<<<<< HEAD
         if self._matches_patterns(normalized_path, self.context.accessible_files):
+=======
+        if self._matches_patterns(normalized_path, self._accessible_patterns):
+>>>>>>> ralph-hub-assembly-1774754264
             self._log_access(normalized_path, True, "allowed")
             return True
 
@@ -127,6 +187,7 @@ class ContextIsolator:
         Returns:
             Normalized path string
         """
+<<<<<<< HEAD
         # Convert to Path object for normalization
         path_obj = Path(file_path)
 
@@ -135,10 +196,19 @@ class ContextIsolator:
             # This is a simplified approach - in practice, you'd want to
             # resolve relative to the actual repository root
             return str(path_obj.resolve())
+=======
+        # Get relative path from repository root if possible
+        try:
+            # Optimize: Use os.path.realpath instead of Path.resolve() for performance
+            # This is a simplified approach - in practice, you'd want to
+            # resolve relative to the actual repository root
+            return os.path.realpath(file_path)
+>>>>>>> ralph-hub-assembly-1774754264
         except Exception:
             # Fallback to original path
             return file_path
 
+<<<<<<< HEAD
     def _matches_patterns(self, file_path: str, patterns: List[str]) -> bool:
         """Check if a file path matches any of the given patterns.
 
@@ -162,6 +232,35 @@ class ContextIsolator:
             except Exception:
                 # Skip invalid patterns
                 continue
+=======
+    def _matches_patterns(self, file_path: str, pattern: Optional[Pattern]) -> bool:
+        """Check if a file path matches the compiled pattern.
+
+        Args:
+            file_path: File path to check
+            pattern: Compiled regex pattern (optimized)
+
+        Returns:
+            True if pattern matches, False otherwise
+        """
+        if pattern is None:
+            return False
+
+        try:
+            if pattern.match(file_path):
+                return True
+
+            # Also try matching against just the filename
+            try:
+                filename = os.path.basename(file_path)
+                if pattern.match(filename):
+                    return True
+            except Exception:
+                pass
+
+        except Exception:
+            return False
+>>>>>>> ralph-hub-assembly-1774754264
 
         return False
 

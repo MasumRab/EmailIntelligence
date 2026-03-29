@@ -14,17 +14,29 @@ import time
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
+<<<<<<< HEAD
 from backend.node_engine.node_base import (
+=======
+from src.backend.node_engine.node_base import (
+>>>>>>> ralph-hub-assembly-1774754264
     BaseNode,
     Connection,
     DataType,
     ExecutionContext,
+<<<<<<< HEAD
     GenericType,
     SecurityContext,
     Workflow,
 )
 from backend.node_engine.security_manager import SecurityManager  # Import the SecurityManager class
 from backend.node_engine.security_manager import (
+=======
+    SecurityContext,
+    Workflow,
+)
+from src.backend.node_engine.security_manager import SecurityManager  # Import the SecurityManager class
+from src.backend.node_engine.security_manager import (
+>>>>>>> ralph-hub-assembly-1774754264
     ExecutionSandbox,
     InputSanitizer,
     ResourceLimits,
@@ -342,10 +354,13 @@ class WorkflowEngine:
         self, source_type: "DataType", target_type: "DataType"
     ) -> bool:
         """Validate if source and target types are compatible."""
+<<<<<<< HEAD
         # Handle GenericType comparisons
         if isinstance(source_type, GenericType) or isinstance(target_type, GenericType):
             return self._validate_generic_compatibility(source_type, target_type)
 
+=======
+>>>>>>> ralph-hub-assembly-1774754264
         if target_type == DataType.ANY:
             return True
         if source_type == target_type:
@@ -364,6 +379,7 @@ class WorkflowEngine:
         # Add more type compatibility rules as needed
         return False
 
+<<<<<<< HEAD
     def _validate_generic_compatibility(
         self,
         source_type: "DataType | GenericType",
@@ -407,6 +423,8 @@ class WorkflowEngine:
 
         return False
 
+=======
+>>>>>>> ralph-hub-assembly-1774754264
     # TODO(P1, 4h): Expand type compatibility rules to support all defined DataType combinations
     # Pseudo code for expanded type compatibility:
     # - Add compatibility matrix for all DataType combinations

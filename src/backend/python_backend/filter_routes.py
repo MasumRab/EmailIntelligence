@@ -9,7 +9,11 @@ import sqlite3
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 
+<<<<<<< HEAD
 from backend.python_nlp.smart_filters import EmailFilter, SmartFilterManager
+=======
+from src.backend.python_nlp.smart_filters import EmailFilter, SmartFilterManager
+>>>>>>> ralph-hub-assembly-1774754264
 from src.core.auth import get_current_active_user
 
 from .database import DatabaseManager, get_db

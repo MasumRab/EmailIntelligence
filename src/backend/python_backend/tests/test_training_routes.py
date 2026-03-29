@@ -8,8 +8,13 @@ import numpy as np
 import pandas as pd
 import pytest
 
+<<<<<<< HEAD
 from backend.python_backend.training_routes import run_training, training_jobs
 from backend.python_nlp.ai_training import ModelConfig
+=======
+from src.backend.python_backend.training_routes import run_training, training_jobs
+from src.backend.python_nlp.ai_training import ModelConfig
+>>>>>>> ralph-hub-assembly-1774754264
 
 
 def test_start_training(client):

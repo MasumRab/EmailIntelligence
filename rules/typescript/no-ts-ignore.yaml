@@ -1,0 +1,12 @@
+# Rule: No @ts-ignore
+# Prohibits @ts-ignore comments in TypeScript/React code
+# Severity: warning
+
+id: typescript-no-ts-ignore
+language: tsx
+severity: warning
+rule:
+  kind: comment
+  regex: '@ts-ignore'
+message: "@ts-ignore is prohibited. Use proper typing or @ts-expect-error if absolutely necessary."
+note: "Replace with proper type annotations or use @ts-expect-error for intentional type mismatches."

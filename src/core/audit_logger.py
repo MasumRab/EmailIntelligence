@@ -1,3 +1,7 @@
+<<<<<<< HEAD
+=======
+import asyncio
+>>>>>>> ralph-hub-assembly-1774754264
 """
 Advanced Audit Logging System for Email Intelligence Platform
 
@@ -10,7 +14,10 @@ import json
 import logging
 import threading
 import time
+<<<<<<< HEAD
 import asyncio
+=======
+>>>>>>> ralph-hub-assembly-1774754264
 from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from enum import Enum
@@ -28,7 +35,11 @@ class AuditEventType(Enum):
     LOGIN_SUCCESS = "login_success"
     LOGIN_FAILURE = "login_failure"
     LOGOUT = "logout"
+<<<<<<< HEAD
     PASSWORD_CHANGE = "password_change"  # nosec
+=======
+    PASSWORD_CHANGE = "password_change"
+>>>>>>> ralph-hub-assembly-1774754264
     PERMISSION_CHANGE = "permission_change"
 
     # Data Operations

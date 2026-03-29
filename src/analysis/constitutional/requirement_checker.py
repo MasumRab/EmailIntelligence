@@ -5,8 +5,13 @@ Implements various checkers for different aspects of code quality.
 """
 
 from typing import List
+<<<<<<< HEAD
 from ...core.conflict_models import RiskLevel
 from .models import RequirementViolation
+=======
+from ..core.conflict_models import RiskLevel
+from .analyzer import RequirementViolation
+>>>>>>> ralph-hub-assembly-1774754264
 
 
 class BaseChecker:

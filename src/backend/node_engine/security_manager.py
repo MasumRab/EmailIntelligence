@@ -8,11 +8,17 @@ execution sandboxing, and resource management.
 import asyncio
 import json
 import logging
+<<<<<<< HEAD
 import os
 import re
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
+=======
+from dataclasses import dataclass
+from src.core.security import SecurityLevel, Permission, SecurityContext
+from datetime import datetime
+>>>>>>> ralph-hub-assembly-1774754264
 from typing import Any, Callable, Dict, List, Optional
 
 # Try to import bleach for HTML sanitization, fallback if not available
@@ -21,6 +27,7 @@ try:
 except ImportError:
     bleach = None
 
+<<<<<<< HEAD
 # Try to import defusedxml for XML sanitization
 try:
     import defusedxml.ElementTree as DefusedET
@@ -33,6 +40,8 @@ try:
 except ImportError:
     LxmlEtree = None
 
+=======
+>>>>>>> ralph-hub-assembly-1774754264
 
 @dataclass
 class ResourceLimits:
@@ -43,6 +52,7 @@ class ResourceLimits:
     max_concurrent_nodes: int = 10
 
 
+<<<<<<< HEAD
 from .enums import SecurityLevel
 
 
@@ -100,6 +110,8 @@ SANITIZATION_POLICIES = {
         strip=True
     ),
 }
+=======
+>>>>>>> ralph-hub-assembly-1774754264
 
 
 class SecurityManager:
@@ -109,6 +121,7 @@ class SecurityManager:
 
     def __init__(self, user_roles: Dict[str, List[str]] = None):
         self.user_roles = user_roles or {}
+<<<<<<< HEAD
         self.trusted_nodes = set()
         self._api_call_counts: Dict[str, int] = {}
         self.logger = logging.getLogger(f"{self.__class__.__module__}.{self.__class__.__name__}")
@@ -117,6 +130,11 @@ class SecurityManager:
         """Check if a node type is trusted."""
         return node_type in self.trusted_nodes
 
+=======
+        self._api_call_counts: Dict[str, int] = {}
+        self.logger = logging.getLogger(f"{self.__class__.__module__}.{self.__class__.__name__}")
+
+>>>>>>> ralph-hub-assembly-1774754264
     def has_permission(self, user: Any, action: str, resource: Any) -> bool:
         """
             Checks if a user has permission to perform an action on a resource.
@@ -242,13 +260,20 @@ class SecurityManager:
 
     def register_trusted_node_type(self, node_type: str):
         """Register a node type as trusted."""
+<<<<<<< HEAD
         self.trusted_nodes.add(node_type)
+=======
+        # This is a placeholder method - in a real implementation,
+        # this would update the trusted nodes list
+        pass
+>>>>>>> ralph-hub-assembly-1774754264
 
 
 class InputSanitizer:
     """Sanitizes inputs to prevent injection attacks."""
 
     @staticmethod
+<<<<<<< HEAD
     def get_policy(level: SanitizationLevel) -> SanitizationPolicy:
         """Get the sanitization policy for a specific level."""
         return SANITIZATION_POLICIES.get(level, SANITIZATION_POLICIES[SanitizationLevel.STANDARD])
@@ -275,6 +300,40 @@ class InputSanitizer:
                 tags=policy.allowed_tags,
                 attributes=policy.allowed_attributes,
                 strip=policy.strip
+=======
+    def sanitize_string(value: str) -> str:
+        """Sanitize a string input using proper HTML sanitization."""
+        if not isinstance(value, str):
+            raise ValueError("Expected string input")
+
+        # If bleach is available, use it for proper HTML sanitization
+        if bleach is not None:
+            # Allow only safe HTML tags and attributes
+            allowed_tags = [
+                "p",
+                "br",
+                "strong",
+                "em",
+                "u",
+                "ol",
+                "ul",
+                "li",
+                "h1",
+                "h2",
+                "h3",
+                "h4",
+                "h5",
+                "h6",
+            ]
+            allowed_attributes = {
+                "a": ["href", "title"],
+                "img": ["src", "alt", "title"],
+                "*": ["class", "id"],
+            }
+            # Clean HTML and strip malicious content
+            sanitized = bleach.clean(
+                value, tags=allowed_tags, attributes=allowed_attributes, strip=True
+>>>>>>> ralph-hub-assembly-1774754264
             )
         else:
             # Fallback to basic implementation if bleach is not available
@@ -285,12 +344,16 @@ class InputSanitizer:
             sanitized = sanitized.replace("onerror", "onerror&#58;").replace(
                 "onload", "onload&#58;"
             )
+<<<<<<< HEAD
 
+=======
+>>>>>>> ralph-hub-assembly-1774754264
             sanitized = sanitized.replace("<iframe", "&lt;iframe").replace("<object", "&lt;object")
             sanitized = sanitized.replace("<embed", "&lt;embed").replace("<form", "&lt;form")
 
         return sanitized
 
+<<<<<<< HEAD
     @staticmethod
     def sanitize_markdown(value: str) -> str:
         """
@@ -403,11 +466,39 @@ class InputSanitizer:
         try:
             parsed = json.loads(value)
             return InputSanitizer._sanitize_dict(parsed, level)
+=======
+    # TODO(P1, 4h): Enhance sanitization to support additional content types (Markdown, etc.)
+    # Pseudo code for additional content type sanitization:
+    # - Add Markdown sanitization with allowed elements (headers, links, lists)
+    # - Implement CSV sanitization to prevent formula injection
+    # - Add XML sanitization with schema validation
+    # - Support YAML sanitization with type safety checks
+    # - Implement binary data sanitization for file uploads
+
+    # TODO(P2, 2h): Add configurable sanitization policies based on security levels
+    # Pseudo code for configurable sanitization policies:
+    # - Create SanitizationPolicy class with different security levels
+    # - Level 1 (Strict): Minimal allowed content, maximum security
+    # - Level 2 (Standard): Balanced security and functionality
+    # - Level 3 (Permissive): Maximum functionality, reduced security
+    # - Allow per-user or per-operation policy selection
+
+    @staticmethod
+    def sanitize_json(value: str) -> Dict[str, Any]:
+        """Sanitize and parse JSON input."""
+        try:
+            parsed = json.loads(value)
+            return InputSanitizer._sanitize_dict(parsed)
+>>>>>>> ralph-hub-assembly-1774754264
         except json.JSONDecodeError:
             raise ValueError("Invalid JSON input")
 
     @staticmethod
+<<<<<<< HEAD
     def _sanitize_dict(obj: Dict[str, Any], level: SanitizationLevel = SanitizationLevel.STANDARD) -> Dict[str, Any]:
+=======
+    def _sanitize_dict(obj: Dict[str, Any]) -> Dict[str, Any]:
+>>>>>>> ralph-hub-assembly-1774754264
         """Recursively sanitize a dictionary."""
         if not isinstance(obj, dict):
             return obj
@@ -415,17 +506,26 @@ class InputSanitizer:
         sanitized = {}
         for key, value in obj.items():
             if isinstance(value, str):
+<<<<<<< HEAD
                 sanitized[key] = InputSanitizer.sanitize_string(value, level)
             elif isinstance(value, dict):
                 sanitized[key] = InputSanitizer._sanitize_dict(value, level)
             elif isinstance(value, list):
                 sanitized[key] = [InputSanitizer._sanitize_item(item, level) for item in value]
+=======
+                sanitized[key] = InputSanitizer.sanitize_string(value)
+            elif isinstance(value, dict):
+                sanitized[key] = InputSanitizer._sanitize_dict(value)
+            elif isinstance(value, list):
+                sanitized[key] = [InputSanitizer._sanitize_item(item) for item in value]
+>>>>>>> ralph-hub-assembly-1774754264
             else:
                 sanitized[key] = value
 
         return sanitized
 
     @staticmethod
+<<<<<<< HEAD
     def _sanitize_item(item: Any, level: SanitizationLevel = SanitizationLevel.STANDARD) -> Any:
         """Sanitize an item in a list."""
         if isinstance(item, str):
@@ -434,6 +534,16 @@ class InputSanitizer:
             return InputSanitizer._sanitize_dict(item, level)
         elif isinstance(item, list):
             return [InputSanitizer._sanitize_item(i, level) for i in item]
+=======
+    def _sanitize_item(item: Any) -> Any:
+        """Sanitize an item in a list."""
+        if isinstance(item, str):
+            return InputSanitizer.sanitize_string(item)
+        elif isinstance(item, dict):
+            return InputSanitizer._sanitize_dict(item)
+        elif isinstance(item, list):
+            return [InputSanitizer._sanitize_item(i) for i in item]
+>>>>>>> ralph-hub-assembly-1774754264
         return item
 
 
@@ -577,4 +687,8 @@ for node_type in [
     security_manager.register_trusted_node_type(node_type)
 
 audit_logger = AuditLogger()
+<<<<<<< HEAD
 resource_manager = ResourceManager()
+=======
+resource_manager = ResourceManager()
+>>>>>>> ralph-hub-assembly-1774754264

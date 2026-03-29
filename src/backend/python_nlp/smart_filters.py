@@ -115,6 +115,7 @@ class SmartFilterManager:
             db_path = os.path.join(DATA_DIR, filename)
 
         # Validate the final path
+<<<<<<< HEAD
         self.db_path = str(PathValidator.validate_database_path(db_path, DATA_DIR))
         self.logger = logging.getLogger(__name__)
         self.conn = None
@@ -127,6 +128,30 @@ class SmartFilterManager:
 
     def _get_db_connection(self) -> sqlite3.Connection:
         """Establishes and returns a database connection."""
+=======
+        self.db_path = str(PathValidator.validate_and_resolve_db_path(db_path, DATA_DIR))
+        self.logger = logging.getLogger(__name__)
+        self.conn = None
+        self._db_initialized = False  # Flag to control initialization
+        if self.db_path == ":memory:":
+            self.conn = sqlite3.connect(":memory:")
+            self.conn.row_factory = sqlite3.Row
+            self._init_filter_db()
+            self._db_initialized = True
+        # Defer initialization to first use
+        self._filter_templates = None
+        self._pruning_criteria = None
+
+    def _ensure_db_initialized(self):
+        """Ensure the database is initialized, but only when needed."""
+        if not self._db_initialized:
+            self._init_filter_db()
+            self._db_initialized = True
+
+    def _get_db_connection(self) -> sqlite3.Connection:
+        """Establishes and returns a database connection."""
+        self._ensure_db_initialized()  # Ensure DB is initialized before getting connection
+>>>>>>> ralph-hub-assembly-1774754264
         if self.conn:
             return self.conn
         conn = sqlite3.connect(self.db_path)
@@ -451,6 +476,29 @@ class SmartFilterManager:
                 summary["filters_matched"].append(filter_obj.name)
         return summary
 
+<<<<<<< HEAD
+=======
+    def _ensure_templates_loaded(self):
+        """Ensure templates are loaded, but only when needed."""
+        if self._filter_templates is None:
+            self._filter_templates = self._load_filter_templates()
+
+    def _ensure_criteria_loaded(self):
+        """Ensure criteria are loaded, but only when needed."""
+        if self._pruning_criteria is None:
+            self._pruning_criteria = self._load_pruning_criteria()
+
+    @property
+    def filter_templates(self):
+        self._ensure_templates_loaded()
+        return self._filter_templates
+
+    @property
+    def pruning_criteria(self):
+        self._ensure_criteria_loaded()
+        return self._pruning_criteria
+
+>>>>>>> ralph-hub-assembly-1774754264
 
 def main():
     """Demonstrates the usage of the SmartFilterManager."""

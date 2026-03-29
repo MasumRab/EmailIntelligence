@@ -1,0 +1,15 @@
+# Rule: Type Hints Preferred
+# Encourages explicit type annotations in TypeScript/React code
+# Severity: warning
+
+id: typescript-type-hints-preferred
+language: tsx
+severity: warning
+rule:
+  # Detect function parameters without type annotations
+  kind: parameter
+  has:
+    type:
+      text: ""
+message: "Consider adding explicit type annotations for better type safety."
+note: "Add types like: function(param: string): void"

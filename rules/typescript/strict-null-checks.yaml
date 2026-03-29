@@ -1,0 +1,16 @@
+# Rule: Strict Null Checks
+# Detects potential null/undefined issues in TypeScript/React code
+# Severity: warning
+
+id: typescript-strict-null-checks
+language: tsx
+severity: warning
+rule:
+  # Detect potential null dereference patterns
+  kind: member_expression
+  has:
+    object:
+      kind: identifier
+      text: "null"
+message: "Potential null reference. Ensure proper null checks before accessing properties."
+note: "Use optional chaining (?.) or null checks: if (obj?.prop)"

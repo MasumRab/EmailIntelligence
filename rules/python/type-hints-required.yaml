@@ -1,0 +1,20 @@
+# Rule: Type Hints Required
+# Enforces Constitution I: Type hints for all public functions
+# Severity: warning (change to error for CI enforcement)
+
+id: python-type-hints-required
+language: python
+severity: warning
+rule:
+  kind: function_definition
+  # Exclude private methods (starting with _)
+  not:
+    has:
+      pattern: 'def _'
+  # Check for missing return type annotation
+  where:
+    - matches:
+        not:
+          hasReturnType: true
+message: "Function '{{name}}' is missing type hints. Constitution I requires type hints for all public functions."
+note: "Add type hints like: def function_name(param: type) -> return_type:"

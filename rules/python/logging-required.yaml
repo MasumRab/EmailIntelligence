@@ -1,0 +1,22 @@
+# Rule: Logging Required
+# Enforces Constitution I: Proper logging setup in modules
+# Severity: warning
+
+id: python-logging-required
+language: python
+severity: warning
+rule:
+  # This rule checks that modules have logging configured
+  # We look for import of logging AND logger initialization
+  any:
+    - not:
+        has:
+          kind: import
+          has:
+            module:
+              text: logging
+    - not:
+        has:
+          pattern: 'logger = logging.getLogger'
+message: "Module should define logger: logger = logging.getLogger(__name__)"
+note: "Add at module level:\nimport logging\nlogger = logging.getLogger(__name__)"

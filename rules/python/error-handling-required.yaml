@@ -1,0 +1,15 @@
+# Rule: Error Handling Required
+# Enforces Constitution I: Proper error handling in functions
+# Severity: warning
+
+id: python-error-handling-required
+language: python
+severity: warning
+rule:
+  # Detect bare except clauses
+  kind: except_clause
+  has:
+    type:
+      text: BaseException
+message: "Avoid bare except clauses. Use specific exception types."
+note: "Replace 'except:' with 'except SpecificException as e:'"

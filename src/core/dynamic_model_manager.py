@@ -32,15 +32,24 @@ class DynamicModelManager:
     - API endpoints for model operations
     """
 
+<<<<<<< HEAD
     def __init__(self, registry: ModelRegistry):
         self.registry = registry
+=======
+    def __init__(self, models_dir: Path = None):
+        self.registry = ModelRegistry(models_dir)
+>>>>>>> ralph-hub-assembly-1774754264
         self._health_check_interval = 300  # 5 minutes
         self._memory_optimization_interval = 600  # 10 minutes
         self._health_monitor_task: Optional[asyncio.Task] = None
         self._memory_optimizer_task: Optional[asyncio.Task] = None
         self._initialized = False
 
+<<<<<<< HEAD
         logger.info("DynamicModelManager initialized with a ModelRegistry")
+=======
+        logger.info("DynamicModelManager initialized")
+>>>>>>> ralph-hub-assembly-1774754264
 
     async def initialize(self):
         """Initialize the model manager and start background tasks."""

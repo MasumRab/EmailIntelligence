@@ -1,0 +1,171 @@
+{
+  "timestamp": "2026-01-11T02:02:31.434271",
+  "mode": "standard",
+  "root": "/home/masum/github/EmailIntelligenceGem",
+  "metrics": {
+    "component_count": 35,
+    "relationship_count": 3,
+    "duration_seconds": 0.84
+  },
+  "architecture": {
+    "components": {
+      ".flake8": {
+        "files": 1,
+        "type": "module"
+      },
+      "config.json": {
+        "files": 1,
+        "type": "module"
+      },
+      ".gitattributes": {
+        "files": 1,
+        "type": "module"
+      },
+      "test_refactoring_modes.py": {
+        "files": 1,
+        "type": "module"
+      },
+      "pyproject.toml": {
+        "files": 1,
+        "type": "module"
+      },
+      ".orchestration-disabled": {
+        "files": 1,
+        "type": "module"
+      },
+      "integrate_remaining_tasks.py": {
+        "files": 1,
+        "type": "module"
+      },
+      ".pylintrc": {
+        "files": 1,
+        "type": "module"
+      },
+      "emailintelligence_cli.py": {
+        "files": 1,
+        "type": "module"
+      },
+      "execute_phases_2_4.py": {
+        "files": 1,
+        "type": "module"
+      },
+      "opencode.json": {
+        "files": 1,
+        "type": "module"
+      },
+      "state.json": {
+        "files": 1,
+        "type": "module"
+      },
+      ".gitignore": {
+        "files": 1,
+        "type": "module"
+      },
+      ".rulesync": {
+        "files": 2,
+        "type": "module"
+      },
+      "task_data": {
+        "files": 8,
+        "type": "module"
+      },
+      "src/main.py": {
+        "files": 1,
+        "type": "module"
+      },
+      "src/emailintelligence.egg-info": {
+        "files": 1,
+        "type": "module"
+      },
+      "src/core": {
+        "files": 3,
+        "type": "module"
+      },
+      "src/repl_nix_workspace.egg-info": {
+        "files": 1,
+        "type": "module"
+      },
+      "src/strategy": {
+        "files": 2,
+        "type": "module"
+      },
+      "src/resolution": {
+        "files": 3,
+        "type": "module"
+      },
+      "src/validation": {
+        "files": 1,
+        "type": "module"
+      },
+      "src/utils": {
+        "files": 1,
+        "type": "module"
+      },
+      "src/git": {
+        "files": 2,
+        "type": "module"
+      },
+      "src/analysis": {
+        "files": 3,
+        "type": "module"
+      },
+      "logs": {
+        "files": 1,
+        "type": "module"
+      },
+      ".crush": {
+        "files": 3,
+        "type": "module"
+      },
+      "implement": {
+        "files": 1,
+        "type": "module"
+      },
+      ".vscode": {
+        "files": 2,
+        "type": "module"
+      },
+      ".taskmaster": {
+        "files": 55,
+        "type": "module"
+      },
+      "reports": {
+        "files": 1,
+        "type": "module"
+      },
+      "task_scripts": {
+        "files": 19,
+        "type": "module"
+      },
+      "scripts": {
+        "files": 22,
+        "type": "module"
+      },
+      "guidance": {
+        "files": 3,
+        "type": "module"
+      },
+      "refactor": {
+        "files": 1,
+        "type": "module"
+      }
+    },
+    "relationships": [
+      {
+        "source": "guidance",
+        "target": "src",
+        "type": "dependency"
+      },
+      {
+        "source": "src/analysis",
+        "target": "src",
+        "type": "dependency"
+      },
+      {
+        "source": "emailintelligence_cli.py",
+        "target": "src",
+        "type": "dependency"
+      }
+    ]
+  }
+}

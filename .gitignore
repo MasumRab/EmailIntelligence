@@ -93,3 +93,8 @@ original_readme.md!.agent/
 
 # Taskmaster
 .taskmaster/
+
+# Ralph Hub Assembly additions
+.beads/
+.ck/
+.trunk/

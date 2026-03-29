@@ -1,6 +1,10 @@
 import pytest
 
+<<<<<<< HEAD
 from backend.node_engine.security_manager import SecurityManager
+=======
+from src.backend.node_engine.security_manager import SecurityManager
+>>>>>>> ralph-hub-assembly-1774754264
 
 
 # Mock Workflow class for testing

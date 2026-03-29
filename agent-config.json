@@ -1,0 +1,38 @@
+{
+  "api_keys": {
+    "_comment": "For development, you can place keys here. However, for security, it is STRONGLY recommended to use environment variables (e.g., GEMINI_API_KEY). The loading script will always prioritize environment variables over values in this file.",
+    "google": "YOUR_GOOGLE_API_KEY_HERE_OR_LEAVE_EMPTY",
+    "anthropic": "YOUR_ANTHROPIC_API_KEY_HERE_OR_LEAVE_EMPTY",
+    "perplexity": "YOUR_PERPLEXITY_API_KEY_HERE_OR_LEAVE_EMPTY",
+    "openai": "YOUR_OPENAI_API_KEY_HERE_OR_LEAVE_EMPTY"
+  },
+  "models": {
+    "_comment": "Define the default models for different roles across all agents.",
+    "main": "claude-3-5-sonnet-20241022",
+    "research": "perplexity-llama-3.1-sonar-large-128k-online",
+    "fallback": "gpt-4o-mini"
+  },
+  "agents": {
+    "_comment": "Agent-specific configurations. These settings will be used to generate the tool-specific config files (e.g., .claude/settings.json).",
+    "gemini": {
+      "model": "gemini-1.5-pro-latest",
+      "tools": ["file_io", "shell", "google_search"]
+    },
+    "claude": {
+      "model": "claude-3-opus-20240229",
+      "allowed_tools": [
+        "Edit",
+        "Bash(task-master *)",
+        "Bash(git *)",
+        "mcp__task_master_ai__*"
+      ]
+    }
+  },
+  "mcp_servers": {
+    "_comment": "Configuration for MCP (Multi-Code-Pilot) servers.",
+    "task-master-ai": {
+      "command": "npx",
+      "args": ["-y", "task-master-ai"]
+    }
+  }
+}

@@ -265,6 +265,7 @@ class OptimizedPerformanceMonitor:
 
         logger.info("OptimizedPerformanceMonitor initialized")
 
+<<<<<<< HEAD
     def log_performance(self, log_entry: Dict[str, Any]) -> None:
         """Compatibility method for legacy log_performance decorator."""
         # Extract fields from log_entry to map to record_metric
@@ -276,6 +277,8 @@ class OptimizedPerformanceMonitor:
             unit="ms"
         )
 
+=======
+>>>>>>> ralph-hub-assembly-1774754264
     def record_metric(
         self,
         name: str,
@@ -313,6 +316,7 @@ class OptimizedPerformanceMonitor:
         with self._buffer_lock:
             self._metrics_buffer.append(metric)
 
+<<<<<<< HEAD
     def log_performance(self, log_entry: Dict[str, Any]) -> None:
         """Compatibility method for legacy log_performance decorator."""
         operation = log_entry.get("operation", "unknown")
@@ -324,6 +328,8 @@ class OptimizedPerformanceMonitor:
             tags={"operation": operation},
         )
 
+=======
+>>>>>>> ralph-hub-assembly-1774754264
     def time_function(
         self, name: str, tags: Optional[Dict[str, str]] = None, sample_rate: float = 1.0
     ):

@@ -1,0 +1,18 @@
+# Rule: Typer Commands
+# Enforces typer CLI patterns for dev.py
+# Severity: warning
+
+id: devpy-typer-commands
+language: python
+severity: warning
+rule:
+  # Check for typer usage in CLI files
+  any:
+    - not:
+        has:
+          kind: import
+          has:
+            module:
+              text: typer
+message: "dev.py CLI should use typer for command-line interfaces."
+note: "Import typer: import typer; app = typer.Typer()"

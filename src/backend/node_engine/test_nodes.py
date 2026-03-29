@@ -10,16 +10,16 @@ This module contains tests to verify that the node system works as expected.
 import asyncio
 import json
 
-from backend.node_engine.email_nodes import (
+from src.backend.node_engine.email_nodes import (
     ActionNode,
     AIAnalysisNode,
     EmailSourceNode,
     FilterNode,
     PreprocessingNode,
 )
-from backend.node_engine.node_base import Workflow
-from backend.node_engine.workflow_engine import workflow_engine
-from backend.node_engine.workflow_manager import workflow_manager
+from src.backend.node_engine.node_base import Workflow
+from src.backend.node_engine.workflow_engine import workflow_engine
+from src.backend.node_engine.workflow_manager import workflow_manager
 
 
 async def test_basic_workflow():
@@ -177,6 +177,6 @@ async def main():
 
 if __name__ == "__main__":
     # Import here to avoid circular dependency issues
-    from backend.node_engine.node_base import Connection
+    from src.backend.node_engine.node_base import Connection
 
     asyncio.run(main())

@@ -238,6 +238,7 @@ class SecuritySandbox:
         globals_dict["__builtins__"] = safe_builtins
 
         # Execute with restrictions based on security level
+<<<<<<< HEAD
         from RestrictedPython import compile_restricted, safe_globals
         from RestrictedPython.PrintCollector import PrintCollector
 
@@ -247,6 +248,15 @@ class SecuritySandbox:
         try:
             byte_code = compile_restricted(code, '<string>', 'exec')
             exec(byte_code, globals_dict)  # nosec
+=======
+        try:
+            if security_level == PluginSecurityLevel.SANDBOXED:
+                # Very restrictive execution
+                exec(code, globals_dict)
+            else:
+                # Standard execution with some restrictions
+                exec(code, globals_dict)
+>>>>>>> ralph-hub-assembly-1774754264
         except Exception as e:
             logger.error(f"Sandbox execution failed: {e}")
             raise

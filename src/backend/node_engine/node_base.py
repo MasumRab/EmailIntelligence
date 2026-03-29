@@ -12,7 +12,11 @@ import logging
 import uuid
 from abc import ABC, abstractmethod
 from enum import Enum
+<<<<<<< HEAD
 from typing import Any, Dict, List, Optional, Union
+=======
+from typing import Any, Dict, List, Optional
+>>>>>>> ralph-hub-assembly-1774754264
 
 try:
     import networkx as nx
@@ -34,6 +38,7 @@ class DataType(Enum):
     NUMBER = "number"
     STRING = "string"
     OBJECT = "object"
+<<<<<<< HEAD
     LIST = "list"
     DICT = "dict"
     ANY = "any"  # For dynamic typing when specific type is not known
@@ -67,6 +72,11 @@ class GenericType:
 
 
 
+=======
+    ANY = "any"  # For dynamic typing when specific type is not known
+
+
+>>>>>>> ralph-hub-assembly-1774754264
 class SecurityContext:
     """Security context for node execution."""
 
@@ -87,11 +97,15 @@ class NodePort:
     """Defines an input or output port for a node."""
 
     def __init__(
+<<<<<<< HEAD
         self,
         name: str,
         data_type: Union[DataType, GenericType],
         required: bool = True,
         description: str = "",
+=======
+        self, name: str, data_type: DataType, required: bool = True, description: str = ""
+>>>>>>> ralph-hub-assembly-1774754264
     ):
         self.name = name
         self.data_type = data_type

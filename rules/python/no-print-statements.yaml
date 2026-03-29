@@ -1,0 +1,14 @@
+# Rule: No Print Statements
+# Enforces Constitution I: Use logging instead of print()
+# Severity: warning
+
+id: python-no-print
+language: python
+severity: warning
+rule:
+  kind: call
+  has:
+    function:
+      text: print
+message: "Use logging instead of print(). Constitution I prohibits print statements for production code."
+note: "Replace with: logger = logging.getLogger(__name__); logger.info(...)"

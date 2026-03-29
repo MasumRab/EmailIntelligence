@@ -1,0 +1,115 @@
+{
+  "timestamp": 1768061273.804426,
+  "mode": "deep-frontend",
+  "root": "/home/masum/github/EmailIntelligenceGem/client",
+  "metrics": {
+    "component_count": 10,
+    "duration_seconds": 0.05
+  },
+  "dependencies": {
+    "error": "No package.json found"
+  },
+  "architecture": {
+    "components": {
+      "src/main.tsx": {
+        "name": "main",
+        "hooks": [],
+        "imports": [
+          "React",
+          "ReactDOM",
+          "App"
+        ],
+        "is_page": false,
+        "is_context": false
+      },
+      "src/App.tsx": {
+        "name": "App",
+        "hooks": [],
+        "imports": [
+          "LoginPage",
+          "ProfilePage",
+          "Dashboard"
+        ],
+        "is_page": false,
+        "is_context": false
+      },
+      "src/pages/profile.tsx": {
+        "name": "profile",
+        "hooks": [],
+        "imports": [],
+        "is_page": true,
+        "is_context": false
+      },
+      "src/pages/dashboard.tsx": {
+        "name": "dashboard",
+        "hooks": [
+          "useToast",
+          "useState",
+          "useQuery"
+        ],
+        "imports": [],
+        "is_page": true,
+        "is_context": false
+      },
+      "src/pages/login.tsx": {
+        "name": "login",
+        "hooks": [],
+        "imports": [],
+        "is_page": true,
+        "is_context": false
+      },
+      "src/components/sidebar.tsx": {
+        "name": "sidebar",
+        "hooks": [
+          "useLocation"
+        ],
+        "imports": [],
+        "is_page": false,
+        "is_context": false
+      },
+      "src/components/auth/login-form.tsx": {
+        "name": "login-form",
+        "hooks": [
+          "useState",
+          "useAuth"
+        ],
+        "imports": [],
+        "is_page": false,
+        "is_context": false
+      },
+      "src/components/auth/mfa-disable.tsx": {
+        "name": "mfa-disable",
+        "hooks": [
+          "useAuth"
+        ],
+        "imports": [],
+        "is_page": false,
+        "is_context": false
+      },
+      "src/components/auth/user-profile.tsx": {
+        "name": "user-profile",
+        "hooks": [
+          "useState"
+        ],
+        "imports": [],
+        "is_page": false,
+        "is_context": false
+      },
+      "src/components/auth/mfa-setup.tsx": {
+        "name": "mfa-setup",
+        "hooks": [
+          "useState",
+          "useAuth"
+        ],
+        "imports": [],
+        "is_page": false,
+        "is_context": false
+      }
+    },
+    "state_management": {
+      "contexts": [],
+      "custom_hooks": []
+    },
+    "routing_components": []
+  }
+}

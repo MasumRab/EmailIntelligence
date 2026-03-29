@@ -11,9 +11,15 @@ import logging
 from fastapi import APIRouter, BackgroundTasks, Depends, Request
 
 from src.core.models import EmailResponse, EmailCreate, EmailUpdate
+<<<<<<< HEAD
 from backend.python_backend.services.email_service import EmailService
 from backend.python_backend.dependencies import get_email_service
 from src.core.exceptions import EmailNotFoundException
+=======
+from src.backend.python_backend.services.email_service import EmailService
+from src.backend.python_backend.dependencies import get_email_service
+from src.backend.python_backend.exceptions import EmailNotFoundException
+>>>>>>> ralph-hub-assembly-1774754264
 from src.core.performance_monitor import log_performance
 
 logger = logging.getLogger(__name__)

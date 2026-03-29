@@ -7,9 +7,12 @@ from .database import DatabaseManager
 from .ai_engine import ModernAIEngine
 from .data.repository import DatabaseEmailRepository, CachingEmailRepository, EmailRepository
 from .caching import init_cache_manager, CacheConfig, CacheBackend
+<<<<<<< HEAD
 from .dynamic_model_manager import DynamicModelManager
 from .model_registry import ModelRegistry
 from .smart_filter_manager import SmartFilterManager
+=======
+>>>>>>> ralph-hub-assembly-1774754264
 
 # Optional import for NotmuchDataSource
 try:
@@ -26,6 +29,7 @@ _email_repository_instance = None
 @asynccontextmanager
 async def get_ai_engine() -> AsyncGenerator[ModernAIEngine, None]:
     """
+<<<<<<< HEAD
     Provides a ModernAIEngine instance with proper dependency injection.
     """
     model_registry = ModelRegistry()
@@ -48,6 +52,41 @@ async def get_smart_filter_manager() -> AsyncGenerator[SmartFilterManager, None]
         yield manager
     finally:
         await manager.close()
+=======
+    Provides a ModernAIEngine instance with SOTA async generator pattern.
+
+    This implementation provides:
+    - Automatic resource management
+    - Request-scoped engine instances
+    - Proper cleanup and error handling
+    - FastAPI dependency injection compatibility
+    """
+    engine = None
+    try:
+        # Create and initialize the AI engine
+        engine = ModernAIEngine()
+        engine.initialize()
+
+        # Yield the engine for use in route handlers
+        yield engine
+
+    except Exception as e:
+        # Log initialization errors
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f"Failed to provide AI engine: {e}")
+        raise
+
+    finally:
+        # Ensure cleanup happens
+        if engine:
+            try:
+                engine.cleanup()
+            except Exception as e:
+                import logging
+                logger = logging.getLogger(__name__)
+                logger.warning(f"Error during AI engine cleanup: {e}")
+>>>>>>> ralph-hub-assembly-1774754264
 
 
 async def get_data_source() -> DataSource:

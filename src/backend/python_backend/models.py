@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 """
 DEPRECATED: This module is part of the deprecated `backend` package.
 It will be removed in a future release.
@@ -531,3 +532,6 @@ class BaseResponse(BaseModel):
     message: str
     data: Optional[Any] = None
     error: Optional[str] = None
+=======
+from src.core.models import *
+>>>>>>> ralph-hub-assembly-1774754264

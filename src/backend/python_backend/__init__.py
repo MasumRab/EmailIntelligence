@@ -14,12 +14,21 @@ warnings.warn(
     stacklevel=2,
 )
 
+<<<<<<< HEAD
 from backend.python_nlp.gmail_service import GmailAIService
 from backend.python_nlp.smart_filters import EmailFilter, SmartFilterManager
 
 from .ai_engine import AdvancedAIEngine, AIAnalysisResult
 from .database import DatabaseManager, get_db
 from .models import (
+=======
+from src.backend.python_nlp.gmail_service import GmailAIService
+from src.backend.python_nlp.smart_filters import EmailFilter, SmartFilterManager
+
+from .ai_engine import AdvancedAIEngine, AIAnalysisResult
+from .database import DatabaseManager, get_db
+from src.core.models import (
+>>>>>>> ralph-hub-assembly-1774754264
     ActivityCreate,
     ActivityResponse,
     AIAnalysisResponse,
@@ -58,3 +67,7 @@ __all__ = [
     "SmartFilterManager",
     "EmailFilter",
 ]
+<<<<<<< HEAD
+=======
+from src.core import models
+>>>>>>> ralph-hub-assembly-1774754264
