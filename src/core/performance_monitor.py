@@ -11,14 +11,17 @@ Also includes the optimized version features:
 """
 
 import asyncio
+import atexit
 import json
 import logging
 import threading
 import time
-from dataclasses import dataclass
+from collections import defaultdict, deque
+from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from functools import wraps
-from typing import Any, Callable, Dict, List, Optional
+from pathlib import Path
+from typing import Any, Callable, Dict, List, Optional, Union
 
 import psutil
 
@@ -179,19 +182,11 @@ def _create_decorator(func, op_name):
         return sync_wrapper
 
 
-import atexit
-
 # Enhanced performance monitoring system with additional features
-from collections import defaultdict, deque
-from dataclasses import asdict, dataclass
-from pathlib import Path
-from typing import Any, Dict, Optional, Union
-
-logger = logging.getLogger(__name__)
 
 
 @dataclass
-class PerformanceMetric:
+class PerformanceMetricV2:
     """Represents a performance metric with minimal overhead."""
 
     name: str
@@ -267,13 +262,6 @@ class OptimizedPerformanceMonitor:
 
         logger.info("OptimizedPerformanceMonitor initialized")
 
-    def log_performance(self, log_entry: Dict[str, Any]) -> None:
-        """Compatibility method for legacy log_performance decorator."""
-        # Extract fields from log_entry to map to record_metric
-        operation = log_entry.get("operation", "unknown_operation")
-        duration_ms = log_entry.get("duration_seconds", 0) * 1000
-        self.record_metric(name=operation, value=duration_ms, unit="ms")
-
     def record_metric(
         self,
         name: str,
@@ -298,7 +286,7 @@ class OptimizedPerformanceMonitor:
         if sample_rate < 1.0 and random.random() > sample_rate:
             return
 
-        metric = PerformanceMetric(
+        metric = PerformanceMetricV2(
             name=name,
             value=value,
             unit=unit,

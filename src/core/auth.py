@@ -6,6 +6,7 @@ This module implements JWT-based authentication for API endpoints and integrates
 
 import logging
 from datetime import datetime, timedelta
+from enum import Enum
 from typing import Optional, Dict, Any, List
 import time
 import secrets
@@ -31,9 +32,6 @@ class TokenData(BaseModel):
 
     username: Optional[str] = None
     role: Optional[str] = "user"
-
-
-from enum import Enum
 
 
 class UserRole(str, Enum):
