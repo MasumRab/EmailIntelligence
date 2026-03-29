@@ -18,8 +18,8 @@ from src.core.workflow_engine import Node, Workflow, WorkflowRunner
 def test_topological_sort():
     """Test the topological sorting of nodes"""
 
-    def dummy_operation(x):
-        return x
+    def dummy_operation(*args):
+        return args[0] if args else None
 
     # Create nodes
     node_a = Node("A", "Node A", dummy_operation, ["input"], ["output"])
@@ -42,8 +42,8 @@ def test_topological_sort():
 def test_workflow_validation():
     """Test workflow validation functionality"""
 
-    def dummy_operation(x):
-        return x
+    def dummy_operation(*args):
+        return args[0] if args else None
 
     # Create nodes
     node_a = Node("A", "Node A", dummy_operation, ["input"], ["output"])
@@ -77,8 +77,8 @@ def test_workflow_validation():
 def test_conditional_execution():
     """Test conditional execution of nodes"""
 
-    def dummy_operation(x):
-        return x + 1
+    def dummy_operation(*args):
+        return sum(args) + 1 if args else 1
 
     # Create a node with a conditional expression
     node_a = Node("A", "Node A", dummy_operation, ["input"], ["output"])
@@ -107,8 +107,8 @@ def test_conditional_execution():
 def test_error_handling_and_recovery():
     """Test error handling and recovery mechanisms"""
 
-    def good_operation(x):
-        return x + 1
+    def good_operation(*args):
+        return sum(args) + 1 if args else 1
 
     def failing_operation(x):
         raise Exception("Node failed intentionally")
@@ -140,8 +140,8 @@ def test_error_handling_and_recovery():
 def test_memory_optimization():
     """Test memory optimization feature"""
 
-    def dummy_operation(x):
-        return x + 1
+    def dummy_operation(*args):
+        return sum(args) + 1 if args else 1
 
     # Create a linear workflow: A -> B -> C -> D
     node_a = Node("A", "Node A", dummy_operation, ["input"], ["output"])
@@ -169,8 +169,8 @@ def test_memory_optimization():
 def test_parallel_execution():
     """Test parallel execution of independent nodes"""
 
-    def dummy_operation(x):
-        return x + 1
+    def dummy_operation(*args):
+        return sum(args) + 1 if args else 1
 
     # Create nodes that can run in parallel after A: A -> B, A -> C, then B,C -> D
     node_a = Node("A", "Node A", dummy_operation, ["input"], ["output"])
@@ -199,8 +199,8 @@ def test_parallel_execution():
 def test_metrics_collection():
     """Test metrics collection functionality"""
 
-    def dummy_operation(x):
-        return x + 1
+    def dummy_operation(*args):
+        return sum(args) + 1 if args else 1
 
     # Create a simple workflow
     node_a = Node("A", "Node A", dummy_operation, ["input"], ["output"])

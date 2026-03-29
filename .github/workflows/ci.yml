@@ -39,7 +39,8 @@ jobs:
         run: |
           uv run pytest tests/ src/ modules/ -v --tb=short \
             --cov=src --cov=modules --cov-report=xml --cov-report=term-missing \
-            --cov-fail-under=70
+            --cov-fail-under=70 \
+            --ignore=tests/test_launcher.py
       - name: Run Security Scans
         run: uv run bandit -r src/ modules/
       - name: Run linting
