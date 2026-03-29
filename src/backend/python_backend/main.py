@@ -43,7 +43,7 @@ from . import (
 )
 from .ai_engine import AdvancedAIEngine
 from .auth import create_access_token
-from .database import db_manager
+from .database import _db_manager_instance as db_manager
 from .exceptions import AppException, BaseAppException
 
 # Import new components
@@ -310,6 +310,7 @@ except ImportError:
 async def login(username: str, password: str):
     """Login endpoint to get access token"""
     # Use the new authentication system
+    from .database import get_db
     db = await get_db()
     user = await authenticate_user(username, password, db)
 
@@ -378,9 +379,9 @@ async def get_error_stats():
 if __name__ == "__main__":
     import uvicorn
 
-port = int(os.getenv("PORT", 8000))
-env = os.getenv("NODE_ENV", "development")
-host = os.getenv("HOST", "127.0.0.1" if env == "development" else "0.0.0.0")
-reload = env == "development"
-# Use string app path to support reload
-uvicorn.run("main:app", host=host, port=port, reload=reload, log_level="info")
+    port = int(os.getenv("PORT", 8000))
+    env = os.getenv("NODE_ENV", "development")
+    host = os.getenv("HOST", "127.0.0.1" if env == "development" else "0.0.0.0")
+    reload = env == "development"
+#     Use string app path to support reload
+    uvicorn.run("main:app", host=host, port=port, reload=reload, log_level="info")

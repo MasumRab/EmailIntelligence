@@ -20,7 +20,7 @@ updates:
         update-types:
           - "minor"
           - "patch"
-  
+
   # GitHub Actions
   - package-ecosystem: "github-actions"
     directory: "/"
@@ -36,7 +36,7 @@ updates:
     commit-message:
       prefix: "ci"
     open-pull-requests-limit: 5
-  
+
   # npm dependencies (for client/frontend)
   - package-ecosystem: "npm"
     directory: "/client"
