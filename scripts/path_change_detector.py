@@ -13,7 +13,7 @@ import subprocess
 import sys
 from pathlib import Path
 from dataclasses import dataclass
-from typing import Dict, List, Set
+from typing import List, Set
 
 
 @dataclass
@@ -30,9 +30,9 @@ class PathChange:
         self.new_path = self.new_path or ""
 
 
-def run_command(cmd: str) -> str:
+def run_command(cmd: List[str]) -> str:
     """Run shell command and return output"""
-    result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
+    result = subprocess.run(cmd, shell=False, capture_output=True, text=True)
     return result.stdout
 
 
@@ -48,11 +48,13 @@ class PathChangeDetector:
         """Scan both branches for file paths"""
 
         # Get local files
-        result = run_command(f"git ls-tree -r --name-only {self.local_branch}")
+        result = run_command(["git", "ls-tree", "-r", "--name-only", self.local_branch])
         self.local_files = set(filter(None, result.strip().split("\n")))
 
         # Get remote files
-        result = run_command(f"git ls-tree -r --name-only {self.remote_branch}")
+        result = run_command(
+            ["git", "ls-tree", "-r", "--name-only", self.remote_branch]
+        )
         self.remote_files = set(filter(None, result.strip().split("\n")))
 
     def detect_changes(self):
@@ -67,7 +69,7 @@ class PathChangeDetector:
         # Common files
         common = self.local_files & self.remote_files
 
-        print(f"=== Path Change Analysis ===")
+        print("=== Path Change Analysis ===")
         print(f"Local only:  {len(local_only)} files")
         print(f"Remote only: {len(remote_only)} files")
         print(f"Common:      {len(common)} files")
@@ -143,11 +145,11 @@ class PathChangeDetector:
         """Generate path change report"""
         report = []
         report.append("# Path Change Report")
-        report.append(f"")
+        report.append("")
         report.append(f"Local branch:  {self.local_branch}")
         report.append(f"Remote branch: {self.remote_branch}")
-        report.append(f"")
-        report.append(f"**Summary:**")
+        report.append("")
+        report.append("**Summary:**")
         report.append(
             f"- Local only (added/renamed):  {len([c for c in self.changes if c.change_type in ['ADDED', 'RENAMED']])}"
         )
@@ -155,7 +157,7 @@ class PathChangeDetector:
             f"- Remote only (deleted):       {len([c for c in self.changes if c.change_type == 'DELETED'])}"
         )
         report.append(f"- Total changes:                {len(self.changes)}")
-        report.append(f"")
+        report.append("")
 
         # Group by change type
         renames = [c for c in self.changes if c.change_type == "RENAMED"]
@@ -164,12 +166,12 @@ class PathChangeDetector:
 
         if renames:
             report.append("## Renamed Files")
-            report.append(f"")
+            report.append("")
             for change in renames:
                 report.append(f"### {change.old_path} → {change.new_path}")
-                report.append(f"")
+                report.append("")
                 report.append(f"**Action Required:** {change.action_required}")
-                report.append(f"")
+                report.append("")
                 report.append("**Files that may need updating:**")
                 # Find files that might reference this
                 for py_file in Path(".").rglob("*.py"):
@@ -183,25 +185,25 @@ class PathChangeDetector:
                                 or change.old_path.replace("/", ".") in content
                             ):
                                 report.append(f"- {py_file}")
-                    except:
+                    except Exception:
                         pass
-                report.append(f"")
+                report.append("")
 
         if additions:
             report.append("## Added Files")
-            report.append(f"")
+            report.append("")
             for change in additions:
                 report.append(f"- {change.new_path}")
                 report.append(f"  **Action:** {change.action_required}")
-                report.append(f"")
+                report.append("")
 
         if deletions:
             report.append("## Deleted Files")
-            report.append(f"")
+            report.append("")
             for change in deletions:
                 report.append(f"- {change.old_path}")
                 report.append(f"  **Action:** {change.action_required}")
-                report.append(f"")
+                report.append("")
 
         return "\n".join(report)
 
@@ -256,14 +258,14 @@ def main():
         f.write(report)
 
     print("")
-    print(f"✅ Report saved to: PATH_CHANGE_REPORT.md")
+    print("✅ Report saved to: PATH_CHANGE_REPORT.md")
 
     # Generate SQL updates
     sql = detector.generate_sql_updates()
     with open("PATH_CHANGE_SQL_UPDATES.sql", "w") as f:
         f.write(sql)
 
-    print(f"✅ SQL updates saved to: PATH_CHANGE_SQL_UPDATES.sql")
+    print("✅ SQL updates saved to: PATH_CHANGE_SQL_UPDATES.sql")
 
 
 if __name__ == "__main__":
