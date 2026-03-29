@@ -25,6 +25,9 @@ from .enhanced_error_reporting import (
 from .constants import DEFAULT_CATEGORY_COLOR
 from .security import validate_path_safety
 
+# Import DataSource locally to avoid circular imports
+from .data.data_source import DataSource
+
 logger = logging.getLogger(__name__)
 
 
@@ -56,13 +59,15 @@ def search_email_content(
         logger.error(f"Could not search content for email {email_id}: {e}")
     return False
 
-def execute_search_emails(
+async def execute_search_emails(
     emails_data: List[Dict[str, Any]],
     search_term_lower: str,
     limit: int,
     content_available_index: set[int],
     get_content_path_fn: Any,
-    search_index: Optional[Dict[int, str]] = None
+    search_index: Optional[Dict[int, str]] = None,
+    caching_manager: Any = None,
+    read_content_sync_fn: Any = None,
 ) -> List[Dict[str, Any]]:
     """Shared search logic to find recent matches quickly via reversed iteration and early exit."""
     filtered_emails = []
@@ -89,13 +94,42 @@ def execute_search_emails(
             filtered_emails.append(email_light)
             continue
 
+        # Check content cache first to avoid disk I/O
+        if caching_manager:
+            cached_content = caching_manager.get_email_content(email_id)
+            if cached_content:
+                content = cached_content.get(FIELD_CONTENT, "")
+                if isinstance(content, str) and search_term_lower in content.lower():
+                    filtered_emails.append(email_light)
+                    if len(filtered_emails) >= limit:
+                        break
+                continue
+
         # Content search (slow path)
         if email_id in content_available_index:
             content_path = get_content_path_fn(email_id)
-            if search_email_content(email_id, content_path, search_term_lower):
-                filtered_emails.append(email_light)
-                if len(filtered_emails) >= limit:
-                    break
+
+            # Double check existence just in case (race condition or manual deletion),
+            # but we trust the index for the negative case (if NOT in index, definitely no content)
+            if os.path.exists(content_path):
+                try:
+                    if read_content_sync_fn:
+                        # Offload synchronous file I/O to a thread to prevent blocking the event loop
+                        heavy_data = await asyncio.to_thread(read_content_sync_fn, content_path)
+                    else:
+                        with gzip.open(content_path, "rt", encoding="utf-8") as f:
+                            heavy_data = json.load(f)
+
+                    content = heavy_data.get(FIELD_CONTENT, "")
+                    if isinstance(content, str) and search_term_lower in content.lower():
+                        filtered_emails.append(email_light)
+                        if len(filtered_emails) >= limit:
+                            break
+                except (IOError, json.JSONDecodeError) as e:
+                    logger.error(f"Could not search content for email {email_id}: {e}")
+            else:
+                # Index out of sync, remove it
+                content_available_index.discard(email_id)
 
     return filtered_emails
 
@@ -181,10 +215,6 @@ class DatabaseConfig:
         os.makedirs(self.email_content_dir, exist_ok=True)
 
 
-# Import DataSource locally to avoid circular imports
-from .data.data_source import DataSource
-
-
 class DatabaseManager(DataSource):
     """Optimized async database manager with in-memory caching, write-behind,
     and hybrid on-demand content loading."""
@@ -245,6 +275,15 @@ class DatabaseManager(DataSource):
     def _get_email_content_path(self, email_id: int) -> str:
         """Returns the path for an individual email's content file."""
         return os.path.join(self.email_content_dir, f"{email_id}.json.gz")
+
+    def _read_content_sync(self, content_path: str) -> Dict[str, Any]:
+        """Synchronously reads and parses the content file. Helper for asyncio.to_thread."""
+        with gzip.open(content_path, "rt", encoding="utf-8") as f:
+            data = json.load(f)
+            if not isinstance(data, dict):
+                logger.warning(f"File {content_path} contains invalid data format (expected dict).")
+                return {}
+            return data
 
     async def _load_and_merge_content(
         self, email_light: Dict[str, Any]
@@ -859,13 +898,15 @@ class DatabaseManager(DataSource):
             f"Starting email search for term: '{search_term_lower}'. Using optimized index."
         )
 
-        filtered_emails = execute_search_emails(
+        filtered_emails = await execute_search_emails(
             self.emails_data,
             search_term_lower,
             limit,
             self._content_available_index,
             self._get_email_content_path,
-            self._search_index
+            self._search_index,
+            self.caching_manager,
+            self._read_content_sync
         )
 
         result = await self._sort_and_paginate_emails(filtered_emails, limit=limit)

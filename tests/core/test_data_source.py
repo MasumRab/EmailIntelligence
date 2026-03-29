@@ -66,7 +66,7 @@ class TestNotmuchDataSource:
         """Test create_email method."""
         email_data = {"subject": "Test", "content": "Test content"}
         result = await notmuch_ds.create_email(email_data)
-        assert result is not None  # Mock implementation returns a dict
+        assert result is not None  # Mock implementation returns dict
 
     @pytest.mark.asyncio
     async def test_get_email_by_id(self, notmuch_ds):
