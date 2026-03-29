@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 #!/usr/bin/env python3
 """
 Data Migration Utility for EmailIntelligence
@@ -20,15 +19,17 @@ import argparse
 import gzip
 import json
 import logging
-import os
 import sqlite3
 import sys
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
-# Add src to path for imports
-sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
-from core.security import validate_path_safety
+# Add src to path for imports (calculate relative to this script\'s location)
+script_dir = Path(__file__).parent
+project_root = script_dir.parent
+src_path = project_root / "src"
+sys.path.insert(0, str(src_path))
+from src.core.security import PathValidator, validate_path_safety  # noqa: E402
 
 # Configure logging
 logging.basicConfig(
@@ -76,7 +77,9 @@ def write_gzipped_json(file_path: Path, data: Any) -> bool:
 def connect_sqlite(db_path: Path) -> Optional[sqlite3.Connection]:
     """Connect to SQLite database."""
     try:
-        conn = sqlite3.connect(db_path)
+        # Validate the database path for security
+        validated_path = PathValidator.validate_database_path(db_path)
+        conn = sqlite3.connect(validated_path)
         conn.row_factory = sqlite3.Row
         return conn
     except Exception as e:
@@ -575,5 +578,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-=======
->>>>>>> origin/main

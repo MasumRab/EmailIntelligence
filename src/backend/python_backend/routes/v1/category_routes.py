@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 """
 DEPRECATED: This module is part of the deprecated `backend` package.
 It will be removed in a future release.
@@ -75,7 +74,6 @@ async def create_category_v1(
 
     if result.success:
         # Create a successful response
-        from pydantic import BaseModel
 
         # Since CategoryResponse would be the proper model,
         # for now we'll use the returned data directly
@@ -85,5 +83,3 @@ async def create_category_v1(
         from fastapi import HTTPException
 
         raise HTTPException(status_code=500, detail=result.error)
-=======
->>>>>>> origin/main

@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 """
 A high-level service for comprehensive Gmail integration.
 
@@ -17,13 +16,10 @@ from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
 # To avoid circular imports with type hints
 if TYPE_CHECKING:
-    from ..python_backend.ai_engine import AdvancedAIEngine
-    from ..python_backend.database import DatabaseManager
-    from .protocols import AIEngineProtocol, DatabaseProtocol
+    pass
 
 # AI Training and PromptEngineer might not be directly used by GmailAIService after refactoring
 # if all AI analysis is delegated to AdvancedAIEngine.
-from .ai_training import ModelConfig
 from .data_strategy import DataCollectionStrategy
 from .gmail_integration import EmailBatch, GmailDataCollector, RateLimitConfig
 from .gmail_metadata import GmailMessage, GmailMetadataExtractor
@@ -320,6 +316,7 @@ class GmailAIService:
         self, strategies: List[str] = None, max_api_calls: int = 100, time_budget_minutes: int = 30
     ) -> Dict[str, Any]:
         """
+        Execute smart retrieval with the given strategies.
         Args:
             strategies: A list of retrieval strategies to execute.
             max_api_calls: The maximum number of API calls allowed.
@@ -353,8 +350,10 @@ class GmailAIService:
 
 
 async def main():
-    # Demonstrates the usage of the GmailAIService
-    logging.basicConfig(level=logging.DEBUG)
+    """Demonstrates the usage of the GmailAIService."""
+    logging.basicConfig(
+        level=logging.DEBUG, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    )
     service = GmailAIService()
     sync_result = await service.sync_gmail_emails(max_emails=2)
     logging.info(f"Sync result: {sync_result}")
@@ -362,5 +361,3 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
-=======
->>>>>>> origin/main

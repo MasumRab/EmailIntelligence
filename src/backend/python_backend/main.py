@@ -23,10 +23,10 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import ValidationError
 from starlette.middleware.base import BaseHTTPMiddleware
 
-from backend.python_nlp.gmail_service import GmailAIService
+from src.backend.python_nlp.gmail_service import GmailAIService
 
 # Removed: from .smart_filters import EmailFilter (as per instruction)
-from backend.python_nlp.smart_filters import SmartFilterManager
+from src.backend.python_nlp.smart_filters import SmartFilterManager
 from src.core.auth import authenticate_user
 
 from ..plugins.plugin_manager import plugin_manager
@@ -52,6 +52,10 @@ from .exceptions import AppException, BaseAppException
 from .model_manager import model_manager
 from .performance_monitor import performance_monitor
 from .settings import settings
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # Error rate monitoring
 error_counts = defaultdict(int)
@@ -84,28 +88,41 @@ class ErrorHandlingMiddleware(BaseHTTPMiddleware):
 
             # Track error rate
             with error_lock:
-                error_counts[500] += 1  # Default to 500 for unhandled exceptions
+                # Ensure status_code is defined before use
+
+                if isinstance(exc, (AppException, BaseAppException)):
+                    status_code = exc.status_code
+                elif isinstance(exc, ValidationError):
+                    status_code = 422
+                else:
+                    status_code = 500 # Default to 500 for unhandled exceptions
+
+
+                error_counts[status_code] += 1
                 # Alert if error rate is high (simple threshold)
                 total_errors = sum(error_counts.values())
                 if total_errors > 10:  # Simple threshold
                     logger.warning(f"High error rate detected: {total_errors} errors in session")
 
+
+
             # Format error response consistently
-            if isinstance(exc, AppException):
-                # Already formatted, add request_id
-                error_response = exc.detail
-                if isinstance(error_response, dict):
-                    error_response["request_id"] = request_id
-                status_code = exc.status_code
-            elif isinstance(exc, BaseAppException):
-                error_response = {
-                    "success": False,
-                    "message": "An internal error occurred",
-                    "error_code": "INTERNAL_ERROR",
-                    "details": str(exc),
-                    "request_id": request_id,
-                }
-                status_code = exc.status_code
+            if isinstance(exc, (AppException, BaseAppException)):
+                if isinstance(exc, AppException):
+                    # Already formatted, add request_id
+                    error_response = exc.detail
+                    if isinstance(error_response, dict):
+                        error_response["request_id"] = request_id
+                    status_code = exc.status_code
+                else:  # BaseAppException
+                    error_response = {
+                        "success": False,
+                        "message": "An internal error occurred",
+                        "error_code": "INTERNAL_ERROR",
+                        "details": str(exc),
+                        "request_id": request_id,
+                    }
+                    status_code = exc.status_code
             elif isinstance(exc, ValidationError):
                 error_response = {
                     "success": False,
@@ -132,9 +149,7 @@ class ErrorHandlingMiddleware(BaseHTTPMiddleware):
             )
 
 
-# Configure logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+
 
 # Initialize FastAPI app with settings
 app = FastAPI(
@@ -142,9 +157,6 @@ app = FastAPI(
     description="Advanced email management with AI categorization and smart filtering",
     version=settings.app_version,
 )
-
-# Add error handling middleware
-app.add_middleware(ErrorHandlingMiddleware)
 
 
 @app.on_event("startup")
@@ -181,9 +193,51 @@ async def shutdown_event():
     await db_manager.close()
 
 
-# Exception handlers removed - now handled by ErrorHandlingMiddleware
-# The middleware provides consistent error handling and response formatting
 
+
+
+@app.exception_handler(AppException)
+async def app_exception_handler(request: Request, exc: AppException):
+
+    return JSONResponse(
+        status_code=exc.status_code,
+        content=exc.detail,
+    )
+
+
+@app.exception_handler(BaseAppException)
+async def base_app_exception_handler(request: Request, exc: BaseAppException):
+
+    return JSONResponse(
+        status_code=500,
+        content={
+            "success": False,
+            "message": "An internal error occurred",
+            "error_code": "INTERNAL_ERROR",
+            "details": str(exc),
+        },
+    )
+
+
+# Exception handlers removed - now handled by ErrorHandlingMiddleware
+
+
+
+@app.exception_handler(ValidationError)
+async def validation_exception_handler(request: Request, exc: ValidationError):
+    """Handle Pydantic validation errors with detailed 422 responses."""
+
+    return JSONResponse(
+        status_code=422,
+        content={
+            "detail": exc.errors(),
+            "message": "Validation error with provided data.",
+        },
+    )
+
+
+# Add error handling middleware
+app.add_middleware(ErrorHandlingMiddleware)
 
 # Configure CORS using settings
 app.add_middleware(
@@ -218,7 +272,6 @@ from .routes.v1.category_routes import router as category_router_v1
 
 # Include versioned API routers
 from .routes.v1.email_routes import router as email_router_v1
-
 
 # Mount versioned APIs
 app.include_router(email_router_v1, prefix="/api/v1", tags=["emails-v1"])
@@ -259,7 +312,7 @@ app.include_router(node_workflow_router, prefix="/api/nodes", tags=["node-workfl
 
 # Initialize workflow manager instance (using the node-based workflow manager)
 try:
-    from backend.node_engine.workflow_manager import workflow_manager as node_workflow_manager
+    from src.backend.node_engine.workflow_manager import workflow_manager as node_workflow_manager
 
     workflow_manager_instance = node_workflow_manager
 except ImportError:
@@ -275,7 +328,7 @@ except ImportError:
 async def login(username: str, password: str):
     """Login endpoint to get access token"""
     # Use the new authentication system
-    db = db_manager  # Use the DatabaseManager instance that's already initialized
+    db = await get_db()
     user = await authenticate_user(username, password, db)
 
     if not user:
@@ -343,9 +396,9 @@ async def get_error_stats():
 if __name__ == "__main__":
     import uvicorn
 
-    port = int(os.getenv("PORT", 8000))
-    env = os.getenv("NODE_ENV", "development")
-    host = os.getenv("HOST", "127.0.0.1" if env == "development" else "0.0.0.0")
-    reload = env == "development"
-    # Use string app path to support reload
-    uvicorn.run("main:app", host=host, port=port, reload=reload, log_level="info")
+port = int(os.getenv("PORT", 8000))
+env = os.getenv("NODE_ENV", "development")
+host = os.getenv("HOST", "127.0.0.1" if env == "development" else "0.0.0.0")
+reload = env == "development"
+# Use string app path to support reload
+uvicorn.run("main:app", host=host, port=port, reload=reload, log_level="info")

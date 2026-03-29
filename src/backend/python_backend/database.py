@@ -719,3 +719,27 @@ async def initialize_db():
     if _db_manager_instance is None:
         _db_manager_instance = DatabaseManager()
         await _db_manager_instance._ensure_initialized()
+
+
+class _DbManagerWrapper:
+    """Backward compatibility wrapper for the deprecated db_manager singleton."""
+    
+    async def connect(self):
+        """Connect to the database."""
+        manager = await get_db()
+        await manager.connect()
+    
+    async def close(self):
+        """Close the database connection."""
+        manager = await get_db()
+        await manager.close()
+    
+    def __getattr__(self, name):
+        """Delegate attribute access to the singleton instance."""
+        import asyncio
+        loop = asyncio.get_event_loop()
+        return loop.run_until_complete(getattr(get_db(), name))
+
+
+# Backward compatibility - deprecated singleton instance
+db_manager = _DbManagerWrapper()

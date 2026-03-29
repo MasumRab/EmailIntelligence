@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 """
 DEPRECATED: This module is part of the deprecated `backend` package.
 It will be removed in a future release.
@@ -7,7 +6,7 @@ Version 1 API routes for email operations
 Following the new architectural patterns with service layer and API versioning
 """
 
-from typing import List, Optional
+from typing import Optional
 import logging
 from fastapi import APIRouter, BackgroundTasks, Depends, Request
 
@@ -164,5 +163,3 @@ async def update_email_v1(
     else:
         # Raise appropriate exception if not found
         raise EmailNotFoundException(email_id=email_id)
-=======
->>>>>>> origin/main

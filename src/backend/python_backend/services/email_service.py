@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 """
 DEPRECATED: This module is part of the deprecated `backend` package.
 It will be removed in a future release.
@@ -7,11 +6,8 @@ Email service for the Email Intelligence Platform
 Handles all email-related business logic
 """
 
-from typing import List, Optional, Dict, Any
-from datetime import datetime
+from typing import Optional, Dict, Any
 from .base_service import BaseService, BaseResponse
-from src.core.models import EmailResponse, EmailCreate, EmailUpdate
-from src.core.database import FIELD_ID, FIELD_MESSAGE_ID
 
 
 class EmailService(BaseService):
@@ -186,5 +182,3 @@ class EmailService(BaseService):
         except Exception:
             # Return default values in case of error
             return {"emails": 0, "percentage": 0.0}
-=======
->>>>>>> origin/main

@@ -7,17 +7,7 @@ from datetime import datetime
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
-<<<<<<< HEAD
-from pydantic import BaseModel, Field, validator
-# ConfigDict is not available in Pydantic v1, using Config class instead
-try:
-    from pydantic import ConfigDict
-except ImportError:
-    # For Pydantic v1 compatibility
-    ConfigDict = None
-=======
 from pydantic import BaseModel, ConfigDict, Field, validator
->>>>>>> scientific
 
 # A default color for categories, can be moved to a config file later
 DEFAULT_CATEGORY_COLOR = "#FFFFFF"
@@ -81,11 +71,7 @@ class EmailCreate(EmailBase):
     @classmethod
     def set_preview(cls, v, values):
         """Sets the preview from the content if not provided."""
-<<<<<<< HEAD
-        if not v and "content" in values:
-=======
         if not v and values and "content" in values:
->>>>>>> scientific
             content = values["content"]
             return content[:200] + "..." if len(content) > 200 else content
         return v
@@ -145,6 +131,11 @@ class CategoryCreate(CategoryBase):
     pass
 
 
+# Aliases for backward compatibility
+Email = EmailCreate
+Category = CategoryCreate
+
+
 class CategoryResponse(CategoryBase):
     """Model for the response when a category is retrieved."""
 
@@ -184,6 +175,33 @@ class AIAnalysisRequest(BaseModel):
     models: Optional[Dict[str, str]] = None
 
 
+class AICategorizeRequest(BaseModel):
+    """Model for a request to categorize an email with AI."""
+    emailId: int
+    autoAnalyze: bool
+    categoryId: Optional[int] = None
+    confidence: Optional[int] = None
+
+
+class AICategorizeResponse(BaseModel):
+    """Model for the response of an AI categorization request."""
+    success: bool
+    email: Optional["EmailResponse"] = None
+    analysis: Optional["AIAnalysisResponse"] = None
+
+
+class AIValidateRequest(BaseModel):
+    """Model for a request to validate AI analysis with user feedback."""
+    emailId: int
+    userFeedback: str
+    correctCategory: Optional[str] = None
+
+
+class AIValidateResponse(BaseModel):
+    """Model for the response of an AI validation request."""
+    success: bool
+    message: str
+
 class AIAnalysisResponse(BaseModel):
     """Model representing the detailed output of an AI email analysis."""
 
@@ -200,34 +218,6 @@ class AIAnalysisResponse(BaseModel):
     categoryId: Optional[int] = None
 
     model_config = ConfigDict(populate_by_name=True)
-
-
-class AICategorizeRequest(BaseModel):
-    """Model for a request to categorize an email with AI."""
-    emailId: int
-    autoAnalyze: bool
-    categoryId: Optional[int] = None
-    confidence: Optional[int] = None
-
-
-class AICategorizeResponse(BaseModel):
-    """Model for the response of an AI categorization request."""
-    success: bool
-    email: Optional[EmailResponse] = None
-    analysis: Optional[AIAnalysisResponse] = None
-
-
-class AIValidateRequest(BaseModel):
-    """Model for a request to validate AI analysis with user feedback."""
-    emailId: int
-    userFeedback: str
-    correctCategory: Optional[str] = None
-
-
-class AIValidateResponse(BaseModel):
-    """Model for the response of an AI validation request."""
-    success: bool
-    message: str
 
 
 # Models for Action Item Extraction
@@ -534,26 +524,3 @@ class BatchOperationResponse(BaseModel):
     errors: List[Dict[str, Any]] = Field(default_factory=list)
 
     model_config = ConfigDict(populate_by_name=True)
-
-# Workflow Models
-class WorkflowCreate(BaseModel):
-    """Model for creating a new workflow."""
-    name: str = Field(..., description="The unique name for the workflow.")
-    description: str = ""
-    workflow_type: str = Field(
-        default="legacy", description="Type of workflow: 'legacy' or 'node_based'"
-    )
-    models: Dict[str, str] = Field(
-        default={},
-        description="A dictionary mapping model types to model names for legacy workflows.",
-    )
-    nodes: List[Dict[str, Any]] = Field(
-        default=[], description="List of nodes for node-based workflows."
-    )
-    connections: List[Dict[str, str]] = Field(
-        default=[], description="List of connections for node-based workflows."
-    )
-
-# Aliases for backward compatibility
-Email = EmailResponse
-Category = CategoryResponse

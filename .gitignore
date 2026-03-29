@@ -1,16 +1,43 @@
-# Node.js
+# General
+.DS_Store
+Thumbs.db
+generated-icon.png
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Node / frontend
 node_modules/
 dist/
-.DS_Store
-server/public/
 vite.config.ts.*
-*.tar.gz
+pnpm-lock.yaml
+package-lock.json
+uv.lock
 
-# Python virtual environment
+# Python caches and artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.cache/
+htmlcov/
+
+# Virtual environments
 venv/
+.venv/
+env/
+ENV/
+.Python
+emailintelligence_env/
+
+# Environment & secret files
 .env
 .env.*
-*.env
 !.env.example
 
 # Credentials and sensitive data
@@ -19,6 +46,14 @@ credentials.json
 apikey.json
 jsons/
 jsons/*
+jsons/client_id.json
+jsons/apikey.json
+config/llm_guidelines.local.json
+config/*.local.*
+*.local.config
+*.local.json
+*.local.yaml
+*.local.yml
 
 # Build / packaging artifacts
 build/
@@ -39,10 +74,10 @@ pip-wheel-metadata/
 coverage.xml
 coverage/
 *.cover
-.pytest_cache/
 
 # IDEs / editor-specific
 .vscode/
+.vscode/settings.json
 .idea/
 *.iml
 *.sublime-project
@@ -51,20 +86,14 @@ coverage/
 
 # Misc
 diagnosis_message.txt
+<<<<<<< HEAD
+performance_metrics_log.jsonl
+models/*.pkl
+logs/
+=======
+>>>>>>> origin/scientific
 
-# Ignore configuration and local environment files
-*.local.config
-*.local.json
-*.local.yaml
-*.local.yml
-jsons/client_id.json
-credentials.json
-jsons/apikey.json
-config.local.*
-config/llm_guidelines.local.json
-
-# Ignore hidden files and directories, with exceptions
-.*
+# Keep the docs placeholder
 !docs/.gitkeep
 !docs/.branch-config.json
 !docs/.review-queue.json
@@ -81,6 +110,14 @@ performance_metrics_log.jsonl
 config/llm_guidelines.local.json
 models/*.pkl
 
+<<<<<<< HEAD
+# Backup files
+*.bak
+*~
+*.backup
+backlog/config.yml.bak
+original_readme.md
+=======
 # Agent scratchpad and temporary files
 jules-scratch/
 app_output.log
@@ -90,3 +127,4 @@ isolated_ui.log
 =*
 
 worktrees/
+>>>>>>> origin/scientific

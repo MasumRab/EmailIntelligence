@@ -2,6 +2,7 @@
 Advanced Audit Logging System for Email Intelligence Platform
 
 Provides comprehensive event tracking, security monitoring, and compliance logging
+
 with structured JSON output and configurable log levels.
 """
 
@@ -16,6 +17,7 @@ from enum import Enum
 from pathlib import Path
 from queue import Queue
 from typing import Any, Dict, List, Optional
+import asyncio
 
 logger = logging.getLogger(__name__)
 

@@ -7,8 +7,12 @@
 <<<<<<< HEAD
 ## Status: Not Started
 =======
+<<<<<<< HEAD
+## Status: Not Started
+=======
 ## Status: Completed
 >>>>>>> scientific
+>>>>>>> origin/scientific
 
 ## Description
 Create a focused PR that extracts import error fixes from the `fix/import-errors-and-docs` branch. This PR should address specific import/circular dependency issues without including documentation changes.
@@ -51,11 +55,16 @@ Create a focused PR that extracts import error fixes from the `fix/import-errors
 
 ## Success Criteria
 <<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> origin/scientific
 - [ ] Import error fixes are extracted into focused PR
 - [ ] PR addresses only import-related changes
 - [ ] All import tests pass
 - [ ] PR description is clear and comprehensive
 - [ ] GitHub PR is created and ready for review
+<<<<<<< HEAD
+=======
 =======
 - [x] Import error fixes are extracted into focused PR
 - [x] PR addresses only import-related changes
@@ -63,6 +72,7 @@ Create a focused PR that extracts import error fixes from the `fix/import-errors
 - [x] PR description is clear and comprehensive
 - [x] GitHub PR is created and ready for review
 >>>>>>> scientific
+>>>>>>> origin/scientific
 
 ## Dependencies
 - Current PRs (docs cleanup, search in category) should be merged first
@@ -80,6 +90,9 @@ Create a focused PR that extracts import error fixes from the `fix/import-errors
 - Maintain backward compatibility where possible
 - Document any changes to public API import paths
 - Coordinate with team members who work with the affected modules
+<<<<<<< HEAD
+- Ensure all modules can be imported without errors
+=======
 <<<<<<< HEAD
 - Ensure all modules can be imported without errors
 =======
@@ -108,3 +121,4 @@ This PR addresses import-related issues in the codebase by:
 - Ensured no regressions in existing functionality
 - Tested that modules can be imported without errors
 >>>>>>> scientific
+>>>>>>> origin/scientific

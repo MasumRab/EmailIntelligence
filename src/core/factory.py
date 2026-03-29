@@ -84,3 +84,17 @@ async def get_email_repository() -> EmailRepository:
         base_repository = DatabaseEmailRepository(data_source)
         _email_repository_instance = CachingEmailRepository(base_repository)
     return _email_repository_instance
+
+async def get_ai_engine():
+    """
+    Provides the singleton instance of the ModernAIEngine.
+    """
+    global _ai_engine_instance
+    if _ai_engine_instance is None:
+        _ai_engine_instance = ModernAIEngine()
+        await _ai_engine_instance.initialize()
+    return _ai_engine_instance
+
+
+_ai_engine_instance = None
+

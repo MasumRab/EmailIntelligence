@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 """
 Performance Monitoring Dashboard for Email Intelligence Platform
 
@@ -14,7 +13,7 @@ import time
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from functools import wraps
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 import psutil
 
@@ -327,9 +326,10 @@ def _create_decorator(func, op_name):
             }
 
             try:
-                performance_monitor.log_performance(log_entry)
-            except Exception as e:
-                logger.warning(f"Failed to log performance: {e}")
+                with open(LOG_FILE, "a") as f:
+                    f.write(json.dumps(log_entry) + "\n")
+            except IOError as e:
+                logger.error(f"Failed to write performance log: {e}")
 
             return result
 
@@ -350,12 +350,11 @@ def _create_decorator(func, op_name):
             }
 
             try:
-                performance_monitor.log_performance(log_entry)
-            except Exception as e:
-                logger.warning(f"Failed to log performance: {e}")
+                with open(LOG_FILE, "a") as f:
+                    f.write(json.dumps(log_entry) + "\n")
+            except IOError as e:
+                logger.error(f"Failed to write performance log: {e}")
 
             return result
 
         return sync_wrapper
-=======
->>>>>>> origin/main

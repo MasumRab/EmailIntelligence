@@ -1,11 +1,19 @@
-<<<<<<< HEAD
+import configparser
+configparser.SafeConfigParser = configparser.ConfigParser
+
 import argparse
 import logging
 
 import gradio as gr
 import uvicorn
-from fastapi import FastAPI
-from fastapi.responses import RedirectResponse
+import psutil
+import platform
+from datetime import datetime
+import requests
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse, RedirectResponse
+from pydantic import ValidationError
 from .core.module_manager import ModuleManager
 from .core.middleware import create_security_middleware, create_security_headers_middleware
 from .core.audit_logger import audit_logger, AuditEventType, AuditSeverity
@@ -19,8 +27,6 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-<<<<<<< HEAD
-=======
 def create_system_status_tab():
     """Create the System Status tab with monitoring and diagnostics."""
 
@@ -88,7 +94,7 @@ def create_system_status_tab():
         with gr.TabItem("Overview"):
             with gr.Row():
                 with gr.Column():
-                    status_indicator = gr.Textbox(
+                    gr.Textbox(
                         label="System Status",
                         value="🟢 Online",
                         interactive=False
@@ -329,9 +335,9 @@ def create_ai_lab_tab():
 
                 with gr.Column():
                     gr.Markdown("### Model Testing")
-                    test_input = gr.Textbox(label="Test Input", placeholder="Enter text to test model...")
-                    test_model_btn = gr.Button("🧪 Test Model", variant="secondary")
-                    test_output = gr.JSON(label="Test Results")
+                    gr.Textbox(label="Test Input", placeholder="Enter text to test model...")
+                    gr.Button("🧪 Test Model", variant="secondary")
+                    gr.JSON(label="Test Results")
 
             def refresh_model_status():
                 """Get current model status."""
@@ -505,16 +511,16 @@ def create_gmail_integration_tab():
             with gr.Row():
                 with gr.Column():
                     gr.Markdown("### Account Information")
-                    account_status = gr.Textbox(
+                    gr.Textbox(
                         label="Connection Status",
                         value="🔄 Checking...",
                         interactive=False
                     )
-                    last_sync = gr.Textbox(
+                    gr.Textbox(
                         label="Last Sync",
                         interactive=False
                     )
-                    api_quota = gr.Textbox(
+                    gr.Textbox(
                         label="API Quota Status",
                         interactive=False
                     )
@@ -544,7 +550,6 @@ def create_gmail_integration_tab():
             connection_test_result.value = test_gmail_connection()
 
 
->>>>>>> scientific
 def create_app():
     """
     Creates and configures the main FastAPI application and Gradio UI.
@@ -556,12 +561,22 @@ def create_app():
         version="3.0.0",
     )
 
-<<<<<<< HEAD
-=======
     # Add CORS middleware
+    # Define allowed origins to prevent security risks with allow_credentials=True
+    allowed_origins = [
+        "http://localhost:5173",    # Frontend dev
+        "http://127.0.0.1:5173",
+        "http://localhost:8001",    # Node server
+        "http://127.0.0.1:8001",
+        "http://localhost:7860",    # Self (Gradio)
+        "http://127.0.0.1:7860",
+        "http://localhost:8000",    # Backend alias
+        "http://127.0.0.1:8000",
+    ]
+
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=["*"],  # In production, specify allowed origins
+        allow_origins=allowed_origins,
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
@@ -605,7 +620,6 @@ def create_app():
             content={"detail": "Internal server error", "message": "An unexpected error occurred"},
         )
 
->>>>>>> scientific
     @app.get("/")
     async def root():
         """Redirect root to Gradio UI."""
@@ -622,6 +636,15 @@ def create_app():
 
             with gr.TabItem("Visual Editor (B)"):
                 gr.Markdown("## Visual & Node-Based UI\nThis is the placeholder for the powerful, node-based workflow editor.")
+
+            with gr.TabItem("System Status"):
+                create_system_status_tab()
+
+            with gr.TabItem("AI Lab"):
+                create_ai_lab_tab()
+
+            with gr.TabItem("Gmail Integration"):
+                create_gmail_integration_tab()
 
             with gr.TabItem("Admin Dashboard (C)"):
                 gr.Markdown("## Power-User Dashboard\nThis is the placeholder for the admin and power-user dashboard for managing models, users, and system performance.")
@@ -687,7 +710,7 @@ def main():
     parser.add_argument("--reload", action="store_true", help="Enable auto-reloading.")
     args = parser.parse_args()
 
-    app = create_app()
+    create_app()
 
     uvicorn.run(
         "src.main:create_app",
@@ -700,5 +723,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-=======
->>>>>>> origin/main
