@@ -131,6 +131,11 @@ class CategoryCreate(CategoryBase):
     pass
 
 
+# Aliases for backward compatibility
+Email = EmailCreate
+Category = CategoryCreate
+
+
 class CategoryResponse(CategoryBase):
     """Model for the response when a category is retrieved."""
 
