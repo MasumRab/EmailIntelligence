@@ -27,9 +27,6 @@ from typing import List
 
 # Add project root to sys.path for imports
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-<<<<<<< HEAD
-<<<<<<< HEAD
-
 # Import project configuration
 from setup.project_config import get_project_config
 
@@ -61,11 +58,10 @@ except ImportError as e:
 
 try:
     from dotenv import load_dotenv
-
     DOTENV_AVAILABLE = True
 except ImportError:
     DOTENV_AVAILABLE = False
-    load_dotenv = None  # Will be loaded later if needed
+    load_dotenv = None
 
 # Configure logging
 logging.basicConfig(
