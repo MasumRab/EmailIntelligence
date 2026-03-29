@@ -18,8 +18,9 @@ from resolution.constitutional_engine import (  # noqa: E402
     ConstitutionalEngine,
     ConstitutionalRule,
     ViolationType,
-    ValidationResult,
+    ComplianceLevel,
 )
+from resolution.types import ValidationResult
 
 
 class TestConstitutionalEngine:

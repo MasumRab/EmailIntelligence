@@ -43,7 +43,7 @@ class GitConflictDetector(IConflictDetector):
         """
         Detect conflicts between two branches using git merge-tree.
         """
-        logger.info("Detecting conflicts", source=source_branch, target=target_branch)
+        logger.info(f"Detecting conflicts: source={source_branch}, target={target_branch}")
 
         try:
             # Check git version for capability
@@ -102,7 +102,7 @@ class GitConflictDetector(IConflictDetector):
             return conflicts
 
         except Exception as e:
-            logger.error("Conflict detection failed", error=str(e))
+            logger.error(f"Conflict detection failed: {str(e)}")
             raise ConflictDetectionError(f"Failed to detect conflicts: {str(e)}") from e
 
     async def _analyze_file_conflict(
@@ -142,7 +142,7 @@ class GitConflictDetector(IConflictDetector):
             )
 
         except Exception as e:
-            logger.error("Failed to analyze file conflict", file=file_path, error=str(e))
+            logger.error(f"Failed to analyze file conflict {file_path}: {str(e)}")
             # Return generic conflict if analysis fails
             return Conflict(
                 id=conflict_id,

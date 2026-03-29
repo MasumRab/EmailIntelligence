@@ -35,6 +35,72 @@ class ConstitutionalAnalyzer(IConstitutionalAnalyzer):
             SecurityChecker(),
         ]
 
+    async def analyze(self, conflict: Conflict) -> AnalysisResult:
+        """
+        Analyze a conflict for constitutional compliance.
+
+        Args:
+            conflict: The conflict to analyze
+
+        Returns:
+            Analysis result with compliance information
+        """
+        # Extract code from conflict blocks
+        code = ""
+        for block in conflict.blocks:
+            code += block.incoming_content + "\n"
+            code += block.current_content + "\n"
+
+        context = {
+            "file_paths": conflict.file_paths,
+            "severity": conflict.severity.value if hasattr(conflict, 'severity') else None,
+            "conflict_type": conflict.type.value if hasattr(conflict, 'type') else None,
+        }
+
+        # Run constitutional compliance analysis
+        compliance_result = await self.analyze_constitutional_compliance(code, context)
+
+        # Map compliance result to AnalysisResult
+        # Use constitutional_violations from the compliance result
+        constitutional_violations = compliance_result.constitutional_violations
+        violation_count = len(constitutional_violations)
+        
+        # Calculate complexity based on violations found
+        complexity_score = min(100.0, 30.0 + (violation_count * 10))
+
+        # Determine risk level based on severity
+        risk_level = conflict.severity
+        if violation_count > 5:
+            risk_level = RiskLevel.HIGH
+        elif violation_count > 2:
+            risk_level = RiskLevel.MEDIUM
+
+        # Determine if auto-resolvable based on violations
+        is_auto_resolvable = violation_count < 3
+
+        # Estimate resolution time
+        estimated_resolution_time = 10 + (violation_count * 5)
+
+        # Determine recommended strategy
+        if violation_count == 0:
+            recommended_strategy = "accept_incoming"
+        elif violation_count < 3:
+            recommended_strategy = "auto_fix"
+        else:
+            recommended_strategy = "manual_review"
+
+        return AnalysisResult(
+            conflict_id=conflict.id,
+            complexity_score=complexity_score,
+            risk_level=risk_level,
+            estimated_resolution_time_minutes=estimated_resolution_time,
+            is_auto_resolvable=is_auto_resolvable,
+            recommended_strategy_type=recommended_strategy,
+            root_cause="Constitutional compliance violations" if violation_count > 0 else "No issues found",
+            constitutional_violations=constitutional_violations,
+            confidence_score=0.85,
+        )
+
     async def analyze_constitutional_compliance(
         self, code: str, context: Dict[str, Any]
     ) -> AnalysisResult:
@@ -73,11 +139,42 @@ class ConstitutionalAnalyzer(IConstitutionalAnalyzer):
         # Ensure score is between 0 and 1
         compliance_score = max(0.0, min(1.0, compliance_score))
 
+        # Map to required AnalysisResult fields
+        complexity_score = compliance_score * 100
+        violation_count = len(violations)
+        
+        # Determine risk level based on violations
+        if violation_count > 5:
+            risk_level = RiskLevel.HIGH
+        elif violation_count > 2:
+            risk_level = RiskLevel.MEDIUM
+        else:
+            risk_level = RiskLevel.LOW
+        
+        # Determine auto-resolvable
+        is_auto_resolvable = violation_count < 3
+        
+        # Determine recommended strategy
+        if violation_count == 0:
+            recommended_strategy = "accept_incoming"
+        elif violation_count < 3:
+            recommended_strategy = "auto_fix"
+        else:
+            recommended_strategy = "manual_review"
+        
+        # Estimate resolution time
+        estimated_time = 10 + (violation_count * 5)
+
         analysis_result = AnalysisResult(
-            compliance_score=compliance_score,
-            violations=[v.description for v in violations],
-            recommendations=recommendations,
-            details=details,
+            conflict_id=context.get("file_paths", ["unknown"])[0] if context.get("file_paths") else "unknown",
+            complexity_score=complexity_score,
+            risk_level=risk_level,
+            estimated_resolution_time_minutes=estimated_time,
+            is_auto_resolvable=is_auto_resolvable,
+            recommended_strategy_type=recommended_strategy,
+            root_cause="Constitutional compliance check",
+            constitutional_violations=[v.description for v in violations],
+            confidence_score=compliance_score,
         )
 
         logger.info(

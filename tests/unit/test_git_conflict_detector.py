@@ -16,7 +16,7 @@ async def git_repo_with_conflict(temp_dir):
 
     # helper to run git commands
     async def git(*args):
-        return await repo.run_git(list(args))
+        return await repo.run_command(["git"] + list(args))
 
     await git("init")
     await git("branch", "-M", "main")
