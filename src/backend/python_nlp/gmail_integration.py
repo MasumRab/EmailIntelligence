@@ -33,7 +33,7 @@ load_dotenv()
 
 SCOPES = ["https://www.googleapis.com/auth/gmail.readonly"]
 # Define the project's root directory and default path for the email cache
-PROJECT_ROOT = Path(__file__).resolve().parent.parent
+PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 DEFAULT_CACHE_PATH = PROJECT_ROOT / "email_cache.db"
 
 # Path for token.json, configurable via environment variable

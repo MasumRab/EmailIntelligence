@@ -20,7 +20,7 @@ from src.core.security import PathValidator
 
 # Define paths for data storage
 # Use the project's data directory for database files to avoid cluttering the root
-PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 DATA_DIR = os.path.join(PROJECT_ROOT, "data")
 DEFAULT_DB_PATH = os.path.join(DATA_DIR, "smart_filters.db")
 
