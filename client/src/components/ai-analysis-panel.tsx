@@ -100,7 +100,7 @@ export function AIAnalysisPanel({ email, onCategoryUpdate }: AIAnalysisPanelProp
       } else {
         throw new Error('Analysis failed');
       }
-    } catch (error) {
+    } catch {
       toast({
         title: "Analysis Failed",
         description: "Unable to analyze email with AI",
@@ -150,7 +150,7 @@ export function AIAnalysisPanel({ email, onCategoryUpdate }: AIAnalysisPanelProp
       } else {
         throw new Error('Categorization failed');
       }
-    } catch (error) {
+    } catch {
       toast({
         title: "Categorization Failed",
         description: "Unable to apply AI categorization",
@@ -183,7 +183,7 @@ export function AIAnalysisPanel({ email, onCategoryUpdate }: AIAnalysisPanelProp
           description: "Thank you for helping improve AI accuracy",
         });
       }
-    } catch (error) {
+    } catch {
       toast({
         title: "Feedback Failed",
         description: "Unable to record feedback",
