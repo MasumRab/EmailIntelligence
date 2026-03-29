@@ -1,19 +1,11 @@
-import configparser
-configparser.SafeConfigParser = configparser.ConfigParser
-
+<<<<<<< HEAD
 import argparse
 import logging
 
 import gradio as gr
 import uvicorn
-import psutil
-import platform
-from datetime import datetime
-import requests
-from fastapi import FastAPI, HTTPException, Request
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse, RedirectResponse
-from pydantic import ValidationError
+from fastapi import FastAPI
+from fastapi.responses import RedirectResponse
 from .core.module_manager import ModuleManager
 from .core.middleware import create_security_middleware, create_security_headers_middleware
 from .core.audit_logger import audit_logger, AuditEventType, AuditSeverity
@@ -27,6 +19,8 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
+<<<<<<< HEAD
+=======
 def create_system_status_tab():
     """Create the System Status tab with monitoring and diagnostics."""
 
@@ -550,6 +544,7 @@ def create_gmail_integration_tab():
             connection_test_result.value = test_gmail_connection()
 
 
+>>>>>>> scientific
 def create_app():
     """
     Creates and configures the main FastAPI application and Gradio UI.
@@ -561,6 +556,8 @@ def create_app():
         version="3.0.0",
     )
 
+<<<<<<< HEAD
+=======
     # Add CORS middleware
     app.add_middleware(
         CORSMiddleware,
@@ -608,6 +605,7 @@ def create_app():
             content={"detail": "Internal server error", "message": "An unexpected error occurred"},
         )
 
+>>>>>>> scientific
     @app.get("/")
     async def root():
         """Redirect root to Gradio UI."""
@@ -624,15 +622,6 @@ def create_app():
 
             with gr.TabItem("Visual Editor (B)"):
                 gr.Markdown("## Visual & Node-Based UI\nThis is the placeholder for the powerful, node-based workflow editor.")
-
-            with gr.TabItem("System Status"):
-                create_system_status_tab()
-
-            with gr.TabItem("AI Lab"):
-                create_ai_lab_tab()
-
-            with gr.TabItem("Gmail Integration"):
-                create_gmail_integration_tab()
 
             with gr.TabItem("Admin Dashboard (C)"):
                 gr.Markdown("## Power-User Dashboard\nThis is the placeholder for the admin and power-user dashboard for managing models, users, and system performance.")
@@ -711,3 +700,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+=======
+>>>>>>> origin/main

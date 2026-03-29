@@ -27,6 +27,8 @@ from typing import List
 
 # Add project root to sys.path for imports
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+<<<<<<< HEAD
+<<<<<<< HEAD
 
 # Import project configuration
 from setup.project_config import get_project_config
@@ -339,7 +341,7 @@ def _handle_legacy_args(args) -> int:
     if args.setup:
         venv_path = ROOT_DIR / VENV_DIR
         handle_setup(args, venv_path)
-        return 0
+        return
 
     # Handle Conda environment if requested
     from setup.environment import is_conda_available, get_conda_env_info, activate_conda_env

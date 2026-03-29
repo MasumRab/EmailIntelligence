@@ -67,9 +67,11 @@ config/llm_guidelines.local.json
 # Ignore hidden files and directories, with exceptions
 .*
 !docs/.gitkeep
+!docs/.branch-config.json
+!docs/.review-queue.json
+!docs/.merge-history.json
 !.semgrep/
 !.gitignore
-!.git/hooks/
 
 # Python cache
 __pycache__/
@@ -79,26 +81,11 @@ diagnosis_message.txt
 performance_metrics_log.jsonl
 config/llm_guidelines.local.json
 models/*.pkl
-worktrees/
 
-# Logs
-logs
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-dev-debug.log
-# Dependency directories
-# Environment variables
-# Editor directories and files
-.idea
-.vscode
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
-# OS specific
+# Agent scratchpad and temporary files
+jules-scratch/
+app_output.log
+isolated_ui.log
 
 # Task files
 # tasks.json

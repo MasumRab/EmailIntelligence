@@ -57,15 +57,15 @@ This document outlines a comprehensive plan to consolidate three competing workf
 ```python
 # Basic → Node Engine
 from src.core.workflow_engine import Node, Workflow, WorkflowRunner
-→ from backend.node_engine.workflow_engine import Node, Workflow, WorkflowRunner
+→ from src.backend.node_engine.workflow_engine import Node, Workflow, WorkflowRunner
 
 # Python Backend → Node Engine Manager
-from backend.python_backend.workflow_engine import WorkflowEngine, DefaultWorkflow, FileBasedWorkflow
-→ from backend.node_engine.workflow_manager import WorkflowManager
+from src.backend.python_backend.workflow_engine import WorkflowEngine, DefaultWorkflow, FileBasedWorkflow
+→ from src.backend.node_engine.workflow_manager import WorkflowManager
 
 # Advanced Core → Node Engine
 from src.core.advanced_workflow_engine import WorkflowManager as AdvancedWorkflowManager
-→ from backend.node_engine.workflow_manager import WorkflowManager
+→ from src.backend.node_engine.workflow_manager import WorkflowManager
 ```
 
 **Files Requiring Updates (26+ files):**

@@ -7,7 +7,11 @@ This directory contains comprehensive documentation for the EmailIntelligence pr
 ### 📖 [guides/](guides/)
 User guides, tutorials, and feature documentation
 - Getting started guides
+<<<<<<< HEAD
+- Feature documentation
+=======
 - Feature documentation  
+>>>>>>> scientific
 - Module documentation
 - Workflow guides
 

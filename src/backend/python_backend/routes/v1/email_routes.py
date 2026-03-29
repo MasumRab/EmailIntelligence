@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 """
 DEPRECATED: This module is part of the deprecated `backend` package.
 It will be removed in a future release.
@@ -163,3 +164,5 @@ async def update_email_v1(
     else:
         # Raise appropriate exception if not found
         raise EmailNotFoundException(email_id=email_id)
+=======
+>>>>>>> origin/main

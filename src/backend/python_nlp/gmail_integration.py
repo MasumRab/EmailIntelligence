@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 """
 Integrates with the Gmail API for efficient and robust email data retrieval.
 
@@ -41,8 +42,8 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_CACHE_PATH = PROJECT_ROOT / "email_cache.db"
 
 # Path for token.json, configurable via environment variable
-TOKEN_JSON_PATH = os.getenv("GMAIL_TOKEN_PATH", "jsons/token.json")
-CREDENTIALS_PATH = "jsons/credentials.json"
+TOKEN_JSON_PATH = os.getenv("GMAIL_TOKEN_PATH", "token.json")
+CREDENTIALS_PATH = "credentials.json"
 GMAIL_CREDENTIALS_ENV_VAR = "GMAIL_CREDENTIALS_JSON"
 
 
@@ -523,9 +524,10 @@ class GmailDataCollector:
 
     def _extract_email_address(self, sender_header: str) -> str:
         """Extracts the email address from a 'From' header string."""
-        if match := re.search(r"<([^>]+)>", sender_header):
-            return match.group(1)
-        return sender_header
+        from email.utils import parseaddr
+        # Use parseaddr to robustly extract the email address from the header
+        name, email_addr = parseaddr(sender_header)
+        return email_addr if email_addr else sender_header
 
     async def _simulate_email_content(self, message_id: str) -> Dict[str, Any]:
         """Simulates email content for development and testing."""
@@ -614,3 +616,5 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
+=======
+>>>>>>> origin/main

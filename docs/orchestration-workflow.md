@@ -94,17 +94,22 @@ setup/
 
 ## File Ownership Matrix
 
-### Files ONLY in `orchestration-tools` branch:
-- `scripts/` - All orchestration scripts and utilities
-- `scripts/lib/` - Shared utility libraries
-- `scripts/hooks/` - Hook source files
+### Files ONLY in `orchestration-tools` branch (Core Orchestration Files):
+- `scripts/` - All orchestration scripts, utilities, and hooks
+- `scripts/lib/` - Shared utility libraries (common.sh, error_handling.sh, etc.)
+- `scripts/hooks/` - Git hook source files
 - `scripts/install-hooks.sh` - Hook installation script
+- `scripts/cleanup*.sh` - Cleanup utilities
+- `scripts/sync_setup_worktrees.sh` - Worktree synchronization
+- `scripts/reverse_sync_orchestration.sh` - Reverse sync utilities
+- `scripts/architectural_rule_engine.py` - Code architecture validation
 
 ### Files synced TO other branches (orchestration-managed):
 - `setup/` - Launch scripts and environment setup (command pattern architecture)
 - `docs/orchestration-workflow.md` - This documentation
 - `.flake8`, `.pylintrc` - Python linting configuration
 - `.gitignore`, `.gitattributes` - Git configuration
+- `launch.py` - Main application launcher
 
 #### Setup Directory Structure (Orchestration-Managed):
 ```
