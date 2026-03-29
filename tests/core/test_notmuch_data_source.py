@@ -9,6 +9,8 @@ import pytest
 from unittest.mock import patch, MagicMock, AsyncMock
 from typing import Dict, List, Any, Optional
 
+notmuch = pytest.importorskip("notmuch")
+
 from src.core.notmuch_data_source import NotmuchDataSource
 
 

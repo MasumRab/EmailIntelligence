@@ -375,7 +375,7 @@ module = MainClass(config)
 - **Term2:** Another important definition
 
 ### References
-- [API Documentation](../API_REFERENCE.md)
+- [API Documentation](../api/API_REFERENCE.md)
 - [Architecture Overview](../architecture_overview.md)
 - [Security Guidelines](../security_guidelines.md)
 

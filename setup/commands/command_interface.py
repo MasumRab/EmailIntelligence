@@ -1,59 +1,62 @@
 """
-Command interface definition.
+Command Interface for SOLID launch system.
 
-This module defines the base Command interface that all commands should implement.
+This module defines the Command interface following the Command design pattern.
+All launch commands must implement this interface.
 """
 
 from abc import ABC, abstractmethod
+from typing import Any, Dict, Optional
 from argparse import Namespace
-from typing import Optional
 
 
 class Command(ABC):
     """
-    Abstract base class for commands.
-    
-    All commands should inherit from this class and implement the required methods.
+    Abstract base class for all launch commands.
+
+    This interface defines the contract that all commands must follow,
+    enabling polymorphic command execution and proper dependency injection.
     """
 
-    def __init__(self, args: Namespace = None):
+    def __init__(self, args: Namespace, container: 'ServiceContainer'):
         """
-        Initialize the command with arguments.
-        
+        Initialize command with arguments and service container.
+
         Args:
-            args: Parsed command-line arguments
+            args: Parsed command line arguments
+            container: Service container for dependency injection
         """
         self.args = args
-
-    @abstractmethod
-    def get_description(self) -> str:
-        """
-        Get the command description.
-        
-        Returns:
-            Command description
-        """
-        pass
-
-    @abstractmethod
-    def validate_args(self) -> bool:
-        """
-        Validate command arguments.
-        
-        Returns:
-            True if arguments are valid, False otherwise
-        """
-        pass
+        self.container = container
 
     @abstractmethod
     def execute(self) -> int:
         """
         Execute the command.
-        
+
         Returns:
-            Exit code (0 for success, non-zero for failure)
+            int: Exit code (0 for success, non-zero for failure)
         """
         pass
+
+    @abstractmethod
+    def get_description(self) -> str:
+        """
+        Get human-readable description of the command.
+
+        Returns:
+            str: Command description
+        """
+        pass
+
+    def validate_args(self) -> bool:
+        """
+        Validate command arguments.
+
+        Returns:
+            bool: True if arguments are valid
+        """
+        return True
 
     def cleanup(self) -> None:
         """

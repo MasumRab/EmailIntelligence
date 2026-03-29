@@ -28,17 +28,17 @@
 ├── data/                       # Application data
 ├── deployment/                 # Deployment configurations
 ├── docs/                       # Documentation
-│   ├── advanced_workflow_system.md # Comprehensive workflow system documentation
+│   ├── architecture/advanced_workflow_system.md # Comprehensive workflow system documentation
 │   ├── client_development.md
 │   ├── deployment_guide.md
 │   ├── env_management.md
 │   ├── extensions_guide.md
-│   ├── launcher_guide.md
+│   ├── deployment/launcher_guide.md
 │   ├── node_architecture.md
 │   ├── project_documentation_guide.md
 │   ├── python_style_guide.md
 │   ├── server_development.md
-│   └── workflow_system_analysis.md
+│   └── architecture/workflow_system_analysis.md
 ├── models/                     # ML models
 ├── modules/                    # Modular extensions
 │   ├── categories/             # Category management module

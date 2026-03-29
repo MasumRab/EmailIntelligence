@@ -46,6 +46,8 @@ Project management and planning documentation
 - Documentation workflow
 - Task tracking
 - Project reports
+- Recovery logs
+- Progress reports
 
 ### 📝 [adr/](adr/)
 Architecture Decision Records

@@ -117,7 +117,7 @@ The migration will be executed in phases, focusing on core components first:
     *   [task-8 - Security & Performance Hardening - Enhance security validation, audit logging, rate limiting, and performance monitoring](backlog/tasks/task-8 - Security-and-Performance-Hardening-Enhance-security-validation-audit-logging-rate-limiting-and-performance-monitoring.md)
     *   [task-11 - Testing & Documentation Completion - Achieve 95%+ test coverage and complete comprehensive documentation](backlog/tasks/task-11 - Testing-and-Documentation-Completion-Achieve-95-test-coverage-and-complete-comprehensive-documentation.md)
 *   **Relevant Documentation:**
-    *   [Architecture Overview](docs/architecture_overview.md)
-    *   [Advanced Workflow System](docs/advanced_workflow_system.md)
-    *   [Project Structure Comparison](docs/project_structure_comparison.md)
-    *   [Extensions Guide](docs/extensions_guide.md)
+    *   [Architecture Overview](docs/architecture/architecture_overview.md)
+    *   [Advanced Workflow System](docs/architecture/advanced_workflow_system.md)
+    *   [Project Structure Comparison](docs/guides/project_structure_comparison.md)
+    *   [Extensions Guide](docs/development/extensions_guide.md)

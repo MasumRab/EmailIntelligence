@@ -23,8 +23,8 @@ This project follows a code of conduct to ensure a welcoming environment for all
 
 ## Getting Started
 
-1. **Set up your development environment** following the [Getting Started Guide](docs/getting_started.md)
-2. **Familiarize yourself with the codebase** by reading the [Architecture Overview](docs/architecture_overview.md)
+1. **Set up your development environment** following the [Getting Started Guide](guides/getting_started.md)
+2. **Familiarize yourself with the codebase** by reading the [Architecture Overview](architecture/architecture_overview.md)
 3. **Check existing issues** in the backlog to find tasks to work on
 4. **Join our community** discussions for questions and collaboration
 

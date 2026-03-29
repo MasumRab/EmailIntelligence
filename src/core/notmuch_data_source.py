@@ -129,17 +129,67 @@ class NotmuchDataSource(DataSource):
             logger.error("Notmuch database not available")
             return None
 
-        try:
-            # In a real implementation, this would query Notmuch for the email
-            # For now, we'll return a mock result
-            return {
-                "id": email_id,
-                "message_id": "test_message_id",
-                "subject": "Test Email",
-                "sender": "test@example.com",
-                "content": "Test email content",
-                "time": datetime.now(timezone.utc).isoformat()
-            }
+        query = self.db.create_query(f"id:{message_id}")
+        messages = query.search_messages()
+
+            if not messages:
+                return None
+
+            message = messages[0]
+            
+            # Load the full message from the file to extract content parts
+            filename = message.get_filename()
+            
+            try:
+                # Parse email content from file
+                with open(filename, 'r', encoding='utf-8', errors='ignore') as f:
+                    email_message = email.message_from_file(f)
+                
+                email_data = {
+                    "id": message.get_message_id(),
+                    "message_id": message.get_message_id(),
+                    "subject": message.get_header("subject") or email_message.get("Subject", ""),
+                    "sender": message.get_header("from") or email_message.get("From", ""),
+                    "recipients": message.get_header("to") or email_message.get("To", ""),
+                    "date": message.get_date(),
+                    "tags": list(message.get_tags()),
+                }
+
+                if include_content:
+                    content = ""
+                    if email_message.is_multipart():
+                        for part in email_message.walk():
+                            if part.get_content_type() == "text/plain":
+                                payload = part.get_payload(decode=True)
+                                if payload:
+                                    content = payload.decode('utf-8', errors='ignore')
+                                    break
+                            elif part.get_content_type() == "text/html":
+                                # If no plain text, use HTML content as fallback
+                                if not content:
+                                    payload = part.get_payload(decode=True)
+                                    if payload:
+                                        content = payload.decode('utf-8', errors='ignore')
+                    else:
+                        payload = email_message.get_payload(decode=True)
+                        if payload:
+                            content = payload.decode('utf-8', errors='ignore')
+                    
+                    email_data["body"] = content
+                    
+                return email_data
+            except Exception as e:
+                logger.error(f"Error processing email {message_id}: {e}")
+                return {
+                    "id": message.get_message_id(),
+                    "message_id": message.get_message_id(),
+                    "subject": message.get_header("subject"),
+                    "sender": message.get_header("from"),
+                    "date": message.get_date(),
+                    "tags": list(message.get_tags()),
+                    "body": f"Error decoding content: {e}"
+                }
+
         except Exception as e:
             logger.error(f"Error retrieving email from Notmuch: {e}")
             return None

@@ -131,11 +131,6 @@ class ErrorHandlingMiddleware(BaseHTTPMiddleware):
                 headers={"X-Request-ID": request_id},
             )
 
-
-# Configure logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
-
 # Initialize FastAPI app with settings
 app = FastAPI(
     title=settings.app_name,
