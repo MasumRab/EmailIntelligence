@@ -1,7 +1,4 @@
 """
-DEPRECATED: This module is part of the deprecated `backend` package.
-CURRENT STATE (2026-03-28): Import errors, broken paths - non-functional
-It will be removed in a future release.
 
 Database management for Gmail AI email processing
 JSON file storage implementation.

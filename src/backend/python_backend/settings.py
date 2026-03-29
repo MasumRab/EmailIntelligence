@@ -1,6 +1,4 @@
 """
-DEPRECATED: This module is part of the deprecated `backend` package.
-It will be removed in a future release.
 
 Configuration management for the Email Intelligence Platform
 Using Pydantic Settings for environment-based configuration
@@ -31,7 +29,7 @@ class Settings(BaseSettings):
     api_docs_enabled: bool = True
 
     # Security settings
-    secret_key: str = Field(default=..., env="SECRET_KEY")  # Required - must be set in environment
+    secret_key: str = Field(default="dev-secret-key-change-in-production", env="SECRET_KEY")  # Required - must be set in environment
     algorithm: str = "HS256"
     access_token_expire_minutes: int = 30
 

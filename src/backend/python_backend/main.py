@@ -1,8 +1,5 @@
 """
-DEPRECATED: This module is part of the deprecated `backend` package.
-It will be removed in a future release.
 
-CURRENT STATE (2026-03-28):
 - Has broken imports: uses `from backend.` instead of `from src.backend.`
 - Import fails due to circular import issues and path problems
 - Use src/core/ modules instead for new development

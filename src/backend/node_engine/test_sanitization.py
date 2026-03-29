@@ -1,6 +1,4 @@
 """
-DEPRECATED: This module is part of the deprecated `backend` package.
-It will be removed in a future release.
 
 Test for the updated InputSanitizer with proper HTML sanitization.
 """
@@ -19,7 +17,7 @@ sys.path.insert(0, str(project_root))
 def test_input_sanitizer():
     """Test the updated InputSanitizer class."""
     try:
-        from backend.node_engine.security_manager import InputSanitizer
+        from src.backend.node_engine.security_manager import InputSanitizer
 
         print("Testing InputSanitizer with various inputs...")
 

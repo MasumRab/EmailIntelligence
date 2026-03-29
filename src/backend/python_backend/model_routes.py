@@ -24,8 +24,6 @@ async def list_models(
     """Lists all discovered models and their current status.
     Requires authentication."""
 
-    Requires authentication.
-    """
     return model_manager.list_models()
 
 
@@ -37,9 +35,6 @@ async def load_model(
 ):
     """Loads a specific model into memory.
     Requires authentication."""
-
-    Requires authentication.
-    """
     try:
         model_manager.load_model(model_name)
         return {"message": f"Model '{model_name}' loaded successfully."}
@@ -61,9 +56,6 @@ async def unload_model(
 ):
     """Unloads a specific model from memory.
     Requires authentication."""
-
-    Requires authentication.
-    """
     try:
         model_manager.unload_model(model_name)
         return {"message": f"Model '{model_name}' unloaded successfully."}

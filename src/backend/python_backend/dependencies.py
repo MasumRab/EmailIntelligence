@@ -1,7 +1,4 @@
 """
-DEPRECATED: This module is part of the deprecated `backend` package.
-CURRENT STATE (2026-03-28): Import errors, broken paths - non-functional
-It will be removed in a future release.
 
 Dependency injection system for the Email Intelligence Platform
 Manages service dependencies and provides them to route handlers
@@ -12,23 +9,23 @@ import logging
 from typing import TYPE_CHECKING, Optional
 from fastapi import Depends
 # Updated to use the new src architecture where available
-from backend.python_backend.services.email_service import EmailService
-from backend.python_backend.services.category_service import CategoryService
-from backend.python_backend.database import get_db, DatabaseManager
+from src.backend.python_backend.services.email_service import EmailService
+from src.backend.python_backend.services.category_service import CategoryService
+from src.backend.python_backend.database import get_db, DatabaseManager
 from .model_manager import ModelManager
 from .ai_engine import AdvancedAIEngine
 from .smart_filters import SmartFilterManager
 from .workflow_engine import WorkflowEngine
-from src.plugins.plugin_manager import PluginManager
-from .gmail_service import GmailAIService
+from src.backend.plugins.plugin_manager import PluginManager
+from src.backend.python_nlp.gmail_service import GmailAIService
 
 if TYPE_CHECKING:
     from .model_manager import ModelManager
     from .ai_engine import AdvancedAIEngine
     from .smart_filters import SmartFilterManager
     from .workflow_engine import WorkflowEngine
-    from src.plugins.plugin_manager import PluginManager
-    from .gmail_service import GmailAIService
+    from src.backend.plugins.plugin_manager import PluginManager
+    from src.backend.python_nlp.gmail_service import GmailAIService
 
 logger = logging.getLogger(__name__)
 

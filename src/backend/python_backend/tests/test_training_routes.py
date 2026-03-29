@@ -6,7 +6,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from backend.python_backend.training_routes import run_training
+from src.backend.python_backend.training_routes import run_training
 
 
 def test_start_training(client):
@@ -58,7 +58,7 @@ def test_get_training_status_not_found(client):
 @pytest.mark.asyncio
 async def test_run_training():
     """Test the background training function."""
-    from backend.python_nlp.ai_training import ModelConfig
+    from src.backend.python_nlp.ai_training import ModelConfig
 
     config = ModelConfig(
         model_name="test",

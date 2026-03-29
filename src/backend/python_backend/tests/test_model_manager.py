@@ -4,7 +4,7 @@ from unittest.mock import MagicMock, call, mock_open, patch
 
 import pytest
 
-from backend.python_backend.model_manager import ModelManager
+from src.backend.python_backend.model_manager import ModelManager
 
 
 @pytest.fixture
