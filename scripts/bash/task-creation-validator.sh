@@ -44,8 +44,8 @@ print_section() {
 }
 
 print_result() {
-    status=$1
-    message=$2
+    local status=$1
+    local message=$2
     
     if [ "$status" = "pass" ]; then
         echo -e "${GREEN}✓${NC} $message"
@@ -92,7 +92,7 @@ check_files_exist() {
     print_result "pass" "Task database found: .taskmaster/tasks/tasks.json"
     
     if [ -d "$TASKS_DIR" ]; then
-        count=$(find "$TASKS_DIR" -name "*.md" 2>/dev/null | wc -l)
+        local count=$(find "$TASKS_DIR" -name "*.md" 2>/dev/null | wc -l)
         print_result "pass" "Task markdown files found: $count files"
     fi
 }
@@ -101,7 +101,7 @@ search_task_database() {
     print_section "Searching Task Database"
     
     # Extract first few words from task title for search
-    search_term=$(echo "$TASK_TITLE" | awk '{print $1}' | tr '[:upper:]' '[:lower:]')
+    local search_term=$(echo "$TASK_TITLE" | awk '{print $1}' | tr '[:upper:]' '[:lower:]')
     
     echo "Searching for tasks related to: '$search_term'"
     echo ""
@@ -141,7 +141,7 @@ PYTHON_EOF
 search_markdown_files() {
     print_section "Searching Markdown Files"
     
-    search_term=$(echo "$TASK_TITLE" | awk '{print tolower($1)}')
+    local search_term=$(echo "$TASK_TITLE" | awk '{print tolower($1)}')
     
     echo "Searching .taskmaster/tasks/ for markdown files..."
     if [ -d "$TASKS_DIR" ]; then
@@ -192,7 +192,7 @@ search_specs() {
 search_root_markdown() {
     print_section "Searching Root-Level Markdown"
     
-    search_term=$(echo "$TASK_TITLE" | awk '{print tolower($1)}')
+    local search_term=$(echo "$TASK_TITLE" | awk '{print tolower($1)}')
     matches=$(grep -ri "$search_term" "$REPO_ROOT" --include="*.md" \
                    --exclude-dir=.taskmaster --exclude-dir=backlog \
                    --exclude-dir=specs --exclude-dir=.git --exclude-dir=node_modules \

@@ -65,7 +65,7 @@ main() {
 
     # Disable each hook
     for hook in "${HOOKS[@]}"; do
-        local hook_path="$HOOKS_DIR/$hook"
+        hook_path="$HOOKS_DIR/$hook"
         local disabled_path="$DISABLED_HOOKS_DIR/$hook"
 
         if [[ -f "$hook_path" ]]; then
