@@ -137,7 +137,7 @@ show_todo_item() {
     local item_id="$1"
     
     if [[ -z "$item_id" ]]; then
-        print_color "RED" "Error: Item ID required"
+        printf "${RED}Error: Item ID required${NC}\n"
         return 1
     fi
     
@@ -173,7 +173,7 @@ resolve_todo_item() {
     local item_id="$1"
     
     if [[ -z "$item_id" ]]; then
-        print_color "RED" "Error: Item ID required"
+        printf "${RED}Error: Item ID required${NC}\n"
         return 1
     fi
     
@@ -312,7 +312,7 @@ skip_todo_item() {
     local item_id="$1"
     
     if [[ -z "$item_id" ]]; then
-        print_color "RED" "Error: Item ID required"
+        printf "${RED}Error: Item ID required${NC}\n"
         return 1
     fi
     
@@ -344,7 +344,7 @@ remove_todo_item() {
     local item_id="$1"
     
     if [[ -z "$item_id" ]]; then
-        print_color "RED" "Error: Item ID required"
+        printf "${RED}Error: Item ID required${NC}\n"
         return 1
     fi
     

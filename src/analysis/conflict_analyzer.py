@@ -99,17 +99,13 @@ class ConflictAnalyzer:
             report_lines.append(f"- {severity}: {count}")
         
         if analysis['critical_files']:
-            report_lines.extend([
-                "",
-                f"## Critical Files",
-            ])
+            report_lines.append("")
+            report_lines.append("## Critical Files")
             for file_path in analysis['critical_files']:
                 report_lines.append(f"- {file_path}")
         
-        report_lines.extend([
-            "",
-            f"## Resolution Strategies",
-        ])
+        report_lines.append("")
+        report_lines.append("## Resolution Strategies")
         
         for file_path, strategy in analysis['resolution_strategies'].items():
             report_lines.append(f"- {file_path}: {strategy}")

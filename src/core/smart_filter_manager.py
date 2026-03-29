@@ -735,13 +735,10 @@ class SmartFilterManager:
             self.logger.error(f"Background task failed: {e}")
 
     async def _invalidate_filter_cache(self, filter_ids: List[str]) -> None:
-        try:
-            await self.caching_manager.delete("active_filters_sorted")
-            for filter_id in filter_ids:
-                cache_key = f"filter_{filter_id}"
-                await self.caching_manager.delete(cache_key)
-        except Exception as e:
-            self.logger.error(f"Failed to invalidate cache: {e}")
+        await self.caching_manager.delete("active_filters_sorted")
+        for filter_id in filter_ids:
+            cache_key = f"filter_{filter_id}"
+            await self.caching_manager.delete(cache_key)
 
     async def _batch_update_filter_usage(self, filter_ids: List[str]):
         """Updates the usage statistics for multiple filters in a batch."""

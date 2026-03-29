@@ -560,6 +560,41 @@ class WorkflowRunner:
             self.execution_stats["node_execution_times"][node_id] = execution_time
             raise
 
+
+    def _build_node_context(self, node_id: str) -> Dict[str, Any]:
+        """
+        Build the input context for a specific node based on its connections
+        and the global execution context.
+        """
+        node_context = {}
+
+        # Base context is the global execution context
+        for key, value in self.execution_context.items():
+            node_context[key] = value
+
+        # Add specific inputs from connections
+        for conn in self.workflow.connections:
+            if conn["to"]["node_id"] == node_id:
+                source_node = conn["from"]["node_id"]
+                source_output = conn["from"].get("output")
+                target_input = conn["to"].get("input")
+
+                # If we have results from the source node
+                if source_node in self.node_results:
+                    source_result = self.node_results[source_node]
+
+                    # If specific output field is requested
+                    if source_output and isinstance(source_result, dict) and source_output in source_result:
+                        if target_input:
+                            node_context[target_input] = source_result[source_output]
+                        else:
+                            node_context[source_output] = source_result[source_output]
+                    # Otherwise pass the whole result
+                    elif target_input:
+                        node_context[target_input] = source_result
+
+        return node_context
+
     def _calculate_node_dependencies(self) -> Dict[str, List[str]]:
         """Calculate which nodes each node depends on"""
         dependencies = {node_id: [] for node_id in self.workflow.nodes}

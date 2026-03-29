@@ -119,7 +119,7 @@ class StandardValidator:
 
             # Step 3: Feature preservation analysis
             preservation_result = await self._analyze_feature_preservation(
-                conflict_data, resolution_strategy, specification_data
+                resolution_strategy
             )
 
             # Step 4: Calculate comprehensive scores
@@ -379,9 +379,7 @@ class StandardValidator:
 
     async def _analyze_feature_preservation(
         self,
-        conflict_data,
         resolution_strategy: ResolutionStrategy,
-        specification_data: Optional[Dict[str, Any]],
     ) -> Dict[str, Any]:
         """Analyze feature preservation in resolution strategy"""
 

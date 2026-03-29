@@ -51,7 +51,7 @@ def run_benchmark():
         start_time = time.time()
         check_old()
         duration_old = time.time() - start_time
-        current, peak_old = tracemalloc.get_traced_memory()
+        _, peak_old = tracemalloc.get_traced_memory()
         tracemalloc.stop()
 
         print(f"Old Implementation: Time = {duration_old:.4f}s, Peak Memory = {peak_old / 1024 / 1024:.2f} MB")
@@ -61,7 +61,7 @@ def run_benchmark():
         start_time = time.time()
         check_new()
         duration_new = time.time() - start_time
-        current, peak_new = tracemalloc.get_traced_memory()
+        _, peak_new = tracemalloc.get_traced_memory()
         tracemalloc.stop()
 
         print(f"New Implementation: Time = {duration_new:.4f}s, Peak Memory = {peak_new / 1024 / 1024:.2f} MB")

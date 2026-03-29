@@ -361,7 +361,7 @@ log_sync_action() {
     local timestamp
     timestamp=$(date -u +"%Y-%m-%d %H:%M:%S UTC")
     
-    echo "[$timestamp] $action" >> "$SYNC_LOG_FILE"
+    printf "[%s] %s\n" "$timestamp" "$action" >> "$SYNC_LOG_FILE"
 }
 
 get_branch_name() {

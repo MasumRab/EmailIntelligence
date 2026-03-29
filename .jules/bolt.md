@@ -13,3 +13,6 @@
 ## 2026-03-08 - [Optimize SmartFilterManager caching mechanism (Review 3 Feedback)]
 **Learning:** Hardcoding `asyncio.sleep(0.01)` inside tests to wait for a fire-and-forget task creates flakiness on slower CI systems. Unhandled exceptions in fire-and-forget tasks trigger `asyncio` "Task exception was never retrieved" warnings.
 **Action:** Removed the `sleep` from tests and instead await `asyncio.gather(*manager._background_tasks)` deterministically. Added a `try/except` block inside the task itself and wrapped `t.result()` in the `_on_task_done` callback to capture and log any potential cache invalidation exceptions securely, preventing terminal warnings.
+## 2026-03-08 - [Address Base Branch SonarCloud Debt]
+**Learning:** A "performance optimization" task can quickly expand in scope when the underlying base branch contains significant technical debt (like 13 Security Hotspots and 16% duplication). Attempting to ignore these issues when explicitly prompted to audit leads to friction.
+**Action:** When performing regression audits on broken base branches, proactively refactor the identified hotspots across all implicated files, even if they fall outside the strict scope of the initial commit, to ensure overall project health and satisfy CI constraints.
