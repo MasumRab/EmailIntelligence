@@ -245,12 +245,22 @@ class OptimizedPerformanceMonitor:
             )
         return self._aggregated_metrics.copy()
 
-    def get_recent_metrics(self, name: Optional[str] = None, limit: int = 100) -> List[PerformanceMetric]:
+    def get_recent_metrics(self, name: Optional[str] = None, limit: int = 100, minutes: Optional[int] = None, source_filter: Optional[str] = None) -> List[PerformanceMetric]:
         """Get recent raw metrics for a specific name."""
         with self._buffer_lock:
-            if name:
-                return [m for m in self._metrics_buffer if m.name == name][-limit:]
-            return list(self._metrics_buffer)[-limit:]
+            metrics = list(self._metrics_buffer)
+
+        if minutes is not None:
+            cutoff_time = time.time() - (minutes * 60)
+            metrics = [m for m in metrics if m.timestamp >= cutoff_time]
+
+        if source_filter is not None:
+            metrics = [m for m in metrics if source_filter in m.source]
+
+        if name:
+            metrics = [m for m in metrics if m.name == name]
+
+        return metrics[-limit:]
 
     def get_system_metrics(self) -> Dict[str, Any]:
         """Get current system metrics (compatibility method)"""
@@ -330,10 +340,14 @@ class OptimizedPerformanceMonitor:
         return f"event_{int(event.start_time)}"
 
     def complete_event(self, event_id: str, success: bool = True) -> None:
-        """Complete a processing event (stub for now as we don't index by ID)"""
-        # In a real implementation, we'd need to find the event by ID.
-        # Since ProcessingEvent objects are stored in a list, this would require search.
-        pass
+        """Complete a processing event"""
+        with self._buffer_lock:
+            # Find the event with the given ID
+            for event in self.processing_events:
+                if f"event_{int(event.start_time)}" == event_id:
+                    event.end_time = time.time()
+                    event.success = success
+                    break
 
     def get_model_performance(self, model_name: str, minutes: int = 5) -> List[PerformanceMetric]:
         """Get performance metrics for a specific model."""
