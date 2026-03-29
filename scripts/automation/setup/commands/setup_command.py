@@ -178,8 +178,8 @@ class SetupCommand(Command):
 
         try:
             # Use existing setup logic from environment.py
-            from setup.environment import handle_setup
-            from setup.project_config import get_project_config
+            from scripts.automation.setup.environment import handle_setup
+            from scripts.automation.setup.project_config import get_project_config
             import argparse
 
             # Create args object with defaults for setup
@@ -217,8 +217,8 @@ class SetupCommand(Command):
 
         try:
             # Check if venv exists and is functional
-            from setup.project_config import get_project_config
-            from setup.environment import get_venv_executable
+            from scripts.automation.setup.project_config import get_project_config
+            from scripts.automation.setup.environment import get_venv_executable
 
             venv_path = get_project_config().root_dir / "venv"
             python_exe = get_venv_executable(venv_path, "python")

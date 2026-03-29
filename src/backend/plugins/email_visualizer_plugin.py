@@ -11,7 +11,7 @@ from typing import Any, Dict, List
 
 import gradio as gr
 
-from backend.plugins.base_plugin import UIComponentPlugin
+from src.backend.plugins.base_plugin import UIComponentPlugin
 
 
 class EmailVisualizerPlugin(UIComponentPlugin):

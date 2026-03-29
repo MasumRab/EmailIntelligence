@@ -12,7 +12,7 @@ import sys
 from pathlib import Path
 from typing import Dict
 
-from setup.project_config import get_project_config
+from scripts.automation.setup.project_config import get_project_config
 from src.core.security import validate_path_safety
 
 logger = logging.getLogger(__name__)
@@ -113,7 +113,7 @@ def start_client():
         # Start the development server
         logger.info("Starting client development server...")
         process = subprocess.Popen(["npm", "run", "dev"], cwd=client_dir)
-        from setup.utils import process_manager
+        from scripts.automation.setup.utils import process_manager
         process_manager.add_process(process)
     except Exception as e:
         logger.error(f"Failed to start client: {e}")
@@ -142,7 +142,7 @@ def start_server_ts():
         # Start the server
         logger.info("Starting TypeScript backend server...")
         process = subprocess.Popen(["npm", "start"], cwd=server_dir)
-        from setup.utils import process_manager
+        from scripts.automation.setup.utils import process_manager
         process_manager.add_process(process)
     except Exception as e:
         logger.error(f"Failed to start TypeScript backend: {e}")
@@ -214,7 +214,7 @@ def start_node_service(service_path: Path, service_name: str, port: int, api_url
                     return
 
             process = subprocess.Popen(cmd, cwd=service_path, env=env)
-            from setup.utils import process_manager
+            from scripts.automation.setup.utils import process_manager
             process_manager.add_process(process)
         else:
             logger.error(f"No package.json found for {service_name}")
@@ -279,7 +279,7 @@ def start_gradio_ui(host, port, share, debug):
 
     try:
         process = subprocess.Popen(cmd, env=env, cwd=ROOT_DIR)
-        from setup.utils import process_manager
+        from scripts.automation.setup.utils import process_manager
         process_manager.add_process(process)
     except Exception as e:
         logger.error(f"Failed to start Gradio UI: {e}")
@@ -371,7 +371,7 @@ def start_services(args):
 
     try:
         process = subprocess.Popen(cmd, env=env, cwd=ROOT_DIR)
-        from setup.utils import process_manager
+        from scripts.automation.setup.utils import process_manager
         process_manager.add_process(process)
     except Exception as e:
         logger.error(f"Failed to start backend: {e}")
@@ -416,7 +416,7 @@ def start_node_service(service_path: Path, service_name: str, port: int, api_url
                     return
 
             process = subprocess.Popen(cmd, cwd=service_path, env=env)
-            from setup.utils import process_manager
+            from scripts.automation.setup.utils import process_manager
             process_manager.add_process(process)
         else:
             logger.error(f"No package.json found for {service_name}")

@@ -19,7 +19,7 @@ from src.backend.python_nlp.smart_filters import EmailFilter, SmartFilterManager
 
 from .ai_engine import AdvancedAIEngine, AIAnalysisResult
 from .database import DatabaseManager, get_db
-from .models import (
+from src.core.models import (
     ActivityCreate,
     ActivityResponse,
     AIAnalysisResponse,
@@ -58,3 +58,4 @@ __all__ = [
     "SmartFilterManager",
     "EmailFilter",
 ]
+from src.core import models

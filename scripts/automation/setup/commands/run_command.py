@@ -51,8 +51,8 @@ class RunCommand(Command):
             int: Exit code (0 for success, non-zero for failure)
         """
         try:
-            from setup.services import start_services, validate_services
-            from setup.launch import prepare_environment
+            from scripts.automation.setup.services import start_services, validate_services
+            from scripts.automation.setup.launch import prepare_environment
             
             logger.info("Starting EmailIntelligence application...")
             

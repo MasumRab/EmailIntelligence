@@ -40,7 +40,7 @@ class TestCommand(Command):
             int: Exit code (0 for success, non-zero for failure)
         """
         try:
-            from setup.test_stages import handle_test_stage
+            from scripts.automation.setup.test_stages import handle_test_stage
             
             logger.info("Running tests...")
             

@@ -3,8 +3,8 @@ from unittest.mock import patch, call
 from io import StringIO
 import sys
 
-from setup.commands.guide_dev_command import GuideDevCommand
-from setup.commands.guide_pr_command import GuidePrCommand
+from scripts.automation.setup.commands.guide_dev_command import GuideDevCommand
+from scripts.automation.setup.commands.guide_pr_command import GuidePrCommand
 
 class TestCliGuides(unittest.TestCase):
     """

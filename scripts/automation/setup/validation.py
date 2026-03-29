@@ -9,7 +9,7 @@ import logging
 import sys
 from pathlib import Path
 
-from setup.project_config import get_project_config
+from scripts.automation.setup.project_config import get_project_config
 
 logger = logging.getLogger(__name__)
 

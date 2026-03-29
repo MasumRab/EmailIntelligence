@@ -29,20 +29,20 @@ Features:
 """
 
 # Import launch system modules
-from setup.validation import (
+from scripts.automation.setup.validation import (
     check_python_version, check_for_merge_conflicts, check_required_components,
     validate_environment, validate_port, validate_host
 )
-from setup.services import (
+from scripts.automation.setup.services import (
     start_services, start_backend, start_node_service, start_gradio_ui, validate_services
 )
-from setup.environment import (
+from scripts.automation.setup.environment import (
     handle_setup, prepare_environment, setup_wsl_environment, check_wsl_requirements
 )
-from setup.utils import print_system_info, process_manager
+from scripts.automation.setup.utils import print_system_info, process_manager
 
 # Import test stages
-from setup.test_stages import test_stages
+from scripts.automation.setup.test_stages import test_stages
 
 # Standard library imports
 import argparse
@@ -73,12 +73,12 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from deployment.test_stages import test_stages
 =======
 # Import project configuration
-from setup.project_config import get_project_config
+from scripts.automation.setup.project_config import get_project_config
 
 # Import command pattern components (with error handling for refactors)
 try:
-    from setup.commands.command_factory import get_command_factory
-    from setup.container import get_container, initialize_all_services
+    from scripts.automation.setup.commands.command_factory import get_command_factory
+    from scripts.automation.setup.container import get_container, initialize_all_services
 except ImportError as e:
     # Command pattern not available, will use legacy mode
     get_command_factory = None
@@ -161,7 +161,7 @@ atexit.register(process_manager.cleanup)
 ROOT_DIR = get_project_config().root_dir
 
 # Import process manager from utils
-from setup.utils import process_manager
+from scripts.automation.setup.utils import process_manager
 >>>>>>> a7da61cf1f697de3c8c81f536bf579d36d88e613
 
 # --- Constants ---
@@ -291,7 +291,7 @@ def check_for_merge_conflicts() -> bool:
     logger.info("No unresolved merge conflicts detected in critical files.")
     return True
 =======
-# check_for_merge_conflicts is imported from setup.validation
+# check_for_merge_conflicts is imported from scripts.automation.setup.validation
 >>>>>>> a7da61cf1f697de3c8c81f536bf579d36d88e613
 
 
@@ -1467,7 +1467,7 @@ def _handle_legacy_args(args) -> int:
     # Setup WSL environment if applicable (early setup)
 <<<<<<< HEAD
 =======
-    from setup.environment import setup_wsl_environment, check_wsl_requirements
+    from scripts.automation.setup.environment import setup_wsl_environment, check_wsl_requirements
 >>>>>>> a7da61cf1f697de3c8c81f536bf579d36d88e613
     setup_wsl_environment()
     check_wsl_requirements()
@@ -1533,7 +1533,7 @@ def _handle_legacy_args(args) -> int:
     # Handle Conda environment if requested
 <<<<<<< HEAD
 =======
-    from setup.environment import is_conda_available, get_conda_env_info, activate_conda_env
+    from scripts.automation.setup.environment import is_conda_available, get_conda_env_info, activate_conda_env
 >>>>>>> a7da61cf1f697de3c8c81f536bf579d36d88e613
     if args.use_conda:
         if not is_conda_available():
@@ -1560,7 +1560,7 @@ def _handle_legacy_args(args) -> int:
     if hasattr(args, "stage") and args.stage == "test":
 <<<<<<< HEAD
 =======
-        from setup.test_stages import handle_test_stage
+        from scripts.automation.setup.test_stages import handle_test_stage
 >>>>>>> a7da61cf1f697de3c8c81f536bf579d36d88e613
         handle_test_stage(args)
         return 0
@@ -1573,7 +1573,7 @@ def _handle_legacy_args(args) -> int:
     ):
 <<<<<<< HEAD
 =======
-        from setup.test_stages import handle_test_stage
+        from scripts.automation.setup.test_stages import handle_test_stage
 >>>>>>> a7da61cf1f697de3c8c81f536bf579d36d88e613
         handle_test_stage(args)
         return 0

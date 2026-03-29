@@ -20,7 +20,7 @@ import venv
 from pathlib import Path
 from typing import List
 
-from setup.project_config import get_project_config
+from scripts.automation.setup.project_config import get_project_config
 
 logger = logging.getLogger(__name__)
 
@@ -350,17 +350,17 @@ def handle_setup(args, venv_path):
         # Setup frontend dependencies
         frontend_path = config.get_service_path("frontend")
         if frontend_path and frontend_path.exists():
-            from setup.services import setup_node_dependencies
+            from scripts.automation.setup.services import setup_node_dependencies
             setup_node_dependencies(frontend_path, "Frontend Client")
 
         # Setup TypeScript backend dependencies
         ts_backend_path = config.get_service_path("typescript_backend")
         if ts_backend_path and ts_backend_path.exists():
-            from setup.services import setup_node_dependencies
+            from scripts.automation.setup.services import setup_node_dependencies
             setup_node_dependencies(ts_backend_path, "TypeScript Backend")
 =======
         try:
-            from setup.launch import create_venv, install_package_manager, setup_dependencies, download_nltk_data
+            from scripts.automation.setup.launch import create_venv, install_package_manager, setup_dependencies, download_nltk_data
             create_venv(venv_path, getattr(args, 'force_recreate_venv', False))
             install_package_manager(venv_path, "uv")
             setup_dependencies(venv_path, False)
@@ -371,7 +371,7 @@ def handle_setup(args, venv_path):
 
         # Setup Node.js dependencies
         try:
-            from setup.launch import setup_node_dependencies
+            from scripts.automation.setup.launch import setup_node_dependencies
             setup_node_dependencies(ROOT_DIR / "client", "Frontend Client")
             setup_node_dependencies(ROOT_DIR / "backend" / "server-ts", "TypeScript Backend")
         except ImportError:
@@ -386,7 +386,7 @@ def prepare_environment(args):
     """Prepare the environment for running the application."""
     if not args.no_venv:
         # Try conda first
-        from setup.utils import activate_conda_env
+        from scripts.automation.setup.utils import activate_conda_env
         if not activate_conda_env():
             # Fall back to venv setup
             handle_setup(args, ROOT_DIR / "venv")
@@ -397,21 +397,21 @@ def prepare_environment(args):
         if not activate_conda_env():
             venv_path = ROOT_DIR / VENV_DIR
             try:
-                from setup.launch import create_venv
+                from scripts.automation.setup.launch import create_venv
                 create_venv(venv_path)
             except ImportError:
                 logger.warning("create_venv function not available yet")
 
         if getattr(args, 'update_deps', False):
             try:
-                from setup.launch import setup_dependencies
+                from scripts.automation.setup.launch import setup_dependencies
                 setup_dependencies(ROOT_DIR / VENV_DIR, False)
             except ImportError:
                 logger.warning("setup_dependencies function not available yet")
 
     if not getattr(args, 'no_download_nltk', False):
         try:
-            from setup.launch import download_nltk_data
+            from scripts.automation.setup.launch import download_nltk_data
             download_nltk_data()
         except ImportError:
             logger.warning("download_nltk_data function not available yet")

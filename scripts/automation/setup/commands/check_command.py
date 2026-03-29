@@ -43,7 +43,7 @@ class CheckCommand(Command):
             int: Exit code (0 for success, non-zero for failure)
         """
         try:
-            from setup.validation import validate_orchestration_environment, check_critical_files
+            from scripts.automation.setup.validation import validate_orchestration_environment, check_critical_files
             
             logger.info("Running orchestration checks...")
 

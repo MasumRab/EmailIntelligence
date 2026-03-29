@@ -15,20 +15,20 @@ Features:
 """
 
 # Import launch system modules
-from setup.validation import (
+from scripts.automation.setup.validation import (
     check_python_version, check_for_merge_conflicts, check_required_components,
     validate_environment, validate_port, validate_host
 )
-from setup.services import (
+from scripts.automation.setup.services import (
     start_services, start_backend, start_node_service, start_gradio_ui, validate_services
 )
-from setup.environment import (
+from scripts.automation.setup.environment import (
     handle_setup, prepare_environment, setup_wsl_environment, check_wsl_requirements
 )
-from setup.utils import print_system_info, process_manager
+from scripts.automation.setup.utils import print_system_info, process_manager
 
 # Import test stages
-from setup.test_stages import test_stages
+from scripts.automation.setup.test_stages import test_stages
 
 # Standard library imports
 import argparse
@@ -45,12 +45,12 @@ from pathlib import Path
 from typing import List
 
 # Import project configuration
-from setup.project_config import get_project_config
+from scripts.automation.setup.project_config import get_project_config
 
 # Import command pattern components (with error handling for refactors)
 try:
-    from setup.commands.command_factory import get_command_factory
-    from setup.container import get_container, initialize_all_services
+    from scripts.automation.setup.commands.command_factory import get_command_factory
+    from scripts.automation.setup.container import get_container, initialize_all_services
 except ImportError as e:
     # Command pattern not available, will use legacy mode
     get_command_factory = None
@@ -79,7 +79,7 @@ logger = logging.getLogger(__name__)
 ROOT_DIR = get_project_config().root_dir
 
 # Import process manager from utils
-from setup.utils import process_manager
+from scripts.automation.setup.utils import process_manager
 
 # --- Constants ---
 PYTHON_MIN_VERSION = (3, 12)
@@ -1281,7 +1281,7 @@ def _execute_check_command(args) -> int:
 def _handle_legacy_args(args) -> int:
     """Handle legacy argument parsing for backward compatibility."""
     # Setup WSL environment if applicable (early setup)
-    from setup.environment import setup_wsl_environment, check_wsl_requirements
+    from scripts.automation.setup.environment import setup_wsl_environment, check_wsl_requirements
 <<<<<<< HEAD
 
 =======
@@ -1348,14 +1348,14 @@ def _handle_legacy_args(args) -> int:
 
     # Handle Conda environment if requested
 <<<<<<< HEAD
-    from setup.environment import (
+    from scripts.automation.setup.environment import (
         is_conda_available,
         get_conda_env_info,
         activate_conda_env,
     )
 
 =======
-    from setup.environment import is_conda_available, get_conda_env_info, activate_conda_env
+    from scripts.automation.setup.environment import is_conda_available, get_conda_env_info, activate_conda_env
 >>>>>>> 776f291eace8dd8c8310fa49b07b9f0ee9152d5e
     if args.use_conda:
         if not is_conda_available():
@@ -1381,7 +1381,7 @@ def _handle_legacy_args(args) -> int:
 
     # Handle test stage
     if hasattr(args, "stage") and args.stage == "test":
-        from setup.test_stages import handle_test_stage
+        from scripts.automation.setup.test_stages import handle_test_stage
 <<<<<<< HEAD
 
 =======
@@ -1395,7 +1395,7 @@ def _handle_legacy_args(args) -> int:
         or getattr(args, "integration", False)
         or getattr(args, "coverage", False)
     ):
-        from setup.test_stages import handle_test_stage
+        from scripts.automation.setup.test_stages import handle_test_stage
 <<<<<<< HEAD
 
 =======

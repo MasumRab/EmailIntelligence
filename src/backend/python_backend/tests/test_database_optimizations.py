@@ -7,8 +7,8 @@ from unittest.mock import AsyncMock, mock_open, patch
 import pytest
 import pytest_asyncio
 
-from backend.python_backend.database import HEAVY_EMAIL_FIELDS, DatabaseManager
-from backend.python_backend.performance_monitor import LOG_FILE
+from src.backend.python_backend.database import HEAVY_EMAIL_FIELDS, DatabaseManager
+from src.backend.python_backend.performance_monitor import LOG_FILE
 
 # Mark all tests in this file as asyncio
 pytestmark = pytest.mark.asyncio
