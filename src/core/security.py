@@ -581,6 +581,13 @@ class PathValidator:
 
         return resolved_path
 
+
+    @staticmethod
+    def validate_database_path(db_path: Union[str, Path], allowed_dir: Optional[Union[str, Path]] = None) -> Path:
+        """
+        Validate a database path (alias for validate_and_resolve_db_path).
+        """
+        return PathValidator.validate_and_resolve_db_path(db_path, allowed_dir)
     @staticmethod
     def sanitize_filename(filename: str) -> str:
         """
