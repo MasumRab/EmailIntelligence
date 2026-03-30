@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 """
 Security Framework for Email Intelligence Platform
 
@@ -223,12 +222,6 @@ class DataSanitizer:
                     r'\1[REDACTED]',
                     data,
                     flags=re.IGNORECASE
-=======
-                    rf"(\b{re.escape(key)}\b\s*:\s*)[^\s,]+",
-                    r"\1[REDACTED]",
-                    data,
-                    flags=re.IGNORECASE,
->>>>>>> scientific
                 )
             return data
         elif isinstance(data, dict):

@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 from datetime import datetime
 from unittest.mock import MagicMock
 
@@ -181,11 +180,6 @@ def test_plugin_workflow_e2e(client_with_real_workflows, mock_db_manager, mock_a
     assert activate_response.status_code == 200
 <<<<<<< HEAD
     assert activate_response.json()["message"] == "Active workflow set to 'example_uppercase'."
-=======
-    assert (
-        activate_response.json()["message"] == "Active legacy workflow set to 'example_uppercase'."
-    )
->>>>>>> scientific
 
     # 2. Prepare the email data
     new_email_data = {

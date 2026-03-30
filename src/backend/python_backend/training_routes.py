@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 """
 DEPRECATED: This module is part of the deprecated `backend` package.
 It will be removed in a future release.
@@ -69,9 +68,6 @@ async def get_training_status(
     job_id: str,
     current_user: str = Depends(get_current_active_user),
 ):
-=======
-async def get_training_status(job_id: str, current_user: str = Depends(get_current_active_user)):
->>>>>>> scientific
     """
     Get the status of a training job.
     Requires authentication.

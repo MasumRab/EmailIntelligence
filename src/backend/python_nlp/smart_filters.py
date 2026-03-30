@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 """
 A system for managing and applying intelligent email filters.
 
@@ -110,17 +109,6 @@ class SmartFilterManager:
         """
 <<<<<<< HEAD
         self.db_path = db_path
-=======
-        if db_path is None:
-            db_path = DEFAULT_DB_PATH
-        elif not os.path.isabs(db_path):
-            # Secure path validation to prevent directory traversal
-            filename = PathValidator.sanitize_filename(os.path.basename(db_path))
-            db_path = os.path.join(DATA_DIR, filename)
-
-        # Validate the final path
-        self.db_path = str(PathValidator.validate_database_path(db_path, DATA_DIR))
->>>>>>> scientific
         self.logger = logging.getLogger(__name__)
         self.conn = None
         if self.db_path == ":memory:":

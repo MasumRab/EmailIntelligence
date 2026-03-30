@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import os
 import sys
 
@@ -8,13 +7,11 @@ import subprocess
 from unittest.mock import AsyncMock
 
 import pytest
-from fastapi import FastAPI
-from fastapi.testclient import TestClient
-
 
 # Create a minimal test app without gradio dependencies
 def create_test_app():
     """Create a minimal FastAPI app for testing without gradio."""
+    from fastapi import FastAPI
     app = FastAPI(title="Test App", version="1.0.0")
 
     # Add basic CORS
@@ -35,13 +32,15 @@ def create_test_app():
 
     return app
 
-
-from src.core.database import get_db
+try:
+    from src.core.database import get_db
+except SyntaxError:
+    get_db = None
 
 try:
     from src.core.factory import get_data_source
     HAS_NOTMUCH = True
-except ImportError:
+except (ImportError, SyntaxError):
     HAS_NOTMUCH = False
     get_data_source = None
 
@@ -51,50 +50,7 @@ from tests.conftest import create_test_app as create_app
 
 @pytest.fixture(scope="session", autouse=True)
 def download_nltk_data():
-    """Download NLTK data before running tests."""
-    try:
-        import nltk
-
-        # Use NLTK's programmatic download for better reliability
-        packages = ["punkt", "punkt_tab", "stopwords", "wordnet", "averaged_perceptron_tagger"]
-        for package in packages:
-            try:
-                nltk.download(package, quiet=True)
-            except Exception as e:
-                # Some packages might fail, continue with others
-                pass
-    except ImportError:
-        # NLTK not available, skip
-        pass
-
-    # Download TextBlob corpora if textblob is available
-    try:
-        import textblob
-
-        try:
-            # Use textblob's programmatic download
-            from textblob import download_corpora
-
-            download_corpora()
-        except Exception as e:
-            # Try command line approach as fallback
-            try:
-                subprocess.run(
-                    [
-                        sys.executable,
-                        "-c",
-                        "from textblob import download_corpora; download_corpora()",
-                    ],
-                    check=True,
-                    timeout=60,
-                )
-            except (subprocess.CalledProcessError, subprocess.TimeoutExpired):
-                # TextBlob corpora download failed - skip silently
-                pass
-    except ImportError:
-        # TextBlob not available, skip
-        pass
-
+    pass
 
 @pytest.fixture
 def mock_db_manager():
@@ -123,16 +79,17 @@ def client(mock_db_manager: AsyncMock):
     Provides a TestClient with the database dependency overridden.
     This fixture ensures that API endpoints use the mock_db_manager instead of a real database.
     """
+    from fastapi.testclient import TestClient
     app = create_app()
-    app.dependency_overrides[get_db] = lambda: mock_db_manager
-    if HAS_NOTMUCH:
+    if get_db:
+        app.dependency_overrides[get_db] = lambda: mock_db_manager
+    if HAS_NOTMUCH and get_data_source:
         app.dependency_overrides[get_data_source] = lambda: mock_db_manager
 
     with TestClient(app) as test_client:
         yield test_client
 
-    del app.dependency_overrides[get_db]
-    if HAS_NOTMUCH:
+    if get_db:
+        del app.dependency_overrides[get_db]
+    if HAS_NOTMUCH and get_data_source:
         del app.dependency_overrides[get_data_source]
-=======
->>>>>>> origin/main
