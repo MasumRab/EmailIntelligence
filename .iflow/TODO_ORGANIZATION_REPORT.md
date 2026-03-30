@@ -116,7 +116,7 @@ if (value1.startswith('[') and value2.startswith('[')) or (value1.startswith('{'
 ## Implementation Notes (800+ Sections)
 
 ### 3. 📝 Task File Implementation Notes
-**Files:** All task files in `new_task_plan/`  
+**Files:** All task files in `tasks/` _(previously `new_task_plan/`, migration reversed)_  
 **Count:** 40+ sections  
 **Type:** Implementation Notes  
 **Status:** Documentation only
@@ -266,7 +266,7 @@ _Add implementation notes here as work progresses_
 
 ### Priority 2: HIGH (Fill During Implementation)
 2. ✅ **Fill in Implementation Notes sections**
-   - **Files:** All task files in `new_task_plan/`
+   - **Files:** All task files in `tasks/` _(previously `new_task_plan/`, migration reversed)_
    - **Count:** 40+ sections
    - **Effort:** 20-30 hours total
    - **Status:** Fill during task implementation
