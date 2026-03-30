@@ -629,8 +629,9 @@ class WorkflowRunner:
 
             if not node_consumers:
                 # If a node has no consumers within the workflow execution order,
-                # we can clean it up immediately after its own execution
-                cleanup_schedule[node_id].append(node_id)
+                # it might be a terminal node. We don't want to clean it up automatically
+                # because its output might be the final workflow result.
+                pass
             else:
                 # Find the maximum index among all consumers
                 max_consumer_idx = -1
