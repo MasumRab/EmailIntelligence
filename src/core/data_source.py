@@ -6,7 +6,9 @@ class DataSource(ABC):
     """Abstract base class for data sources."""
 
     @abstractmethod
-    async def create_email(self, email_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    async def create_email(
+        self, email_data: Dict[str, Any]
+    ) -> Optional[Dict[str, Any]]:
         """Creates a new email record."""
         pass
 
@@ -23,7 +25,9 @@ class DataSource(ABC):
         pass
 
     @abstractmethod
-    async def create_category(self, category_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    async def create_category(
+        self, category_data: Dict[str, Any]
+    ) -> Optional[Dict[str, Any]]:
         """Creates a new category."""
         pass
 
@@ -53,7 +57,9 @@ class DataSource(ABC):
         pass
 
     @abstractmethod
-    async def get_all_emails(self, limit: int = 50, offset: int = 0) -> List[Dict[str, Any]]:
+    async def get_all_emails(
+        self, limit: int = 50, offset: int = 0
+    ) -> List[Dict[str, Any]]:
         """Retrieves all emails with pagination."""
         pass
 
@@ -65,7 +71,9 @@ class DataSource(ABC):
         pass
 
     @abstractmethod
-    async def search_emails(self, search_term: str, limit: int = 50) -> List[Dict[str, Any]]:
+    async def search_emails(
+        self, search_term: str, limit: int = 50
+    ) -> List[Dict[str, Any]]:
         """Searches emails."""
         pass
 
