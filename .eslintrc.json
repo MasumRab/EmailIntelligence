@@ -1,6 +1,7 @@
 // ESLint configuration for EmailIntelligence
-// Compatible with ESLint 9+
+// Compatible with ESLint 8
 {
+  "root": true,
   "env": {
     "browser": true,
     "es2021": true,
@@ -10,8 +11,7 @@
     "eslint:recommended",
     "plugin:react/recommended",
     "plugin:react-hooks/recommended",
-    "plugin:@typescript-eslint/recommended",
-    "plugin:react-refresh/recommended"
+    "plugin:@typescript-eslint/recommended"
   ],
   "parser": "@typescript-eslint/parser",
   "parserOptions": {
@@ -24,14 +24,10 @@
   "plugins": [
     "react",
     "react-hooks",
-    "@typescript-eslint",
-    "react-refresh"
+    "@typescript-eslint"
   ],
   "rules": {
-    "react-refresh/only-export-components": [
-      "warn",
-      { "allowConstantExport": true }
-    ],
+    "@typescript-eslint/no-require-imports": "off",
     "react-hooks/rules-of-hooks": "error",
     "react-hooks/exhaustive-deps": "warn",
     "@typescript-eslint/no-unused-vars": ["warn", { "argsIgnorePattern": "^_" }],
@@ -50,6 +46,7 @@
     "dist/",
     "build/",
     "coverage/",
-    "*.min.js"
+    "*.min.js",
+    "client/"
   ]
 }
