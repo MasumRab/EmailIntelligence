@@ -17,7 +17,8 @@ from container import get_container, initialize_all_services
 
 # Set up logging
 logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
 
@@ -61,9 +62,7 @@ def test_command_execution():
                 description = factory.get_command_description(cmd_name)
                 logger.info(f"{cmd_name}: {description}")
             else:
-                logger.error(
-                    f"Failed to create {cmd_name} command for description test"
-                )
+                logger.error(f"Failed to create {cmd_name} command for description test")
         except Exception as e:
             logger.error(f"Error testing {cmd_name} command: {e}")
 

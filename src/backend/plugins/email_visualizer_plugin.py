@@ -46,9 +46,7 @@ class EmailVisualizerPlugin(UIComponentPlugin):
         return [
             gr.Markdown("## Email Visualization Tools"),
             gr.Textbox(label="Search Emails"),
-            gr.Dropdown(
-                ["All", "Important", "Unread", "Filtered"], label="Filter View"
-            ),
+            gr.Dropdown(["All", "Important", "Unread", "Filtered"], label="Filter View"),
         ]
 
     def get_input_widgets(self) -> List[gr.components.Component]:

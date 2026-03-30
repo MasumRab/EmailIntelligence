@@ -26,11 +26,11 @@ class CommandFactory:
     def __init__(self):
         """Initialize the command factory with available commands."""
         self._commands = {
-            "setup": SetupCommand,
-            "run": RunCommand,
-            "test": TestCommand,
-            "check": CheckCommand,
-            "cleanup": CleanupCommand,
+            'setup': SetupCommand,
+            'run': RunCommand,
+            'test': TestCommand,
+            'check': CheckCommand,
+            'cleanup': CleanupCommand,
         }
 
     def create_command(self, command_name: str, args: Namespace) -> Optional[Command]:

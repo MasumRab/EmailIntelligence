@@ -21,9 +21,7 @@ class StrategyGenerator(IResolutionStrategy):
     def __init__(self):
         self.strategies = {}
 
-    async def generate_resolution_strategy(
-        self, conflicts: List[Conflict]
-    ) -> ResolutionStrategy:
+    async def generate_resolution_strategy(self, conflicts: List[Conflict]) -> ResolutionStrategy:
         """
         Generate a resolution strategy for the given conflicts.
 
@@ -51,12 +49,10 @@ class StrategyGenerator(IResolutionStrategy):
             strategy_type=strategy_type,
             steps=steps,
             estimated_time=estimated_time,
-            risk_assessment=risk_assessment,
+            risk_assessment=risk_assessment
         )
 
-        logger.info(
-            f"Resolution strategy generated: {strategy_type} with {len(steps)} steps"
-        )
+        logger.info(f"Resolution strategy generated: {strategy_type} with {len(steps)} steps")
         return strategy
 
     def _determine_strategy_type(self, conflicts: List[Conflict]) -> str:
@@ -69,12 +65,8 @@ class StrategyGenerator(IResolutionStrategy):
         type_counts = {}
 
         for conflict in conflicts:
-            severity_counts[conflict.severity] = (
-                severity_counts.get(conflict.severity, 0) + 1
-            )
-            type_counts[conflict.conflict_type] = (
-                type_counts.get(conflict.conflict_type, 0) + 1
-            )
+            severity_counts[conflict.severity] = severity_counts.get(conflict.severity, 0) + 1
+            type_counts[conflict.conflict_type] = type_counts.get(conflict.conflict_type, 0) + 1
 
         # Determine strategy based on highest severity
         if severity_counts.get(RiskLevel.CRITICAL, 0) > 0:
@@ -86,22 +78,20 @@ class StrategyGenerator(IResolutionStrategy):
         else:
             return "low_priority_resolution"
 
-    def _generate_resolution_steps(
-        self, conflicts: List[Conflict]
-    ) -> List[Dict[str, Any]]:
+    def _generate_resolution_steps(self, conflicts: List[Conflict]) -> List[Dict[str, Any]]:
         """Generate specific steps for resolving conflicts."""
         steps = []
 
         for i, conflict in enumerate(conflicts):
             step = {
-                "id": f"step_{i + 1}",
+                "id": f"step_{i+1}",
                 "conflict_file": conflict.file_path,
                 "conflict_type": conflict.conflict_type.value,
                 "severity": conflict.severity.value,
                 "action": self._determine_action_for_conflict(conflict),
                 "description": f"Resolve conflict in {conflict.file_path}",
                 "dependencies": [],
-                "estimated_time": conflict.estimated_resolution_time,
+                "estimated_time": conflict.estimated_resolution_time
             }
             steps.append(step)
 
@@ -147,7 +137,7 @@ class StrategyGenerator(IResolutionStrategy):
             "breaking_changes_risk": self._assess_breaking_changes_risk(conflicts),
             "performance_impact_risk": self._assess_performance_risk(conflicts),
             "security_risk": self._assess_security_risk(conflicts),
-            "recommendations": self._generate_risk_recommendations(conflicts),
+            "recommendations": self._generate_risk_recommendations(conflicts)
         }
 
         return risk_assessment
@@ -172,10 +162,7 @@ class StrategyGenerator(IResolutionStrategy):
     def _assess_breaking_changes_risk(self, conflicts: List[Conflict]) -> str:
         """Assess risk of breaking changes."""
         for conflict in conflicts:
-            if (
-                "api" in conflict.file_path.lower()
-                or "interface" in conflict.file_path.lower()
-            ):
+            if "api" in conflict.file_path.lower() or "interface" in conflict.file_path.lower():
                 return "high"
 
         return "medium" if len(conflicts) > 3 else "low"
@@ -183,10 +170,7 @@ class StrategyGenerator(IResolutionStrategy):
     def _assess_performance_risk(self, conflicts: List[Conflict]) -> str:
         """Assess performance impact risk."""
         for conflict in conflicts:
-            if (
-                "performance" in conflict.file_path.lower()
-                or "cache" in conflict.file_path.lower()
-            ):
+            if "performance" in conflict.file_path.lower() or "cache" in conflict.file_path.lower():
                 return "high"
 
         return "low"
@@ -194,10 +178,7 @@ class StrategyGenerator(IResolutionStrategy):
     def _assess_security_risk(self, conflicts: List[Conflict]) -> str:
         """Assess security risk."""
         for conflict in conflicts:
-            if (
-                "auth" in conflict.file_path.lower()
-                or "security" in conflict.file_path.lower()
-            ):
+            if "auth" in conflict.file_path.lower() or "security" in conflict.file_path.lower():
                 return "high"
 
         return "medium" if len(conflicts) > 5 else "low"

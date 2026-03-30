@@ -17,14 +17,13 @@ client = BackendClient()
 
 # ============== UI Functions ==============
 
-
 async def analyze_single_email(subject: str, content: str) -> tuple:
     """Analyze a single email using the real backend"""
     if not subject and not content:
         return (
             {"error": "Please provide email subject or content"},
             "❌ No input provided",
-            None,
+            None
         )
 
     try:
@@ -32,15 +31,15 @@ async def analyze_single_email(subject: str, content: str) -> tuple:
         result = await client.analyze_text(full_text)
 
         if "error" in result:
-            return result, f"❌ Analysis failed: {result['error']}", None
+             return result, f"❌ Analysis failed: {result['error']}", None
 
         # Extract values safely with defaults
-        sentiment = result.get("sentiment", "neutral")
-        confidence = result.get("confidence", 0.0)
-        topic = result.get("topic", "unknown")
-        intent = result.get("intent", "unknown")
-        urgency = result.get("urgency", "low")
-        keywords = result.get("keywords", [])
+        sentiment = result.get('sentiment', 'neutral')
+        confidence = result.get('confidence', 0.0)
+        topic = result.get('topic', 'unknown')
+        intent = result.get('intent', 'unknown')
+        urgency = result.get('urgency', 'low')
+        keywords = result.get('keywords', [])
 
         # Create summary
         summary = f"""
@@ -51,29 +50,27 @@ async def analyze_single_email(subject: str, content: str) -> tuple:
 **Intent:** {str(intent).capitalize()}
 **Urgency:** {str(urgency).capitalize()}
 
-**Keywords:** {", ".join(keywords[:5]) if keywords else "None detected"}
+**Keywords:** {', '.join(keywords[:5]) if keywords else 'None detected'}
 """
 
         # Create chart data
         import plotly.graph_objects as go
 
-        fig = go.Figure(
-            data=[
-                go.Bar(
-                    x=["Confidence"],
-                    y=[confidence],
-                    marker_color="#3b82f6",
-                    text=[f"{confidence:.0%}"],
-                    textposition="auto",
-                )
-            ]
-        )
+        fig = go.Figure(data=[
+            go.Bar(
+                x=['Confidence'],
+                y=[confidence],
+                marker_color='#3b82f6',
+                text=[f"{confidence:.0%}"],
+                textposition='auto'
+            )
+        ])
         fig.update_layout(
             title="Analysis Confidence",
             yaxis_title="Score",
             yaxis_range=[0, 1],
             template="plotly_white",
-            height=300,
+            height=300
         )
 
         return result, summary, fig
@@ -81,7 +78,6 @@ async def analyze_single_email(subject: str, content: str) -> tuple:
     except Exception as e:
         logger.error(f"UI Analysis error: {e}")
         return {"error": str(e)}, f"❌ Analysis failed: {str(e)}", None
-
 
 async def batch_analyze_emails(emails_text: str) -> tuple:
     """Analyze multiple emails"""
@@ -99,19 +95,16 @@ async def batch_analyze_emails(emails_text: str) -> tuple:
         # Call backend for each
         analysis = await client.analyze_text(f"{subject}\n{content}")
 
-        results.append(
-            {
-                "Email #": i,
-                "Subject": subject[:50] + "..." if len(subject) > 50 else subject,
-                "Sentiment": analysis.get("sentiment", "unknown"),
-                "Topic": analysis.get("topic", "unknown"),
-                "Urgency": analysis.get("urgency", "unknown"),
-            }
-        )
+        results.append({
+            "Email #": i,
+            "Subject": subject[:50] + "..." if len(subject) > 50 else subject,
+            "Sentiment": analysis.get("sentiment", "unknown"),
+            "Topic": analysis.get("topic", "unknown"),
+            "Urgency": analysis.get("urgency", "unknown")
+        })
 
     summary = f"✅ Analyzed {len(results)} emails successfully"
     return summary, results
-
 
 def get_dashboard_stats() -> tuple:
     """Get dashboard statistics from backend metrics"""
@@ -120,7 +113,7 @@ def get_dashboard_stats() -> tuple:
     # Flatten the aggregated metrics for display
     display_stats = {}
     for key, val in stats.items():
-        if isinstance(val, dict) and "avg" in val:
+        if isinstance(val, dict) and 'avg' in val:
             display_stats[key] = f"{val['avg']:.2f}ms (avg)"
         else:
             display_stats[key] = val
@@ -133,23 +126,19 @@ See raw JSON for detailed performance breakdowns.
 
     return stats, summary
 
-
 def list_available_workflows() -> tuple:
     """List available workflows from generic storage"""
     workflows = client.list_workflows()
 
     workflow_list = []
     for wf in workflows:
-        workflow_list.append(
-            {
-                "ID": wf.get("id"),
-                "Name": wf.get("name"),
-                "Description": wf.get("description"),
-            }
-        )
+        workflow_list.append({
+            "ID": wf.get("id"),
+            "Name": wf.get("name"),
+            "Description": wf.get("description"),
+        })
 
     return workflow_list, f"Found {len(workflows)} workflows"
-
 
 async def run_workflow_on_email(workflow_id: str, subject: str, content: str) -> tuple:
     """Run a workflow on an email"""
@@ -165,11 +154,10 @@ async def run_workflow_on_email(workflow_id: str, subject: str, content: str) ->
 ✅ **Workflow Request Processed**
 
 **Workflow:** {workflow_id}
-**Result:** {result.get("status", "unknown")}
+**Result:** {result.get('status', 'unknown')}
 """
 
     return result, status
-
 
 def create_smart_filter(name: str, criteria_json: str, priority: int) -> tuple:
     """Create a smart filter and persist it"""
@@ -186,7 +174,7 @@ def create_smart_filter(name: str, criteria_json: str, priority: int) -> tuple:
         "criteria": criteria,
         "priority": priority,
         "created_at": datetime.now().isoformat(),
-        "is_active": True,
+        "is_active": True
     }
 
     # Persist using generic storage
@@ -197,7 +185,6 @@ def create_smart_filter(name: str, criteria_json: str, priority: int) -> tuple:
     else:
         return {"error": "Failed to save"}, "❌ Failed to save filter"
 
-
 def get_system_health() -> tuple:
     """Get system health status"""
     import psutil
@@ -205,33 +192,30 @@ def get_system_health() -> tuple:
     try:
         cpu_percent = psutil.cpu_percent(interval=0.1)
         memory = psutil.virtual_memory()
-        disk = psutil.disk_usage("/")
+        disk = psutil.disk_usage('/')
 
         health = {
-            "status": "healthy"
-            if cpu_percent < 80 and memory.percent < 80
-            else "degraded",
+            "status": "healthy" if cpu_percent < 80 and memory.percent < 80 else "degraded",
             "cpu_usage": f"{cpu_percent}%",
             "memory_usage": f"{memory.percent}%",
             "disk_usage": f"{disk.percent}%",
             "uptime": "Running",
-            "last_check": datetime.now().isoformat(),
+            "last_check": datetime.now().isoformat()
         }
 
         status_emoji = "🟢" if health["status"] == "healthy" else "🟡"
         summary = f"""
-{status_emoji} **System Status: {health["status"].upper()}**
+{status_emoji} **System Status: {health['status'].upper()}**
 
 **Resources:**
-- CPU: {health["cpu_usage"]}
-- Memory: {health["memory_usage"]}
-- Disk: {health["disk_usage"]}
+- CPU: {health['cpu_usage']}
+- Memory: {health['memory_usage']}
+- Disk: {health['disk_usage']}
 """
         return health, summary
 
     except Exception as e:
         return {"error": str(e)}, f"❌ Health check failed: {str(e)}"
-
 
 # ============== Build Gradio UI ==============
 
@@ -254,12 +238,12 @@ with gr.Blocks() as demo:
                     email_subject = gr.Textbox(
                         label="Email Subject",
                         placeholder="Enter email subject...",
-                        lines=1,
+                        lines=1
                     )
                     email_content = gr.TextArea(
                         label="Email Content",
                         placeholder="Enter email body content...",
-                        lines=8,
+                        lines=8
                     )
                     analyze_btn = gr.Button("🔍 Analyze Email", variant="primary")
 
@@ -274,7 +258,7 @@ with gr.Blocks() as demo:
                 fn=analyze_single_email,
                 inputs=[email_subject, email_content],
                 outputs=[analysis_json, analysis_summary, confidence_chart],
-                api_visibility="public",
+                api_visibility="public"
             )
 
             gr.Markdown("---")
@@ -285,24 +269,22 @@ with gr.Blocks() as demo:
                     batch_emails = gr.TextArea(
                         label="Emails (separate with ---)",
                         placeholder="Subject: First email\nContent here...\n---\nSubject: Second email\nMore content...",
-                        lines=10,
+                        lines=10
                     )
-                    batch_analyze_btn = gr.Button(
-                        "📊 Batch Analyze", variant="secondary"
-                    )
+                    batch_analyze_btn = gr.Button("📊 Batch Analyze", variant="secondary")
 
                 with gr.Column():
                     batch_summary = gr.Textbox(label="Summary", interactive=False)
                     batch_results = gr.Dataframe(
                         label="Results",
-                        headers=["Email #", "Subject", "Sentiment", "Topic", "Urgency"],
+                        headers=["Email #", "Subject", "Sentiment", "Topic", "Urgency"]
                     )
 
             batch_analyze_btn.click(
                 fn=batch_analyze_emails,
                 inputs=[batch_emails],
                 outputs=[batch_summary, batch_results],
-                api_visibility="public",
+                api_visibility="public"
             )
 
         # Tab 2: Workflows
@@ -311,27 +293,19 @@ with gr.Blocks() as demo:
 
             with gr.Row():
                 with gr.Column():
-                    refresh_workflows_btn = gr.Button(
-                        "🔄 Refresh Workflows", variant="secondary"
-                    )
+                    refresh_workflows_btn = gr.Button("🔄 Refresh Workflows", variant="secondary")
                     workflows_table = gr.Dataframe(
                         label="Available Workflows",
-                        headers=["ID", "Name", "Description"],
+                        headers=["ID", "Name", "Description"]
                     )
                     workflows_status = gr.Textbox(label="Status", interactive=False)
 
                 with gr.Column():
                     gr.Markdown("### Run Workflow on Email")
                     # Note: Choices would need to be dynamic in a real app, updated by backend
-                    workflow_select = gr.Textbox(
-                        label="Workflow ID", placeholder="e.g. workflow_1"
-                    )
-                    wf_subject = gr.Textbox(
-                        label="Email Subject", placeholder="Test subject..."
-                    )
-                    wf_content = gr.TextArea(
-                        label="Email Content", placeholder="Test content...", lines=4
-                    )
+                    workflow_select = gr.Textbox(label="Workflow ID", placeholder="e.g. workflow_1")
+                    wf_subject = gr.Textbox(label="Email Subject", placeholder="Test subject...")
+                    wf_content = gr.TextArea(label="Email Content", placeholder="Test content...", lines=4)
                     run_workflow_btn = gr.Button("▶️ Run Workflow", variant="primary")
                     workflow_result = gr.Markdown(label="Result")
                     workflow_json = gr.JSON(label="Workflow Output")
@@ -340,14 +314,14 @@ with gr.Blocks() as demo:
                 fn=list_available_workflows,
                 inputs=[],
                 outputs=[workflows_table, workflows_status],
-                api_visibility="public",
+                api_visibility="public"
             )
 
             run_workflow_btn.click(
                 fn=run_workflow_on_email,
                 inputs=[workflow_select, wf_subject, wf_content],
                 outputs=[workflow_json, workflow_result],
-                api_visibility="public",
+                api_visibility="public"
             )
 
         # Tab 3: Smart Filters
@@ -357,15 +331,20 @@ with gr.Blocks() as demo:
             with gr.Row():
                 with gr.Column():
                     filter_name = gr.Textbox(
-                        label="Filter Name", placeholder="e.g., Urgent Work Emails"
+                        label="Filter Name",
+                        placeholder="e.g., Urgent Work Emails"
                     )
                     filter_criteria = gr.Code(
                         label="Filter Criteria (JSON)",
                         language="json",
-                        value='{\n  "subject_keywords": ["urgent", "important"],\n  "from_patterns": ["@company.com"]\n}',
+                        value='{\n  "subject_keywords": ["urgent", "important"],\n  "from_patterns": ["@company.com"]\n}'
                     )
                     filter_priority = gr.Slider(
-                        label="Priority", minimum=1, maximum=10, value=5, step=1
+                        label="Priority",
+                        minimum=1,
+                        maximum=10,
+                        value=5,
+                        step=1
                     )
                     create_filter_btn = gr.Button("➕ Create Filter", variant="primary")
 
@@ -377,7 +356,7 @@ with gr.Blocks() as demo:
                 fn=create_smart_filter,
                 inputs=[filter_name, filter_criteria, filter_priority],
                 outputs=[filter_output, filter_status],
-                api_visibility="public",
+                api_visibility="public"
             )
 
         # Tab 4: Dashboard
@@ -385,9 +364,7 @@ with gr.Blocks() as demo:
             gr.Markdown("### System Statistics & Metrics")
 
             with gr.Row():
-                refresh_stats_btn = gr.Button(
-                    "🔄 Refresh Statistics", variant="secondary"
-                )
+                refresh_stats_btn = gr.Button("🔄 Refresh Statistics", variant="secondary")
 
             with gr.Row():
                 with gr.Column():
@@ -400,7 +377,7 @@ with gr.Blocks() as demo:
                 fn=get_dashboard_stats,
                 inputs=[],
                 outputs=[stats_json, stats_summary],
-                api_visibility="public",
+                api_visibility="public"
             )
 
         # Tab 5: System Health
@@ -421,7 +398,7 @@ with gr.Blocks() as demo:
                 fn=get_system_health,
                 inputs=[],
                 outputs=[health_json, health_summary],
-                api_visibility="public",
+                api_visibility="public"
             )
 
 # Launch Logic
@@ -433,7 +410,11 @@ if __name__ == "__main__":
     for port in range(start_port, start_port + 10):
         try:
             print(f"Attempting to launch on port {port}...")
-            demo.launch(server_name=server_name, server_port=port, share=False)
+            demo.launch(
+                server_name=server_name,
+                server_port=port,
+                share=False
+            )
             break
         except OSError:
             print(f"Port {port} is busy, trying next...")

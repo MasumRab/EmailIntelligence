@@ -21,9 +21,7 @@ from backend.node_engine.node_base import (
     SecurityContext,
     Workflow,
 )
-from backend.node_engine.security_manager import (
-    SecurityManager,
-)  # Import the SecurityManager class
+from backend.node_engine.security_manager import SecurityManager  # Import the SecurityManager class
 from backend.node_engine.security_manager import (
     ExecutionSandbox,
     InputSanitizer,
@@ -43,9 +41,7 @@ class WorkflowEngine:
     """Manages execution of node-based workflows."""
 
     def __init__(self, security_manager: Optional[SecurityManager] = None):
-        self.logger = logging.getLogger(
-            f"{self.__class__.__module__}.{self.__class__.__name__}"
-        )
+        self.logger = logging.getLogger(f"{self.__class__.__module__}.{self.__class__.__name__}")
         self.active_executions: Dict[str, ExecutionContext] = {}
         self.node_registry: Dict[str, type] = {}
         # Initialize with a default SecurityManager if not provided, for flexibility
@@ -63,10 +59,7 @@ class WorkflowEngine:
         return list(self.node_registry.keys())
 
     async def execute_workflow(
-        self,
-        workflow: Workflow,
-        initial_inputs: Dict[str, Any] = None,
-        user_id: str = None,
+        self, workflow: Workflow, initial_inputs: Dict[str, Any] = None, user_id: str = None
     ) -> ExecutionContext:
         """
         Execute a workflow with the given initial inputs.
@@ -81,9 +74,7 @@ class WorkflowEngine:
         """
         execution_id = workflow.workflow_id
         start_time = time.time()
-        self.logger.info(
-            f"Starting execution of workflow: {workflow.name} (ID: {execution_id})"
-        )
+        self.logger.info(f"Starting execution of workflow: {workflow.name} (ID: {execution_id})")
 
         # --- SECURITY CHECK: VERIFY USER PERMISSION TO EXECUTE WORKFLOW ---
         class MockUser:
@@ -164,9 +155,7 @@ class WorkflowEngine:
                 if not self.security_manager.validate_node_execution(
                     node_type, getattr(node, "config", {})
                 ):
-                    error_msg = (
-                        f"Security validation failed for node {node_id} ({node_type})"
-                    )
+                    error_msg = f"Security validation failed for node {node_id} ({node_type})"
                     context.add_error(node_id, error_msg)
                     audit_logger.log_security_event(
                         "NODE_EXECUTION_BLOCKED",
@@ -202,9 +191,7 @@ class WorkflowEngine:
 
                     node_start_time = time.time()
                     result = await sandbox.execute_with_timeout(
-                        node.execute,
-                        30,
-                        context,  # 30 second timeout per node
+                        node.execute, 30, context  # 30 second timeout per node
                     )
                     node_execution_duration = time.time() - node_start_time
 
@@ -212,9 +199,9 @@ class WorkflowEngine:
                     context.execution_path.append(node_id)
 
                     # Update performance metrics
-                    context.metadata["performance"]["node_execution_times"][node_id] = (
-                        node_execution_duration
-                    )
+                    context.metadata["performance"]["node_execution_times"][
+                        node_id
+                    ] = node_execution_duration
                     context.metadata["performance"]["nodes_executed"] += 1
 
                     self.logger.debug(
@@ -223,28 +210,18 @@ class WorkflowEngine:
 
                     # Log node execution with enhanced performance data
                     audit_logger.log_node_execution(
-                        workflow.workflow_id,
-                        node_id,
-                        node.name,
-                        "success",
-                        node_execution_duration,
+                        workflow.workflow_id, node_id, node.name, "success", node_execution_duration
                     )
                 except Exception as e:
                     error_msg = f"Node {node_id} execution failed: {str(e)}"
                     context.add_error(
-                        node_id,
-                        error_msg,
-                        {"exception": str(e), "type": type(e).__name__},
+                        node_id, error_msg, {"exception": str(e), "type": type(e).__name__}
                     )
                     self.logger.error(error_msg, exc_info=True)
 
                     # Log failed node execution
                     audit_logger.log_node_execution(
-                        workflow.workflow_id,
-                        node_id,
-                        node.name,
-                        "failed",
-                        -1,  # Indicate error
+                        workflow.workflow_id, node_id, node.name, "failed", -1  # Indicate error
                     )
 
                     raise WorkflowExecutionException(error_msg) from e
@@ -254,9 +231,7 @@ class WorkflowEngine:
             total_execution_time = end_time - start_time
             context.metadata["end_time"] = datetime.now()
             context.metadata["execution_duration"] = total_execution_time
-            context.metadata["performance"]["total_execution_time"] = (
-                total_execution_time
-            )
+            context.metadata["performance"]["total_execution_time"] = total_execution_time
             context.metadata["status"] = "completed"
 
             self.logger.info(
@@ -275,9 +250,7 @@ class WorkflowEngine:
             context.metadata["status"] = "failed"
             context.metadata["error"] = str(e)
 
-            self.logger.error(
-                f"Workflow {workflow.name} execution failed: {str(e)}", exc_info=True
-            )
+            self.logger.error(f"Workflow {workflow.name} execution failed: {str(e)}", exc_info=True)
 
             # Re-raise the exception to indicate failure
             raise
@@ -297,32 +270,23 @@ class WorkflowEngine:
         return context
 
     async def _set_initial_inputs(
-        self,
-        workflow: Workflow,
-        context: ExecutionContext,
-        initial_inputs: Dict[str, Any],
+        self, workflow: Workflow, context: ExecutionContext, initial_inputs: Dict[str, Any]
     ):
         """Set initial input values to appropriate source nodes."""
         # For now, set all initial inputs as shared state
         # In the future, we might want to map initial inputs to specific nodes based on metadata
         context.shared_state.update(initial_inputs)
 
-    async def _set_node_inputs(
-        self, node: BaseNode, workflow: Workflow, context: ExecutionContext
-    ):
+    async def _set_node_inputs(self, node: BaseNode, workflow: Workflow, context: ExecutionContext):
         """Set input values for a node based on connected node outputs with type validation."""
         connections = workflow.get_connections_for_node(node.node_id)
 
         # Find connections where this node is the target
-        input_connections = [
-            conn for conn in connections if conn.target_node_id == node.node_id
-        ]
+        input_connections = [conn for conn in connections if conn.target_node_id == node.node_id]
 
         # Set inputs based on connected outputs with type validation
         for conn in input_connections:
-            source_output = context.get_node_output(
-                conn.source_node_id, conn.source_port
-            )
+            source_output = context.get_node_output(conn.source_node_id, conn.source_port)
             if source_output is not None:
                 # Validate type compatibility between source output and target input
                 target_port = next(
@@ -333,11 +297,7 @@ class WorkflowEngine:
                     source_node = workflow.nodes.get(conn.source_node_id)
                     if source_node:
                         source_port = next(
-                            (
-                                p
-                                for p in source_node.output_ports
-                                if p.name == conn.source_port
-                            ),
+                            (p for p in source_node.output_ports if p.name == conn.source_port),
                             None,
                         )
                         if source_port:
@@ -413,9 +373,7 @@ class WorkflowEngine:
             return True
 
         # If both are GenericType
-        if isinstance(source_type, GenericType) and isinstance(
-            target_type, GenericType
-        ):
+        if isinstance(source_type, GenericType) and isinstance(target_type, GenericType):
             if source_type.base_type != target_type.base_type:
                 return False
 
@@ -432,26 +390,14 @@ class WorkflowEngine:
 
         # Handle backward compatibility: EMAIL_LIST is equivalent to List[Email]
         if source_type == DataType.EMAIL_LIST:
-            if (
-                isinstance(target_type, GenericType)
-                and target_type.base_type == DataType.LIST
-            ):
-                if (
-                    len(target_type.type_parameters) > 0
-                    and target_type.type_parameters[0] == DataType.EMAIL
-                ):
-                    return True
+             if isinstance(target_type, GenericType) and target_type.base_type == DataType.LIST:
+                 if len(target_type.type_parameters) > 0 and target_type.type_parameters[0] == DataType.EMAIL:
+                     return True
 
         if target_type == DataType.EMAIL_LIST:
-            if (
-                isinstance(source_type, GenericType)
-                and source_type.base_type == DataType.LIST
-            ):
-                if (
-                    len(source_type.type_parameters) > 0
-                    and source_type.type_parameters[0] == DataType.EMAIL
-                ):
-                    return True
+             if isinstance(source_type, GenericType) and source_type.base_type == DataType.LIST:
+                 if len(source_type.type_parameters) > 0 and source_type.type_parameters[0] == DataType.EMAIL:
+                     return True
 
         # Direct match check (though should be handled by earlier checks if not generic)
         if source_type == target_type:

@@ -85,7 +85,7 @@ def client(mock_db_manager, mock_ai_engine, mock_filter_manager, mock_workflow_e
     app.dependency_overrides[get_workflow_engine] = lambda: mock_workflow_engine
 
     decorator_path = "backend.python_backend.performance_monitor.log_performance"
-    with patch(decorator_path, lambda *args, **kwargs: lambda func: func):
+    with patch(decorator_path, lambda *args, **kwargs: (lambda func: func)):
         yield TestClient(app)
 
     # Clean up dependency overrides
@@ -128,7 +128,7 @@ def client_with_real_workflows(mock_db_manager, mock_ai_engine, mock_filter_mana
     asyncio.run(run_startup())
 
     decorator_path = "backend.python_backend.performance_monitor.log_performance"
-    with patch(decorator_path, lambda *args, **kwargs: lambda func: func):
+    with patch(decorator_path, lambda *args, **kwargs: (lambda func: func)):
         yield TestClient(app)
 
     # Clean up

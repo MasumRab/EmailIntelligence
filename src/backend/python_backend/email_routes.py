@@ -50,18 +50,14 @@ async def get_emails(
         if search:
             result = await email_service.search_emails(search, limit)
         else:
-            result = await email_service.get_emails(
-                category_id, limit, offset, is_unread
-            )
+            result = await email_service.get_emails(category_id, limit, offset, is_unread)
         return [EmailResponse(**email) for email in result]
     except Exception as e:
         logger.error(f"Failed to get emails: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail="Failed to retrieve emails")
 
 
-@router.get(
-    "/api/emails/{email_id}", response_model=EmailResponse
-)  # Changed to EmailResponse
+@router.get("/api/emails/{email_id}", response_model=EmailResponse)  # Changed to EmailResponse
 @log_performance(operation="get_email")
 async def get_email_by_id(
     email_id: int,
@@ -134,9 +130,7 @@ async def create_email(
         )
 
 
-@router.put(
-    "/api/emails/{email_id}", response_model=EmailResponse
-)  # Changed to EmailResponse
+@router.put("/api/emails/{email_id}", response_model=EmailResponse)  # Changed to EmailResponse
 @log_performance(operation="update_email")
 async def update_email(
     request: Request,

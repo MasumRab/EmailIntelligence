@@ -127,12 +127,7 @@ class HookSystem:
             hook_id = f"{plugin_id}_{hook_name}_{hash(callback)}"
 
             self._hooks[hook_name].append(
-                {
-                    "id": hook_id,
-                    "callback": callback,
-                    "plugin_id": plugin_id,
-                    "priority": priority,
-                }
+                {"id": hook_id, "callback": callback, "plugin_id": plugin_id, "priority": priority}
             )
 
             # Sort by priority (lower number = higher priority)
@@ -172,8 +167,7 @@ class HookSystem:
     def get_registered_hooks(self) -> Dict[str, List[str]]:
         """Get list of registered hooks by name."""
         return {
-            hook_name: [hook["id"] for hook in hooks]
-            for hook_name, hooks in self._hooks.items()
+            hook_name: [hook["id"] for hook in hooks] for hook_name, hooks in self._hooks.items()
         }
 
 
@@ -202,20 +196,13 @@ class SecuritySandbox:
             PluginSecurityLevel.SANDBOXED: {"json", "datetime", "pathlib", "asyncio"},
         }
 
-    def validate_import(
-        self, module_name: str, security_level: PluginSecurityLevel
-    ) -> bool:
+    def validate_import(self, module_name: str, security_level: PluginSecurityLevel) -> bool:
         """Validate if a module import is allowed for the given security level."""
         allowed = self._allowed_modules[security_level]
-        return (
-            "*" in allowed or module_name in allowed or module_name.startswith("src.")
-        )
+        return "*" in allowed or module_name in allowed or module_name.startswith("src.")
 
     def execute_in_sandbox(
-        self,
-        code: str,
-        security_level: PluginSecurityLevel,
-        globals_dict: Dict[str, Any] = None,
+        self, code: str, security_level: PluginSecurityLevel, globals_dict: Dict[str, Any] = None
     ) -> Any:
         """Execute code in a sandboxed environment."""
         # Create restricted globals
@@ -253,18 +240,16 @@ class SecuritySandbox:
         from RestrictedPython.PrintCollector import PrintCollector
 
         globals_dict.update(safe_globals)
-        globals_dict["_print_"] = PrintCollector
+        globals_dict['_print_'] = PrintCollector
 
         try:
-            byte_code = compile_restricted(code, "<string>", "exec")
+            byte_code = compile_restricted(code, '<string>', 'exec')
             exec(byte_code, globals_dict)  # nosec
         except Exception as e:
             logger.error(f"Sandbox execution failed: {e}")
             raise
 
-    def validate_file_access(
-        self, file_path: Path, security_level: PluginSecurityLevel
-    ) -> bool:
+    def validate_file_access(self, file_path: Path, security_level: PluginSecurityLevel) -> bool:
         """Validate file access permissions."""
         if security_level == PluginSecurityLevel.TRUSTED:
             return True
@@ -385,9 +370,7 @@ class PluginRegistry:
                 return None
 
             # Create instance
-            instance = PluginInstance(
-                metadata=metadata, plugin_object=plugin_object, config=config
-            )
+            instance = PluginInstance(metadata=metadata, plugin_object=plugin_object, config=config)
 
             self._instances[plugin_id] = instance
 
@@ -500,9 +483,7 @@ class PluginRegistry:
             logger.error(f"Failed to load plugin module: {e}")
             return None
 
-    def _validate_plugin_security(
-        self, plugin_object: Any, metadata: PluginMetadata
-    ) -> bool:
+    def _validate_plugin_security(self, plugin_object: Any, metadata: PluginMetadata) -> bool:
         """Validate plugin security requirements."""
         try:
             required_permissions = plugin_object.get_required_permissions()
@@ -518,9 +499,7 @@ class PluginRegistry:
             return True
 
         except Exception as e:
-            logger.error(
-                f"Security validation failed for plugin {metadata.plugin_id}: {e}"
-            )
+            logger.error(f"Security validation failed for plugin {metadata.plugin_id}: {e}")
             return False
 
     async def _register_plugin_hooks(self, instance: PluginInstance):

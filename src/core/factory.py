@@ -4,11 +4,7 @@ from typing import AsyncGenerator
 
 from .data_source import DataSource
 from .ai_engine import ModernAIEngine
-from .data.repository import (
-    DatabaseEmailRepository,
-    CachingEmailRepository,
-    EmailRepository,
-)
+from .data.repository import DatabaseEmailRepository, CachingEmailRepository, EmailRepository
 from .caching import init_cache_manager, CacheConfig, CacheBackend
 from .dynamic_model_manager import DynamicModelManager
 from .model_registry import ModelRegistry
@@ -17,7 +13,6 @@ from .smart_filter_manager import SmartFilterManager
 # Optional import for NotmuchDataSource
 try:
     from .notmuch_data_source import NotmuchDataSource
-
     NOTMUCH_AVAILABLE = True
 except ImportError:
     NOTMUCH_AVAILABLE = False
@@ -42,7 +37,6 @@ async def get_ai_engine() -> AsyncGenerator[ModernAIEngine, None]:
     finally:
         engine.cleanup()
 
-
 @asynccontextmanager
 async def get_smart_filter_manager() -> AsyncGenerator[SmartFilterManager, None]:
     """
@@ -65,7 +59,6 @@ async def get_data_source() -> DataSource:
 
         # The DatabaseManager may be used by multiple data sources, so we create it upfront.
         from .database import DatabaseConfig, create_database_manager
-
         config = DatabaseConfig()
         db_manager = await create_database_manager(config)
 
@@ -92,10 +85,10 @@ async def get_email_repository() -> EmailRepository:
         # Initialize cache manager with Redis backend
         redis_url = os.getenv("REDIS_URL", "redis://localhost:6379")
         cache_config = CacheConfig(
-            backend=CacheBackend.REDIS,
+                backend=CacheBackend.REDIS,
             redis_url=redis_url,
             default_ttl=600,  # 10 minutes for dashboard data
-            enable_monitoring=True,
+            enable_monitoring=True
         )
         init_cache_manager(cache_config)
 

@@ -27,7 +27,6 @@ logger = logging.getLogger(__name__)
 
 class TokenData(BaseModel):
     """Data structure for JWT token payload"""
-
     username: Optional[str] = None
     role: Optional[str] = "user"
 
@@ -37,7 +36,6 @@ from enum import Enum
 
 class UserRole(str, Enum):
     """User roles for role-based access control"""
-
     ADMIN = "admin"
     USER = "user"
     GUEST = "guest"
@@ -45,7 +43,6 @@ class UserRole(str, Enum):
 
 class User(BaseModel):
     """User model for authentication"""
-
     username: str
     hashed_password: str
     role: UserRole = UserRole.USER
@@ -73,9 +70,7 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -
     else:
         expire = datetime.utcnow() + timedelta(minutes=15)
     to_encode.update({"exp": expire})
-    encoded_jwt = jwt.encode(
-        to_encode, settings.secret_key, algorithm=settings.algorithm
-    )
+    encoded_jwt = jwt.encode(to_encode, settings.secret_key, algorithm=settings.algorithm)
     return encoded_jwt
 
 
@@ -120,9 +115,7 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
         return False
 
 
-async def authenticate_user(
-    username: str, password: str, db
-) -> Optional[Dict[str, Any]]:
+async def authenticate_user(username: str, password: str, db) -> Optional[Dict[str, Any]]:
     """
     Authenticate a user by username and password.
 
@@ -180,7 +173,10 @@ async def create_user(username: str, password: str, db) -> bool:
         hashed_password = hash_password(password)
 
         # Create user in database
-        user_data = {"username": username, "hashed_password": hashed_password}
+        user_data = {
+            "username": username,
+            "hashed_password": hashed_password
+        }
 
         await db.create_user(user_data)
         return True
@@ -190,7 +186,7 @@ async def create_user(username: str, password: str, db) -> bool:
 
 
 async def verify_token(
-    credentials: HTTPAuthorizationCredentials = Depends(security),
+    credentials: HTTPAuthorizationCredentials = Depends(security)
 ) -> TokenData:
     """
     Verify the JWT token from the Authorization header.
@@ -216,7 +212,7 @@ async def verify_token(
         payload = jwt.decode(
             credentials.credentials,
             settings.secret_key,
-            algorithms=[settings.algorithm],
+            algorithms=[settings.algorithm]
         )
         username: str = payload.get("sub")
         role: str = payload.get("role", "user")
@@ -265,17 +261,15 @@ def require_role(required_role: UserRole):
     Returns:
         A dependency function that checks the user's role
     """
-
     def role_checker(token_data: TokenData = Depends(verify_token)) -> TokenData:
         # In a real implementation, you would check the user's actual role from the database
         # For now, we'll check the role from the token
         if token_data.role != required_role.value:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail=f"Access denied. {required_role.value} role required.",
+                detail=f"Access denied. {required_role.value} role required."
             )
         return token_data
-
     return role_checker
 
 
@@ -289,17 +283,15 @@ def require_any_role(required_roles: List[UserRole]):
     Returns:
         A dependency function that checks the user's role
     """
-
     def role_checker(token_data: TokenData = Depends(verify_token)) -> TokenData:
         # In a real implementation, you would check the user's actual role from the database
         # For now, we'll check the role from the token
         if token_data.role not in [role.value for role in required_roles]:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail=f"Access denied. One of {[role.value for role in required_roles]} roles required.",
+                detail=f"Access denied. One of {[role.value for role in required_roles]} roles required."
             )
         return token_data
-
     return role_checker
 
 

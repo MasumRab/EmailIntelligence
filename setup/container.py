@@ -38,7 +38,7 @@ class Container:
 
 def get_container() -> Container:
     """Get the application container."""
-    if not hasattr(get_container, "_container"):
+    if not hasattr(get_container, '_container'):
         get_container._container = Container()
     return get_container._container
 

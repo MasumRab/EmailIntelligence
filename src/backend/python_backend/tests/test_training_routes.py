@@ -80,6 +80,7 @@ async def test_run_training():
         patch("sklearn.metrics.accuracy_score") as mock_accuracy,
         patch("joblib.dump"),
     ):
+
         # Setup mock return values
         mock_df.return_value = pd.DataFrame(
             {

@@ -39,7 +39,6 @@ class CleanupCommand(Command):
         """
         try:
             from setup.utils import process_manager
-
             logger.info("Starting manual cleanup...")
 
             # Perform process cleanup

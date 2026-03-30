@@ -46,7 +46,7 @@ class BackendClient:
         """
         try:
             # Split text into subject/content roughly for the API
-            lines = text.split("\n", 1)
+            lines = text.split('\n', 1)
             subject = lines[0] if lines else "No Subject"
             content = lines[1] if len(lines) > 1 else text
 
@@ -76,9 +76,9 @@ class BackendClient:
         workflow_def = self.retrieve_item(f"workflow_{workflow_id}")
 
         if not workflow_def:
-            # Fallback to a mock/simple workflow if not found
-            logger.warning(f"Workflow {workflow_id} not found in storage. Using dummy.")
-            return {"error": f"Workflow {workflow_id} not found"}
+             # Fallback to a mock/simple workflow if not found
+             logger.warning(f"Workflow {workflow_id} not found in storage. Using dummy.")
+             return {"error": f"Workflow {workflow_id} not found"}
 
         try:
             # Reconstruct Workflow object from stored definition
@@ -97,7 +97,7 @@ class BackendClient:
 
             return {
                 "status": "failed",
-                "error": "Workflow execution from UI not fully wired to backend registry yet.",
+                "error": "Workflow execution from UI not fully wired to backend registry yet."
             }
 
         except Exception as e:
@@ -126,7 +126,7 @@ class BackendClient:
 
             # Atomic write
             temp_path = file_path.with_suffix(".tmp")
-            with open(temp_path, "w") as f:
+            with open(temp_path, 'w') as f:
                 json.dump(data, f, indent=2)
             temp_path.replace(file_path)
 
@@ -147,7 +147,7 @@ class BackendClient:
             if not file_path.exists():
                 return None
 
-            with open(file_path, "r") as f:
+            with open(file_path, 'r') as f:
                 return json.load(f)
         except Exception as e:
             logger.error(f"Failed to retrieve item {key}: {e}")
@@ -160,7 +160,7 @@ class BackendClient:
         try:
             for file_path in DATA_DIR.glob("workflow_*.json"):
                 try:
-                    with open(file_path, "r") as f:
+                    with open(file_path, 'r') as f:
                         data = json.load(f)
                         workflows.append(data)
                 except:

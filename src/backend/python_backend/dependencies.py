@@ -9,7 +9,6 @@ Manages service dependencies and provides them to route handlers
 import logging
 from typing import Optional
 from fastapi import Depends
-
 # Updated to use the new src architecture where available
 from backend.python_backend.services.email_service import EmailService
 from backend.python_backend.services.category_service import CategoryService
@@ -51,13 +50,7 @@ _gmail_service_instance: Optional["GmailAIService"] = None
 
 async def initialize_services():
     """Initialize all singleton services. This should be called on application startup."""
-    global \
-        _model_manager_instance, \
-        _ai_engine_instance, \
-        _filter_manager_instance, \
-        _workflow_engine_instance, \
-        _plugin_manager_instance, \
-        _gmail_service_instance
+    global _model_manager_instance, _ai_engine_instance, _filter_manager_instance, _workflow_engine_instance, _plugin_manager_instance, _gmail_service_instance
 
     db = await get_db()
 
@@ -76,9 +69,7 @@ async def initialize_services():
     if _workflow_engine_instance is None:
         _workflow_engine_instance = WorkflowEngine()
         await _workflow_engine_instance.discover_workflows(
-            ai_engine=_ai_engine_instance,
-            filter_manager=_filter_manager_instance,
-            db=db,
+            ai_engine=_ai_engine_instance, filter_manager=_filter_manager_instance, db=db
         )
 
     # Initialize Plugin Manager, which may need other managers
@@ -102,9 +93,7 @@ async def initialize_services():
                 db_manager=db, advanced_ai_engine=_ai_engine_instance
             )
         else:
-            logger.warning(
-                "GmailAIService not available, Gmail integration will be disabled."
-            )
+            logger.warning("GmailAIService not available, Gmail integration will be disabled.")
 
 
 def get_model_manager() -> "ModelManager":
@@ -145,9 +134,7 @@ def get_plugin_manager() -> "PluginManager":
     global _plugin_manager_instance
     if _plugin_manager_instance is None:
         if not PluginManager:
-            raise ImportError(
-                "PluginManager module is not available. Ensure required dependencies are installed."
-            )
+            raise ImportError("PluginManager module is not available. Ensure required dependencies are installed.")
         _plugin_manager_instance = PluginManager()
         _plugin_manager_instance.discover_and_load_plugins()
     return _plugin_manager_instance
@@ -168,13 +155,9 @@ def get_gmail_service(
     global _gmail_service_instance
     if _gmail_service_instance is None:
         if not GmailAIService:
-            raise ImportError(
-                "GmailAIService module is not available. Ensure required dependencies are installed."
-            )
+            raise ImportError("GmailAIService module is not available. Ensure required dependencies are installed.")
         ai_engine = get_ai_engine()
-        _gmail_service_instance = GmailAIService(
-            db_manager=db, advanced_ai_engine=ai_engine
-        )
+        _gmail_service_instance = GmailAIService(db_manager=db, advanced_ai_engine=ai_engine)
     return _gmail_service_instance
 
 

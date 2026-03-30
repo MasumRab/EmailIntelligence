@@ -438,7 +438,7 @@ export function AIAnalysisPanel({ email, onCategoryUpdate }: AIAnalysisPanelProp
         <CardContent>
           <div className="text-center py-8 text-gray-500">
             <Brain className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-            <p>Click &quot;Analyze&quot; to get AI-powered insights about this email</p>
+            <p>Click "Analyze" to get AI-powered insights about this email</p>
             <div className="mt-4 text-sm space-y-1">
               <p>• Advanced sentiment and intent detection</p>
               <p>• Smart categorization with confidence scores</p>

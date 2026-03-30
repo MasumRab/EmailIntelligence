@@ -4,11 +4,14 @@ import logging
 import gradio as gr
 
 # Import from the new advanced workflow engine in the core
-from src.core.advanced_workflow_engine import Workflow, get_workflow_manager
+from src.core.advanced_workflow_engine import (
+    Workflow,
+    get_workflow_manager
+)
 from src.core.advanced_workflow_engine import (
     EmailInputNode,
     NLPProcessorNode,
-    EmailOutputNode,
+    EmailOutputNode
 )
 
 logger = logging.getLogger(__name__)
@@ -30,21 +33,15 @@ def uppercase(text):
 # Note: Using the new node types from the advanced workflow engine
 class EmailSourceNode(EmailInputNode):
     """Compatibility wrapper for old EmailSourceNode"""
-
     pass
-
 
 class PreprocessingNode(NLPProcessorNode):
     """Compatibility wrapper for old PreprocessingNode"""
-
     pass
-
 
 class AIAnalysisNode(EmailOutputNode):
     """Compatibility wrapper for old AIAnalysisNode"""
-
     pass
-
 
 # A registry of available node types for this proof-of-concept.
 # This allows the UI to instantiate the correct Node objects.
@@ -83,7 +80,7 @@ async def run_workflow_from_json(workflow_json: str, initial_context_json: str) 
                 workflow.add_node(
                     node_type=node_type,
                     node_id=node_def["id"],
-                    **node_def.get("config", {}),
+                    **node_def.get("config", {})
                 )
             else:
                 return {"error": f"Unknown node type: {node_type}"}
@@ -100,7 +97,8 @@ async def run_workflow_from_json(workflow_json: str, initial_context_json: str) 
         # Run the workflow using the new Node Engine
         workflow_manager = get_workflow_manager()  # Use the global workflow manager
         execution_result = await workflow_manager.execute_workflow(
-            workflow.workflow_id, initial_inputs=initial_context
+            workflow.workflow_id,
+            initial_inputs=initial_context
         )
 
         # Return the execution results using the new API
@@ -140,11 +138,7 @@ def create_workflow_ui():
                             "name": "Email Source",
                             "config": {"max_emails": 5},
                         },
-                        {
-                            "id": "preprocess",
-                            "type": "preprocessing",
-                            "name": "Text Preprocessor",
-                        },
+                        {"id": "preprocess", "type": "preprocessing", "name": "Text Preprocessor"},
                         {"id": "analyze", "type": "ai_analysis", "name": "AI Analyzer"},
                     ],
                     "connections": [

@@ -50,10 +50,7 @@ class BaseAIEngine(ABC):
 
     @abstractmethod
     async def analyze_email(
-        self,
-        subject: str,
-        content: str,
-        categories: Optional[List[Dict[str, Any]]] = None,
+        self, subject: str, content: str, categories: Optional[List[Dict[str, Any]]] = None
     ) -> AIAnalysisResult:
         """
         Analyzes the content of an email to extract insights.
@@ -92,6 +89,8 @@ class BaseAIEngine(ABC):
         Trains or retrains the AI models using provided training data.
         """
         pass
+
+
 
 
 class ModernAIEngine(BaseAIEngine):
@@ -180,8 +179,7 @@ class ModernAIEngine(BaseAIEngine):
 
         # Overall status
         component_statuses = [
-            comp.get("status", "unknown")
-            for comp in health_status["components"].values()
+            comp.get("status", "unknown") for comp in health_status["components"].values()
         ]
         if "unhealthy" in component_statuses:
             health_status["status"] = "unhealthy"
@@ -193,10 +191,7 @@ class ModernAIEngine(BaseAIEngine):
         return health_status
 
     async def analyze_email(
-        self,
-        subject: str,
-        content: str,
-        categories: Optional[List[Dict[str, Any]]] = None,
+        self, subject: str, content: str, categories: Optional[List[Dict[str, Any]]] = None
     ) -> AIAnalysisResult:
         """Analyze an email using modern AI techniques."""
         if not self._initialized:
@@ -214,9 +209,7 @@ class ModernAIEngine(BaseAIEngine):
 
             # Generate comprehensive result
             result_data = {
-                "sentiment": sentiment.get("label", "neutral")
-                if sentiment
-                else "neutral",
+                "sentiment": sentiment.get("label", "neutral") if sentiment else "neutral",
                 "topic": topics[0] if topics else "general",
                 "intent": intent.get("type", "unknown") if intent else "unknown",
                 "urgency": urgency.get("level", "low") if urgency else "low",
@@ -252,9 +245,7 @@ class ModernAIEngine(BaseAIEngine):
         """Analyze sentiment using available models."""
         try:
             # Try to use sentiment model from model manager
-            if self._model_manager and hasattr(
-                self._model_manager, "get_sentiment_model"
-            ):
+            if self._model_manager and hasattr(self._model_manager, "get_sentiment_model"):
                 model = self._model_manager.get_sentiment_model()
                 if model:
                     return await model.analyze(text)
@@ -293,9 +284,7 @@ class ModernAIEngine(BaseAIEngine):
     async def _analyze_urgency(self, text: str) -> Optional[Dict[str, Any]]:
         """Analyze urgency using available models."""
         try:
-            if self._model_manager and hasattr(
-                self._model_manager, "get_urgency_model"
-            ):
+            if self._model_manager and hasattr(self._model_manager, "get_urgency_model"):
                 model = self._model_manager.get_urgency_model()
                 if model:
                     return await model.analyze(text)
@@ -306,24 +295,8 @@ class ModernAIEngine(BaseAIEngine):
 
     async def _simple_sentiment_analysis(self, text: str) -> Dict[str, Any]:
         """Simple keyword-based sentiment analysis."""
-        positive_words = [
-            "good",
-            "great",
-            "excellent",
-            "happy",
-            "love",
-            "like",
-            "thank",
-        ]
-        negative_words = [
-            "bad",
-            "terrible",
-            "hate",
-            "dislike",
-            "sorry",
-            "problem",
-            "issue",
-        ]
+        positive_words = ["good", "great", "excellent", "happy", "love", "like", "thank"]
+        negative_words = ["bad", "terrible", "hate", "dislike", "sorry", "problem", "issue"]
 
         text_lower = text.lower()
         positive_count = sum(1 for word in positive_words if word in text_lower)
@@ -361,13 +334,9 @@ class ModernAIEngine(BaseAIEngine):
         """Simple intent analysis based on keywords."""
         text_lower = text.lower()
 
-        if any(
-            word in text_lower for word in ["?", "what", "how", "when", "where", "why"]
-        ):
+        if any(word in text_lower for word in ["?", "what", "how", "when", "where", "why"]):
             intent_type = "question"
-        elif any(
-            word in text_lower for word in ["please", "can you", "would you", "help"]
-        ):
+        elif any(word in text_lower for word in ["please", "can you", "would you", "help"]):
             intent_type = "request"
         elif any(word in text_lower for word in ["sorry", "apologize", "mistake"]):
             intent_type = "apology"
@@ -381,14 +350,7 @@ class ModernAIEngine(BaseAIEngine):
     async def _simple_urgency_analysis(self, text: str) -> Dict[str, Any]:
         """Simple urgency analysis."""
         text_lower = text.lower()
-        urgency_indicators = [
-            "urgent",
-            "asap",
-            "emergency",
-            "immediately",
-            "deadline",
-            "critical",
-        ]
+        urgency_indicators = ["urgent", "asap", "emergency", "immediately", "deadline", "critical"]
 
         has_urgency = any(indicator in text_lower for indicator in urgency_indicators)
 
@@ -397,9 +359,7 @@ class ModernAIEngine(BaseAIEngine):
             "confidence": 0.7 if has_urgency else 0.5,
         }
 
-    def _calculate_overall_confidence(
-        self, sentiment, topics, intent, urgency
-    ) -> float:
+    def _calculate_overall_confidence(self, sentiment, topics, intent, urgency) -> float:
         """Calculate overall confidence score."""
         confidences = []
         if sentiment and "confidence" in sentiment:
@@ -435,9 +395,7 @@ class ModernAIEngine(BaseAIEngine):
         keywords = [word for word in words if len(word) > 3 and word not in stop_words]
         return list(set(keywords))[:10]  # Return unique keywords, max 10
 
-    def _generate_suggested_labels(
-        self, sentiment, topics, intent, urgency
-    ) -> List[str]:
+    def _generate_suggested_labels(self, sentiment, topics, intent, urgency) -> List[str]:
         """Generate suggested labels based on analysis."""
         labels = []
 
