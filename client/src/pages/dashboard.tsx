@@ -83,8 +83,10 @@ export default function Dashboard() {
   };
 
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
-  const [activeFilters, setActiveFilters] = useState<any>(null);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any
+  const [_activeFilters, setActiveFilters] = useState<any>(null);
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleApplyFilters = (filters: any) => {
     setActiveFilters(filters);
     // In a real implementation, you would apply these filters to your email query
