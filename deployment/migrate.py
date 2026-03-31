@@ -34,11 +34,12 @@ PROJECT_ROOT = Path(__file__).parent.parent
 
 def run_command(command, cwd=None):
     """Run a shell command and log the output."""
-    logger.info(f"Running command: {command}")
+    command_str = command if isinstance(command, str) else " ".join(command)
+    logger.info(f"Running command: {command_str}")
     try:
         result = subprocess.run(
             command,
-            shell=True,
+            shell=False,
             check=True,
             text=True,
             capture_output=True,
@@ -50,31 +51,36 @@ def run_command(command, cwd=None):
         logger.error(f"Command failed with exit code {e.returncode}")
         logger.error(e.stderr)
         return False
+    except Exception as e:
+        logger.error(f"Command execution failed: {e}")
+        return False
 
 
 def generate_migration():
     """Generate a new migration."""
-    return run_command("npx drizzle-kit generate:sqlite")
+    return run_command(["npx", "drizzle-kit", "generate:sqlite"])
 
 
 def apply_migrations():
     """Apply pending migrations."""
-    return run_command("npx drizzle-kit migrate:sqlite")
+    return run_command(["npx", "drizzle-kit", "migrate:sqlite"])
 
 
 def check_migration_status():
     """Check migration status."""
-    return run_command("npx drizzle-kit status:sqlite")
+    return run_command(["npx", "drizzle-kit", "status:sqlite"])
 
 
 def rollback_migration():
     """Rollback the last migration."""
-    return run_command("npx drizzle-kit rollback:sqlite")
+    return run_command(["npx", "drizzle-kit", "rollback:sqlite"])
 
 
 def main():
     """Main entry point for the migration script."""
-    parser = argparse.ArgumentParser(description="Database Migration Script for EmailIntelligence")
+    parser = argparse.ArgumentParser(
+        description="Database Migration Script for EmailIntelligence"
+    )
     parser.add_argument(
         "command",
         choices=["generate", "apply", "status", "rollback"],

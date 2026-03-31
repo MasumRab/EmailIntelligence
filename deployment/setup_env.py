@@ -11,8 +11,6 @@ Usage:
 
 import argparse
 import logging
-import os
-import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -27,23 +25,30 @@ logger = logging.getLogger("setup-env")
 PROJECT_ROOT = Path(__file__).parent.parent
 
 
-def run_command(command, cwd=None):
+def run_command(command, cwd=None, ignore_errors=False):
     """Run a shell command and log the output."""
-    logger.info(f"Running command: {command}")
+    command_str = command if isinstance(command, str) else " ".join(command)
+    logger.info(f"Running command: {command_str}")
     try:
         result = subprocess.run(
             command,
-            shell=True,
-            check=True,
+            shell=False,
+            check=not ignore_errors,
             text=True,
             capture_output=True,
             cwd=cwd or str(PROJECT_ROOT),
         )
-        logger.info(result.stdout)
-        return True
+        if result.stdout:
+            logger.info(result.stdout)
+        if ignore_errors and result.returncode != 0:
+            logger.debug(f"Command failed (ignored): {result.stderr}")
+        return True if result.returncode == 0 or ignore_errors else False
     except subprocess.CalledProcessError as e:
         logger.error(f"Command failed with exit code {e.returncode}")
         logger.error(e.stderr)
+        return False
+    except Exception as e:
+        logger.error(f"Command execution failed: {e}")
         return False
 
 
@@ -53,9 +58,21 @@ def setup_python_environment(dev_mode=False):
 
     # Install Python dependencies
     if dev_mode:
-        return run_command(f"{sys.executable} -m pip install -r requirements.txt")
+        return run_command(
+            [sys.executable, "-m", "pip", "install", "-r", "requirements.txt"]
+        )
     else:
-        return run_command(f"{sys.executable} -m pip install -r requirements.txt --no-dev")
+        return run_command(
+            [
+                sys.executable,
+                "-m",
+                "pip",
+                "install",
+                "-r",
+                "requirements.txt",
+                "--no-dev",
+            ]
+        )
 
 
 def setup_node_environment(dev_mode=False):
@@ -63,15 +80,15 @@ def setup_node_environment(dev_mode=False):
     logger.info("Setting up Node.js environment...")
 
     # Check if Node.js is installed
-    if not run_command("node --version"):
+    if not run_command(["node", "--version"]):
         logger.error("Node.js is not installed. Please install Node.js and try again.")
         return False
 
     # Install Node.js dependencies
     if dev_mode:
-        return run_command("npm install")
+        return run_command(["npm", "install"])
     else:
-        return run_command("npm install --production")
+        return run_command(["npm", "install", "--production"])
 
 
 def setup_database():
@@ -79,15 +96,17 @@ def setup_database():
     logger.info("Setting up database...")
 
     # Check if PostgreSQL is installed
-    if not run_command("psql --version"):
-        logger.error("PostgreSQL is not installed. Please install PostgreSQL and try again.")
+    if not run_command(["psql", "--version"]):
+        logger.error(
+            "PostgreSQL is not installed. Please install PostgreSQL and try again."
+        )
         return False
 
     # Create the database if it doesn't exist
-    run_command("createdb -U postgres emailintelligence || true")
+    run_command(["createdb", "-U", "postgres", "emailintelligence"], ignore_errors=True)
 
     # Apply migrations
-    return run_command("python deployment/migrate.py apply")
+    return run_command([sys.executable, "deployment/migrate.py", "apply"])
 
 
 def setup_environment_variables(force=False):
@@ -126,8 +145,18 @@ def setup_directories():
     directories = [
         PROJECT_ROOT / "deployment" / "nginx" / "ssl",
         PROJECT_ROOT / "deployment" / "nginx" / "letsencrypt",
-        PROJECT_ROOT / "deployment" / "monitoring" / "grafana" / "provisioning" / "dashboards",
-        PROJECT_ROOT / "deployment" / "monitoring" / "grafana" / "provisioning" / "datasources",
+        PROJECT_ROOT
+        / "deployment"
+        / "monitoring"
+        / "grafana"
+        / "provisioning"
+        / "dashboards",
+        PROJECT_ROOT
+        / "deployment"
+        / "monitoring"
+        / "grafana"
+        / "provisioning"
+        / "datasources",
     ]
 
     for directory in directories:
@@ -143,9 +172,15 @@ def setup_directories():
 
 def main():
     """Main entry point for the environment setup script."""
-    parser = argparse.ArgumentParser(description="Environment Setup Script for EmailIntelligence")
-    parser.add_argument("--dev", action="store_true", help="Set up development environment")
-    parser.add_argument("--force", action="store_true", help="Force overwrite of existing files")
+    parser = argparse.ArgumentParser(
+        description="Environment Setup Script for EmailIntelligence"
+    )
+    parser.add_argument(
+        "--dev", action="store_true", help="Set up development environment"
+    )
+    parser.add_argument(
+        "--force", action="store_true", help="Force overwrite of existing files"
+    )
     args = parser.parse_args()
 
     logger.info("Setting up EmailIntelligence environment...")
