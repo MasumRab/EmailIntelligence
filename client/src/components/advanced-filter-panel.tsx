@@ -179,7 +179,7 @@ export function AdvancedFilterPanel({
               </Label>
               <Input
                 value={requiredKeywords}
-                onChange={(e) => setRequiredKeywords(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setRequiredKeywords(e.target.value)}
                 placeholder="e.g., urgent, important"
               />
             </div>
@@ -189,7 +189,7 @@ export function AdvancedFilterPanel({
               </Label>
               <Input
                 value={excludedKeywords}
-                onChange={(e) => setExcludedKeywords(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setExcludedKeywords(e.target.value)}
                 placeholder="e.g., spam, advertisement"
               />
             </div>
@@ -206,7 +206,7 @@ export function AdvancedFilterPanel({
               </Label>
               <Input
                 value={requiredSenders}
-                onChange={(e) => setRequiredSenders(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setRequiredSenders(e.target.value)}
                 placeholder="e.g., boss@company.com"
               />
             </div>
@@ -216,7 +216,7 @@ export function AdvancedFilterPanel({
               </Label>
               <Input
                 value={excludedSenders}
-                onChange={(e) => setExcludedSenders(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setExcludedSenders(e.target.value)}
                 placeholder="e.g., marketing@company.com"
               />
             </div>
@@ -233,7 +233,7 @@ export function AdvancedFilterPanel({
               </Label>
               <Input
                 value={requiredRecipients}
-                onChange={(e) => setRequiredRecipients(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setRequiredRecipients(e.target.value)}
                 placeholder="e.g., team@company.com"
               />
             </div>
@@ -243,7 +243,7 @@ export function AdvancedFilterPanel({
               </Label>
               <Input
                 value={excludedRecipients}
-                onChange={(e) => setExcludedRecipients(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setExcludedRecipients(e.target.value)}
                 placeholder="e.g., alumni@university.edu"
               />
             </div>
@@ -261,7 +261,7 @@ export function AdvancedFilterPanel({
               <Input
                 type="date"
                 value={afterDate}
-                onChange={(e) => setAfterDate(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setAfterDate(e.target.value)}
               />
             </div>
             <div>
@@ -271,7 +271,7 @@ export function AdvancedFilterPanel({
               <Input
                 type="date"
                 value={beforeDate}
-                onChange={(e) => setBeforeDate(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setBeforeDate(e.target.value)}
               />
             </div>
           </div>
@@ -286,7 +286,7 @@ export function AdvancedFilterPanel({
               <Input
                 type="number"
                 value={minSize}
-                onChange={(e) => setMinSize(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setMinSize(e.target.value)}
                 placeholder="e.g., 100"
               />
             </div>
@@ -295,7 +295,7 @@ export function AdvancedFilterPanel({
               <Input
                 type="number"
                 value={maxSize}
-                onChange={(e) => setMaxSize(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setMaxSize(e.target.value)}
                 placeholder="e.g., 5000"
               />
             </div>
@@ -354,7 +354,7 @@ export function AdvancedFilterPanel({
           <Checkbox
             id="case-sensitive"
             checked={isCaseSensitive}
-            onCheckedChange={(checked) => setIsCaseSensitive(!!checked)}
+            onCheckedChange={(checked: boolean | "indeterminate") => setIsCaseSensitive(!!checked)}
           />
           <Label htmlFor="case-sensitive">Case sensitive matching</Label>
         </div>
@@ -382,7 +382,7 @@ export function AdvancedFilterPanel({
               >
                 <Select
                   value={condition.field}
-                  onValueChange={(value) =>
+                  onValueChange={(value: string) =>
                     updateCondition(condition.id, "field", value)
                   }
                 >
@@ -399,7 +399,7 @@ export function AdvancedFilterPanel({
 
                 <Select
                   value={condition.operator}
-                  onValueChange={(value) =>
+                  onValueChange={(value: string) =>
                     updateCondition(condition.id, "operator", value)
                   }
                 >
@@ -417,7 +417,7 @@ export function AdvancedFilterPanel({
 
                 <Input
                   value={condition.value}
-                  onChange={(e) =>
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                     updateCondition(condition.id, "value", e.target.value)
                   }
                   placeholder="Value"
