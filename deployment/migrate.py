@@ -32,9 +32,9 @@ logger = logging.getLogger("migrate")
 PROJECT_ROOT = Path(__file__).parent.parent
 
 
-def run_command(command, cwd=None):
+def run_command(command: list[str], cwd=None):
     """Run a shell command and log the output."""
-    command_str = command if isinstance(command, str) else " ".join(command)
+    command_str = " ".join(command)
     logger.info(f"Running command: {command_str}")
     try:
         result = subprocess.run(
@@ -51,8 +51,8 @@ def run_command(command, cwd=None):
         logger.error(f"Command failed with exit code {e.returncode}")
         logger.error(e.stderr)
         return False
-    except Exception as e:
-        logger.error(f"Command execution failed: {e}")
+    except OSError as e:
+        logger.exception(f"Command execution failed: {e}")
         return False
 
 
