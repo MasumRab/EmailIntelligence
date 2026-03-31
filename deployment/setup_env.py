@@ -30,6 +30,7 @@ def run_command(command: list[str], cwd=None, ignore_errors=False):
     command_str = " ".join(command)
     logger.info(f"Running command: {command_str}")
     try:
+        # sourcery skip: command-injection
         result = subprocess.run(
             command,
             shell=False,
