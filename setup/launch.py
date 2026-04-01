@@ -42,7 +42,7 @@ from setup.services import (
 from setup.environment import (
     handle_setup, prepare_environment, setup_wsl_environment, check_wsl_requirements
 )
-from setup.utils import print_system_info, process_manager
+from setup.utils import print_system_info, process_manager_instance, get_python_executable
 
 # Import test stages
 from setup.test_stages import test_stages
@@ -82,7 +82,7 @@ logger = logging.getLogger("launcher")
 ROOT_DIR = get_project_config().root_dir
 
 # Import process manager from utils
-from setup.utils import process_manager
+from setup.utils import process_manager_instance
 
 # --- Constants ---
 PYTHON_MIN_VERSION = (3, 12)
@@ -671,7 +671,9 @@ def start_backend(host: str, port: int, debug: bool = False):
         cmd.append("--reload")
     logger.info(f"Starting backend on {host}:{port}")
     process = subprocess.Popen(cmd, cwd=ROOT_DIR)
-    process_manager.add_process(process)
+    process_manager_instance.add_process(process)
+    process_manager_instance.add_process(process)
+    process_manager_instance.add_process(process)
 
 
 def start_node_service(service_path: Path, service_name: str, port: int, api_url: str):
@@ -684,7 +686,7 @@ def start_node_service(service_path: Path, service_name: str, port: int, api_url
     env["PORT"] = str(port)
     env["VITE_API_URL"] = api_url
     process = subprocess.Popen(["npm", "start"], cwd=service_path, env=env)
-    process_manager.add_process(process)
+    process_manager_instance.add_process(process)
 
 
 def setup_node_dependencies(service_path: Path, service_name: str):
@@ -709,7 +711,7 @@ def start_gradio_ui(host, port, share, debug):
     env = os.environ.copy()
     env["PYTHONPATH"] = str(ROOT_DIR)
     process = subprocess.Popen(cmd, cwd=ROOT_DIR, env=env)
-    process_manager.add_process(process)
+    process_manager_instance.add_process(process)
 
 
 def handle_setup(args, venv_path):
@@ -1259,7 +1261,7 @@ def _handle_legacy_args(args) -> int:
     except KeyboardInterrupt:
         logger.info("Shutdown signal received.")
     finally:
-        process_manager.cleanup()
+        process_manager_instance.cleanup()
 
     return 0
 
