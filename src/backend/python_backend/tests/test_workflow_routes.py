@@ -20,7 +20,9 @@ def test_set_active_workflow(client, mock_workflow_engine):
 
     response = client.put(f"/api/workflows/active/{workflow_name}")
     assert response.status_code == 200
-    assert response.json() == {"message": f"Active legacy workflow set to '{workflow_name}'."}
+    assert response.json() == {
+        "message": f"Active legacy workflow set to '{workflow_name}'."
+    }
     # Verify the mock was called correctly
     mock_workflow_engine.set_active_workflow.assert_called_once_with(workflow_name)
 

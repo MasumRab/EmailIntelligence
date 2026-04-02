@@ -81,11 +81,23 @@ class UrgencyModel:
                 "method_used": "fallback_regex_urgency",
             }
         elif re.search(r"\b(soon|quickly|priority|important|deadline)\b", text_lower):
-            return {"urgency": "high", "confidence": 0.8, "method_used": "fallback_regex_urgency"}
+            return {
+                "urgency": "high",
+                "confidence": 0.8,
+                "method_used": "fallback_regex_urgency",
+            }
         elif re.search(r"\b(next week|upcoming|scheduled)\b", text_lower):
-            return {"urgency": "medium", "confidence": 0.6, "method_used": "fallback_regex_urgency"}
+            return {
+                "urgency": "medium",
+                "confidence": 0.6,
+                "method_used": "fallback_regex_urgency",
+            }
         else:
-            return {"urgency": "low", "confidence": 0.5, "method_used": "fallback_regex_urgency"}
+            return {
+                "urgency": "low",
+                "confidence": 0.5,
+                "method_used": "fallback_regex_urgency",
+            }
 
     def analyze(self, text: str) -> Dict[str, Any]:
         """
