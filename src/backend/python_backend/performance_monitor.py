@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 """
 Performance Monitoring Dashboard for Email Intelligence Platform
 
@@ -326,10 +327,9 @@ def _create_decorator(func, op_name):
             }
 
             try:
-                with open(LOG_FILE, "a") as f:
-                    f.write(json.dumps(log_entry) + "\n")
-            except IOError as e:
-                logger.error(f"Failed to write performance log: {e}")
+                performance_monitor.log_performance(log_entry)
+            except Exception as e:
+                logger.warning(f"Failed to log performance: {e}")
 
             return result
 
@@ -350,11 +350,12 @@ def _create_decorator(func, op_name):
             }
 
             try:
-                with open(LOG_FILE, "a") as f:
-                    f.write(json.dumps(log_entry) + "\n")
-            except IOError as e:
-                logger.error(f"Failed to write performance log: {e}")
+                performance_monitor.log_performance(log_entry)
+            except Exception as e:
+                logger.warning(f"Failed to log performance: {e}")
 
             return result
 
         return sync_wrapper
+=======
+>>>>>>> origin/main

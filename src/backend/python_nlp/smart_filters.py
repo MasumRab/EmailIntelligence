@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 """
 A system for managing and applying intelligent email filters.
 
@@ -97,16 +98,19 @@ class SmartFilterManager:
     of email filters, using a SQLite database for persistence.
     """
 
-    def __init__(self, db_path: str = None):
+    def __init__(self, db_path: str = DEFAULT_DB_PATH):
         """
         Initializes the SmartFilterManager.
 
         Args:
             db_path: Path to the SQLite database file. If None, uses the default
-                     path in the project's data directory. Relative paths are
-                     resolved relative to the project's data directory to prevent
-                     path traversal attacks and ensure consistent behavior.
+                    path in the project's data directory. Relative paths are
+                    resolved relative to the project's data directory to prevent
+                    path traversal attacks and ensure consistent behavior.
         """
+<<<<<<< HEAD
+        self.db_path = db_path
+=======
         if db_path is None:
             db_path = DEFAULT_DB_PATH
         elif not os.path.isabs(db_path):
@@ -115,28 +119,19 @@ class SmartFilterManager:
             db_path = os.path.join(DATA_DIR, filename)
 
         # Validate the final path
-        self.db_path = str(PathValidator.validate_and_resolve_db_path(db_path, DATA_DIR))
+        self.db_path = str(PathValidator.validate_database_path(db_path, DATA_DIR))
+>>>>>>> scientific
         self.logger = logging.getLogger(__name__)
         self.conn = None
-        self._db_initialized = False  # Flag to control initialization
         if self.db_path == ":memory:":
             self.conn = sqlite3.connect(":memory:")
             self.conn.row_factory = sqlite3.Row
-            self._init_filter_db()
-            self._db_initialized = True
-        # Defer initialization to first use
-        self._filter_templates = None
-        self._pruning_criteria = None
-
-    def _ensure_db_initialized(self):
-        """Ensure the database is initialized, but only when needed."""
-        if not self._db_initialized:
-            self._init_filter_db()
-            self._db_initialized = True
+        self._init_filter_db()
+        self.filter_templates = self._load_filter_templates()
+        self.pruning_criteria = self._load_pruning_criteria()
 
     def _get_db_connection(self) -> sqlite3.Connection:
         """Establishes and returns a database connection."""
-        self._ensure_db_initialized()  # Ensure DB is initialized before getting connection
         if self.conn:
             return self.conn
         conn = sqlite3.connect(self.db_path)
@@ -461,26 +456,6 @@ class SmartFilterManager:
                 summary["filters_matched"].append(filter_obj.name)
         return summary
 
-    def _ensure_templates_loaded(self):
-        """Ensure templates are loaded, but only when needed."""
-        if self._filter_templates is None:
-            self._filter_templates = self._load_filter_templates()
-
-    def _ensure_criteria_loaded(self):
-        """Ensure criteria are loaded, but only when needed."""
-        if self._pruning_criteria is None:
-            self._pruning_criteria = self._load_pruning_criteria()
-
-    @property
-    def filter_templates(self):
-        self._ensure_templates_loaded()
-        return self._filter_templates
-
-    @property
-    def pruning_criteria(self):
-        self._ensure_criteria_loaded()
-        return self._pruning_criteria
-
 
 def main():
     """Demonstrates the usage of the SmartFilterManager."""
@@ -496,3 +471,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+=======
+>>>>>>> origin/main
