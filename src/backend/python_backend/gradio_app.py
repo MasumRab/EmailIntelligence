@@ -79,7 +79,9 @@ with gr.Blocks(title="Email Intelligence", theme=gr.themes.Soft()) as iface:
         with gr.TabItem("📥 Inbox"):
             gr.Markdown("## Inbox")
             email_df = gr.DataFrame(
-                headers=["ID", "Subject", "From", "Date"], interactive=True, label="Emails"
+                headers=["ID", "Subject", "From", "Date"],
+                interactive=True,
+                label="Emails",
             )
 
         with gr.TabItem("Single Email Analysis"):
@@ -89,7 +91,9 @@ with gr.Blocks(title="Email Intelligence", theme=gr.themes.Soft()) as iface:
                         label="Email Subject", placeholder="Enter email subject..."
                     )
                     email_content = gr.Textbox(
-                        label="Email Content", lines=10, placeholder="Enter email content..."
+                        label="Email Content",
+                        lines=10,
+                        placeholder="Enter email content...",
                     )
                     analyze_button = gr.Button("Analyze Email", variant="primary")
                 with gr.Column(scale=1):
@@ -200,7 +204,9 @@ with gr.Blocks(title="Email Intelligence", theme=gr.themes.Soft()) as iface:
                     return pd.DataFrame(), {"error": str(e)}
 
             analyze_data_button.click(
-                fn=analyze_batch, inputs=data_input, outputs=[batch_output, stats_output]
+                fn=analyze_batch,
+                inputs=data_input,
+                outputs=[batch_output, stats_output],
             )
 
         with gr.TabItem("Jupyter Notebook"):

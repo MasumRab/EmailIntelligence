@@ -8,7 +8,6 @@ import asyncio
 import logging
 import time
 from dataclasses import dataclass
-from typing import Dict, Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -39,10 +38,10 @@ class RateLimiter:
 
     def __init__(self, config: RateLimitConfig):
         self.config = config
-        self._limits: Dict[str, RateLimitState] = {}
+        self._limits: dict[str, RateLimitState] = {}
         self._lock = asyncio.Lock()
 
-    async def is_allowed(self, key: str) -> Tuple[bool, Dict[str, int]]:
+    async def is_allowed(self, key: str) -> tuple[bool, dict[str, int]]:
         """
         Check if request is allowed for the given key.
 
@@ -106,7 +105,7 @@ class APIRateLimiter:
     """
 
     def __init__(self):
-        self._limiters: Dict[str, RateLimiter] = {}
+        self._limiters: dict[str, RateLimiter] = {}
         self._default_config = RateLimitConfig()
 
     def add_endpoint_limit(self, endpoint: str, config: RateLimitConfig):
@@ -119,7 +118,7 @@ class APIRateLimiter:
             self._limiters[endpoint] = RateLimiter(self._default_config)
         return self._limiters[endpoint]
 
-    async def check_rate_limit(self, endpoint: str, client_key: str) -> Tuple[bool, Dict[str, int]]:
+    async def check_rate_limit(self, endpoint: str, client_key: str) -> tuple[bool, dict[str, int]]:
         """
         Check rate limit for an endpoint and client.
 

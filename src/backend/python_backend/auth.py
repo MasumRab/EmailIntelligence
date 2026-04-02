@@ -5,7 +5,6 @@ This module implements JWT-based authentication for API endpoints.
 """
 
 from datetime import datetime, timedelta
-from typing import Optional
 
 import jwt
 from fastapi import Depends, HTTPException, status
@@ -16,14 +15,14 @@ from .settings import settings
 
 
 class TokenData(BaseModel):
-    username: Optional[str] = None
+    username: str | None = None
 
 
 # Initialize security scheme
 security = HTTPBearer()
 
 
-def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
+def create_access_token(data: dict, expires_delta: timedelta | None = None):
     """Create a JWT access token with the provided data."""
     to_encode = data.copy()
     if expires_delta:
@@ -35,7 +34,9 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     return encoded_jwt
 
 
-async def verify_token(credentials: HTTPAuthorizationCredentials = Depends(security)) -> TokenData:
+async def verify_token(
+    credentials: HTTPAuthorizationCredentials = Depends(security),
+) -> TokenData:
     """
     Verify the JWT token from the Authorization header.
 
@@ -49,7 +50,9 @@ async def verify_token(credentials: HTTPAuthorizationCredentials = Depends(secur
     )
     try:
         payload = jwt.decode(
-            credentials.credentials, settings.secret_key, algorithms=[settings.algorithm]
+            credentials.credentials,
+            settings.secret_key,
+            algorithms=[settings.algorithm],
         )
         username: str = payload.get("sub")
         if username is None:

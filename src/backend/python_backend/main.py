@@ -92,7 +92,7 @@ class ErrorHandlingMiddleware(BaseHTTPMiddleware):
                 elif isinstance(exc, ValidationError):
                     status_code = 422
                 else:
-                    status_code = 500 # Default to 500 for unhandled exceptions
+                    status_code = 500  # Default to 500 for unhandled exceptions
 
             # Format error response consistently
             if isinstance(exc, (AppException, BaseAppException)):
@@ -294,7 +294,9 @@ app.include_router(node_workflow_router, prefix="/api/nodes", tags=["node-workfl
 
 # Initialize workflow manager instance (using the node-based workflow manager)
 try:
-    from src.backend.node_engine.workflow_manager import workflow_manager as node_workflow_manager
+    from src.backend.node_engine.workflow_manager import (
+        workflow_manager as node_workflow_manager,
+    )
 
     workflow_manager_instance = node_workflow_manager
 except ImportError:
@@ -346,7 +348,11 @@ async def health_check(request: Request):
             "version": settings.app_version,
             "app_name": settings.app_name,
         }
-    except (ValueError, RuntimeError, OSError) as e:  # Specific exceptions for health check
+    except (
+        ValueError,
+        RuntimeError,
+        OSError,
+    ) as e:  # Specific exceptions for health check
         logger.error(  # Simple log for health check itself
             json.dumps(
                 {
@@ -372,7 +378,10 @@ async def health_check(request: Request):
 async def get_error_stats():
     """Get error statistics for monitoring."""
     with error_lock:
-        return {"error_counts": dict(error_counts), "total_errors": sum(error_counts.values())}
+        return {
+            "error_counts": dict(error_counts),
+            "total_errors": sum(error_counts.values()),
+        }
 
 
 if __name__ == "__main__":

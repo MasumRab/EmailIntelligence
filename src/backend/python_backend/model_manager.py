@@ -1,7 +1,7 @@
 """Model manager module."""
 
 import logging
-from typing import Any, Dict, List
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -12,7 +12,7 @@ class ModelManager:
     def __init__(self):
         pass
 
-    def get_active_models(self) -> List[Dict[str, Any]]:
+    def get_active_models(self) -> list[dict[str, Any]]:
         """Get active models. Stub implementation."""
         return []
 

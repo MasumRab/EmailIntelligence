@@ -7,8 +7,8 @@ It handles dependency injection, fallback mechanisms, and error handling.
 
 import json
 import logging
-from typing import Dict, Any, Optional, List
 from pathlib import Path
+from typing import Any
 
 # Core Imports
 from src.core.factory import get_ai_engine
@@ -40,13 +40,13 @@ class BackendClient:
             pass
         return self._ai_engine
 
-    async def analyze_text(self, text: str) -> Dict[str, Any]:
+    async def analyze_text(self, text: str) -> dict[str, Any]:
         """
         Analyze text using the core AIEngine.
         """
         try:
             # Split text into subject/content roughly for the API
-            lines = text.split('\n', 1)
+            lines = text.split("\n", 1)
             subject = lines[0] if lines else "No Subject"
             content = lines[1] if len(lines) > 1 else text
 
@@ -57,7 +57,7 @@ class BackendClient:
             logger.error(f"Error in analyze_text: {e}", exc_info=True)
             return {"error": str(e)}
 
-    async def start_workflow(self, payload: Dict[str, Any]) -> Dict[str, Any]:
+    async def start_workflow(self, payload: dict[str, Any]) -> dict[str, Any]:
         """
         Start a workflow.
         Payload expected to contain 'workflow_id' and 'email_data'.
@@ -76,9 +76,9 @@ class BackendClient:
         workflow_def = self.retrieve_item(f"workflow_{workflow_id}")
 
         if not workflow_def:
-             # Fallback to a mock/simple workflow if not found
-             logger.warning(f"Workflow {workflow_id} not found in storage. Using dummy.")
-             return {"error": f"Workflow {workflow_id} not found"}
+            # Fallback to a mock/simple workflow if not found
+            logger.warning(f"Workflow {workflow_id} not found in storage. Using dummy.")
+            return {"error": f"Workflow {workflow_id} not found"}
 
         try:
             # Reconstruct Workflow object from stored definition
@@ -97,14 +97,14 @@ class BackendClient:
 
             return {
                 "status": "failed",
-                "error": "Workflow execution from UI not fully wired to backend registry yet."
+                "error": "Workflow execution from UI not fully wired to backend registry yet.",
             }
 
         except Exception as e:
             logger.error(f"Error starting workflow: {e}")
             return {"error": str(e)}
 
-    def get_metrics(self) -> Dict[str, Any]:
+    def get_metrics(self) -> dict[str, Any]:
         """
         Get system metrics from PerformanceMonitor.
         """
@@ -115,7 +115,7 @@ class BackendClient:
             logger.error(f"Error getting metrics: {e}")
             return {"error": str(e)}
 
-    def persist_item(self, key: str, data: Dict[str, Any]) -> bool:
+    def persist_item(self, key: str, data: dict[str, Any]) -> bool:
         """
         Generic persistence using local JSON files (Fallback).
         Stored in modules/new_ui/data/{key}.json
@@ -126,7 +126,7 @@ class BackendClient:
 
             # Atomic write
             temp_path = file_path.with_suffix(".tmp")
-            with open(temp_path, 'w') as f:
+            with open(temp_path, "w") as f:
                 json.dump(data, f, indent=2)
             temp_path.replace(file_path)
 
@@ -136,7 +136,7 @@ class BackendClient:
             logger.error(f"Failed to persist item {key}: {e}")
             return False
 
-    def retrieve_item(self, key: str) -> Optional[Dict[str, Any]]:
+    def retrieve_item(self, key: str) -> dict[str, Any] | None:
         """
         Generic retrieval using local JSON files (Fallback).
         """
@@ -147,23 +147,23 @@ class BackendClient:
             if not file_path.exists():
                 return None
 
-            with open(file_path, 'r') as f:
+            with open(file_path) as f:
                 return json.load(f)
         except Exception as e:
             logger.error(f"Failed to retrieve item {key}: {e}")
             return None
 
     # Helper for the UI to list workflows (generic)
-    def list_workflows(self) -> List[Dict[str, Any]]:
+    def list_workflows(self) -> list[dict[str, Any]]:
         """List all workflows stored in the local fallback."""
         workflows = []
         try:
             for file_path in DATA_DIR.glob("workflow_*.json"):
                 try:
-                    with open(file_path, 'r') as f:
+                    with open(file_path) as f:
                         data = json.load(f)
                         workflows.append(data)
-                except:
+                except Exception:
                     continue
         except Exception as e:
             logger.error(f"Error listing workflows: {e}")

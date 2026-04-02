@@ -1,8 +1,9 @@
 import asyncio
 import logging
 import time
+from collections.abc import Callable
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any
 
 import networkx as nx
 import psutil  # For memory monitoring
@@ -34,10 +35,10 @@ class Node:
         node_id: str,
         name: str,
         operation: Callable,
-        inputs: List[str],
-        outputs: List[str],
+        inputs: list[str],
+        outputs: list[str],
         failure_strategy: str = "stop",
-        conditional_expression: Optional[str] = None,
+        conditional_expression: str | None = None,
     ):
         self.node_id = node_id
         self.name = name
@@ -48,7 +49,7 @@ class Node:
         self.conditional_expression = conditional_expression  # Optional conditional for execution
         self.status = NodeExecutionStatus.PENDING
 
-    def execute(self, context: Dict[str, Any]) -> Dict[str, Any]:
+    def execute(self, context: dict[str, Any]) -> dict[str, Any]:
         """
         Executes the node's operation using the provided context.
         """
@@ -73,7 +74,10 @@ class Node:
 
         except Exception as e:
             self.status = NodeExecutionStatus.FAILED
-            logger.error(f"Error executing node '{self.name}' ({self.node_id}): {e}", exc_info=True)
+            logger.error(
+                f"Error executing node '{self.name}' ({self.node_id}): {e}",
+                exc_info=True,
+            )
             raise
 
 
@@ -82,7 +86,7 @@ class Workflow:
     Represents a processing workflow as a directed acyclic graph (DAG) of nodes.
     """
 
-    def __init__(self, name: str, nodes: Dict[str, Node], connections: List[Dict[str, str]]):
+    def __init__(self, name: str, nodes: dict[str, Node], connections: list[dict[str, str]]):
         self.name = name
         self.nodes = nodes
         self.connections = connections  # List of connections in the format
@@ -106,7 +110,7 @@ class Workflow:
 
         return graph
 
-    def get_execution_order(self) -> List[str]:
+    def get_execution_order(self) -> list[str]:
         """
         Get the execution order of nodes based on dependencies using topological sort.
         """
@@ -120,7 +124,7 @@ class Workflow:
             # If there's a cycle, raise an error
             raise ValueError("Workflow contains cycles, which are not allowed")
 
-    def validate(self) -> (bool, List[str]):
+    def validate(self) -> (bool, list[str]):
         """
         Validate the workflow before execution.
         Returns a tuple of (is_valid, list_of_errors).
@@ -220,7 +224,7 @@ class WorkflowRunner:
 
     def run(
         self,
-        initial_context: Dict[str, Any],
+        initial_context: dict[str, Any],
         memory_optimized: bool = False,
         parallel_execution: bool = False,
     ):
@@ -397,7 +401,7 @@ class WorkflowRunner:
                     if node_to_cleanup in self.node_results:
                         del self.node_results[node_to_cleanup]
                         logger.debug(
-                            f"Cleaned up results for node " f"{node_to_cleanup} to optimize memory"
+                            f"Cleaned up results for node {node_to_cleanup} to optimize memory"
                         )
 
     async def _run_parallel(self, execution_order, cleanup_schedule):
@@ -560,7 +564,7 @@ class WorkflowRunner:
             self.execution_stats["node_execution_times"][node_id] = execution_time
             raise
 
-    def _calculate_node_dependencies(self) -> Dict[str, List[str]]:
+    def _calculate_node_dependencies(self) -> dict[str, list[str]]:
         """Calculate which nodes each node depends on"""
         dependencies = {node_id: [] for node_id in self.workflow.nodes}
 
@@ -573,7 +577,7 @@ class WorkflowRunner:
 
         return dependencies
 
-    def _calculate_cleanup_schedule(self, execution_order: List[str]) -> Dict[str, List[str]]:
+    def _calculate_cleanup_schedule(self, execution_order: list[str]) -> dict[str, list[str]]:
         """
         Calculate which node results can be cleaned up after each node executes.
         This helps optimize memory usage by removing results that are no longer needed.
@@ -607,6 +611,37 @@ class WorkflowRunner:
                     cleanup_schedule[node_id].append(prev_node_id)
 
         return cleanup_schedule
+
+    def _build_node_context(self, node_id: str) -> dict[str, Any]:
+        """
+        Build context for executing a specific node based on workflow connections.
+        Extracts input values from the execution context and previous node results.
+        """
+        node = self.workflow.nodes.get(node_id)
+        if not node:
+            return {}
+
+        node_context = {}
+
+        # First, check execution context for initial inputs
+        for input_key in node.inputs:
+            if input_key in self.execution_context:
+                node_context[input_key] = self.execution_context[input_key]
+
+        # Then, check connections to find which previous nodes produce which inputs
+        for conn in self.workflow.connections:
+            if conn["to"]["node_id"] == node_id:
+                from_node_id = conn["from"]["node_id"]
+                output_key = conn["from"]["output"]
+                input_key = conn["to"]["input"]
+
+                # Get the result from the source node
+                if from_node_id in self.node_results:
+                    from_result = self.node_results[from_node_id]
+                    if output_key in from_result:
+                        node_context[input_key] = from_result[output_key]
+
+        return node_context
 
     def _evaluate_condition(self, condition: str) -> bool:
         """

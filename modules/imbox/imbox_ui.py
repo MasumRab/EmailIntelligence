@@ -1,6 +1,7 @@
-import gradio as gr
 import json
 import os
+
+import gradio as gr
 
 SENDER_LABELS_FILE = "data/sender_labels.json"
 
@@ -11,7 +12,7 @@ def save_sender_label(sender_email, label):
 
     labels = {}
     if os.path.exists(SENDER_LABELS_FILE) and os.path.getsize(SENDER_LABELS_FILE) > 0:
-        with open(SENDER_LABELS_FILE, "r") as f:
+        with open(SENDER_LABELS_FILE) as f:
             labels = json.load(f)
 
     labels[sender_email] = label
@@ -26,7 +27,7 @@ def get_sender_label(sender_email):
     if not os.path.exists(SENDER_LABELS_FILE):
         return "No labels saved yet."
 
-    with open(SENDER_LABELS_FILE, "r") as f:
+    with open(SENDER_LABELS_FILE) as f:
         labels = json.load(f)
 
     return labels.get(sender_email, "No label found for this sender.")

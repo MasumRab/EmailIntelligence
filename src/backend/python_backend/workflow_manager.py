@@ -12,7 +12,7 @@ import json
 import logging
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -26,9 +26,9 @@ class Workflow:
         self.created_at = datetime.now().isoformat()
         self.updated_at = datetime.now().isoformat()
         self.version = "1.0"
-        self.nodes: List[Dict[str, Any]] = []
-        self.connections: List[Dict[str, Any]] = []
-        self.config: Dict[str, Any] = {}
+        self.nodes: list[dict[str, Any]] = []
+        self.connections: list[dict[str, Any]] = []
+        self.config: dict[str, Any] = {}
 
     def add_node(self, node_type: str, node_id: str, x: float = 0, y: float = 0, **kwargs) -> None:
         """Add a node to the workflow"""
@@ -42,7 +42,11 @@ class Workflow:
         self.updated_at = datetime.now().isoformat()
 
     def add_connection(
-        self, source_node_id: str, source_output: str, target_node_id: str, target_input: str
+        self,
+        source_node_id: str,
+        source_output: str,
+        target_node_id: str,
+        target_input: str,
     ) -> None:
         """Add a connection between nodes"""
         connection = {
@@ -54,7 +58,7 @@ class Workflow:
         self.connections.append(connection)
         self.updated_at = datetime.now().isoformat()
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert workflow to dictionary for serialization"""
         return {
             "name": self.name,
@@ -68,7 +72,7 @@ class Workflow:
         }
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "Workflow":
+    def from_dict(cls, data: dict[str, Any]) -> "Workflow":
         """Create workflow from dictionary"""
         workflow = cls(data["name"], data.get("description", ""))
         workflow.created_at = data.get("created_at", datetime.now().isoformat())
@@ -86,9 +90,9 @@ class WorkflowManager:
     def __init__(self, workflows_dir: str = "workflows"):
         self.workflows_dir = Path(workflows_dir)
         self.workflows_dir.mkdir(exist_ok=True)
-        self._workflow_history: Dict[str, List[str]] = {}  # workflow name to version history
+        self._workflow_history: dict[str, list[str]] = {}  # workflow name to version history
 
-    def save_workflow(self, workflow: Workflow, filename: Optional[str] = None) -> bool:
+    def save_workflow(self, workflow: Workflow, filename: str | None = None) -> bool:
         """Save a workflow to a JSON file"""
         try:
             if filename is None:
@@ -111,7 +115,7 @@ class WorkflowManager:
             logger.error(f"Failed to save workflow '{workflow.name}': {str(e)}")
             return False
 
-    def load_workflow(self, filename: str) -> Optional[Workflow]:
+    def load_workflow(self, filename: str) -> Workflow | None:
         """Load a workflow from a JSON file"""
         try:
             filepath = self.workflows_dir / filename
@@ -120,7 +124,7 @@ class WorkflowManager:
                 logger.error(f"Workflow file does not exist: {filepath}")
                 return None
 
-            with open(filepath, "r", encoding="utf-8") as f:
+            with open(filepath, encoding="utf-8") as f:
                 data = json.load(f)
 
             workflow = Workflow.from_dict(data)
@@ -130,7 +134,7 @@ class WorkflowManager:
             logger.error(f"Failed to load workflow from {filename}: {str(e)}")
             return None
 
-    def list_workflows(self) -> List[str]:
+    def list_workflows(self) -> list[str]:
         """List all available workflow files"""
         try:
             workflow_files = list(self.workflows_dir.glob("*.json"))
@@ -139,7 +143,7 @@ class WorkflowManager:
             logger.error(f"Failed to list workflows: {str(e)}")
             return []
 
-    def get_workflow_history(self, workflow_name: str) -> List[str]:
+    def get_workflow_history(self, workflow_name: str) -> list[str]:
         """Get the history of saved versions for a workflow"""
         return self._workflow_history.get(workflow_name, [])
 

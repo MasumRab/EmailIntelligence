@@ -6,9 +6,8 @@ API routes for advanced workflow features: node-based workflows, advanced proces
 and enterprise workflow management
 """
 
-
 # Define a simple execution result class for compatibility
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
@@ -18,14 +17,13 @@ from backend.node_engine.node_base import Workflow as AdvancedWorkflow
 from backend.node_engine.workflow_manager import workflow_manager
 
 
-
 class WorkflowExecutionResult:
     def __init__(
         self,
         workflow_id: str,
         status: str,
         execution_time: float,
-        node_results: Dict[str, Any],
+        node_results: dict[str, Any],
         error: str = None,
     ):
         self.workflow_id = workflow_id
@@ -53,31 +51,31 @@ router = APIRouter()
 class AdvancedWorkflowCreateRequest(BaseModel):
     name: str
     description: str = ""
-    nodes: List[Dict[str, Any]] = []
-    connections: List[Dict[str, Any]] = []
+    nodes: list[dict[str, Any]] = []
+    connections: list[dict[str, Any]] = []
 
 
 class AdvancedWorkflowResponse(BaseModel):
     workflow_id: str
     name: str
     description: str
-    nodes: List[Dict[str, Any]]
-    connections: List[Dict[str, Any]]
+    nodes: list[dict[str, Any]]
+    connections: list[dict[str, Any]]
     created_at: float
     updated_at: float
 
 
 class ExecuteWorkflowRequest(BaseModel):
-    initial_inputs: Dict[str, Any] = {}
-    workflow_context: Dict[str, Any] = {}
+    initial_inputs: dict[str, Any] = {}
+    workflow_context: dict[str, Any] = {}
 
 
 class ExecuteWorkflowResponse(BaseModel):
     workflow_id: str
     status: str
     execution_time: float
-    node_results: Dict[str, Any]
-    error: Optional[str] = None
+    node_results: dict[str, Any]
+    error: str | None = None
 
 
 # Advanced Workflow Routes
@@ -110,7 +108,7 @@ async def create_advanced_workflow(request: AdvancedWorkflowCreateRequest):
         raise HTTPException(status_code=500, detail=f"Failed to create workflow: {str(e)}")
 
 
-@router.get("/advanced/workflows", response_model=List[str])
+@router.get("/advanced/workflows", response_model=list[str])
 async def list_advanced_workflows():
     """List all available advanced workflows."""
     # Use the new node engine's workflow manager
@@ -215,7 +213,9 @@ async def execute_advanced_workflow(
 ):
     """Execute an advanced workflow with provided inputs."""
     # Use the new node engine's workflow execution system
-    from backend.node_engine.workflow_engine import workflow_engine as node_workflow_engine
+    from backend.node_engine.workflow_engine import (
+        workflow_engine as node_workflow_engine,
+    )
 
     try:
         # Load the workflow to execute
@@ -249,7 +249,7 @@ async def execute_advanced_workflow(
 
 
 # Node Management Routes
-@router.get("/advanced/nodes", response_model=List[str])
+@router.get("/advanced/nodes", response_model=list[str])
 async def get_available_nodes():
     """Get list of available node types."""
     return workflow_manager.get_registered_node_types()
@@ -273,7 +273,9 @@ async def get_node_schema(node_type: str):
 async def get_execution_status():
     """Get status of running workflows."""
     # Use the new node engine's execution tracking
-    from backend.node_engine.workflow_engine import workflow_engine as node_workflow_engine
+    from backend.node_engine.workflow_engine import (
+        workflow_engine as node_workflow_engine,
+    )
 
     running_workflows = []
     for exec_id, context in node_workflow_engine.active_executions.items():
@@ -286,14 +288,19 @@ async def get_execution_status():
             }
         )
 
-    return {"running_workflows": running_workflows, "total_running": len(running_workflows)}
+    return {
+        "running_workflows": running_workflows,
+        "total_running": len(running_workflows),
+    }
 
 
 @router.post("/advanced/execution/cancel/{workflow_id}")
 async def cancel_workflow_execution(workflow_id: str):
     """Cancel a running workflow execution."""
     # Use the new node engine's execution cancellation
-    from backend.node_engine.workflow_engine import workflow_engine as node_workflow_engine
+    from backend.node_engine.workflow_engine import (
+        workflow_engine as node_workflow_engine,
+    )
 
     # Check if the workflow_id corresponds to an active execution
     if workflow_id in node_workflow_engine.active_executions:

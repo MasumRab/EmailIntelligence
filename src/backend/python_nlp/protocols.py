@@ -3,7 +3,7 @@ Protocol definitions to avoid circular dependencies between modules.
 """
 
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Any, Dict, List, Optional
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     pass
@@ -13,7 +13,7 @@ class DatabaseProtocol(ABC):
     """Protocol/Interface for database operations to avoid circular import"""
 
     @abstractmethod
-    async def get_all_categories(self) -> List[Dict[str, Any]]:
+    async def get_all_categories(self) -> list[dict[str, Any]]:
         pass
 
 
@@ -22,6 +22,6 @@ class AIEngineProtocol(ABC):
 
     @abstractmethod
     async def analyze_email(
-        self, subject: str, content: str, db: Optional[DatabaseProtocol] = None
+        self, subject: str, content: str, db: DatabaseProtocol | None = None
     ) -> Any:
         pass

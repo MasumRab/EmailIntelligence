@@ -12,7 +12,7 @@ import time
 from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -50,14 +50,14 @@ class ModelMetadata:
     framework: str  # "sklearn", "transformers", "tensorflow", etc.
     size_bytes: int = 0
     created_at: float = field(default_factory=time.time)
-    last_loaded: Optional[float] = None
-    last_used: Optional[float] = None
+    last_loaded: float | None = None
+    last_used: float | None = None
     load_count: int = 0
     usage_count: int = 0
-    performance_metrics: Dict[str, Any] = field(default_factory=dict)
+    performance_metrics: dict[str, Any] = field(default_factory=dict)
     health_status: str = "unknown"
-    dependencies: List[str] = field(default_factory=list)
-    config: Dict[str, Any] = field(default_factory=dict)
+    dependencies: list[str] = field(default_factory=list)
+    config: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -81,8 +81,8 @@ class ModelRegistry:
 
     def __init__(self, models_dir: Path = None):
         self.models_dir = models_dir or Path("models")
-        self._registry: Dict[str, ModelMetadata] = {}
-        self._loaded_models: Dict[str, ModelInstance] = {}
+        self._registry: dict[str, ModelMetadata] = {}
+        self._loaded_models: dict[str, ModelInstance] = {}
         self._model_lock = asyncio.Lock()
         self._max_memory_mb = 2048  # 2GB default limit
         self._max_gpu_memory_mb = 4096  # 4GB GPU limit
@@ -94,7 +94,7 @@ class ModelRegistry:
 
         logger.info(f"ModelRegistry initialized with models directory: {self.models_dir}")
 
-    async def discover_models(self) -> List[str]:
+    async def discover_models(self) -> list[str]:
         """Discover and register all available models in the models directory."""
         async with self._model_lock:
             discovered_models = []
@@ -108,7 +108,7 @@ class ModelRegistry:
                     if metadata_file.exists():
                         # Load existing metadata
                         try:
-                            with open(metadata_file, "r") as f:
+                            with open(metadata_file) as f:
                                 data = json.load(f)
                                 metadata = ModelMetadata(**data)
                                 self._registry[model_id] = metadata
@@ -173,7 +173,7 @@ class ModelRegistry:
 
             return False
 
-    async def load_model(self, model_id: str) -> Optional[ModelInstance]:
+    async def load_model(self, model_id: str) -> ModelInstance | None:
         """Load a model into memory with memory management."""
         async with self._model_lock:
             if model_id not in self._registry:
@@ -259,7 +259,7 @@ class ModelRegistry:
                 logger.error(f"Failed to unload model {model_id}: {e}")
                 return False
 
-    async def get_model(self, model_id: str) -> Optional[ModelInstance]:
+    async def get_model(self, model_id: str) -> ModelInstance | None:
         """Get a loaded model instance, loading it if necessary."""
         instance = self._loaded_models.get(model_id)
         if instance:
@@ -270,7 +270,7 @@ class ModelRegistry:
         # Try to load the model
         return await self.load_model(model_id)
 
-    async def list_models(self, include_loaded: bool = True) -> List[Dict[str, Any]]:
+    async def list_models(self, include_loaded: bool = True) -> list[dict[str, Any]]:
         """List all registered models with their status."""
         async with self._model_lock:
             models = []
@@ -309,7 +309,7 @@ class ModelRegistry:
 
             return models
 
-    async def get_model_performance_metrics(self, model_id: str) -> Dict[str, Any]:
+    async def get_model_performance_metrics(self, model_id: str) -> dict[str, Any]:
         """Get comprehensive performance metrics for a model."""
         async with self._model_lock:
             if model_id not in self._registry:
@@ -340,9 +340,14 @@ class ModelRegistry:
 
             return metrics
 
-    async def validate_model(self, model_id: str) -> Dict[str, Any]:
+    async def validate_model(self, model_id: str) -> dict[str, Any]:
         """Perform comprehensive validation on a model."""
-        validation_results = {"model_id": model_id, "valid": False, "checks": {}, "issues": []}
+        validation_results = {
+            "model_id": model_id,
+            "valid": False,
+            "checks": {},
+            "issues": [],
+        }
 
         if model_id not in self._registry:
             validation_results["issues"].append("Model not registered")
@@ -394,7 +399,7 @@ class ModelRegistry:
 
         return validation_results
 
-    async def optimize_memory(self) -> Dict[str, Any]:
+    async def optimize_memory(self) -> dict[str, Any]:
         """Perform automatic memory optimization by unloading unused models."""
         optimization_results = {
             "freed_memory": 0,
@@ -444,7 +449,7 @@ class ModelRegistry:
 
     # Private helper methods
 
-    async def _load_model_object(self, metadata: ModelMetadata) -> Optional[Any]:
+    async def _load_model_object(self, metadata: ModelMetadata) -> Any | None:
         """Load the actual model object based on framework and type."""
         try:
             if metadata.framework == "sklearn":
@@ -460,7 +465,7 @@ class ModelRegistry:
             logger.error(f"Error loading model {metadata.model_id}: {e}")
             return None
 
-    async def _load_sklearn_model(self, metadata: ModelMetadata) -> Optional[Any]:
+    async def _load_sklearn_model(self, metadata: ModelMetadata) -> Any | None:
         """Load a scikit-learn model."""
         try:
             import joblib
@@ -477,15 +482,23 @@ class ModelRegistry:
             logger.error(f"Failed to load sklearn model {metadata.model_id}: {e}")
             return None
 
-    async def _load_transformers_model(self, metadata: ModelMetadata) -> Optional[Any]:
+    async def _load_transformers_model(self, metadata: ModelMetadata) -> Any | None:
         """Load a transformers model."""
         try:
             from transformers import AutoModelForSequenceClassification, AutoTokenizer
 
             model_path = metadata.path
             if model_path.exists():
-                model = await asyncio.to_thread(AutoModelForSequenceClassification.from_pretrained, str(model_path), local_files_only=True)
-                tokenizer = await asyncio.to_thread(AutoTokenizer.from_pretrained, str(model_path), local_files_only=True)
+                model = await asyncio.to_thread(
+                    AutoModelForSequenceClassification.from_pretrained,
+                    str(model_path),
+                    local_files_only=True,
+                )
+                tokenizer = await asyncio.to_thread(
+                    AutoTokenizer.from_pretrained,
+                    str(model_path),
+                    local_files_only=True,
+                )
                 return {"model": model, "tokenizer": tokenizer}
             else:
                 logger.error(f"Transformers model path not found: {model_path}")
@@ -494,7 +507,7 @@ class ModelRegistry:
             logger.error(f"Failed to load transformers model {metadata.model_id}: {e}")
             return None
 
-    async def _load_tensorflow_model(self, metadata: ModelMetadata) -> Optional[Any]:
+    async def _load_tensorflow_model(self, metadata: ModelMetadata) -> Any | None:
         """Load a TensorFlow model."""
         try:
             import tensorflow as tf
@@ -598,7 +611,7 @@ class ModelRegistry:
         except Exception as e:
             logger.error(f"Failed to save metadata for {metadata.model_id}: {e}")
 
-    def _validate_metadata(self, metadata: ModelMetadata) -> Dict[str, Any]:
+    def _validate_metadata(self, metadata: ModelMetadata) -> dict[str, Any]:
         """Validate model metadata."""
         issues = []
 
@@ -613,7 +626,7 @@ class ModelRegistry:
 
         return {"passed": len(issues) == 0, "issues": issues}
 
-    async def _validate_model_file(self, metadata: ModelMetadata) -> Dict[str, Any]:
+    async def _validate_model_file(self, metadata: ModelMetadata) -> dict[str, Any]:
         """Validate model file integrity."""
         try:
             if metadata.framework == "sklearn":
@@ -633,7 +646,7 @@ class ModelRegistry:
                     return {"passed": False, "issues": ["Config file not found"]}
 
                 # Basic validation
-                with open(config_file, "r") as f:
+                with open(config_file) as f:
                     config = json.load(f)
 
                 if "model_type" not in config:
@@ -646,12 +659,12 @@ class ModelRegistry:
         except Exception as e:
             return {"passed": False, "issues": [f"File validation error: {e}"]}
 
-    def _validate_dependencies(self, metadata: ModelMetadata) -> Dict[str, Any]:
+    def _validate_dependencies(self, metadata: ModelMetadata) -> dict[str, Any]:
         """Validate model dependencies."""
         # Basic validation - could be enhanced
         return {"passed": True, "dependencies": metadata.dependencies}
 
-    async def _test_model_loading(self, model_id: str) -> Dict[str, Any]:
+    async def _test_model_loading(self, model_id: str) -> dict[str, Any]:
         """Test if model can be loaded successfully."""
         try:
             start_time = time.time()
@@ -679,7 +692,7 @@ class ModelRegistry:
         except Exception as e:
             return {"passed": False, "issues": [f"Load test error: {e}"]}
 
-    async def _test_model_performance(self, model_id: str) -> Dict[str, Any]:
+    async def _test_model_performance(self, model_id: str) -> dict[str, Any]:
         """Test model performance with sample data."""
         try:
             instance = await self.get_model(model_id)

@@ -3,7 +3,7 @@ Intent analysis model.
 """
 
 import logging
-from typing import Any, Dict
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -15,6 +15,6 @@ class IntentModel:
         logger.info("IntentModel instance created.")
         self.model = intent_model
 
-    def analyze(self, text: str) -> Dict[str, Any]:
+    def analyze(self, text: str) -> dict[str, Any]:
         """Analyze intent."""
         return {"intent": "unknown", "confidence": 0.0}

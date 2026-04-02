@@ -6,14 +6,14 @@ Version 1 API routes for email operations
 Following the new architectural patterns with service layer and API versioning
 """
 
-from typing import Optional
 import logging
+
 from fastapi import APIRouter, BackgroundTasks, Depends, Request
 
-from src.core.models import EmailResponse, EmailCreate, EmailUpdate
-from backend.python_backend.services.email_service import EmailService
 from backend.python_backend.dependencies import get_email_service
+from backend.python_backend.services.email_service import EmailService
 from src.core.exceptions import EmailNotFoundException
+from src.core.models import EmailCreate, EmailResponse, EmailUpdate
 from src.core.performance_monitor import log_performance
 
 logger = logging.getLogger(__name__)
@@ -28,9 +28,9 @@ async def get_emails_v1(
     request: Request,
     limit: int = 50,
     offset: int = 0,
-    category_id: Optional[int] = None,
-    is_unread: Optional[bool] = None,
-    search: Optional[str] = None,
+    category_id: int | None = None,
+    is_unread: bool | None = None,
+    search: str | None = None,
     email_service: EmailService = Depends(get_email_service),
 ):
     """
@@ -65,7 +65,9 @@ async def get_emails_v1(
 @router.get("/emails/{email_id}", response_model=EmailResponse)
 @log_performance(operation="get_email_v1")
 async def get_email_v1(
-    request: Request, email_id: int, email_service: EmailService = Depends(get_email_service)
+    request: Request,
+    email_id: int,
+    email_service: EmailService = Depends(get_email_service),
 ):
     """
     Retrieves a specific email by its unique ID.

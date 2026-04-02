@@ -1,11 +1,11 @@
 import logging
-from typing import Any, Dict, List, Optional
-
-# Core framework components
-from src.core.ai_engine import AIAnalysisResult, BaseAIEngine
+from typing import Any
 
 # Module-specific components
 from backend.python_nlp.nlp_engine import NLPEngine
+
+# Core framework components
+from src.core.ai_engine import AIAnalysisResult, BaseAIEngine
 
 logger = logging.getLogger(__name__)
 
@@ -17,7 +17,7 @@ class DefaultAIEngine(BaseAIEngine):
 
     def __init__(self):
         self.nlp_engine = NLPEngine()
-        self.category_lookup_map: Dict[str, Dict[str, Any]] = {}
+        self.category_lookup_map: dict[str, dict[str, Any]] = {}
 
     def initialize(self):
         """Initializes the NLP engine and pre-compiles patterns."""
@@ -28,12 +28,12 @@ class DefaultAIEngine(BaseAIEngine):
         except Exception as e:
             logger.error(f"Default AI Engine initialization failed: {e}", exc_info=True)
 
-    def _build_category_lookup(self, categories: List[Dict[str, Any]]) -> None:
+    def _build_category_lookup(self, categories: list[dict[str, Any]]) -> None:
         """Builds a normalized lookup map for categories."""
         self.category_lookup_map = {cat["name"].lower(): cat for cat in categories}
         logger.info("Built category lookup map for the default AI engine.")
 
-    def _match_category_id(self, ai_categories: List[str]) -> Optional[int]:
+    def _match_category_id(self, ai_categories: list[str]) -> int | None:
         """Matches AI-suggested categories to provided categories."""
         if not ai_categories or not self.category_lookup_map:
             return None
@@ -45,7 +45,10 @@ class DefaultAIEngine(BaseAIEngine):
         return None
 
     async def analyze_email(
-        self, subject: str, content: str, categories: Optional[List[Dict[str, Any]]] = None
+        self,
+        subject: str,
+        content: str,
+        categories: list[dict[str, Any]] | None = None,
     ) -> AIAnalysisResult:
         """Analyzes email content and returns a standardized analysis result."""
         try:
@@ -60,10 +63,13 @@ class DefaultAIEngine(BaseAIEngine):
         except Exception as e:
             logger.error(f"An error occurred during AI analysis: {e}", exc_info=True)
             return AIAnalysisResult(
-                {"reasoning": f"AI analysis error: {e}", "risk_flags": ["ai_analysis_failed"]}
+                {
+                    "reasoning": f"AI analysis error: {e}",
+                    "risk_flags": ["ai_analysis_failed"],
+                }
             )
 
-    def health_check(self) -> Dict[str, Any]:
+    def health_check(self) -> dict[str, Any]:
         """Performs a health check on the underlying NLP engine."""
         return self.nlp_engine.analyze_email("health check", "health check")
 
@@ -71,10 +77,11 @@ class DefaultAIEngine(BaseAIEngine):
         """Cleans up resources used by the NLP engine."""
         logger.info("Default AI Engine cleanup complete.")
 
-    def train_models(self, training_data: Optional[Dict[str, Any]] = None):
+    def train_models(self, training_data: dict[str, Any] | None = None):
         """Trains or retrains the AI models using sample data or provided training data."""
         try:
             import os
+
             import joblib
             from sklearn.feature_extraction.text import TfidfVectorizer
             from sklearn.linear_model import LogisticRegression
@@ -85,14 +92,25 @@ class DefaultAIEngine(BaseAIEngine):
             if training_data is None:
                 # Define sample training data
                 training_data = {
-                    "sentiment": {"texts": ["I love this", "This is terrible"], "labels": ["positive", "negative"]},
-                    "topic": {"texts": ["Meeting tomorrow", "Invoice due"], "labels": ["work_business", "finance_banking"]},
+                    "sentiment": {
+                        "texts": ["I love this", "This is terrible"],
+                        "labels": ["positive", "negative"],
+                    },
+                    "topic": {
+                        "texts": ["Meeting tomorrow", "Invoice due"],
+                        "labels": ["work_business", "finance_banking"],
+                    },
                 }
 
             # Train and save models
             for model_type, data in training_data.items():
                 logger.info(f"Training {model_type} model...")
-                pipeline = Pipeline([("tfidf", TfidfVectorizer(max_features=1000)), ("clf", LogisticRegression())])
+                pipeline = Pipeline(
+                    [
+                        ("tfidf", TfidfVectorizer(max_features=1000)),
+                        ("clf", LogisticRegression()),
+                    ]
+                )
                 pipeline.fit(data["texts"], data["labels"])
                 model_path = os.path.join(self.nlp_engine.model_dir, f"{model_type}_model.pkl")
                 joblib.dump(pipeline, model_path)

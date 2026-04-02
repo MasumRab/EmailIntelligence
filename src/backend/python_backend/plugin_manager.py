@@ -7,7 +7,6 @@ external plugins.
 
 import logging
 import os
-from typing import List
 
 logger = logging.getLogger(__name__)
 
@@ -19,7 +18,7 @@ class PluginManager:
 
     def __init__(self, plugin_folder: str = "plugins/"):
         self.plugin_folder = plugin_folder
-        self.loaded_plugins: List[str] = []
+        self.loaded_plugins: list[str] = []
 
     def discover_and_load_plugins(self, **kwargs):
         """

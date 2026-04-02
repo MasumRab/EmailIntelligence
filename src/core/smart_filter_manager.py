@@ -13,18 +13,18 @@ import re
 import sqlite3
 from collections import Counter
 from dataclasses import dataclass
-from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional, Union
+from datetime import UTC, datetime
+from typing import Any, Union
 
-from .database import DATA_DIR
-from .performance_monitor import log_performance
 from .caching import get_cache_manager
+from .database import DATA_DIR
 from .enhanced_error_reporting import (
-    log_error,
-    ErrorSeverity,
     ErrorCategory,
-    create_error_context
+    ErrorSeverity,
+    create_error_context,
+    log_error,
 )
+from .performance_monitor import log_performance
 
 logger = logging.getLogger(__name__)
 
@@ -56,15 +56,15 @@ class EmailFilter:
     filter_id: str
     name: str
     description: str
-    criteria: Dict[str, Any]
-    actions: Dict[str, Any]
+    criteria: dict[str, Any]
+    actions: dict[str, Any]
     priority: int
     effectiveness_score: float
     created_at: datetime
     last_used: datetime
     usage_count: int
     false_positive_rate: float
-    performance_metrics: Dict[str, float]
+    performance_metrics: dict[str, float]
     is_active: bool = True
 
 
@@ -104,7 +104,8 @@ class _EmailContext:
     Internal context helper to avoid redundant processing of email fields
     during filter application loop.
     """
-    email: Dict[str, Any]
+
+    email: dict[str, Any]
     sender_domain: str
     subject_lower: str
     content_lower: str
@@ -179,13 +180,13 @@ class SmartFilterManager:
                     error_context = create_error_context(
                         component="SmartFilterManager",
                         operation="_db_execute",
-                        additional_context={"query": query[:100], "attempt": attempt}
+                        additional_context={"query": query[:100], "attempt": attempt},
                     )
                     error_id = log_error(
                         e,
                         severity=ErrorSeverity.ERROR,
                         category=ErrorCategory.INTEGRATION,
-                        context=error_context
+                        context=error_context,
                     )
                     self.logger.error(
                         f"Database error after {retries} attempts: {e} with query: {query[:100]}. Error ID: {error_id}"
@@ -195,20 +196,22 @@ class SmartFilterManager:
                 error_context = create_error_context(
                     component="SmartFilterManager",
                     operation="_db_execute",
-                    additional_context={"query": query[:100]}
+                    additional_context={"query": query[:100]},
                 )
                 error_id = log_error(
                     e,
                     severity=ErrorSeverity.ERROR,
                     category=ErrorCategory.INTEGRATION,
-                    context=error_context
+                    context=error_context,
                 )
-                self.logger.error(f"Database error: {e} with query: {query[:100]}. Error ID: {error_id}")
+                self.logger.error(
+                    f"Database error: {e} with query: {query[:100]}. Error ID: {error_id}"
+                )
                 raise
             finally:
                 self._close_db_connection(conn)
 
-    def _db_executemany(self, query: str, params_list: List[tuple], retries: int = 3):
+    def _db_executemany(self, query: str, params_list: list[tuple], retries: int = 3):
         """Execute a batch query (INSERT, UPDATE) with retry logic for robustness."""
         for attempt in range(retries):
             conn = self._get_db_connection()
@@ -227,13 +230,17 @@ class SmartFilterManager:
                     error_context = create_error_context(
                         component="SmartFilterManager",
                         operation="_db_executemany",
-                        additional_context={"query": query[:100], "attempt": attempt, "batch_size": len(params_list)}
+                        additional_context={
+                            "query": query[:100],
+                            "attempt": attempt,
+                            "batch_size": len(params_list),
+                        },
                     )
                     error_id = log_error(
                         e,
                         severity=ErrorSeverity.ERROR,
                         category=ErrorCategory.INTEGRATION,
-                        context=error_context
+                        context=error_context,
                     )
                     self.logger.error(
                         f"Database error after {retries} attempts: {e} with query: {query[:100]}. Error ID: {error_id}"
@@ -243,20 +250,25 @@ class SmartFilterManager:
                 error_context = create_error_context(
                     component="SmartFilterManager",
                     operation="_db_executemany",
-                    additional_context={"query": query[:100], "batch_size": len(params_list)}
+                    additional_context={
+                        "query": query[:100],
+                        "batch_size": len(params_list),
+                    },
                 )
                 error_id = log_error(
                     e,
                     severity=ErrorSeverity.ERROR,
                     category=ErrorCategory.INTEGRATION,
-                    context=error_context
+                    context=error_context,
                 )
-                self.logger.error(f"Database error: {e} with query: {query[:100]}. Error ID: {error_id}")
+                self.logger.error(
+                    f"Database error: {e} with query: {query[:100]}. Error ID: {error_id}"
+                )
                 raise
             finally:
                 self._close_db_connection(conn)
 
-    def _db_fetchone(self, query: str, params: tuple = ()) -> Optional[sqlite3.Row]:
+    def _db_fetchone(self, query: str, params: tuple = ()) -> sqlite3.Row | None:
         """Executes a read query and fetches a single row."""
         conn = self._get_db_connection()
         try:
@@ -265,20 +277,20 @@ class SmartFilterManager:
             error_context = create_error_context(
                 component="SmartFilterManager",
                 operation="_db_fetchone",
-                additional_context={"query": query[:100]}
+                additional_context={"query": query[:100]},
             )
             error_id = log_error(
                 e,
                 severity=ErrorSeverity.ERROR,
                 category=ErrorCategory.INTEGRATION,
-                context=error_context
+                context=error_context,
             )
             self.logger.error(f"Database error on fetchone: {e}. Error ID: {error_id}")
             return None
         finally:
             self._close_db_connection(conn)
 
-    def _db_fetchall(self, query: str, params: tuple = ()) -> List[sqlite3.Row]:
+    def _db_fetchall(self, query: str, params: tuple = ()) -> list[sqlite3.Row]:
         """Executes a read query and fetches all rows."""
         conn = self._get_db_connection()
         try:
@@ -287,13 +299,13 @@ class SmartFilterManager:
             error_context = create_error_context(
                 component="SmartFilterManager",
                 operation="_db_fetchall",
-                additional_context={"query": query[:100]}
+                additional_context={"query": query[:100]},
             )
             error_id = log_error(
                 e,
                 severity=ErrorSeverity.ERROR,
                 category=ErrorCategory.INTEGRATION,
-                context=error_context
+                context=error_context,
             )
             self.logger.error(f"Database error on fetchall: {e}. Error ID: {error_id}")
             return []
@@ -341,7 +353,7 @@ class SmartFilterManager:
         if self.conn:
             self.conn.close()
 
-    def _load_filter_templates(self) -> Dict[str, Dict[str, Any]]:
+    def _load_filter_templates(self) -> dict[str, dict[str, Any]]:
         """Loads a set of predefined filter templates."""
         return {
             "high_priority_work": {
@@ -364,12 +376,18 @@ class SmartFilterManager:
             },
         }
 
-    def _load_pruning_criteria(self) -> Dict[str, Any]:
+    def _load_pruning_criteria(self) -> dict[str, Any]:
         """Loads the criteria used for pruning ineffective filters."""
-        return {"effectiveness_threshold": 0.3, "usage_threshold": 10, "age_threshold_days": 90}
+        return {
+            "effectiveness_threshold": 0.3,
+            "usage_threshold": 10,
+            "age_threshold_days": 90,
+        }
 
     @log_performance(operation="create_intelligent_filters")
-    async def create_intelligent_filters(self, email_samples: List[Dict[str, Any]]) -> List[EmailFilter]:
+    async def create_intelligent_filters(
+        self, email_samples: list[dict[str, Any]]
+    ) -> list[EmailFilter]:
         """
         Analyzes email samples to intelligently generate and store new filters.
 
@@ -390,7 +408,7 @@ class SmartFilterManager:
         self.logger.info(f"Created {len(created_filters)} intelligent filters")
         return created_filters
 
-    async def _create_filters_from_templates(self, patterns: Dict[str, Any]) -> List[EmailFilter]:
+    async def _create_filters_from_templates(self, patterns: dict[str, Any]) -> list[EmailFilter]:
         """Creates filters from templates that match the analyzed patterns."""
         filters = []
         for name, template in self.filter_templates.items():
@@ -400,7 +418,7 @@ class SmartFilterManager:
                 filters.append(filter_obj)
         return filters
 
-    def _extract_patterns_from_single_email(self, email: Dict[str, Any]) -> Dict[str, Any]:
+    def _extract_patterns_from_single_email(self, email: dict[str, Any]) -> dict[str, Any]:
         """Extracts key patterns from a single email."""
         patterns = {}
         if domain := self._extract_domain(email.get("sender_email", email.get("sender", ""))):
@@ -411,9 +429,13 @@ class SmartFilterManager:
             patterns["content_keywords"] = keywords
         return patterns
 
-    def _analyze_email_patterns(self, email_samples: List[Dict[str, Any]]) -> Dict[str, Any]:
+    def _analyze_email_patterns(self, email_samples: list[dict[str, Any]]) -> dict[str, Any]:
         """Aggregates patterns found across a list of email samples."""
-        aggregated = {"sender_domains": Counter(), "subject_keywords": Counter(), "content_keywords": Counter()}
+        aggregated = {
+            "sender_domains": Counter(),
+            "subject_keywords": Counter(),
+            "content_keywords": Counter(),
+        }
         for email in email_samples:
             patterns = self._extract_patterns_from_single_email(email)
             if "sender_domain" in patterns:
@@ -428,29 +450,34 @@ class SmartFilterManager:
         """Extracts the domain from an email address."""
         return email_address.split("@")[1].lower() if "@" in email_address else ""
 
-    def _extract_keywords(self, text: str) -> List[str]:
+    def _extract_keywords(self, text: str) -> list[str]:
         """Extracts meaningful keywords from a string of text."""
         if not text:
             return []
         return [word for word in re.findall(r"\b[a-zA-Z]{3,}\b", text.lower()) if len(word) > 3]
 
-    def _is_automated_email(self, email: Dict[str, Any]) -> bool:
+    def _is_automated_email(self, email: dict[str, Any]) -> bool:
         """Determines if an email is likely automated."""
         sender = email.get("sender_email", email.get("sender", "")).lower()
         return any(ind in sender for ind in ["noreply", "automated", "notification", "admin"])
 
-    async def _should_create_filter_async(self, template: Dict[str, Any], patterns: Dict[str, Any]) -> bool:
+    async def _should_create_filter_async(
+        self, template: dict[str, Any], patterns: dict[str, Any]
+    ) -> bool:
         """Determines if a filter should be created based on a template and discovered patterns."""
         # Check if patterns match the template criteria
         template_keywords = template["criteria"].get("subject_keywords", [])
         for keyword in template_keywords:
-            if any(keyword.lower() in pattern_kw.lower() for pattern_kw in patterns.get("subject_keywords", [])):
+            if any(
+                keyword.lower() in pattern_kw.lower()
+                for pattern_kw in patterns.get("subject_keywords", [])
+            ):
                 return True
         return False
 
-    def _create_filter_from_template(self, name: str, template: Dict[str, Any]) -> EmailFilter:
+    def _create_filter_from_template(self, name: str, template: dict[str, Any]) -> EmailFilter:
         """Creates an EmailFilter object from a template."""
-        filter_id = f"template_{name}_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S_%f')[:17]}"
+        filter_id = f"template_{name}_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S_%f')[:17]}"
         return EmailFilter(
             filter_id=filter_id,
             name=name,
@@ -459,14 +486,14 @@ class SmartFilterManager:
             actions=template["actions"],
             priority=template["priority"],
             effectiveness_score=0.0,
-            created_at=datetime.now(timezone.utc),
-            last_used=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
+            last_used=datetime.now(UTC),
             usage_count=0,
             false_positive_rate=0.0,
             performance_metrics={},
         )
 
-    async def _create_custom_filters(self, patterns: Dict[str, Any]) -> List[EmailFilter]:
+    async def _create_custom_filters(self, patterns: dict[str, Any]) -> list[EmailFilter]:
         """Creates custom filters based on frequently observed patterns."""
         filters = []
 
@@ -489,7 +516,7 @@ class SmartFilterManager:
     def _create_domain_filter(self, domain: str) -> EmailFilter:
         """Creates a filter for a specific domain."""
         name = f"From {domain}"
-        filter_id = f"domain_{domain.replace('.', '_')}_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S_%f')[:17]}"
+        filter_id = f"domain_{domain.replace('.', '_')}_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S_%f')[:17]}"
         return EmailFilter(
             filter_id=filter_id,
             name=name,
@@ -498,8 +525,8 @@ class SmartFilterManager:
             actions={"add_label": domain.replace(".", "_")},
             priority=5,
             effectiveness_score=0.0,
-            created_at=datetime.now(timezone.utc),
-            last_used=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
+            last_used=datetime.now(UTC),
             usage_count=0,
             false_positive_rate=0.0,
             performance_metrics={},
@@ -508,7 +535,7 @@ class SmartFilterManager:
     def _create_keyword_filter(self, keyword: str) -> EmailFilter:
         """Creates a filter for a specific keyword."""
         name = f"Contains {keyword}"
-        filter_id = f"keyword_{keyword}_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S_%f')[:17]}"
+        filter_id = f"keyword_{keyword}_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S_%f')[:17]}"
         return EmailFilter(
             filter_id=filter_id,
             name=name,
@@ -517,8 +544,8 @@ class SmartFilterManager:
             actions={"add_label": keyword},
             priority=4,
             effectiveness_score=0.0,
-            created_at=datetime.now(timezone.utc),
-            last_used=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
+            last_used=datetime.now(UTC),
             usage_count=0,
             false_positive_rate=0.0,
             performance_metrics={},
@@ -529,8 +556,8 @@ class SmartFilterManager:
         self,
         name: str,
         description: str,
-        criteria: Dict[str, Any],
-        actions: Dict[str, Any],
+        criteria: dict[str, Any],
+        actions: dict[str, Any],
         priority: int = 5,
     ) -> EmailFilter:
         """
@@ -548,7 +575,9 @@ class SmartFilterManager:
         """
         await self._ensure_initialized()
 
-        filter_id = f"custom_{name.replace(' ', '_')}_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S_%f')[:17]}"
+        filter_id = (
+            f"custom_{name.replace(' ', '_')}_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S_%f')[:17]}"
+        )
         new_filter = EmailFilter(
             filter_id=filter_id,
             name=name,
@@ -557,8 +586,8 @@ class SmartFilterManager:
             actions=actions,
             priority=priority,
             effectiveness_score=0.0,
-            created_at=datetime.now(timezone.utc),
-            last_used=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
+            last_used=datetime.now(UTC),
             usage_count=0,
             false_positive_rate=0.0,
             performance_metrics={},
@@ -568,7 +597,7 @@ class SmartFilterManager:
         return new_filter
 
     @log_performance(operation="prune_ineffective_filters")
-    async def prune_ineffective_filters(self) -> Dict[str, Any]:
+    async def prune_ineffective_filters(self) -> dict[str, Any]:
         """
         Removes or disables filters that are no longer effective.
 
@@ -601,13 +630,15 @@ class SmartFilterManager:
         # Check usage count
         if filter_obj.usage_count < self.pruning_criteria["usage_threshold"]:
             # Check age - if filter is old and not used much, consider for pruning
-            age_days = (datetime.now(timezone.utc) - filter_obj.created_at).days
+            age_days = (datetime.now(UTC) - filter_obj.created_at).days
             if age_days > self.pruning_criteria["age_threshold_days"]:
                 return "prune"
 
         return "keep"
 
-    async def _apply_filter_to_email(self, filter_obj: EmailFilter, context: Union[Dict[str, Any], '_EmailContext']) -> bool:
+    async def _apply_filter_to_email(
+        self, filter_obj: EmailFilter, context: Union[dict[str, Any], "_EmailContext"]
+    ) -> bool:
         """
         Applies a single filter's criteria to an email.
 
@@ -625,7 +656,7 @@ class SmartFilterManager:
                 sender_domain=self._extract_domain(sender_email),
                 subject_lower=context.get("subject", "").lower(),
                 content_lower=context.get("content", context.get("body", "")).lower(),
-                sender_lower=sender_email.lower()
+                sender_lower=sender_email.lower(),
             )
         else:
             ctx = context
@@ -638,17 +669,23 @@ class SmartFilterManager:
         # Check subject keywords
         if "subject_keywords" in criteria:
             # Optimization: check if any keyword matches
-            if not any(keyword.lower() in ctx.subject_lower for keyword in criteria["subject_keywords"]):
+            if not any(
+                keyword.lower() in ctx.subject_lower for keyword in criteria["subject_keywords"]
+            ):
                 return False
 
         # Check content keywords
         if "content_keywords" in criteria:
-            if not any(keyword.lower() in ctx.content_lower for keyword in criteria["content_keywords"]):
+            if not any(
+                keyword.lower() in ctx.content_lower for keyword in criteria["content_keywords"]
+            ):
                 return False
 
         # Check from patterns
         if "from_patterns" in criteria:
-            if not any(re.search(p, ctx.sender_lower, re.IGNORECASE) for p in criteria["from_patterns"]):
+            if not any(
+                re.search(p, ctx.sender_lower, re.IGNORECASE) for p in criteria["from_patterns"]
+            ):
                 return False
 
         return True
@@ -680,7 +717,7 @@ class SmartFilterManager:
         await self.caching_manager.set(cache_key, filter_obj)
 
     @log_performance(operation="get_active_filters_sorted")
-    async def get_active_filters_sorted(self) -> List[EmailFilter]:
+    async def get_active_filters_sorted(self) -> list[EmailFilter]:
         """Loads all active filters from the database, sorted by priority."""
         await self._ensure_initialized()
 
@@ -718,7 +755,7 @@ class SmartFilterManager:
         return filters
 
     @log_performance(operation="apply_filters_to_email")
-    async def apply_filters_to_email(self, email_data: Dict[str, Any]) -> Dict[str, Any]:
+    async def apply_filters_to_email(self, email_data: dict[str, Any]) -> dict[str, Any]:
         """
         Applies all active filters to an email and returns a summary of actions.
 
@@ -740,7 +777,7 @@ class SmartFilterManager:
             sender_domain=self._extract_domain(sender_email),
             subject_lower=email_data.get("subject", "").lower(),
             content_lower=email_data.get("content", email_data.get("body", "")).lower(),
-            sender_lower=sender_email.lower()
+            sender_lower=sender_email.lower(),
         )
 
         # Get active filters sorted by priority
@@ -753,11 +790,13 @@ class SmartFilterManager:
                 if await self._apply_filter_to_email(filter_obj, email_context):
                     matched_filters.append(filter_obj)
                     # Record that this filter matched
-                    summary["filters_matched"].append({
-                        "filter_id": filter_obj.filter_id,
-                        "name": filter_obj.name,
-                        "priority": filter_obj.priority
-                    })
+                    summary["filters_matched"].append(
+                        {
+                            "filter_id": filter_obj.filter_id,
+                            "name": filter_obj.name,
+                            "priority": filter_obj.priority,
+                        }
+                    )
 
                     # Execute actions
                     for action_key, action_value in filter_obj.actions.items():
@@ -775,15 +814,20 @@ class SmartFilterManager:
                 error_context = create_error_context(
                     component="SmartFilterManager",
                     operation="apply_filters_to_email",
-                    additional_context={"filter_id": filter_obj.filter_id, "email_id": email_data.get("id")}
+                    additional_context={
+                        "filter_id": filter_obj.filter_id,
+                        "email_id": email_data.get("id"),
+                    },
                 )
                 error_id = log_error(
                     e,
                     severity=ErrorSeverity.WARNING,
                     category=ErrorCategory.INTEGRATION,
-                    context=error_context
+                    context=error_context,
                 )
-                self.logger.warning(f"Error applying filter {filter_obj.filter_id} to email {email_data.get('id')}: {e}. Error ID: {error_id}")
+                self.logger.warning(
+                    f"Error applying filter {filter_obj.filter_id} to email {email_data.get('id')}: {e}. Error ID: {error_id}"
+                )
 
         # Batch update usage statistics for all matched filters
         if matched_filters:
@@ -793,7 +837,7 @@ class SmartFilterManager:
             await self.caching_manager.set("active_filters_sorted", active_filters)
 
         # Update the last_used timestamp for the email
-        email_data["last_filtered_at"] = datetime.now(timezone.utc).isoformat()
+        email_data["last_filtered_at"] = datetime.now(UTC).isoformat()
 
         return summary
 
@@ -805,13 +849,13 @@ class SmartFilterManager:
             SET usage_count = usage_count + 1, last_used = ?
             WHERE filter_id = ?
         """
-        current_time = datetime.now(timezone.utc).isoformat()
+        current_time = datetime.now(UTC).isoformat()
         self._db_execute(update_query, (current_time, filter_id))
 
         # Invalidate cache for active filters
         await self.caching_manager.delete("active_filters_sorted")
 
-    async def _batch_update_filter_usage(self, filters: List[EmailFilter]):
+    async def _batch_update_filter_usage(self, filters: list[EmailFilter]):
         """
         Updates usage statistics for multiple filters efficiently.
 
@@ -822,7 +866,7 @@ class SmartFilterManager:
         if not filters:
             return
 
-        current_time = datetime.now(timezone.utc)
+        current_time = datetime.now(UTC)
         current_time_iso = current_time.isoformat()
 
         # Prepare batch update parameters
@@ -852,7 +896,7 @@ class SmartFilterManager:
         # This avoids expensive cache invalidation and rebuilding on every match.
 
     @log_performance(operation="get_filter_by_id")
-    async def get_filter_by_id(self, filter_id: str) -> Optional[EmailFilter]:
+    async def get_filter_by_id(self, filter_id: str) -> EmailFilter | None:
         """Retrieves a specific filter by its ID."""
         await self._ensure_initialized()
 
@@ -862,9 +906,7 @@ class SmartFilterManager:
         if cached_result is not None:
             return cached_result
 
-        row = self._db_fetchone(
-            "SELECT * FROM email_filters WHERE filter_id = ?", (filter_id,)
-        )
+        row = self._db_fetchone("SELECT * FROM email_filters WHERE filter_id = ?", (filter_id,))
 
         if not row:
             return None
@@ -947,14 +989,14 @@ class SmartFilterManager:
         return True
 
     @log_performance(operation="get_filters_by_category")
-    async def get_filters_by_category(self, category: str) -> List[EmailFilter]:
+    async def get_filters_by_category(self, category: str) -> list[EmailFilter]:
         """Retrieves filters that are associated with a specific category."""
         await self._ensure_initialized()
 
         # This looks for filters that have actions related to the category
         rows = self._db_fetchall(
             "SELECT * FROM email_filters WHERE actions LIKE ? AND is_active = 1",
-            (f'%{category}%',)
+            (f"%{category}%",),
         )
 
         filters = [

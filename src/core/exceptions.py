@@ -30,6 +30,8 @@ class GmailServiceError(BaseAppException):
     """Exception for Gmail service related errors."""
 
     def __init__(
-        self, detail: str = "An error occurred with the Gmail service.", status_code: int = 502
+        self,
+        detail: str = "An error occurred with the Gmail service.",
+        status_code: int = 502,
     ):
         super().__init__(status_code=status_code, detail=detail)

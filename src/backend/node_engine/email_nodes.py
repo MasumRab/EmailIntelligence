@@ -10,7 +10,7 @@ functionality, following the node-based architecture.
 
 import asyncio
 from datetime import datetime
-from typing import Any, Dict, List
+from typing import Any
 
 from backend.node_engine.node_base import BaseNode, DataType, ExecutionContext, NodePort
 from backend.node_engine.workflow_engine import workflow_engine
@@ -30,7 +30,9 @@ class NLPEngine:
         sentiment = (
             "positive"
             if any(w in text for w in ["good", "great", "excellent", "thank"])
-            else "negative" if any(w in text for w in ["bad", "terrible", "problem"]) else "neutral"
+            else "negative"
+            if any(w in text for w in ["bad", "terrible", "problem"])
+            else "neutral"
         )
 
         # Simple topic analysis
@@ -97,13 +99,16 @@ class EmailSourceNode(BaseNode):
     Node that sources emails from various providers (Gmail, etc.).
     """
 
-    def __init__(self, config: Dict[str, Any] = None, node_id: str = None, name: str = None):
+    def __init__(self, config: dict[str, Any] = None, node_id: str = None, name: str = None):
         super().__init__(node_id, name or "Email Source", "Sources emails from email provider")
         self.config = config or {}
         self.input_ports = []
         self.output_ports = [
             NodePort(
-                "emails", DataType.EMAIL_LIST, required=True, description="List of retrieved emails"
+                "emails",
+                DataType.EMAIL_LIST,
+                required=True,
+                description="List of retrieved emails",
             ),
             NodePort(
                 "status",
@@ -113,7 +118,7 @@ class EmailSourceNode(BaseNode):
             ),
         ]
 
-    async def execute(self, context: ExecutionContext) -> Dict[str, Any]:
+    async def execute(self, context: ExecutionContext) -> dict[str, Any]:
         """Execute the email source operation."""
         try:
             # For now, we'll simulate email retrieval
@@ -141,7 +146,7 @@ class EmailSourceNode(BaseNode):
                 },
             }
 
-    async def _fetch_emails(self) -> List[Dict[str, Any]]:
+    async def _fetch_emails(self) -> list[dict[str, Any]]:
         """Fetch emails from the configured provider."""
         # This is a placeholder - in real implementation, it would use GmailAIService
         # or other email providers
@@ -166,7 +171,7 @@ class PreprocessingNode(BaseNode):
     Node that preprocesses email data (cleaning, normalization, etc.).
     """
 
-    def __init__(self, config: Dict[str, Any] = None, node_id: str = None, name: str = None):
+    def __init__(self, config: dict[str, Any] = None, node_id: str = None, name: str = None):
         super().__init__(node_id, name or "Email Preprocessor", "Preprocesses email data")
         self.config = config or {}
         self.input_ports = [
@@ -185,11 +190,14 @@ class PreprocessingNode(BaseNode):
                 description="List of preprocessed emails",
             ),
             NodePort(
-                "stats", DataType.JSON, required=True, description="Statistics about preprocessing"
+                "stats",
+                DataType.JSON,
+                required=True,
+                description="Statistics about preprocessing",
             ),
         ]
 
-    async def execute(self, context: ExecutionContext) -> Dict[str, Any]:
+    async def execute(self, context: ExecutionContext) -> dict[str, Any]:
         """Execute the preprocessing operation."""
         try:
             input_emails = self.inputs.get("emails", [])
@@ -236,7 +244,7 @@ class PreprocessingNode(BaseNode):
                 },
             }
 
-    async def _process_email(self, email: Dict[str, Any]) -> Dict[str, Any]:
+    async def _process_email(self, email: dict[str, Any]) -> dict[str, Any]:
         """Process a single email."""
         # Simulate some preprocessing steps
         processed_email = email.copy()
@@ -263,7 +271,7 @@ class AIAnalysisNode(BaseNode):
     Node that performs AI analysis on emails (sentiment, topic, intent, etc.).
     """
 
-    def __init__(self, config: Dict[str, Any] = None, node_id: str = None, name: str = None):
+    def __init__(self, config: dict[str, Any] = None, node_id: str = None, name: str = None):
         super().__init__(node_id, name or "AI Analyzer", "Performs AI analysis on emails")
         self.config = config or {}
         self.nlp_engine = NLPEngine()
@@ -283,11 +291,14 @@ class AIAnalysisNode(BaseNode):
                 description="AI analysis results for each email",
             ),
             NodePort(
-                "summary", DataType.JSON, required=True, description="Summary of the analysis"
+                "summary",
+                DataType.JSON,
+                required=True,
+                description="Summary of the analysis",
             ),
         ]
 
-    async def execute(self, context: ExecutionContext) -> Dict[str, Any]:
+    async def execute(self, context: ExecutionContext) -> dict[str, Any]:
         """Execute the AI analysis operation."""
         try:
             input_emails = self.inputs.get("emails", [])
@@ -295,7 +306,10 @@ class AIAnalysisNode(BaseNode):
             if not input_emails:
                 return {
                     "analysis_results": [],
-                    "summary": {"analyzed_count": 0, "timestamp": datetime.now().isoformat()},
+                    "summary": {
+                        "analyzed_count": 0,
+                        "timestamp": datetime.now().isoformat(),
+                    },
                 }
 
             results = []
@@ -308,7 +322,10 @@ class AIAnalysisNode(BaseNode):
                 analysis = self.nlp_engine.analyze_email(subject, content)
                 results.append({"email_id": email.get("id"), "analysis": analysis})
 
-            summary = {"analyzed_count": len(results), "timestamp": datetime.now().isoformat()}
+            summary = {
+                "analyzed_count": len(results),
+                "timestamp": datetime.now().isoformat(),
+            }
 
             return {"analysis_results": results, "summary": summary}
         except Exception as e:
@@ -328,12 +345,15 @@ class FilterNode(BaseNode):
     Node that applies filtering rules to emails.
     """
 
-    def __init__(self, config: Dict[str, Any] = None, node_id: str = None, name: str = None):
+    def __init__(self, config: dict[str, Any] = None, node_id: str = None, name: str = None):
         super().__init__(node_id, name or "Email Filter", "Filters emails based on criteria")
         self.config = config or {}
         self.input_ports = [
             NodePort(
-                "emails", DataType.EMAIL_LIST, required=True, description="List of emails to filter"
+                "emails",
+                DataType.EMAIL_LIST,
+                required=True,
+                description="List of emails to filter",
             ),
             NodePort(
                 "criteria",
@@ -355,10 +375,15 @@ class FilterNode(BaseNode):
                 required=True,
                 description="Emails that didn't match criteria",
             ),
-            NodePort("stats", DataType.JSON, required=True, description="Filtering statistics"),
+            NodePort(
+                "stats",
+                DataType.JSON,
+                required=True,
+                description="Filtering statistics",
+            ),
         ]
 
-    async def execute(self, context: ExecutionContext) -> Dict[str, Any]:
+    async def execute(self, context: ExecutionContext) -> dict[str, Any]:
         """Execute the filtering operation."""
         try:
             input_emails = self.inputs.get("emails", [])
@@ -406,7 +431,7 @@ class FilterNode(BaseNode):
                 },
             }
 
-    def _matches_criteria(self, email: Dict[str, Any], criteria: Dict[str, Any]) -> bool:
+    def _matches_criteria(self, email: dict[str, Any], criteria: dict[str, Any]) -> bool:
         """Check if an email matches the filtering criteria."""
         # If no criteria provided, pass everything through
         if not criteria:
@@ -539,7 +564,7 @@ class FilterNode(BaseNode):
         # Default: if all conditions pass, return True
         return True
 
-    def _evaluate_condition(self, email: Dict[str, Any], condition: Dict[str, Any]) -> bool:
+    def _evaluate_condition(self, email: dict[str, Any], condition: dict[str, Any]) -> bool:
         """Evaluate a single boolean condition against an email."""
         # This is a helper for the boolean logic implementation
         # It checks individual conditions within complex boolean operations
@@ -566,7 +591,7 @@ class ActionNode(BaseNode):
     Node that executes actions on emails (move, label, forward, etc.).
     """
 
-    def __init__(self, config: Dict[str, Any] = None, node_id: str = None, name: str = None):
+    def __init__(self, config: dict[str, Any] = None, node_id: str = None, name: str = None):
         super().__init__(node_id, name or "Action Executor", "Executes actions on emails")
         self.config = config or {}
         self.input_ports = [
@@ -577,7 +602,10 @@ class ActionNode(BaseNode):
                 description="List of emails to act upon",
             ),
             NodePort(
-                "actions", DataType.JSON, required=True, description="Actions to perform on emails"
+                "actions",
+                DataType.JSON,
+                required=True,
+                description="Actions to perform on emails",
             ),
         ]
         self.output_ports = [
@@ -588,11 +616,14 @@ class ActionNode(BaseNode):
                 description="Results of the actions performed",
             ),
             NodePort(
-                "status", DataType.JSON, required=True, description="Status of action execution"
+                "status",
+                DataType.JSON,
+                required=True,
+                description="Status of action execution",
             ),
         ]
 
-    async def execute(self, context: ExecutionContext) -> Dict[str, Any]:
+    async def execute(self, context: ExecutionContext) -> dict[str, Any]:
         """Execute the action operation."""
         try:
             input_emails = self.inputs.get("emails", [])
@@ -634,8 +665,8 @@ class ActionNode(BaseNode):
             }
 
     async def _execute_actions_on_email(
-        self, email: Dict[str, Any], actions: List[Dict[str, Any]]
-    ) -> Dict[str, Any]:
+        self, email: dict[str, Any], actions: list[dict[str, Any]]
+    ) -> dict[str, Any]:
         """Execute actions on a single email."""
         # Simulate action execution
         # In a real implementation, this would interact with email APIs

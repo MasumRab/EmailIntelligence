@@ -3,7 +3,7 @@ API routes for managing AI models.
 """
 
 import logging
-from typing import Any, Dict, List
+from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException
 
@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
-@router.get("/api/models", response_model=List[Dict[str, Any]])
+@router.get("/api/models", response_model=list[dict[str, Any]])
 async def list_models(
     current_user: str = Depends(get_current_active_user),
     model_manager: ModelManager = Depends(get_model_manager),

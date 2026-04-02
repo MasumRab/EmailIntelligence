@@ -1,6 +1,5 @@
 import json
 import logging
-from typing import List, Optional
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
 
@@ -19,15 +18,15 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
-@router.get("/api/emails", response_model=List[EmailResponse])
+@router.get("/api/emails", response_model=list[EmailResponse])
 @log_performance(operation="get_emails")
 async def get_emails(
     request: Request,
-    category_id: Optional[int] = None,
-    search: Optional[str] = None,
+    category_id: int | None = None,
+    search: str | None = None,
     limit: int = 50,
     offset: int = 0,
-    is_unread: Optional[bool] = None,
+    is_unread: bool | None = None,
     current_user: str = Depends(get_current_active_user),
     email_service: EmailService = Depends(get_email_service),
 ):

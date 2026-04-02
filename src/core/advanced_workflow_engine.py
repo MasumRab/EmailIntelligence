@@ -19,7 +19,7 @@ from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Any
 from uuid import uuid4
 
 import networkx as nx
@@ -28,7 +28,13 @@ logger = logging.getLogger(__name__)
 
 # Import security features if available
 try:
-    from .security import DataSanitizer, Permission, SecurityContext, SecurityLevel, SecurityManager
+    from .security import (
+        DataSanitizer,
+        Permission,
+        SecurityContext,
+        SecurityLevel,
+        SecurityManager,
+    )
 
     security_available = True
 except ImportError:
@@ -54,8 +60,8 @@ class NodeMetadata:
     name: str
     description: str
     version: str
-    input_types: Dict[str, type]
-    output_types: Dict[str, type]
+    input_types: dict[str, type]
+    output_types: dict[str, type]
 
 
 class BaseNode(ABC):
@@ -70,10 +76,10 @@ class BaseNode(ABC):
         self.node_id = node_id
         self.name = name
         self.workflow_id = workflow_id
-        self._execution_context: Dict[str, Any] = {}
-        self._security_context: Optional[SecurityContext] = None
+        self._execution_context: dict[str, Any] = {}
+        self._security_context: SecurityContext | None = None
         self._status: NodeExecutionStatus = NodeExecutionStatus.PENDING
-        self._last_executed: Optional[float] = None
+        self._last_executed: float | None = None
 
     @abstractmethod
     def get_metadata(self) -> NodeMetadata:
@@ -81,19 +87,19 @@ class BaseNode(ABC):
         pass
 
     @abstractmethod
-    async def process(self, inputs: Dict[str, Any]) -> Dict[str, Any]:
+    async def process(self, inputs: dict[str, Any]) -> dict[str, Any]:
         """Process the input data and return outputs"""
         pass
 
-    def set_security_context(self, context: Optional[SecurityContext]):
+    def set_security_context(self, context: SecurityContext | None):
         """Set the security context for this node"""
         self._security_context = context
 
-    def get_security_context(self) -> Optional[SecurityContext]:
+    def get_security_context(self) -> SecurityContext | None:
         """Get the security context for this node"""
         return self._security_context
 
-    async def execute(self, inputs: Dict[str, Any]) -> Dict[str, Any]:
+    async def execute(self, inputs: dict[str, Any]) -> dict[str, Any]:
         """
         Execute the node with security and performance monitoring.
 
@@ -110,7 +116,6 @@ class BaseNode(ABC):
 
         # If security is available, validate and sanitize inputs
         if security_available and self._security_context:
-
             # Validate access and sanitize inputs
             sanitized_inputs = DataSanitizer.sanitize_input(inputs)
         else:
@@ -154,7 +159,7 @@ class Connection:
         source_output: str,
         target_node_id: str,
         target_input: str,
-        connection_id: Optional[str] = None,
+        connection_id: str | None = None,
     ):
         self.connection_id = connection_id or str(uuid4())
         self.source_node_id = source_node_id
@@ -162,7 +167,7 @@ class Connection:
         self.target_node_id = target_node_id
         self.target_input = target_input
 
-    def to_dict(self) -> Dict[str, str]:
+    def to_dict(self) -> dict[str, str]:
         """Convert connection to dictionary for serialization"""
         return {
             "connection_id": self.connection_id,
@@ -173,7 +178,7 @@ class Connection:
         }
 
     @classmethod
-    def from_dict(cls, data: Dict[str, str]) -> "Connection":
+    def from_dict(cls, data: dict[str, str]) -> "Connection":
         """Create connection from dictionary"""
         return cls(
             connection_id=data.get("connection_id"),
@@ -192,17 +197,17 @@ class Workflow:
         self.name = name
         self.description = description
         self.version = "1.0.0"
-        self.nodes: List[Dict[str, Any]] = []
-        self.connections: List[Dict[str, str]] = []
-        self.config: Dict[str, Any] = {}
+        self.nodes: list[dict[str, Any]] = []
+        self.connections: list[dict[str, str]] = []
+        self.config: dict[str, Any] = {}
         self.created_at = time.time()
         self.updated_at = time.time()
-        self.metadata: Dict[str, Any] = {}
+        self.metadata: dict[str, Any] = {}
 
     def add_node(
         self,
         node_type: str,
-        node_id: Optional[str] = None,
+        node_id: str | None = None,
         x: float = 0.0,
         y: float = 0.0,
         **kwargs,
@@ -222,7 +227,11 @@ class Workflow:
         return node_id
 
     def add_connection(
-        self, source_node_id: str, source_output: str, target_node_id: str, target_input: str
+        self,
+        source_node_id: str,
+        source_output: str,
+        target_node_id: str,
+        target_input: str,
     ):
         """Add a connection between nodes"""
         connection = {
@@ -254,7 +263,7 @@ class Workflow:
 
         return graph
 
-    def get_execution_order(self) -> List[str]:
+    def get_execution_order(self) -> list[str]:
         """Get the execution order of nodes based on dependencies"""
         graph = self.to_graph()
 
@@ -266,7 +275,7 @@ class Workflow:
             # If there's a cycle, raise an error
             raise ValueError("Workflow contains cycles, which are not allowed")
 
-    def get_node_inputs(self, node_id: str) -> Dict[str, Any]:
+    def get_node_inputs(self, node_id: str) -> dict[str, Any]:
         """Get input connections for a specific node"""
         inputs = {}
         for conn in self.connections:
@@ -277,7 +286,7 @@ class Workflow:
                 }
         return inputs
 
-    def get_node_outputs(self, node_id: str) -> Dict[str, Any]:
+    def get_node_outputs(self, node_id: str) -> dict[str, Any]:
         """Get output connections for a specific node"""
         outputs = {}
         for conn in self.connections:
@@ -286,11 +295,14 @@ class Workflow:
                 if output_key not in outputs:
                     outputs[output_key] = []
                 outputs[output_key].append(
-                    {"target_node_id": conn["target_node_id"], "target_input": conn["target_input"]}
+                    {
+                        "target_node_id": conn["target_node_id"],
+                        "target_input": conn["target_input"],
+                    }
                 )
         return outputs
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert workflow to dictionary for serialization"""
         return {
             "workflow_id": self.workflow_id,
@@ -306,10 +318,11 @@ class Workflow:
         }
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "Workflow":
+    def from_dict(cls, data: dict[str, Any]) -> "Workflow":
         """Create workflow from dictionary"""
         workflow = cls(
-            name=data.get("name", "Unnamed Workflow"), description=data.get("description", "")
+            name=data.get("name", "Unnamed Workflow"),
+            description=data.get("description", ""),
         )
         workflow.workflow_id = data.get("workflow_id", str(uuid4()))
         workflow.version = data.get("version", "1.0.0")
@@ -331,8 +344,8 @@ class WorkflowExecutionResult:
         workflow_id: str,
         status: str,
         execution_time: float,
-        node_results: Dict[str, Any],
-        error: Optional[str] = None,
+        node_results: dict[str, Any],
+        error: str | None = None,
     ):
         self.workflow_id = workflow_id
         self.status = status
@@ -351,9 +364,9 @@ class WorkflowRunner:
 
     def __init__(
         self,
-        node_registry: Dict[str, type],
+        node_registry: dict[str, type],
         max_concurrent_nodes: int = 5,
-        security_context: Optional[SecurityContext] = None,
+        security_context: SecurityContext | None = None,
     ):
         self.node_registry = node_registry
         self.max_concurrent_nodes = max_concurrent_nodes
@@ -364,8 +377,8 @@ class WorkflowRunner:
     async def run_workflow(
         self,
         workflow: Workflow,
-        initial_inputs: Optional[Dict[str, Any]] = None,
-        workflow_context: Optional[Dict[str, Any]] = None,
+        initial_inputs: dict[str, Any] | None = None,
+        workflow_context: dict[str, Any] | None = None,
     ) -> WorkflowExecutionResult:
         """
         Execute a workflow with all security and performance features.
@@ -410,7 +423,10 @@ class WorkflowRunner:
 
                 # Execute the node
                 result = await self._execute_node(
-                    workflow=workflow, node_data=node_data, inputs=node_inputs, context=context
+                    workflow=workflow,
+                    node_data=node_data,
+                    inputs=node_inputs,
+                    context=context,
                 )
 
                 # Store the result
@@ -444,10 +460,10 @@ class WorkflowRunner:
     async def _execute_node(
         self,
         workflow: Workflow,
-        node_data: Dict[str, Any],
-        inputs: Dict[str, Any],
-        context: Dict[str, Any],
-    ) -> Dict[str, Any]:
+        node_data: dict[str, Any],
+        inputs: dict[str, Any],
+        context: dict[str, Any],
+    ) -> dict[str, Any]:
         """Execute a single node in the workflow"""
         node_type = node_data["type"]
 
@@ -472,8 +488,8 @@ class WorkflowRunner:
         return result
 
     def _build_node_inputs(
-        self, workflow: Workflow, node_id: str, context: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self, workflow: Workflow, node_id: str, context: dict[str, Any]
+    ) -> dict[str, Any]:
         """Build inputs for a node based on connections and initial inputs"""
         inputs = {}
 
@@ -504,7 +520,7 @@ class WorkflowRunner:
 
         return inputs
 
-    def _find_node_by_id(self, workflow: Workflow, node_id: str) -> Optional[Dict[str, Any]]:
+    def _find_node_by_id(self, workflow: Workflow, node_id: str) -> dict[str, Any] | None:
         """Find a node in the workflow by its ID"""
         for node in workflow.nodes:
             if node["id"] == node_id:
@@ -519,7 +535,7 @@ class WorkflowRunner:
             return True
         return False
 
-    def get_running_workflows(self) -> List[str]:
+    def get_running_workflows(self) -> list[str]:
         """Get list of currently running workflow IDs"""
         return list(self._running_workflows)
 
@@ -532,15 +548,15 @@ class WorkflowManager:
     def __init__(self, workflows_dir: str = "data/workflows"):
         self.workflows_dir = Path(workflows_dir)
         self.workflows_dir.mkdir(exist_ok=True, parents=True)
-        self._workflows: Dict[str, Workflow] = {}
-        self._workflow_runners: Dict[str, WorkflowRunner] = {}
-        self._node_registry: Dict[str, type] = {}
+        self._workflows: dict[str, Workflow] = {}
+        self._workflow_runners: dict[str, WorkflowRunner] = {}
+        self._node_registry: dict[str, type] = {}
 
     def register_node_type(self, node_type: str, node_class: type):
         """Register a new node type"""
         self._node_registry[node_type] = node_class
 
-    def get_registered_node_types(self) -> List[str]:
+    def get_registered_node_types(self) -> list[str]:
         """Get list of registered node types"""
         return list(self._node_registry.keys())
 
@@ -550,11 +566,11 @@ class WorkflowManager:
         self._workflows[workflow.workflow_id] = workflow
         return workflow
 
-    def get_workflow(self, workflow_id: str) -> Optional[Workflow]:
+    def get_workflow(self, workflow_id: str) -> Workflow | None:
         """Get a workflow by ID"""
         return self._workflows.get(workflow_id)
 
-    def save_workflow(self, workflow: Workflow, filename: Optional[str] = None) -> bool:
+    def save_workflow(self, workflow: Workflow, filename: str | None = None) -> bool:
         """Save a workflow to file"""
         try:
             if filename is None:
@@ -573,7 +589,7 @@ class WorkflowManager:
             logger.error(f"Failed to save workflow: {str(e)}")
             return False
 
-    def load_workflow(self, workflow_filename: Union[str, Path]) -> Optional[Workflow]:
+    def load_workflow(self, workflow_filename: str | Path) -> Workflow | None:
         """Load a workflow from file"""
         try:
             # Always join the user-provided filename with the workflows_dir, then normalize & check it's inside
@@ -593,7 +609,7 @@ class WorkflowManager:
                 logger.error(f"Workflow file does not exist: {fullpath}")
                 return None
 
-            with open(fullpath, "r", encoding="utf-8") as f:
+            with open(fullpath, encoding="utf-8") as f:
                 data = json.load(f)
 
             workflow = Workflow.from_dict(data)
@@ -605,7 +621,7 @@ class WorkflowManager:
             logger.error(f"Failed to load workflow from {workflow_filename}: {str(e)}")
             return None
 
-    def list_workflows(self) -> List[str]:
+    def list_workflows(self) -> list[str]:
         """List saved workflow files"""
         return [f.name for f in self.workflows_dir.glob("*.json")]
 
@@ -626,8 +642,8 @@ class WorkflowManager:
     async def execute_workflow(
         self,
         workflow_id: str,
-        initial_inputs: Optional[Dict[str, Any]] = None,
-        security_context: Optional[SecurityContext] = None,
+        initial_inputs: dict[str, Any] | None = None,
+        security_context: SecurityContext | None = None,
     ) -> WorkflowExecutionResult:
         """Execute a workflow asynchronously"""
         workflow = self.get_workflow(workflow_id)
@@ -641,7 +657,7 @@ class WorkflowManager:
         result = await runner.run_workflow(workflow, initial_inputs)
         return result
 
-    def get_workflow_by_name(self, name: str) -> Optional[Workflow]:
+    def get_workflow_by_name(self, name: str) -> Workflow | None:
         """Get a workflow by name (not ID)"""
         for workflow in self._workflows.values():
             if workflow.name == name:
@@ -662,7 +678,7 @@ class EmailInputNode(BaseNode):
             output_types={"email": dict, "subject": str, "content": str, "sender": str},
         )
 
-    async def process(self, inputs: Dict[str, Any]) -> Dict[str, Any]:
+    async def process(self, inputs: dict[str, Any]) -> dict[str, Any]:
         # For now, we'll use the inputs directly as the email data
         # In a real implementation, this would fetch from an API, database, etc.
         email_data = inputs.get("email_data", {})
@@ -684,10 +700,15 @@ class NLPProcessorNode(BaseNode):
             description="Performs NLP analysis on email content",
             version="1.0.0",
             input_types={"content": str, "subject": str},
-            output_types={"analysis": dict, "sentiment": str, "topic": str, "keywords": list},
+            output_types={
+                "analysis": dict,
+                "sentiment": str,
+                "topic": str,
+                "keywords": list,
+            },
         )
 
-    async def process(self, inputs: Dict[str, Any]) -> Dict[str, Any]:
+    async def process(self, inputs: dict[str, Any]) -> dict[str, Any]:
         # Mock NLP processing - in real implementation, this would call the AI engine
         content = inputs.get("content", "")
         inputs.get("subject", "")
@@ -702,7 +723,11 @@ class NLPProcessorNode(BaseNode):
                 if "meeting" in content.lower() or "work" in content.lower()
                 else "personal"
             ),
-            "keywords": ["email", "content", "analysis"],  # Extract keywords from content
+            "keywords": [
+                "email",
+                "content",
+                "analysis",
+            ],  # Extract keywords from content
         }
 
         return {
@@ -725,7 +750,7 @@ class EmailOutputNode(BaseNode):
             output_types={"processed_email": dict, "status": str},
         )
 
-    async def process(self, inputs: Dict[str, Any]) -> Dict[str, Any]:
+    async def process(self, inputs: dict[str, Any]) -> dict[str, Any]:
         # Combine email and analysis data
         email = inputs.get("email", {})
         analysis = inputs.get("analysis", {})
@@ -741,7 +766,7 @@ class EmailOutputNode(BaseNode):
 
 
 # Default workflow manager instance
-workflow_manager: Optional[WorkflowManager] = None
+workflow_manager: WorkflowManager | None = None
 
 
 def initialize_workflow_system() -> WorkflowManager:

@@ -3,7 +3,7 @@ A simple, placeholder topic analysis model.
 """
 
 import logging
-from typing import Any, Dict
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -15,7 +15,7 @@ class TopicModel:
         logger.info("TopicModel instance created.")
         self.model = None  # Placeholder for future model
 
-    def analyze(self, text: str) -> Dict[str, Any]:
+    def analyze(self, text: str) -> dict[str, Any]:
         """
         Performs a very basic topic analysis.
         """

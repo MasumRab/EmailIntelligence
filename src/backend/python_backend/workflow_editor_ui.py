@@ -196,9 +196,15 @@ def create_workflow_editor_ui():
                         workflow_manager.list_workflows(),
                     )
                 else:
-                    return "❌ Failed to save workflow", workflow_manager.list_workflows()
+                    return (
+                        "❌ Failed to save workflow",
+                        workflow_manager.list_workflows(),
+                    )
             except Exception as e:
-                return f"❌ Error saving workflow: {str(e)}", workflow_manager.list_workflows()
+                return (
+                    f"❌ Error saving workflow: {str(e)}",
+                    workflow_manager.list_workflows(),
+                )
 
         def load_selected_workflow(workflow_filename: str):
             try:

@@ -6,9 +6,7 @@ Configuration management for the Email Intelligence Platform
 Using Pydantic Settings for environment-based configuration
 """
 
-
-from pydantic import Field
-from pydantic import validator
+from pydantic import Field, validator
 from pydantic_settings import BaseSettings
 
 
@@ -56,7 +54,7 @@ class Settings(BaseSettings):
     # Database compression settings
     gzip_compression_level: int = 6  # Default compression level
 
-    @validator('secret_key')
+    @validator("secret_key")
     @classmethod
     def validate_secret_key(cls, v):
         if not v:

@@ -8,9 +8,9 @@ error context information, and error analytics to help diagnose issues more effe
 import json
 import logging
 import traceback
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
-from typing import Any, Dict, List, Optional, Union
+from typing import Any
 
 # Configure logger for this module
 logger = logging.getLogger(__name__)
@@ -20,6 +20,7 @@ ERROR_LOG_FILE = "error_log.jsonl"
 
 class ErrorSeverity(Enum):
     """Error severity levels."""
+
     DEBUG = "debug"
     INFO = "info"
     WARNING = "warning"
@@ -29,6 +30,7 @@ class ErrorSeverity(Enum):
 
 class ErrorCategory(Enum):
     """Categories of errors."""
+
     VALIDATION = "validation"
     INTEGRATION = "integration"
     PERFORMANCE = "performance"
@@ -42,14 +44,14 @@ class ErrorContext:
     """Context information for errors."""
 
     def __init__(self):
-        self.user_id: Optional[str] = None
-        self.session_id: Optional[str] = None
-        self.request_id: Optional[str] = None
-        self.component: Optional[str] = None
-        self.operation: Optional[str] = None
-        self.additional_context: Dict[str, Any] = {}
+        self.user_id: str | None = None
+        self.session_id: str | None = None
+        self.request_id: str | None = None
+        self.component: str | None = None
+        self.operation: str | None = None
+        self.additional_context: dict[str, Any] = {}
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert context to dictionary."""
         return {
             "user_id": self.user_id,
@@ -57,7 +59,7 @@ class ErrorContext:
             "request_id": self.request_id,
             "component": self.component,
             "operation": self.operation,
-            "additional_context": self.additional_context
+            "additional_context": self.additional_context,
         }
 
 
@@ -69,9 +71,9 @@ class EnhancedErrorReporter:
         self._ensure_log_file_exists()
 
         # Error statistics
-        self.error_counts: Dict[str, int] = {}
-        self.error_categories: Dict[str, int] = {}
-        self.error_components: Dict[str, int] = {}
+        self.error_counts: dict[str, int] = {}
+        self.error_categories: dict[str, int] = {}
+        self.error_components: dict[str, int] = {}
 
     def _ensure_log_file_exists(self):
         """Ensure the error log file exists."""
@@ -83,11 +85,11 @@ class EnhancedErrorReporter:
 
     def log_error(
         self,
-        error: Union[Exception, str],
+        error: Exception | str,
         severity: ErrorSeverity = ErrorSeverity.ERROR,
         category: ErrorCategory = ErrorCategory.UNKNOWN,
-        context: Optional[ErrorContext] = None,
-        details: Optional[Dict[str, Any]] = None
+        context: ErrorContext | None = None,
+        details: dict[str, Any] | None = None,
     ) -> str:
         """
         Log an error with structured information.
@@ -102,23 +104,25 @@ class EnhancedErrorReporter:
         Returns:
             A unique error ID
         """
-        error_id = f"err_{datetime.now(timezone.utc).timestamp():.0f}_{id(error)}"
+        error_id = f"err_{datetime.now(UTC).timestamp():.0f}_{id(error)}"
 
         # Create error entry
         error_entry = {
             "error_id": error_id,
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "severity": severity.value,
             "category": category.value,
             "message": str(error) if not isinstance(error, str) else error,
             "type": type(error).__name__ if not isinstance(error, str) else "StringError",
             "context": context.to_dict() if context else {},
-            "details": details or {}
+            "details": details or {},
         }
 
         # Add traceback if it's an exception
         if isinstance(error, Exception):
-            error_entry["traceback"] = traceback.format_exception(type(error), error, error.__traceback__)
+            error_entry["traceback"] = traceback.format_exception(
+                type(error), error, error.__traceback__
+            )
 
         # Log to file
         try:
@@ -134,12 +138,12 @@ class EnhancedErrorReporter:
         logger.log(
             getattr(logging, severity.value.upper(), logging.ERROR),
             f"Error {error_id}: {error_entry['message']}",
-            extra={"error_id": error_id}
+            extra={"error_id": error_id},
         )
 
         return error_id
 
-    def _update_error_stats(self, error_entry: Dict[str, Any]) -> None:
+    def _update_error_stats(self, error_entry: dict[str, Any]) -> None:
         """Update error statistics."""
         # Update error type counts
         error_type = error_entry.get("type", "Unknown")
@@ -153,20 +157,20 @@ class EnhancedErrorReporter:
         component = error_entry.get("context", {}).get("component", "unknown")
         self.error_components[component] = self.error_components.get(component, 0) + 1
 
-    def get_error_stats(self) -> Dict[str, Any]:
+    def get_error_stats(self) -> dict[str, Any]:
         """Get current error statistics."""
         return {
             "error_counts": self.error_counts,
             "error_categories": self.error_categories,
-            "error_components": self.error_components
+            "error_components": self.error_components,
         }
 
-    def get_recent_errors(self, limit: int = 100) -> List[Dict[str, Any]]:
+    def get_recent_errors(self, limit: int = 100) -> list[dict[str, Any]]:
         """Get recent errors from the log."""
         errors = []
 
         try:
-            with open(self.error_log_file, "r") as f:
+            with open(self.error_log_file) as f:
                 lines = f.readlines()
                 # Get last 'limit' errors
                 lines = lines[-limit:]
@@ -182,12 +186,12 @@ class EnhancedErrorReporter:
 
         return errors
 
-    def get_errors_by_category(self, category: ErrorCategory) -> List[Dict[str, Any]]:
+    def get_errors_by_category(self, category: ErrorCategory) -> list[dict[str, Any]]:
         """Get errors by category."""
         all_errors = self.get_recent_errors()
         return [error for error in all_errors if error.get("category") == category.value]
 
-    def get_errors_by_severity(self, severity: ErrorSeverity) -> List[Dict[str, Any]]:
+    def get_errors_by_severity(self, severity: ErrorSeverity) -> list[dict[str, Any]]:
         """Get errors by severity."""
         all_errors = self.get_recent_errors()
         return [error for error in all_errors if error.get("severity") == severity.value]
@@ -198,11 +202,11 @@ enhanced_error_reporter = EnhancedErrorReporter()
 
 
 def log_error(
-    error: Union[Exception, str],
+    error: Exception | str,
     severity: ErrorSeverity = ErrorSeverity.ERROR,
     category: ErrorCategory = ErrorCategory.UNKNOWN,
-    context: Optional[ErrorContext] = None,
-    details: Optional[Dict[str, Any]] = None
+    context: ErrorContext | None = None,
+    details: dict[str, Any] | None = None,
 ) -> str:
     """
     Log an error with structured information.
@@ -221,12 +225,12 @@ def log_error(
 
 
 def create_error_context(
-    user_id: Optional[str] = None,
-    session_id: Optional[str] = None,
-    request_id: Optional[str] = None,
-    component: Optional[str] = None,
-    operation: Optional[str] = None,
-    additional_context: Optional[Dict[str, Any]] = None
+    user_id: str | None = None,
+    session_id: str | None = None,
+    request_id: str | None = None,
+    component: str | None = None,
+    operation: str | None = None,
+    additional_context: dict[str, Any] | None = None,
 ) -> ErrorContext:
     """Create an error context object."""
     context = ErrorContext()
@@ -239,23 +243,25 @@ def create_error_context(
     return context
 
 
-def get_error_statistics() -> Dict[str, Any]:
+def get_error_statistics() -> dict[str, Any]:
     """Get current error statistics."""
     return enhanced_error_reporter.get_error_stats()
 
 
-def get_recent_errors(limit: int = 100) -> List[Dict[str, Any]]:
+def get_recent_errors(limit: int = 100) -> list[dict[str, Any]]:
     """Get recent errors from the log."""
     return enhanced_error_reporter.get_recent_errors()
 
 
-def get_errors_by_category(category: ErrorCategory) -> List[Dict[str, Any]]:
+def get_errors_by_category(category: ErrorCategory) -> list[dict[str, Any]]:
     """Get errors by category."""
     return enhanced_error_reporter.get_errors_by_category(category)
 
 
-def get_errors_by_severity(severity: ErrorSeverity) -> List[Dict[str, Any]]:
+def get_errors_by_severity(severity: ErrorSeverity) -> list[dict[str, Any]]:
     """Get errors by severity."""
     return enhanced_error_reporter.get_errors_by_severity(severity)
+
+
 # Alias for backward compatibility
 ErrorReporter = EnhancedErrorReporter

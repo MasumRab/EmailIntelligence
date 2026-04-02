@@ -5,7 +5,7 @@ Implements the analyze-history command for git history analysis.
 """
 
 from argparse import Namespace
-from typing import Any, Dict
+from typing import Any
 
 from .interface import Command
 
@@ -33,12 +33,10 @@ class AnalyzeHistoryCommand(Command):
         Args:
             parser: ArgumentParser subparser for this command
         """
-        parser.add_argument(
-            "--branch", default="HEAD", help="Branch to analyze (default: HEAD)"
-        )
+        parser.add_argument("--branch", default="HEAD", help="Branch to analyze (default: HEAD)")
         parser.add_argument("--output", help="Output file for report")
 
-    def get_dependencies(self) -> Dict[str, Any]:
+    def get_dependencies(self) -> dict[str, Any]:
         """
         Get required dependencies for this command.
 
@@ -50,7 +48,7 @@ class AnalyzeHistoryCommand(Command):
             "classifier": "CommitClassifier",
         }
 
-    def set_dependencies(self, dependencies: Dict[str, Any]) -> None:
+    def set_dependencies(self, dependencies: dict[str, Any]) -> None:
         """
         Set command dependencies.
 

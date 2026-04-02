@@ -3,10 +3,9 @@ Text utility functions for NLP processing.
 """
 
 import re
-from typing import Optional
 
 
-def clean_text(text: Optional[str]) -> str:
+def clean_text(text: str | None) -> str:
     """
     Clean and normalize text for NLP processing.
 

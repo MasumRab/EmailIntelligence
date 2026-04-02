@@ -1,14 +1,13 @@
 import logging
-import psutil
 import platform
 from datetime import datetime
-import asyncio
 
 import gradio as gr
-from fastapi import FastAPI, HTTPException
+import psutil
 import requests
+from fastapi import FastAPI, HTTPException
 
-from .models import SystemStatus, HealthCheck
+from .models import HealthCheck, SystemStatus
 
 logger = logging.getLogger(__name__)
 
@@ -54,21 +53,11 @@ def create_overview_tab():
 
     with gr.Row():
         with gr.Column():
-            gr.Textbox(
-                label="System Status",
-                value="🟢 Online",
-                interactive=False
-            )
+            gr.Textbox(label="System Status", value="🟢 Online", interactive=False)
 
-            gr.Textbox(
-                label="System Uptime",
-                interactive=False
-            )
+            gr.Textbox(label="System Uptime", interactive=False)
 
-            gr.Textbox(
-                label="Last Updated",
-                interactive=False
-            )
+            gr.Textbox(label="Last Updated", interactive=False)
 
     with gr.Row():
         with gr.Column():
@@ -146,7 +135,7 @@ async def get_system_status() -> SystemStatus:
         # Current resource usage
         cpu_percent = psutil.cpu_percent(interval=1)
         memory = psutil.virtual_memory()
-        disk = psutil.disk_usage('/')
+        disk = psutil.disk_usage("/")
 
         # Network I/O
         net_io = psutil.net_io_counters()
@@ -159,8 +148,12 @@ async def get_system_status() -> SystemStatus:
 
         # Get dashboard stats
         try:
-            dashboard_response = requests.get("http://127.0.0.1:8000/api/dashboard/stats", timeout=5)
-            dashboard_data = dashboard_response.json() if dashboard_response.status_code == 200 else {}
+            dashboard_response = requests.get(
+                "http://127.0.0.1:8000/api/dashboard/stats", timeout=5
+            )
+            dashboard_data = (
+                dashboard_response.json() if dashboard_response.status_code == 200 else {}
+            )
         except (requests.RequestException, ValueError):
             dashboard_data = {}
 
@@ -184,7 +177,7 @@ async def get_system_status() -> SystemStatus:
             dashboard_stats=dashboard_data,
             gmail_performance=gmail_data,
             timestamp=datetime.now().isoformat(),
-            uptime_seconds=0  # Would need to track from startup
+            uptime_seconds=0,  # Would need to track from startup
         )
 
     except Exception as e:
@@ -203,63 +196,53 @@ async def perform_health_checks() -> HealthCheck:
         health_results["backend_api"] = {
             "status": "healthy" if response.status_code == 200 else "unhealthy",
             "response_time": response.elapsed.total_seconds() * 1000,
-            "details": response.json() if response.status_code == 200 else {"error": response.text}
+            "details": response.json() if response.status_code == 200 else {"error": response.text},
         }
     except Exception as e:
-        health_results["backend_api"] = {
-            "status": "unhealthy",
-            "error": str(e)
-        }
+        health_results["backend_api"] = {"status": "unhealthy", "error": str(e)}
 
     # Database health check
     try:
         response = requests.get("http://127.0.0.1:8000/api/emails?limit=1", timeout=5)
         health_results["database"] = {
             "status": "healthy" if response.status_code == 200 else "unhealthy",
-            "response_time": response.elapsed.total_seconds() * 1000
+            "response_time": response.elapsed.total_seconds() * 1000,
         }
     except Exception as e:
-        health_results["database"] = {
-            "status": "unhealthy",
-            "error": str(e)
-        }
+        health_results["database"] = {"status": "unhealthy", "error": str(e)}
 
     # AI Engine health check
     try:
         response = requests.post(
             "http://127.0.0.1:8000/api/ai/analyze",
             json={"subject": "test", "content": "test"},
-            timeout=10
+            timeout=10,
         )
         health_results["ai_engine"] = {
             "status": "healthy" if response.status_code == 200 else "unhealthy",
-            "response_time": response.elapsed.total_seconds() * 1000
+            "response_time": response.elapsed.total_seconds() * 1000,
         }
     except Exception as e:
-        health_results["ai_engine"] = {
-            "status": "unhealthy",
-            "error": str(e)
-        }
+        health_results["ai_engine"] = {"status": "unhealthy", "error": str(e)}
 
     # Gmail API health check
     try:
         response = requests.get("http://127.0.0.1:8000/api/gmail/performance", timeout=5)
         health_results["gmail_api"] = {
             "status": "healthy" if response.status_code == 200 else "unhealthy",
-            "response_time": response.elapsed.total_seconds() * 1000
+            "response_time": response.elapsed.total_seconds() * 1000,
         }
     except Exception as e:
-        health_results["gmail_api"] = {
-            "status": "unhealthy",
-            "error": str(e)
-        }
+        health_results["gmail_api"] = {"status": "unhealthy", "error": str(e)}
 
-    overall_status = "healthy" if all(
-        check.get("status") == "healthy" for check in health_results.values()
-    ) else "unhealthy"
+    overall_status = (
+        "healthy"
+        if all(check.get("status") == "healthy" for check in health_results.values())
+        else "unhealthy"
+    )
 
     return HealthCheck(
         overall_status=overall_status,
         service_checks=health_results,
-        timestamp=datetime.now().isoformat()
+        timestamp=datetime.now().isoformat(),
     )

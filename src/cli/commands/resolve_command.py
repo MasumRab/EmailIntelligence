@@ -5,7 +5,7 @@ Implements the resolve command for conflict resolution.
 """
 
 from argparse import Namespace
-from typing import Any, Dict
+from typing import Any
 
 from .interface import Command
 
@@ -37,7 +37,7 @@ class ResolveCommand(Command):
         parser.add_argument("conflict_id", help="ID of the conflict to resolve")
         parser.add_argument("strategy_id", help="ID of the strategy to use")
 
-    def get_dependencies(self) -> Dict[str, Any]:
+    def get_dependencies(self) -> dict[str, Any]:
         """
         Get required dependencies for this command.
 
@@ -49,7 +49,7 @@ class ResolveCommand(Command):
             "validator": "Validator",
         }
 
-    def set_dependencies(self, dependencies: Dict[str, Any]) -> None:
+    def set_dependencies(self, dependencies: dict[str, Any]) -> None:
         """
         Set command dependencies.
 

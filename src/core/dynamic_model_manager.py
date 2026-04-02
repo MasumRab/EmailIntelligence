@@ -9,10 +9,11 @@ features for memory management, health monitoring, and API endpoints.
 import asyncio
 import logging
 import time
+from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
-from typing import Any, Dict, List, Optional, AsyncGenerator
+from typing import Any
 
-from .model_registry import ModelRegistry, ModelMetadata, ModelType, ModelInstance
+from .model_registry import ModelInstance, ModelMetadata, ModelRegistry, ModelType
 
 logger = logging.getLogger(__name__)
 
@@ -34,8 +35,8 @@ class DynamicModelManager:
         self.registry = registry
         self._health_check_interval = 300  # 5 minutes
         self._memory_optimization_interval = 600  # 10 minutes
-        self._health_monitor_task: Optional[asyncio.Task] = None
-        self._memory_optimizer_task: Optional[asyncio.Task] = None
+        self._health_monitor_task: asyncio.Task | None = None
+        self._memory_optimizer_task: asyncio.Task | None = None
         self._initialized = False
 
         logger.info("DynamicModelManager initialized with a ModelRegistry")
@@ -117,24 +118,24 @@ class DynamicModelManager:
         """Unregister a model."""
         return await self.registry.unregister_model(model_id)
 
-    async def list_models(self) -> List[Dict[str, Any]]:
+    async def list_models(self) -> list[dict[str, Any]]:
         """List all registered models with status."""
         return await self.registry.list_models()
 
-    async def get_model_info(self, model_id: str) -> Optional[Dict[str, Any]]:
+    async def get_model_info(self, model_id: str) -> dict[str, Any] | None:
         """Get detailed information about a specific model."""
         models = await self.list_models()
         return next((model for model in models if model["id"] == model_id), None)
 
-    async def get_model_performance(self, model_id: str) -> Dict[str, Any]:
+    async def get_model_performance(self, model_id: str) -> dict[str, Any]:
         """Get performance metrics for a model."""
         return await self.registry.get_model_performance_metrics(model_id)
 
-    async def validate_model(self, model_id: str) -> Dict[str, Any]:
+    async def validate_model(self, model_id: str) -> dict[str, Any]:
         """Validate a model's integrity and functionality."""
         return await self.registry.validate_model(model_id)
 
-    async def optimize_memory(self) -> Dict[str, Any]:
+    async def optimize_memory(self) -> dict[str, Any]:
         """Manually trigger memory optimization."""
         return await self.registry.optimize_memory()
 
@@ -156,7 +157,7 @@ class DynamicModelManager:
                 path=base_metadata.path / version,
                 framework=base_metadata.framework,
                 dependencies=base_metadata.dependencies.copy(),
-                config=base_metadata.config.copy()
+                config=base_metadata.config.copy(),
             )
 
             # Save the model object
@@ -189,7 +190,7 @@ class DynamicModelManager:
             logger.error(f"Failed to rollback model {model_id} to version {version}: {e}")
             return False
 
-    async def get_available_models(self) -> List[Dict[str, Any]]:
+    async def get_available_models(self) -> list[dict[str, Any]]:
         """Get list of available models for the AI engine."""
         models = await self.list_models()
         return [
@@ -198,7 +199,7 @@ class DynamicModelManager:
                 "type": model["type"],
                 "name": model["name"],
                 "loaded": model["loaded"],
-                "health_status": model["health_status"]
+                "health_status": model["health_status"],
             }
             for model in models
         ]
@@ -227,7 +228,9 @@ class DynamicModelManager:
 
         if not type_models:
             # Try to load one
-            unloaded_models = [m for m in models if m["type"] == model_type.value and not m["loaded"]]
+            unloaded_models = [
+                m for m in models if m["type"] == model_type.value and not m["loaded"]
+            ]
             if unloaded_models:
                 # Sort by usage count (prefer more used models)
                 unloaded_models.sort(key=lambda x: x.get("usage_count", 0), reverse=True)
@@ -251,6 +254,7 @@ class DynamicModelManager:
 
             if metadata.framework == "sklearn":
                 import joblib
+
                 model_file = model_dir / f"{metadata.model_id}.pkl"
                 joblib.dump(model_object, model_file)
                 metadata.size_bytes = model_file.stat().st_size
@@ -279,7 +283,9 @@ class DynamicModelManager:
                     try:
                         validation = await self.validate_model(model_id)
                         if not validation.get("valid", False):
-                            logger.warning(f"Model {model_id} failed health check: {validation.get('issues', [])}")
+                            logger.warning(
+                                f"Model {model_id} failed health check: {validation.get('issues', [])}"
+                            )
                     except Exception as e:
                         logger.error(f"Health check failed for model {model_id}: {e}")
 
@@ -307,7 +313,7 @@ class DynamicModelManager:
                 await asyncio.sleep(60)  # Wait before retrying
 
     # API-friendly methods for external access
-    def get_health_status(self) -> Dict[str, Any]:
+    def get_health_status(self) -> dict[str, Any]:
         """Get overall health status of the model manager."""
         loaded_models = len(self.registry._loaded_models)
         total_models = len(self.registry._registry)
@@ -316,10 +322,14 @@ class DynamicModelManager:
             "status": "healthy" if self._initialized else "initializing",
             "total_models": total_models,
             "loaded_models": loaded_models,
-            "memory_usage": sum(inst.memory_usage for inst in self.registry._loaded_models.values()),
-            "gpu_memory_usage": sum(inst.gpu_memory_usage for inst in self.registry._loaded_models.values()),
+            "memory_usage": sum(
+                inst.memory_usage for inst in self.registry._loaded_models.values()
+            ),
+            "gpu_memory_usage": sum(
+                inst.gpu_memory_usage for inst in self.registry._loaded_models.values()
+            ),
             "health_checks_enabled": self._health_monitor_task is not None,
-            "memory_optimization_enabled": self._memory_optimizer_task is not None
+            "memory_optimization_enabled": self._memory_optimizer_task is not None,
         }
 
     async def reload_model(self, model_id: str) -> bool:
@@ -335,7 +345,7 @@ class DynamicModelManager:
             logger.error(f"Failed to reload model {model_id}: {e}")
             return False
 
-    async def update_model_config(self, model_id: str, config_updates: Dict[str, Any]) -> bool:
+    async def update_model_config(self, model_id: str, config_updates: dict[str, Any]) -> bool:
         """Update configuration for a model."""
         try:
             if model_id not in self.registry._registry:
@@ -354,7 +364,7 @@ class DynamicModelManager:
             logger.error(f"Failed to update model config {model_id}: {e}")
             return False
 
-    async def get_system_metrics(self) -> Dict[str, Any]:
+    async def get_system_metrics(self) -> dict[str, Any]:
         """Get comprehensive system metrics."""
         models = await self.list_models()
         loaded_models = [m for m in models if m["loaded"]]
@@ -368,10 +378,10 @@ class DynamicModelManager:
             "models_by_type": self._count_models_by_type(models),
             "models_by_framework": self._count_models_by_framework(models),
             "average_load_time": self._calculate_average_load_time(models),
-            "health_summary": self._get_health_summary(models)
+            "health_summary": self._get_health_summary(models),
         }
 
-    def _count_models_by_type(self, models: List[Dict[str, Any]]) -> Dict[str, int]:
+    def _count_models_by_type(self, models: list[dict[str, Any]]) -> dict[str, int]:
         """Count models by type."""
         counts = {}
         for model in models:
@@ -379,7 +389,7 @@ class DynamicModelManager:
             counts[model_type] = counts.get(model_type, 0) + 1
         return counts
 
-    def _count_models_by_framework(self, models: List[Dict[str, Any]]) -> Dict[str, int]:
+    def _count_models_by_framework(self, models: list[dict[str, Any]]) -> dict[str, int]:
         """Count models by framework."""
         counts = {}
         for model in models:
@@ -387,7 +397,7 @@ class DynamicModelManager:
             counts[framework] = counts.get(framework, 0) + 1
         return counts
 
-    def _calculate_average_load_time(self, models: List[Dict[str, Any]]) -> float:
+    def _calculate_average_load_time(self, models: list[dict[str, Any]]) -> float:
         """Calculate average load time across all models."""
         load_times = []
         for model in models:
@@ -398,7 +408,7 @@ class DynamicModelManager:
 
         return sum(load_times) / len(load_times) if load_times else 0.0
 
-    def _get_health_summary(self, models: List[Dict[str, Any]]) -> Dict[str, int]:
+    def _get_health_summary(self, models: list[dict[str, Any]]) -> dict[str, int]:
         """Get health summary across all models."""
         summary = {"healthy": 0, "unhealthy": 0, "unknown": 0}
         for model in models:

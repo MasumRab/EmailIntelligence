@@ -13,7 +13,7 @@ import statistics
 from collections import defaultdict, deque
 from dataclasses import asdict, dataclass
 from datetime import datetime, timedelta
-from typing import Any, Dict, List
+from typing import Any
 
 RETRIEVAL_LOG_FILE = "retrieval_metrics_log.jsonl"
 LOG_INTERVAL_SECONDS = 300
@@ -86,7 +86,11 @@ class RetrievalMonitor:
         self.log_interval_seconds = LOG_INTERVAL_SECONDS
         self.retrieval_log_file = RETRIEVAL_LOG_FILE
         self.strategy_performance = defaultdict(dict)
-        self.quota_tracker = {"daily_used": 0, "hourly_used": 0, "last_reset": datetime.now()}
+        self.quota_tracker = {
+            "daily_used": 0,
+            "hourly_used": 0,
+            "last_reset": datetime.now(),
+        }
         self.optimization_history = []
         self.performance_trends = defaultdict(list)
         asyncio.create_task(self._periodic_logger_task())
@@ -101,7 +105,7 @@ class RetrievalMonitor:
                         log_entry["type"] = "retrieval_metric"
                         f.write(json.dumps(log_entry, default=json_default_converter) + "\n")
                     metrics_deque.clear()
-        except (IOError, Exception) as e:
+        except (OSError, Exception) as e:
             self.logger.error(f"Error logging retrieval metrics: {e}")
 
     async def _periodic_logger_task(self):
@@ -143,7 +147,10 @@ class RetrievalMonitor:
 
     def _update_performance_trends(self, metrics: RetrievalMetrics):
         """Updates the historical data for performance trend analysis."""
-        trend_data = {"timestamp": metrics.timestamp, "efficiency": metrics.api_efficiency}
+        trend_data = {
+            "timestamp": metrics.timestamp,
+            "efficiency": metrics.api_efficiency,
+        }
         trends = self.performance_trends[metrics.strategy_name]
         trends.append(trend_data)
         cutoff = datetime.now() - timedelta(hours=24)
@@ -151,7 +158,7 @@ class RetrievalMonitor:
             t for t in trends if t["timestamp"] > cutoff
         ]
 
-    def get_real_time_dashboard(self) -> Dict[str, Any]:
+    def get_real_time_dashboard(self) -> dict[str, Any]:
         """
         Generates a real-time dashboard with performance data.
 
@@ -168,7 +175,7 @@ class RetrievalMonitor:
             "recommendations": self._generate_optimization_recommendations(),
         }
 
-    def _calculate_overall_status(self) -> Dict[str, Any]:
+    def _calculate_overall_status(self) -> dict[str, Any]:
         """Calculates the overall health status of the retrieval system."""
         all_metrics = [m for M in self.metrics_buffer.values() for m in M]
         if not all_metrics:
@@ -177,12 +184,17 @@ class RetrievalMonitor:
         status = "healthy" if avg_efficiency >= self.alert_thresholds.min_efficiency else "warning"
         return {"status": status, "avg_efficiency": round(avg_efficiency, 2)}
 
-    def _get_quota_status(self) -> Dict[str, Any]:
+    def _get_quota_status(self) -> dict[str, Any]:
         """Returns the current status of API quota usage."""
         daily_limit = 1_000_000_000
-        return {"daily_usage": {"used": self.quota_tracker["daily_used"], "limit": daily_limit}}
+        return {
+            "daily_usage": {
+                "used": self.quota_tracker["daily_used"],
+                "limit": daily_limit,
+            }
+        }
 
-    def _get_strategy_performance_summary(self) -> List[Dict[str, Any]]:
+    def _get_strategy_performance_summary(self) -> list[dict[str, Any]]:
         """Returns a performance summary for each retrieval strategy."""
         summaries = []
         for name, metrics in self.metrics_buffer.items():
@@ -196,7 +208,7 @@ class RetrievalMonitor:
             )
         return summaries
 
-    def _get_active_alerts(self) -> List[Dict[str, Any]]:
+    def _get_active_alerts(self) -> list[dict[str, Any]]:
         """Returns a list of currently active performance alerts."""
         alerts = []
         for name, metrics_list in self.metrics_buffer.items():
@@ -206,11 +218,15 @@ class RetrievalMonitor:
                 < self.alert_thresholds.min_efficiency
             ):
                 alerts.append(
-                    {"type": "low_efficiency", "strategy": name, "value": latest.api_efficiency}
+                    {
+                        "type": "low_efficiency",
+                        "strategy": name,
+                        "value": latest.api_efficiency,
+                    }
                 )
         return alerts
 
-    def _generate_optimization_recommendations(self) -> List[Dict[str, Any]]:
+    def _generate_optimization_recommendations(self) -> list[dict[str, Any]]:
         """Generates recommendations for optimizing retrieval strategies."""
         recommendations = []
         for name, metrics_list in self.metrics_buffer.items():
@@ -228,7 +244,7 @@ class RetrievalMonitor:
                 )
         return recommendations
 
-    def apply_adaptive_optimization(self, strategy_name: str) -> Dict[str, Any]:
+    def apply_adaptive_optimization(self, strategy_name: str) -> dict[str, Any]:
         """
         Applies adaptive optimization to a strategy based on its performance.
 
@@ -242,7 +258,7 @@ class RetrievalMonitor:
             return {"success": False, "error": "Strategy not found"}
         return {"success": True, "optimizations_applied": 0}
 
-    def get_optimization_history(self, days: int = 7) -> List[Dict[str, Any]]:
+    def get_optimization_history(self, days: int = 7) -> list[dict[str, Any]]:
         """
         Retrieves the history of applied optimizations.
 

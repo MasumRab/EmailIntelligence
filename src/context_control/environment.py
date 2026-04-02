@@ -1,17 +1,16 @@
 """Environment detection functionality for Agent Context Control."""
 
 from pathlib import Path
-from typing import Optional
+
 import git
 
 from .exceptions import EnvironmentDetectionError
 from .logging import get_context_logger
 
-
 logger = get_context_logger()
 
 
-def detect_branch(repo_path: Optional[Path] = None) -> str:
+def detect_branch(repo_path: Path | None = None) -> str:
     """Detect the current Git branch or commit reference.
 
     Args:
@@ -49,7 +48,7 @@ def detect_branch(repo_path: Optional[Path] = None) -> str:
         )
 
 
-def get_current_branch(repo_path: Optional[Path] = None) -> Optional[str]:
+def get_current_branch(repo_path: Path | None = None) -> str | None:
     """Get the current branch name, or None if not on a branch.
 
     Args:
@@ -72,7 +71,7 @@ def get_current_branch(repo_path: Optional[Path] = None) -> Optional[str]:
         return None
 
 
-def is_detached_head(repo_path: Optional[Path] = None) -> bool:
+def is_detached_head(repo_path: Path | None = None) -> bool:
     """Check if HEAD is in detached state.
 
     Args:
@@ -89,7 +88,7 @@ def is_detached_head(repo_path: Optional[Path] = None) -> bool:
         return False
 
 
-def get_repository_root(repo_path: Optional[Path] = None) -> Optional[Path]:
+def get_repository_root(repo_path: Path | None = None) -> Path | None:
     """Get the root path of the Git repository.
 
     Args:
@@ -106,7 +105,7 @@ def get_repository_root(repo_path: Optional[Path] = None) -> Optional[Path]:
         return None
 
 
-def is_git_repository(repo_path: Optional[Path] = None) -> bool:
+def is_git_repository(repo_path: Path | None = None) -> bool:
     """Check if the given path is within a Git repository.
 
     Args:

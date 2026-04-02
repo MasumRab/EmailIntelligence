@@ -12,7 +12,7 @@ import json
 import logging
 import os
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from backend.node_engine.email_nodes import (
     ActionNode,
@@ -58,7 +58,7 @@ class WorkflowManager:
         self.logger.info(f"Workflow {workflow.name} saved to {filepath}")
         return filepath
 
-    def load_workflow(self, workflow_id: str) -> Optional[Workflow]:
+    def load_workflow(self, workflow_id: str) -> Workflow | None:
         """
         Load a workflow from a JSON file.
 
@@ -80,7 +80,7 @@ class WorkflowManager:
             return None
 
         try:
-            with open(filepath, "r", encoding="utf-8") as f:
+            with open(filepath, encoding="utf-8") as f:
                 workflow_data = json.load(f)
 
             workflow = self._dict_to_workflow(workflow_data)
@@ -90,7 +90,7 @@ class WorkflowManager:
             self.logger.error(f"Error loading workflow {workflow_id}: {str(e)}")
             return None
 
-    def list_workflows(self) -> List[Dict[str, Any]]:
+    def list_workflows(self) -> list[dict[str, Any]]:
         """
         List all available workflows.
 
@@ -103,7 +103,7 @@ class WorkflowManager:
             if filename.endswith(".json"):
                 filepath = os.path.join(self.workflows_dir, filename)
                 try:
-                    with open(filepath, "r", encoding="utf-8") as f:
+                    with open(filepath, encoding="utf-8") as f:
                         workflow_data = json.load(f)
 
                     workflows.append(
@@ -151,7 +151,7 @@ class WorkflowManager:
             self.logger.warning(f"Workflow file not found for deletion: {filepath}")
             return False
 
-    def _workflow_to_dict(self, workflow: Workflow) -> Dict[str, Any]:
+    def _workflow_to_dict(self, workflow: Workflow) -> dict[str, Any]:
         """Convert a Workflow object to a dictionary for serialization."""
         return {
             "workflow_id": workflow.workflow_id,
@@ -183,7 +183,7 @@ class WorkflowManager:
             },
         }
 
-    def _dict_to_workflow(self, workflow_data: Dict[str, Any]) -> Workflow:
+    def _dict_to_workflow(self, workflow_data: dict[str, Any]) -> Workflow:
         """Convert a dictionary to a Workflow object."""
         workflow = Workflow(
             workflow_id=workflow_data["workflow_id"],
@@ -218,7 +218,7 @@ class WorkflowManager:
         return workflow
 
     def _create_node_from_type(
-        self, node_type: str, config: Dict[str, Any], node_id: str, name: str = None
+        self, node_type: str, config: dict[str, Any], node_id: str, name: str = None
     ):
         """Create a node instance from its type string."""
         node_classes = {

@@ -1,6 +1,5 @@
 import json
 import logging
-from typing import List
 
 from fastapi import APIRouter, Depends, Request
 
@@ -18,7 +17,7 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
-@router.get("/api/categories", response_model=List[CategoryResponse])
+@router.get("/api/categories", response_model=list[CategoryResponse])
 @log_performance(operation="get_categories")
 async def get_categories(
     request: Request,
