@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 """
 Security Framework for Email Intelligence Platform
 
@@ -218,17 +217,10 @@ class DataSanitizer:
                 # This regex will find 'key: value' and replace it with 'key: [REDACTED]'
                 # It handles optional whitespace and stops at the next comma or end of string.
                 data = re.sub(
-<<<<<<< HEAD
                     rf'(\b{re.escape(key)}\b\s*:\s*)[^\s,]+',
                     r'\1[REDACTED]',
                     data,
                     flags=re.IGNORECASE
-=======
-                    rf"(\b{re.escape(key)}\b\s*:\s*)[^\s,]+",
-                    r"\1[REDACTED]",
-                    data,
-                    flags=re.IGNORECASE,
->>>>>>> scientific
                 )
             return data
         elif isinstance(data, dict):
@@ -722,5 +714,3 @@ def secure_path_join(
     except Exception as e:
         logger.error(f"Error joining paths: {e}")
         return None
-=======
->>>>>>> origin/main
