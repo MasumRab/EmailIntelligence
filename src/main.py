@@ -6,7 +6,6 @@ import uvicorn
 from fastapi import FastAPI
 from fastapi.responses import RedirectResponse
 from .core.module_manager import ModuleManager
-from .core.middleware import create_security_middleware, create_security_headers_middleware
 from .core.audit_logger import audit_logger, AuditEventType, AuditSeverity
 from .core.performance_monitor import performance_monitor
 

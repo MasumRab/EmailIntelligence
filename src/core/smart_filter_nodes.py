@@ -6,11 +6,11 @@ to enable intelligent email filtering within workflows.
 """
 
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict
 import time
 
 from .advanced_workflow_engine import BaseNode, NodeMetadata
-from .smart_filter_manager import get_smart_filter_manager, EmailFilter
+from .smart_filter_manager import get_smart_filter_manager
 
 logger = logging.getLogger(__name__)
 
@@ -330,7 +330,7 @@ class SmartFilterManagementNode(BaseNode):
 # Example workflow demonstrating smart filter integration
 def create_smart_filter_workflow_example():
     """Create an example workflow that demonstrates smart filter integration."""
-    from .advanced_workflow_engine import Workflow, WorkflowManager, initialize_workflow_system
+    from .advanced_workflow_engine import initialize_workflow_system
 
     # Initialize the workflow system
     workflow_manager = initialize_workflow_system()

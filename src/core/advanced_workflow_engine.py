@@ -11,7 +11,6 @@ This module provides:
 - Workflow persistence and sharing
 """
 
-import asyncio
 import json
 import logging
 import time

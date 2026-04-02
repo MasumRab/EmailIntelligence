@@ -5,11 +5,9 @@ This module provides a comprehensive data source that integrates Notmuch databas
 with AI analysis, smart filtering, and tagging functionality.
 """
 
-import asyncio
 import logging
 from typing import Any, Dict, List, Optional
 from datetime import datetime, timezone
-import email
 
 # Import notmuch only when needed to allow import in environments without it
 try:
@@ -24,13 +22,6 @@ from .data_source import DataSource
 # from .database import DatabaseManager
 from .smart_filter_manager import SmartFilterManager
 from .ai_engine import ModernAIEngine
-from .performance_monitor import log_performance
-from .enhanced_error_reporting import (
-    log_error, 
-    ErrorSeverity, 
-    ErrorCategory, 
-    create_error_context
-)
 
 logger = logging.getLogger(__name__)
 

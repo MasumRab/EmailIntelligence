@@ -1,4 +1,3 @@
-import pytest
 from unittest.mock import AsyncMock
 
 from backend.python_backend.models import CategoryCreate

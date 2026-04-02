@@ -1,8 +1,7 @@
 import os
 
 from .data_source import DataSource
-from .database import DatabaseManager, create_database_manager, DatabaseConfig
-from .ai_engine import ModernAIEngine
+from .database import create_database_manager, DatabaseConfig
 from .data.repository import DatabaseEmailRepository, CachingEmailRepository, EmailRepository
 from .caching import init_cache_manager, CacheConfig, CacheBackend
 

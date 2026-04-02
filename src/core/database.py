@@ -10,17 +10,14 @@ import logging
 import os
 import shutil
 from datetime import datetime, timezone
-from functools import partial
-from typing import Any, Dict, List, Literal, Optional
-import hashlib
+from typing import Any, Dict, List, Optional
 
 # NOTE: These dependencies will be moved to the core framework as well.
 # For now, we are assuming they will be available in the new location.
-from .performance_monitor import log_performance
 from .constants import DEFAULT_CATEGORY_COLOR, DEFAULT_CATEGORIES
 from .data.data_source import DataSource
 
-from .security import validate_path_safety, sanitize_path
+from .security import validate_path_safety
 
 logger = logging.getLogger(__name__)
 
@@ -55,7 +52,6 @@ CURRENT_SCHEMA_VERSION = "1.0"
 # - Modify file path construction to use config.data_dir
 # - Add validation to ensure directory exists or can be created
 
-from .security import validate_path_safety, sanitize_path
 
 
 class DatabaseConfig:

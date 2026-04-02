@@ -10,7 +10,7 @@ that were implemented in the new node engine architecture.
 
 from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
 from backend.node_engine.email_nodes import (
@@ -23,14 +23,9 @@ from backend.node_engine.email_nodes import (
 
 # Import the new node-based workflow components
 from backend.node_engine.node_base import Workflow as NodeWorkflow
-from backend.node_engine.workflow_engine import WorkflowEngine  # Node engine
 from backend.node_engine.workflow_engine import workflow_engine as node_workflow_engine
 from backend.node_engine.workflow_manager import workflow_manager as node_workflow_manager
 
-from ..python_nlp.smart_filters import SmartFilterManager
-from .ai_engine import AdvancedAIEngine
-from .dependencies import get_db
-from .model_manager import model_manager
 
 router = APIRouter()
 

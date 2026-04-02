@@ -4,7 +4,6 @@ Settings for the Email Intelligence Platform core modules.
 
 
 import os
-from typing import Optional
 
 
 class Settings:

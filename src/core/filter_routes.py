@@ -7,7 +7,7 @@ including creation, listing, intelligent generation, and pruning.
 
 import json
 import logging
-from typing import Any, Dict, List
+from typing import Any, Dict
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 

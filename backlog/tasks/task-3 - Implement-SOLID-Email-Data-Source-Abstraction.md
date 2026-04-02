@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 ---
 id: task-3
 title: Implement SOLID Email Data Source Abstraction
@@ -78,5 +77,3 @@ Implemented SOLID principles for email data source abstraction across the codeba
 - Better separation of concerns
 - Enhanced code maintainability
 <!-- SECTION:NOTES:END -->
-=======
->>>>>>> origin/main

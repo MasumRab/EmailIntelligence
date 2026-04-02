@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # Project Summary
 
 ## Overall Goal
@@ -41,5 +40,3 @@ The user's high-level objective is to analyze and enhance the Email Intelligence
 
 ## Summary Metadata
 **Update time**: 2025-10-27T03:09:02.066Z
-=======
->>>>>>> origin/main

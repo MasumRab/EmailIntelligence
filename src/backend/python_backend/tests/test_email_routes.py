@@ -1,7 +1,5 @@
 from datetime import datetime
-from unittest.mock import MagicMock
 
-import pytest
 
 
 def create_mock_email(email_id: int, subject: str, **kwargs) -> dict:

@@ -1,11 +1,8 @@
 import gradio as gr
-import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
-import json
 import asyncio
 import logging
-from typing import Dict, Any, List
 
 from src.core.factory import get_data_source
 

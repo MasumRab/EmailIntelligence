@@ -1,11 +1,10 @@
 import logging
 from typing import List
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query
 
 from src.core.data_source import DataSource
-from src.core.database import DatabaseManager
-from src.core.exceptions import DatabaseError, GmailServiceError
+from src.core.exceptions import DatabaseError
 from src.core.factory import get_data_source
 from src.core.models import (
     EmailCreate,

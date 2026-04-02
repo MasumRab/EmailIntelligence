@@ -14,7 +14,6 @@ from typing import Any, Dict, List, Optional, AsyncGenerator
 from pathlib import Path
 
 from .model_registry import ModelRegistry, ModelMetadata, ModelType, ModelInstance
-from .performance_monitor import log_performance
 
 logger = logging.getLogger(__name__)
 

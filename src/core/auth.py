@@ -7,7 +7,7 @@ core architecture and database management system.
 
 from datetime import datetime, timedelta
 
-from typing import Optional, Dict, Any, List
+from typing import Optional, Dict, Any
 import hashlib
 import secrets
 from argon2 import PasswordHasher
@@ -16,12 +16,9 @@ import jwt
 from fastapi import HTTPException, status, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel
-import hashlib
-import secrets
 
 
 from .database import get_db
-from .settings import settings
 
 # Import the security framework components
 from .security import SecurityContext, Permission, SecurityLevel

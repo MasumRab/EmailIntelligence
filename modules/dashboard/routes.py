@@ -6,7 +6,6 @@ including statistics and metrics for the Email Intelligence platform.
 """
 
 import logging
-from datetime import datetime
 from typing import Dict, Any
 
 from fastapi import APIRouter, Depends, HTTPException

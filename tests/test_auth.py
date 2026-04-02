@@ -1,6 +1,5 @@
 import pytest
 from unittest.mock import AsyncMock, patch
-import json
 
 
 @pytest.mark.asyncio
