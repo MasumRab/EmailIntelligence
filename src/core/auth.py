@@ -6,6 +6,7 @@ core architecture and database management system.
 """
 
 from datetime import datetime, timedelta
+import logging
 
 from typing import Optional, Dict, Any
 import hashlib
@@ -18,7 +19,8 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel
 
 
-from .database import get_db
+from .database import get_db, DatabaseManager
+from .settings import settings
 
 # Import the security framework components
 from .security import SecurityContext, Permission, SecurityLevel
