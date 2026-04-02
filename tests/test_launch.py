@@ -17,7 +17,13 @@ try:
     from launch import COMMAND_PATTERN_AVAILABLE
 except ImportError:
     COMMAND_PATTERN_AVAILABLE = False
-from launch import DOTENV_AVAILABLE, PYTHON_MIN_VERSION, PYTHON_MAX_VERSION
+
+try:
+    from launch import DOTENV_AVAILABLE, PYTHON_MIN_VERSION, PYTHON_MAX_VERSION
+except ImportError:
+    DOTENV_AVAILABLE = False
+    PYTHON_MIN_VERSION = (3, 11)
+    PYTHON_MAX_VERSION = (3, 13)
 
 
 class TestLaunchOrchestration:
