@@ -41,22 +41,22 @@ async def get_dashboard_stats(
     """
     Retrieve dashboard statistics including total emails, auto-labeled count,
     category count, time saved, and weekly growth metrics.
-    
+
     Returns:
         Dict[str, Any]: A dictionary containing dashboard statistics
     """
     try:
         # Get total emails count
         total_emails = len(await db.get_all_emails())
-        
+
         # Get auto-labeled emails count (emails with categories)
         all_emails = await db.get_all_emails()
         auto_labeled = sum(1 for email in all_emails if email.get("category_id") is not None)
-        
+
         # Get categories count
         categories = await db.get_all_categories()
         categories_count = len(categories)
-        
+
         # Calculate time saved (example calculation - would need actual implementation)
         # Assuming 2 minutes saved per auto-labeled email
 =======
@@ -96,7 +96,7 @@ async def get_dashboard_stats(
         time_saved_remaining_minutes = time_saved_minutes % 60
         time_saved = f"{time_saved_hours}h {time_saved_remaining_minutes}m"
 <<<<<<< HEAD
-        
+
         # Calculate weekly growth (example implementation)
         # For now, we'll use a placeholder implementation
         weekly_growth = WeeklyGrowth(
@@ -146,7 +146,7 @@ async def get_dashboard_stats(
             performance_metrics=avg_performance_metrics,
 >>>>>>> scientific
         )
-        
+
         stats = DashboardStats(
             total_emails=total_emails,
             auto_labeled=auto_labeled,
@@ -154,7 +154,7 @@ async def get_dashboard_stats(
             time_saved=time_saved,
             weekly_growth=weekly_growth
         )
-        
+
         return {
             "success": True,
             "data": stats,

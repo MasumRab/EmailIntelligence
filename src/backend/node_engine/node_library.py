@@ -10,14 +10,15 @@ by the Gradio UI to allow users to build node-based workflows.
 
 from typing import Any, Dict, List
 
-from backend.node_engine.email_nodes import (
+from src.backend.node_engine.email_nodes import (
     ActionNode,
     AIAnalysisNode,
     EmailSourceNode,
     FilterNode,
     PreprocessingNode,
 )
-from backend.node_engine.node_base import DataType, NodePort
+from src.backend.node_engine.smart_filter_node import SmartFilterNode
+from src.backend.node_engine.node_base import DataType, NodePort
 
 
 class NodeLibrary:
@@ -78,6 +79,48 @@ class NodeLibrary:
                     "type": "JSON",
                     "required": True,
                     "description": "Statistics about preprocessing",
+                },
+            ],
+        }
+
+        # Register SmartFilterNode
+        self._nodes["SmartFilterNode"] = {
+            "class": SmartFilterNode,
+            "name": "Smart Filter",
+            "category": "Filtering",
+            "description": "Applies intelligent filtering to emails using learned patterns",
+            "input_ports": [
+                {
+                    "name": "emails",
+                    "type": "EMAIL_LIST",
+                    "required": True,
+                    "description": "List of emails to filter",
+                },
+                {
+                    "name": "filter_criteria",
+                    "type": "JSON",
+                    "required": False,
+                    "description": "Optional filter criteria to customize filtering behavior",
+                },
+            ],
+            "output_ports": [
+                {
+                    "name": "filtered_emails",
+                    "type": "EMAIL_LIST",
+                    "required": True,
+                    "description": "Filtered emails",
+                },
+                {
+                    "name": "filter_stats",
+                    "type": "JSON",
+                    "required": True,
+                    "description": "Statistics about the filtering process",
+                },
+                {
+                    "name": "matched_filters",
+                    "type": "JSON",
+                    "required": True,
+                    "description": "Filters that matched the emails",
                 },
             ],
         }

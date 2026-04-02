@@ -20,7 +20,7 @@ def register(app: FastAPI, gradio_app: gr.Blocks):
 
     # Add API routes
     app.include_router(ai_router, prefix="/api/ai", tags=["AI Engine"])
-    
+
     # Create an instance of our default AI engine
     default_engine = DefaultAIEngine()
 

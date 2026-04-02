@@ -237,7 +237,7 @@ class WorkflowEngine:
             total_execution_time = (
                 context.metadata["end_time"] - context.metadata["start_time"]
             ).total_seconds()
-            
+
             self.logger.info(
                 f"Workflow {workflow.name} completed successfully in "
                 f"{total_execution_time:.3f}s ({context.metadata['performance']['nodes_executed']} nodes)"

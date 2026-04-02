@@ -25,7 +25,7 @@ Systematically align feature branch `fix/import-error-corrections` with the scie
 
 ## Target Branch
 - Base: `scientific` (source of latest improvements)
-- Feature branch to align: `fix/import-error-corrections` 
+- Feature branch to align: `fix/import-error-corrections`
 
 ## Alignment Approach
 Following the documented merge direction strategy where the scientific branch contains superior architectural implementations:

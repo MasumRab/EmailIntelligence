@@ -25,7 +25,7 @@ Systematically align feature branch `feature/merge-setup-improvements` with the 
 
 ## Target Branch
 - Base: `scientific` (source of latest improvements)
-- Feature branch to align: `feature/merge-setup-improvements` 
+- Feature branch to align: `feature/merge-setup-improvements`
 
 ## Alignment Approach
 Following the documented merge direction strategy where the scientific branch contains superior architectural implementations:

@@ -10,7 +10,7 @@ from typing import Any, Dict, List
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
-from backend.node_engine.workflow_manager import workflow_manager
+from src.backend.node_engine.workflow_manager import workflow_manager
 
 from ..plugins.plugin_manager import plugin_manager
 from .model_manager import model_manager

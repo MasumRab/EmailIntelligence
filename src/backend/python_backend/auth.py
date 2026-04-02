@@ -40,7 +40,7 @@ async def verify_token(
 ) -> TokenData:
     """
     Verify the JWT token from the Authorization header.
-    
+
     This function checks if the provided token is valid and returns the token data.
     If the token is invalid or expired, it raises an HTTPException.
     """
@@ -51,8 +51,8 @@ async def verify_token(
     )
     try:
         payload = jwt.decode(
-            credentials.credentials, 
-            settings.secret_key, 
+            credentials.credentials,
+            settings.secret_key,
             algorithms=[settings.algorithm]
         )
         username: str = payload.get("sub")
@@ -63,14 +63,14 @@ async def verify_token(
         raise credentials_exception
     except Exception:
         raise credentials_exception
-    
+
     return token_data
 
 
 def get_current_user(token_data: TokenData = Depends(verify_token)):
     """
     Get the current authenticated user from the token.
-    
+
     This function can be used as a dependency to protect endpoints.
     """
     # In a real implementation, you would fetch user details from a database
@@ -81,7 +81,7 @@ def get_current_user(token_data: TokenData = Depends(verify_token)):
 def create_authentication_middleware():
     """
     Create and return an authentication middleware.
-    
+
     This is a placeholder function that could be expanded to implement
     custom authentication middleware if needed.
     """

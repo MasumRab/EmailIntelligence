@@ -42,9 +42,6 @@ This document outlines the standardized workflow for creating, reviewing, and ma
 
 #### Tools & Resources
 ```bash
-# Validate code examples
-python scripts/validate_docs.py
-
 # Check markdown formatting
 markdownlint docs/
 

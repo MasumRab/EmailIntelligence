@@ -104,7 +104,7 @@ def test_workflow_validation():
         {"from": {"node_id": "NONEXISTENT", "output": "output"}, "to": {"node_id": "B", "input": "input"}},
     ]
     invalid_workflow = Workflow("invalid_workflow", {"A": node_a, "B": node_b}, invalid_connections)
-    
+
 >>>>>>> origin/main
     is_valid, errors = invalid_workflow.validate()
     assert not is_valid, f"Workflow should be invalid, but validation passed"
@@ -325,7 +325,7 @@ def test_metrics_collection():
 <<<<<<< HEAD
 
 =======
-    
+
 >>>>>>> origin/main
     # Check that metrics were collected
     stats = result["stats"]
@@ -368,24 +368,24 @@ if __name__ == "__main__":
     print("\nAll tests passed! 🎉")
 >>>>>>> scientific
 =======
-    
+
     test_workflow_validation()
     print("✓ Workflow validation test passed")
-    
+
     test_conditional_execution()
     print("✓ Conditional execution test passed")
-    
+
     test_error_handling_and_recovery()
     print("✓ Error handling and recovery test passed")
-    
+
     test_memory_optimization()
     print("✓ Memory optimization test passed")
-    
+
     test_parallel_execution()
     print("✓ Parallel execution test passed")
-    
+
     test_metrics_collection()
     print("✓ Metrics collection test passed")
-    
+
     print("\nAll tests passed! 🎉")
 >>>>>>> origin/main

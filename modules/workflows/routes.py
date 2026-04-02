@@ -26,7 +26,7 @@ async def list_workflows(
     Requires authentication."""
     try:
         workflow_manager = get_workflow_manager()
-        
+
         # Get legacy workflows
         legacy_workflows = workflow_manager.list_workflows()
 
@@ -63,7 +63,7 @@ async def create_workflow(
     Requires authentication."""
     try:
         workflow_manager = get_workflow_manager()
-        
+
         if workflow_data.workflow_type == "node_based":
             # Handle node-based workflow creation
             result = await workflow_manager.create_node_workflow(workflow_data)

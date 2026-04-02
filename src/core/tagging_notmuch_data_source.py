@@ -2,7 +2,7 @@
 Tagging Extension for Notmuch Data Source (Deprecated)
 
 This module previously provided extended functionality for tagging emails with AI analysis
-and smart filtering capabilities. This functionality has been consolidated into the 
+and smart filtering capabilities. This functionality has been consolidated into the
 main NotmuchDataSource class to reduce duplication and improve maintainability.
 
 The file is kept for backward compatibility but is now deprecated.
@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 class TaggingNotmuchDataSource(NotmuchDataSource):
     """
     DEPRECATED: This class is deprecated. Use NotmuchDataSource directly.
-    
+
     The tagging functionality has been consolidated into the main NotmuchDataSource class.
     This class is kept for backward compatibility only.
     """
@@ -33,13 +33,13 @@ class TaggingNotmuchDataSource(NotmuchDataSource):
 def get_tagging_notmuch_data_source(db_path: Optional[str] = None) -> NotmuchDataSource:
     """
     DEPRECATED: Get a NotmuchDataSource instance with tagging capabilities.
-    
+
     This function is provided for backward compatibility. The tagging functionality
     is now part of the main NotmuchDataSource class.
-    
+
     Args:
         db_path: Path to the notmuch database
-        
+
     Returns:
         NotmuchDataSource: An instance of NotmuchDataSource with tagging capabilities
     """

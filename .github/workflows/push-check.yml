@@ -23,7 +23,7 @@ jobs:
   python-lint:
     name: Python Lint Check
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
@@ -54,7 +54,7 @@ jobs:
   python-compile:
     name: Python Compile Check
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v6

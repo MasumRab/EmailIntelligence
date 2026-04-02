@@ -25,7 +25,7 @@ Systematically align feature branch `feature/search-in-category` with the scient
 
 ## Target Branch
 - Base: `scientific` (source of latest improvements)
-- Feature branch to align: `feature/search-in-category` 
+- Feature branch to align: `feature/search-in-category`
 
 ## Alignment Approach
 Following the documented merge direction strategy where the scientific branch contains superior architectural implementations:

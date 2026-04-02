@@ -241,12 +241,12 @@ class DatabaseManager(DataSource):
         """Build in-memory indexes for emails."""
         self.emails_by_id.clear()
         self.emails_by_message_id.clear()
-        
+
         for email in self.emails_data:
             email_id = email.get(FIELD_ID)
             if email_id is not None:
                 self.emails_by_id[email_id] = email
-            
+
             message_id = email.get(FIELD_MESSAGE_ID)
             if message_id:
                 self.emails_by_message_id[message_id] = email
@@ -256,12 +256,12 @@ class DatabaseManager(DataSource):
         self.categories_by_id.clear()
         self.categories_by_name.clear()
         self.category_counts.clear()
-        
+
         for category in self.categories_data:
             cat_id = category.get(FIELD_ID)
             if cat_id is not None:
                 self.categories_by_id[cat_id] = category
-            
+
             name = category.get(FIELD_NAME)
             if name:
                 self.categories_by_name[name.lower()] = category
@@ -310,30 +310,30 @@ class DatabaseManager(DataSource):
     async def create_email(self, email_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """Create a new email record."""
         await self._ensure_initialized()
-        
+
         # Generate a unique ID
         new_id = max([email.get(FIELD_ID, 0) for email in self.emails_data], default=0) + 1
         email_data[FIELD_ID] = new_id
-        
+
         # Set creation timestamp
         email_data[FIELD_CREATED_AT] = datetime.now(timezone.utc).isoformat()
         email_data[FIELD_UPDATED_AT] = datetime.now(timezone.utc).isoformat()
-        
+
         # Add to data store
         self.emails_data.append(email_data)
         self.emails_by_id[new_id] = email_data
         message_id = email_data.get(FIELD_MESSAGE_ID)
         if message_id:
             self.emails_by_message_id[message_id] = email_data
-        
+
         # Update category counts if applicable
         category_id = email_data.get(FIELD_CATEGORY_ID)
         if category_id:
             self.category_counts[category_id] = self.category_counts.get(category_id, 0) + 1
-        
+
         # Mark as dirty to be saved later
         self._dirty_data.add(DATA_TYPE_EMAILS)
-        
+
         return email_data
 
     async def update_email(self, email_id: int, update_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
@@ -347,13 +347,13 @@ class DatabaseManager(DataSource):
         # Update fields
         for key, value in update_data.items():
             email[key] = value
-        
+
         # Set update timestamp
         email[FIELD_UPDATED_AT] = datetime.now(timezone.utc).isoformat()
-        
+
         # Mark as dirty to be saved later
         self._dirty_data.add(DATA_TYPE_EMAILS)
-        
+
         return email
 
     async def get_all_categories(self) -> List[Dict[str, Any]]:
@@ -374,22 +374,22 @@ class DatabaseManager(DataSource):
     async def create_category(self, category_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """Create a new category."""
         await self._ensure_initialized()
-        
+
         # Generate a unique ID
         new_id = max([cat.get(FIELD_ID, 0) for cat in self.categories_data], default=0) + 1
         category_data[FIELD_ID] = new_id
-        
+
         # Set creation timestamp
         category_data[FIELD_CREATED_AT] = datetime.now(timezone.utc).isoformat()
         category_data[FIELD_UPDATED_AT] = datetime.now(timezone.utc).isoformat()
-        
+
         # Add to data store
         self.categories_data.append(category_data)
         self.categories_by_id[new_id] = category_data
         name = category_data.get(FIELD_NAME)
         if name:
             self.categories_by_name[name.lower()] = category_data
-        
+
         # Mark as dirty to be saved later
         self._dirty_data.add(DATA_TYPE_CATEGORIES)
         
@@ -406,14 +406,14 @@ class DatabaseManager(DataSource):
     async def create_user(self, username: str, password: str) -> bool:
         """Create a new user."""
         await self._ensure_initialized()
-        
+
         # Check if user already exists
         if await self.get_user_by_username(username):
             return False
-        
+
         from .auth import hash_password
         hashed_password = hash_password(password)
-        
+
         user_data = {
             "id": len(self.users_data) + 1,
             "username": username,
@@ -424,10 +424,10 @@ class DatabaseManager(DataSource):
             "mfa_secret": None,
             "mfa_backup_codes": []
         }
-        
+
         self.users_data.append(user_data)
         self._dirty_data.add(DATA_TYPE_USERS)
-        
+
         return True
 
     async def _initialize_default_categories(self):
@@ -444,7 +444,7 @@ class DatabaseManager(DataSource):
                         "description": f"Default {cat_name} category",
                         "color": DEFAULT_CATEGORY_COLOR
                     })
-        
+
         self._default_categories_initialized = True
 
     async def _ensure_initialized(self):
@@ -519,7 +519,7 @@ class DatabaseManager(DataSource):
         return dict(sorted_categories[:limit])
 
 
-# Factory functions and configuration management 
+# Factory functions and configuration management
 async def create_database_manager(config: DatabaseConfig) -> DatabaseManager:
     """
     Factory function to create and initialize a DatabaseManager instance.
@@ -540,7 +540,7 @@ async def get_db() -> DatabaseManager:
     """
     Provides a default singleton instance for backward compatibility.
     For new implementations, consider using create_database_manager with explicit configuration.
-    
+
     WARNING: This function uses a global singleton pattern which is deprecated.
     Please migrate to using DatabaseConfig and create_database_manager for new code.
     """
@@ -551,7 +551,7 @@ async def get_db() -> DatabaseManager:
         DeprecationWarning,
         stacklevel=2
     )
-    
+
     global _db_manager_instance
     if _db_manager_instance is None:
         async with _db_init_lock:

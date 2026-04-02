@@ -818,10 +818,10 @@ def main():
 <<<<<<< HEAD
 
 =======
-    
+
 >>>>>>> scientific
 =======
-    
+
 >>>>>>> origin/main
     parser.add_argument("--use-conda", action="store_true", help="Use Conda environment instead of venv.")
     parser.add_argument("--conda-env", type=str, default="base", help="Conda environment name to use (default: base).")

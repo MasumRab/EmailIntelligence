@@ -14,7 +14,7 @@ def test_core_settings():
 <<<<<<< HEAD
 
 =======
-    
+
 >>>>>>> origin/main
     # Temporarily remove SECRET_KEY from environment to test validation
     original_secret_key = os.environ.get('SECRET_KEY')
@@ -23,7 +23,7 @@ def test_core_settings():
 <<<<<<< HEAD
 
 =======
-    
+
 >>>>>>> origin/main
     try:
         # Import the settings module
@@ -47,7 +47,7 @@ def test_core_settings():
 <<<<<<< HEAD
 
 =======
-    
+
 >>>>>>> origin/main
     # Now set a test secret key and verify it works
     os.environ['SECRET_KEY'] = 'test-secret-key-for-validation'
@@ -59,7 +59,7 @@ def test_core_settings():
 <<<<<<< HEAD
 
 =======
-        
+
 >>>>>>> origin/main
         from src.core.settings import settings
         if settings.secret_key == 'test-secret-key-for-validation':
@@ -73,7 +73,7 @@ def test_core_settings():
 <<<<<<< HEAD
 
 =======
-    
+
 >>>>>>> origin/main
     return True
 
@@ -90,13 +90,13 @@ def test_backend_settings():
     backend_settings_content = backend_settings_path.read_text()
 
 =======
-    
+
     # Since the full backend import might have dependencies we don't need for this test,
     # let's directly verify the settings file has the correct implementation
-    
+
     backend_settings_path = Path("backend/python_backend/settings.py")
     backend_settings_content = backend_settings_path.read_text()
-    
+
 >>>>>>> origin/main
     # Check that the secret key field uses ... as default (meaning it's required)
     if 'default=..., env="SECRET_KEY"' in backend_settings_content:
@@ -107,7 +107,7 @@ def test_backend_settings():
 <<<<<<< HEAD
 
 =======
-    
+
 >>>>>>> origin/main
     # Check that the validator is in place
     if '@field_validator(\'secret_key\')' in backend_settings_content:
@@ -118,7 +118,7 @@ def test_backend_settings():
 <<<<<<< HEAD
 
 =======
-    
+
 >>>>>>> origin/main
     return True
 
@@ -136,14 +136,14 @@ def verify_no_hardcoded_keys():
     backend_settings_content = backend_settings_path.read_text()
 
 =======
-    
+
     # Read the updated settings files to ensure no hardcoded values remain
     core_settings_path = Path("src/core/settings.py")
     backend_settings_path = Path("backend/python_backend/settings.py")
-    
+
     core_settings_content = core_settings_path.read_text()
     backend_settings_content = backend_settings_path.read_text()
-    
+
 >>>>>>> origin/main
     # Check for any occurrences of the old hardcoded key
     if "your-secret-key-here" in core_settings_content:
@@ -156,11 +156,11 @@ def verify_no_hardcoded_keys():
         return False
 
 =======
-    
+
     if "your-secret-key-here" in backend_settings_content:
         print("✗ Found hardcoded secret key in backend/python_backend/settings.py")
         return False
-    
+
 >>>>>>> origin/main
     print("✓ No hardcoded secret keys found in settings files")
     return True
@@ -172,7 +172,7 @@ def main():
 <<<<<<< HEAD
 
 =======
-    
+
 >>>>>>> origin/main
     tests = [
         verify_no_hardcoded_keys,
@@ -182,7 +182,7 @@ def main():
 <<<<<<< HEAD
 
 =======
-    
+
 >>>>>>> origin/main
     all_passed = True
     for test in tests:
@@ -191,7 +191,7 @@ def main():
 <<<<<<< HEAD
 
 =======
-    
+
 >>>>>>> origin/main
     print(f"\n{'='*50}")
     if all_passed:
@@ -203,7 +203,7 @@ def main():
 <<<<<<< HEAD
 
 =======
-    
+
 >>>>>>> origin/main
     return all_passed
 

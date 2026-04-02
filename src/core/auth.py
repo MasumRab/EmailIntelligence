@@ -43,23 +43,23 @@ class TokenData(BaseModel):
 class AuthManager:
     """
     Authentication manager for the Email Intelligence Platform.
-    
+
     This class handles user authentication, token management, and authorization.
     """
-    
+
     def __init__(self):
         self.db_manager = None
-        
+
     async def initialize(self):
         """Initialize the AuthManager with database connection."""
         from .database import get_db
         self.db_manager = await get_db()
-        
+
     async def authenticate_user(self, username: str, password: str) -> Optional[dict]:
         """Authenticate a user with username and password."""
         if not self.db_manager:
             await self.initialize()
-            
+
         # In a real implementation, this would check against the database
         # For now, we'll return a mock user
         return {
@@ -67,7 +67,7 @@ class AuthManager:
             "username": username,
             "email": f"{username}@example.com"
         }
-        
+
     def create_access_token(self, data: dict, expires_delta: Optional[timedelta] = None) -> str:
         """Create a JWT access token."""
         to_encode = data.copy()
@@ -78,7 +78,7 @@ class AuthManager:
         to_encode.update({"exp": expire})
         encoded_jwt = jwt.encode(to_encode, "SECRET_KEY", algorithm="HS256")
         return encoded_jwt
-        
+
     async def get_current_user(self, token: str) -> Optional[dict]:
         """Get the current user from a JWT token."""
         # In a real implementation, this would decode the token and get user from database
@@ -320,7 +320,7 @@ async def get_current_active_user(current_user: str = Depends(get_current_user))
     """
     db = await get_db()
     users = db.users_data
-    
+
     for user in users:
         if user.get("username") == current_user and user.get("is_active", True):
             return current_user
