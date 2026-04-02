@@ -32,7 +32,8 @@
     "no-var": "error",
     "react/react-in-jsx-scope": "off",
     "react/no-unescaped-entities": "off",
-    "@typescript-eslint/no-require-imports": "off"
+    "@typescript-eslint/no-require-imports": "off",
+    "react/prop-types": "off"
   },
   "settings": {
     "react": {

@@ -263,8 +263,13 @@ class WorkflowRunner:
 
             # If memory optimization is enabled, pre-calculate which nodes' results can be cleaned up
             cleanup_schedule = {}
-            if memory_optimized:
+            if memory_optimized and not parallel_execution:
                 cleanup_schedule = self._calculate_cleanup_schedule(execution_order)
+            elif memory_optimized and parallel_execution:
+                logger.warning(
+                    "Memory cleanup scheduling is disabled in parallel mode to avoid "
+                    "premature deletion of required node results."
+                )
 
             if parallel_execution:
                 # Execute with parallel execution for independent nodes
@@ -691,20 +696,30 @@ class WorkflowRunner:
         Build the execution context for a specific node by gathering inputs
         from previous node outputs and the initial context.
         """
-        node_context = {}
+        inbound_connections = [
+            conn for conn in self.workflow.connections if conn["to"]["node_id"] == node_id
+        ]
+        connected_inputs = {conn["to"]["input"] for conn in inbound_connections}
+        node = self.workflow.nodes[node_id]
 
-        # First, add variables from the initial context
-        node_context.update(getattr(self, 'execution_context', {}))
+        base_context = getattr(self, "execution_context", {})
+        node_context = {
+            key: base_context[key]
+            for key in node.inputs
+            if key not in connected_inputs and key in base_context
+        }
 
-        # Then, map outputs from previous nodes based on connections
-        for conn in self.workflow.connections:
-            if conn["to"]["node_id"] == node_id:
-                source_node = conn["from"]["node_id"]
-                source_output = conn["from"]["output"]
-                target_input = conn["to"]["input"]
+        for conn in inbound_connections:
+            source_node = conn["from"]["node_id"]
+            source_output = conn["from"]["output"]
+            target_input = conn["to"]["input"]
 
-                # Check if the source node produced this output
-                if source_node in self.node_results and source_output in self.node_results[source_node]:
-                    node_context[target_input] = self.node_results[source_node][source_output]
+            if (
+                source_node not in self.node_results
+                or source_output not in self.node_results[source_node]
+            ):
+                node_context[target_input] = None
+                continue
+            node_context[target_input] = self.node_results[source_node][source_output]
 
         return node_context
