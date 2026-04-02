@@ -16,7 +16,6 @@ from .model_registry import ModelRegistry
 from .plugin_manager import PluginManager, get_plugin_manager
 from .models import Email, Category
 from .auth import AuthManager
-from .settings import SettingsManager
 from .exceptions import (
     EmailIntelligenceError,
     DatabaseError,

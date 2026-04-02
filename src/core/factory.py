@@ -44,6 +44,7 @@ class DataSourceFactory:
 
 _data_source_instance = None
 _email_repository_instance = None
+_ai_engine_instance = None
 
 
 async def get_data_source() -> DataSource:
@@ -84,3 +85,13 @@ async def get_email_repository() -> EmailRepository:
         base_repository = DatabaseEmailRepository(data_source)
         _email_repository_instance = CachingEmailRepository(base_repository)
     return _email_repository_instance
+
+
+async def get_ai_engine() -> ModernAIEngine:
+    """
+    Provides the singleton instance of the AI engine.
+    """
+    global _ai_engine_instance
+    if _ai_engine_instance is None:
+        _ai_engine_instance = ModernAIEngine()
+    return _ai_engine_instance

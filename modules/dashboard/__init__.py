@@ -1,5 +1,6 @@
 import logging
 
+import gradio as gr
 from fastapi import FastAPI
 
 from .ui import create_dashboard_ui

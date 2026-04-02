@@ -9,18 +9,17 @@ from datetime import datetime, timedelta
 
 from typing import Optional, Dict, Any, List
 import hashlib
+import logging
 import secrets
+
 from argon2 import PasswordHasher
 
 import jwt
 from fastapi import HTTPException, status, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel
-import hashlib
-import secrets
 
-
-from .database import get_db
+from .database import get_db, DatabaseManager
 from .settings import settings
 
 # Import the security framework components

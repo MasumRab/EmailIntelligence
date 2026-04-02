@@ -1,30 +1,36 @@
 """
-DEPRECATED: This module is part of the deprecated `backend` package.
-It will be removed in a future release.
-
 Test module for security and scalability features of the node-based workflow system.
 """
 
 import asyncio
 from datetime import datetime
+from enum import Enum
 
-from backend.node_engine.email_nodes import (
+from ...node_engine.email_nodes import (
     ActionNode,
     AIAnalysisNode,
     EmailSourceNode,
     FilterNode,
     PreprocessingNode,
 )
-from backend.node_engine.node_base import Connection, Workflow
-from backend.node_engine.security_manager import (
+from ...node_engine.node_base import Connection, Workflow
+from ...node_engine.security_manager import (
     ResourceLimits,
-    SecurityLevel,
     audit_logger,
     resource_manager,
     security_manager,
 )
-from backend.node_engine.workflow_engine import workflow_engine
-from backend.node_engine.workflow_manager import workflow_manager
+from ...node_engine.workflow_engine import workflow_engine
+from ...node_engine.workflow_manager import workflow_manager
+
+
+class SecurityLevel(Enum):
+    """Security levels for different operations and data access"""
+
+    PUBLIC = "public"
+    INTERNAL = "internal"
+    CONFIDENTIAL = "confidential"
+    RESTRICTED = "restricted"
 
 # TODO(P1, 3h): Fix bare except clauses in test files per CODEREVIEW_REPORT.md
 # TODO(P2, 2h): Add missing type hints to all test functions

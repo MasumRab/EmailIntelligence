@@ -1,7 +1,4 @@
 """
-DEPRECATED: This module is part of the deprecated `backend` package.
-It will be removed in a future release.
-
 Base service class for the Email Intelligence Platform
 Provides common functionality for all services
 """
@@ -9,8 +6,6 @@ Provides common functionality for all services
 from abc import ABC
 from typing import Any, Dict, List, Optional, TypeVar, Generic
 from pydantic import BaseModel
-from src.core.database import get_db
-from src.core.settings import settings
 
 
 class BaseResponse(BaseModel):

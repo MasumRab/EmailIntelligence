@@ -5,6 +5,7 @@ Provides comprehensive event tracking, security monitoring, and compliance loggi
 with structured JSON output and configurable log levels.
 """
 
+import asyncio
 import atexit
 import json
 import logging
