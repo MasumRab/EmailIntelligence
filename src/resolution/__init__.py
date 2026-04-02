@@ -32,6 +32,16 @@ class ComplianceLevel(Enum):
 
 
 @dataclass
+class ComplianceResult:
+    """Result of constitutional compliance check"""
+    requirement_id: str
+    is_compliant: bool
+    score: float  # 0.0 to 1.0
+    details: str
+    suggestions: List[str]
+
+
+@dataclass
 class ConstitutionalValidationResult:
     """Result of constitutional validation"""
     overall_score: float  # 0.0 to 1.0
@@ -43,16 +53,6 @@ class ConstitutionalValidationResult:
     def __post_init__(self):
         if self.recommendations is None:
             self.recommendations = []
-
-
-@dataclass
-class ComplianceResult:
-    """Result of constitutional compliance check"""
-    requirement_id: str
-    is_compliant: bool
-    score: float  # 0.0 to 1.0
-    details: str
-    suggestions: List[str]
 
 
 class ConstitutionalEngine:
