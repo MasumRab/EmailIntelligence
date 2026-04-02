@@ -33,7 +33,7 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        run: cd client && npm ci
+        run: cd client && npm install
 
       - name: Lint
         run: cd client && npm run lint
