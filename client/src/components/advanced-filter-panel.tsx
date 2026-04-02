@@ -11,19 +11,14 @@ import {
   SelectValue,
 } from "@components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@components/ui/card";
-import { Badge } from "@components/ui/badge";
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
 } from "@components/ui/popover";
-import { Calendar } from "@components/ui/calendar";
-import { CalendarIcon, Plus, Trash2, Filter } from "lucide-react";
+import { Plus, Trash2, Filter } from "lucide-react";
 import type { Category } from "@shared/schema";
 
 interface AdvancedFilterPanelProps {
   categories: Category[];
-  onApplyFilters: (filters: any) => void;
+  onApplyFilters: (filters: Record<string, unknown>) => void;
 }
 
 interface FilterCondition {
@@ -82,7 +77,7 @@ export function AdvancedFilterPanel({
     }
   };
 
-  const updateCondition = (id: string, field: string, value: any) => {
+  const updateCondition = (id: string, field: string, value: string | boolean | Date | null) => {
     setCustomConditions(
       customConditions.map((condition) =>
         condition.id === id ? { ...condition, [field]: value } : condition,
@@ -91,7 +86,7 @@ export function AdvancedFilterPanel({
   };
 
   const applyFilters = () => {
-    const filters: any = {};
+    const filters: Record<string, unknown> = {};
 
     // Keyword-based filters
     if (requiredKeywords.trim()) {
