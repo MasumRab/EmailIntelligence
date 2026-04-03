@@ -17,7 +17,7 @@ import re
 def run_command(command: list[str]):
     """Run a shell command and return the output."""
     try:
-        # sourcery skip: command-injection
+        # sourcery skip: command-injection, subprocess-run-without-check
         result = subprocess.run(command, shell=False, capture_output=True, text=True, check=True)
         return result.stdout.strip()
     except subprocess.CalledProcessError as e:
