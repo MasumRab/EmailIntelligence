@@ -336,6 +336,7 @@ def setup_dependencies(_venv_path=None, _use_poetry=False):
         run_command([python_exe, "-m", "pip", "install", "--upgrade", "pip"], "Upgrading pip")
         # For poetry, we need to install it first if not available
         try:
+            # Safe: using static string with -c flag, no user input involved
             subprocess.run([python_exe, "-c", "import poetry"], check=True, capture_output=True)
         except subprocess.CalledProcessError:
             run_command([python_exe, "-m", "pip", "install", "poetry"], "Installing Poetry")
@@ -350,6 +351,7 @@ def setup_dependencies(_venv_path=None, _use_poetry=False):
         run_command([python_exe, "-m", "pip", "install", "--upgrade", "pip"], "Upgrading pip")
         # For uv, install if not available
         try:
+            # Safe: using static string with -c flag, no user input involved
             subprocess.run([python_exe, "-c", "import uv"], check=True, capture_output=True)
         except subprocess.CalledProcessError:
             run_command([python_exe, "-m", "pip", "install", "uv"], "Installing uv")
