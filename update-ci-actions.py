@@ -13,10 +13,10 @@ from pathlib import Path
 ACTION_UPDATES = {
     r'actions/checkout@v[0-9]+': 'actions/checkout@v4',
     r'actions/setup-python@v[0-9]+': 'actions/setup-python@v5',
-    r'astral-sh/setup-uv@v[0-9]+': 'astral-sh/setup-uv@v5',
+    r'astral-sh/setup-uv@v[0-9]+': 'astral-sh/setup-uv@v1',
     r'actions/download-artifact@v[0-9]+': 'actions/download-artifact@v4',
     r'actions/upload-artifact@v[0-9]+': 'actions/upload-artifact@v4',
-    r'codecov/codecov-action@v[0-9]+': 'codecov/codecov-action@v5',
+    r'codecov/codecov-action@v[0-9]+': 'codecov/codecov-action@v4',
     r'actions/setup-node@v[0-9]+': 'actions/setup-node@v4',
 }
 
@@ -31,19 +31,10 @@ def update_file(filepath: Path) -> bool:
     changes_made = []
     
     for old_pattern, new_version in ACTION_UPDATES.items():
-        if re.search(old_pattern, updated):
-            # Check if it's already at the target version or higher
-            # Actually, just force it to the target version for now
-            matches = re.findall(old_pattern, updated)
-            needs_update = False
-            for match in matches:
-                if match != new_version:
-                    needs_update = True
-                    break
-
-            if needs_update:
-                updated = re.sub(old_pattern, new_version, updated)
-                changes_made.append(f"{old_pattern} -> {new_version}")
+        new_content = re.sub(old_pattern, new_version, updated)
+        if new_content != updated:
+            updated = new_content
+            changes_made.append(f"{old_pattern} -> {new_version}")
     
     if updated != original:
         with open(filepath, 'w') as f:
