@@ -36,9 +36,9 @@ STATUS_FAILED=0
 
 # Logging functions
 log_header() {
-    echo -e "\n${BLUE}╔═════════════════════════════════════════════════════════════════════════════════╗${NC}"
+    echo -e "\n${BLUE}╔══════════════════════════════════════════════════════════════════════════════╗${NC}"
     echo -e "${BLUE}║${WHITE} $1 ${BLUE}$(printf '%*s' $((78-${#1})) '')║${NC}"
-    echo -e "${BLUE}╚═════════════════════════════════════════════════════════════════════════════════╝${NC}\n"
+    echo -e "${BLUE}╚══════════════════════════════════════════════════════════════════════════════╝${NC}\n"
 }
 
 log_section() {
@@ -200,6 +200,95 @@ check_git_hooks() {
     fi
 }
 
+check_branch_sync_status() {
+    log_section "Branch Synchronization Status"
+
+    # Get all branches
+    local branches
+    mapfile -t branches < <(git branch --list --format="%(refname:short)")
+
+    local total_branches=${#branches[@]}
+    local synced_branches=0
+
+    for branch in "${branches[@]}"; do
+        # Skip orchestration-tools branch itself
+        if [[ "$branch" == "$ORCHESTRATION_BRANCH" ]]; then
+            continue
+        fi
+
+        # Check if branch has orchestration files
+        local has_setup=false
+        local has_hooks=false
+
+        if git ls-tree -r "$branch" 2>/dev/null | grep -q "^setup/"; then
+            has_setup=true
+        fi
+
+        if git ls-tree -r "$branch" 2>/dev/null | grep -q "^scripts/hooks/"; then
+            has_hooks=true
+        fi
+
+        if [[ "$has_setup" == true ]]; then
+            ((synced_branches++))
+        fi
+    done
+
+    if [[ $synced_branches -gt 0 ]]; then
+        log_item "PASS" "Orchestration sync detected on $synced_branches branch(es)"
+    else
+        log_item "INFO" "No orchestration sync detected on other branches"
+    fi
+}
+
+check_recent_activity() {
+    log_section "Recent Orchestration Activity"
+
+    # Check recent commits to orchestration-tools
+    local recent_commits
+    recent_commits=$(git log --oneline -5 --grep="orchestration\|sync\|hook" 2>/dev/null | wc -l)
+
+    if [[ $recent_commits -gt 0 ]]; then
+        log_item "INFO" "Recent orchestration activity: $recent_commits commits in last 5"
+    else
+        log_item "INFO" "No recent orchestration activity detected"
+    fi
+
+    # Check for any pending stashes
+    local stash_count
+    stash_count=$(git stash list 2>/dev/null | wc -l)
+    if [[ $stash_count -gt 0 ]]; then
+        log_item "WARN" "Pending stashes detected: $stash_count"
+        log_item "INFO" "Consider checking: git stash list"
+    fi
+}
+
+check_system_health() {
+    log_section "System Health Indicators"
+
+    # Check available tools
+    local tools=("python3" "git" "bash")
+    local missing_tools=()
+
+    for tool in "${tools[@]}"; do
+        if ! command -v "$tool" >/dev/null 2>&1; then
+            missing_tools+=("$tool")
+        fi
+    done
+
+    if [[ ${#missing_tools[@]} -eq 0 ]]; then
+        log_item "PASS" "All required system tools available"
+    else
+        log_item "FAIL" "Missing system tools: ${missing_tools[*]}"
+    fi
+
+    # Check Git configuration
+    if git config --get user.name >/dev/null 2>&1 && git config --get user.email >/dev/null 2>&1; then
+        log_item "PASS" "Git user configuration is set"
+    else
+        log_item "WARN" "Git user configuration incomplete"
+    fi
+}
+
 generate_summary() {
     log_header "ORCHESTRATION STATUS SUMMARY"
 
@@ -215,25 +304,46 @@ generate_summary() {
     echo -e "\n${WHITE}System Health:${NC}"
     if [[ $STATUS_FAILED -eq 0 && $STATUS_WARNINGS -eq 0 ]]; then
         echo -e "  ${GREEN}${GEAR} Orchestration system is HEALTHY${NC}"
+        echo -e "  ${GREEN}${SYNC} All components functioning optimally${NC}"
     elif [[ $STATUS_FAILED -eq 0 ]]; then
         echo -e "  ${YELLOW}${WARNING} Orchestration system has minor issues${NC}"
+        echo -e "  ${YELLOW}${INFO} Review warnings above for optimization opportunities${NC}"
     else
         echo -e "  ${RED}${CROSS} Orchestration system has critical issues${NC}"
+        echo -e "  ${RED}${INFO} Address failed checks immediately${NC}"
+    fi
+
+    echo -e "\n${WHITE}Next Steps:${NC}"
+    if [[ $STATUS_FAILED -gt 0 ]]; then
+        echo -e "  1. ${RED}Fix critical issues listed above${NC}"
+        echo -e "  2. ${YELLOW}Run: bash scripts/test_orchestration.sh${NC}"
+        echo -e "  3. ${BLUE}Verify fixes with: bash scripts/orchestration_status.sh${NC}"
+    elif [[ $STATUS_WARNINGS -gt 0 ]]; then
+        echo -e "  1. ${YELLOW}Review warnings and optimize as needed${NC}"
+        echo -e "  2. ${BLUE}Monitor system health regularly${NC}"
+    else
+        echo -e "  1. ${GREEN}System is fully operational${NC}"
+        echo -e "  2. ${BLUE}Continue monitoring for optimal performance${NC}"
     fi
 
     echo -e "\n${PURPLE}Report generated on: $(date)${NC}"
+    echo -e "${PURPLE}Orchestration branch: $ORCHESTRATION_BRANCH${NC}"
 }
 
 main() {
     log_header "ORCHESTRATION SYSTEM STATUS DASHBOARD"
 
-    echo -e "${WHITE}Monitoring orchestration system health...${NC}\n"
+    echo -e "${WHITE}Monitoring orchestration system health and synchronization status...${NC}\n"
 
     check_git_repository
     check_orchestration_files
     check_git_hooks
+    check_branch_sync_status
+    check_recent_activity
+    check_system_health
 
     generate_summary
 }
 
+# Run main function
 main "$@"

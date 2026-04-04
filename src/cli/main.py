@@ -1,307 +1,146 @@
+#!/usr/bin/env python3
+"""
+EmailIntelligence CLI - Unified Entry Point
+
+This is the main entry point for the modular CLI architecture.
+It uses the CommandFactory and CommandRegistry to discover and execute commands.
+"""
+
 import argparse
-import json
-import os
-from pathlib import Path
+import asyncio
 import sys
+from typing import List, Optional
 
-from src.lib.git_wrapper import GitWrapper
-from src.services.analysis_service import AnalysisService
-from src.models.unified_analysis import ActionNarrative, IntentReport, VerificationResult
-from datetime import datetime # Import datetime for IntentReport reconstruction
-import git # Import git for specific GitPython exceptions
-from tqdm import tqdm # Import tqdm for progress bars
+from .commands import (
+    CommandFactory,
+    CommandRegistry,
+    AnalyzeCommand,
+    ResolveCommand,
+    PlanRebaseCommand,
+    AnalyzeHistoryCommand,
+    MergeSmartCommand,
+    StashResolveCommand,
+    OrchExtractCommand,
+    GitAlignCommand,
+    GitMergeSemanticCommand,
+    GitAutoResolveCommand,
+    GitDiscoverCommand,
+    ValidateCommand,
+    CompareCommand,
+    AnalyzeCodeCommand,
+    ImportAuditCommand,
+    VerifyCommand,
+    DeployCommand,
+    BackupCommand,
+    TaskmasterCommand,
+    ListTasksCommand,
+    AnalyzeTasksCommand,
+    ClusterBranchesCommand,
+    MonitorCommand,
+    MCPSyncCommand,
+    AgentScaffoldCommand,
+    RuleSyncCommand
+)
+from .services.nlp import NLPService
 
-def main():
+
+async def run_cli(args: Optional[List[str]] = None) -> int:
     """
-    TODO: Enhance CLI argument parsing and overall structure for `git-verifier`.
+    Run the unified CLI.
 
-    This `main` function currently sets up the basic command-line interface.
-    Future enhancements should focus on improving modularity, extensibility,
-    and user experience, including:
+    Args:
+        args: Command-line arguments (uses sys.argv if None)
 
-    1.  **Global Configuration:** Implement a robust mechanism to read global
-        configurations (e.g., from a config file like `.git-verifier.json`)
-        for default repository paths, LLM API keys, preferred output formats, etc.
-        This promotes the Open/Closed Principle by allowing configuration
-        without modifying core code.
-    2.  **More Sub-commands:** Systematically add new sub-commands for other
-        Git analysis tasks (e.g., `blame-analysis`, `dependency-graph`, `code-churn`).
-        Each sub-command should ideally be a separate module or class adhering
-        to the Single Responsibility Principle.
-    3.  **Plugin System:** Consider designing a plugin system to allow users
-        to extend `git-verifier` with custom analysis modules or output formats,
-        further enhancing extensibility (Open/Closed Principle).
-    4.  **Interactive Mode:** Develop an interactive mode that guides the user
-        through analysis steps, improving usability.
-    5.  **Improved Error Reporting:** Implement more detailed stack traces for
-        developers during debugging while providing user-friendly messages for
-        end-users, adhering to the principle of least surprise.
+    Returns:
+        int: Exit code
     """
-    parser = argparse.ArgumentParser(prog="git-verifier", description="A unified tool to analyze Git history, generate a synthesized description of intent, and verify the integrity of the code after merges or rebases.")
+    # Initialize services
+    nlp_service = NLPService()
+    
+    # Initialize factory and registry with injected dependencies
+    dependencies = {
+        "conflict_detector": None,  # Placeholder
+        "analyzer": None,           # Placeholder
+        "strategy_generator": None,  # Placeholder
+        "repository_ops": None,      # Placeholder
+        "security_validator": None,  # Placeholder
+        "nlp": nlp_service
+    }
+    
+    factory = CommandFactory(dependencies)
+    registry = CommandRegistry(factory)
+
+    # Register commands
+    registry.register_command(AnalyzeCommand, agent="analyst")
+    registry.register_command(ResolveCommand, agent="resolver")
+    registry.register_command(ValidateCommand, agent="validator")
+    registry.register_command(AnalyzeHistoryCommand, agent="analyst")
+    registry.register_command(PlanRebaseCommand, agent="planner")
+    registry.register_command(MergeSmartCommand, agent="resolver")
+    registry.register_command(StashResolveCommand, agent="resolver")
+    registry.register_command(OrchExtractCommand, agent="git")
+    registry.register_command(GitAlignCommand, agent="resolver")
+    registry.register_command(GitMergeSemanticCommand, agent="resolver")
+    registry.register_command(GitAutoResolveCommand, agent="resolver")
+    registry.register_command(GitDiscoverCommand, agent="analyst")
+    registry.register_command(AnalyzeCodeCommand, agent="analyst")
+    registry.register_command(ImportAuditCommand, agent="analyst")
+    registry.register_command(CompareCommand, agent="system")
+    registry.register_command(VerifyCommand, agent="system")
+    registry.register_command(DeployCommand, agent="system")
+    registry.register_command(BackupCommand, agent="system")
+    registry.register_command(MonitorCommand, agent="system")
+    registry.register_command(MCPSyncCommand, agent="system")
+    registry.register_command(AgentScaffoldCommand, agent="system")
+    registry.register_command(RuleSyncCommand, agent="system")
+    registry.register_command(TaskmasterCommand, agent="workflow")
+    registry.register_command(ListTasksCommand, agent="workflow")
+    registry.register_command(AnalyzeTasksCommand, agent="workflow")
+    registry.register_command(ClusterBranchesCommand, agent="analyst")
+
+    # Create top-level parser
+    parser = argparse.ArgumentParser(
+        description="EmailIntelligence CLI - Unified modular command system",
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter
+    )
+    
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
 
-    # Analyze sub-command
-    analyze_parser = subparsers.add_parser("analyze", help="Analyzes commit history to generate a synthesized narrative or a full Intent Report.")
-    analyze_parser.add_argument("REVISION_RANGE", nargs="?", help="The commit or range of commits to analyze (e.g., 'HEAD~5..HEAD', a branch name). Defaults to the last 10 commits on the current branch.")
-    analyze_parser.add_argument("--report", action="store_true", help="If specified, generates a full IntentReport for the entire branch, not just individual commit narratives.")
-    analyze_parser.add_argument("--output-file", type=str, help="Path to save the output (JSON format). If not provided, prints to standard output.")
-    analyze_parser.add_argument("--repo-path", type=str, default=os.getcwd(), help="Path to the Git repository. Defaults to the current working directory.")
-
-    # Detect-rebased sub-command
-    detect_rebased_parser = subparsers.add_parser("detect-rebased", help="Detects local branches that have been rebased and may require verification.")
-    detect_rebased_parser.add_argument("--since", type=str, help="Only show branches rebased since a certain date.")
-    detect_rebased_parser.add_argument("--json", action="store_true", help="Output the list of branches in JSON format.")
-    detect_rebased_parser.add_argument("--repo-path", type=str, default=os.getcwd(), help="Path to the Git repository. Defaults to the current working directory.")
-
-
-    # Verify sub-command
-    verify_parser = subparsers.add_parser("verify", help="Verifies a merged branch against a pre-merge Intent Report.")
-    verify_parser.add_argument("--report", type=str, required=True, help="Path to the JSON IntentReport file generated by the analyze --report command before the merge.")
-    verify_parser.add_argument("--merged-branch", type=str, required=True, help="The name of the branch into which the feature was merged (e.g., 'main').")
-    verify_parser.add_argument("--output-file", type=str, help="Path to save the VerificationResult (JSON format). If not provided, prints to standard output.")
-    verify_parser.add_argument("--repo-path", type=str, default=os.getcwd(), help="Path to the Git repository. Defaults to the current working directory.")
-
-    args = parser.parse_args()
-
-    # Initialize AnalysisService
-    try:
-        analysis_service = AnalysisService(args.repo_path)
-    except git.InvalidGitRepositoryError:
-        print(f"Error: '{args.repo_path}' is not a valid Git repository.", file=sys.stderr)
-        sys.exit(1)
-    except Exception as e:
-        print(f"An unexpected error occurred during Git repository initialization: {e}", file=sys.stderr)
-        sys.exit(1)
-
-    if args.command == "analyze":
-        import asyncio
-        asyncio.run(handle_analyze_command(args, analysis_service))
-    elif args.command == "detect-rebased":
-        import asyncio
-        asyncio.run(handle_detect_rebased_command(args, analysis_service))
-    elif args.command == "verify":
-        import asyncio
-        asyncio.run(handle_verify_command(args, analysis_service))
-    else:
-        parser.print_help()
-
-async def handle_analyze_command(args, analysis_service: AnalysisService):
-    """
-    TODO: Enhance the `analyze` command's functionality and output.
-
-    This function handles the `analyze` sub-command. Future enhancements should
-    focus on improving output flexibility, filtering capabilities, and LLM integration:
-
-    1.  **More Output Formats:** Beyond JSON and basic human-readable, add robust
-        support for other formats like Markdown, HTML, or interactive reports.
-        This can be achieved by using a strategy pattern for output generation.
-    2.  **Filtering and Sorting:** Implement comprehensive filtering and sorting
-        options for narratives (e.g., by author, date, commit message keywords)
-        to improve user control over the analysis results.
-    3.  **LLM Integration Options:** Provide command-line options to specify
-        LLM provider, API keys (if not from env), and model parameters,
-        allowing for greater flexibility and configurability.
-    4.  **Contextual Analysis:** Allow specifying additional context files or URLs
-        to feed into the LLM for richer narrative generation, enhancing the
-        quality of the analysis.
-    5.  **Progress Bar Refinement:** Pass the `tqdm` progress bar object directly
-        to `analysis_service` methods for more accurate and granular updates,
-        improving user feedback during long-running operations.
-    """
-    try:
-        if args.report:
-            # Pass file=sys.stderr to tqdm to avoid interfering with stdout JSON output
-            # or disable if outputting to file
-            if args.output_file:
-                intent_report = await analysis_service.generate_intent_report(
-                    branch_name=analysis_service.git_wrapper.get_current_branch().name,
-                    revision_range=args.REVISION_RANGE
-                )
-            else:
-                # tqdm is handled internally by analysis_service.generate_intent_report
-                intent_report = await analysis_service.generate_intent_report(
-                    branch_name=analysis_service.git_wrapper.get_current_branch().name,
-                    revision_range=args.REVISION_RANGE
-                )
-
-            output_data = intent_report.to_dict()
-            if args.output_file:
-                with open(args.output_file, 'w') as f:
-                    json.dump(output_data, f, indent=4)
-                print(f"Analysis report saved to {args.output_file}")
-            else:
-                # Human-readable output for IntentReport
-                print(f"Intent Report for branch '{intent_report.branch_name}' (Generated at {intent_report.generated_at.isoformat()}):")
-                for narrative in intent_report.commit_narratives:
-                    print(f"\n--- Commit: {narrative.commit_hexsha[:7]} ---")
-                    print(f"Author: {narrative.author_name}")
-                    print(f"Date: {datetime.fromtimestamp(narrative.authored_date).isoformat()}")
-                    print(f"Message: {narrative.commit_message.strip().splitlines()[0]}")
-                    print(f"Narrative: {narrative.synthesized_narrative}")
-                    if not narrative.is_consistent:
-                        print(f"Consistency: NOT CONSISTENT - {narrative.discrepancy_notes}")
-                print("\nAnalysis complete.")
-        else:
-            # For individual narratives, we need to iterate commits
-            commits = list(analysis_service.git_wrapper.get_commits(args.REVISION_RANGE))
-            narratives = []
-            # tqdm is handled internally by analysis_service.generate_intent_report
-            # For individual narratives, we'll just print them as they are generated
-            print(f"Analyzing commits in range: {args.REVISION_RANGE or 'default range'}")
-            for commit in tqdm(commits, desc="Generating Narratives", file=sys.stderr):
-                narrative = await analysis_service.generate_action_narrative(commit)
-                narratives.append(narrative.to_dict())
-                
-                print(f"\n--- Commit: {narrative.commit_hexsha[:7]} ---")
-                print(f"Author: {narrative.author_name}")
-                print(f"Date: {datetime.fromtimestamp(narrative.authored_date).isoformat()}")
-                print(f"Message: {narrative.commit_message.strip().splitlines()[0]}")
-                print(f"Narrative: {narrative.synthesized_narrative}")
-                if not narrative.is_consistent:
-                        print(f"Consistency: NOT CONSISTENT - {narrative.discrepancy_notes}")
-            print("\nAnalysis complete.")
-
-    except git.BadName as e:
-        print(f"Error: Invalid revision range or branch name '{args.REVISION_RANGE}': {e}", file=sys.stderr)
-        sys.exit(1)
-    except Exception as e:
-        print(f"An unexpected error occurred during analysis: {e}", file=sys.stderr)
-        sys.exit(1)
-
-async def handle_detect_rebased_command(args, analysis_service: AnalysisService):
-    """
-    TODO: Enhance the `detect-rebased` command's functionality.
-
-    This function handles the `detect-rebased` sub-command. Future enhancements
-    should focus on improving rebase detection accuracy, detail, and integration:
-
-    1.  **Implement `--since` filter:** Develop robust logic to parse the date
-        string and filter reflog entries to only show branches rebased after
-        a specific date.
-    2.  **More Advanced Rebase Detection:** Beyond just "rebase (finish)", analyze
-        reflog patterns for other rebase indicators (e.g., "rebase (start)",
-        "rebase (abort)", or specific commit graph patterns) to provide more
-        comprehensive detection.
-    3.  **Output Details:** Provide more detailed information about the rebase
-        event (e.g., original base, new base, timestamp of rebase) to aid in
-        understanding the history.
-    4.  **Integration with `analyze`:** Implement functionality to allow piping
-        the output of `detect-rebased` into `analyze` to automatically generate
-        narratives for identified rebased branches, creating a more seamless workflow.
-    """
-    try:
-        rebased_branches = await analysis_service.detect_rebased_branches()
-        
-        # Filter by --since if provided (placeholder for actual date filtering logic)
-        if args.since:
-            # TODO: Implement actual date filtering logic here.
-            # This would involve parsing args.since into a datetime object and
-            # comparing it with the timestamp of reflog entries.
-            # Consider creating a dedicated utility function for date parsing and comparison.
-            # This would involve parsing args.since into a datetime object and
-            # comparing it with the timestamp of reflog entries.
-            print(f"Filtering rebased branches since {args.since} (not yet implemented)", file=sys.stderr)
-
-        if args.json:
-            output_data = rebased_branches
-            print(json.dumps(output_data, indent=4))
-        else:
-            if rebased_branches:
-                print("Detected rebased branches:")
-                for branch in rebased_branches:
-                    print(f"- {branch}")
-            else:
-                print("No rebased branches detected.")
-        print("\nRebase detection complete.")
-    except Exception as e:
-        print(f"An unexpected error occurred during rebase detection: {e}", file=sys.stderr)
-        sys.exit(1)
-
-async def handle_verify_command(args, analysis_service: AnalysisService):
-    """
-    TODO: Enhance the `verify` command's functionality and reporting.
-
-    This function handles the `verify` sub-command. Future enhancements should
-    focus on providing more detailed, actionable, and configurable verification:
-
-    1.  **Detailed Discrepancy Reporting:** Provide more context for each discrepancy,
-        such as the exact lines of code that differ, or the specific semantic change
-        that was expected but not found (or vice-versa). This could involve
-        integrating with a diff visualization tool.
-    2.  **Handling Intentional Changes:** Implement a mechanism for users to mark
-        intentional changes (e.g., via a configuration file or CLI argument) so
-        they are not flagged as discrepancies, improving the signal-to-noise ratio.
-    3.  **Different Verification Strategies:** Allow different levels or types of
-        verification (e.g., strict file content comparison, semantic comparison,
-        or only checking for presence of key features) through a strategy pattern.
-    4.  **Integration with CI/CD:** Design the output and exit codes to be easily
-        integrable into CI/CD pipelines for automated integrity checks, promoting
-        DevOps best practices.
-    5.  **Interactive Resolution:** For discrepancies, offer an interactive mode
-        to help users understand and potentially resolve them, improving user experience.
-    """
-    try:
-        with open(args.report, 'r') as f:
-            report_data = json.load(f)
-        
-        # Reconstruct IntentReport object
-        commit_narratives = []
-        for cn_data in report_data['commit_narratives']:
-            # Ensure authored_date is converted back to int if it was stored as such
-            cn_data['authored_date'] = int(cn_data['authored_date']) # Assuming it was stored as int timestamp
-            commit_narratives.append(ActionNarrative(**cn_data))
-
-        intent_report = IntentReport(
-            branch_name=report_data['branch_name'],
-            generated_at=datetime.fromisoformat(report_data['generated_at']),
-            commit_narratives=commit_narratives
+    # Add arguments for each registered command
+    for command_name, _ in registry.get_all_commands().items():
+        command_instance = registry.get_command(command_name)
+        subparser = subparsers.add_parser(
+            command_instance.name,
+            help=command_instance.description
         )
-    except FileNotFoundError:
-        print(f"Error: Intent Report file not found at '{args.report}'. Please ensure the path is correct.", file=sys.stderr)
-        sys.exit(1)
-    except json.JSONDecodeError:
-        print(f"Error: Invalid JSON format in Intent Report file at '{args.report}'. Please check the file content.", file=sys.stderr)
-        sys.exit(1)
-    except KeyError as e:
-        print(f"Error: Missing expected data in Intent Report file: '{e}'. Please ensure the report is valid.", file=sys.stderr)
-        sys.exit(1)
-    except Exception as e:
-        print(f"An unexpected error occurred while loading the Intent Report: {e}", file=sys.stderr)
-        sys.exit(1)
+        command_instance.add_arguments(subparser)
 
+    # Parse arguments
+    parsed_args = parser.parse_args(args)
 
+    if not parsed_args.command:
+        parser.print_help()
+        return 0
+
+    # Execute command
     try:
-        # Use tqdm for verification process
-        if args.output_file:
-            verification_result = await analysis_service.verify_integrity(intent_report, args.merged_branch)
-        else:
-            # tqdm is handled internally by analysis_service.verify_integrity
-            verification_result = await analysis_service.verify_integrity(intent_report, args.merged_branch)
-
-        output_data = verification_result.to_dict()
-
-        if args.output_file:
-            with open(args.output_file, 'w') as f:
-                json.dump(output_data, f, indent=4)
-            print(f"Verification result saved to {args.output_file}")
-        else:
-            # Human-readable output for verification result
-            print(f"Verification Result for branch '{verification_result.branch_name}' (verified at {verification_result.verified_at.isoformat()}):")
-            if verification_result.is_fully_consistent:
-                print("  Status: FULLY CONSISTENT - No discrepancies found.")
-            else:
-                print("  Status: DISCREPANCIES DETECTED")
-                if verification_result.missing_changes:
-                    print("  Missing Changes:")
-                    for change in verification_result.missing_changes:
-                        print(f"    - Commit: {change['commit_hexsha'][:7]}, File: {change['file_path']}, Type: {change['change_type']}")
-                if verification_result.unexpected_changes:
-                    print("  Unexpected Changes:")
-                    for change in verification_result.unexpected_changes:
-                        print(f"    - Commit: {change['commit_hexsha'][:7]}, File: {change['file_path']}, Type: {change['change_type']}")
-            print("\nVerification complete.")
+        command = registry.get_command(parsed_args.command)
+        return await command.execute(parsed_args)
     except Exception as e:
-        print(f"An unexpected error occurred during verification: {e}", file=sys.stderr)
+        print(f"Error executing command '{parsed_args.command}': {e}")
+        return 1
+
+
+def main():
+    """Main entry point."""
+    try:
+        exit_code = asyncio.run(run_cli())
+        sys.exit(exit_code)
+    except KeyboardInterrupt:
+        print("\nInterrupted by user")
+        sys.exit(130)
+    except Exception as e:
+        print(f"Unexpected error: {e}")
         sys.exit(1)
 
 
