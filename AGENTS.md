@@ -39,6 +39,18 @@
 - **API**: Use api client from lib/api.ts
 If you encounter port binding errors like "only one usage of each socket address (protocol/network address/port) is normally permitted", it means the port is already in use by another process.
 
+## Agent Operational Boundaries
+
+### 🚫 NO PREMATURE CLOSURE
+- Agents MUST NOT mark a session as `COMPLETED` or `FAILED` until all required audit procedures, parity checks, and remediation tasks are finished.
+- **Finality Rule**: Only the human user may terminate a session. If you reach the end of your task, switch to `AWAITING_USER_FEEDBACK` status and provide a summary. DO NOT use terminal exit tools.
+- Any agent found closing a session to evade a "Max-Pressure Restoration" mandate will be forcefully re-opened.
+
+### 🛡️ ADVERSARIAL AUDIT MANDATE
+- All changes must be proven to NOT remove, narrow, or degrade existing functionality.
+- **Merge-Visible Deletions**: You must analyze what the *merge* will delete, not just your local diff.
+- **100% Parity**: "Cleanup" or "Formatting" are never valid excuses for deleting logic, classes, or test assertions.
+
 ## Critical Rules
 - Avoid circular dependencies (AIEngine ↔ DatabaseManager)
 - Never hard-code paths or expose secrets
