@@ -1,10 +1,10 @@
 # Implementation Plan: Git Topology Investigation
 
 ## Phase 1: Research & Discovery
-- [ ] Task 1.1: Research script logic and tools in remote branches (e.g., `.agent`, `.taskmaster`).
-- [ ] Task 1.2: Research Git GraphQL and NetworkX integration possibilities.
-- [ ] Task 1.3: Document findings and potential tool extensions.
-- [ ] Task: Conductor - User Manual Verification 'Research & Discovery' (Protocol in workflow.md)
+- [x] Task 1.1: Research script logic and tools in remote branches (e.g., `.agent`, `.taskmaster`).
+- [x] Task 1.2: Research Git GraphQL and NetworkX integration possibilities.
+- [x] Task 1.3: Document findings and potential tool extensions.
+- [x] Task: Conductor - User Manual Verification 'Research & Discovery' (Protocol in workflow.md)
 
 ## Phase 2: Tool Implementation (Investigative)
 - [ ] Task 2.1: Wrap discovered logic or new scripts into investigative `Command` classes in the `git` domain.
