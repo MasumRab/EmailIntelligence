@@ -172,7 +172,17 @@ def start_backend(host: str, port: int, debug: bool = False):
 
     # Sanitize host parameter to prevent command injection
     import re
-    if not re.match(r'^[a-zA-Z0-9.-]+
+    if not re.match(r'^[a-zA-Z0-9.-]+$', host):
+        logger.error(f"Invalid host name: {host}")
+        return
+
+    # Use standard list format for subprocess.Popen to prevent command injection
+    cmd = [str(python_exe), "src/main.py", "--host", host, "--port", str(port)]
+
+    # Run the process
+    process = subprocess.Popen(cmd, cwd=ROOT_DIR)
+    process_manager.add_process(process, "Backend")
+    return process
 
 
 def start_node_service(service_path: Path, service_name: str, port: int, api_url: str):
@@ -344,9 +354,7 @@ def start_services(args):
         if available_services.get("frontend", False):
             frontend_config = config.get_service_config("frontend")
             frontend_path = config.get_service_path("frontend")
-            start_node_service(frontend_path, "Frontend Client", args.frontend_port, api_url), host):
-        logger.error(f"Invalid host parameter: {host}")
-        return
+            start_node_service(frontend_path, "Frontend Client", args.frontend_port, api_url)
 
     cmd = [
         python_exe,
