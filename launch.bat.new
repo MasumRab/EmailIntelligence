@@ -1,0 +1,133 @@
+@echo off
+setlocal enabledelayedexpansion
+
+:: === Configuration ===
+set "VENV_DIR=venv"
+set "CONDA_ENV_NAME=base"
+set "ERROR_LEVEL=0"
+set "ERROR_MESSAGE="
+
+:: === PowerShell Detection ===
+set "IS_POWERSHELL="
+echo "%COMSPEC%" | findstr /I /C:"powershell.exe" >nul && set "IS_POWERSHELL=1"
+echo "%COMSPEC%" | findstr /I /C:"pwsh.exe" >nul && set "IS_POWERSHELL=1"
+
+:: If running in PowerShell, use PowerShell script
+if defined IS_POWERSHELL (
+    echo Detected PowerShell environment. Using PowerShell script...
+    if not exist "%~dp0launch.ps1" (
+        set "ERROR_MESSAGE=PowerShell script launch.ps1 not found."
+        goto error_handler
+    )
+    powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0launch.ps1" %*
+    exit /b %errorlevel%
+)
+
+:: === Environment Setup ===
+set "PYTHON_EXE=python"
+set "ENV_ACTIVATED="
+
+:: Try Conda first if available
+where conda >nul 2>&1 && (
+    echo Conda is available.
+
+    :: Check if already in a Conda environment
+    if defined CONDA_DEFAULT_ENV (
+        echo Using active Conda environment: %CONDA_DEFAULT_ENV%
+        set "PYTHON_EXE=%CONDA_PREFIX%\python.exe"
+        set "ENV_ACTIVATED=1"
+    ) else if "%CONDA_ENV_NAME%" NEQ "base" (
+        :: Try to activate specified environment
+        echo Activating Conda environment: %CONDA_ENV_NAME%
+        call conda activate "%CONDA_ENV_NAME%" 2>nul
+        if !errorlevel! equ 0 (
+            set "PYTHON_EXE=%CONDA_PREFIX%\python.exe"
+            set "ENV_ACTIVATED=1"
+        ) else (
+            echo Failed to activate Conda environment. Will try venv instead.
+        )
+    )
+) || echo Conda not available.
+
+:: Try venv if no Conda environment is active
+if not defined ENV_ACTIVATED (
+    echo Checking for virtual environment...
+
+    :: Check if venv exists and activate it
+    if exist "%VENV_DIR%\Scripts\activate.bat" (
+        echo Activating virtual environment...
+        call "%VENV_DIR%\Scripts\activate.bat"
+        set "PYTHON_EXE=%CD%\%VENV_DIR%\Scripts\python.exe"
+        set "ENV_ACTIVATED=1"
+    ) else (
+        :: Create venv if it doesn't exist
+        where python >nul 2>&1
+        if !errorlevel! equ 0 (
+            echo Creating virtual environment...
+            python -m venv "%VENV_DIR%"
+            if !errorlevel! equ 0 (
+                call "%VENV_DIR%\Scripts\activate.bat"
+                set "PYTHON_EXE=%CD%\%VENV_DIR%\Scripts\python.exe"
+                set "ENV_ACTIVATED=1"
+
+                :: Install dependencies
+                if exist "requirements.txt" (
+                    echo Installing dependencies...
+                    "%PYTHON_EXE%" -m pip install -r requirements.txt
+                    if !errorlevel! neq 0 (
+                        set "ERROR_MESSAGE=Failed to install dependencies."
+                        goto error_handler
+                    )
+                )
+            ) else (
+                set "ERROR_MESSAGE=Failed to create virtual environment."
+                goto error_handler
+            )
+        ) else (
+            set "ERROR_MESSAGE=Python not found in PATH and no virtual environment exists."
+            goto error_handler
+        )
+    )
+)
+
+:: === Verify Python and Launch File ===
+if not exist "%PYTHON_EXE%" (
+    set "ERROR_MESSAGE=Python executable not found: %PYTHON_EXE%"
+    goto error_handler
+)
+
+if not exist "launch.py" (
+    set "ERROR_MESSAGE=Required file 'launch.py' not found."
+    goto error_handler
+)
+
+:: === Run Application ===
+echo Using Python: %PYTHON_EXE%
+echo Launching application...
+"%PYTHON_EXE%" launch.py %*
+set "EXIT_CODE=!errorlevel!"
+
+if %EXIT_CODE% neq 0 (
+    echo Application exited with error code: %EXIT_CODE%
+    pause
+)
+
+:: === Cleanup ===
+if defined ENV_ACTIVATED (
+    if defined CONDA_DEFAULT_ENV (
+        call conda deactivate
+    ) else if exist "%VENV_DIR%\Scripts\deactivate.bat" (
+        call "%VENV_DIR%\Scripts\deactivate.bat"
+    )
+)
+
+goto end
+
+:error_handler
+echo ERROR: %ERROR_MESSAGE%
+echo Please fix the issue and try again.
+pause
+exit /b 1
+
+:end
+endlocal

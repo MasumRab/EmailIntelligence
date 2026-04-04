@@ -5,6 +5,7 @@ Handles running tests for the EmailIntelligence application.
 """
 
 import logging
+from argparse import Namespace
 
 from .command_interface import Command
 
@@ -40,9 +41,9 @@ class TestCommand(Command):
         """
         try:
             from setup.test_stages import handle_test_stage
-
+            
             logger.info("Running tests...")
-
+            
             # Execute test stage
             handle_test_stage(self.args)
 

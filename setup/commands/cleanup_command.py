@@ -5,6 +5,7 @@ Handles manual cleanup of resources and processes.
 """
 
 import logging
+from argparse import Namespace
 
 from .command_interface import Command
 
@@ -38,12 +39,11 @@ class CleanupCommand(Command):
         """
         try:
             from setup.utils import process_manager
-
             logger.info("Starting manual cleanup...")
-
+            
             # Perform process cleanup
             process_manager.cleanup()
-
+            
             logger.info("Manual cleanup completed successfully!")
             return 0
 

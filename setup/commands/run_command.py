@@ -5,6 +5,7 @@ Handles the execution of the EmailIntelligence application.
 """
 
 import logging
+from argparse import Namespace
 
 from .command_interface import Command
 
@@ -28,13 +29,13 @@ class RunCommand(Command):
     def validate_args(self) -> bool:
         """Validate command arguments."""
         # Basic validation for host and port
-        if hasattr(self.args, "host") and self.args.host:
+        if hasattr(self.args, 'host') and self.args.host:
             host = self.args.host
             if not isinstance(host, str) or len(host) == 0:
                 logger.error("Host must be a non-empty string")
                 return False
 
-        if hasattr(self.args, "port") and self.args.port:
+        if hasattr(self.args, 'port') and self.args.port:
             port = self.args.port
             if not isinstance(port, int) or not (1 <= port <= 65535):
                 logger.error(f"Port must be an integer between 1 and 65535, got {port}")
@@ -52,9 +53,9 @@ class RunCommand(Command):
         try:
             from setup.services import start_services, validate_services
             from setup.launch import prepare_environment
-
+            
             logger.info("Starting EmailIntelligence application...")
-
+            
             # Prepare the environment
             prepare_environment(self.args)
 
@@ -70,7 +71,6 @@ class RunCommand(Command):
 
             # Keep the process running
             import time
-
             try:
                 while True:
                     time.sleep(1)
