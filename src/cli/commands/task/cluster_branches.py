@@ -67,6 +67,9 @@ class ClusterBranchesCommand(Command):
         """Set command dependencies."""
         self._security_validator = dependencies.get("security_validator")
 
+    def get_dependencies(self) -> Dict[str, Any]:
+        return {}
+
     async def execute(self, args: Namespace) -> int:
         """Execute the branch clustering command."""
         print(f"🔍 Analyzing branches against '{args.primary}' in mode '{args.mode}'...")

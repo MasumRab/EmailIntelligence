@@ -68,6 +68,9 @@ class ImportAuditCommand(Command):
         parser.add_argument("--map", help="Path to a custom JSON import mapping file")
         parser.add_argument("--mode", choices=["ast", "cst"], default="cst", help="Refactoring backend to use")
 
+    def get_dependencies(self) -> Dict[str, Any]:
+        return {}
+
     async def execute(self, args: Namespace) -> int:
         print(f"🚀 Initializing Import Auditor (Mode: {args.mode.upper()})")
         src_path = Path(args.src)

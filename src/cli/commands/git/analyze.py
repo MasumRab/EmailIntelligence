@@ -80,7 +80,7 @@ class AnalyzeCommand(Command):
                 # Handle both class and instance for flexible DI
                 repo_ops = self._repo_ops(repo_path) if callable(self._repo_ops) else self._repo_ops
             else:
-                from ..git.repository import RepositoryOperations
+                from src.git.repository import RepositoryOperations
                 repo_ops = RepositoryOperations(repo_path)
 
             # 3. Determine and Validate Branches
