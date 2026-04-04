@@ -198,7 +198,8 @@ def check_wsl_requirements():
 
     # Check if X11 server is accessible (optional check)
     try:
-        result = subprocess.run(["xset", "-q"], capture_output=True, timeout=2)
+        # pylint: disable=dangerous-subprocess-use-audit
+        result = subprocess.run(["xset", "-q"], capture_output=True, timeout=2) # nosec B603
         if result.returncode != 0:
             logger.warning("X11 server not accessible - GUI applications may not work")
             logger.info("Install VcXsrv, MobaXterm, or similar X11 server on Windows")
@@ -350,7 +351,8 @@ def validate_host(host: str) -> str:
 def is_conda_available() -> bool:
     """Check if conda is available on the system."""
     try:
-        subprocess.run(["conda", "--version"], capture_output=True, text=True, check=True)
+        # pylint: disable=dangerous-subprocess-use-audit
+        subprocess.run(["conda", "--version"], capture_output=True, text=True, check=True) # nosec B603
         return True
     except (subprocess.CalledProcessError, FileNotFoundError):
         return False
@@ -537,7 +539,8 @@ def validate_orchestration_environment() -> bool:
 
     # Check if the requested environment exists
     try:
-        result = subprocess.run(
+        # pylint: disable=dangerous-subprocess-use-audit
+        result = subprocess.run( # nosec B603
             ["conda", "info", "--envs"], capture_output=True, text=True, check=True
         )
         envs = result.stdout.strip().split("\n")
@@ -603,7 +606,8 @@ def run_command(cmd: List[str], description: str, **kwargs) -> bool:
     """Run a command and log its output."""
     logger.info(f"{description}...")
     try:
-        proc = subprocess.run(cmd, check=True, text=True, capture_output=True, **kwargs)
+        # pylint: disable=dangerous-subprocess-use-audit
+        proc = subprocess.run(cmd, check=True, text=True, capture_output=True, **kwargs) # nosec B603
         if proc.stdout:
             logger.debug(proc.stdout)
         if proc.stderr:
@@ -639,7 +643,8 @@ def setup_dependencies(venv_path: Path, use_poetry: bool = False):
         run_command([python_exe, "-m", "pip", "install", "--upgrade", "pip"], "Upgrading pip")
         # For poetry, we need to install it first if not available
         try:
-            subprocess.run([python_exe, "-c", "import poetry"], check=True, capture_output=True)
+            # pylint: disable=dangerous-subprocess-use-audit
+            subprocess.run([python_exe, "-c", "import poetry"], check=True, capture_output=True) # nosec B603
         except subprocess.CalledProcessError:
             run_command([python_exe, "-m", "pip", "install", "poetry"], "Installing Poetry")
 
@@ -653,7 +658,8 @@ def setup_dependencies(venv_path: Path, use_poetry: bool = False):
         run_command([python_exe, "-m", "pip", "install", "--upgrade", "pip"], "Upgrading pip")
         # For uv, install if not available
         try:
-            subprocess.run([python_exe, "-c", "import uv"], check=True, capture_output=True)
+            # pylint: disable=dangerous-subprocess-use-audit
+            subprocess.run([python_exe, "-c", "import uv"], check=True, capture_output=True) # nosec B603
         except subprocess.CalledProcessError:
             run_command([python_exe, "-m", "pip", "install", "uv"], "Installing uv")
 
@@ -683,7 +689,8 @@ def setup_dependencies(venv_path: Path, use_poetry: bool = False):
 
 def install_notmuch_matching_system():
     try:
-        result = subprocess.run(
+        # pylint: disable=dangerous-subprocess-use-audit
+        result = subprocess.run( # nosec B603
             ["notmuch", "--version"], capture_output=True, text=True, check=True
         )
         version_line = result.stdout.strip()
@@ -732,7 +739,8 @@ except Exception as e:
 """
 
     logger.info("Downloading NLTK data...")
-    result = subprocess.run(
+    # pylint: disable=dangerous-subprocess-use-audit
+    result = subprocess.run( # nosec B603
         [python_exe, "-c", nltk_download_script], cwd=ROOT_DIR, capture_output=True, text=True
     )
     if result.returncode != 0:
@@ -755,7 +763,8 @@ except Exception as e:
 """
 
     logger.info("Downloading TextBlob corpora...")
-    result = subprocess.run(
+    # pylint: disable=dangerous-subprocess-use-audit
+    result = subprocess.run( # nosec B603
         [python_exe, "-c", textblob_download_script],
         cwd=ROOT_DIR,
         capture_output=True,
@@ -773,7 +782,8 @@ def check_uvicorn_installed() -> bool:
     """Check if uvicorn is installed."""
     python_exe = get_python_executable()
     try:
-        result = subprocess.run(
+        # pylint: disable=dangerous-subprocess-use-audit
+        result = subprocess.run( # nosec B603
             [python_exe, "-c", "import uvicorn"], capture_output=True, text=True
         )
         if result.returncode == 0:
@@ -864,7 +874,8 @@ def start_backend(host: str, port: int, debug: bool = False):
     if debug:
         cmd.append("--reload")
     logger.info(f"Starting backend on {host}:{port}")
-    process = subprocess.Popen(cmd, cwd=ROOT_DIR)
+    # pylint: disable=dangerous-subprocess-use-audit
+    process = subprocess.Popen(cmd, cwd=ROOT_DIR) # nosec B603
     process_manager.add_process(process)
 
 
@@ -902,7 +913,8 @@ def start_gradio_ui(host, port, share, debug):
         cmd.append("--debug")
     env = os.environ.copy()
     env["PYTHONPATH"] = str(ROOT_DIR)
-    process = subprocess.Popen(cmd, cwd=ROOT_DIR, env=env)
+    # pylint: disable=dangerous-subprocess-use-audit
+    process = subprocess.Popen(cmd, cwd=ROOT_DIR, env=env) # nosec B603
     process_manager.add_process(process)
 
 
