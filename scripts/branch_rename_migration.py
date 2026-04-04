@@ -15,10 +15,11 @@ import sys
 import re
 
 def run_command(command: list[str]):
-    """Run a shell command and return the output."""
+    """Run a shell command as a list of strings and return the output."""
     try:
         # sourcery skip: command-injection
-        result = subprocess.run(command, capture_output=True, text=True, check=True)
+        # pylint: disable=dangerous-subprocess-use-audit
+        result = subprocess.run(command, capture_output=True, text=True, check=True) # nosec B603
         return result.stdout.strip()
     except subprocess.CalledProcessError as e:
         print(f"Error running command: {' '.join(command)}")
