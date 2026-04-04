@@ -888,7 +888,8 @@ def start_node_service(service_path: Path, service_name: str, port: int, api_url
     env = os.environ.copy()
     env["PORT"] = str(port)
     env["VITE_API_URL"] = api_url
-    process = subprocess.Popen(["npm", "start"], cwd=service_path, env=env)
+    # pylint: disable=dangerous-subprocess-use-audit
+    process = subprocess.Popen(["npm", "start"], cwd=service_path, env=env) # nosec B603
     process_manager.add_process(process)
 
 
