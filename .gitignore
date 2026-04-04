@@ -248,3 +248,8 @@ LLXPRT.md
 # ck (seek) semantic search cache
 .ck/
 .env.local
+.distributed_translation.json
+.doc_templates.json
+.resource_monitoring.json
+.trunk/
+.beads/
