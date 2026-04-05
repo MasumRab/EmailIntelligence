@@ -29,7 +29,6 @@ from src.core.auth import authenticate_user
 
 from ..plugins.plugin_manager import plugin_manager
 from . import (
-    action_routes,
     ai_routes,
     category_routes,
     dashboard_routes,
@@ -43,11 +42,10 @@ from . import (
 )
 from .ai_engine import AdvancedAIEngine
 from .auth import create_access_token
-from .database import db_manager
+from .database import DatabaseManager, get_db
 from .exceptions import AppException, BaseAppException
 
 # Import new components
-from .model_manager import model_manager
 from .performance_monitor import performance_monitor
 from .settings import settings
 
@@ -176,7 +174,8 @@ async def startup_event():
 @app.on_event("shutdown")
 async def shutdown_event():
     """Application shutdown: disconnect from the database."""
-    await db_manager.close()
+    db = await get_db()
+    await db.close()
 
 
 @app.exception_handler(AppException)
