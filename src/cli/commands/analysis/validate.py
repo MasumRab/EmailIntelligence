@@ -1,11 +1,7 @@
 """
 Validate Command Module
 
-<<<<<<< Updated upstream
-Implements the validate command for running validation checks on the codebase.
-=======
 Implements the validate command for running validation checks.
->>>>>>> Stashed changes
 """
 
 from argparse import Namespace
@@ -30,23 +26,6 @@ class ValidateCommand(Command):
         return "Run validation checks on the codebase"
 
     def add_arguments(self, parser: Any) -> None:
-<<<<<<< Updated upstream
-        """Add command-specific arguments."""
-        pass
-
-    def get_dependencies(self) -> Dict[str, Any]:
-        """Get required dependencies."""
-        return {"validator": "CodeValidator"}
-
-    def set_dependencies(self, dependencies: Dict[str, Any]) -> None:
-        """Set command dependencies."""
-        self._validator = dependencies.get("validator")
-
-    async def execute(self, args: Namespace) -> int:
-        """Execute the validate command."""
-        print("Running codebase validation...")
-        return 0
-=======
         """
         Add command-specific arguments.
 
@@ -113,4 +92,3 @@ class ValidateCommand(Command):
         except Exception as e:
             print(f"Error during validation: {e}")
             return 1
->>>>>>> Stashed changes

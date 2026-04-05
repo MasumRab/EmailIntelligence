@@ -1,25 +1,4 @@
 """
-<<<<<<< Updated upstream
-Import Audit Command Module
-"""
-
-import re
-from argparse import Namespace
-from pathlib import Path
-from typing import Any, Dict, List
-
-from ..interface import Command
-
-
-class ImportAuditCommand(Command):
-    """
-    Command for identifying broken or deprecated imports.
-    """
-
-    def __init__(self):
-        self._security_validator = None
-
-=======
 Import Audit Command Module (Industrial Edition)
 
 High-fidelity import refactoring using LibCST and AST.
@@ -73,29 +52,12 @@ class ImportAuditCommand(Command):
     Supports AST heuristics and LibCST lossless transformations.
     """
 
->>>>>>> Stashed changes
     @property
     def name(self) -> str:
         return "import-audit"
 
     @property
     def description(self) -> str:
-<<<<<<< Updated upstream
-        return "Audit repository imports for consistency and correctness"
-
-    def add_arguments(self, parser: Any) -> None:
-        parser.add_argument("--fix", action="store_true", help="Attempt to fix issues")
-
-    def get_dependencies(self) -> Dict[str, Any]:
-        return {"security_validator": "SecurityValidator"}
-
-    def set_dependencies(self, dependencies: Dict[str, Any]) -> None:
-        self._security_validator = dependencies.get("security_validator")
-
-    async def execute(self, args: Namespace) -> int:
-        print("Auditing imports...")
-        return 0
-=======
         return "Deep module mapping and codebase-wide import refactoring (Task 18 alignment)"
 
     def add_arguments(self, parser: Any) -> None:
@@ -105,6 +67,9 @@ class ImportAuditCommand(Command):
         parser.add_argument("--fix", action="store_true", help="Apply transformations (lossless CST)")
         parser.add_argument("--map", help="Path to a custom JSON import mapping file")
         parser.add_argument("--mode", choices=["ast", "cst"], default="cst", help="Refactoring backend to use")
+
+    def get_dependencies(self) -> Dict[str, Any]:
+        return {}
 
     async def execute(self, args: Namespace) -> int:
         print(f"🚀 Initializing Import Auditor (Mode: {args.mode.upper()})")
@@ -251,4 +216,3 @@ class ImportAuditCommand(Command):
             with open(args.map) as f:
                 return json.load(f)
         return {r.strip(): r.strip() if "." in r else f"{args.new_prefix}.{r.strip()}" for r in args.legacy_roots.split(",")}
->>>>>>> Stashed changes

@@ -21,6 +21,10 @@ from .commands import (
     MergeSmartCommand,
     StashResolveCommand,
     OrchExtractCommand,
+    GitAlignCommand,
+    GitMergeSemanticCommand,
+    GitAutoResolveCommand,
+    GitDiscoverCommand,
     ValidateCommand,
     CompareCommand,
     AnalyzeCodeCommand,
@@ -39,6 +43,7 @@ from .commands import (
 )
 from .services.nlp import NLPService
 
+
 async def run_cli(args: Optional[List[str]] = None) -> int:
     """
     Run the unified CLI.
@@ -54,11 +59,11 @@ async def run_cli(args: Optional[List[str]] = None) -> int:
     
     # Initialize factory and registry with injected dependencies
     dependencies = {
-        "conflict_detector": None, # Placeholder
-        "analyzer": None,          # Placeholder
-        "strategy_generator": None, # Placeholder
-        "repository_ops": None,     # Placeholder
-        "security_validator": None, # Placeholder
+        "conflict_detector": None,  # Placeholder
+        "analyzer": None,           # Placeholder
+        "strategy_generator": None,  # Placeholder
+        "repository_ops": None,      # Placeholder
+        "security_validator": None,  # Placeholder
         "nlp": nlp_service
     }
     
@@ -74,6 +79,10 @@ async def run_cli(args: Optional[List[str]] = None) -> int:
     registry.register_command(MergeSmartCommand, agent="resolver")
     registry.register_command(StashResolveCommand, agent="resolver")
     registry.register_command(OrchExtractCommand, agent="git")
+    registry.register_command(GitAlignCommand, agent="resolver")
+    registry.register_command(GitMergeSemanticCommand, agent="resolver")
+    registry.register_command(GitAutoResolveCommand, agent="resolver")
+    registry.register_command(GitDiscoverCommand, agent="analyst")
     registry.register_command(AnalyzeCodeCommand, agent="analyst")
     registry.register_command(ImportAuditCommand, agent="analyst")
     registry.register_command(CompareCommand, agent="system")
@@ -98,7 +107,7 @@ async def run_cli(args: Optional[List[str]] = None) -> int:
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
 
     # Add arguments for each registered command
-    for command_name, metadata in registry.get_all_commands().items():
+    for command_name, _ in registry.get_all_commands().items():
         command_instance = registry.get_command(command_name)
         subparser = subparsers.add_parser(
             command_instance.name,
@@ -121,6 +130,7 @@ async def run_cli(args: Optional[List[str]] = None) -> int:
         print(f"Error executing command '{parsed_args.command}': {e}")
         return 1
 
+
 def main():
     """Main entry point."""
     try:
@@ -132,6 +142,7 @@ def main():
     except Exception as e:
         print(f"Unexpected error: {e}")
         sys.exit(1)
+
 
 if __name__ == "__main__":
     main()
