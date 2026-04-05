@@ -13,7 +13,7 @@ import subprocess
 import sys
 from pathlib import Path
 from dataclasses import dataclass
-from typing import List, Set
+from typing import Dict, List, Set, Tuple
 
 
 @dataclass
@@ -142,7 +142,7 @@ def main():
     analysis = analyze_overlap(file_path, local_range, remote_range)
 
     # Print results
-    print("=== Analysis Results ===")
+    print(f"=== Analysis Results ===")
     print(f"Lines changed in local only:  {analysis.local_only_lines}")
     print(f"Lines changed in remote only: {analysis.remote_only_lines}")
     print(f"Overlapping changes:          {analysis.overlapping_lines}")

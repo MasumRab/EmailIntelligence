@@ -74,7 +74,7 @@ tests/
 └── unit/
 
 # [REMOVE IF UNUSED] Option 2: Web application (when "frontend" + "backend" detected)
-src/backend/
+backend/
 ├── src/
 │   ├── models/
 │   ├── services/

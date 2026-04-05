@@ -172,3 +172,11 @@ def print_system_info():
     print("=========================")
 
 
+def process_manager():
+    """Basic process management utility function."""
+    # This is a placeholder for any process management functionality
+    # that might be needed in the future
+    return {
+        'status': 'active',
+        'version': '1.0.0'
+    }

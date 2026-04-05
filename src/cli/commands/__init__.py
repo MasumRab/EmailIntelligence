@@ -16,10 +16,6 @@ from .git.history import AnalyzeHistoryCommand
 from .git.merge_smart import MergeSmartCommand
 from .git.stash_resolve import StashResolveCommand
 from .git.pr_extract import OrchExtractCommand
-from .git.align import GitAlignCommand
-from .git.merge_semantic import GitMergeSemanticCommand
-from .git.auto_resolve import GitAutoResolveCommand
-from .git.discover import GitDiscoverCommand
 
 # 2. Analysis Domain
 from .analysis.validate import ValidateCommand
@@ -58,10 +54,6 @@ __all__ = [
     "MergeSmartCommand",
     "StashResolveCommand",
     "OrchExtractCommand",
-    "GitAlignCommand",
-    "GitMergeSemanticCommand",
-    "GitAutoResolveCommand",
-    "GitDiscoverCommand",
     # Analysis
     "ValidateCommand",
     "CompareCommand",

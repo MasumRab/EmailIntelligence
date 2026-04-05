@@ -13,5 +13,5 @@ def test_project_structure():
     """Test that the project has expected structure."""
     import os
     assert os.path.exists("setup")
-    assert os.path.exists("pyproject.toml") or os.path.exists("setup.cfg")
+    assert os.path.exists("pyproject.toml")
     assert os.path.exists("tests")

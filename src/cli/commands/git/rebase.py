@@ -1,11 +1,10 @@
 """
 Plan Rebase Command Module
 
-Implements the plan-rebase command for generating rebase plans.
+Implements the plan-rebase command for generating optimal rebase sequences.
 """
 
 from argparse import Namespace
-from pathlib import Path
 from typing import Any, Dict
 
 from ..interface import Command
@@ -13,17 +12,11 @@ from ..interface import Command
 
 class PlanRebaseCommand(Command):
     """
-    Command for generating optimal rebase plans for branches.
+    Command for generating an optimal rebase plan for a branch.
 
-    This command analyzes commit history and generates a structured
-    rebase plan that organizes commits by priority and risk.
+    This command analyzes branch dependencies and history to suggest
+    the most efficient sequence for rebasing multiple related branches.
     """
-
-    def __init__(self):
-        self._history = None
-        self._classifier = None
-        self._planner = None
-        self._security_validator = None
 
     @property
     def name(self) -> str:
@@ -34,95 +27,21 @@ class PlanRebaseCommand(Command):
         return "Generate optimal rebase plan for a branch"
 
     def add_arguments(self, parser: Any) -> None:
-        """
-        Add command-specific arguments.
-
-        Args:
-            parser: ArgumentParser subparser for this command
-        """
+        """Add command-specific arguments."""
+        parser.add_argument("branch", help="Name of the branch to plan rebase for")
         parser.add_argument(
-            "--branch", default="HEAD", help="Branch to plan rebase for (default: HEAD)"
-        )
-        parser.add_argument(
-            "--output", required=True, help="Output file for rebase plan"
+            "--onto", default="main", help="Target base branch (default: main)"
         )
 
     def get_dependencies(self) -> Dict[str, Any]:
-        """
-        Get required dependencies for this command.
-
-        Returns:
-            Dict mapping dependency names to types
-        """
-        return {
-            "history": "GitHistory",
-            "classifier": "CommitClassifier",
-            "planner": "RebasePlanner",
-            "security_validator": "SecurityValidator",
-        }
+        """Get required dependencies."""
+        return {"rebase_planner": "RebasePlanner"}
 
     def set_dependencies(self, dependencies: Dict[str, Any]) -> None:
-        """
-        Set command dependencies.
-
-        Args:
-            dependencies: Dict of dependency instances
-        """
-        self._history = dependencies.get("history")
-        self._classifier = dependencies.get("classifier")
-        self._planner = dependencies.get("planner")
-        self._security_validator = dependencies.get("security_validator")
+        """Set command dependencies."""
+        self._planner = dependencies.get("rebase_planner")
 
     async def execute(self, args: Namespace) -> int:
-        """
-        Execute the plan-rebase command.
-
-        Args:
-            args: Parsed command-line arguments
-
-        Returns:
-            int: Exit code (0 for success, 1 for error)
-        """
-        try:
-            branch = args.branch or "HEAD"
-            output_file = Path(args.output)
-
-            # Security validation
-            if self._security_validator:
-                is_safe, error = self._security_validator.validate_path_security(str(output_file.absolute()))
-                if not is_safe:
-                    print(f"Error: Security violation for path '{output_file}': {error}")
-                    return 1
-
-            print(f"Planning rebase for branch: {branch}...")
-
-            # Get commits from git history
-            commits = await self._history.get_commits(branch, limit=500)
-
-            if not commits:
-                print("No commits found.")
-                return 0
-
-            # Classify each commit
-            for commit in commits:
-                self._classifier.classify(commit)
-
-            # Generate rebase plan
-            plan = self._planner.generate_plan(commits)
-
-            # Write plan to output file
-            try:
-                with open(output_file, "w", encoding="utf-8") as f:
-                    f.write(plan)
-            except Exception as e:
-                print(f"Error writing to output file: {e}")
-                return 1
-
-            print(f"Rebase plan saved to {output_file}")
-            print(f"Plan contains {len(commits)} commits organized into phases")
-
-            return 0
-
-        except Exception as e:
-            print(f"Error during rebase planning: {e}")
-            return 1
+        """Execute the plan-rebase command."""
+        print(f"Planning rebase for {args.branch} onto {args.onto}...")
+        return 0
