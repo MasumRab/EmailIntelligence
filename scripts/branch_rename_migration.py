@@ -14,19 +14,21 @@ import subprocess
 import sys
 import re
 
-def run_command(command):
-    """Run a shell command and return the output."""
+def run_command(command: list[str]):
+    """Run a shell command as a list of strings and return the output."""
     try:
-        result = subprocess.run(command, shell=True, capture_output=True, text=True, check=True)
+        # sourcery skip: command-injection
+        # pylint: disable=dangerous-subprocess-use-audit
+        result = subprocess.run(command, capture_output=True, text=True, check=True) # nosec B603
         return result.stdout.strip()
     except subprocess.CalledProcessError as e:
-        print(f"Error running command: {command}")
+        print(f"Error running command: {' '.join(command)}")
         print(f"Error: {e.stderr}")
         return None
 
 def get_local_branches():
     """Get list of local branches."""
-    output = run_command("git branch")
+    output = run_command(["git", "branch"])
     if output is None:
         return []
 
@@ -39,7 +41,7 @@ def get_local_branches():
 
 def get_remote_branches():
     """Get list of remote branches."""
-    output = run_command("git branch -r")
+    output = run_command(["git", "branch", "-r"])
     if output is None:
         return []
 
@@ -140,19 +142,19 @@ def suggest_new_name(branch_name):
 def rename_local_branch(old_name, new_name):
     """Rename a local branch."""
     print(f"Renaming local branch '{old_name}' to '{new_name}'")
-    result = run_command(f"git branch -m {old_name} {new_name}")
+    result = run_command(["git", "branch", "-m", old_name, new_name])
     return result is not None
 
 def delete_remote_branch(branch_name):
     """Delete a remote branch."""
     print(f"Deleting remote branch '{branch_name}'")
-    result = run_command(f"git push origin --delete {branch_name.replace('origin/', '')}")
+    result = run_command(["git", "push", "origin", "--delete", branch_name.replace('origin/', '')])
     return result is not None
 
 def push_new_branch(branch_name):
     """Push a new branch to remote."""
     print(f"Pushing new branch '{branch_name}'")
-    result = run_command(f"git push -u origin {branch_name}")
+    result = run_command(["git", "push", "-u", "origin", branch_name])
     return result is not None
 
 def main():
@@ -214,7 +216,7 @@ def main():
         # Delete local branches marked for deletion
         for branch in branches_to_delete:
             print(f"Deleting local branch '{branch}'")
-            result = run_command(f"git branch -d {branch}")
+            result = run_command(["git", "branch", "-d", branch])
             if result is not None:
                 print(f"✓ Deleted local branch '{branch}'")
             else:

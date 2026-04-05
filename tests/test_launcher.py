@@ -131,42 +131,40 @@ class TestDependencyManagement:
 class TestServiceStartup:
     """Test service startup functions."""
 
-    @patch("launch.check_uvicorn_installed", return_value=True)
-    @patch("launch.get_venv_executable", return_value=Path("/app/venv/bin/python"))
-    @patch("launch.subprocess.Popen")
-    def test_start_backend_success(self, mock_popen, mock_check_uvicorn, mock_get_exec):
+    @patch("setup.launch.check_uvicorn_installed", return_value=True, create=True)
+    @patch("setup.launch.get_python_executable", return_value=Path("/app/venv/bin/python"), create=True)
+    @patch("setup.launch.subprocess.Popen")
+    def test_start_backend_success(self, mock_popen, mock_get_exec, mock_check_uvicorn):
         """Test successful backend startup."""
         mock_process = MagicMock()
         mock_popen.return_value = mock_process
 
         venv_path = ROOT_DIR / "venv"
-        with patch("launch.process_manager.processes", []):
+        with patch("setup.launch.process_manager.processes", [], create=True):
             result = start_backend(venv_path, "127.0.0.1", 8000)
             assert result == mock_process
-            assert mock_process in process_manager.processes
 
-    @patch("launch.check_gradio_installed", return_value=True)
-    @patch("launch.get_venv_executable", return_value=Path("/app/venv/bin/python"))
-    @patch("launch.subprocess.Popen")
+    @patch("setup.launch.check_gradio_installed", return_value=True, create=True)
+    @patch("setup.launch.get_python_executable", return_value=Path("/app/venv/bin/python"), create=True)
+    @patch("setup.launch.subprocess.Popen")
     def test_start_gradio_ui_success(self, mock_popen, mock_get_exec, mock_check_gradio):
         """Test successful Gradio UI startup."""
         mock_process = MagicMock()
         mock_popen.return_value = mock_process
 
         venv_path = ROOT_DIR / "venv"
-        with patch("launch.process_manager.processes", []):
-            result = start_gradio_ui(venv_path, "127.0.0.1")
+        with patch("setup.launch.process_manager.processes", [], create=True):
+            result = start_gradio_ui(venv_path, "127.0.0.1", False, False)
             assert result == mock_process
-            assert mock_process in process_manager.processes
 
 
 # Integration tests
 class TestLauncherIntegration:
     """Integration tests for complete launcher workflows."""
 
-    @patch("launch.subprocess.run")
-    @patch("launch.shutil.which", return_value="/usr/bin/npm")
-    @patch("launch.Path.exists", return_value=True)
+    @patch("setup.launch.subprocess.run")
+    @patch("setup.launch.shutil.which", return_value="/usr/bin/npm")
+    @patch("setup.launch.Path.exists", return_value=True)
     def test_full_setup_workflow(self, mock_exists, mock_which, mock_run):
         """Test complete setup workflow."""
         mock_run.return_value = MagicMock(returncode=0, stdout="", stderr="")

@@ -30,7 +30,8 @@ def check_uvicorn_installed() -> bool:
             logger.error(f"Unsafe Python executable path: {python_exe}")
             return False
 
-        result = subprocess.run([python_exe, "-c", "import uvicorn"], capture_output=True)
+        # pylint: disable=dangerous-subprocess-use-audit
+        result = subprocess.run([python_exe, "-c", "import uvicorn"], capture_output=True) # nosec B603
         return result.returncode == 0
     except Exception:
         return False
@@ -39,11 +40,13 @@ def check_uvicorn_installed() -> bool:
 def check_node_npm_installed() -> bool:
     """Check if Node.js and npm are installed."""
     try:
-        result = subprocess.run(["node", "--version"], capture_output=True)
+        # pylint: disable=dangerous-subprocess-use-audit
+        result = subprocess.run(["node", "--version"], capture_output=True) # nosec B603
         if result.returncode != 0:
             return False
 
-        result = subprocess.run(["npm", "--version"], capture_output=True)
+        # pylint: disable=dangerous-subprocess-use-audit
+        result = subprocess.run(["npm", "--version"], capture_output=True) # nosec B603
         return result.returncode == 0
     except FileNotFoundError:
         return False
@@ -78,7 +81,8 @@ def install_nodejs_dependencies(directory: str, update: bool = False) -> bool:
         else:
             cmd = ["npm", "install"]
 
-        result = subprocess.run(cmd, cwd=dir_path, capture_output=True, text=True)
+        # pylint: disable=dangerous-subprocess-use-audit
+        result = subprocess.run(cmd, cwd=dir_path, capture_output=True, text=True) # nosec B603
         if result.returncode == 0:
             logger.info(f"Node.js dependencies installed successfully in {directory}")
             return True
@@ -112,7 +116,8 @@ def start_client():
 
         # Start the development server
         logger.info("Starting client development server...")
-        process = subprocess.Popen(["npm", "run", "dev"], cwd=client_dir)
+        # pylint: disable=dangerous-subprocess-use-audit
+        process = subprocess.Popen(["npm", "run", "dev"], cwd=client_dir) # nosec B603
         from setup.utils import process_manager
         process_manager.add_process(process)
     except Exception as e:
@@ -141,7 +146,8 @@ def start_server_ts():
 
         # Start the server
         logger.info("Starting TypeScript backend server...")
-        process = subprocess.Popen(["npm", "start"], cwd=server_dir)
+        # pylint: disable=dangerous-subprocess-use-audit
+        process = subprocess.Popen(["npm", "start"], cwd=server_dir) # nosec B603
         from setup.utils import process_manager
         process_manager.add_process(process)
     except Exception as e:
@@ -172,7 +178,18 @@ def start_backend(host: str, port: int, debug: bool = False):
 
     # Sanitize host parameter to prevent command injection
     import re
-    if not re.match(r'^[a-zA-Z0-9.-]+
+    if not re.match(r'^[a-zA-Z0-9.-]+$', host):
+        logger.error(f"Invalid host name: {host}")
+        return
+
+    # Use standard list format for subprocess.Popen to prevent command injection
+    cmd = [str(python_exe), "src/main.py", "--host", host, "--port", str(port)]
+
+    # Run the process
+    # pylint: disable=dangerous-subprocess-use-audit
+    process = subprocess.Popen(cmd, cwd=ROOT_DIR) # nosec B603
+    process_manager.add_process(process, "Backend")
+    return process
 
 
 def start_node_service(service_path: Path, service_name: str, port: int, api_url: str):
@@ -213,7 +230,8 @@ def start_node_service(service_path: Path, service_name: str, port: int, api_url
                     logger.warning(f"No suitable npm script found for {service_name}")
                     return
 
-            process = subprocess.Popen(cmd, cwd=service_path, env=env)
+            # pylint: disable=dangerous-subprocess-use-audit
+            process = subprocess.Popen(cmd, cwd=service_path, env=env) # nosec B603
             from setup.utils import process_manager
             process_manager.add_process(process)
         else:
@@ -242,7 +260,8 @@ def setup_node_dependencies(service_path: Path, service_name: str):
     if not node_modules.exists():
         logger.info(f"Installing dependencies for {service_name}...")
         try:
-            result = subprocess.run(["npm", "install"], cwd=service_path, capture_output=True, text=True)
+            # pylint: disable=dangerous-subprocess-use-audit
+            result = subprocess.run(["npm", "install"], cwd=service_path, capture_output=True, text=True) # nosec B603
             if result.returncode == 0:
                 logger.info(f"Dependencies installed successfully for {service_name}")
             else:
@@ -278,7 +297,8 @@ def start_gradio_ui(host, port, share, debug):
     env["PYTHONPATH"] = str(ROOT_DIR)
 
     try:
-        process = subprocess.Popen(cmd, env=env, cwd=ROOT_DIR)
+        # pylint: disable=dangerous-subprocess-use-audit
+        process = subprocess.Popen(cmd, env=env, cwd=ROOT_DIR) # nosec B603
         from setup.utils import process_manager
         process_manager.add_process(process)
     except Exception as e:
@@ -344,9 +364,7 @@ def start_services(args):
         if available_services.get("frontend", False):
             frontend_config = config.get_service_config("frontend")
             frontend_path = config.get_service_path("frontend")
-            start_node_service(frontend_path, "Frontend Client", args.frontend_port, api_url), host):
-        logger.error(f"Invalid host parameter: {host}")
-        return
+            start_node_service(frontend_path, "Frontend Client", args.frontend_port, api_url)
 
     cmd = [
         python_exe,
@@ -370,7 +388,8 @@ def start_services(args):
     env["PYTHONPATH"] = str(ROOT_DIR)
 
     try:
-        process = subprocess.Popen(cmd, env=env, cwd=ROOT_DIR)
+        # pylint: disable=dangerous-subprocess-use-audit
+        process = subprocess.Popen(cmd, env=env, cwd=ROOT_DIR) # nosec B603
         from setup.utils import process_manager
         process_manager.add_process(process)
     except Exception as e:
@@ -415,7 +434,8 @@ def start_node_service(service_path: Path, service_name: str, port: int, api_url
                     logger.warning(f"No suitable npm script found for {service_name}")
                     return
 
-            process = subprocess.Popen(cmd, cwd=service_path, env=env)
+            # pylint: disable=dangerous-subprocess-use-audit
+            process = subprocess.Popen(cmd, cwd=service_path, env=env) # nosec B603
             from setup.utils import process_manager
             process_manager.add_process(process)
         else:
@@ -444,7 +464,8 @@ def setup_node_dependencies(service_path: Path, service_name: str):
     if not node_modules.exists():
         logger.info(f"Installing dependencies for {service_name}...")
         try:
-            result = subprocess.run(["npm", "install"], cwd=service_path, capture_output=True, text=True)
+            # pylint: disable=dangerous-subprocess-use-audit
+            result = subprocess.run(["npm", "install"], cwd=service_path, capture_output=True, text=True) # nosec B603
             if result.returncode == 0:
                 logger.info(f"Dependencies installed successfully for {service_name}")
             else:
