@@ -232,42 +232,43 @@ class RealTimePerformanceMonitor:
             
     def load_metrics(self):
         """Load metrics from file."""
-        try:
-            if not self.metrics_file.exists():
-                return
-                
-            with open(self.metrics_file, 'r') as f:
-                data = json.load(f)
-                
-            # Restore system metrics
-            self.system_metrics.clear()
-            for metric in data.get('system_metrics', []):
-                self.system_metrics.append(metric)
-                
-            # Restore agent metrics
-            self.agent_metrics.clear()
-            for agent_id, metrics in data.get('agent_metrics', {}).items():
-                agent_deque = deque(maxlen=self.max_history)
-                for metric_data in metrics:
-                    metric = AgentPerformanceMetrics(
-                        agent_id=metric_data['agent_id'],
-                        timestamp=metric_data['timestamp'],
-                        tasks_completed=metric_data['tasks_completed'],
-                        success_rate=metric_data['success_rate'],
-                        average_task_time=metric_data['average_task_time'],
-                        cpu_percent=metric_data['cpu_percent'],
-                        memory_percent=metric_data['memory_percent'],
-                        disk_io_read=metric_data['disk_io_read'],
-                        disk_io_write=metric_data['disk_io_write'],
-                        network_io_sent=metric_data['network_io_sent'],
-                        network_io_recv=metric_data['network_io_recv'],
-                        custom_metrics=metric_data.get('custom_metrics', {})
-                    )
-                    agent_deque.append(metric)
-                self.agent_metrics[agent_id] = agent_deque
-                
-        except Exception as e:
-            print(f"Error loading metrics: {e}")
+        with self._lock:
+            try:
+                if not self.metrics_file.exists():
+                    return
+
+                with open(self.metrics_file, 'r') as f:
+                    data = json.load(f)
+
+                # Restore system metrics
+                self.system_metrics.clear()
+                for metric in data.get('system_metrics', []):
+                    self.system_metrics.append(metric)
+
+                # Restore agent metrics
+                self.agent_metrics.clear()
+                for agent_id, metrics in data.get('agent_metrics', {}).items():
+                    agent_deque = deque(maxlen=self.max_history)
+                    for metric_data in metrics:
+                        metric = AgentPerformanceMetrics(
+                            agent_id=metric_data['agent_id'],
+                            timestamp=metric_data['timestamp'],
+                            tasks_completed=metric_data['tasks_completed'],
+                            success_rate=metric_data['success_rate'],
+                            average_task_time=metric_data['average_task_time'],
+                            cpu_percent=metric_data['cpu_percent'],
+                            memory_percent=metric_data['memory_percent'],
+                            disk_io_read=metric_data['disk_io_read'],
+                            disk_io_write=metric_data['disk_io_write'],
+                            network_io_sent=metric_data['network_io_sent'],
+                            network_io_recv=metric_data['network_io_recv'],
+                            custom_metrics=metric_data.get('custom_metrics', {})
+                        )
+                        agent_deque.append(metric)
+                    self.agent_metrics[agent_id] = agent_deque
+
+            except Exception as e:
+                print(f"Error loading metrics: {e}")
 
 
 class AgentPerformanceDashboard:
