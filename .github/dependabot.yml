@@ -1,0 +1,106 @@
+<<<<<<< HEAD
+# Dependabot configuration for automated dependency updates
+# https://docs.github.com/en/code-security/dependabot/dependabot-version-updates/configuration-options-for-dependabot-version-updates
+
+version: 2
+updates:
+  # GitHub Actions workflow updates
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "UTC"
+    labels:
+      - "dependencies"
+      - "github-actions"
+    commit-message:
+      prefix: "chore(deps)"
+    open-pull-requests-limit: 5
+    groups:
+      actions-minor:
+        update-types:
+          - "minor"
+          - "patch"
+
+  # Python pip dependencies
+=======
+version: 2
+updates:
+  # Python dependencies
+>>>>>>> sentinel-fix-command-injection-4893894402315046894
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+<<<<<<< HEAD
+      timezone: "UTC"
+    labels:
+      - "dependencies"
+      - "python"
+    commit-message:
+      prefix: "chore(deps)"
+    open-pull-requests-limit: 10
+    ignore:
+      # Ignore major versions with breaking changes (review manually)
+      - dependency-name: "*"
+        update-types:
+          - "version-update:semver-major"
+=======
+      timezone: "America/Los_Angeles"
+    labels:
+      - "dependencies"
+      - "python"
+      - "automerge"
+    commit-message:
+      prefix: "chore(deps)"
+    open-pull-requests-limit: 10
+>>>>>>> sentinel-fix-command-injection-4893894402315046894
+    groups:
+      python-minor:
+        update-types:
+          - "minor"
+          - "patch"
+<<<<<<< HEAD
+=======
+  
+  # GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "America/Los_Angeles"
+    labels:
+      - "dependencies"
+      - "ci/cd"
+      - "automerge"
+    commit-message:
+      prefix: "ci"
+    open-pull-requests-limit: 5
+  
+  # npm dependencies (for client/frontend)
+  - package-ecosystem: "npm"
+    directory: "/client"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "America/Los_Angeles"
+    labels:
+      - "dependencies"
+      - "javascript"
+      - "automerge"
+    commit-message:
+      prefix: "chore(deps)"
+    open-pull-requests-limit: 5
+    groups:
+      npm-minor:
+        update-types:
+          - "minor"
+          - "patch"
+>>>>>>> sentinel-fix-command-injection-4893894402315046894

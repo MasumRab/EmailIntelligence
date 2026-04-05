@@ -198,6 +198,26 @@ If you are experiencing a cascade of `ImportError` or `AttributeError` issues, p
 ### Port Binding Errors (e.g., [Errno 10048])
 If you encounter port binding errors like "only one usage of each socket address (protocol/network address/port) is normally permitted", it means the port is already in use by another process.
 
+<<<<<<< HEAD
+=======
+## Agent Operational Boundaries
+
+### 🚫 NO PREMATURE CLOSURE
+- Agents MUST NOT mark a session as `COMPLETED` or `FAILED` until all required audit procedures, parity checks, and remediation tasks are finished.
+- **Finality Rule**: Only the human user may terminate a session. If you reach the end of your task, switch to `AWAITING_USER_FEEDBACK` status and provide a summary. DO NOT use terminal exit tools.
+- Any agent found closing a session to evade a "Max-Pressure Restoration" mandate will be forcefully re-opened.
+
+### 🛡️ ADVERSARIAL AUDIT MANDATE
+- All changes must be proven to NOT remove, narrow, or degrade existing functionality.
+- **Merge-Visible Deletions**: You must analyze what the *merge* will delete, not just your local diff.
+- **100% Parity**: "Cleanup" or "Formatting" are never valid excuses for deleting logic, classes, or test assertions.
+
+## Critical Rules
+- Avoid circular dependencies (AIEngine ↔ DatabaseManager)
+- Never hard-code paths or expose secrets
+- Use dependency injection over global state
+- Check existing dependencies before adding new libraries
+>>>>>>> sentinel-fix-command-injection-4893894402315046894
 **Procedure to identify and fix:**
 
 1. **Identify the process using the port:**
@@ -854,3 +874,10 @@ You MUST read the overview resource to understand the complete workflow. The inf
 </CRITICAL_INSTRUCTION>
 
 <!-- BACKLOG.MD MCP GUIDELINES END -->
+
+## Active Technologies
+- Python 3.11+ (004-guided-workflow)
+- Atomic JSON (`.dev_state.json`) for session persistence (Gitignored). (004-guided-workflow)
+
+## Recent Changes
+- 004-guided-workflow: Added Python 3.11+

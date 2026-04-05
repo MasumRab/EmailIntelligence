@@ -1,106 +1,230 @@
-# Qwen CLI-Specific Instructions
+# EmailIntelligence Scientific Branch - Project Documentation
 
-> **Note:** This file works alongside `AGENTS.md` (generic AI agent instructions). AGENTS.md contains the core Task Master commands and workflows for all AI agents. This file contains only Qwen CLI-specific features and integrations.
+## Project Overview
 
-## MCP Configuration for Qwen CLI
+EmailIntelligence is a sophisticated full-stack application designed to provide intelligent email analysis and management capabilities. The scientific branch implements a hybrid architecture that combines the best features from both local and remote architectural approaches, featuring:
 
-Configure Task Master MCP server in `.qwen/settings.json` or `~/.qwen/config.json`:
+- **AI-powered email analysis** with constitutional compliance checking
+- **Git worktree-based conflict resolution** using constitutional/specification-driven analysis
+- **Modular architecture** with interface-based design patterns
+- **Advanced CLI tools** for intelligent branch merge conflict resolution
+- **Context control systems** for enhanced security and performance
+- **Semantic merging capabilities** for intelligent conflict resolution
 
-```json
-{
-  "mcpServers": {
-    "task-master-ai": {
-      "command": "npx",
-      "args": ["-y", "task-master-ai"]
-    }
-  }
-}
+## Architecture
+
+### Core Components
+- `src/main.py`: Factory pattern implementation with `create_app()` function for service compatibility
+- `emailintelligence_cli.py`: Advanced CLI with constitutional analysis and conflict resolution
+- `src/core/`: Core models, interfaces, and exception handling
+- `src/git/`: Git operations and conflict detection modules
+- `src/analysis/`: Conflict analysis and constitutional analysis engines
+- `src/resolution/`: Resolution engines and semantic merging capabilities
+- `src/strategy/`: Strategy generation and risk assessment modules
+- `src/validation/`: Validation frameworks and compliance checking
+
+### Interface-Based Architecture
+The scientific branch implements a comprehensive interface-based architecture:
+- `src/core/interfaces.py`: Core interfaces (IConflictDetector, IConstitutionalAnalyzer, etc.)
+- `src/git/conflict_detector.py`: Implements IConflictDetector interface
+- `src/analysis/constitutional/analyzer.py`: Implements constitutional analysis interface
+- `src/resolution/auto_resolver.py`: Implements automated resolution interface
+
+### CLI Framework
+- `.cli_framework/`: Modular integration framework for safe feature adoption
+- `emailintelligence_cli.py`: Main CLI application with constitutional analysis
+- Advanced conflict resolution using constitutional/specification-driven analysis
+- Spec-kit strategies for intelligent merge resolution
+
+## Building and Running
+
+### Prerequisites
+- Python 3.12+
+- Git with worktree support
+- Node.js (for frontend components)
+- Optional: CUDA-compatible GPU for enhanced AI processing
+
+### Setup
+```bash
+# Clone the repository
+git clone <repository-url>
+cd EmailIntelligence
+
+# Create virtual environment
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# Install dependencies
+pip install -r requirements.txt
+
+# For development:
+pip install -r requirements-dev.txt
 ```
 
-**Note:** API keys are configured via `task-master models --setup`, not in MCP configuration.
+### Running the Application
+```bash
+# Using the factory pattern (recommended for scientific branch)
+uvicorn src.main:create_app --factory --host 0.0.0.0 --port 8000
 
-## Qwen CLI-Specific Features
+# Or using the launch script
+python launch.py
 
-### Session Management
+# For development with hot reloading
+uvicorn src.main:create_app --factory --reload --host 0.0.0.0 --port 8000
+```
 
-Built-in session commands:
+### Running the CLI
+```bash
+# Setup resolution workspace
+python emailintelligence_cli.py setup-resolution --pr 123 --source-branch feature/auth --target-branch main
 
-- `/chat` - Start new conversation while keeping context
-- `/context` - View current loaded context
-- `/model` - Switch between Qwen models
-- `/history` - View conversation history
+# Analyze constitutional compliance
+python emailintelligence_cli.py analyze-constitutional --pr 123 --constitution ./constitutions/auth.yaml
 
-Both `AGENTS.md` and `QWEN.md` are auto-loaded on every Qwen CLI session.
+# Develop resolution strategy
+python emailintelligence_cli.py develop-spec-kit-strategy --pr 123 --worktrees --interactive
 
-### Headless Mode for Automation
+# Execute content alignment
+python emailintelligence_cli.py align-content --pr 123 --interactive --checkpoint-each-step
 
-Non-interactive mode for scripts:
+# Validate resolution
+python emailintelligence_cli.py validate-resolution --pr 123 --comprehensive
+```
+
+## Key Features
+
+### 1. Constitutional Analysis
+- Advanced constitutional compliance checking using constitutional engines
+- Specification-driven analysis for code quality and standards
+- Requirement validation against predefined constitutional rules
+- Risk assessment and mitigation strategies
+
+### 2. Conflict Resolution
+- Git worktree-based conflict detection and resolution
+- Semantic merging capabilities for intelligent conflict handling
+- Constitutional compliance validation during merge processes
+- Multi-phase resolution strategies with risk assessment
+
+### 3. Interface-Based Design
+- Modular architecture with clear separation of concerns
+- Testable components through dependency injection
+- Extensible design patterns for future enhancements
+- Consistent API contracts across modules
+
+### 4. Context Control
+- Enhanced security through context isolation
+- Performance optimization with context-aware operations
+- Resource management with context boundaries
+- Multi-tenant support with proper isolation
+
+## Development Conventions
+
+### Code Structure
+- All source code in `src/` directory following consistent import paths
+- Interface-based design with clear contracts in `src/core/interfaces.py`
+- Modular components organized by functionality in subdirectories
+- Test files co-located with source files in `tests/` directories
+
+### Git Workflow
+- Use worktree-based development for complex merge scenarios
+- Follow constitutional analysis for code compliance
+- Implement feature flags for experimental functionality
+- Maintain backward compatibility during refactors
+
+### Testing
+- Unit tests for all core functionality
+- Integration tests for multi-component interactions
+- Constitutional compliance validation as part of CI
+- Performance benchmarks for critical paths
+
+## Factory Command Structure
+
+The scientific branch implements a factory pattern in `src/main.py` with the `create_app()` function that is compatible with service startup expectations:
 
 ```bash
-# Simple text response
-qwen "What's the next task?"
+# Standard factory startup (expected by remote branch patterns)
+uvicorn src.main:create_app --factory --host 0.0.0.0 --port 8000
 
-# Stream output for long operations
-qwen --stream "Expand all tasks"
+# With additional options
+uvicorn src.main:create_app --factory --host 0.0.0.0 --port 8000 --workers 4 --log-level info
 
-# Set specific model
-qwen --model qwen-plus "Analyze this code"
+# For development with reload
+uvicorn src.main:create_app --factory --reload --host 0.0.0.0 --port 8000
 ```
 
-### Token Usage Monitoring
+This factory pattern allows the application to:
+- Meet remote branch service startup expectations
+- Preserve all local branch functionality
+- Integrate context control patterns from both architectures
+- Maintain compatibility with different deployment scenarios
 
+## CLI Integration Framework
+
+The scientific branch includes a comprehensive CLI framework that can be used by other branches:
+
+### Installation Options
 ```bash
-# In Qwen CLI session
-/usage
+# Install in minimal mode (core CLI functionality only)
+./.cli_framework/install.sh minimal
 
-# Shows: token usage, cost estimation, request count
+# Install in full mode (all features with constitutional analysis)
+./.cli_framework/install.sh full
+
+# Install in custom mode (selected components)
+./.cli_framework/install.sh custom
 ```
 
-### Qwen-Specific Capabilities
-
-- Multi-turn conversations with context retention
-- Code generation and analysis
-- Math and reasoning tasks
-- Chinese language support
-
-## Important Differences from Other Agents
-
-### No Tool Allowlist
-Qwen manages permissions at the MCP level, not via agent configuration.
-
-### Session Persistence
-Each session maintains context automatically. Use `/context` to verify loaded files.
-
-### Configuration Files
-- Global: `~/.qwen/config.json` or `~/.qwen/settings.json`
-- Project: `.qwen/settings.json`
-- **Not**: `.mcp.json` (that's for Claude Code)
-
-## Recommended Model Configuration
-
-For Qwen CLI users:
-
+### Safe Branch Integration
 ```bash
-# Set Qwen as primary model
-task-master models --set-main qwen-plus
-task-master models --set-fallback qwen-turbo
-
-# Optional: Use Perplexity for research
-task-master models --set-research perplexity-llama-3.1-sonar-large-128k-online
+# Merge CLI features to another branch with backup creation
+./.cli_framework/merge_to_branch.sh --target <branch_name> --mode <minimal|full>
 ```
 
-## Your Role with Qwen CLI
+### Non-Interference Policy
+- Preserves existing functionality in target branches
+- Creates automatic backups before modifications
+- Implements modular installation approach
+- Provides rollback capabilities
 
-As a Qwen CLI assistant with Task Master:
+## Troubleshooting
 
-1. **Use MCP tools naturally** - They integrate transparently in conversation
-2. **Reference context** - Use `/context` to verify what's loaded
-3. **Monitor usage** - Remind users about `/usage` for long sessions
-4. **Leverage reasoning** - Use Qwen's strength in multi-step reasoning
-5. **Multi-language support** - Can explain concepts in multiple languages
+### Common Issues
+1. **Import Path Issues**: Ensure all imports use the `src/` structure consistently
+2. **Service Startup Failures**: Verify factory pattern implementation with `--factory` option
+3. **Constitutional Analysis Failures**: Check constitution files and compliance requirements
+4. **Context Control Issues**: Validate context isolation and security configurations
 
-**Key Principle:** Focus on natural conversation. Task Master MCP tools work seamlessly with Qwen CLI's interface.
+### Validation Commands
+```bash
+# Verify factory function exists and works
+python -c "from src.main import create_app; app = create_app(); print('Factory function works')"
 
----
+# Test constitutional analysis
+python -c "from emailintelligence_cli import EmailIntelligenceCLI; cli = EmailIntelligenceCLI(); print('CLI initialized successfully')"
 
-*See AGENTS.md for complete Task Master commands, workflows, and best practices.*
+# Check interface implementations
+python -c "from src.core.interfaces import IConflictDetector; print('Interfaces available')"
+```
+
+## Branch-Specific Considerations
+
+The scientific branch represents a mature implementation that:
+- Combines architectural patterns from multiple development streams
+- Maintains all functionality from both local and remote branches
+- Implements advanced constitutional analysis and conflict resolution
+- Provides a stable foundation for further development
+- Includes comprehensive documentation and validation tools
+
+## Key Files and Directories
+
+- `src/main.py`: Factory pattern implementation for service compatibility
+- `emailintelligence_cli.py`: Advanced CLI with constitutional analysis
+- `src/core/`: Core interfaces, models, and exceptions
+- `src/git/`: Git operations and conflict detection
+- `src/analysis/`: Analysis engines and constitutional analyzers
+- `src/resolution/`: Resolution engines and semantic mergers
+- `src/strategy/`: Strategy generation and risk assessment
+- `src/validation/`: Validation frameworks and compliance checkers
+- `.cli_framework/`: Modular CLI integration framework
+- `guidance/`: Comprehensive documentation and merge guidance
+- `docs/`: Detailed documentation and architectural guides

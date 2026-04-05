@@ -210,3 +210,24 @@ def validate_user_input(
                     errors.append(f"Invalid format for field: '{field}'")
 
     return errors
+
+
+class SecurityValidator:
+    """
+    Consolidated security validator for the Email Intelligence Platform.
+    Provides methods for path safety, data sanitization, and I/O gating.
+    """
+
+    def __init__(self, base_dir: str = None):
+        self.base_dir = base_dir or os.getcwd()
+
+    def validate_io(self, path: str, mode: str = "r") -> bool:
+        """
+        Validates an I/O operation.
+        Returns True if the path is safe, False otherwise.
+        """
+        return validate_path_safety(path, self.base_dir)
+
+    def sanitize(self, path: str) -> str:
+        """Sanitizes a path."""
+        return sanitize_path(path)

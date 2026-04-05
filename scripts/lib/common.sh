@@ -3,7 +3,7 @@
 
 # Source all utility libraries
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-LIB_DIR="$(dirname "${BASH_SOURCE[0]}")"
+LIB_DIR="$(dirname "$SCRIPT_DIR")/lib"
 
 # Source utilities if they exist
 [[ -f "$LIB_DIR/logging.sh" ]] && source "$LIB_DIR/logging.sh"

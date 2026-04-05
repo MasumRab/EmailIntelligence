@@ -321,7 +321,19 @@ You MUST read the overview resource to understand the complete workflow. The inf
 
 <!-- BACKLOG.MD MCP GUIDELINES END -->
 
-## Active Technologies
+## Project-Specific Governance
+
+### File Access and Ignore Patterns
+
+This project uses a layered ignore strategy to maintain repository health while allowing AI tool access to orchestration files.
+
+- **Mandatory Configuration**: The `.gemini/settings.json` file MUST be configured with `"respectGitIgnore": false` to allow tool access to paths listed in `.gitignore`.
+- **Whitelisting**: Use `.geminiignore` to explicitly whitelist directories (e.g., `!.taskmaster/`, `!.context-control/`) that are ignored by Git but required for agentic workflows.
+- **Strict Prohibition**: NEVER remove `.taskmaster/`, `worktrees/`, or other orchestration directories from `.gitignore`. These are often Git worktrees and must remain untracked by the main branch.
+- **Session Restart**: Changes to `.gemini/settings.json` or `.geminiignore` require a **session restart** to take effect. If immediate access is needed, use `run_shell_command` with `cat` or `grep` as a temporary bypass.
+
+### Active Technologies
+
 - Python 3.11+ + GitPython, (potentially a diffing library) (001-rebase-analysis)
 - Git repository (001-rebase-analysis)
 - Git repository (history) (001-rebase-analysis)
@@ -329,6 +341,13 @@ You MUST read the overview resource to understand the complete workflow. The inf
 - N/A (in-memory processing for reports) (003-unified-git-analysis)
 - Python 3.12+ (Assumed based on project context) + GitPython (for Git repository interaction), potentially a static analysis library (e.g., `ast` module, `pyright`, `shellcheck`) for parsing Python and shell scripts, and a dependency parsing library (e.g., `pip-tools`, `poetry`) for dependency manifest files. (001-toolset-additive-analysis)
 - N/A (in-memory processing for analysis and report generation, with file output for reports). (001-toolset-additive-analysis)
+- Python 3.11+ + `typer`, `InquirePy`, `pydantic`, `GitPython` (004-guided-workflow)
+- Local JSON (`.dev_state.json`) for persistence (004-guided-workflow)
+- Atomic JSON (`.dev_state.json`) for session persistence (004-guided-workflow)
+- Python 3.11+ + `typer` (CLI), `pydantic` (Data Models), `GitPython` (Plumbing), `rich` (UI), `InquirePy` (Interactive prompts). (004-guided-workflow)
+- Atomic JSON (`.dev_state.json`) for session persistence (Gitignored). (004-guided-workflow)
+- Python 3.11+ (Required for `typer` and `pydantic` v2 compatibility) (004-guided-workflow)
+- Ephemeral JSON (`.dev_state.json`) for session persistence; Structured JSONL logs in `.dev_state/logs/`. (004-guided-workflow)
 
 ## Recent Changes
 - 001-rebase-analysis: Added Python 3.11+ + GitPython, (potentially a diffing library)

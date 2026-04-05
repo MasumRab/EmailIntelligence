@@ -1,0 +1,17 @@
+# Gemini CLI Ignore Patterns
+# Whitelist orchestration files
+!.taskmaster/
+!.taskmaster/**
+!.context-control/
+!.context-control/**
+!.rules/
+!.rules/**
+!.rulesync/
+!.rulesync/**
+!.cursorignore
+!.rulesyncignore
+!.merge-notes/
+!.merge-notes/**
+!worktrees/
+!worktrees/**
+!performance_metrics_log.jsonl

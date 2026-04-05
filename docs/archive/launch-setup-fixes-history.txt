@@ -1,0 +1,20 @@
+cd39f02 Add tasks for integrating setup subtree methodology in main and scientific branches
+e82f3c8 Update task 2 status to completed with completion notes
+3bdb91c Create setup subtree directory structure and move launch/setup files
+0881023 Add backlog tasks for git subtree migration of launch and setup files
+bbb689e cleanup: remove incorrectly created files
+e036b1f fix: add missing PathValidator class to security module
+6259452 chore: format code and update task status
+4905ce8 Fix textblob version check in setup script
+d3b2e2e Merge main: inherit core enhancements (security, database, performance)
+0e85e39 Update rebase task status to in progress
+6899b67 Merge branch 'minimal-work-reordered'
+f92b72e feat: Enhance core system with security, database backups, and performance improvements
+4fb7d5f Fix venv creation: update setup scripts to use 'venv' instead of 'emailintelligence_env'
+bef1234 Fix venv creation: update setup scripts to use 'venv' instead of 'emailintelligence_env'
+7c17b58 docs: update session file with completed activities
+9e2b7a6 docs: add branch management recommendations
+29975c6 docs: establish documented development sessions with IFLOW.md integration
+d9d7550 docs: analysis comprehensive branch classification and cleanup recommendations
+85fd0dc docs: workflow establish documentation management guidelines
+a634a6f docs: comprehensive project documentation consolidation

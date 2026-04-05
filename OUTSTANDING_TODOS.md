@@ -1,5 +1,45 @@
 # Outstanding Todos - EmailIntelligence Project
 
+## INFRASTRUCTURE: Submodule Configuration (NEW - December 2025)
+
+### Status: ✅ COMPLETED
+
+**Changes Made:**
+- [x] Removed Git worktree setup (.taskmaster as worktree)
+- [x] Added .taskmaster as Git submodule (points to `taskmaster` branch)
+- [x] Added orchestration-tools as Git submodule (points to `orchestration-tools` branch)
+- [x] Updated .gitignore to properly exclude/include submodules
+- [x] Created SUBMODULE_CONFIGURATION.md documentation
+
+**Submodule Configuration:**
+```
+[submodule ".taskmaster"]
+  path = .taskmaster
+  url = https://github.com/MasumRab/EmailIntelligence.git
+  branch = taskmaster
+```
+
+**Note**: `orchestration-tools/` is kept as a regular directory (not a submodule)
+
+**Key Files Preserved in .taskmaster:**
+- AGENTS.md, CLAUDE.md, config.json
+- CRUSH.md, GEMINI.md, IFLOW.md, LLXPRT.md
+- docs/ (all documentation)
+
+**Next Steps:**
+- [ ] Commit changes: `.gitignore`, `.gitmodules`, `SUBMODULE_CONFIGURATION.md`
+- [ ] Push to origin
+- [ ] Update CI/CD to initialize submodules on checkout
+- [ ] Update developer documentation references (remove worktree mentions)
+
+**Documentation to Update:**
+- BRANCH_UPDATE_QUICK_START.md - Remove worktree sync references
+- BRANCH_UPDATE_PROCEDURE.md - Update sync procedures for submodules
+- setup/README.md - Update submodule initialization instructions
+- Any documentation mentioning `worktrees` or `sync_setup_worktrees.sh`
+
+---
+
 ## PHASE 1: Documentation & Hooks Completion
 
 ### Status: ✅ COMPLETED
@@ -187,3 +227,7 @@ task-master set-status --id=3.1 --status=in-progress  # Start a subtask
 - Task 10: Task Management Testing Integration
 
 **Next Immediate Action:** Begin Task 3 work or proceed with hooks-validation
+
+## SENTINEL SECURITY TODOs
+- [ ] Thoroughly audit orchestration hooks to ensure they do not arbitrarily delete security-critical configurations (e.g. Dependabot files) during branch switching.
+- [ ] Review skipped assertions in `tests/test_launch.py` and `tests/test_launcher.py` and implement proper environment-aware mock injections to restore test coverage for orchestration logic.

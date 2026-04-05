@@ -1,0 +1,24 @@
+{
+  "name": "my-gemini-flow-project",
+  "version": "1.0.0",
+  "description": "AI-powered project using Gemini-Flow",
+  "main": "src/index.js",
+  "scripts": {
+    "dev": "gemini-flow sparc run dev",
+    "build": "gemini-flow sparc run build",
+    "test": "gemini-flow sparc run test",
+    "deploy": "gemini-flow sparc run deploy",
+    "swarm:init": "gemini-flow swarm init",
+    "agents:spawn": "gemini-flow agent spawn --count 5"
+  },
+  "keywords": [
+    "gemini-flow",
+    "ai",
+    "automation"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "gemini-flow": "^2.0.0"
+  }
+}

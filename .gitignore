@@ -1,4 +1,17 @@
-# Python / General
+# Aider
+.aider.chat.history.md
+.aider.input.history
+.aider.tags.cache.v4/
+
+# Backups
+backups/
+
+# Test scripts (duplicates with _fixed suffix)
+tests/modules/*_fixed.sh
+tests/modules/*_fixed*.sh
+tests/modules/*_final.sh
+
+# Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
 *$py.class
@@ -20,7 +33,9 @@ share/python-wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+*.whl
 MANIFEST
+workspace/
 
 # Node.js
 **/node_modules/
@@ -41,8 +56,6 @@ htmlcov/
 nosetests.xml
 coverage.xml
 *.cover
-*.py,cover
-.hypothesis/
 .pytest_cache/
 cover/
 
@@ -50,17 +63,17 @@ cover/
 *.mo
 *.pot
 
-# Django stuff:
+# Django stuff
 *.log
 local_settings.py
 db.sqlite3
 db.sqlite3-journal
 
-# Flask stuff:
+# Flask stuff
 instance/
 .webassets-cache
 
-# Scrapy stuff:
+# Scrapy stuff
 .scrapy
 
 # Sphinx documentation
@@ -151,19 +164,29 @@ config/llm_guidelines.local.json
 *.sublime-project
 *.sublime-workspace
 .history
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
 
 # Misc
 *.tar.gz
 *.whl
-.DS_Store
+.pnpm-debug.log*
 diagnosis_message.txt
 logs/
 performance_metrics_log.jsonl
 models/*.pkl
 
+# Aider
+.aider*
+
 # Project-specific ignores
 .orchestration-disabled
-# .taskmaster/  <-- COMMENTED OUT TO ALLOW TRACKING
+.taskmaster/
 worktrees/
 .merge-notes/
 .context-control/
@@ -172,7 +195,10 @@ worktrees/
 .rulesyncignore
 .cursorignore
 .validation_cache.json
+.trunk/
 .emailintelligence/
+.ck/
+.beads/
 
 # Documentation Whitelists (ensure these are tracked)
 !docs/.gitkeep
@@ -181,3 +207,66 @@ worktrees/
 !docs/agents/AIDER.md
 !docs/agents/CURSOR.md
 !docs/agents/AMP.md
+!.semgrep/
+!.gitignore
+!.git/hooks/
+!.flake8
+!.pylintrc
+!.github/
+!.specify/memory/
+
+# Agent Command Directories (IDE-specific, not for repo)
+.gemini/commands/
+.qwen/commands/
+.cursor/commands/
+.claude/commands/
+.claude/agents/
+.claude/memories/
+.iflow/commands/
+.opencode/command/
+.continue/
+
+# Agent-specific instruction MD files (local preferences)
+GEMINI.md
+QWEN.md
+CRUSH.md
+LLXPRT.md
+# Note: CLAUDE.md is project-level and MUST be tracked
+
+# Specify scripts (skeleton examples, not project-specific)
+.specify/scripts/
+
+# Misc local config
+.env.local
+.distributed_translation.json
+.doc_templates.json
+.resource_monitoring.json
+
+# Agent session/export files
+*.af
+jules_sessions/
+
+# Backup files
+*.backup
+*.orig
+*.bak
+backlog/config.yml.bak
+original_readme.md
+
+# Temporary analysis files
+CONFIG_ANALYSIS.md
+PHASE_6_*.md
+PR_480_RESOLUTION.md
+SCRIPTING_CONSOLIDATION_STATUS.md
+MERGIFY_BRANCH_ANALYSIS_FINAL.md
+
+# Deprecated directories
+backend/
+
+# Letta local settings (user-specific)
+.letta/settings.local.json
+
+# AI/IDE tool configs (local only)
+.iflow/
+.gemini-flow/
+.qwen/

@@ -1,0 +1,19 @@
+{
+  "env": {
+    "ANTHROPIC_BASE_URL": "http://localhost:3456"
+  },
+  "permissions": {
+    "allow": [
+      "Edit",
+      "Bash(*)",
+      "mcp"
+    ],
+    "deny": [
+      "Read(credentials/)"
+    ]
+  },
+  "enabledPlugins": {
+    "code-simplifier@claude-plugins-official": true,
+    "pr-review-toolkit@claude-plugins-official": true
+  }
+}

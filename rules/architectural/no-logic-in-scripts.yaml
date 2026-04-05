@@ -1,0 +1,21 @@
+# Rule: No Logic in Scripts (FR-004)
+# Detects function/class definitions in orchestration-only directories
+# Severity: warning
+# 
+# Constitution File Ownership Matrix:
+# - Orchestration-only: scripts/, scripts/lib/, scripts/hooks/
+# - These directories should NOT contain application logic
+
+id: architectural-no-logic-in-scripts
+language: python
+severity: warning
+rule:
+  any:
+    - kind: function_definition
+      not:
+        has:
+          pattern: 'def _'
+    - kind: class_definition
+    - kind: async_function_definition
+message: "Logic found in scripts/ directory. This is an orchestration-only area per Constitution File Ownership Matrix."
+note: "Move logic to src/ or another branch-specific directory. Scripts should only contain orchestration code."
