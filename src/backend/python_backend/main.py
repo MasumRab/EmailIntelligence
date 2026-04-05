@@ -46,6 +46,7 @@ from .database import get_db
 from .exceptions import AppException, BaseAppException
 
 # Import new components
+from .model_manager import model_manager
 from .performance_monitor import performance_monitor
 from .settings import settings
 
@@ -154,6 +155,9 @@ async def startup_event():
     await initialize_db()
 
     # Initialize new components
+    logger.info("Initializing model manager...")
+    model_manager.discover_models()
+
     logger.info("Initializing workflow manager...")
     # Nothing specific needed for workflow manager initialization
 
@@ -244,7 +248,7 @@ if os.getenv("NODE_ENV") in ["production", "staging"]:
 # or kept here if they are used by multiple route files or for general app setup.
 gmail_service = GmailAIService()  # Used by gmail_routes
 filter_manager = SmartFilterManager()  # Used by filter_routes
-ai_engine = AdvancedAIEngine()  # Used by email_routes, action_routes
+ai_engine = AdvancedAIEngine(model_manager)  # Used by email_routes, action_routes
 performance_monitor = performance_monitor  # Used by all routes via @performance_monitor.track
 
 from .routes.v1.category_routes import router as category_router_v1  # noqa: E402
@@ -374,9 +378,9 @@ async def get_error_stats():
 if __name__ == "__main__":
     import uvicorn
 
-port = int(os.getenv("PORT", 8000))
-env = os.getenv("NODE_ENV", "development")
-host = os.getenv("HOST", "127.0.0.1" if env == "development" else "0.0.0.0")
-reload = env == "development"
-# Use string app path to support reload
-uvicorn.run("main:app", host=host, port=port, reload=reload, log_level="info")
+    port = int(os.getenv("PORT", 8000))
+    env = os.getenv("NODE_ENV", "development")
+    host = os.getenv("HOST", "127.0.0.1" if env == "development" else "0.0.0.0")
+    reload = env == "development"
+    # Use string app path to support reload
+    uvicorn.run("main:app", host=host, port=port, reload=reload, log_level="info")
