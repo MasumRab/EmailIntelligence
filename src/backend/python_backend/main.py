@@ -42,7 +42,7 @@ from . import (
 )
 from .ai_engine import AdvancedAIEngine
 from .auth import create_access_token
-from .database import DatabaseManager, get_db
+from .database import get_db
 from .exceptions import AppException, BaseAppException
 
 # Import new components
@@ -154,9 +154,6 @@ async def startup_event():
     await initialize_db()
 
     # Initialize new components
-    logger.info("Initializing model manager...")
-    model_manager.discover_models()
-
     logger.info("Initializing workflow manager...")
     # Nothing specific needed for workflow manager initialization
 
@@ -168,7 +165,8 @@ async def startup_event():
     from .dependencies import initialize_services
 
     await initialize_services()
-    await db_manager.connect()
+    db = await get_db()
+    await db.connect()
 
 
 @app.on_event("shutdown")
@@ -246,13 +244,13 @@ if os.getenv("NODE_ENV") in ["production", "staging"]:
 # or kept here if they are used by multiple route files or for general app setup.
 gmail_service = GmailAIService()  # Used by gmail_routes
 filter_manager = SmartFilterManager()  # Used by filter_routes
-ai_engine = AdvancedAIEngine(model_manager)  # Used by email_routes, action_routes
+ai_engine = AdvancedAIEngine()  # Used by email_routes, action_routes
 performance_monitor = performance_monitor  # Used by all routes via @performance_monitor.track
 
-from .routes.v1.category_routes import router as category_router_v1
+from .routes.v1.category_routes import router as category_router_v1  # noqa: E402
 
 # Include versioned API routers
-from .routes.v1.email_routes import router as email_router_v1
+from .routes.v1.email_routes import router as email_router_v1  # noqa: E402
 
 # Mount versioned APIs
 app.include_router(email_router_v1, prefix="/api/v1", tags=["emails-v1"])
@@ -267,27 +265,26 @@ app.include_router(training_routes.router)
 app.include_router(workflow_routes.router)
 app.include_router(model_routes.router)
 app.include_router(performance_routes.router)
-app.include_router(action_routes.router)
 app.include_router(dashboard_routes.router)
 app.include_router(ai_routes.router)
 
 # Include enhanced feature routers
-from .enhanced_routes import router as enhanced_router
+from .enhanced_routes import router as enhanced_router  # noqa: E402
 
 app.include_router(enhanced_router, prefix="/api/enhanced", tags=["enhanced"])
 
 # Include workflow routes (legacy and node-based)
-from .workflow_routes import router as workflow_router
+from .workflow_routes import router as workflow_router  # noqa: E402
 
 app.include_router(workflow_router, prefix="", tags=["workflows"])
 
 # Include advanced workflow routes (will use node-based system)
-from .advanced_workflow_routes import router as advanced_workflow_router
+from .advanced_workflow_routes import router as advanced_workflow_router  # noqa: E402
 
 app.include_router(advanced_workflow_router, prefix="/api/workflows", tags=["advanced-workflows"])
 
 # Include node-based workflow routes
-from .node_workflow_routes import router as node_workflow_router
+from .node_workflow_routes import router as node_workflow_router  # noqa: E402
 
 app.include_router(node_workflow_router, prefix="/api/nodes", tags=["node-workflows"])
 
