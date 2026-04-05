@@ -18,6 +18,7 @@ from typing import List
 def run_command(command: List[str]):
     """Run a shell command and return the output."""
     try:
+        # sourcery skip: command-injection
         result = subprocess.run(command, shell=False, capture_output=True, text=True, check=True)
         return result.stdout.strip()
     except subprocess.CalledProcessError as e:

@@ -29,6 +29,7 @@ class OverlapAnalysis:
 
 def run_command(cmd: List[str]) -> str:
     """Run shell command and return output"""
+    # sourcery skip: command-injection
     result = subprocess.run(cmd, shell=False, capture_output=True, text=True)
     return result.stdout
 
