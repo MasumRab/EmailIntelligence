@@ -11,7 +11,7 @@ import json
 from argparse import Namespace
 from difflib import SequenceMatcher
 from pathlib import Path
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List
 
 from ..interface import Command
 
@@ -20,7 +20,7 @@ class CompareCommand(Command):
     """
     Command for identifying functional regressions during consolidation.
     
-    Combines high-level pattern detection (Macro) with function-level 
+    Combines high-level pattern detection (Macro) with function-level
     logic signatures (Micro) to verify implementation parity.
     """
 
@@ -64,11 +64,11 @@ class CompareCommand(Command):
             dna = self._extract_logical_dna(path)
             patterns = self._detect_patterns(path)
             chain.append({"file": f, "dna": dna, "patterns": patterns})
-        
+
         comparisons = []
         for i in range(len(chain) - 1):
             comparisons.append(self._compare_dna(chain[i], chain[i+1]))
-            
+
         return {"files": [c["file"] for c in chain], "comparisons": comparisons}
 
     def _extract_logical_dna(self, path: Path) -> Dict[str, Dict]:
@@ -82,10 +82,10 @@ class CompareCommand(Command):
                     # 1. Normalize logic (strip comments/whitespace)
                     logic_body = ast.get_source_segment(content, node) or ""
                     normalized = self._normalize_logic(logic_body)
-                    
+
                     # 2. Generate Logical Signature
                     sig = hashlib.sha256(normalized.encode()).hexdigest()[:12]
-                    
+
                     dna[node.name] = {
                         "sig": sig,
                         "complexity": len(node.body),
@@ -123,7 +123,7 @@ class CompareCommand(Command):
 
     def _normalize_logic(self, source: str) -> str:
         """Remove comments and normalize whitespace."""
-        lines = [line.strip() for line in source.splitlines() 
+        lines = [line.strip() for line in source.splitlines()
                  if line.strip() and not line.strip().startswith("#")]
         return "".join(lines)
 

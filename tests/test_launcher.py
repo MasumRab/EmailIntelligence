@@ -10,8 +10,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import pytest
 
 from setup.launch import (
-    ROOT_DIR, main, start_gradio_ui, start_backend, 
-    setup_dependencies, download_nltk_data, check_python_version, 
+    ROOT_DIR, main, start_gradio_ui, start_backend,
+    setup_dependencies, download_nltk_data, check_python_version,
     prepare_environment, process_manager, create_venv
 )
 

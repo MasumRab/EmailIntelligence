@@ -18,7 +18,7 @@ from ..interface import Command
 class AnalyzeCodeCommand(Command):
     """
     Exhaustive Code Auditor following SOLID principles.
-    
+
     Ported Capabilities:
     - AST-based structural anti-pattern detection (Fragile Intent)
     - Security scanner for hardcoded secrets and ungated I/O
@@ -50,7 +50,7 @@ class AnalyzeCodeCommand(Command):
 
     async def execute(self, args: Namespace) -> int:
         root_path = Path(args.path)
-        
+
         if self._security_validator:
             is_safe, err = self._security_validator.validate_path_security(str(root_path.absolute()))
             if not is_safe:
@@ -58,7 +58,7 @@ class AnalyzeCodeCommand(Command):
                 return 1
 
         print(f"🔍 Starting Exhaustive Codebase Audit at '{root_path.absolute()}'...")
-        
+
         results = {
             "technical_debt": self._scan_todo_markers(root_path),
             "performance_gaps": self._detect_inefficient_loops(root_path),
@@ -74,7 +74,7 @@ class AnalyzeCodeCommand(Command):
         filtered_results = {}
         for category, issues in results.items():
             filtered_results[category] = [
-                i for i in issues 
+                i for i in issues
                 if severity_order.get(i.get("risk_level", "LOW"), 0) >= min_severity
             ]
 
@@ -118,9 +118,9 @@ class AnalyzeCodeCommand(Command):
                 content = py_file.read_text(encoding='utf-8')
                 if content.count("for ") > 10 and "range(len(" in content:
                     issues.append({
-                        "type": "PERFORMANCE", 
-                        "risk_level": "MEDIUM", 
-                        "file": str(py_file.relative_to(root)), 
+                        "type": "PERFORMANCE",
+                        "risk_level": "MEDIUM",
+                        "file": str(py_file.relative_to(root)),
                         "description": "Potential inefficient range(len()) pattern found"
                     })
             except Exception:
@@ -137,9 +137,9 @@ class AnalyzeCodeCommand(Command):
                 matches = pattern.findall(py_file.read_text(encoding='utf-8'))
                 for m in matches:
                     issues.append({
-                        "type": "SECURITY", 
-                        "risk_level": "HIGH", 
-                        "file": str(py_file.relative_to(root)), 
+                        "type": "SECURITY",
+                        "risk_level": "HIGH",
+                        "file": str(py_file.relative_to(root)),
                         "description": "Potential hardcoded secret found"
                     })
             except Exception:
@@ -155,7 +155,7 @@ class AnalyzeCodeCommand(Command):
             try:
                 content = py_file.read_text(encoding='utf-8')
                 tree = ast.parse(content)
-                
+
                 for node in ast.walk(tree):
                     # 1. Detect Bare Excepts (Fragile Intent)
                     if isinstance(node, ast.ExceptHandler) and node.type is None:
@@ -166,7 +166,7 @@ class AnalyzeCodeCommand(Command):
                             "line": node.lineno,
                             "description": "Fragile Intent: Bare 'except:' clause detected"
                         })
-                    
+
                     # 2. Detect Unsafe I/O (Non-SecurityValidator logic)
                     if isinstance(node, ast.Call) and isinstance(node.func, ast.Name):
                         if node.func.id == "open" and not self._is_security_validator_active():

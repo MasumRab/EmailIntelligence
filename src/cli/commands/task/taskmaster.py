@@ -18,7 +18,7 @@ from ..interface import Command
 class TaskmasterCommand(Command):
     """
     Command for parsing PRD markdowns and generating tasks.json.
-    
+
     Ported Capabilities:
     - Multi-directory PRD scanning
     - Regex-based ID and metadata extraction
@@ -73,7 +73,7 @@ class TaskmasterCommand(Command):
                 return 1
 
             print(f"🔍 Scanning for task markdowns in '{tasks_dir}'...")
-            
+
             task_files = list(tasks_dir.rglob("*.md"))
             tasks = []
 
@@ -147,14 +147,14 @@ class TaskmasterCommand(Command):
             id_match = re.search(r'task[-_.]?(\d+(?:[-_.]\d+)*)', file_path.stem, re.I)
             if not id_match:
                 return None
-            
+
             # Canonicalize ID (Replace all separators with dots)
             task_id = re.sub(r'[-_]', '.', id_match.group(1))
-            
+
             # 2. Extract metadata with robustness for trailing whitespace
             title = re.search(r'#\s*Task.*?[:\-]\s*(.+)', content)
             priority = re.search(r'Priority:\s*(\w+)', content, re.I)
-            
+
             # Use improved regex for headings (allowing trailing spaces before newline)
             desc_match = re.search(r'##\s*Description\s*\n(.*?)(?=\n##|\Z)', content, re.S)
             ac_match = re.search(r'##\s*Acceptance Criteria\s*\n(.*?)(?=\n##|\Z)', content, re.S)

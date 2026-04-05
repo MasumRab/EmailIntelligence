@@ -16,7 +16,7 @@ from ..interface import Command
 class ListTasksCommand(Command):
     """
     Command for listing tasks from the unified tasks.json.
-    
+
     Provides filtering capabilities by status, priority, and visibility of subtasks.
     """
 
@@ -37,8 +37,8 @@ class ListTasksCommand(Command):
         parser.add_argument("--priority", help="Filter by priority (high, medium, low)")
         parser.add_argument("--show-subtasks", action="store_true", help="Show subtask details")
         parser.add_argument(
-            "--file", 
-            default="tasks/tasks.json", 
+            "--file",
+            default="tasks/tasks.json",
             help="Path to tasks.json file"
         )
 
@@ -70,10 +70,10 @@ class ListTasksCommand(Command):
         try:
             with open(tasks_file, 'r', encoding='utf-8') as f:
                 data = json.load(f)
-            
+
             # Handle different JSON formats (master key or direct list)
             tasks = data.get("master", {}).get("tasks", []) if "master" in data else data.get("tasks", [])
-            
+
             if not tasks:
                 print("No tasks found.")
                 return 0
@@ -85,10 +85,10 @@ class ListTasksCommand(Command):
                 tasks = [t for t in tasks if t.get("priority") == args.priority]
 
             print(f"📋 Found {len(tasks)} tasks:\n")
-            
+
             for task in tasks:
                 self._print_task(task, args.show_subtasks)
-                
+
             return 0
         except Exception as e:
             print(f"Error reading tasks: {e}")
@@ -99,7 +99,7 @@ class ListTasksCommand(Command):
         status_icon = "✅" if task.get("status") in ["done", "completed"] else "⏳"
         print(f"{status_icon} [{task['id']}] {task['title']}")
         print(f"   Priority: {task.get('priority', 'medium')}")
-        
+
         if show_subtasks and "subtasks" in task and task["subtasks"]:
             print(f"   Subtasks ({len(task['subtasks'])}):")
             for sub in task["subtasks"]:

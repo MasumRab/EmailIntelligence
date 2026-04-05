@@ -16,8 +16,8 @@ from ..interface import Command
 class MCPSyncCommand(Command):
     """
     Command for unifying MCP configurations across Claude, Cline, Cursor, and Roo.
-    
-    Ensures all AI agents have access to the same modular CLI tools by 
+
+    Ensures all AI agents have access to the same modular CLI tools by
     syncing templates from mcp/ to their respective hidden directories.
     """
 
@@ -35,14 +35,14 @@ class MCPSyncCommand(Command):
     def add_arguments(self, parser: Any) -> None:
         """Add command-specific arguments."""
         parser.add_argument(
-            "--target", 
+            "--target",
             choices=["claude", "cline", "cursor", "all"],
             default="all",
             help="Target agent to sync"
         )
         parser.add_argument(
-            "--dry-run", 
-            action="store_true", 
+            "--dry-run",
+            action="store_true",
             help="Show what would be synced without making changes"
         )
 
@@ -69,7 +69,7 @@ class MCPSyncCommand(Command):
 
         try:
             selected = targets.keys() if args.target == "all" else [args.target]
-            
+
             for agent in selected:
                 dest_rel, template_name = targets[agent]
                 template_path = mcp_root / template_name
@@ -80,7 +80,7 @@ class MCPSyncCommand(Command):
                     continue
 
                 print(f"  - Syncing {agent} -> {dest_path}")
-                
+
                 if args.dry_run:
                     print(f"    [DRY RUN] Would copy {template_name} to {dest_rel}")
                     continue

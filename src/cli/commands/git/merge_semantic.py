@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 class GitMergeSemanticCommand(Command):
     """
     Command for high-fidelity semantic merging of code conflicts.
-    
+
     Ported Capabilities:
     - Smart function signature merging
     - Intelligent variable assignment combination (List/Dict merging)
@@ -57,7 +57,7 @@ class GitMergeSemanticCommand(Command):
 
     async def execute(self, args: Namespace) -> int:
         file_path = Path(args.file)
-        
+
         if self._security_validator:
             is_safe, err = self._security_validator.validate_path_security(str(file_path.absolute()))
             if not is_safe:
@@ -100,7 +100,7 @@ class GitMergeSemanticCommand(Command):
         """Ported logic for intelligent value merging."""
         vars_a = self._extract_vars(lines_a)
         vars_b = self._extract_vars(lines_b)
-        
+
         merged = []
         all_keys = set(vars_a.keys()) | set(vars_b.keys())
         for k in all_keys:

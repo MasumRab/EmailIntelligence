@@ -84,7 +84,7 @@ class ResolveCommand(Command):
             # 6. Print detailed resolution status
 
             # For now, provide stub implementation
-            print(f"Conflict resolution would be executed here.")
+            print("Conflict resolution would be executed here.")
             print(f"  Conflict ID: {conflict_id}")
             print(f"  Strategy ID: {strategy_id}")
 

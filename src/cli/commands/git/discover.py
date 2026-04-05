@@ -15,7 +15,7 @@ from ..interface import Command
 class GitDiscoverCommand(Command):
     """
     Command for rigorously discovering unconsolidated or out-of-scope remote tooling.
-    
+
     Uses NLP-based semantic matching to categorize tools by their functional intent
     and identifies "shadow" frameworks hidden in remote branches.
     """
@@ -36,15 +36,15 @@ class GitDiscoverCommand(Command):
 
     def add_arguments(self, parser: Any) -> None:
         parser.add_argument(
-            "--limit", 
-            type=int, 
-            default=20, 
+            "--limit",
+            type=int,
+            default=20,
             help="Limit number of branches to scan"
         )
         parser.add_argument(
-            "--threshold", 
-            type=float, 
-            default=0.4, 
+            "--threshold",
+            type=float,
+            default=0.4,
             help="Similarity threshold for 'Out of Scope' flagging"
         )
 
@@ -71,7 +71,7 @@ class GitDiscoverCommand(Command):
 
             for branch in branches:
                 print(f"\n--- Investigating Branch: {branch} ---")
-                
+
                 # 2. Extract functional DNA (script names and folder structure)
                 dna = self._extract_branch_dna(branch)
                 if not dna:
@@ -80,10 +80,10 @@ class GitDiscoverCommand(Command):
 
                 # 3. Semantic Intent Analysis
                 similarity = await self._nlp.calculate_similarity(dna, self.CORE_SCOPE)
-                
+
                 status = "IN SCOPE" if similarity > args.threshold else "🚨 OUT OF SCOPE / EXTERNAL TOOL"
                 print(f"  - Semantic Affinity: {similarity:.2f} ({status})")
-                
+
                 if similarity <= args.threshold:
                     print(f"  - Found potential external toolset in {branch}")
                     # List top scripts found in this 'external' branch
@@ -106,7 +106,7 @@ class GitDiscoverCommand(Command):
     def _get_branch_scripts(self, branch: str) -> List[str]:
         """Fetch list of scripts on a remote branch."""
         result = subprocess.run(
-            ["git", "ls-tree", "-r", f"origin/{branch}"], 
+            ["git", "ls-tree", "-r", f"origin/{branch}"],
             capture_output=True, text=True
         )
         return [l.split('\t')[1] for l in result.stdout.splitlines() if l.endswith((".py", ".sh"))]

@@ -67,14 +67,12 @@ class ClusterBranchesCommand(Command):
         """Set command dependencies."""
         self._security_validator = dependencies.get("security_validator")
 
-    def get_dependencies(self) -> Dict[str, Any]:
-        return {}
-
     async def execute(self, args: Namespace) -> int:
         """Execute the branch clustering command."""
         print(f"🔍 Analyzing branches against '{args.primary}' in mode '{args.mode}'...")
 
-        if not self.engine: self.engine = ClusterEngine(repo_path=".", mode=args.mode)
+        if not self.engine:
+            self.engine = ClusterEngine(repo_path=".", mode=args.mode)
 
         try:
             # 1. Get list of remote feature branches

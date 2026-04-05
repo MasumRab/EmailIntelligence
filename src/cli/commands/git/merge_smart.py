@@ -51,21 +51,23 @@ class MergeSmartCommand(Command):
 
     async def execute(self, args: Namespace) -> int:
         file_path = Path(args.file)
-        
+
         if self._security_validator:
             is_safe, error = self._security_validator.validate_path_security(str(file_path.absolute()))
             if not is_safe:
-                print(f"Error: Security violation: {error}"); return 1
+                print(f"Error: Security violation: {error}")
+                return 1
 
         if not file_path.exists():
-            print(f"Error: File '{file_path}' not found."); return 1
+            print(f"Error: File '{file_path}' not found.")
+            return 1
 
         print(f"🧬 Starting Intelligent Merge: {file_path}")
         print(f"   Refs: {args.local} <-> {args.remote}")
 
         try:
             # 1. Get merge base
-            base_ref = self._run_command(f"git merge-base {args.local} {args.remote}").strip()
+            base_ref = self._run_command(["git", "merge-base", args.local, args.remote]).strip()
             if not base_ref:
                 print("Error: Could not find common ancestor (merge-base).")
                 return 1
@@ -103,21 +105,22 @@ class MergeSmartCommand(Command):
 
     # --- PORTED LOGIC DNA (RESTORED FIDELITY) ---
 
-    def _run_command(self, cmd: str) -> str:
+    def _run_command(self, cmd: List[str]) -> str:
         """Ported from legacy run_command."""
-        result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
+        result = subprocess.run(cmd, shell=False, capture_output=True, text=True)
         return result.stdout
 
     def _get_git_content(self, file_path: Path, ref: str) -> str:
         """Ported from legacy get_file_content with Path awareness."""
         try:
-            return self._run_command(f"git show {ref}:{file_path}")
-        except Exception: return ""
+            return self._run_command(["git", "show", f"{ref}:{file_path}"])
+        except Exception:
+            return ""
 
     def _get_changed_lines(self, file_path: Path, base_ref: str, target_ref: str) -> List[int]:
         """Ported logic for diff chunk parsing."""
         try:
-            diff = self._run_command(f"git diff {base_ref}..{target_ref} -- {file_path}")
+            diff = self._run_command(["git", "diff", f"{base_ref}..{target_ref}", "--", str(file_path)])
             changed_lines = set()
             for line in diff.split("\n"):
                 if line.startswith("@@"):
@@ -126,9 +129,11 @@ class MergeSmartCommand(Command):
                         loc = parts[1].split(" ")[0]
                         start = int(loc.split(",")[0]) if "," in loc else int(loc)
                         count = int(loc.split(",")[1]) if "," in loc else 1
-                        for i in range(start, start + count): changed_lines.add(i)
+                        for i in range(start, start + count):
+                            changed_lines.add(i)
             return sorted(list(changed_lines))
-        except Exception: return []
+        except Exception:
+            return []
 
     def _do_3way_merge(self, base, local, remote, local_chg, remote_chg, l_ref, r_ref) -> Tuple[str, int]:
         """Core 3-way merge logic with conflict markers."""
@@ -142,18 +147,21 @@ class MergeSmartCommand(Command):
 
         for i in range(max_ln):
             ln = i + 1
-            b = base_lines[i] if i < len(base_lines) else ""
-            l = local_lines[i] if i < len(local_lines) else b
-            r = remote_lines[i] if i < len(remote_lines) else b
+            b_line = base_lines[i] if i < len(base_lines) else ""
+            l_line = local_lines[i] if i < len(local_lines) else b_line
+            r_line = remote_lines[i] if i < len(remote_lines) else b_line
 
             l_mod = ln in local_chg
             r_mod = ln in remote_chg
 
-            if l_mod and r_mod and l != r:
-                merged.extend([f"<<<<<<< LOCAL ({l_ref})", l, "=======", r, f">>>>>>> REMOTE ({r_ref})"])
+            if l_mod and r_mod and l_line != r_line:
+                merged.extend([f"<<<<<<< LOCAL ({l_ref})", l_line, "=======", r_line, f">>>>>>> REMOTE ({r_ref})"])
                 conflicts += 1
-            elif l_mod: merged.append(l)
-            elif r_mod: merged.append(r)
-            else: merged.append(b)
+            elif l_mod:
+                merged.append(l_line)
+            elif r_mod:
+                merged.append(r_line)
+            else:
+                merged.append(b_line)
 
         return "\n".join(merged), conflicts

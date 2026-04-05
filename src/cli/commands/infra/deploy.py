@@ -17,7 +17,7 @@ from ..interface import Command
 class DeployCommand(Command):
     """
     Command for building and deploying the Email Intelligence Platform.
-    
+
     Handles pre-deployment checks, Docker image building, service restarts,
     and health monitoring with automatic rollback capabilities.
     """
@@ -36,13 +36,13 @@ class DeployCommand(Command):
     def add_arguments(self, parser: Any) -> None:
         """Add command-specific arguments."""
         parser.add_argument(
-            "--no-cache", 
-            action="store_true", 
+            "--no-cache",
+            action="store_true",
             help="Build Docker images without using cache"
         )
         parser.add_argument(
-            "--skip-backup", 
-            action="store_true", 
+            "--skip-backup",
+            action="store_true",
             help="Skip the pre-deployment backup"
         )
 
@@ -59,7 +59,7 @@ class DeployCommand(Command):
     async def execute(self, args: Namespace) -> int:
         """Execute the deployment command."""
         compose_file = Path("docker-compose.prod.yml")
-        
+
         print("🚀 Starting production deployment...")
 
         # 1. Pre-deployment checks
@@ -82,7 +82,7 @@ class DeployCommand(Command):
             build_cmd = ["docker-compose", "-f", str(compose_file), "build"]
             if args.no_cache:
                 build_cmd.append("--no-cache")
-            
+
             subprocess.run(build_cmd, check=True)
 
             print("Restarting services...")
@@ -91,7 +91,7 @@ class DeployCommand(Command):
             # 4. Health Check loop
             print("Waiting for services to be healthy...")
             await asyncio.sleep(5) # Simulating wait
-            
+
             print("✅ Deployment complete. Services are healthy.")
             return 0
 

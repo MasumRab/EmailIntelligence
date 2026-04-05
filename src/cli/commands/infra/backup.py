@@ -17,7 +17,7 @@ from ..interface import Command
 class BackupCommand(Command):
     """
     Command for creating snapshots of platform data and secrets.
-    
+
     Backs up the SQLite database and configuration files into a timestamped
     directory, ensuring data persistence before risky operations.
     """
@@ -36,13 +36,13 @@ class BackupCommand(Command):
     def add_arguments(self, parser: Any) -> None:
         """Add command-specific arguments."""
         parser.add_argument(
-            "--dir", 
-            default="./backups", 
+            "--dir",
+            default="./backups",
             help="Directory to store backups"
         )
         parser.add_argument(
-            "--db-only", 
-            action="store_true", 
+            "--db-only",
+            action="store_true",
             help="Only backup the database"
         )
 

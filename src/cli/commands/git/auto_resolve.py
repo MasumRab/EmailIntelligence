@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 class GitAutoResolveCommand(Command):
     """
     Command for automatically resolving conflicts using intelligence and pattern matching.
-    
+
     Ported Capabilities:
     - Multi-strategy resolution (Semantic, Pattern-based, Rule-based)
     - Conflict risk assessment integration
@@ -49,12 +49,12 @@ class GitAutoResolveCommand(Command):
 
     async def execute(self, args: Namespace) -> int:
         print(f"🤖 Starting Intelligent Auto-Resolution for PR #{args.pr}...")
-        
+
         # Implementation of full parity logic loop
         # 1. Load conflicts
         # 2. Assess risks
         # 3. Apply strategies (semantic, pattern, etc.)
-        
+
         return 0
 
     # --- PORTED LOGIC DNA (100% PARITY) ---

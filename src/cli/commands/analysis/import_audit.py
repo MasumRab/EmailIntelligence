@@ -15,7 +15,6 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
 import libcst as cst
-from libcst import matchers as m
 
 from ..interface import Command
 
@@ -80,10 +79,10 @@ class ImportAuditCommand(Command):
 
         mapping = self._build_refactor_map(args)
         print(f"📋 Loaded {len(mapping)} refactoring rules.")
-        
+
         targets = list(src_path.rglob("*.py"))
         print(f"🔍 Analyzing {len(targets)} Python files...")
-        
+
         modified_count = 0
         for f in targets:
             if args.mode == "cst":
@@ -111,7 +110,7 @@ class ImportAuditCommand(Command):
 
             transformer = ImportTransformer(mapping)
             modified_tree = tree.visit(transformer)
-            
+
             if transformer.modified and apply_fix:
                 file_path.write_text(modified_tree.code, encoding='utf-8')
                 print(f"  🔧 Rewrote: {file_path}")

@@ -42,8 +42,8 @@ class AnalyzeCommand(Command):
             help="Head branch for conflict detection (default: current branch)",
         )
         parser.add_argument(
-            "--arch-check", 
-            action="store_true", 
+            "--arch-check",
+            action="store_true",
             help="Verify architectural rules (layering, forbidden imports)"
         )
 
@@ -122,7 +122,8 @@ class AnalyzeCommand(Command):
         print(f"  - Scanning {len(py_files)} files for layer violations...")
 
         for py_file in py_files:
-            if "venv" in str(py_file) or ".iflow" in str(py_file): continue
+            if "venv" in str(py_file) or ".iflow" in str(py_file):
+                continue
             self._check_file_layering(py_file)
 
     def _check_file_layering(self, file_path: Path) -> None:
@@ -137,9 +138,12 @@ class AnalyzeCommand(Command):
                         module = self._get_module_name(node)
                         if any(x in module for x in ["src.cli", "src.backend"]):
                             print(f"  [VIOLATION] Core file '{file_path.name}' imports higher layer: {module}")
-        except Exception: pass
+        except Exception:
+            pass
 
     def _get_module_name(self, node: Any) -> str:
-        if hasattr(node, 'module') and node.module: return node.module
-        if hasattr(node, 'names'): return node.names[0].name
+        if hasattr(node, 'module') and node.module:
+            return node.module
+        if hasattr(node, 'names'):
+            return node.names[0].name
         return ""

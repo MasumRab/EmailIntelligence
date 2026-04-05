@@ -7,12 +7,11 @@ Achieves 100 percent functional parity with legacy scripts/resource_monitor.py.
 
 import collections
 import json
-import re
 import statistics
 import threading
 import time
 from argparse import Namespace
-from datetime import datetime, timedelta
+from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -24,7 +23,7 @@ from ..interface import Command
 class MonitorCommand(Command):
     """
     Exhaustive Resource Monitor following SOLID principles.
-    
+
     Ported Capabilities:
     - Background monitoring thread (start/stop)
     - System snapshots (CPU, MEM, Disk IO, Network IO, Load)
@@ -68,7 +67,7 @@ class MonitorCommand(Command):
     async def execute(self, args: Namespace) -> int:
         if args.output:
             self._monitoring_file = Path(args.output)
-        
+
         # Security validation
         if self._security_validator:
             is_safe, error = self._security_validator.validate_path_security(str(self._monitoring_file.absolute()))
@@ -93,14 +92,14 @@ class MonitorCommand(Command):
                 self._collect_system_resources()
                 self._collect_process_resources()
                 self._display_resource_summary()
-                
+
                 if args.agents:
                     self._update_agent_metrics()
                     self._display_agent_health_summary()
-                
+
                 self._save_monitoring_data()
                 time.sleep(args.interval)
-            
+
             return 0
         except KeyboardInterrupt:
             self._active = False
@@ -113,7 +112,7 @@ class MonitorCommand(Command):
         mem = psutil.virtual_memory()
         io = psutil.disk_io_counters()
         net = psutil.net_io_counters()
-        
+
         snap = {
             "timestamp": time.time(),
             "cpu_percent": cpu,
@@ -140,7 +139,7 @@ class MonitorCommand(Command):
         agents = ["architect", "analyst", "resolver", "workflow"]
         system_cpu = self._system_resources[-1]["cpu_percent"]
         system_mem = self._system_resources[-1]["memory_percent"]
-        
+
         for agent in agents:
             self._agent_monitor.register_agent(agent)
             self._agent_monitor.send_heartbeat(agent)
@@ -154,7 +153,7 @@ class MonitorCommand(Command):
             overview['total_agents'],
             overview['failing_agents']
         ))
-        
+
         health_data = self._agent_monitor.get_all_agents_health()
         for agent_name, health in health_data.items():
             if health and health['needs_attention']:
@@ -183,7 +182,7 @@ class MonitorCommand(Command):
         s = self._system_resources[-1]
         stats = self._get_system_stats()
         ts = datetime.fromtimestamp(s["timestamp"]).strftime('%H:%M:%S')
-        
+
         # Use formatting to avoid f-string % issues
         msg = "[{}] CPU: {:.1f}%% (P95: {:.1f}%%) | MEM: {:.1f}%%".format(
             ts, s['cpu_percent'], stats.get('p95', 0), s['memory_percent']
@@ -236,10 +235,10 @@ class AgentHealthMetrics:
         if not self.cpu_usage: return 1.0
         avg_cpu = sum(self.cpu_usage) / len(self.cpu_usage)
         cpu_score = max(0.0, 1.0 - (avg_cpu / 100.0))
-        
+
         avg_memory = sum(self.memory_usage) / len(self.memory_usage) if self.memory_usage else 0.0
         memory_score = max(0.0, 1.0 - (avg_memory / 100.0))
-        
+
         # Weighted average
         return cpu_score * 0.5 + memory_score * 0.5
 

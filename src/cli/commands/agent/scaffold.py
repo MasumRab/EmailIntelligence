@@ -3,7 +3,6 @@ Agent Scaffold Command Module
 """
 
 from argparse import Namespace
-from pathlib import Path
 from typing import Any, Dict
 
 from ..interface import Command

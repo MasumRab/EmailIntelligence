@@ -9,7 +9,7 @@ import json
 import re
 from argparse import Namespace
 from pathlib import Path
-from typing import Any, Dict, List, Set, Tuple
+from typing import Any, Dict, List
 from collections import defaultdict
 
 from ..interface import Command
@@ -18,8 +18,8 @@ from ..interface import Command
 class AnalyzeTasksCommand(Command):
     """
     Command for calculating task complexity and generating execution sequences.
-    
-    Provides insights into effort estimation, dependency cycles, and 
+
+    Provides insights into effort estimation, dependency cycles, and
     hierarchical clustering potential for branch alignment.
     Includes exhaustive automated relationship discovery.
     """
@@ -38,18 +38,18 @@ class AnalyzeTasksCommand(Command):
     def add_arguments(self, parser: Any) -> None:
         """Add command-specific arguments."""
         parser.add_argument(
-            "--file", 
-            default="tasks/tasks.json", 
+            "--file",
+            default="tasks/tasks.json",
             help="Path to tasks.json file"
         )
         parser.add_argument(
-            "--graph", 
-            action="store_true", 
+            "--graph",
+            action="store_true",
             help="Generate a textual dependency graph"
         )
         parser.add_argument(
-            "--relationships", 
-            action="store_true", 
+            "--relationships",
+            action="store_true",
             help="Deep scan for implicit and parent-child relationships"
         )
         parser.add_argument(
@@ -96,15 +96,15 @@ class AnalyzeTasksCommand(Command):
         try:
             with open(tasks_file, 'r', encoding='utf-8') as f:
                 data = json.load(f)
-            
+
             tasks = data.get("master", {}).get("tasks", []) if "master" in data else data.get("tasks", [])
-            
+
             if not tasks:
                 print("No tasks found to analyze.")
                 return 0
 
             print(f"📊 Analyzing {len(tasks)} tasks...")
-            
+
             for task in tasks:
                 complexity = self._calculate_complexity(task)
                 print(f"Task {task['id']}: Complexity {complexity}/10 - {task['title']}")
@@ -125,7 +125,7 @@ class AnalyzeTasksCommand(Command):
 
             if args.parallel:
                 self._handle_parallel_paths(graph)
-                
+
             return 0
         except Exception as e:
             import traceback
@@ -179,7 +179,7 @@ class AnalyzeTasksCommand(Command):
     def _analyze_relationships(self, tasks: List[Dict]) -> None:
         """Deep scan for implicit and parent-child relationships."""
         print("\n🔍 DISCOVERING EXHAUSTIVE RELATIONSHIPS")
-        
+
         task_map = {str(t['id']): t for t in tasks}
         relationships = {
             'depends_on': defaultdict(list),
@@ -190,7 +190,7 @@ class AnalyzeTasksCommand(Command):
 
         for task in tasks:
             tid = str(task['id'])
-            
+
             # 1. Structural Hierarchy (Parent-Child)
             if '.' in tid:
                 parent_id = tid.rsplit('.', 1)[0]
@@ -199,8 +199,8 @@ class AnalyzeTasksCommand(Command):
 
             # 2. Content-Based Analysis
             content = self._normalize_text(
-                task.get('title', '') + ' ' + 
-                task.get('description', '') + ' ' + 
+                task.get('title', '') + ' ' +
+                task.get('description', '') + ' ' +
                 task.get('acceptance_criteria', '')
             )
 
@@ -253,7 +253,7 @@ class TaskDependencyGraph:
         self.task_map = {str(t['id']): t for t in tasks}
         self.dependencies = defaultdict(set)
         self.dependents = defaultdict(set)
-        
+
         for task in tasks:
             tid = str(task['id'])
             deps = task.get("dependencies", [])
@@ -310,10 +310,10 @@ class TaskDependencyGraph:
     def get_parallel_paths(self) -> List[List[str]]:
         processed = set()
         paths = []
-        
+
         # Start with tasks that have no dependencies
         roots = sorted([tid for tid in self.task_map if not self.dependencies[tid]])
-        
+
         for root in roots:
             if root not in processed:
                 path = []

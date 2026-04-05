@@ -18,7 +18,7 @@ from ..interface import Command
 class VerifyCommand(Command):
     """
     Command for verifying package availability in different contexts.
-    
+
     Checks which packages are available system-wide vs in the virtual environment
     and identifies any missing critical dependencies.
     """
@@ -37,12 +37,12 @@ class VerifyCommand(Command):
     def add_arguments(self, parser: Any) -> None:
         """Add command-specific arguments."""
         parser.add_argument(
-            "--list-all", 
-            action="store_true", 
+            "--list-all",
+            action="store_true",
             help="List all checked packages, not just missing ones"
         )
         parser.add_argument(
-            "--venv-path", 
+            "--venv-path",
             help="Specify a custom path to the virtual environment"
         )
 
@@ -79,17 +79,17 @@ class VerifyCommand(Command):
         print("=" * 60)
 
         results = self._check_packages(packages_to_check)
-        
+
         if args.list_all:
             self._print_results(results)
         else:
             self._print_summary(results)
-            
+
         # Check venv
         venv_found = await self._check_venv(args.venv_path)
         if not venv_found:
             print("⚠️  No standard virtual environment detected.")
-            
+
         print("=" * 60)
         return 0
 
@@ -104,7 +104,7 @@ class VerifyCommand(Command):
                 # Handle nested packages (e.g., googleapiclient)
                 pkg_name = package.split('.')[0]
                 importlib.import_module(pkg_name)
-                
+
                 module = sys.modules.get(pkg_name)
                 module_path = getattr(module, '__file__', '')
 
@@ -117,7 +117,7 @@ class VerifyCommand(Command):
                     system.append(package)
             except ImportError:
                 missing.append(package)
-        
+
         return {
             "system": system,
             "venv": venv,
@@ -131,7 +131,7 @@ class VerifyCommand(Command):
                 print(f"✅ {context} packages ({len(pkgs)}):")
                 for pkg in sorted(pkgs):
                     print(f"   • {pkg}")
-        
+
         if results["missing"]:
             print(f"\n❌ Missing packages ({len(results['missing'])}):")
             for pkg in sorted(results["missing"]):
@@ -146,10 +146,10 @@ class VerifyCommand(Command):
     async def _check_venv(self, custom_path: str = None) -> bool:
         """Check for virtual environment presence and status."""
         venv_names = [custom_path] if custom_path else ['./venv', './.venv', './env']
-        
+
         for venv_name in venv_names:
             if not venv_name: continue
-            
+
             path = Path(venv_name)
             if path.exists() and path.is_dir():
                 # Security check: Ensure path is within project root
@@ -160,7 +160,7 @@ class VerifyCommand(Command):
                         continue
 
                 print(f"✅ Virtual environment detected: {path.absolute()}")
-                
+
                 # Try to count packages using pip in that venv
                 pip_exe = path / "bin" / "pip"
                 if pip_exe.exists():

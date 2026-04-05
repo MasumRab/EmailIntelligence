@@ -38,8 +38,8 @@ class AnalyzeHistoryCommand(Command):
             "--limit", type=int, default=500, help="Max commits to analyze"
         )
         parser.add_argument(
-            "--lost-found", 
-            action="store_true", 
+            "--lost-found",
+            action="store_true",
             help="Scan for dangling/unreachable commits containing source code"
         )
         parser.add_argument("--output", help="Output file for report")

@@ -17,7 +17,7 @@ from ..interface import Command
 class GitAlignCommand(Command):
     """
     Command for executing step-by-step content alignment based on a resolution strategy.
-    
+
     Ported Capabilities:
     - Multi-phase strategy execution (Dry-run, Interactive, Automated)
     - Per-step user confirmation loops
@@ -113,13 +113,13 @@ class GitAlignCommand(Command):
         for step in phase.get("steps", []):
             name = step.get("file", "Step")
             print("   📝 Processing: {}".format(name))
-            scores.append(0.95) 
+            scores.append(0.95)
             print("   ✅ {} - RESOLVED".format(name))
-        
+
         avg_score = sum(scores)/len(scores) if scores else 1.0
         print("   📊 Alignment Score: {:.0f}%%".format(avg_score * 100))
 
-        
+
         return {
             "phase": phase.get("phase"),
             "alignment_score": avg_score
