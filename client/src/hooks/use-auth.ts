@@ -67,7 +67,7 @@ export function useAuth() {
 
       const errorData = await response.json();
       return { success: false, error: errorData.detail || 'Login failed' };
-    } catch (error) {
+    } catch {
       return { success: false, error: 'Network error' };
     }
   };
@@ -96,7 +96,7 @@ export function useAuth() {
         const errorData = await response.json();
         return { success: false, error: errorData.detail || 'Failed to setup MFA' };
       }
-    } catch (error) {
+    } catch {
       return { success: false, error: 'Network error' };
     }
   };
@@ -120,7 +120,7 @@ export function useAuth() {
         const errorData = await response.json();
         return { success: false, error: errorData.detail || 'Failed to enable MFA' };
       }
-    } catch (error) {
+    } catch {
       return { success: false, error: 'Network error' };
     }
   };
@@ -142,7 +142,7 @@ export function useAuth() {
         const errorData = await response.json();
         return { success: false, error: errorData.detail || 'Failed to disable MFA' };
       }
-    } catch (error) {
+    } catch {
       return { success: false, error: 'Network error' };
     }
   };
