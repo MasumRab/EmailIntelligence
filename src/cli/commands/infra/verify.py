@@ -148,7 +148,8 @@ class VerifyCommand(Command):
         venv_names = [custom_path] if custom_path else ['./venv', './.venv', './env']
 
         for venv_name in venv_names:
-            if not venv_name: continue
+            if not venv_name:
+                continue
 
             path = Path(venv_name)
             if path.exists() and path.is_dir():

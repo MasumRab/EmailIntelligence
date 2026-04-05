@@ -113,7 +113,8 @@ class StashResolveCommand(Command):
         )
         stashes = []
         for line in result.stdout.strip().split("\n"):
-            if not line: continue
+            if not line:
+                continue
             match = re.match(r'stash@\{(\d+)\}: (.*)', line)
             if match:
                 stashes.append((int(match.group(1)), match.group(2)))

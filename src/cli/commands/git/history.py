@@ -69,7 +69,7 @@ class AnalyzeHistoryCommand(Command):
 
             if not self._history or not self._classifier:
                 print("Warning: History services not injected. Running basic log.")
-                subprocess.run(["git", "log", "-n", str(args.limit), "--oneline", branch])
+                subprocess.run(["git", "log", "-n", str(args.limit), "--oneline", branch], check=True)
                 return 0
 
             commits = await self._history.get_commits(branch, limit=args.limit)
@@ -108,7 +108,7 @@ class AnalyzeHistoryCommand(Command):
         try:
             result = subprocess.run(
                 ["git", "fsck", "--unreachable", "--no-reflogs"],
-                capture_output=True, text=True
+                capture_output=True, text=True, check=True
             )
             dangling = [line.split()[2] for line in result.stdout.splitlines() if "unreachable commit" in line]
             if not dangling:
@@ -117,12 +117,13 @@ class AnalyzeHistoryCommand(Command):
 
             found_count = 0
             for sha in dangling:
-                files = subprocess.run(["git", "show", "--name-only", "--format=", sha], capture_output=True, text=True).stdout
+                files = subprocess.run(["git", "show", "--name-only", "--format=", sha], capture_output=True, text=True, check=True).stdout
                 if any(p in files for p in ["src/", "backend/", "client/", "conductor/"]):
-                    msg = subprocess.run(["git", "show", "--no-patch", "--format=%%B", sha], capture_output=True, text=True).stdout.strip()
+                    msg = subprocess.run(["git", "show", "--no-patch", "--format=%%B", sha], capture_output=True, text=True, check=True).stdout.strip()
                     print(f"\n📦 FOUND LOST WORK: {sha}\n   Message: {msg[:80]}...")
                     found_count += 1
             print(f"\n✅ Scan complete. Identified {found_count} potential recovery targets.")
             return 0
         except Exception as e:
-            print(f"Error during recovery scan: {e}"); return 1
+            print(f"Error during recovery scan: {e}")
+            return 1

@@ -32,7 +32,7 @@ class PathChange:
 
 def run_command(cmd: List[str]) -> str:
     """Run shell command and return output"""
-    result = subprocess.run(cmd, shell=False, capture_output=True, text=True)
+    result = subprocess.run(cmd, shell=False, capture_output=True, text=True, check=True)
     return result.stdout
 
 

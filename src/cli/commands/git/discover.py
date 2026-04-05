@@ -60,7 +60,8 @@ class GitDiscoverCommand(Command):
 
     async def execute(self, args: Namespace) -> int:
         if not self._nlp:
-            print("Error: NLPService not available for discovery."); return 1
+            print("Error: NLPService not available for discovery.")
+            return 1
 
         print(f"🕵️  Starting Semantic Discovery Sweep (Core Scope: '{self.CORE_SCOPE}')...")
 
@@ -92,11 +93,12 @@ class GitDiscoverCommand(Command):
 
             return 0
         except Exception as e:
-            print(f"Error during discovery: {e}"); return 1
+            print(f"Error during discovery: {e}")
+            return 1
 
     def _get_remote_branches(self) -> List[str]:
-        result = subprocess.run(["git", "branch", "-r"], capture_output=True, text=True)
-        return [l.strip().replace("origin/", "") for l in result.stdout.splitlines() if "->" not in l]
+        result = subprocess.run(["git", "branch", "-r"], capture_output=True, text=True, check=True)
+        return [line.strip().replace("origin/", "") for line in result.stdout.splitlines() if "->" not in line]
 
     def _extract_branch_dna(self, branch: str) -> str:
         """Combine file names and paths to create a 'Functional Intent' string."""
@@ -107,6 +109,6 @@ class GitDiscoverCommand(Command):
         """Fetch list of scripts on a remote branch."""
         result = subprocess.run(
             ["git", "ls-tree", "-r", f"origin/{branch}"],
-            capture_output=True, text=True
+            capture_output=True, text=True, check=True
         )
-        return [l.split('\t')[1] for l in result.stdout.splitlines() if l.endswith((".py", ".sh"))]
+        return [line.split('\t')[1] for line in result.stdout.splitlines() if line.endswith((".py", ".sh"))]

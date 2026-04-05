@@ -77,12 +77,12 @@ class GitAutoResolveCommand(Command):
 
     def _resolve_formatting_conflicts(self, lines_a: List[str], lines_b: List[str]) -> bool:
         """Full parity whitespace normalization matching."""
-        norm_a = [l.strip() for l in lines_a]
-        norm_b = [l.strip() for l in lines_b]
+        norm_a = [line.strip() for line in lines_a]
+        norm_b = [line.strip() for line in lines_b]
         return norm_a == norm_b
 
     def _resolve_comment_conflicts(self, lines_a: List[str], lines_b: List[str]) -> bool:
         """Full parity comment detection."""
-        a_is_comm = all(l.strip().startswith(('#', '//', '/*')) for l in lines_a if l.strip())
-        b_is_comm = all(l.strip().startswith(('#', '//', '/*')) for l in lines_b if l.strip())
+        a_is_comm = all(line.strip().startswith(('#', '//', '/*')) for line in lines_a if line.strip())
+        b_is_comm = all(line.strip().startswith(('#', '//', '/*')) for line in lines_b if line.strip())
         return a_is_comm and b_is_comm

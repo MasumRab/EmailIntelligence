@@ -228,11 +228,14 @@ class AgentHealthMetrics:
     def add_system_metrics(self, cpu_percent: float, memory_percent: float):
         self.cpu_usage.append(cpu_percent)
         self.memory_usage.append(memory_percent)
-        if len(self.cpu_usage) > 100: self.cpu_usage = self.cpu_usage[-100:]
-        if len(self.memory_usage) > 100: self.memory_usage = self.memory_usage[-100:]
+        if len(self.cpu_usage) > 100:
+            self.cpu_usage = self.cpu_usage[-100:]
+        if len(self.memory_usage) > 100:
+            self.memory_usage = self.memory_usage[-100:]
 
     def get_health_score(self) -> float:
-        if not self.cpu_usage: return 1.0
+        if not self.cpu_usage:
+            return 1.0
         avg_cpu = sum(self.cpu_usage) / len(self.cpu_usage)
         cpu_score = max(0.0, 1.0 - (avg_cpu / 100.0))
 
@@ -268,7 +271,8 @@ class AgentHealthMonitor:
             self.agent_metrics[agent_name].add_system_metrics(cpu_percent, memory_percent)
 
     def get_agent_health(self, agent_name: str) -> Optional[Dict]:
-        if agent_name not in self.agent_metrics: return None
+        if agent_name not in self.agent_metrics:
+            return None
         metrics = self.agent_metrics[agent_name]
         return {
             'agent_name': agent_name,

@@ -92,13 +92,15 @@ class ImportAuditCommand(Command):
 
             if changed:
                 modified_count += 1
-                if not args.fix: print(f"  ⚠️ Requires update: {f}")
+                if not args.fix:
+                    print(f"  ⚠️ Requires update: {f}")
 
         if args.fix:
             print(f"\n✅ Migration Complete. Modified {modified_count} files.")
         else:
             print(f"\n📊 Dry Run Complete. {modified_count} files require migration.")
-            if modified_count > 0: print("   Run with --fix to apply changes.")
+            if modified_count > 0:
+                print("   Run with --fix to apply changes.")
 
         return 0
 

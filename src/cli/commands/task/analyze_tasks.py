@@ -211,7 +211,8 @@ class AnalyzeTasksCommand(Command):
         self._print_relationship_report(relationships)
 
     def _normalize_text(self, text: str) -> str:
-        if not text: return ""
+        if not text:
+            return ""
         text = text.lower()
         text = re.sub(r'[^\w\s.]', ' ', text)
         return re.sub(r'\s+', ' ', text).strip()

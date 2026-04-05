@@ -56,10 +56,12 @@ class GitAlignCommand(Command):
         if self._security_validator:
             is_safe, err = self._security_validator.validate_path_security(str(metadata_file.absolute()))
             if not is_safe:
-                print("Error: Security violation: {}".format(err)); return 1
+                print("Error: Security violation: {}".format(err))
+                return 1
 
         if not metadata_file.exists():
-            print("Error: No resolution workspace found for PR #{}".format(args.pr)); return 1
+            print("Error: No resolution workspace found for PR #{}".format(args.pr))
+            return 1
 
         # 2. Load Metadata and Strategy
         with open(metadata_file) as f:
@@ -67,7 +69,8 @@ class GitAlignCommand(Command):
 
         strategy = self._load_strategy(args.strategy, metadata)
         if not strategy:
-            print("Error: No strategy found for PR #{}. Run git-analyze first.".format(args.pr)); return 1
+            print("Error: No strategy found for PR #{}. Run git-analyze first.".format(args.pr))
+            return 1
 
         print("🔄 Starting content alignment for PR #{}...".format(args.pr))
 
@@ -103,7 +106,8 @@ class GitAlignCommand(Command):
                 if not is_safe:
                     print("Error: Security violation for strategy file: {}".format(err))
                     return None
-            with open(path) as f: return json.load(f)
+            with open(path) as f:
+                return json.load(f)
         return metadata.get("strategy")
 
     def _execute_phase(self, phase: Dict, metadata: Dict) -> Dict:
