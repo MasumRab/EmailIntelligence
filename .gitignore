@@ -1,4 +1,21 @@
+<<<<<<< HEAD
 # Python / General
+=======
+# Aider
+.aider.chat.history.md
+.aider.input.history
+.aider.tags.cache.v4/
+
+# Backups
+backups/
+
+# Test scripts (duplicates with _fixed suffix)
+tests/modules/*_fixed.sh
+tests/modules/*_fixed*.sh
+tests/modules/*_final.sh
+
+# Byte-compiled / optimized / DLL files
+>>>>>>> sentinel-fix-command-injection-4893894402315046894
 __pycache__/
 *.py[cod]
 *$py.class
@@ -20,6 +37,7 @@ share/python-wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+*.whl
 MANIFEST
 workspace/
 
@@ -42,8 +60,6 @@ htmlcov/
 nosetests.xml
 coverage.xml
 *.cover
-*.py,cover
-.hypothesis/
 .pytest_cache/
 cover/
 
@@ -51,17 +67,17 @@ cover/
 *.mo
 *.pot
 
-# Django stuff:
+# Django stuff
 *.log
 local_settings.py
 db.sqlite3
 db.sqlite3-journal
 
-# Flask stuff:
+# Flask stuff
 instance/
 .webassets-cache
 
-# Scrapy stuff:
+# Scrapy stuff
 .scrapy
 
 # Sphinx documentation
@@ -94,9 +110,14 @@ celerybeat.pid
 *.sage.py
 
 # Environments
+<<<<<<< HEAD
 .env
 .env.*
 !.env.example
+=======
+#ZS|.env
+#XS|.env.local
+>>>>>>> sentinel-fix-command-injection-4893894402315046894
 .venv
 env/
 venv/
@@ -152,6 +173,7 @@ config/llm_guidelines.local.json
 *.sublime-project
 *.sublime-workspace
 .history
+<<<<<<< HEAD
 
 # Misc
 *.tar.gz
@@ -164,6 +186,34 @@ models/*.pkl
 
 # Aider
 .aider*
+=======
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Node.js
+**/node_modules/
+server/public/
+vite.config.ts.*
+*.tar.gz
+.pnpm-debug.log*
+
+# Databases
+*.sqlite3
+*.db
+*.db-journal
+
+# Credentials and sensitive data
+token.json
+credentials.json
+apikey.json
+jsons/
+jsons/*
+>>>>>>> sentinel-fix-command-injection-4893894402315046894
 
 # Project-specific ignores
 .orchestration-disabled
@@ -176,17 +226,92 @@ worktrees/
 .rulesyncignore
 .cursorignore
 .validation_cache.json
+<<<<<<< HEAD
 #MT|.emailintelligence/
 #TR|.trunk/
 
 # Documentation Whitelists (ensure these are tracked)
 !docs/.gitkeep
+=======
+.emailintelligence/
+diagnosis_message.txt
+logs/
+performance_metrics_log.jsonl
+config/llm_guidelines.local.json
+models/*.pkl
+
+# AI/IDE tool configs (local only)
+.iflow/
+.gemini-flow/
+.qwen/
+
+# Backup files
+*.bak
+*.backup
+backlog/config.yml.bak
+original_readme.md
+
+# Hidden files exceptions
+!docs/.gitkeep
+!.semgrep/
+!.gitignore
+!.git/hooks/
+!.flake8
+!.pylintrc
+!.github/
+!.specify/memory/
+
+# Centralized Agent Markdown Files
+>>>>>>> sentinel-fix-command-injection-4893894402315046894
 !docs/agents/
 !docs/agents/OPENCODE.md
 !docs/agents/AIDER.md
 !docs/agents/CURSOR.md
+<<<<<<< HEAD
 !docs/agents/AMP.md.dev_state.json
 
 # ck (seek) semantic search cache
 .ck/
 .trunk/
+=======
+!docs/agents/AMP.md
+terminal-jarvis_AGENTS.md
+cognee-AGENTS.md
+
+# Misc local config
+*.local.config
+*.local.json
+*.local.yaml
+*.local.yml
+config.local.*
+
+# Agent Command Directories (IDE-specific, not for repo)
+.gemini/commands/
+.qwen/commands/
+.cursor/commands/
+.claude/commands/
+.claude/agents/
+.claude/memories/
+.iflow/commands/
+.opencode/command/
+.continue/
+
+# Agent-specific instruction MD files (local preferences)
+GEMINI.md
+QWEN.md
+CRUSH.md
+LLXPRT.md
+# Note: CLAUDE.md is project-level and MUST be tracked
+
+# Specify scripts (skeleton examples, not project-specific)
+.specify/scripts/
+
+# ck (seek) semantic search cache
+.ck/
+.env.local
+.distributed_translation.json
+.doc_templates.json
+.resource_monitoring.json
+.trunk/
+.beads/
+>>>>>>> sentinel-fix-command-injection-4893894402315046894

@@ -12,8 +12,18 @@ import asyncio
 from datetime import datetime
 from typing import Any, Dict, List
 
+<<<<<<< HEAD:src/backend/node_engine/email_nodes.py
 from src.backend.node_engine.node_base import BaseNode, DataType, ExecutionContext, NodePort
 from src.backend.node_engine.workflow_engine import workflow_engine
+=======
+<<<<<<< Updated upstream:scripts/currently_disabled/temp_email_nodes.py
+from backend.node_engine.node_base import BaseNode, DataType, ExecutionContext, NodePort
+
+=======
+from ..node_engine.node_base import BaseNode, DataType, ExecutionContext, NodePort
+from ..node_engine.workflow_engine import workflow_engine
+>>>>>>> Stashed changes:src/backend/node_engine/email_nodes.py
+>>>>>>> sentinel-fix-command-injection-4893894402315046894:scripts/currently_disabled/temp_email_nodes.py
 
 # Temporarily using a simplified NLP engine to avoid merge conflicts in original file
 

@@ -24,6 +24,7 @@ Its primary goal is to keep the core email intelligence codebase clean by separa
 These files are considered "essentials" and are synchronized from `orchestration-tools` to other branches (e.g., `main`, `scientific`, feature branches).
 *   `setup/` (launch scripts and environment setup)
 <<<<<<< HEAD
+<<<<<<< HEAD
 *   `docs/orchestration-workflow.md` (orchestration workflow documentation)
 *   `docs/orchestration_summary.md` (orchestration summary)
 *   `docs/env_management.md` (environment management documentation)
@@ -35,6 +36,12 @@ These files are considered "essentials" and are synchronized from `orchestration
 *   `.env.example` (environment template)
 *   `.flake8`, `.pylintrc` (Python linting configuration)
 *   `.gitignore`, `.gitattributes` (Git configuration)
+=======
+*   `docs/orchestration-workflow.md` (this documentation)
+*   `.env.example` (environment template)
+*   `.flake8`, `.pylintrc` (Python linting configuration)
+*   `.gitignore`, `.gitattributes` (Git configuration)
+>>>>>>> sentinel-fix-command-injection-4893894402315046894
 *   `launch.py` (and its associated configuration files like `pyproject.toml`, `requirements.txt`, `requirements-dev.txt`)
 *   `scripts/install-hooks.sh`, `scripts/manage_orchestration_changes.sh`, `scripts/reverse_sync_orchestration.sh`, `scripts/cleanup_orchestration.sh` (key orchestration scripts)
 >>>>>>> a7da61cf1f697de3c8c81f536bf579d36d88e613

@@ -141,7 +141,6 @@ Get detailed information about what's happening:
 | validate-orchestration-context.sh | orchestration-tools | all branches |
 | validate-branch-propagation.sh | orchestration-tools | all branches |
 | extract-orchestration-changes.sh | orchestration-tools | all branches |
-| sync_setup_worktrees.sh | orchestration-tools | all branches |
 | scripts/lib/ (all) | orchestration-tools | all branches |
 
 ---

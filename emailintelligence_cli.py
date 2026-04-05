@@ -2,10 +2,14 @@
 """
 EmailIntelligence CLI - AI-powered git worktree-based conflict resolution tool
 
-Implements a structured workflow for intelligent branch merge conflict resolution
-using constitutional/specification-driven analysis and spec-kit strategies.
+This module is now a backward-compatible wrapper around the new modular cli package.
+For new code, import directly from cli:
+    from cli import EmailIntelligenceCLI
+
+This file maintains backward compatibility for existing scripts.
 """
 
+<<<<<<< HEAD
 import argparse
 import asyncio
 import hashlib
@@ -1598,9 +1602,47 @@ class EmailIntelligenceCLI:
         """Display error message and exit"""
         self._error(message)
         sys.exit(1)
+=======
+# Backward compatibility imports - import from new modular structure
+from cli import (
+    # Main class
+    EmailIntelligenceCLI,
+    # Exceptions
+    EmailIntelligenceError,
+    GitOperationError,
+    MergeTreeError,
+    BranchNotFoundError,
+    WorktreeUnavailableError,
+    ConflictDetectionError,
+    WorkspaceCreationError,
+    ResolutionNotReadyError,
+    PushOperationError,
+    BranchEnumerationError,
+    ScanExecutionError,
+    # Models
+    ConflictType,
+    ConflictSeverity,
+    ConflictRegion,
+    ConflictFile,
+    ConflictReport,
+    BranchPairResult,
+    ConflictMatrix,
+    # Workspace managers
+    GitWorkspaceManager,
+    GitWorktreeManager,
+    FallbackWorkspaceManager,
+    RobustWorkspaceManager,
+    # Conflict detector
+    ConflictDetector,
+    # Entry point
+    main,
+)
+>>>>>>> sentinel-fix-command-injection-4893894402315046894
 
 
+# For backward compatibility, provide a simple main() that works with the new structure
 def main():
+<<<<<<< HEAD
     """Main CLI entry point"""
     parser = argparse.ArgumentParser(
         description="EmailIntelligence CLI - AI-powered git worktree-based conflict resolution tool",
@@ -1749,6 +1791,11 @@ Examples:
         sys.exit(1)
     except Exception as e:
         cli._error_exit(f"Unexpected error: {e}")
+=======
+    """Main CLI entry point - now delegates to cli.main.main()"""
+    from cli.main import main as cli_main
+    cli_main()
+>>>>>>> sentinel-fix-command-injection-4893894402315046894
 
 
 if __name__ == "__main__":

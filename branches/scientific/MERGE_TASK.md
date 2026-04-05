@@ -1,9 +1,18 @@
+<<<<<<< HEAD
 # Branch Merge Task: scientific (Email Intelligence)
 
 **Repository:** /home/masum/github/EmailIntelligenceGem
 **Branch:** scientific
 **Status:** behind origin by 4
 **Priority:** LOW
+=======
+# Branch Merge Task: scientific (EmailIntelligenceAider)
+
+**Repository:** /home/masum/github/EmailIntelligenceAider
+**Branch:** scientific
+**Status:** ahead 3, behind 1445 - DIVERGED
+**Priority:** HIGH
+>>>>>>> sentinel-fix-command-injection-4893894402315046894
 **Guide Version:** 1.0
 
 ---
@@ -11,6 +20,7 @@
 ## Current State
 
 ```
+<<<<<<< HEAD
 Local:  scientific @ 2ee67739
 Remote: origin/scientific @ 31860a27
 Ahead:  0 commits
@@ -34,17 +44,87 @@ git push origin scientific --force-with-lease
 ```bash
 cd setup
 python -m pytest tests/ -v --tb=short 2>&1 | head -20
+=======
+Local:  scientific @ 74ae3bb0
+Remote: origin/scientific @ 31860a27
+Ahead:  3 commits
+Behind: 1445 commits
+```
+
+## ⚠️ Major Divergence Warning
+
+1445 commits behind! This is essentially a major merge operation.
+
+## Pre-Merge Checklist
+
+- [ ] Backup this branch
+- [ ] Verify backup contains all local changes
+- [ ] Document what local commits contain
+
+## Backup Procedure
+
+```bash
+cd /home/masum/github/EmailIntelligenceAider
+
+git checkout scientific
+git branch scientific-backup-$(date +%Y%m%d)-$(date +%H%M%S)
+
+git bundle create /tmp/scientific-aider-bundle-$(date +%Y%m%d).bundle HEAD~3..HEAD
+git bundle verify /tmp/scientific-aider-bundle-$(date +%Y%m%d).bundle
+```
+
+## Merge Strategy
+
+### Option A: Merge (Preserves History)
+
+```bash
+git fetch origin
+git merge origin/scientific -m "Major sync with origin/scientific"
+
+git mergetool  # Resolve conflicts manually
+```
+
+### Option B: Rebase Then Merge
+
+```bash
+git rebase origin/scientific
+git merge --ff-only origin/scientific
+```
+
+## Expected Conflicts
+
+- pyproject.toml differences
+- Core module changes
+- Test suite updates
+
+## Post-Merge Validation
+
+```bash
+cd setup
+python -m pytest tests/ -v --tb=short 2>&1 | head -50
+
+python -c "from src.core import *; print('Imports OK')"
+>>>>>>> sentinel-fix-command-injection-4893894402315046894
 ```
 
 ## Rollback
 
 ```bash
+<<<<<<< HEAD
 git reset --hard origin/scientific
+=======
+git checkout scientific-backup-*
+git reset --hard scientific-backup-*
+>>>>>>> sentinel-fix-command-injection-4893894402315046894
 ```
 
 ## Time Estimate
 
+<<<<<<< HEAD
 5-10 minutes
+=======
+30 minutes - 1 hour (depends on conflicts)
+>>>>>>> sentinel-fix-command-injection-4893894402315046894
 
 ---
 

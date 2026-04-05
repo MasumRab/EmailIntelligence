@@ -2,6 +2,7 @@
 
 from typing import List, Dict, Any, Optional
 import re
+import fnmatch
 
 from .models import ContextProfile, AgentContext, ContextValidationResult, ProjectConfig
 from .logging import get_context_logger

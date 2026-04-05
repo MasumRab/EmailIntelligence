@@ -1,8 +1,16 @@
+<<<<<<< HEAD
 # Branch Merge Task: orchestration-tools (Email Intelligence)
 
 **Repository:** /home/masum/github/EmailIntelligenceGem
 **Branch:** orchestration-tools
 **Status:** behind origin by 5
+=======
+# Branch Merge Task: orchestration-tools (EmailIntelligenceAider)
+
+**Repository:** /home/masum/github/EmailIntelligenceAider
+**Branch:** orchestration-tools
+**Status:** behind origin by 7
+>>>>>>> sentinel-fix-command-injection-4893894402315046894
 **Priority:** LOW
 **Guide Version:** 1.0
 
@@ -11,21 +19,36 @@
 ## Current State
 
 ```
+<<<<<<< HEAD
 Local:  orchestration-tools @ 750e579b
 Remote: origin/orchestration-tools @ 750e579b (behind origin)
 Ahead:  0 commits
 Behind: 5 commits
+=======
+Local:  orchestration-tools @ cbe56de3
+Remote: origin/orchestration-tools @ c5243dd2
+Ahead:  0 commits
+Behind: 7 commits
+>>>>>>> sentinel-fix-command-injection-4893894402315046894
 ```
 
 ## Merge Strategy: Simple Rebase
 
 ```bash
+<<<<<<< HEAD
 cd /home/masum/github/EmailIntelligenceGem
+=======
+cd /home/masum/github/EmailIntelligenceAider
+>>>>>>> sentinel-fix-command-injection-4893894402315046894
 
 git fetch origin
 git checkout orchestration-tools
 git rebase origin/orchestration-tools
 
+<<<<<<< HEAD
+=======
+# Push updates
+>>>>>>> sentinel-fix-command-injection-4893894402315046894
 git push origin orchestration-tools --force-with-lease
 ```
 
@@ -33,9 +56,13 @@ git push origin orchestration-tools --force-with-lease
 
 ```bash
 cd setup
+<<<<<<< HEAD
 python -m pytest tests/ -v --tb=short 2>&1 | head -20
 
 python -c "from src.core import *; print('Imports OK')"
+=======
+python -m pytest tests/ -v --tb=short 2>&1 | head -30
+>>>>>>> sentinel-fix-command-injection-4893894402315046894
 ```
 
 ## Rollback

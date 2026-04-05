@@ -1,0 +1,96 @@
+pull_request_rules:
+  - name: Ping PR author when conflicting
+    description: Warn the pull request author when their PR is conflicting. Tag @jules if they're an author.
+    conditions:
+      - conflict
+      - -closed
+    actions:
+      comment:
+        message: >
+          👋 @{{author}} your PR is conflicting and needs to be updated to be
+          merged.
+          {% if author == "jules" or "jules" in assignees %}
+          
+          **Note for @jules:** This PR requires conflict resolution. Consider rebasing on latest main or using interactive merge.
+          {% endif %}
+
+  - name: Alert @jules on conflicts for their PRs
+    description: Notify @jules specifically when their PRs have merge conflicts
+    conditions:
+      - conflict
+      - -closed
+      - author=jules
+    actions:
+      comment:
+        message: >
+          ⚠️ **@jules** - This PR has merge conflicts that need resolution:
+          
+          **Quick Fix Options:**
+          1. **Rebase on main:** `git fetch origin && git rebase origin/main`
+          2. **Merge main:** `git fetch origin && git merge origin/main`
+          3. **Use GitHub UI:** Click "Resolve conflicts" button on this PR
+          
+          After resolving: `git push --force-with-lease` (if rebased) or `git push` (if merged)
+
+  - name: Auto-merge Dependabot PRs (no approval required)
+    description: Automatically merge Dependabot PRs when CI passes. No human approval required for dependency updates.
+    conditions:
+      - author=dependabot[bot]
+      - or:
+          - check-success=test
+          - check-success=lint-only
+      - -conflict
+      - -draft
+    actions:
+      merge:
+        method: merge
+        commit_message_template: |
+          {{ title }} (#{{ number }})
+          {{ body }}
+
+  - name: Auto-merge with label (no approval required)
+    description: Automatically merge PRs with 'automerge' label when CI passes
+    conditions:
+      - label=automerge
+      - or:
+          - check-success=test
+          - check-success=lint-only
+      - -conflict
+      - -draft
+    actions:
+      merge:
+        method: merge
+
+  - name: Automatic merge for human PRs (approval required)
+    description: Merge human PRs during office hours with approval. Hotfixes merge anytime.
+    conditions:
+      - -author=dependabot[bot]
+      - or:
+          - schedule=Mon-Fri 09:00-17:00[America/Los_Angeles]
+          - label=hotfix
+      - check-success=test
+      - "#approved-reviews-by>=1"
+      - -conflict
+      - -draft
+    actions:
+      merge:
+        method: merge
+
+  - name: Label conflicting pull requests
+    description: Add a label to a pull request with conflict to spot it easily
+    conditions:
+      - conflict
+      - -closed
+    actions:
+      label:
+        add:
+          - conflict
+
+  - name: Remove conflict label when resolved
+    description: Remove the conflict label when the conflict is resolved
+    conditions:
+      - -conflict
+    actions:
+      label:
+        remove:
+          - conflict

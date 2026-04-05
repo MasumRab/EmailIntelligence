@@ -1,0 +1,48 @@
+{
+  "sources": {
+    "orchestration-tools": {
+      "remote": "origin/orchestration-tools",
+      "directories": ["setup/", "scripts/hooks/", "scripts/lib/", "config/"],
+      "files": [".flake8", ".pylintrc", ".gitignore", "launch.py"],
+      "validation_script": "scripts/validate-orchestration-context.sh"
+    }
+  },
+  "targets": {
+    "orchestration-tools-*": {
+      "allowed": true,
+      "sync_method": "git-worktree-safe",
+      "validation_after_sync": true
+    },
+    "taskmaster-*": {
+      "allowed": false,
+      "reason": "worktree-isolation-required"
+    },
+    "other": {
+      "allowed": false,
+      "reason": "orchestration-not-applicable"
+    }
+  },
+  "validation_rules": {
+    "large_file_threshold": 52428800,
+    "sensitive_patterns": ["password", "secret", "key", "token", "credential", "private"],
+    "required_files": ["scripts/install-hooks.sh", "setup/launch.py"]
+  },
+  "distribution_settings": {
+    "default_operation_mode": "sync-from-remote",
+    "backup_enabled": true,
+    "dry_run_default": false,
+    "confirm_destructive_actions": true
+  },
+  "safety_features": {
+    "protect_scripts_directory": true,
+    "protect_setup_directory": true,
+    "protect_taskmaster_directory": true,
+    "check_uncommitted_files": true,
+    "create_backups_before_distribution": true
+  },
+  "logging_settings": {
+    "log_level": "INFO",
+    "log_file_path": "logs/orchestration-distribution.log",
+    "create_reports": true
+  }
+}

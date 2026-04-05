@@ -22,7 +22,7 @@ description: "Task list for PR176 Integration Fixes feature implementation"
 
 - **Repository root**: Codebase files in appropriate directories
 - **Documentation**: docs/, README.md, etc.
-- **Source code**: src/, backend/, frontend/ (if applicable)
+- **Source code**: src/, src/backend/, frontend/ (if applicable)
 
 ## Phase 1: Setup (Shared Infrastructure)
 
@@ -43,11 +43,32 @@ description: "Task list for PR176 Integration Fixes feature implementation"
 
 Tasks for foundational setup:
 
+<<<<<<< HEAD
+<<<<<<< Updated upstream
 - [ ] T005 Identify all merge conflicts between PR #176 and target branch via `git merge` command
 - [ ] T006 [P] Document current state of PR #176 functionality by running existing tests in `tests/` directory
 - [ ] T007 [P] Create backup of current PR #176 state using `git stash` or branch creation
 - [ ] T008 Set up test environment by running `setup/launch.py` or equivalent setup scripts
 - [ ] T009 [P] Install security scanning tools as specified in project constitution
+=======
+- [ ] T011 Identify all merge conflicts between the specified PR and target branch via `gh pr diff [PR_NUMBER]` and `git merge` commands
+- [ ] T012 [P] Document current state of specified PR functionality by running existing tests in `tests/` directory
+- [ ] T013 [P] Create backup of current PR state using `git stash` or branch creation
+- [ ] T014 Set up test environment by running `src/setup/launch.py` or equivalent setup scripts
+- [ ] T015 [P] Install security scanning tools as specified in project constitution
+- [ ] T016 [P] Install and authenticate GitHub CLI (gh) tool for PR inspection
+- [ ] T017 [P] Retrieve complete PR information using `gh pr view [PR_NUMBER] --json` command
+- [ ] T018 [P] Check for potential conflicts with PR #182 (pr-179) using `gh pr view 182`, `gh pr diff pr-179`, and `gh issue list --pull-request 182` commands
+- [ ] T019 [P] Implement automation task execution framework with retry and timeout mechanisms
+- [ ] T020 [P] Set up notification system for automation status (console, logs, optional email)
+>>>>>>> Stashed changes
+=======
+- [ ] T005 Identify all merge conflicts between PR #176 and target branch via `git merge` command
+- [ ] T006 [P] Document current state of PR #176 functionality by running existing tests in `tests/` directory
+- [ ] T007 [P] Create backup of current PR #176 state using `git stash` or branch creation
+- [ ] T008 Set up test environment by running `src/setup/launch.py` or equivalent setup scripts
+- [ ] T009 [P] Install security scanning tools as specified in project constitution
+>>>>>>> sentinel-fix-command-injection-4893894402315046894
 
 **Checkpoint**: Foundation ready - user story implementation can now begin in parallel
 
@@ -102,6 +123,8 @@ Tasks for foundational setup:
 
 ### Implementation for User Story 3
 
+<<<<<<< HEAD
+<<<<<<< Updated upstream
 - [ ] T025 [P] [US3] Identify missing files by running static analysis tools and checking import statements in `src/**/*.py`
 - [ ] T026 [P] [US3] Identify incorrect paths in imports, configurations, or references by analyzing `src/**/*.py`, `setup/`, and config files
 - [ ] T027 [US3] Create missing files identified in T025 by adding them to appropriate directories in `src/`
@@ -110,6 +133,26 @@ Tasks for foundational setup:
 - [ ] T030 [US3] Update configurations in `setup/`, `pyproject.toml`, or other config files to align with latest architecture
 - [ ] T031 [US3] Update imports and references in `src/**/*.py` to use correct paths identified in T026
 - [ ] T032 [US3] Run tests with `pytest` to ensure all path updates work correctly
+=======
+- [ ] T039 [P] [US3] Identify missing files by running static analysis tools and checking import statements in `src/**/*.py`
+- [ ] T040 [P] [US3] Identify incorrect paths in imports, configurations, or references by analyzing `src/**/*.py`, `src/setup/`, and config files
+- [ ] T041 [US3] Create missing files identified in T039 by adding them to appropriate directories in `src/`
+- [ ] T042 [US3] Fix incorrect file paths identified in T040 by updating import statements and file references
+- [ ] T043 [US3] Verify file placement follows current architectural patterns by comparing with other modules in the codebase
+- [ ] T044 [US3] Update configurations in `src/setup/`, `pyproject.toml`, or other config files to align with latest architecture
+- [ ] T045 [US3] Update imports and references in `src/**/*.py` to use correct paths identified in T040
+- [ ] T046 [US3] Run tests with `pytest` to ensure all path updates work correctly
+>>>>>>> Stashed changes
+=======
+- [ ] T025 [P] [US3] Identify missing files by running static analysis tools and checking import statements in `src/**/*.py`
+- [ ] T026 [P] [US3] Identify incorrect paths in imports, configurations, or references by analyzing `src/**/*.py`, `src/setup/`, and config files
+- [ ] T027 [US3] Create missing files identified in T025 by adding them to appropriate directories in `src/`
+- [ ] T028 [US3] Fix incorrect file paths identified in T026 by updating import statements and file references
+- [ ] T029 [US3] Verify file placement follows current architectural patterns by comparing with other modules in the codebase
+- [ ] T030 [US3] Update configurations in `src/setup/`, `pyproject.toml`, or other config files to align with latest architecture
+- [ ] T031 [US3] Update imports and references in `src/**/*.py` to use correct paths identified in T026
+- [ ] T032 [US3] Run tests with `pytest` to ensure all path updates work correctly
+>>>>>>> sentinel-fix-command-injection-4893894402315046894
 
 **Checkpoint**: At this point, User Stories 1, 2 AND 3 should all work independently
 

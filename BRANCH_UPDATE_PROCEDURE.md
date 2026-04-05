@@ -19,7 +19,6 @@ disable-hooks.sh                      - Disable hooks temporarily
 validate-orchestration-context.sh     - Check for context contamination
 validate-branch-propagation.sh        - Check branch compliance
 extract-orchestration-changes.sh      - Selective cherry-pick utility
-sync_setup_worktrees.sh               - Worktree synchronization
 
 scripts/lib/                          - Helper libraries (all files)
   ├─ common.sh
