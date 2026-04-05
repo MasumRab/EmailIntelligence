@@ -277,3 +277,41 @@ md5sum .clinerules/taskmaster.md .windsurf/rules/taskmaster.md \
 | **Python frameworks** | Skip | ❌ Wrong domain entirely |
 
 **The winning combination is: RuleSync (ongoing sync) + Agent Rules Builder (one-time bootstrap) + manual fixes for the 5 issues no tool covers.** This addresses all 13 issues with the least tooling overhead.
+
+---
+
+## Letta Code Integration (Memory-First Agent)
+
+### Overview
+Letta Code is a stateful coding agent with persistent memory. Unlike other tools, it maintains agent memory in `~/.letta/agents/` separate from project config.
+
+### Project Config vs Agent Memory
+
+| Location | Purpose | Should Commit? |
+|----------|---------|----------------|
+| `.letta/settings.json` | Project-level Letta config | ✅ Yes (if team uses Letta) |
+| `.letta/.lettaignore` | File search exclusions | ✅ Yes |
+| `.letta/settings.local.json` | User-specific settings | ❌ No (add to .gitignore) |
+| `~/.letta/agents/` | Agent memory (personal) | ❌ No (user-specific) |
+
+### Recommended .gitignore Additions
+```
+# Letta agent memory (personal)
+.letta/settings.local.json
+*.af
+```
+
+### RuleSync Target
+Letta Code is NOT currently a RuleSync target. To add:
+1. Create `.rulesync/` canonical rules
+2. Generate to `.letta/rules/` (if supported)
+3. Or maintain Letta-specific rules separately
+
+### Memory File Strategy
+- **Project rules**: Store in `.letta/settings.json` permissions
+- **Agent memory**: Managed by Letta server, syncs automatically
+- **Skills**: Can be shared via Letta skills directory
+
+### Branch Strategy
+- All branches: Share `.letta/.lettaignore`
+- main/scientific/orchestration-tools: May have different `.letta/settings.json` permissions
