@@ -1,6 +1,3 @@
-<<<<<<< HEAD
-# Python / General
-=======
 # Aider
 .aider.chat.history.md
 .aider.input.history
@@ -15,7 +12,6 @@ tests/modules/*_fixed*.sh
 tests/modules/*_final.sh
 
 # Byte-compiled / optimized / DLL files
->>>>>>> sentinel-fix-command-injection-4893894402315046894
 __pycache__/
 *.py[cod]
 *$py.class
@@ -110,14 +106,9 @@ celerybeat.pid
 *.sage.py
 
 # Environments
-<<<<<<< HEAD
 .env
 .env.*
 !.env.example
-=======
-#ZS|.env
-#XS|.env.local
->>>>>>> sentinel-fix-command-injection-4893894402315046894
 .venv
 env/
 venv/
@@ -173,20 +164,6 @@ config/llm_guidelines.local.json
 *.sublime-project
 *.sublime-workspace
 .history
-<<<<<<< HEAD
-
-# Misc
-*.tar.gz
-*.whl
-.DS_Store
-diagnosis_message.txt
-logs/
-performance_metrics_log.jsonl
-models/*.pkl
-
-# Aider
-.aider*
-=======
 *.swp
 *.swo
 *~
@@ -195,25 +172,17 @@ models/*.pkl
 .DS_Store
 Thumbs.db
 
-# Node.js
-**/node_modules/
-server/public/
-vite.config.ts.*
+# Misc
 *.tar.gz
+*.whl
 .pnpm-debug.log*
+diagnosis_message.txt
+logs/
+performance_metrics_log.jsonl
+models/*.pkl
 
-# Databases
-*.sqlite3
-*.db
-*.db-journal
-
-# Credentials and sensitive data
-token.json
-credentials.json
-apikey.json
-jsons/
-jsons/*
->>>>>>> sentinel-fix-command-injection-4893894402315046894
+# Aider
+.aider*
 
 # Project-specific ignores
 .orchestration-disabled
@@ -226,33 +195,18 @@ worktrees/
 .rulesyncignore
 .cursorignore
 .validation_cache.json
-<<<<<<< HEAD
-#MT|.emailintelligence/
-#TR|.trunk/
+.trunk/
+.emailintelligence/
+.ck/
+.beads/
 
 # Documentation Whitelists (ensure these are tracked)
 !docs/.gitkeep
-=======
-.emailintelligence/
-diagnosis_message.txt
-logs/
-performance_metrics_log.jsonl
-config/llm_guidelines.local.json
-models/*.pkl
-
-# AI/IDE tool configs (local only)
-.iflow/
-.gemini-flow/
-.qwen/
-
-# Backup files
-*.bak
-*.backup
-backlog/config.yml.bak
-original_readme.md
-
-# Hidden files exceptions
-!docs/.gitkeep
+!docs/agents/
+!docs/agents/OPENCODE.md
+!docs/agents/AIDER.md
+!docs/agents/CURSOR.md
+!docs/agents/AMP.md
 !.semgrep/
 !.gitignore
 !.git/hooks/
@@ -260,30 +214,6 @@ original_readme.md
 !.pylintrc
 !.github/
 !.specify/memory/
-
-# Centralized Agent Markdown Files
->>>>>>> sentinel-fix-command-injection-4893894402315046894
-!docs/agents/
-!docs/agents/OPENCODE.md
-!docs/agents/AIDER.md
-!docs/agents/CURSOR.md
-<<<<<<< HEAD
-!docs/agents/AMP.md.dev_state.json
-
-# ck (seek) semantic search cache
-.ck/
-.trunk/
-=======
-!docs/agents/AMP.md
-terminal-jarvis_AGENTS.md
-cognee-AGENTS.md
-
-# Misc local config
-*.local.config
-*.local.json
-*.local.yaml
-*.local.yml
-config.local.*
 
 # Agent Command Directories (IDE-specific, not for repo)
 .gemini/commands/
@@ -306,12 +236,37 @@ LLXPRT.md
 # Specify scripts (skeleton examples, not project-specific)
 .specify/scripts/
 
-# ck (seek) semantic search cache
-.ck/
+# Misc local config
 .env.local
 .distributed_translation.json
 .doc_templates.json
 .resource_monitoring.json
-.trunk/
-.beads/
->>>>>>> sentinel-fix-command-injection-4893894402315046894
+
+# Agent session/export files
+*.af
+jules_sessions/
+
+# Backup files
+*.backup
+*.orig
+*.bak
+backlog/config.yml.bak
+original_readme.md
+
+# Temporary analysis files
+CONFIG_ANALYSIS.md
+PHASE_6_*.md
+PR_480_RESOLUTION.md
+SCRIPTING_CONSOLIDATION_STATUS.md
+MERGIFY_BRANCH_ANALYSIS_FINAL.md
+
+# Deprecated directories
+backend/
+
+# Letta local settings (user-specific)
+.letta/settings.local.json
+
+# AI/IDE tool configs (local only)
+.iflow/
+.gemini-flow/
+.qwen/
