@@ -159,7 +159,10 @@
 | **Session Management** | 1 | AF-3 | ❌ No session view |
 | **Verbosity Control** | 1 | ARB-3 | ❌ Single verbosity |
 | **Rule Scaffolding** | 2 | AR-4, AR-5 | ❌ Manual creation |
-| **TOTAL NEW** | **44** | | |
+| **Runtime Enforcement** | 15 | AZ-1 through AZ-15 | ❌ No enforcement |
+| **TOML Config** | 12 | RL-1 through RL-12 | ❌ No declarative config |
+| **Persistent Memory** | 4 | LC-1 through LC-4 | ❌ No memory |
+| **TOTAL NEW** | **71** | | |
 
 ### By Priority for This Project
 
@@ -207,21 +210,90 @@
 
 Some features appear in multiple tools. Where overlap exists, the recommended tool is noted.
 
-| Feature | RuleSync | ARK | agent-rules | ARB | agentfiles | Recommended |
-|---------|:--------:|:---:|:-----------:|:---:|:----------:|:-----------:|
-| Multi-tool rule generation | ✅ 28 tools | ✅ 9 IDEs | ✅ 4 tools | ✅ 7+ formats | ❌ | **RuleSync** (broadest) |
-| MCP config sync | ✅ | ❌ | ✅ (2 tools) | ❌ | ❌ | **RuleSync** |
-| MCP usage best practices | ❌ | ✅ | ❌ | ❌ | ❌ | **ARK** (unique) |
-| Community rule library | ❌ | ❌ | ❌ | ✅ 10K+ | ✅ marketplace | **ARB** (largest) |
-| Security rules | ❌ | ❌ | ✅ | ❌ | ❌ | **agent-rules** (unique) |
-| Testing rules | ❌ | ❌ | ✅ | ❌ | ❌ | **agent-rules** (unique) |
-| Skills management | ✅ lockfile | ❌ | ❌ | ❌ | ✅ browser | **RuleSync** (CI-ready) |
-| CI drift detection | ✅ `--check` | ❌ | ❌ | ❌ | ❌ | **RuleSync** (unique) |
-| Permissions sync | ✅ schema | ❌ | ❌ | ❌ | ❌ | **RuleSync** (unique) |
-| Backup before changes | ❌ | ✅ | ❌ | ❌ | ❌ | **ARK** (unique) |
-| Version auto-detect | ❌ | ✅ | ❌ | ❌ | ❌ | **ARK** (unique) |
-| Analytics/dashboard | ❌ | ❌ | ❌ | ❌ | ✅ | **agentfiles** (unique) |
-| Simulated commands | ✅ | ❌ | ❌ | ❌ | ❌ | **RuleSync** (unique) |
+| Feature | RuleSync | Ruler | Agent RuleZ | ARK | agent-rules | ARB | agentfiles | Recommended |
+|---------|:--------:|:-----:|:-----------:|:---:|:-----------:|:---:|:----------:|:-----------:|
+| Multi-tool rule generation | ✅ 28 tools | ✅ 13 tools | ❌ | ✅ 9 IDEs | ✅ 4 tools | ✅ 7+ formats | ❌ | **RuleSync** (broadest) |
+| MCP config sync | ✅ | ✅ | ❌ | ❌ | ✅ (2 tools) | ❌ | ❌ | **RuleSync** |
+| Runtime enforcement | ❌ | ❌ | ✅ | ❌ | ❌ | ❌ | ❌ | **Agent RuleZ** (unique) |
+| Policy validation | ❌ | ❌ | ✅ | ❌ | ❌ | ❌ | ❌ | **Agent RuleZ** (unique) |
+| Policy testing | ❌ | ❌ | ✅ | ❌ | ❌ | ❌ | ❌ | **Agent RuleZ** (unique) |
+| TOML config | ❌ | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | **Ruler** (unique) |
+| Trae support | ❌ | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | **Ruler** (unique) |
+| MCP usage best practices | ❌ | ❌ | ❌ | ✅ | ❌ | ❌ | ❌ | **ARK** (unique) |
+| Community rule library | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ 10K+ | ✅ marketplace | **ARB** (largest) |
+| Security rules | ❌ | ❌ | ❌ | ❌ | ✅ | ❌ | ❌ | **agent-rules** (unique) |
+| Testing rules | ❌ | ❌ | ❌ | ❌ | ✅ | ❌ | ❌ | **agent-rules** (unique) |
+| Skills management | ✅ lockfile | ❌ | ✅ cross-runtime | ❌ | ❌ | ❌ | ✅ browser | **RuleSync** (CI-ready) |
+| CI drift detection | ✅ `--check` | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | **RuleSync** (unique) |
+| Permissions sync | ✅ schema | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | **RuleSync** (unique) |
+| Backup before changes | ❌ | ✅ | ❌ | ✅ | ❌ | ❌ | ❌ | **Ruler** or **ARK** |
+| Version auto-detect | ❌ | ❌ | ❌ | ✅ | ❌ | ❌ | ❌ | **ARK** (unique) |
+| Analytics/dashboard | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ | **agentfiles** (unique) |
+| Simulated commands | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | **RuleSync** (unique) |
+| Persistent memory | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | **Letta Code** (unique) |
+
+---
+
+### 6. Agent RuleZ v2.3.0 — 15 New Capabilities (RUNTIME ENFORCEMENT)
+
+**Category:** Runtime Policy Engine — ONLY tool that enforces at execution time
+**Source:** https://github.com/SpillwaveSolutions/agent_rulez
+
+| # | Capability | Description | Current State |
+|---|-----------|-------------|---------------|
+| **AZ-1** | **Runtime blocking** | Intercepts tool calls and blocks dangerous operations before execution | ❌ No enforcement, rules are advisory only |
+| **AZ-2** | **Rule injection** | Injects context/instructions before tool execution | ❌ No dynamic context injection |
+| **AZ-3** | **`rulez validate`** | Validates hooks.yaml syntax and structure | ❌ No config validation |
+| **AZ-4** | **`rulez lint`** | Analyzes rule quality, detects overlapping matchers | ❌ No rule quality analysis |
+| **AZ-5** | **`rulez debug`** | Simulates events without live execution — test-driven policy | ❌ No policy testing |
+| **AZ-6** | **`rulez test`** | Batch test from YAML scenarios — CI-ready policy testing | ❌ No CI policy tests |
+| **AZ-7** | **`rulez explain`** | Post-hoc analysis of what rules fired | ❌ No audit trail |
+| **AZ-8** | **`rulez repl`** | Interactive debug mode for real-time testing | ❌ No interactive debugging |
+| **AZ-9** | **Multi-runtime support** | Works with Claude Code, OpenCode, Gemini CLI, Codex CLI | ❌ No cross-tool enforcement |
+| **AZ-10** | **Path-based matching** | Block/inject based on file paths | ❌ No path-based rules |
+| **AZ-11** | **Command regex matching** | Match tool commands with regex patterns | ❌ No command filtering |
+| **AZ-12** | **Priority-based rules** | Rules evaluated in priority order | ❌ No rule ordering |
+| **AZ-13** | **Fail-open mode** | Allow operations if rule evaluation fails | ❌ No fail-safe mode |
+| **AZ-14** | **Skills management** | `rulez skills sync/status/diff` across runtimes | ❌ No cross-runtime skill sync |
+| **AZ-15** | **Self-update** | `rulez upgrade` from GitHub releases | ❌ Manual updates only |
+
+**🔴 CRITICAL:** Agent RuleZ fills a gap NO other tool addresses — runtime enforcement. All other tools manage static files. Agent RuleZ actually prevents dangerous operations.
+
+---
+
+### 7. Ruler — 12 New Capabilities (ALTERNATIVE SYNC)
+
+**Category:** Static File Sync (TOML-based)
+**Source:** https://github.com/intellectronica/ruler
+
+| # | Capability | Description | Current State |
+|---|-----------|-------------|---------------|
+| **RL-1** | **TOML configuration** | Declarative config in `.ruler/ruler.toml` | ❌ No declarative config |
+| **RL-2** | **MCP server config** | Unified `[mcp_servers]` section in TOML | ❌ MCP configs scattered |
+| **RL-3** | **Gitignore management** | Auto-adds generated files to .gitignore | ❌ Manual .gitignore updates |
+| **RL-4** | **Dry-run mode** | Preview changes before applying | ❌ No preview |
+| **RL-5** | **Backup before apply** | Creates `.bak` files automatically | ❌ No automatic backups |
+| **RL-6** | **13+ agent support** | claude, cursor, cline, copilot, roo, kiro, trae, windsurf, amp, gemini-cli, qwen, opencode, codex | ❌ Only 6 tools configured |
+| **RL-7** | **Nested mode** | Option to nest rules in subdirectories | ❌ Flat structure only |
+| **RL-8** | **AGENTS.md generation** | Generates AGENTS.md from `.ruler/AGENTS.md` | ❌ Manual AGENTS.md |
+| **RL-9** | **Per-agent config** | Enable/disable agents individually | ❌ All-or-nothing |
+| **RL-10** | **Environment variable expansion** | `${VAR}` syntax in MCP config | ❌ Hardcoded values |
+| **RL-11** | **Trae support** | Supports Trae IDE (RuleSync does not) | ❌ No Trae config |
+| **RL-12** | **Simple setup** | Single `ruler.toml` vs RuleSync's multiple files | ❌ Complex multi-file config |
+
+---
+
+### 8. Letta Code — 4 Capabilities (MEMORY-FIRST AGENT)
+
+**Category:** Stateful Agent with Persistent Memory
+**Source:** https://letta.com
+
+| # | Capability | Description | Current State |
+|---|-----------|-------------|---------------|
+| **LC-1** | **Persistent memory** | Agent remembers across sessions in `~/.letta/agents/` | ❌ Other tools have no memory |
+| **LC-2** | **Progressive disclosure** | Summary in system prompt, detail loaded on demand | ❌ All-or-nothing context |
+| **LC-3** | **Memory filesystem** | Git-backed memory with version control | ❌ No memory versioning |
+| **LC-4** | **Skills system** | Reusable workflows with tool access | ⚠️ Limited skills support |
 
 ---
 
@@ -243,19 +315,26 @@ These gaps exist in the current setup and none of the evaluated tools address th
 
 ## Implementation Recommendation
 
-**Adopt 44 new capabilities via a 3-tool stack:**
+**Adopt 71 total capabilities via a 4-tool stack:**
 
 ```
-RuleSync (primary)     → 19 capabilities (sync, validation, permissions, skills, CI)
-Agent Rules Builder    → 6 capabilities  (templates, community, multi-format)
-agent-rules            → 5 capabilities  (security, testing, MCP scaffolding)
-                         ─────────────────
-                         30 unique capabilities
-
-Agent Rules Kit        → 4 unique capabilities (version detect, backup, mirror, MCP usage)
-agentfiles             → 5 unique capabilities (browser, marketplace, analytics, search, sessions)
-                         ─────────────────
-                         9 additional if desired (lower priority)
+RuleSync (primary)       → 19 capabilities (sync, validation, permissions, skills, CI)
+Agent RuleZ (enforcement)→ 15 capabilities (runtime blocking, validate, lint, debug, test)
+Ruler (alternative sync) → 12 capabilities (TOML config, Trae support, simple setup)
+Agent Rules Builder      → 6 capabilities  (templates, community, multi-format)
+agent-rules              → 5 capabilities  (security, testing, MCP scaffolding)
+Agent Rules Kit          → 8 capabilities  (version detect, backup, mirror, MCP usage)
+agentfiles               → 6 capabilities  (browser, marketplace, analytics, search, sessions)
+Letta Code               → 4 capabilities  (persistent memory, progressive disclosure)
+                           ─────────────────
+                           75 total capabilities (4 overlap)
+                           71 unique capabilities
 ```
 
-**44 total new capabilities vs 0 in current setup.**
+**Recommended Minimum Stack:**
+```
+RuleSync (static sync) + Agent RuleZ (runtime enforcement) + Agent Rules Builder (bootstrap)
+= 40 unique capabilities covering sync, enforcement, and content
+```
+
+**71 total new capabilities vs 0 in current setup.**
