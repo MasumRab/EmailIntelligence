@@ -30,6 +30,8 @@ from .plugin_base import (
 )
 
 logger = logging.getLogger(__name__)
+from .security import SecurityValidator
+security_validator = SecurityValidator()
 
 
 @dataclass

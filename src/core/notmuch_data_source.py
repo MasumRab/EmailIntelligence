@@ -186,6 +186,10 @@ class NotmuchDataSource(DataSource):
             
             try:
                 # Parse email content from file
+                if not security_validator.validate_io(filename, 'r'):
+                    logger.error(f"Security validation failed for file access: {filename}")
+                    return None
+
                 with open(filename, 'r', encoding='utf-8', errors='ignore') as f:
                     email_message = email.message_from_file(f)
                 

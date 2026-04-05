@@ -23,6 +23,8 @@ from typing import Any, Callable, Dict, List, Optional
 import psutil
 
 logger = logging.getLogger(__name__)
+from .security import SecurityValidator
+security_validator = SecurityValidator()
 
 LOG_FILE = "performance_metrics_log.jsonl"
 
@@ -190,6 +192,8 @@ from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Union
 
 logger = logging.getLogger(__name__)
+from .security import SecurityValidator
+security_validator = SecurityValidator()
 
 
 @dataclass

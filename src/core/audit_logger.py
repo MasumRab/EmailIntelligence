@@ -18,6 +18,8 @@ from queue import Queue
 from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
+from .security import SecurityValidator
+security_validator = SecurityValidator()
 
 
 class AuditEventType(Enum):
@@ -271,10 +273,12 @@ class AuditLogger:
             if event.details:
                 log_line += f" details={event.details}"
 
+            if not security_validator.validate_io(self.log_file, "a"): return
             with open(self.log_file, "a", encoding="utf-8") as f:
                 f.write(log_line + "\n")
 
             # Write to JSON log
+            if not security_validator.validate_io(self.json_file, "a"): return
             with open(self.json_file, "a", encoding="utf-8") as f:
                 json.dump(event.to_dict(), f, ensure_ascii=False)
                 f.write("\n")

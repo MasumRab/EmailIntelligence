@@ -26,6 +26,8 @@ from uuid import uuid4
 import networkx as nx
 
 logger = logging.getLogger(__name__)
+from .security import SecurityValidator
+security_validator = SecurityValidator()
 
 # Import security features if available
 try:

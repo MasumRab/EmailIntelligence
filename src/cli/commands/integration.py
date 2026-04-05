@@ -21,6 +21,13 @@ def create_default_dependencies() -> Dict[str, Any]:
     """
     dependencies = {}
 
+    try:
+        from ...core.security import SecurityValidator
+
+        dependencies["security_validator"] = SecurityValidator()
+    except ImportError:
+        dependencies["security_validator"] = None
+
     # Import dependencies lazily to avoid circular imports and handle missing modules
     try:
         from ..git.worktree import WorktreeManager

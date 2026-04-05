@@ -16,6 +16,8 @@ from typing import Any, Dict, List, Optional, Union
 
 # Configure logger for this module
 logger = logging.getLogger(__name__)
+from .security import SecurityValidator
+security_validator = SecurityValidator()
 
 ERROR_LOG_FILE = "error_log.jsonl"
 

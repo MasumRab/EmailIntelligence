@@ -15,6 +15,8 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Set
 
 logger = logging.getLogger(__name__)
+from .security import SecurityValidator
+security_validator = SecurityValidator()
 
 
 class ModelStatus(Enum):
@@ -108,6 +110,7 @@ class ModelRegistry:
                     if metadata_file.exists():
                         # Load existing metadata
                         try:
+                            if not security_validator.validate_io(metadata_file, "r"): return None
                             with open(metadata_file, "r") as f:
                                 data = json.load(f)
                                 metadata = ModelMetadata(**data)
@@ -592,6 +595,7 @@ class ModelRegistry:
                 "config": metadata.config,
             }
 
+            if not security_validator.validate_io(metadata_file, "w"): return False
             with open(metadata_file, "w") as f:
                 json.dump(metadata_dict, f, indent=2)
 
@@ -633,6 +637,7 @@ class ModelRegistry:
                     return {"passed": False, "issues": ["Config file not found"]}
 
                 # Basic validation
+                if not security_validator.validate_io(config_file, "r"): return {}
                 with open(config_file, "r") as f:
                     config = json.load(f)
 
