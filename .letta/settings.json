@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(echo:*)",
+      "Bash(git shortlog:*)",
+      "Bash(git config:*)",
+      "Bash(wc:*)",
+      "Bash(find /home/masum/github/EmailIntelligence -name \"package.json\" -type f 2>/dev/null)",
+      "Bash(ls -la /home/masum/github/EmailIntelligence/.github/workflows/ 2>/dev/null || echo \"No workflows\")",
+      "Bash(head:*)",
+      "Bash(mkdir -p \"$MEMORY_DIR/system/emailintelligence\")",
+      "Bash(git add:*)",
+      "Bash(git log:*)",
+      "Bash(npx tsx:*)",
+      "Edit(//home/masum/.letta/agents/agent-f45e48fa-f5fd-4175-a409-9c09d941fd7f/memory/system/emailintelligence/**)",
+      "Bash(git push:*)",
+      "Bash(ls -la /home/masum/github/EmailIntelligence/backend/ 2>/dev/null | head -10)",
+      "Bash(grep:*)",
+      "Bash(cat >> /home/masum/github/EmailIntelligence/.gitignore << 'EOF'\n\n# Agent session/export files\n*.af\njules_sessions/\n\n# Backup files\n*.backup\n*.orig\n\n# Temporary analysis files\nCONFIG_ANALYSIS.md\nPHASE_6_*.md\nPR_480_RESOLUTION.md\nSCRIPTING_CONSOLIDATION_STATUS.md\nMERGIFY_BRANCH_ANALYSIS_FINAL.md\n\n# Deprecated directories\nbackend/\n\n# Letta local settings (user-specific)\n.letta/settings.local.json\nEOF\necho \"Updated .gitignore\")"
+    ]
+  }
+}
