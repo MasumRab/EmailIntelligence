@@ -13,6 +13,7 @@ from typing import Any, Dict
 from fastapi import APIRouter, BackgroundTasks, HTTPException
 
 from src.core.auth import get_current_active_user
+from fastapi import Depends
 
 from ..python_nlp.ai_training import ModelConfig
 from .performance_monitor import log_performance
