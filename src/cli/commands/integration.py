@@ -126,6 +126,7 @@ def create_registry(factory: Optional[CommandFactory] = None) -> CommandRegistry
     from .validate_command import ValidateCommand
     from .analyze_history_command import AnalyzeHistoryCommand
     from .plan_rebase_command import PlanRebaseCommand
+    from .guide import GuideCommand
 
     cmd_factory = factory or create_command_factory()
     registry = CommandRegistry(cmd_factory)
@@ -136,6 +137,7 @@ def create_registry(factory: Optional[CommandFactory] = None) -> CommandRegistry
     registry.register_command(ValidateCommand, "agent-4")
     registry.register_command(AnalyzeHistoryCommand, "agent-5")
     registry.register_command(PlanRebaseCommand, "agent-5")
+    registry.register_command(GuideCommand, "agent-workflow")
 
     return registry
 

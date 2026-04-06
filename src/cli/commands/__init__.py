@@ -46,6 +46,9 @@ from .automation.mcp_sync import MCPSyncCommand
 from .agent.scaffold import AgentScaffoldCommand
 from .agent.rule_sync import RuleSyncCommand
 
+# 7. Workflow Domain
+from .guide import GuideCommand
+
 __all__ = [
     "Command",
     "CommandFactory",
@@ -82,4 +85,6 @@ __all__ = [
     # Agent
     "AgentScaffoldCommand",
     "RuleSyncCommand",
+    # Workflow
+    "GuideCommand",
 ]
