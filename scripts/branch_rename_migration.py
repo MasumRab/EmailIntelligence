@@ -20,6 +20,7 @@ def run_command(command_args):
     Args:
         command_args: List of command arguments.
     """
+    # sourcery skip: command-injection
     try:
         result = subprocess.run(command_args, shell=False, capture_output=True, text=True, check=True)
         return result.stdout.strip()
