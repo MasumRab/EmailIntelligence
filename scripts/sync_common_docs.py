@@ -5,12 +5,11 @@ Worktree Documentation Inheritance Sync Script (Python version)
 Synchronizes common documentation across worktrees with cross-platform support.
 """
 
-import os
 import sys
 import shutil
 import argparse
+import subprocess
 from pathlib import Path
-from typing import List, Optional
 
 class DocumentationSync:
     """Handles synchronization of common documentation across worktrees."""
@@ -114,7 +113,7 @@ class DocumentationSync:
         self.print_status("Checking worktree status")
 
         print("\nWorktrees found:")
-        os.system("git worktree list")
+        subprocess.run(["git", "worktree", "list"], check=True)
 
         print("\nWorktree documentation status:")
 
@@ -139,7 +138,6 @@ class DocumentationSync:
     def _sync_directory(self, source: Path, target: Path, conflict_strategy: str = "overwrite"):
         """Sync contents of source directory to target directory with conflict resolution."""
         import filecmp
-        from datetime import datetime
 
         conflicts = []
         updates = []
