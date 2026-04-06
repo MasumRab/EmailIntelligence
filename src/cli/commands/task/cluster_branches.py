@@ -56,6 +56,11 @@ class ClusterBranchesCommand(Command):
             "--validate",
             help="Path to clustering rules YAML for Natural Language validation"
         )
+        parser.add_argument(
+            "--limit",
+            type=int,
+            help="Limit number of branches to analyze"
+        )
 
     def get_dependencies(self) -> Dict[str, Any]:
         """Get required dependencies."""
@@ -76,6 +81,9 @@ class ClusterBranchesCommand(Command):
         try:
             # 1. Get list of remote feature branches
             branches = self._get_remote_branches()
+            if args.limit:
+                branches = branches[:args.limit]
+            
             if not branches:
                 print("No remote branches found to analyze.")
                 return 0

@@ -2,7 +2,18 @@ import subprocess
 import ast
 import hashlib
 import re
-from typing import Dict, List, Any
+from typing import Dict, List, Any, Set, Tuple
+from collections import defaultdict
+from datetime import datetime
+
+# Optional scientific dependencies with lazy imports and fallbacks
+try:
+    import numpy as np
+    import scipy.cluster.hierarchy as hierarchy
+    from scipy.spatial.distance import squareform
+    HAS_SCIENTIFIC = True
+except ImportError:
+    HAS_SCIENTIFIC = False
 
 try:
     import libcst as cst
@@ -17,6 +28,18 @@ class GitAnalysisError(Exception):
 def hash_content(code: str) -> str:
     return hashlib.md5(code.encode()).hexdigest()
 
+# ============================================================================
+# Constants & Thresholds
+# ============================================================================
+DEFAULT_SIMILARITY_SCORE = 0.5
+MIN_BRANCH_AGE_DAYS = 1
+CLUSTERING_THRESHOLD = 0.25
+
+# Distance weights
+WEIGHT_COMMIT_HISTORY = 0.35
+WEIGHT_CODEBASE_STRUCTURE = 0.35
+WEIGHT_DIFF_DISTANCE = 0.30
+
 class BranchAnalyzer:
     """Analyzes a branch using ast and libcst to extract semantic features."""
 
@@ -26,38 +49,24 @@ class BranchAnalyzer:
     def get_changed_files(self, branch: str, base_branch: str) -> List[str]:
         """Gets all files changed between branches."""
         try:
-            cmd = ["git", "diff", "--name-only", f"{base_branch}...{branch}"]
-            result = subprocess.run(
-                cmd,
-                cwd=self.repo_path,
-                capture_output=True,
-                text=True,
-                check=True)
+            cmd = ["git", "diff", "--name-only", f"{base_branch}...origin/{branch}"]
+            result = subprocess.run(cmd, cwd=self.repo_path, capture_output=True, text=True, check=True)
             files = [f for f in result.stdout.strip().split("\n") if f]
             return files
-        except subprocess.CalledProcessError as e:
-            if any(err in e.stderr for err in ["bad revision", "unknown revision", "ambiguous argument", "fatal: bad object"]):
-                raise GitAnalysisError(f"Git diff failed due to invalid ref: {e.stderr}")
+        except subprocess.CalledProcessError:
             return []
 
     def get_file_content(self, branch: str, filepath: str) -> str:
         """Gets the content of a file at a specific branch."""
         try:
-            cmd = ["git", "show", f"{branch}:{filepath}"]
-            result = subprocess.run(
-                cmd,
-                cwd=self.repo_path,
-                capture_output=True,
-                text=True,
-                check=True)
+            cmd = ["git", "show", f"origin/{branch}:{filepath}"]
+            result = subprocess.run(cmd, cwd=self.repo_path, capture_output=True, text=True, check=True)
             return result.stdout
-        except subprocess.CalledProcessError as e:
-            if "does not exist" in e.stderr or "fatal: Path" in e.stderr:
-                return "" # Missing path is fine, handle naturally
-            raise GitAnalysisError(f"Git show failed: {e.stderr}")
+        except subprocess.CalledProcessError:
+            return ""
 
     def analyze_file(self, content: str) -> Dict[str, Any]:
-        """Extracts features from Python code using ast and libcst."""
+        """Extracts features from Python code."""
         result = {
             "functions": [],
             "classes": [],
@@ -65,175 +74,168 @@ class BranchAnalyzer:
             "docstrings": [],
             "comments": [],
             "structural_hash": "",
-            "content_hash": hash_content(content)
+            "content_hash": hash_content(content) if content else ""
         }
 
-        if not content:
-            return result
+        if not content: return result
 
-        # Fast AST structural pass
-        self._extract_ast_features(content, result)
-
-        # LibCST for deep semantic extraction (comments)
-        if HAVE_LIBCST:
-            self._extract_cst_comments(content, result)
-
-        return result
-
-    def _extract_ast_features(self, content: str, result: Dict[str, Any]) -> None:
-        """Extract features using AST."""
         try:
             tree = ast.parse(content)
             for node in ast.walk(tree):
-                self._process_ast_node(node, result)
+                if isinstance(node, (ast.FunctionDef, getattr(ast, 'AsyncFunctionDef', type(None)))):
+                    result["functions"].append(node.name)
+                elif isinstance(node, ast.ClassDef):
+                    result["classes"].append(node.name)
+                elif isinstance(node, ast.Import):
+                    for name in node.names: result["imports"].append(name.name)
+                elif isinstance(node, ast.ImportFrom):
+                    mod = node.module or ""
+                    for name in node.names: result["imports"].append(f"{mod}.{name.name}")
 
-            result["structural_hash"] = hash_content(
-                ast.dump(
-                    tree,
-                    annotate_fields=False,
-                    include_attributes=False))
+            result["structural_hash"] = hash_content(ast.dump(tree, annotate_fields=False, include_attributes=False))
         except SyntaxError:
-            pass  # Invalid python file, skip AST
-
-    def _process_ast_node(self, node: ast.AST, result: Dict[str, Any]) -> None:
-        """Process a single AST node and extract features."""
-        if isinstance(node, (ast.FunctionDef, getattr(ast, 'AsyncFunctionDef', type(None)))):
-            result["functions"].append(node.name)
-            doc = ast.get_docstring(node)
-            if doc:
-                result["docstrings"].append(doc)
-        elif isinstance(node, ast.ClassDef):
-            result["classes"].append(node.name)
-            doc = ast.get_docstring(node)
-            if doc:
-                result["docstrings"].append(doc)
-        elif isinstance(node, ast.Import):
-            for name in node.names:
-                result["imports"].append(name.name)
-        elif isinstance(node, ast.ImportFrom):
-            mod = node.module or ""
-            for name in node.names:
-                result["imports"].append(f"{mod}.{name.name}")
-
-    def _extract_cst_comments(self, content: str, result: Dict[str, Any]) -> None:
-        """Extract comments using LibCST."""
-        try:
-            cst_tree = cst.parse_module(content)
-
-            class CommentVisitor(cst.CSTVisitor):
-                def __init__(self):
-                    self.comments = []
-
-                def visit_Comment(self, node):
-                    self.comments.append(node.value)
-
-            visitor = CommentVisitor()
-            cst_tree.visit(visitor)
-            result["comments"] = visitor.comments
-        except Exception:
             pass
 
+        if HAVE_LIBCST:
+            try:
+                cst_tree = cst.parse_module(content)
+                class CommentVisitor(cst.CSTVisitor):
+                    def __init__(self): self.comments = []
+                    def visit_Comment(self, node): self.comments.append(node.value)
+                visitor = CommentVisitor()
+                cst_tree.visit(visitor)
+                result["comments"] = visitor.comments
+            except: pass
+
+        return result
 
 class ClusterEngine:
-    """Orchestrates the branch clustering logic."""
+    """
+    Advanced two-stage branch clustering engine.
+    Restored from historical fidelity implementation.
+    """
 
     def __init__(self, repo_path: str = ".", mode: str = "hybrid"):
-        self.analyzer = BranchAnalyzer(repo_path)
+        self.repo_path = repo_path
         self.mode = mode
+        self.analyzer = BranchAnalyzer(repo_path)
 
-    def execute(self, branches: List[str], base_branch: str = "origin/main") -> Dict[str, Any]:
-        branch_metrics = {}
+    def execute(self, branches: List[str], primary_branch: str = "origin/main") -> Dict[str, Any]:
+        """
+        Executes the two-stage identification and clustering pipeline.
+        """
+        branch_metrics = self._collect_metrics(branches, primary_branch)
+        
+        # Stage One: Similarity-based clustering (if scientific stack available)
+        clusters = {}
+        if HAS_SCIENTIFIC and len(branches) > 1:
+            clusters = self._perform_clustering(branch_metrics)
 
-        # 1. Feature Extraction (Map)
-        for branch in branches:
-            # We want all files for context, but we only run AST on .py files.
-            all_files = self.analyzer.get_changed_files(branch, base_branch)
-            py_files = [f for f in all_files if f.endswith('.py')]
-
-            features = {
-                "files_changed": all_files,
-                "functions": set(),
-                "classes": set(),
-                "imports": set(),
-                "docstrings": [],
-                "comments": [],
-                "structural_hashes": set()
-            }
-
-            for f in py_files:
-                content = self.analyzer.get_file_content(branch, f)
-                file_features = self.analyzer.analyze_file(content)
-                features["functions"].update(file_features["functions"])
-                features["classes"].update(file_features["classes"])
-                features["imports"].update(file_features["imports"])
-                features["docstrings"].extend(file_features["docstrings"])
-                features["comments"].extend(file_features["comments"])
-                if file_features["structural_hash"]:
-                    features["structural_hashes"].add(
-                        file_features["structural_hash"])
-
-            # Convert sets to sorted lists for deterministic outputs
-            features["functions"] = sorted(features["functions"])
-            features["classes"] = sorted(features["classes"])
-            features["imports"] = sorted(features["imports"])
-            features["structural_hashes"] = sorted(features["structural_hashes"])
-
-            branch_metrics[branch] = features
-
-        # 2. Assignment / Clustering (Reduce) based on mode
+        # Stage Two: Target assignment with tagging
         assignments = {}
-        for branch, metrics in branch_metrics.items():
-            if self.mode in ("identification", "hybrid"):
-                target, confidence, reasoning, tags = self._assign_target(branch, metrics)
-            else:
-                target, confidence, reasoning, tags = "main", 0.5, "Clustering mode bypassing identification", ["tag:unsupervised_cluster"]
-
+        for branch in branches:
+            metrics = branch_metrics[branch]
+            target, confidence, reasoning, tags = self._assign_target(branch, metrics)
+            
             assignments[branch] = {
                 "target": target,
                 "confidence": confidence,
                 "reasoning": reasoning,
                 "tags": tags,
-                "metrics": metrics
+                "cluster_id": clusters.get(branch, "Unclustered"),
+                "metrics": {
+                    "files_changed": len(metrics["files_changed"]),
+                    "logic_volume": len(metrics["functions"]) + len(metrics["classes"])
+                }
             }
 
         return assignments
 
+    def _collect_metrics(self, branches: List[str], primary_branch: str) -> Dict[str, Any]:
+        """Collects semantic and structural metrics for all branches."""
+        metrics = {}
+        for branch in branches:
+            files = self.analyzer.get_changed_files(branch, primary_branch)
+            py_files = [f for f in files if f.endswith('.py')]
+            
+            agg = {
+                "files_changed": files,
+                "functions": set(),
+                "classes": set(),
+                "imports": set(),
+                "structural_hashes": set(),
+                "divergence_ratio": self._get_divergence_ratio(branch, primary_branch)
+            }
+            
+            for f in py_files:
+                feat = self.analyzer.analyze_file(self.analyzer.get_file_content(branch, f))
+                agg["functions"].update(feat["functions"])
+                agg["classes"].update(feat["classes"])
+                agg["imports"].update(feat["imports"])
+                if feat["structural_hash"]: agg["structural_hashes"].add(feat["structural_hash"])
+            
+            metrics[branch] = agg
+        return metrics
+
+    def _perform_clustering(self, metrics: Dict[str, Any]) -> Dict[str, str]:
+        """Performs hierarchical clustering using Ward's method."""
+        branches = list(metrics.keys())
+        n = len(branches)
+        dist_matrix = np.zeros((n, n))
+
+        for i in range(n):
+            for j in range(i + 1, n):
+                dist = self._calculate_branch_distance(metrics[branches[i]], metrics[branches[j]])
+                dist_matrix[i][j] = dist_matrix[j][i] = dist
+
+        condensed = squareform(dist_matrix)
+        linkage_matrix = hierarchy.linkage(condensed, method="ward")
+        clusters_array = hierarchy.fcluster(linkage_matrix, t=CLUSTERING_THRESHOLD, criterion="distance")
+        
+        return {branch: f"C{cid}" for branch, cid in zip(branches, clusters_array)}
+
+    def _calculate_branch_distance(self, m1: Dict, m2: Dict) -> float:
+        """Calculates normalized distance between two branch feature sets."""
+        # 1. Directory/File overlap
+        f1, f2 = set(m1["files_changed"]), set(m2["files_changed"])
+        overlap = len(f1 & f2) / max(len(f1 | f2), 1)
+        file_dist = 1.0 - overlap
+
+        # 2. Logic overlap (functions/classes)
+        l1 = set(m1["functions"]) | set(m1["classes"])
+        l2 = set(m2["functions"]) | set(m2["classes"])
+        logic_overlap = len(l1 & l2) / max(len(l1 | l2), 1) if l1 or l2 else 0.5
+        logic_dist = 1.0 - logic_overlap
+
+        # Weighted distance
+        return (file_dist * 0.5) + (logic_dist * 0.5)
+
+    def _get_divergence_ratio(self, branch: str, primary: str) -> float:
+        """Calculates distance from merge base vs primary commits."""
+        try:
+            base = subprocess.check_output(["git", "merge-base", f"origin/{branch}", primary], text=True).strip()
+            branch_cnt = int(subprocess.check_output(["git", "rev-list", "--count", f"{base}..origin/{branch}"], text=True).strip())
+            primary_cnt = int(subprocess.check_output(["git", "rev-list", "--count", f"{base}..{primary}"], text=True).strip())
+            return branch_cnt / (primary_cnt + 1)
+        except: return 0.5
+
     def _assign_target(self, branch: str, metrics: Dict[str, Any]) -> tuple:
-        """Rule-based supervised heuristic assignment."""
-        target = "main"
-        confidence = 0.5
-        reasoning = "Default assignment"
-        tags = []
-
+        """Heuristic-based target assignment."""
         name = branch.lower()
-        # Tokenize the branch name for robust semantic matching (no false substring positives)
         tokens = re.split(r'[-_/\s\.]', name)
+        files = metrics["files_changed"]
+        imports = metrics["imports"]
 
-        files = metrics.get("files_changed", [])
-        imports = set(metrics.get("imports", []))
+        # 1. Orchestration Affinity
+        if any(x in tokens for x in ["orch", "orchestration", "tools", "cli"]) or \
+           any("taskmaster" in f or "src/cli" in f for f in files):
+            return "orchestration-tools", 0.9, "Modifies CLI/Orchestration infrastructure", ["tag:orchestration_branch"]
 
-        # Rule 1: Orchestration
-        if any("taskmaster" in f or "cli/commands" in f for f in files) or "orch" in tokens or "orchestration" in tokens:
-            target = "orchestration-tools"
-            confidence = 0.85
-            reasoning = "Modifies CLI/orchestration paths"
-            tags.append("tag:orchestration_branch")
+        # 2. Scientific Affinity
+        if any(x in tokens for x in ["scientific", "ml", "ai", "model"]) or \
+           any("python_nlp" in f or "ai_engine" in f for f in files) or \
+           any(x in imports for x in ["transformers", "torch", "sklearn"]):
+            return "scientific", 0.9, "Contains NLP/AI/ML logic or dependencies", ["tag:scientific_branch", "tag:ml_deps"]
 
-        # Rule 2: Scientific
-        elif any("python_nlp" in f or "ai_engine" in f for f in files) or "scientific" in tokens or "ml" in tokens:
-            target = "scientific"
-            confidence = 0.85
-            reasoning = "Modifies NLP/AI paths"
-            tags.append("tag:scientific_branch")
-
-        # Rule 3: Dependency Overlap heuristics
-        if any("torch" in i or "transformers" in i for i in imports):
-            target = "scientific"
-            confidence = 0.90
-            reasoning = "Introduces heavy ML dependencies"
-            tags.append("tag:ml_deps")
-
-        if not tags:
-            tags.append("tag:feature_branch")
-
-        return target, confidence, reasoning, tags
+        # 3. Main/Feature fallback
+        return "main", 0.6, "General feature or bugfix", ["tag:feature_branch"]
