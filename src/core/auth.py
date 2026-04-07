@@ -84,6 +84,10 @@ def hash_password(password: str) -> str:
     Returns:
         Argon2 hashed password (including salt and parameters)
     """
+    if len(password) > 1024:
+        logger.error("Password exceeds maximum allowed length of 1024 characters")
+        raise ValueError("Password is too long")
+
     ph = PasswordHasher()
     return ph.hash(password)
 
@@ -99,6 +103,10 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     Returns:
         True if passwords match, False otherwise
     """
+    if len(plain_password) > 1024:
+        logger.warning("Attempted to verify password exceeding maximum allowed length")
+        return False
+
     ph = PasswordHasher()
     try:
         return ph.verify(hashed_password, plain_password)
