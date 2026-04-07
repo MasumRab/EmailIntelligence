@@ -445,6 +445,10 @@ class PluginManager:
         self, plugin_object: Any, method_name: str, security_level: PluginSecurityLevel
     ) -> bool:
         """Validate if a method execution is allowed."""
+        # Block access to private and magic methods
+        if method_name.startswith("_"):
+            return False
+
         # Basic validation - could be enhanced
         dangerous_methods = ["__del__", "system", "exec", "eval", "__import__"]
 
