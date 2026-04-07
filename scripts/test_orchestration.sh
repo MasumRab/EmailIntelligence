@@ -20,19 +20,19 @@ PASSED_TESTS=0
 
 # Logging functions
 log_info() {
-    echo -e "${BLUE}[INFO]${NC} $1"
+    printf "%b%s\n" "${BLUE}[INFO]${NC} " "$1"
 }
 
 log_success() {
-    echo -e "${GREEN}[PASS]${NC} $1"
+    printf "%b%s\n" "${GREEN}[PASS]${NC} " "$1"
 }
 
 log_warning() {
-    echo -e "${YELLOW}[WARN]${NC} $1"
+    printf "%b%s\n" "${YELLOW}[WARN]${NC} " "$1"
 }
 
 log_error() {
-    echo -e "${RED}[FAIL]${NC} $1"
+    printf "%b%s\n" "${RED}[FAIL]${NC} " "$1"
 }
 
 # Test runner
