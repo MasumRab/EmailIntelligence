@@ -8,6 +8,7 @@ and monitoring AI models with versioning, metadata, and performance metrics.
 import asyncio
 import json
 import logging
+import os
 import time
 from dataclasses import dataclass, field
 from enum import Enum
@@ -462,6 +463,10 @@ class ModelRegistry:
 
     async def _load_sklearn_model(self, metadata: ModelMetadata) -> Optional[Any]:
         """Load a scikit-learn model."""
+
+        if os.environ.get("RENDER"):
+            logger.info(f"Skipping heavy model load for {metadata.model_id} in Render Lite Mode")
+            return None
         try:
             import joblib
 
@@ -479,6 +484,10 @@ class ModelRegistry:
 
     async def _load_transformers_model(self, metadata: ModelMetadata) -> Optional[Any]:
         """Load a transformers model."""
+
+        if os.environ.get("RENDER"):
+            logger.info(f"Skipping heavy model load for {metadata.model_id} in Render Lite Mode")
+            return None
         try:
             from transformers import AutoModelForSequenceClassification, AutoTokenizer
 
@@ -496,6 +505,10 @@ class ModelRegistry:
 
     async def _load_tensorflow_model(self, metadata: ModelMetadata) -> Optional[Any]:
         """Load a TensorFlow model."""
+
+        if os.environ.get("RENDER"):
+            logger.info(f"Skipping heavy model load for {metadata.model_id} in Render Lite Mode")
+            return None
         try:
             import tensorflow as tf
 
