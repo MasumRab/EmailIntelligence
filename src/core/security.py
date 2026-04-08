@@ -62,6 +62,20 @@ class SecurityContext:
 class SecurityValidator:
     """Validates security requirements for operations"""
 
+    def __init__(self, base_dir: Optional[Union[str, Path]] = None):
+        self.base_dir = base_dir or os.getcwd()
+
+    def validate_io(self, path: str, mode: str = "r") -> bool:
+        """
+        Validates an I/O operation.
+        Returns True if the path is safe, False otherwise.
+        """
+        return validate_path_safety(path, self.base_dir)
+
+    def sanitize(self, path: str) -> Optional[Path]:
+        """Sanitizes a path."""
+        return sanitize_path(path, self.base_dir)
+
     @staticmethod
     def validate_access(
         context: SecurityContext, resource: str, permission: Permission
@@ -98,6 +112,44 @@ class SecurityValidator:
                     return False
 
         return True
+
+
+class SecureFileSystemProxy:
+    """
+    Proxy Pattern Implementation for Gated I/O.
+    Intercepts file system operations to enforce SecurityValidator rules.
+    """
+
+    def __init__(self, validator: SecurityValidator):
+        self._validator = validator
+
+    def secure_open(
+        self,
+        file,
+        mode="r",
+        buffering=-1,
+        encoding=None,
+        errors=None,
+        newline=None,
+        closefd=True,
+        opener=None,
+    ):
+        """
+        Gated wrapper for the built-in open() function.
+        Raises PermissionError if the path is not validated by the SecurityValidator.
+        """
+        # Convert path-like objects to strings for the validator
+        path_str = str(file)
+
+        if not self._validator.validate_io(path_str, mode):
+            logger.error(
+                f"SECURITY VIOLATION: Unauthorized access attempt to '{path_str}' [mode: {mode}]"
+            )
+            raise PermissionError(
+                f"Access to path '{path_str}' is denied by SecurityPolicy."
+            )
+
+        return open(file, mode, buffering, encoding, errors, newline, closefd, opener)
 
 
 def validate_path_safety(

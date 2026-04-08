@@ -31,9 +31,11 @@ from .enhanced_error_reporting import (
     ErrorCategory, 
     create_error_context
 )
-from .security import PathValidator, validate_path_safety
+from .security import PathValidator, validate_path_safety, SecurityValidator, SecureFileSystemProxy
 
 logger = logging.getLogger(__name__)
+security_validator = SecurityValidator()
+fs_proxy = SecureFileSystemProxy(security_validator)
 
 
 class NotmuchDataSource(DataSource):
@@ -186,7 +188,7 @@ class NotmuchDataSource(DataSource):
             
             try:
                 # Parse email content from file
-                with open(filename, 'r', encoding='utf-8', errors='ignore') as f:
+                with fs_proxy.secure_open(filename, 'r', encoding='utf-8', errors='ignore') as f:
                     email_message = email.message_from_file(f)
                 
                 email_data = {

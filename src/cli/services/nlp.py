@@ -1,67 +1,41 @@
 """
-NLP Service Module (High-Fidelity Comparison Edition)
+NLP Service Module - Strategy Pattern Edition
 
 Provides robust semantic and lexical analysis capabilities for internal CLI operations.
-Includes TF-IDF and Cosine Similarity for high-fidelity "Similaroty Comparison".
-
-CRITICAL ARCHITECTURAL REQUIREMENT:
-If user feedback is required and needs to be processed to understand user intent and purpose,
-the feedback MUST be sent to an LLM (Large Language Model) via the agent-based workflow.
-Direct NLP engine piping for user intent is prohibited.
+Uses the Strategy Pattern to decouple similarity algorithms from the service logic.
 """
 
 import logging
 import re
 import collections
-import math
+from abc import ABC, abstractmethod
 from typing import Any, Dict, List, Optional, Set
 from difflib import SequenceMatcher, get_close_matches
 
-# Optional scientific dependencies for high-fidelity comparison
+# Optional scientific dependencies
 try:
     from sklearn.feature_extraction.text import TfidfVectorizer
     from sklearn.metrics.pairwise import cosine_similarity
     import numpy as np
-    HAS_SKLEARN = True
+    HAS_SCIENTIFIC = True
 except ImportError:
-    HAS_SKLEARN = False
+    HAS_SCIENTIFIC = False
 
 logger = logging.getLogger(__name__)
 
-class NLPService:
-    """
-    Service providing multi-factor string similarity and matching.
-    Uses TF-IDF + Cosine Similarity when available, falling back to difflib.
-    """
+# --- Strategy Interfaces ---
 
-    def __init__(self):
-        self._initialized = True
+class SimilarityStrategy(ABC):
+    """Abstract base class for text similarity algorithms."""
+    @abstractmethod
+    def calculate(self, text1: str, text2: str) -> float:
+        pass
 
-    async def calculate_similarity(self, text1: str, text2: str) -> float:
-        """
-        Calculates similarity using the best available method.
-        1. TF-IDF + Cosine Similarity (High-Fidelity)
-        2. SequenceMatcher + Jaccard (Balanced Fallback)
-        """
-        if not text1 or not text2:
-            return 0.0
+# --- Concrete Strategies ---
 
-        if HAS_SKLEARN:
-            try:
-                return self._calculate_cosine_similarity(text1, text2)
-            except Exception as e:
-                logger.debug(f"Cosine similarity failed: {e}")
-
-        return self._calculate_fallback_similarity(text1, text2)
-
-    def _calculate_cosine_similarity(self, text1: str, text2: str) -> float:
-        """High-fidelity vector-based similarity."""
-        vectorizer = TfidfVectorizer(token_pattern=r'\w+')
-        tfidf = vectorizer.fit_transform([text1, text2])
-        return float(cosine_similarity(tfidf[0:1], tfidf[1:2])[0][0])
-
-    def _calculate_fallback_similarity(self, text1: str, text2: str) -> float:
-        """Balanced structural and lexical fallback."""
+class BasicSimilarityStrategy(SimilarityStrategy):
+    """Existing: Balanced structural (difflib) and lexical (Jaccard) fallback."""
+    def calculate(self, text1: str, text2: str) -> float:
         t1, t2 = text1.lower().strip(), text2.lower().strip()
         
         # 1. Structural (difflib)
@@ -70,10 +44,55 @@ class NLPService:
         # 2. Lexical (Jaccard)
         tokens1 = set(re.findall(r'\w+', t1))
         tokens2 = set(re.findall(r'\w+', t2))
-        if not tokens1 or not tokens2: return struct_score
-        
+        if not tokens1 or not tokens2:
+            return struct_score
+            
         lexical_score = len(tokens1 & tokens2) / len(tokens1 | tokens2)
         return (struct_score * 0.4) + (lexical_score * 0.6)
+
+class ScientificSimilarityStrategy(SimilarityStrategy):
+    """Intended: High-fidelity vector-based similarity using TF-IDF and Cosine Similarity."""
+    def calculate(self, text1: str, text2: str) -> float:
+        if not HAS_SCIENTIFIC:
+            return 0.0
+        try:
+            vectorizer = TfidfVectorizer(token_pattern=r'\w+')
+            tfidf = vectorizer.fit_transform([text1, text2])
+            return float(cosine_similarity(tfidf[0:1], tfidf[1:2])[0][0])
+        except Exception as e:
+            logger.debug(f"Scientific similarity calculation failed: {e}")
+            return 0.0
+
+# --- Context (Service) ---
+
+class NLPService:
+    """
+    Service providing multi-factor string similarity and matching.
+    Orchestrates different SimilarityStrategies based on environment and requirements.
+    """
+
+    def __init__(self, strategy: Optional[SimilarityStrategy] = None):
+        self._initialized = True
+        # Default to scientific if available, otherwise fallback to basic
+        if strategy:
+            self.strategy = strategy
+        elif HAS_SCIENTIFIC:
+            self.strategy = ScientificSimilarityStrategy()
+        else:
+            self.strategy = BasicSimilarityStrategy()
+
+    async def calculate_similarity(self, text1: str, text2: str) -> float:
+        """Calculates similarity using the configured strategy."""
+        if not text1 or not text2:
+            return 0.0
+        
+        score = self.strategy.calculate(text1, text2)
+        
+        # If scientific strategy fails or returns 0 for non-empty strings, use basic fallback
+        if score <= 0.0 and not isinstance(self.strategy, BasicSimilarityStrategy):
+            return BasicSimilarityStrategy().calculate(text1, text2)
+            
+        return score
 
     async def extract_keywords(self, text: str, limit: int = 5) -> List[str]:
         """Independent keyword extraction using frequency analysis."""
