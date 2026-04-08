@@ -80,7 +80,7 @@ logger = logging.getLogger("launcher")
 ROOT_DIR = get_project_config().root_dir
 
 # Import process manager from utils
-from setup.utils import process_manager
+from setup.utils import process_manager, get_python_executable
 
 # --- Constants ---
 PYTHON_MIN_VERSION = (3, 12)
