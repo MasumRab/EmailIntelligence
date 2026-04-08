@@ -171,6 +171,11 @@ class DatabaseManager(DataSource):
 
     def _get_email_content_path(self, email_id: int) -> str:
         """Returns the path for an individual email's content file."""
+        try:
+            email_id = int(email_id)
+        except (ValueError, TypeError):
+            raise ValueError(f"Invalid email_id format: {email_id}")
+
         return os.path.join(self.email_content_dir, f"{email_id}.json.gz")
 
     def _read_content_sync(self, content_path: str) -> Dict[str, Any]:
