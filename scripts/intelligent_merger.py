@@ -15,16 +15,11 @@ from pathlib import Path
 from typing import List, Tuple
 
 
-def run_command(cmd: List[str]) -> str:
-    """Run shell command and return output"""
-    result = subprocess.run(cmd, shell=False, capture_output=True, text=True)
-    return result.stdout
-
-
 def get_file_content(file_path: str, ref: str = "HEAD") -> str:
     """Get file content at specific ref"""
     try:
-        return run_command(["git", "show", f"{ref}:{file_path}"])
+        result = subprocess.run(["git", "show", f"{ref}:{file_path}"], shell=False, capture_output=True, text=True)
+        return result.stdout
     except Exception as e:
         print(f"Error getting {file_path} at {ref}: {e}")
         return ""
@@ -33,7 +28,8 @@ def get_file_content(file_path: str, ref: str = "HEAD") -> str:
 def get_changed_lines(file_path: str, base_ref: str, target_ref: str) -> List[int]:
     """Get line numbers changed between base and target"""
     try:
-        diff = run_command(["git", "diff", f"{base_ref}..{target_ref}", "--", file_path])
+        result = subprocess.run(["git", "diff", f"{base_ref}..{target_ref}", "--", file_path], shell=False, capture_output=True, text=True)
+        diff = result.stdout
         changed_lines = set()
 
         for line in diff.split("\n"):
@@ -74,7 +70,8 @@ def intelligent_merge(
     """
 
     # Get the merge base
-    base_ref = run_command(["git", "merge-base", local_ref, remote_ref]).strip()
+    result = subprocess.run(["git", "merge-base", local_ref, remote_ref], shell=False, capture_output=True, text=True)
+    base_ref = result.stdout.strip()
 
     if not base_ref:
         print("❌ Error: Could not find merge base")

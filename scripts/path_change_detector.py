@@ -30,12 +30,6 @@ class PathChange:
         self.new_path = self.new_path or ""
 
 
-def run_command(cmd: List[str]) -> str:
-    """Run shell command and return output"""
-    result = subprocess.run(cmd, shell=False, capture_output=True, text=True)
-    return result.stdout
-
-
 class PathChangeDetector:
     def __init__(self, local_branch: str, remote_branch: str):
         self.local_branch = local_branch
@@ -48,12 +42,12 @@ class PathChangeDetector:
         """Scan both branches for file paths"""
 
         # Get local files
-        result = run_command(["git", "ls-tree", "-r", "--name-only", self.local_branch])
-        self.local_files = set(filter(None, result.strip().split("\n")))
+        result = subprocess.run(["git", "ls-tree", "-r", "--name-only", self.local_branch], shell=False, capture_output=True, text=True)
+        self.local_files = set(filter(None, result.stdout.strip().split("\n")))
 
         # Get remote files
-        result = run_command(["git", "ls-tree", "-r", "--name-only", self.remote_branch])
-        self.remote_files = set(filter(None, result.strip().split("\n")))
+        result = subprocess.run(["git", "ls-tree", "-r", "--name-only", self.remote_branch], shell=False, capture_output=True, text=True)
+        self.remote_files = set(filter(None, result.stdout.strip().split("\n")))
 
     def detect_changes(self):
         """Detect path changes between branches"""
