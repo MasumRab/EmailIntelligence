@@ -1,0 +1,70 @@
+# Ruler Configuration — EmailIntelligence
+# Docs: https://github.com/intellectronica/ruler
+
+nested = false
+
+[gitignore]
+enabled = true
+local = false
+
+# Only enable agents we actually use
+default_agents = [
+  "claude",
+  "cursor",
+  "cline",
+  "copilot",
+  "roo",
+  "kiro",
+  "trae",
+  "windsurf",
+  "amp",
+  "gemini-cli",
+  "qwen",
+  "opencode",
+  "codex",
+]
+
+[agents.claude]
+enabled = true
+output_path = "CLAUDE.md"
+
+[agents.cursor]
+enabled = true
+
+[agents.cline]
+enabled = true
+
+[agents.roo]
+enabled = true
+
+[agents.kiro]
+enabled = true
+
+[agents.trae]
+enabled = true
+
+[agents.windsurf]
+enabled = true
+
+[agents.amp]
+enabled = true
+
+[agents.qwen]
+enabled = true
+
+[agents.opencode]
+enabled = true
+
+# MCP Server Configuration
+[mcp_servers.task-master-ai]
+command = "npm"
+args = ["exec", "task-master-ai"]
+
+[mcp_servers.task-master-ai.env]
+GOOGLE_API_KEY = "${GOOGLE_API_KEY}"
+GEMINI_API_KEY = "${GEMINI_API_KEY}"
+XAI_API_KEY = "${XAI_API_KEY}"
+OPENROUTER_API_KEY = "${OPENROUTER_API_KEY}"
+MISTRAL_API_KEY = "${MISTRAL_API_KEY}"
+OLLAMA_API_KEY = "${OLLAMA_API_KEY}"
+GITHUB_API_KEY = "${GITHUB_API_KEY}"
