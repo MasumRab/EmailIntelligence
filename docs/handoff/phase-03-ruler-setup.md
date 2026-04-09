@@ -6,6 +6,38 @@
 
 ---
 
+## ⚠️ CRITICAL: contextFileName Alignment
+
+**Discovery:** Gemini CLI and Qwen Code use `settings.json` with `contextFileName: "AGENTS.md"`.
+
+This means **8+ tools read AGENTS.md natively** (AgentsMdAgent base class):
+- `gemini-cli`, `qwen`, `opencode`, `amp`, `kilocode`, `cursor`, `windsurf`, `roo`
+
+**Implication:**
+- Custom `output_path` entries create files these tools may never read
+- Only tools with unique paths need custom output_path:
+  - `claude` → `CLAUDE.md`
+  - `cline` → `.clinerules/`
+  - `kiro` → `.kiro/steering/`
+  - `trae` → `.trae/rules/`
+
+**Decision Made:**
+- Keep custom `output_path` for IDE-based tools (matches their native behavior)
+- CLI tools that read AGENTS.md get content via root AGENTS.md (Ruler built-in)
+- **Redundant `system.md` files were DELETED:** `.qwen/system.md`, `.agents/system.md`, `.cursor/rules/system.md`, `.windsurf/rules/system.md`, `.roo/rules/system.md`, `.kilo/rules/system.md`
+
+**Verification:**
+```bash
+# Check settings.json for each tool
+cat .gemini/settings.json | grep contextFileName
+cat .qwen/settings.json | grep contextFileName
+
+# Verify AGENTS.md exists at project root
+test -f AGENTS.md && echo "AGENTS.md: EXISTS" || echo "AGENTS.md: MISSING"
+```
+
+---
+
 ## External Reference
 
 - **Ruler GitHub:** https://github.com/intellectronica/ruler
@@ -81,19 +113,18 @@ local = false
 
 # Only enable agents we actually use
 default_agents = [
-  "claude",
-  "cursor",
-  "cline",
-  "copilot",
-  "roo",
-  "kiro",
-  "trae",
-  "windsurf",
-  "amp",
-  "gemini-cli",
-  "qwen",
-  "opencode",
-  "codex",
+  "gemini-cli",   # CLI Tier 1 (primary)
+  "qwen",         # CLI Tier 1
+  "opencode",     # CLI Tier 1
+  "amp",          # CLI Tier 1
+  "kilocode",     # CLI Tier 1
+  "claude",       # IDE Tier 2
+  "cursor",       # IDE Tier 2
+  "cline",        # IDE Tier 2
+  "roo",          # IDE Tier 2
+  "kiro",         # IDE Tier 2
+  "trae",         # IDE Tier 2
+  "windsurf",     # IDE Tier 2
 ]
 
 [agents.claude]
@@ -102,30 +133,43 @@ output_path = "CLAUDE.md"
 
 [agents.cursor]
 enabled = true
+output_path = ".cursor/rules/system.md"
 
 [agents.cline]
 enabled = true
+output_path = ".clinerules/system.md"
 
 [agents.roo]
 enabled = true
+output_path = ".roo/rules/system.md"
 
 [agents.kiro]
 enabled = true
+output_path = ".kiro/steering/system.md"
 
 [agents.trae]
 enabled = true
+output_path = ".trae/rules/system.md"
 
 [agents.windsurf]
 enabled = true
+output_path = ".windsurf/rules/system.md"
 
 [agents.amp]
 enabled = true
+output_path = ".agents/system.md"
 
 [agents.qwen]
 enabled = true
+output_path = ".qwen/system.md"
 
 [agents.opencode]
 enabled = true
+output_path = ".opencode/system.md"
+
+[agents.kilocode]
+enabled = true
+output_path = ".kilo/rules/system.md"
 
 # MCP Server Configuration
 [mcp_servers.task-master-ai]

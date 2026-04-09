@@ -43,8 +43,9 @@ This directory contains granular, execution-ready task files for implementing ag
 
 | Phase | File | Steps | Focus |
 |-------|------|-------|-------|
+| 0 | `phase-00-content-bootstrap.md` | 4 | agentrulegen.com templates (NEW) |
 | 1 | `phase-01-emergency-fixes.md` | 13 | MCP configs, merge conflicts |
-| 2 | `phase-02-content-fixes.md` | 7 | Prisma refs, TypeScript-only |
+| 2 | `phase-02-content-fixes.md` | 8 | Prisma refs, TypeScript-only, RuleSync (UPDATED) |
 | 3 | `phase-03-ruler-setup.md` | 6 | TOML sync configuration |
 | 4 | `phase-04-agent-rulez.md` | 6 | Runtime hooks setup |
 | 5 | `phase-05-file-cleanup.md` | 4 | GEMINI.md, QWEN.md split |
@@ -53,13 +54,17 @@ This directory contains granular, execution-ready task files for implementing ag
 | 8 | `phase-08-orchestration.md` | 4 | Tool responsibility matrix |
 | 9 | `phase-09-verification.md` | 8 | Multi-loop verification |
 | 10 | `phase-10-references.md` | 3 | External reference lookup |
+| 11 | `phase-11-token-analysis.md` | 5 | Token optimization (NEW) |
 
 ## Execution Order
 
-1. Complete phases 1-5 sequentially (dependencies exist)
-2. Phases 6-8 can run in parallel after phase 5
-3. Phase 9 runs after all implementation phases
-4. Phase 10 is reference material (use as needed)
+1. **Phase 0 (NEW):** Use agentrulegen.com to bootstrap content
+2. **Phases 1-4 (REQUIRED):** Fix 13 core issues
+3. **Phase 5 (OPTIONAL):** GEMINI.md/QWEN.md cleanup
+4. **Phases 6-8 (EXTENDED):** Can run in parallel after phase 5
+5. **Phase 9:** Multi-loop verification
+6. **Phase 10:** Reference material (use as needed)
+7. **Phase 11 (NEW):** Token usage analysis and optimization
 
 ## Reference Documents
 

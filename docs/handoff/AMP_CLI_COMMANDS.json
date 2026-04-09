@@ -1,0 +1,86 @@
+{
+  "amp_cli_commands": [
+    {
+      "id": "amp_phase_0",
+      "name": "Content Bootstrap",
+      "mode": "rush",
+      "description": "Generate framework-specific rules from agentrulegen.com templates",
+      "cli_command": "amp threads new --mode rush --execute \"You are bootstrapping Agent Rules content from agentrulegen.com templates. **URLs:** https://agentrulegen.com, https://agentrulegen.com/templates/python-fastapi. **Select:** Language: Python, TypeScript. Framework: FastAPI, React. **Export to:** .ruler/AGENTS.md. **Target:** 80-150 lines. **VERIFY:** test -f .ruler/AGENTS.md && echo 'PASS' || echo 'FAIL'\"",
+      "prompt_only": "You are bootstrapping Agent Rules content from agentrulegen.com templates.\n\n**URLs:**\n- Main: https://agentrulegen.com\n- Python/FastAPI: https://agentrulegen.com/templates/python-fastapi\n\n**Select:**\n1. Language: Python, TypeScript\n2. Framework: FastAPI, React, SQLAlchemy, Pydantic\n3. Tools: Claude Code, Cursor, Windsurf, Roo\n\n**Generated Content (~150-200 lines):**\n- Code Style rules\n- Architecture patterns\n- Testing conventions\n- Security guidelines\n\n**Export to:** `.ruler/AGENTS.md`\n\n**VERIFY:**\ntest -f .ruler/AGENTS.md && echo 'PASS' || echo 'FAIL'"
+    },
+    {
+      "id": "amp_phase_1",
+      "name": "Emergency Fixes",
+      "mode": "rush",
+      "description": "Fix 13 critical MCP configuration issues",
+      "cli_command": "amp threads new --mode rush --execute \"You are executing Phase 1 Emergency Fixes. **Phase Document:** docs/handoff/phase-01-emergency-fixes.md. **Tasks (13 steps):** 1.1-1.2: Resolve CLAUDE.md merge conflict. 1.3-1.4: Fix .roo/mcp.json. 1.5-1.6: Fix .cursor/mcp.json. 1.7-1.8: Fix .claude/mcp.json. 1.9-1.10: Fix .windsurf/mcp.json. 1.11-1.12: Create .trae/mcp.json. 1.13: Delete .rules file. **Critical Rules:** Run VERIFY after EVERY step. Copy strings EXACTLY. NEVER use git add -A. **Start with Step 1.1:** Read docs/handoff/phase-01-emergency-fixes.md\"",
+      "prompt_only": "You are executing Phase 1 Emergency Fixes of the Agent Rules Implementation.\n\n**Phase Document:** docs/handoff/phase-01-emergency-fixes.md\n**State File:** docs/handoff/STATE.md\n\n**Tasks (13 steps):**\n1.1-1.2: Resolve CLAUDE.md merge conflict\n1.3-1.4: Fix .roo/mcp.json (empty → populated)\n1.5-1.6: Fix .cursor/mcp.json (empty → populated)\n1.7-1.8: Fix .claude/mcp.json (empty → populated)\n1.9-1.10: Fix .windsurf/mcp.json (placeholder keys → env vars)\n1.11-1.12: Create .trae/mcp.json\n1.13: Delete .rules file\n\n**Critical Rules:**\n1. Run VERIFY command after EVERY step — do not skip\n2. Do NOT proceed if verification fails\n3. Copy strings EXACTLY from phase document\n4. One edit per tool call — do not batch\n5. NEVER use git add -A or git add .\n\n**Start with Step 1.1:** Read docs/handoff/phase-01-emergency-fixes.md"
+    },
+    {
+      "id": "amp_phase_2",
+      "name": "Content Fixes",
+      "mode": "rush",
+      "description": "Fix Prisma references, Windsurf bugs, create RuleSync config",
+      "cli_command": "amp threads new --mode rush --execute \"You are executing Phase 2 Content Fixes. **Phase Document:** docs/handoff/phase-02-content-fixes.md. **Tasks (8 steps):** 2.1-2.3: Fix Windsurf dev_workflow.md bugs. 2.4-2.6: Fix Prisma references. 2.7a: Create rulesync.jsonc if missing. **Critical Rules:** Run VERIFY after EVERY step. Copy strings EXACTLY. NEVER use git add -A. **Start with Step 2.1:** Read docs/handoff/phase-02-content-fixes.md\"",
+      "prompt_only": "You are executing Phase 2 Content Fixes of the Agent Rules Implementation.\n\n**Phase Document:** docs/handoff/phase-02-content-fixes.md\n**State File:** docs/handoff/STATE.md\n\n**Tasks (8 steps):**\n2.1-2.3: Fix Windsurf dev_workflow.md bugs\n2.4-2.6: Fix Prisma references (project doesn't use Prisma)\n2.7a: Create rulesync.jsonc if missing\n2.7: Update rulesync.jsonc targets\n2.8: Verify all content fixes\n\n**Start with Step 2.1:** Read docs/handoff/phase-02-content-fixes.md"
+    },
+    {
+      "id": "amp_phase_3",
+      "name": "Ruler Setup",
+      "mode": "rush",
+      "description": "Configure and execute Ruler TOML-based static sync",
+      "cli_command": "amp threads new --mode rush --execute \"You are executing Phase 3 Ruler Setup. **Phase Document:** docs/handoff/phase-03-ruler-setup.md. **Config:** .ruler/ruler.toml. **Source:** .ruler/AGENTS.md. **Targets:** 13 agents. **Tasks (6 steps):** 3.1: Create .ruler/ directory. 3.2: Create .ruler/AGENTS.md. 3.3: Create .ruler/ruler.toml. 3.4: Verify Ruler config (dry-run). 3.5: Apply Ruler. 3.6: Verify output. **Commands:** ruler apply --project-root . --dry-run. ruler apply --project-root . --backup. **Start with Step 3.1:** Read docs/handoff/phase-03-ruler-setup.md\"",
+      "prompt_only": "You are executing Phase 3 Ruler Setup of the Agent Rules Implementation.\n\n**Phase Document:** docs/handoff/phase-03-ruler-setup.md\n**Config File:** .ruler/ruler.toml\n**Source File:** .ruler/AGENTS.md\n**Targets:** 13 agents (claude, cursor, cline, copilot, roo, kiro, trae, windsurf, amp, gemini-cli, qwen, opencode, codex)\n\n**Tasks (6 steps):**\n3.1: Create .ruler/ directory\n3.2: Create .ruler/AGENTS.md from templates\n3.3: Create .ruler/ruler.toml configuration\n3.4: Verify Ruler config (dry-run)\n3.5: Apply Ruler\n3.6: Verify Ruler output\n\n**Commands:**\nruler apply --project-root . --dry-run 2>&1 | head -5\nruler apply --project-root . --backup\ntest -f CLAUDE.md && echo 'CLAUDE.md: EXISTS' || echo 'CLAUDE.md: MISSING'\ngrep -c 'EmailIntelligence' CLAUDE.md\n\n**Start with Step 3.1:** Read docs/handoff/phase-03-ruler-setup.md"
+    },
+    {
+      "id": "amp_phase_4",
+      "name": "Agent RuleZ Setup",
+      "mode": "rush",
+      "description": "Install and test Agent RuleZ runtime enforcement",
+      "cli_command": "amp threads new --mode rush --execute \"You are executing Phase 4 Agent RuleZ Runtime Hooks Setup. **Phase Document:** docs/handoff/phase-04-agent-rulez.md. **Config:** .claude/hooks.yaml. **Binary:** /tmp/rulez/rulez. **Tasks (6 steps):** 4.1: Install rulez binary. 4.2: Create .claude/hooks.yaml. 4.3: Validate. 4.4: Lint. 4.5-4.6: Debug tests. **Commands:** mkdir -p /tmp/rulez && curl -sL ... -o /tmp/rulez/rulez. /tmp/rulez/rulez validate --config .claude/hooks.yaml. /tmp/rulez/rulez debug --event 'Bash:git push --force origin main'. Expected: BLOCKED. **Start with Step 4.1:** Read docs/handoff/phase-04-agent-rulez.md\"",
+      "prompt_only": "You are executing Phase 4 Agent RuleZ Runtime Hooks Setup.\n\n**Phase Document:** docs/handoff/phase-04-agent-rulez.md\n**Config File:** .claude/hooks.yaml\n**Binary:** /tmp/rulez/rulez (or rulez if installed)\n\n**Tasks (6 steps):**\n4.1: Install rulez binary\n4.2: Create .claude/hooks.yaml\n4.3: Validate hooks.yaml\n4.4: Lint hooks.yaml (check for overlaps)\n4.5: Debug test: force push blocked\n4.6: Debug test: normal commit allowed\n\n**Commands:**\nmkdir -p /tmp/rulez\ncurl -sL https://github.com/SpillwaveSolutions/agent_rulez/releases/latest/download/rulez-linux-x64 -o /tmp/rulez/rulez\nchmod +x /tmp/rulez/rulez\n/tmp/rulez/rulez validate --config .claude/hooks.yaml\n/tmp/rulez/rulez debug --config .claude/hooks.yaml --event 'Bash:git push --force origin main'\n\n**Expected Output:**\n- Step 4.5: BLOCKED by rule: block-force-push\n- Step 4.6: ALLOWED\n\n**Start with Step 4.1:** Read docs/handoff/phase-04-agent-rulez.md"
+    },
+    {
+      "id": "amp_gate_check",
+      "name": "Gate Check",
+      "mode": "deep",
+      "description": "Run comprehensive gate check after phase completion",
+      "cli_command": "amp threads new --mode deep --execute \"You are running a Phase Gate Check for the Agent Rules Implementation. **Phase:** [PHASE_NUMBER]. **Gate Check:** Verify file existence, content correctness, validation. **After Gate Check:** If ALL PASS: Update STATE.md with Phase [N]: COMPLETE. If ANY FAIL: Update STATE.md with Phase [N]: FAILED. Do NOT proceed if ANY check fails. Report results in format: ## Phase [N] Gate Check Results - Overall: PASS/FAIL\"",
+      "prompt_only": "You are running a Phase Gate Check for the Agent Rules Implementation.\n\n**Phase:** [PHASE_NUMBER]\n\n**Gate Check Commands:**\necho '=== PHASE [N] GATE CHECK ==='\n\n# File existence checks\nfor f in [FILES_TO_CHECK]; do\n  test -f \"$f\" && echo '✅ $f: EXISTS' || echo '❌ $f: MISSING'\ndone\n\n# Content checks\ngrep -q '[EXPECTED_CONTENT]' [FILE] && echo '✅ Content correct' || echo '❌ Content incorrect'\n\n**After Gate Check:**\n1. If ALL PASS: Update STATE.md with Phase [N]: COMPLETE\n2. If ANY FAIL: Update STATE.md with Phase [N]: FAILED and document blockers\n3. Do NOT proceed to next phase if ANY check fails"
+    },
+    {
+      "id": "amp_error_recovery",
+      "name": "Error Recovery",
+      "mode": "deep",
+      "description": "Recover from verification or gate check failures",
+      "cli_command": "amp threads new --mode deep --execute \"You are recovering from a FAILED verification in the Agent Rules Implementation. **Step Failed:** [STEP_NUMBER]. **Expected Output:** [EXPECTED]. **Actual Output:** [ACTUAL]. **Recovery Protocol:** 1. Re-read the step and phase document. 2. Re-read the file and identify differences. 3. Re-execute with EXACT strings. 4. Re-verify. 5. If still failing after 3 attempts: Update STATE.md Current Blocker and stop.\"",
+      "prompt_only": "You are recovering from a FAILED verification in the Agent Rules Implementation.\n\n**Step Failed:** [STEP_NUMBER]\n**Expected Output:** [EXPECTED]\n**Actual Output:** [ACTUAL]\n\n**Recovery Protocol:**\n\n1. **Re-read the step**\n   - Check phase document for exact instructions\n   - Note the old_string and new_string exactly\n\n2. **Re-read the file**\n   - Use Read tool to view current content\n   - Compare to expected content\n   - Identify differences\n\n3. **Re-execute the step**\n   - Copy strings EXACTLY from phase document\n   - Do NOT paraphrase or reformat\n   - Use single edit call\n\n4. **Re-verify**\n   - Run the VERIFY command from phase document\n   - Check output matches expected\n\n5. **If still failing**\n   - Update docs/handoff/STATE.md under Current Blocker\n   - Document: step number, expected, actual, file content\n   - Stop and wait for human intervention"
+    },
+    {
+      "id": "amp_full_sequence",
+      "name": "Full Task Execution Sequence",
+      "mode": "rush",
+      "description": "Execute all required phases in sequence",
+      "cli_command": "amp threads new --mode rush --execute \"You are a Rush-level AMP agent executing the Agent Rules Implementation. **Project:** /home/masum/github/EmailIntelligence. **Branch:** orchestration-tools. **Task:** Fix 13 identified issues in AI coding agent configurations. **Handoff Documents:** Master: docs/AGENT_RULES_IMPLEMENTATION_HANDOFF.md. Phases: docs/handoff/phase-01-emergency-fixes.md through phase-04-agent-rulez.md. State: docs/handoff/STATE.md. **Critical Rules:** Run VERIFY after EVERY step. NEVER use git add -A. **Execution Order:** Phase 1-4 (REQUIRED). **Start with Phase 1:** Read docs/handoff/phase-01-emergency-fixes.md\"",
+      "prompt_only": "You are a Rush-level AMP agent executing the Agent Rules Implementation.\n\n**Project:** /home/masum/github/EmailIntelligence\n**Branch:** orchestration-tools\n**Task:** Fix 13 identified issues in AI coding agent configurations\n\n**Handoff Documents:**\n- Master: docs/AGENT_RULES_IMPLEMENTATION_HANDOFF.md\n- Phases: docs/handoff/phase-01-emergency-fixes.md through phase-04-agent-rulez.md\n- State: docs/handoff/STATE.md\n- Process: docs/handoff/MULTI_HANDOFF_EXECUTION_PROCESS.md\n\n**Critical Rules:**\n1. Run VERIFY after EVERY step — do not skip\n2. Do NOT proceed if verification fails\n3. Copy strings EXACTLY — do not paraphrase\n4. One edit per tool call — do not batch\n5. NEVER use git add -A or git add .\n\n**Start with Phase 1:** Read docs/handoff/phase-01-emergency-fixes.md"
+    }
+  ],
+  "mode_guidelines": {
+    "rush": {
+      "description": "Fast execution, minimal verification",
+      "use_for": ["Phase 0-4", "Simple fixes", "Template generation"]
+    },
+    "deep": {
+      "description": "Thorough analysis, comprehensive verification",
+      "use_for": ["Gate checks", "Error recovery", "Token analysis", "Phase 9 verification"]
+    },
+    "smart": {
+      "description": "Balanced approach",
+      "use_for": ["Phase 5-8", "Mixed complexity tasks"]
+    },
+    "large": {
+      "description": "Extended context for complex tasks",
+      "use_for": ["Multi-phase execution", "Large file analysis"]
+    }
+  }
+}

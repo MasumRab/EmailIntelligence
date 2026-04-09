@@ -16,11 +16,25 @@
 
 ## Step 4.1 — Install rulez binary
 
+**Status:** ✅ ALREADY INSTALLED
+
 ```bash
-# Download to project tmp directory
-mkdir -p /tmp/rulez
+# Verify installation
+which rulez  # → ~/.local/bin/rulez
+rulez --version  # → rulez 2.3.0
+```
+
+**Location:** `/home/masum/.local/bin/rulez` (v2.3.0)
+
+If not installed, use:
+```bash
+# Option A: Download binary
 curl -sL https://github.com/SpillwaveSolutions/agent_rulez/releases/latest/download/rulez-linux-x64 -o /tmp/rulez/rulez
 chmod +x /tmp/rulez/rulez
+sudo mv /tmp/rulez/rulez /usr/local/bin/
+
+# Option B: Add to mise (recommended)
+# mise use -g pipx:agent-rulez
 ```
 
 ---

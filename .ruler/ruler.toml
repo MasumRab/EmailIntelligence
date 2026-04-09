@@ -7,21 +7,20 @@ nested = false
 enabled = true
 local = false
 
-# Only enable agents we actually use
+# CLI-first priority order (Tier 1 CLI → Tier 2 CLI → IDE agents)
 default_agents = [
+  "gemini-cli",
+  "qwen",
+  "opencode",
+  "amp",
+  "kilocode",
   "claude",
   "cursor",
   "cline",
-  "copilot",
   "roo",
   "kiro",
   "trae",
   "windsurf",
-  "amp",
-  "gemini-cli",
-  "qwen",
-  "opencode",
-  "codex",
 ]
 
 [agents.claude]
@@ -30,30 +29,43 @@ output_path = "CLAUDE.md"
 
 [agents.cursor]
 enabled = true
+output_path = ".cursor/rules/system.md"
 
 [agents.cline]
 enabled = true
+output_path = ".clinerules/system.md"
 
 [agents.roo]
 enabled = true
+output_path = ".roo/rules/system.md"
 
 [agents.kiro]
 enabled = true
+output_path = ".kiro/steering/system.md"
 
 [agents.trae]
 enabled = true
+output_path = ".trae/rules/system.md"
 
 [agents.windsurf]
 enabled = true
+output_path = ".windsurf/rules/system.md"
 
 [agents.amp]
 enabled = true
+output_path = ".agents/system.md"
 
 [agents.qwen]
 enabled = true
+output_path = ".qwen/system.md"
 
 [agents.opencode]
 enabled = true
+output_path = ".opencode/system.md"
+
+[agents.kilocode]
+enabled = true
+output_path = ".kilo/rules/system.md"
 
 # MCP Server Configuration
 [mcp_servers.task-master-ai]
