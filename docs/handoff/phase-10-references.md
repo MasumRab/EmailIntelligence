@@ -45,9 +45,12 @@ These agents extend `AgentsMdAgent` and **natively read AGENTS.md** — they DON
 
 ### Decision Implemented
 
-- **Redundant `system.md` files DELETED** (6 files, ~1,020 tokens/sessions saved)
-- CLI tools get content via root `AGENTS.md` (Ruler built-in)
-- Only IDE tools with unique paths need custom `output_path`
+- **Removed agent sections from ruler.toml** for: `amp`, `qwen`, `opencode`, `kilocode` (pure CLI tools)
+- **Kept `output_path` for IDE tools**: `claude`, `cline`, `kiro`, `trae` (non-AgentsMdAgent)
+- **Kept `output_path` for hybrid tools**: `cursor`, `windsurf`, `roo` (optional secondary context)
+- **Redundant `system.md` files DELETED** (6 files, ~1,020 tokens/sessions saved):
+  - `.qwen/system.md`, `.agents/system.md`, `.opencode/system.md`, `.kilo/rules/system.md` (pure CLI)
+  - `.cursor/rules/system.md`, `.windsurf/rules/system.md`, `.roo/rules/system.md` (hybrid, using root AGENTS.md only)
 
 ---
 

@@ -42,6 +42,8 @@
 
 **Key Discovery:** CLI tools (gemini-cli, qwen, opencode, amp, kilocode) natively read AGENTS.md via settings.json contextFileName. Custom output_path creates redundant files these tools ignore.
 
+**Fix Applied (2026-04-10):** Removed `[agents.amp]`, `[agents.qwen]`, `[agents.opencode]`, `[agents.kilocode]` sections from ruler.toml — they use Ruler built-in defaults (root AGENTS.md).
+
 ### Phase 4: Agent RuleZ Setup
 - **Status:** ✅ COMPLETE
 - **Agent:** Amp (Rush Mode)

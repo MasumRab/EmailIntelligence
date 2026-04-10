@@ -21,17 +21,22 @@ This means **8+ tools read AGENTS.md natively** (AgentsMdAgent base class):
   - `kiro` → `.kiro/steering/`
   - `trae` → `.trae/rules/`
 
-**Decision Made:**
-- Keep custom `output_path` for IDE-based tools (matches their native behavior)
-- CLI tools that read AGENTS.md get content via root AGENTS.md (Ruler built-in)
-- **Redundant `system.md` files were DELETED:** `.qwen/system.md`, `.agents/system.md`, `.cursor/rules/system.md`, `.windsurf/rules/system.md`, `.roo/rules/system.md`, `.kilo/rules/system.md`
+**Decision Implemented:**
+- **No `output_path` for pure CLI tools** (amp, qwen, opencode, kilocode) — they read root `AGENTS.md` natively
+- **Keep `output_path` for IDE tools** (claude, cline, kiro, trae) — unique paths required
+- **Keep `output_path` for hybrid tools** (cursor, windsurf, roo) — optional, may read both locations
+- **6 redundant `system.md` files were DELETED:** `.qwen/system.md`, `.agents/system.md`, `.cursor/rules/system.md`, `.windsurf/rules/system.md`, `.roo/rules/system.md`, `.kilo/rules/system.md`
+
+**Result:** ruler.toml NO LONGER has agent sections for amp, qwen, opencode, kilocode — Ruler uses built-in defaults.
+
+**Files that should be DELETED:**
+- `.qwen/system.md`, `.agents/system.md`, `.opencode/system.md`, `.kilo/rules/system.md` (pure CLI tools — no output_path)
+
+**Files that MAY exist (hybrid tools with optional output_path):**
+- `.cursor/rules/system.md`, `.windsurf/rules/system.md`, `.roo/rules/system.md` (may be recreated by ruler apply)
 
 **Verification:**
 ```bash
-# Check settings.json for each tool
-cat .gemini/settings.json | grep contextFileName
-cat .qwen/settings.json | grep contextFileName
-
 # Verify AGENTS.md exists at project root
 test -f AGENTS.md && echo "AGENTS.md: EXISTS" || echo "AGENTS.md: MISSING"
 ```
@@ -154,22 +159,6 @@ output_path = ".trae/rules/system.md"
 [agents.windsurf]
 enabled = true
 output_path = ".windsurf/rules/system.md"
-
-[agents.amp]
-enabled = true
-output_path = ".agents/system.md"
-
-[agents.qwen]
-enabled = true
-output_path = ".qwen/system.md"
-
-[agents.opencode]
-enabled = true
-output_path = ".opencode/system.md"
-
-[agents.kilocode]
-enabled = true
-output_path = ".kilo/rules/system.md"
 
 # MCP Server Configuration
 [mcp_servers.task-master-ai]
