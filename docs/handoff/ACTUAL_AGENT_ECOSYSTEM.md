@@ -32,61 +32,54 @@ Gemini/Qwen/OpenCode/AMP/Kilo/iFlow → Aider/Ra-aid/Goose/Letta → Cursor/Clau
 
 ### TIER 1: PRIMARY CLI TOOLS (Heavy Rotation, Last 2 Months)
 
-#### 1. Gemini CLI ⚠️ CONFIG MISMATCH
+**Decision Implemented (2026-04-10):** CLI tools (amp, qwen, opencode, kilocode) extend `AgentsMdAgent` and read root `AGENTS.md` via `settings.json` `contextFileName`. NO custom `output_path` sections in `.ruler/ruler.toml` — uses Ruler built-in defaults.
+
+#### 1. Gemini CLI ✅ ALIGNED (AgentsMdAgent)
 - **Status:** ✅ Primary coding tool
-- **CRITICAL DISCOVERY:** Uses `settings.json` with `contextFileName: "AGENTS.md"`
-  - **Tool reads:** `AGENTS.md` (from settings.json contextFileName)
-  - **Ruler writes:** `.gemini/system.md` (WRONG!)
-  - **MISMATCH:** Tool will NOT read Ruler output!
+- **Context Loading:** `settings.json` with `contextFileName: "AGENTS.md"`
+  - **Tool reads:** Root `AGENTS.md`
+  - **Ruler syncs:** Root `AGENTS.md` via `agentsmd` agent
+  - **ALIGNED:** Tool reads what Ruler writes!
 - **settings.json Location:** `.gemini/settings.json`
 - **Hook Status:** ❌ NO HOOKS
-- **Recommendation:**
-  - **Option A:** Update settings.json: `"contextFileName": "system.md"`
-  - **Option B:** Update Ruler output_path: `output_path = ".gemini/AGENTS.md"`
-  - **Option C:** Create symlink: `ln -s system.md .gemini/AGENTS.md`
-  - HIGH PRIORITY — fix context file mismatch first
+- **Decision:** NO `output_path` section needed — uses Ruler's built-in `agentsmd`
 
-#### 2. Qwen Code ⚠️ CONFIG MISMATCH
+#### 2. Qwen Code ✅ ALIGNED (AgentsMdAgent)
 - **Status:** ✅ Primary coding tool
-- **CRITICAL DISCOVERY:** Uses `settings.json` with `contextFileName: "AGENTS.md"`
-  - **Tool reads:** `AGENTS.md` (from settings.json contextFileName)
-  - **Ruler writes:** `.qwen/system.md` (WRONG!)
-  - **MISMATCH:** Tool will NOT read Ruler output!
+- **Context Loading:** `settings.json` with `contextFileName: "AGENTS.md"`
+  - **Tool reads:** Root `AGENTS.md`
+  - **Ruler syncs:** Root `AGENTS.md` via `agentsmd` agent
+  - **ALIGNED:** Tool reads what Ruler writes!
 - **settings.json Location:** `.qwen/settings.json`
 - **Hook Status:** ❌ NO HOOKS
-- **Recommendation:**
-  - **Option A:** Update settings.json: `"contextFileName": "system.md"`
-  - **Option B:** Update Ruler output_path: `output_path = ".qwen/AGENTS.md"`
-  - **Option C:** Create symlink: `ln -s system.md .qwen/AGENTS.md`
-  - HIGH PRIORITY — fix context file mismatch first
+- **Decision:** NO `output_path` section needed — uses Ruler's built-in `agentsmd`
 
-#### 3. OpenCode (OpenAI) ❓ VERIFY
+#### 3. OpenCode (OpenAI) ✅ ALIGNED (AgentsMdAgent)
 - **Status:** ✅ Primary coding tool
-- **Config:** `.opencode/system.md` (may need AGENTS.md alignment)
+- **Context Loading:** `settings.json` with `contextFileName: "AGENTS.md"`
+  - **Tool reads:** Root `AGENTS.md`
+  - **Ruler syncs:** Root `AGENTS.md` via `agentsmd` agent
+  - **ALIGNED:** Tool reads what Ruler writes!
 - **Hook Status:** ❌ NO HOOKS
-- **Recommendation:**
-  - Verify if OpenCode uses settings.json with contextFileName
-  - Check `.opencode/settings.json` for context file naming
-  - Align Ruler output_path with tool expectations
-  - HIGH PRIORITY for Phase 4.5
+- **Decision:** NO `output_path` section needed — uses Ruler's built-in `agentsmd`
 
-#### 4. AMP (Amp CLI)
+#### 4. AMP (Amp CLI) ✅ ALIGNED (AgentsMdAgent)
 - **Status:** ✅ Primary coding tool (this session using AMP)
-- **Current Config:** `.agents/system.md` ✅
-- **Hook Status:** ❌ NO HOOKS (though runs under same context as Claude)
-- **Recommendation:**
-  - Dedicated hooks: `.agents/hooks.yaml`
-  - HIGH PRIORITY for Phase 4.5
+- **Context Loading:** Reads root `AGENTS.md` via `settings.json` contextFileName
+  - **Tool reads:** Root `AGENTS.md`
+  - **Ruler syncs:** Root `AGENTS.md` via `agentsmd` agent
+  - **ALIGNED:** Tool reads what Ruler writes!
+- **Hook Status:** ❌ NO HOOKS
+- **Decision:** NO `output_path` section needed — uses Ruler's built-in `agentsmd`
 
-#### 5. Kilo (Kilo Code)
+#### 5. Kilo (Kilo Code) ✅ ALIGNED (AgentsMdAgent)
 - **Status:** ✅ Primary coding tool
-- **Current Config:** `.kilo/` directory (NOT IN RULER.TOML)
-- **Hook Status:** ❌ NO CONFIG, NO HOOKS
-- **Recommendation:**
-  - Add to ruler.toml: `[agents.kilo]`
-  - Create `.kilo/system.md`
-  - Create `.kilo/hooks.yaml`
-  - HIGH PRIORITY — currently unconfigured
+- **Context Loading:** Reads root `AGENTS.md` via `settings.json` contextFileName
+  - **Tool reads:** Root `AGENTS.md`
+  - **Ruler syncs:** Root `AGENTS.md` via `agentsmd` agent
+  - **ALIGNED:** Tool reads what Ruler writes!
+- **Hook Status:** ❌ NO HOOKS
+- **Decision:** NO `output_path` section needed — uses Ruler's built-in `agentsmd`
 
 #### 6. iFlow
 - **Status:** ✅ Primary coding tool
@@ -244,16 +237,18 @@ Gemini/Qwen/OpenCode/AMP/Kilo/iFlow → Aider/Ra-aid/Goose/Letta → Cursor/Clau
 
 ## Part 3: Current Configuration Gaps
 
+**Decision Implemented (2026-04-10):** CLI tools (amp, qwen, opencode, kilocode) extend AgentsMdAgent — NO output_path needed.
+
 ### CRITICAL GAPS (Block Phase 5 until fixed)
 
 | Agent | Tier | Config | Hooks | Status | Priority |
 |-------|------|--------|-------|--------|----------|
-| **Gemini** | 1 | ❌ Shared with Qwen | ❌ | BROKEN | 🔴 CRITICAL |
-| **Kilo** | 1 | ❌ Missing | ❌ | UNCONFIGURED | 🔴 CRITICAL |
+| **Gemini** | 1 | ✅ ALIGNED (AgentsMdAgent) | ❌ | WORKING | 🟢 RESOLVED |
+| **Qwen** | 1 | ✅ ALIGNED (AgentsMdAgent) | ❌ | WORKING | 🟢 RESOLVED |
+| **OpenCode** | 1 | ✅ ALIGNED (AgentsMdAgent) | ❌ | WORKING | 🟢 RESOLVED |
+| **AMP** | 1 | ✅ ALIGNED (AgentsMdAgent) | ❌ | WORKING | 🟢 RESOLVED |
+| **Kilo** | 1 | ✅ ALIGNED (AgentsMdAgent) | ❌ | WORKING | 🟢 RESOLVED |
 | **iFlow** | 1 | ❌ Missing | ❌ | UNCONFIGURED | 🔴 CRITICAL |
-| **Qwen** | 1 | ✅ | ❌ | PARTIAL | 🟠 HIGH |
-| **OpenCode** | 1 | ✅ | ❌ | PARTIAL | 🟠 HIGH |
-| **AMP** | 1 | ✅ | ❌ | PARTIAL | 🟠 HIGH |
 
 ### MEDIUM GAPS (Phase 4.5)
 
@@ -265,11 +260,16 @@ Gemini/Qwen/OpenCode/AMP/Kilo/iFlow → Aider/Ra-aid/Goose/Letta → Cursor/Clau
 | **Letta** | 2 | ⚠️ Dir exists | ❌ | PARTIAL | 🟡 MEDIUM |
 | **Kiro (IDE)** | Secondary | ✅ | ❌ | PARTIAL | 🟡 MEDIUM |
 | **Trae (IDE)** | Secondary | ✅ | ❌ | PARTIAL | 🟡 MEDIUM |
-| **Windsurf (IDE)** | Secondary | ✅ | ❌ | PARTIAL | 🟡 MEDIUM |
+| **Windsurf (IDE)** | Secondary | ✅ (output_path OPTIONAL) | ❌ | PARTIAL | 🟡 MEDIUM |
 
 ---
 
 ## Part 4: Recommendations for Phase 0-5 Restructuring
+
+**Decision Implemented (2026-04-10):**
+- Removed `[agents.amp]`, `[agents.qwen]`, `[agents.opencode]`, `[agents.kilocode]` from ruler.toml
+- Deleted files: `.qwen/system.md`, `.agents/system.md`, `.opencode/system.md`, `.kilo/rules/system.md`
+- CLI tools (amp, qwen, opencode, kilocode) extend AgentsMdAgent — NO output_path needed
 
 ### IMMEDIATE (Phase 4.5 — New)
 
@@ -277,24 +277,25 @@ Gemini/Qwen/OpenCode/AMP/Kilo/iFlow → Aider/Ra-aid/Goose/Letta → Cursor/Clau
 
 ```
 Phase 4.5 Steps:
-1. Separate Gemini from Qwen
-   - Create .gemini/system.md (separate)
-   - Keep .qwen/system.md independent
-   
+1. CLI Tools Already Configured (AgentsMdAgent - DECISION COMPLETE)
+   ✅ amp, qwen, opencode, kilocode — Read root AGENTS.md
+   ✅ NO output_path sections needed — uses Ruler built-in defaults
+   ✅ Deleted orphaned system.md files
+
 2. Create hooks for PRIMARY CLI tools:
    - .gemini/hooks.yaml
    - .qwen/hooks.yaml
    - .opencode/hooks.yaml
    - .agents/hooks.yaml (AMP)
-   
-3. Add missing agents to ruler.toml:
-   - [agents.kilo] → .kilo/system.md
-   - [agents.iflow] → .iflow/system.md
-   
-4. Create configuration for Kilo + iFlow:
-   - .kilo/system.md + .kilo/hooks.yaml
-   - .iflow/system.md + .iflow/hooks.yaml (if applicable)
-   
+
+3. Hybrid tools (cursor, windsurf, roo):
+   - output_path is OPTIONAL — may read from both locations
+   - NO changes required
+
+4. IDE tools (claude, cline, kiro, trae):
+   - KEEP output_path (non-AgentsMdAgent)
+   - NO changes required
+
 5. Update rulesync.jsonc targets to CLI-first priority
 ```
 
@@ -553,22 +554,33 @@ Phase 7: IDE Hardening (NEW, optional)
 
 ## Summary Table: What Needs to Change
 
-| Component | Current | Recommended | Phase |
-|-----------|---------|-------------|-------|
-| **Priority Order** | IDE-first (Claude first) | CLI-first (Gemini first) | 0 Redo |
-| **Gemini Config** | Shared with Qwen ❌ | Separate `.gemini/` ✅ | 4.5 |
-| **Gemini Hooks** | None ❌ | `.gemini/hooks.yaml` ✅ | 4.5 |
-| **Qwen Hooks** | None ❌ | `.qwen/hooks.yaml` ✅ | 4.5 |
-| **OpenCode Hooks** | None ❌ | `.opencode/hooks.yaml` ✅ | 4.5 |
-| **AMP Hooks** | None ❌ | `.agents/hooks.yaml` ✅ | 4.5 |
-| **Kilo Config** | Missing ❌ | `.kilo/system.md` ✅ | 4.5 |
-| **iFlow Config** | Missing ❌ | `.iflow/system.md` ✅ | 4.5 |
-| **Ruler Priority** | Claude, Cursor, Cline first | Gemini, Qwen, OpenCode first | 3 Redo |
-| **Secondary CLI** | Not configured | Phase 5 setup | 5 New |
-| **IDE Hooks** | None | Phase 7 optional | 7 New |
+**Decision Implemented (2026-04-10):**
+
+| Component | Previous | Now (Decision Implemented) | Status |
+|-----------|----------|---------------------------|--------|
+| **CLI Tool output_path** | Required per tool ❌ | NONE needed (AgentsMdAgent) ✅ | COMPLETE |
+| **Gemini Config** | Mismatch with Ruler ❌ | ALIGNED (root AGENTS.md) ✅ | RESOLVED |
+| **Qwen Config** | Mismatch with Ruler ❌ | ALIGNED (root AGENTS.md) ✅ | RESOLVED |
+| **OpenCode Config** | Verify needed ❓ | ALIGNED (root AGENTS.md) ✅ | RESOLVED |
+| **AMP Config** | In `.agents/` ❓ | ALIGNED (root AGENTS.md) ✅ | RESOLVED |
+| **Kilo Config** | Missing ❌ | ALIGNED (root AGENTS.md) ✅ | RESOLVED |
+| **Hybrid Tools (cursor, windsurf, roo)** | Required output_path | OPTIONAL — may read both | NO CHANGE |
+| **IDE Tools (claude, cline, kiro, trae)** | Required output_path | KEEP output_path | NO CHANGE |
+
+**Files Deleted:**
+- `.qwen/system.md`
+- `.agents/system.md`
+- `.opencode/system.md`
+- `.kilo/rules/system.md`
+
+**ruler.toml Sections Removed:**
+- `[agents.amp]`
+- `[agents.qwen]`
+- `[agents.opencode]`
+- `[agents.kilocode]`
 
 ---
 
-**Status:** Ready for user approval  
-**Recommendation:** Approve changes to Phase 0-5 structure before proceeding past Phase 4
+**Status:** Decision implemented, ready for verification
+**Recommendation:** Run `ruler apply` to sync root AGENTS.md
 

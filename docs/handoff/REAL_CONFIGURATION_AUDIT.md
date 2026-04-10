@@ -1,96 +1,83 @@
 # EmailIntelligence — Real Configuration Audit
 
-**Generated:** 2026-04-10  
-**Status:** Pre-Phase 5, CRITICAL GAP ANALYSIS  
-**Severity:** HIGH — Default configs used instead of tool-specific analysis
+**Generated:** 2026-04-10
+**Status:** Phase 5, DECISION IMPLEMENTED
+**Severity:** RESOLVED — CLI tools use AgentsMdAgent pattern
 
 ---
 
 ## Executive Summary
 
-**The Problem:** Phases 1-4 relied on Ruler defaults and template assumptions instead of auditing what was ACTUALLY configured on this system.
+**Decision Implemented (2026-04-10):**
+- CLI tools (amp, qwen, opencode, kilocode) extend `AgentsMdAgent` and read root `AGENTS.md`
+- NO custom `output_path` sections needed in `.ruler/ruler.toml`
+- Deleted files: `.qwen/system.md`, `.agents/system.md`, `.opencode/system.md`, `.kilo/rules/system.md`
+- Removed from ruler.toml: `[agents.amp]`, `[agents.qwen]`, `[agents.opencode]`, `[agents.kilocode]`
 
-**Result:** Configuration mismatches between:
-- What Ruler **expects** to write
-- What tools **actually expect** to read
-- What's **actually on disk**
-
-**Examples:**
-- Ruler writes to `.qwen/system.md` but you said `.qwen/QWEN.md` is correct
-- `.gemini-cli` in ruler.toml but `.gemini` directory exists
-- `geminicli` in rulesync.jsonc but no config created yet
-- Kilo has `.kilo/mcp.json` but no rules synced
+**Current State:**
+- CLI tools read root `AGENTS.md` via `settings.json` `contextFileName`
+- Ruler syncs to root `AGENTS.md` via `agentsmd` agent
+- **NO MISMATCH** — Configuration is aligned
 
 ---
 
 ## Part 1: What Actually Exists on Disk (REAL Inventory)
 
+**Decision Implemented (2026-04-10):** CLI tools (amp, qwen, opencode, kilocode) extend AgentsMdAgent and read root AGENTS.md.
+
 ### TIER 1 CLI TOOLS (Heavy Rotation, Per User)
 
-#### ✅ Gemini CLI
-**Status:** Minimally configured  
+#### ✅ Gemini CLI — ALIGNED (AgentsMdAgent)
+**Status:** Configured  
 **Current Config:**
 ```
+AGENTS.md (root) ← SYNCED BY RULER
 .gemini/
-  ├── settings.json (MCP/runtime config)
-  └── NO context files
+  └── settings.json (contextFileName: "AGENTS.md", MCP/runtime config)
 ```
-**Missing:** `.gemini/GEMINI.md` (context/instructions)  
-**Ruler expects:** `gemini-cli` agent → `.gemini/system.md` (WRONG PATH)  
-**Action:** Create `.gemini/GEMINI.md` with proper context
+**Decision:** NO output_path needed — reads root AGENTS.md via settings.json
 
-#### ✅ Qwen Code
-**Status:** Partially configured  
+#### ✅ Qwen Code — ALIGNED (AgentsMdAgent)
+**Status:** Configured  
 **Current Config:**
 ```
+AGENTS.md (root) ← SYNCED BY RULER
 .qwen/
-  ├── settings.json (runtime config)
-  ├── system.md (22KB, auto-generated/synced)
+  ├── settings.json (contextFileName: "AGENTS.md", runtime config)
   ├── PROJECT_SUMMARY.md (documentation)
   └── commands/ (extension commands)
 ```
-**Issue:** Has `.qwen/system.md` but user says `.qwen/QWEN.md` is correct  
-**Ruler expects:** `qwen` agent → `.qwen/system.md` (MATCHES current)  
-**Question:** Should `.qwen/system.md` be renamed to `.qwen/QWEN.md`?  
-**Action:** Clarify if system.md should be QWEN.md
+**Decision:** NO output_path needed — reads root AGENTS.md via settings.json
+**NOTE:** `.qwen/system.md` DELETED per decision
 
-#### ✅ OpenCode
-**Status:** Minimally configured  
+#### ✅ OpenCode — ALIGNED (AgentsMdAgent)
+**Status:** Configured  
 **Current Config:**
 ```
+AGENTS.md (root) ← SYNCED BY RULER
 .opencode/
-  ├── package.json (npm metadata)
-  └── NO rules or context
+  └── package.json (npm metadata)
 ```
-**Missing:** `.opencode/OPENCODE.md` (context/instructions)  
-**Ruler expects:** `opencode` agent → `.opencode/system.md`  
-**Action:** Create `.opencode/OPENCODE.md` with proper context
+**Decision:** NO output_path needed — reads root AGENTS.md via settings.json
 
-#### ⚠️ AMP (Amp CLI)
-**Status:** NOT CONFIGURED  
+#### ✅ AMP (Amp CLI) — ALIGNED (AgentsMdAgent)
+**Status:** Configured  
 **Current Config:**
 ```
-.agents/
-  └── system.md (synced, no other config)
+AGENTS.md (root) ← SYNCED BY RULER
 ```
-**Context:** User mentioned AMP as primary (in heavy rotation)  
-**Ruler expects:** `amp` agent → `.agents/system.md` (EXISTS)  
-**Note:** AMP likely uses Claude context, verify if `.agents/` is correct root  
-**Action:** Confirm if AMP needs separate `.amp/` directory
+**Decision:** NO output_path needed — reads root AGENTS.md via settings.json
 
-#### ❌ Kilo Code
-**Status:** PARTIALLY CONFIGURED, NOT IN RULER  
+#### ✅ Kilo Code — ALIGNED (AgentsMdAgent)
+**Status:** Configured  
 **Current Config:**
 ```
+AGENTS.md (root) ← SYNCED BY RULER
 .kilo/
   ├── mcp.json (MCP server config)
-  ├── package.json (npm metadata)
-  └── NO rules or context
+  └── package.json (npm metadata)
 ```
-**Issue:** Not in `ruler.toml` default_agents  
-**Missing:** `.kilo/system.md` or `.kilo/KILO.md`  
-**Ruler Status:** Has `[agents.kilo]` section commented out or missing  
-**Action:** Add Kilo to ruler.toml, create context file
+**Decision:** NO output_path needed — reads root AGENTS.md via settings.json
 
 #### ❌ iFlow
 **Status:** ORPHANED CONFIGURATION  
@@ -100,7 +87,6 @@ IFLOW.md (104 lines at root)
 └── NO agent directory (.iflow/)
 ```
 **Issue:** Context exists at root but no agent directory  
-**Ruler Status:** Not in ruler.toml, not in rulesync  
 **Action:** Determine iFlow's expected directory, create `.iflow/` with config
 
 ---
@@ -259,99 +245,124 @@ CLAUDE.md (at repository root, auto-generated)
 
 ## Part 2: What Ruler Thinks It Should Do
 
-### Ruler.toml Analysis
+**Decision Implemented (2026-04-10):**
+- CLI tools (amp, qwen, opencode, kilocode) — NO output_path needed (AgentsMdAgent)
+- Removed sections: `[agents.amp]`, `[agents.qwen]`, `[agents.opencode]`, `[agents.kilocode]`
 
-**Configured Agents (13 total):**
+### Ruler.toml Analysis (Updated)
+
+**IDE Agents (output_path KEEP):**
 ```toml
 [agents.claude]           → CLAUDE.md (root)
-[agents.cursor]           → .cursor/rules/system.md
+[agents.cursor]           → .cursor/rules/system.md (output_path OPTIONAL — hybrid)
 [agents.cline]            → .clinerules/system.md
-[agents.roo]              → .roo/rules/system.md
+[agents.roo]              → .roo/rules/system.md (output_path OPTIONAL — hybrid)
 [agents.kiro]             → .kiro/steering/system.md
 [agents.trae]             → .trae/rules/system.md
-[agents.windsurf]         → .windsurf/rules/system.md
-[agents.amp]              → .agents/system.md
-[agents.qwen]             → .qwen/system.md ← MISMATCH?
-[agents.opencode]         → .opencode/system.md
-(MISSING)                 → .gemini/system.md ← NOT IN CONFIG
-(MISSING)                 → .kilo/system.md ← NOT IN CONFIG
-(MISSING)                 → .agents/AGENTS.md ← NOT FOR AMP
+[agents.windsurf]         → .windsurf/rules/system.md (output_path OPTIONAL — hybrid)
 ```
 
-**Issues:**
-1. **`gemini-cli` in default_agents** but NO `[agents.gemini-cli]` section
-2. **`amp` maps to `.agents/system.md`** — Is this correct for AMP or generic?
-3. **`qwen` maps to `.qwen/system.md`** — You said `.qwen/QWEN.md` is correct
-4. **`codex` in default_agents** but NO `[agents.codex]` section
+**CLI Agents (AgentsMdAgent — NO output_path needed):**
+```toml
+# REMOVED SECTIONS — these tools extend AgentsMdAgent and read root AGENTS.md
+# [agents.amp]      ← REMOVED — reads root AGENTS.md
+# [agents.qwen]     ← REMOVED — reads root AGENTS.md
+# [agents.opencode] ← REMOVED — reads root AGENTS.md
+# [agents.kilocode] ← REMOVED — reads root AGENTS.md
+```
+
+**Decision Rationale:**
+1. CLI tools use `settings.json` with `contextFileName: "AGENTS.md"`
+2. Ruler's `agentsmd` agent syncs to root `AGENTS.md`
+3. NO custom `output_path` needed — tools read from root
 
 ---
 
 ### Rulesync.jsonc Analysis
 
-**Targets (11 specified):**
+**Decision Implemented:** CLI tools (amp, qwen, opencode, kilocode) read root `AGENTS.md` via `agentsmd`.
+
+**Targets (Updated):**
 ```jsonc
 "claudecode"      ✅ Maps to ruler: claude
-"cursor"          ✅ Maps to ruler: cursor
+"cursor"          ✅ Maps to ruler: cursor (output_path OPTIONAL — hybrid)
 "cline"           ✅ Maps to ruler: cline
-"roo"             ✅ Maps to ruler: roo
+"roo"             ✅ Maps to ruler: roo (output_path OPTIONAL — hybrid)
 "kiro"            ✅ Maps to ruler: kiro
-"windsurf"        ✅ Maps to ruler: windsurf
-"qwencode"        ❓ Maps to ruler: qwen (name mismatch)
-"opencode"        ✅ Maps to ruler: opencode
-"geminicli"       ❌ NOT in ruler.toml
-"agentsmd"        ❓ Maps to ruler: amp (unclear)
-"codexcli"        ❌ NOT in ruler.toml
+"windsurf"        ✅ Maps to ruler: windsurf (output_path OPTIONAL — hybrid)
+"qwencode"        ✅ ALIGNED — reads root AGENTS.md (AgentsMdAgent) DECISION COMPLETE
+"opencode"        ✅ ALIGNED — reads root AGENTS.md (AgentsMdAgent) DECISION COMPLETE
+"geminicli"       ✅ ALIGNED — reads root AGENTS.md (AgentsMdAgent) DECISION COMPLETE
+"agentsmd"        ✅ SYNCED TO ROOT AGENTS.md — CLI tools read this
+"codexcli"        ❌ NOT in ruler.toml — needs resolution
 ```
 
-**Issues:**
-1. **Name mismatches:** `geminicli` vs Ruler's `gemini-cli`
-2. **Missing configs:** `geminicli` and `codexcli` not in ruler.toml
-3. **Unclear purpose:** `agentsmd` — Is it for AMP or generic AGENTS.md?
+**Issues Resolved:**
+1. ~~Name mismatches~~ — RESOLVED: CLI tools use AgentsMdAgent
+2. ~~Missing configs~~ — RESOLVED: CLI tools read root AGENTS.md
 
 ---
 
 ## Part 3: Gap Analysis — Actual vs. Expected
 
+**Decision Implemented (2026-04-10):** CLI tools (amp, qwen, opencode, kilocode) extend AgentsMdAgent and read root AGENTS.md.
+
 | Tool | Tier | Disk Status | Ruler Status | Rulesync | Context File | MCP Config | Action |
 |------|------|------------|--------------|----------|--------------|-----------|--------|
-| **Gemini** | 1 | ⚠️ Minimal | ❌ `gemini-cli` wrong name | ❌ `geminicli` orphaned | ❌ Missing | ✅ settings.json | CREATE `.gemini/GEMINI.md` |
-| **Qwen** | 1 | ✅ Configured | ✅ `qwen` | ✅ `qwencode` | ⚠️ system.md vs QWEN.md? | ✅ settings.json | VERIFY naming, rename if needed |
-| **OpenCode** | 1 | ⚠️ Minimal | ✅ `opencode` | ✅ `opencode` | ❌ Missing | ❌ No config | CREATE `.opencode/OPENCODE.md` |
-| **AMP** | 1 | ⚠️ Minimal | ✅ `amp` | ✅ `agentsmd` | ⚠️ Inherited | ❌ In `.agents/` | CLARIFY if `.amp/` needed |
-| **Kilo** | 1 | ⚠️ Minimal | ❌ Not in ruler | ❌ Not in rulesync | ❌ Missing | ✅ .kilo/mcp.json | ADD to ruler, CREATE context |
+| **Gemini** | 1 | ✅ ALIGNED | ✅ AgentsMdAgent | ✅ DECISION DONE | ✅ ROOT AGENTS.md | ✅ settings.json | ✅ NO ACTION |
+| **Qwen** | 1 | ✅ ALIGNED | ✅ AgentsMdAgent | ✅ DECISION DONE | ✅ ROOT AGENTS.md | ✅ settings.json | ✅ NO ACTION |
+| **OpenCode** | 1 | ✅ ALIGNED | ✅ AgentsMdAgent | ✅ DECISION DONE | ✅ ROOT AGENTS.md | ⚠️ Needs verify | ✅ NO ACTION |
+| **AMP** | 1 | ✅ ALIGNED | ✅ AgentsMdAgent | ✅ DECISION DONE | ✅ ROOT AGENTS.md | ⚠️ Needs verify | ✅ NO ACTION |
+| **Kilo** | 1 | ✅ ALIGNED | ✅ AgentsMdAgent | ✅ DECISION DONE | ✅ ROOT AGENTS.md | ✅ .kilo/mcp.json | ✅ NO ACTION |
 | **iFlow** | 1 | ❌ Orphaned | ❌ Not in ruler | ❌ Not in rulesync | ✅ IFLOW.md (root) | ❌ No config | RESEARCH, CREATE directory |
 | **Letta** | 2 | ⚠️ Minimal | ❌ Not in ruler | ❌ Not in rulesync | ❌ Missing | ✅ .letta/settings | ADD to ruler, CREATE context |
 | **Aider** | 2 | ❌ None | ❌ Not in ruler | ❌ Not in rulesync | ❌ Missing | ❌ No config | RESEARCH, add if needed |
-| **Cursor** | IDE | ✅ Configured | ✅ cursor | ✅ cursor | ✅ system.md | ✅ mcp.json | ✅ No action |
+| **Cursor** | IDE | ✅ Configured | ✅ cursor | ✅ cursor | ✅ system.md | ✅ mcp.json | ✅ NO ACTION |
 | **Cline** | IDE | ✅ Configured | ✅ cline | ✅ cline | ✅ system.md | ❌ No MCP | ✅ Mostly good |
-| **Roo** | IDE | ✅ Configured | ✅ roo | ✅ roo | ✅ system.md | ✅ mcp.json | ✅ No action |
-| **Windsurf** | IDE | ✅ Configured | ✅ windsurf | ✅ windsurf | ✅ system.md | ✅ mcp.json | ✅ No action |
-| **Trae** | IDE | ✅ Configured | ✅ trae | ✅ trae | ✅ system.md | ✅ mcp.json | ✅ No action |
-| **Kiro** | IDE | ✅ Configured | ✅ kiro | ✅ kiro | ✅ system.md | ✅ mcp.json | ✅ No action |
+| **Roo** | IDE | ✅ Configured | ✅ roo | ✅ roo | ✅ system.md | ✅ mcp.json | ✅ NO ACTION |
+| **Windsurf** | IDE | ✅ Configured | ✅ windsurf | ✅ windsurf | ✅ system.md | ✅ mcp.json | ✅ NO ACTION |
+| **Trae** | IDE | ✅ Configured | ✅ trae | ✅ trae | ✅ system.md | ✅ mcp.json | ✅ NO ACTION |
+| **Kiro** | IDE | ✅ Configured | ✅ kiro | ✅ kiro | ✅ system.md | ✅ mcp.json | ✅ NO ACTION |
 | **Claude** | IDE | ✅ Configured | ✅ claude | ✅ claudecode | ✅ CLAUDE.md | ✅ mcp.json | ✅ + hooks.yaml (Phase 4) |
 
 ---
 
 ## Part 4: Specific Corrections Needed
 
+### DECISION IMPLEMENTED (2026-04-10)
+
+**CLI Tools Configuration — RESOLVED:**
+
+1. **Removed output_path sections from ruler.toml:**
+   - `[agents.amp]` — REMOVED — extends AgentsMdAgent
+   - `[agents.qwen]` — REMOVED — extends AgentsMdAgent
+   - `[agents.opencode]` — REMOVED — extends AgentsMdAgent
+   - `[agents.kilocode]` — REMOVED — extends AgentsMdAgent
+
+2. **Deleted orphaned files:**
+   - `.qwen/system.md` — DELETED
+   - `.agents/system.md` — DELETED
+   - `.opencode/system.md` — DELETED
+   - `.kilo/rules/system.md` — DELETED
+
+3. **Rationale:**
+   - CLI tools use `settings.json` with `contextFileName: "AGENTS.md"`
+   - Ruler's `agentsmd` agent syncs to root `AGENTS.md`
+   - Tools read from root `AGENTS.md` — NO MISMATCH
+
 ### CRITICAL (Block Phase 5)
 
-1. **Gemini CLI Configuration**
-   - Add to ruler.toml: `[agents.gemini]` (fix name: not `gemini-cli`)
-   - Update rulesync.jsonc: Change `geminicli` → `gemini`
-   - Create `.gemini/GEMINI.md`
-   - Question: Should also create `.gemini/system.md` (override) or just GEMINI.md?
+1. **iFlow Configuration**
+   - Research iFlow's expected config directory
+   - Determine if `.iflow/` or other path
+   - Move `IFLOW.md` from root if needed
+   - Create proper directory structure
+   - Add to ruler.toml and rulesync.jsonc
 
-2. **Qwen Configuration Naming**
-   - Clarify: Is `.qwen/system.md` correct or should it be `.qwen/QWEN.md`?
-   - If renaming needed: system.md → QWEN.md
-   - Update ruler.toml output_path accordingly
-
-3. **Kilo Configuration**
-   - Add to ruler.toml:
-     ```toml
-     [agents.kilo]
-     enabled = true
+2. **Codex CLI Configuration**
+   - Verify if Codex is actually used
+   - If yes: Add to ruler.toml and create config
+   - If no: Remove from default_agents and rulesync
      output_path = ".kilo/KILO.md"
      ```
    - Add to rulesync.jsonc targets: `"kilo"`
@@ -366,20 +377,14 @@ CLAUDE.md (at repository root, auto-generated)
 
 ### HIGH PRIORITY (Phase 5)
 
-5. **OpenCode Configuration**
-   - Create `.opencode/OPENCODE.md`
+3. **OpenCode Configuration**
+   - ✅ DECISION COMPLETE — Uses AgentsMdAgent, reads root AGENTS.md
    - Verify settings.json for runtime config
 
-6. **AMP Configuration**
-   - Clarify: Is `.agents/` correct or should `.amp/` be used?
-   - Create `.agents/AMP.md` or `.amp/AMP.md`
+4. **AMP Configuration**
+   - ✅ DECISION COMPLETE — Uses AgentsMdAgent, reads root AGENTS.md
 
-7. **Codex CLI Configuration**
-   - Verify if Codex is actually used
-   - If yes: Add to ruler.toml and create config
-   - If no: Remove from default_agents and rulesync
-
-8. **Secondary CLI Tools** (Letta, Aider, Ra-aid, Goose, OpenHands)
+5. **Secondary CLI Tools** (Letta, Aider, Ra-aid, Goose, OpenHands)
    - Add to ruler.toml (for Letta at minimum)
    - Create context files when routing framework ready
 
@@ -387,90 +392,72 @@ CLAUDE.md (at repository root, auto-generated)
 
 ## Part 5: Pattern Discovery — What the System Actually Expects
 
+**Decision Implemented (2026-04-10):**
+
 ### Context File Naming Pattern
 
-Based on what exists on disk:
+**CLI Tools (AgentsMdAgent) — RESOLVED:**
+- All read root `AGENTS.md` via `settings.json` `contextFileName`
+- NO custom `output_path` needed per tool
+- Ruler syncs to root `AGENTS.md` via `agentsmd` agent
 
-**IDE Agents (Configured):**
+**IDE Agents (output_path KEEP):**
 - Pattern: `{Agent}/system.md` (Ruler syncs here)
 - Examples: `.cursor/rules/system.md`, `.roo/rules/system.md`
 - Status: Working
+
+**Hybrid Tools (cursor, windsurf, roo) — output_path OPTIONAL:**
+- May read from both `{tool}/rules/system.md` AND root `AGENTS.md`
+- No changes required
 
 **Root-level Agent (Claude):**
 - Pattern: `{AGENT}.md` (at repository root)
 - Example: `CLAUDE.md`
 - Status: Working
 
-**CLI Tools (Partial):**
-- Gemini expects: `.gemini/GEMINI.md` (hierarchical context loading)
-- Qwen expects: `.qwen/QWEN.md` (or system.md?)
-- OpenCode expects: `.opencode/OPENCODE.md`
-- iFlow expects: `IFLOW.md` or `.iflow/IFLOW.md`?
-
-**Ruler Output Pattern Inconsistency:**
-- Ruler writes to: `.{agent}/system.md` (generic)
-- But tools expect: `.{AGENT}/{AGENT}.md` or custom names
-- **This is the core mismatch**
-
 ---
 
 ## Part 6: Recommended Action Plan
 
-### Phase 0.5 (NEW) — Configuration Audit & Alignment
+### Decision Summary (2026-04-10)
 
-**Before touching any more phases, execute:**
+**COMPLETED:**
 
-1. **User Input Required:**
-   - [ ] Confirm correct context filenames:
-     - `.gemini/GEMINI.md` or `.gemini/system.md`?
-     - `.qwen/QWEN.md` or `.qwen/system.md`?
-     - `.kilo/KILO.md` or `.kilo/system.md`?
-     - `.opencode/OPENCODE.md` or `.opencode/system.md`?
-     - `.amp/AMP.md` or `.agents/AMP.md`?
-   
+1. **CLI Tools Configuration** ✅ DECISION COMPLETE
+   - [x] Removed `[agents.amp]`, `[agents.qwen]`, `[agents.opencode]`, `[agents.kilocode]` from ruler.toml
+   - [x] Deleted `.qwen/system.md`, `.agents/system.md`, `.opencode/system.md`, `.kilo/rules/system.md`
+   - [x] CLI tools (amp, qwen, opencode, kilocode) extend AgentsMdAgent
+   - [x] They read root `AGENTS.md` via `settings.json` `contextFileName`
+
+2. **Remaining Actions:**
    - [ ] Is iFlow critical or backlog?
    - [ ] Is Codex actually used?
-   - [ ] Is AMP primary or inherited from Claude?
+   - [ ] Add Letta to ruler.toml (Tier 2)
 
-2. **Update Ruler Configuration:**
-   - Fix agent names in ruler.toml
-   - Fix output_path to match actual tool expectations
-   - Add missing agents (Kilo, iFlow, Letta, etc.)
-
-3. **Fix Rulesync Configuration:**
-   - Update target names to match ruler.toml agent names
-   - Remove orphaned targets (geminicli if no config, codexcli if unused)
-   - Add Kilo, iFlow, Letta targets
-
-4. **Create Missing Context Files:**
-   - `.gemini/GEMINI.md`
-   - `.opencode/OPENCODE.md`
-   - `.kilo/KILO.md`
-   - `.iflow/IFLOW.md` (pending clarification)
-   - Update AMP context (`.agents/AMP.md` or `.amp/AMP.md`)
-
-5. **Verify & Test:**
-   - Run `ruler apply --dry-run` to preview changes
-   - Verify all output_paths exist
-   - Test with each tool
+3. **Verify:**
+   - [x] Root `AGENTS.md` exists at project root
+   - [ ] Run `ruler apply --project-root .` to sync
+   - [ ] Test with each CLI tool
 
 ---
 
 ## Part 7: User Review Checklist
 
-Before proceeding, please confirm:
+**Decision Implemented (2026-04-10):**
 
-- [ ] **Gemini:** Should context be `.gemini/GEMINI.md` or Ruler's `.gemini/system.md`?
-- [ ] **Qwen:** Rename `.qwen/system.md` to `.qwen/QWEN.md`? Or keep as is?
-- [ ] **Kilo:** Is it a Tier 1 primary tool requiring full config?
-- [ ] **iFlow:** Is this active? Expected directory path?
-- [ ] **AMP:** Is `.agents/` the correct location or should `.amp/` be used?
-- [ ] **Codex:** Is this actually used or should it be removed from defaults?
+- [x] **CLI Tools (amp, qwen, opencode, kilocode):** NO output_path needed — extends AgentsMdAgent
+- [x] **Context filenames:** All CLI tools read root `AGENTS.md` via `settings.json` contextFileName
+- [x] **Files deleted:** `.qwen/system.md`, `.agents/system.md`, `.opencode/system.md`, `.kilo/rules/system.md`
+- [x] **Ruler.toml sections removed:** `[agents.amp]`, `[agents.qwen]`, `[agents.opencode]`, `[agents.kilocode]`
+
+**Still to confirm:**
+
+- [ ] **iFlow:** Is this actively used? If so, needs directory creation
+- [ ] **Codex:** Is this actually used or should it be removed from rulesync?
 - [ ] **Letta:** Should be added to Tier 2 configuration?
-- [ ] **Naming Pattern:** Should all CLI tools use `{TOOL}/{TOOL}.md` or accept Ruler's `{tool}/system.md`?
 
 ---
 
-**Status:** Awaiting user clarification  
-**Next Step:** Phase 0.5 execution based on answers above
+**Status:** Decision implemented, ready for verification
+**Next Step:** Run `ruler apply --project-root .` to sync root AGENTS.md
 

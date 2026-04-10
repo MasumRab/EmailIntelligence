@@ -14,14 +14,19 @@
 
 ## Tool Configuration Matrix
 
-### Tier 1: CLI Tools with settings.json
+### Tier 1: CLI Tools with settings.json (AgentsMdAgent)
+
+**Decision Implemented (2026-04-10):** CLI tools (amp, qwen, opencode, kilocode) extend `AgentsMdAgent` and read root `AGENTS.md` via `settings.json` `contextFileName`. NO custom `output_path` in ruler.toml — uses Ruler built-in defaults.
 
 | Tool | Context Loading | contextFileName | Ruler Output | Status |
 |------|-----------------|-----------------|--------------|--------|
-| **Gemini CLI** | Hierarchical (AGENTS.md + GEMINI.md) | `AGENTS.md` | `.gemini/system.md` | ⚠️ MISMATCH |
-| **Qwen Code** | Hierarchical (AGENTS.md + QWEN.md) | `AGENTS.md` | `.qwen/system.md` | ⚠️ MISMATCH |
-| **OpenCode** | `.opencode/OPENCODE.md` | - | `.opencode/system.md` | ❓ VERIFY |
+| **Gemini CLI** | Hierarchical (AGENTS.md + GEMINI.md) | `AGENTS.md` | ROOT `AGENTS.md` (agentsmd) | ✅ ALIGNED |
+| **Qwen Code** | Hierarchical (AGENTS.md + QWEN.md) | `AGENTS.md` | ROOT `AGENTS.md` (agentsmd) | ✅ ALIGNED |
+| **OpenCode** | `.opencode/OPENCODE.md` | `AGENTS.md` | ROOT `AGENTS.md` (agentsmd) | ✅ ALIGNED |
+| **Kilo Code** | `.kilo/rules/` | `AGENTS.md` | ROOT `AGENTS.md` (agentsmd) | ✅ ALIGNED |
 | **Claude Code** | Root `CLAUDE.md` | N/A | `CLAUDE.md` | ✅ ALIGNED |
+
+**Note:** `[agents.amp]`, `[agents.qwen]`, `[agents.opencode]`, `[agents.kilocode]` sections REMOVED from ruler.toml — they natively read root `AGENTS.md`.
 
 ### Tier 2: IDE Agents (Ruler Aligned)
 
@@ -35,10 +40,11 @@
 
 ---
 
-## CRITICAL: contextFileName Mismatch
+## contextFileName Configuration (RESOLVED)
 
-**Problem**: Gemini and Qwen are configured via `settings.json`:
+**Decision Implemented (2026-04-10):**
 
+CLI tools (Gemini, Qwen, OpenCode, Kilo, AMP) use `settings.json`:
 ```json
 {
   "contextFileName": "AGENTS.md",
@@ -47,19 +53,18 @@
 }
 ```
 
-This means:
-- Tool loads `AGENTS.md` from project root or tool directory
-- Ruler writes to `{tool}/system.md`
-- **MISMATCH**: Tool may NOT read what Ruler writes!
+**How it works NOW:**
+- `agentsmd` agent in ruler.toml syncs to ROOT `AGENTS.md`
+- CLI tools read root `AGENTS.md` via `contextFileName: "AGENTS.md"`
+- **NO MISMATCH** — All CLI tools read from the same synced root `AGENTS.md`
 
-**Solution**: Either:
-1. Update `settings.json`: `"contextFileName": "system.md"`
-2. Update Ruler: `output_path = ".{tool}/AGENTS.md"`
-3. Create symlink: `ln -s system.md .{tool}/AGENTS.md`
+**Hybrid tools (cursor, windsurf, roo):** `output_path` is optional — may read from both `{tool}/rules/system.md` AND root `AGENTS.md`.
+
+**IDE tools (claude, cline, kiro, trae):** KEEP `output_path` (non-AgentsMdAgent).
 
 ---
 
-## amp_phase_0_5: Configuration Audit (NEW - Deep Mode)
+## amp_phase_0_5: Configuration Audit (Deep Mode)
 
 **Run BEFORE any other phases to verify correct tool configurations.**
 
@@ -73,10 +78,10 @@ amp threads new --mode deep --execute "You are auditing AI coding agent tool con
 0.5.2: Verify context file alignment with Ruler outputs
 0.5.3: Check for missing context files in tool directories
 0.5.4: Verify MCP server configurations in settings.json
-0.5.5: Fix any mismatches found
 
-**Discovery:**
-Both Gemini CLI and Qwen Code use contextFileName: 'AGENTS.md' in settings.json.
+**Discovery (RESOLVED 2026-04-10):**
+CLI tools (amp, qwen, opencode, kilocode) extend AgentsMdAgent and read root AGENTS.md via settings.json contextFileName.
+NO custom output_path needed — Ruler's agentsmd agent syncs to root AGENTS.md.
 
 **Check:**
 for f in .gemini/settings.json .qwen/settings.json .claude/settings.json; do
@@ -86,15 +91,9 @@ for f in .gemini/settings.json .qwen/settings.json .claude/settings.json; do
   fi
 done
 
-**Fix Mismatches:**
-# Option A: Update settings.json
-python3 -c \"import json; d=json.load(open('.qwen/settings.json')); d['contextFileName']='system.md'; json.dump(d, open('.qwen/settings.json','w'), indent=2)\"
-
-# Option B: Create symlink
-ln -s system.md .qwen/AGENTS.md
-
 **VERIFY:**
-grep 'contextFileName' ./*/settings.json"
+ls -la AGENTS.md  # Root AGENTS.md must exist
+ruler apply --project-root . --dry-run  # Preview Ruler outputs"
 ```
 
 ---
@@ -116,9 +115,9 @@ agent-rules-kit --stack=react --ide=claude --global --auto-install
 cat CLAUDE.md >> .ruler/AGENTS.md && rm CLAUDE.md
 ```
 
-**CRITICAL for Gemini/Qwen:**
-Both tools load AGENTS.md by default (contextFileName: 'AGENTS.md').
-Ensure .ruler/AGENTS.md exists at project root before running Ruler.
+**CRITICAL for CLI Tools (AgentsMdAgent):**
+CLI tools (Gemini, Qwen, OpenCode, Kilo, AMP) load root AGENTS.md by default (contextFileName: 'AGENTS.md').
+Ruler.toml has NO output_path for these tools — they extend AgentsMdAgent.
 
 **VERIFY:**
 test -f AGENTS.md && echo 'AGENTS.md: ROOT EXISTS' || echo 'MISSING'
@@ -206,51 +205,31 @@ amp threads new --mode rush --execute "You are executing Phase 3 Ruler Setup.
 **Config File:** .ruler/ruler.toml
 **Source File:** .ruler/AGENTS.md
 
-**CRITICAL: Align Ruler outputs with tool expectations!**
+**Decision Implemented (2026-04-10):**
+- CLI tools (amp, qwen, opencode, kilocode) — NO output_path needed (AgentsMdAgent)
+- Hybrid tools (cursor, windsurf, roo) — output_path is OPTIONAL
+- IDE tools (claude, cline, kiro, trae) — KEEP output_path
 
-For tools with settings.json (Gemini, Qwen):
-- They read contextFileName from settings.json
-- Default: contextFileName: 'AGENTS.md'
-- Ruler must write to matching path
-
-**Fix: Option A** — Update Ruler output_path:
-```toml
-[agents.qwen]
-output_path = \".qwen/AGENTS.md\"  # Match settings.json contextFileName
-```
-
-**Fix: Option B** — Update settings.json:
-```json
-{ \"contextFileName\": \"system.md\" }
-```
+**Removed sections from ruler.toml:**
+- `[agents.amp]` — extends AgentsMdAgent
+- `[agents.qwen]` — extends AgentsMdAgent
+- `[agents.opencode]` — extends AgentsMdAgent
+- `[agents.kilocode]` — extends AgentsMdAgent
 
 **Tasks (6 steps):**
 3.1: Verify .ruler/ exists
 3.2: Create .ruler/AGENTS.md
-3.3: Create .ruler/ruler.toml with correct output_paths
+3.3: Verify ruler.toml has NO output_path for CLI tools
 3.4: Verify Ruler config (dry-run)
 3.5: Apply Ruler
-3.6: Verify each tool reads the correct file
+3.6: Verify root AGENTS.md synced
 
 **Commands:**
 ruler apply --project-root . --dry-run 2>&1 | head -10
 ruler apply --project-root . --backup
 
-**VERIFY for each tool:**
-# Check settings.json contextFileName
-grep contextFileName .gemini/settings.json .qwen/settings.json
-
-# Check Ruler output
-grep 'output_path' .ruler/ruler.toml
-
-# Check alignment
-python3 -c \"
-import json
-for tool in ['gemini', 'qwen']:
-    s = json.load(open(f'.{tool}/settings.json'))
-    ctx = s.get('contextFileName', 'NOT SET')
-    print(f'{tool}: reads {ctx}')
-\"
+**VERIFY:**
+ls -la AGENTS.md  # Must exist at root
 
 **Start:** Read docs/handoff/phase-03-ruler-setup.md"
 ```
@@ -290,42 +269,31 @@ rulez debug --event 'Bash:git push --force origin main'
 **NEW PHASE — Critical for Gemini/Qwen**
 
 ```bash
-amp threads new --mode deep --execute "You are fixing context file mismatches.
+amp threads new --mode deep --execute "You are verifying context file alignment post-decision.
 
-**Discovery:**
-- Gemini CLI: contextFileName = 'AGENTS.md' in .gemini/settings.json
-- Qwen Code: contextFileName = 'AGENTS.md' in .qwen/settings.json
-- But Ruler writes to: .gemini/system.md and .qwen/system.md
+**Decision Implemented (2026-04-10):**
+CLI tools (amp, qwen, opencode, kilocode) extend AgentsMdAgent and read root AGENTS.md.
+Ruler.toml has NO output_path sections for these tools — they use Ruler's built-in defaults.
 
-**Tasks:**
-5.1: Check current contextFileName values
-5.2: Decide fix strategy per tool (update settings.json OR Ruler)
-5.3: Apply fixes
-5.4: Verify tool reads correct file
-5.5: Test with actual tool invocation
+**Deleted files:**
+- .qwen/system.md
+- .agents/system.md
+- .opencode/system.md
+- .kilo/rules/system.md
+
+**Verification Tasks:**
+5.1: Confirm root AGENTS.md exists
+5.2: Confirm CLI tool settings.json has contextFileName: 'AGENTS.md'
+5.3: Verify no orphaned system.md files in CLI tool directories
+5.4: Test with actual tool invocation
 
 **Check:**
-bash ~/.letta/skills/agent-rules-handoff/scripts/audit_tool_configs.sh
-
-**Fix Example (update settings.json):**
-python3 -c \"
-import json
-d = json.load(open('.qwen/settings.json'))
-d['contextFileName'] = 'system.md'
-json.dump(d, open('.qwen/settings.json', 'w'), indent=2)
-\"
+ls -la AGENTS.md
+grep contextFileName .qwen/settings.json .gemini/settings.json
 
 **VERIFY:**
-cat .qwen/settings.json | grep contextFileName
-# Should show: 'contextFileName': 'system.md'
-
-**Alternative: Update Ruler:**
-# Edit .ruler/ruler.toml
-[agents.qwen]
-output_path = \".qwen/AGENTS.md\"
-
-ruler apply --project-root . --dry-run
-ruler apply --project-root ."
+cat AGENTS.md | head -20
+# Should show synced content from .ruler/AGENTS.md"
 ```
 
 ---
@@ -344,6 +312,9 @@ echo '=== PHASE [N] GATE CHECK ==='
 for f in [FILES_TO_CHECK]; do
   test -f \"\$f\" && echo '✅ '\$f': EXISTS' || echo '❌ '\$f': MISSING'
 done
+
+# Verify root AGENTS.md exists (CLI tools read from root)
+test -f AGENTS.md && echo '✅ AGENTS.md: EXISTS (CLI tools read this)' || echo '❌ AGENTS.md: MISSING'
 
 # contextFileName alignment check
 for tool in gemini qwen opencode; do
@@ -372,7 +343,7 @@ done
 | Phase 2 | `rush` | Content edits, fast execution |
 | Phase 3 | `rush` | Ruler apply is straightforward |
 | Phase 4 | `rush` | RuleZ debug is fast |
-| **Phase 5** (NEW) | `deep` | Context alignment critical |
+| **Phase 5** | `deep` | Verify decision implementation |
 | Phase 9 | `deep` | Comprehensive verification |
 
 ---

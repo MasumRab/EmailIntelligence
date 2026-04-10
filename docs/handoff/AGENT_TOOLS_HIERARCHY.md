@@ -100,16 +100,18 @@
 
 ---
 
-### 1.4 CLI-Based Agents (4 agents)
+### 1.4 CLI-Based Agents (AgentsMdAgent)
 
-#### **Gemini CLI** (Ruler target: `geminicli`) ⚠️ CONFIG MISMATCH
-- **CRITICAL:** Tool uses `settings.json` with `contextFileName: "AGENTS.md"`
+**Decision Implemented (2026-04-10):** CLI tools (amp, qwen, opencode, kilocode) extend `AgentsMdAgent` and read root `AGENTS.md` via `settings.json` `contextFileName`. NO custom `output_path` sections in `.ruler/ruler.toml` — uses Ruler built-in defaults.
+
+#### **Gemini CLI** (Ruler target: `agentsmd`) ✅ ALIGNED
+- **Context Loading:** `settings.json` with `contextFileName: "AGENTS.md"`
 - **Tool Reads:** `AGENTS.md` (from settings.json), PLUS hierarchical loading:
   - `./AGENTS.md` (project root)
   - `./.gemini/AGENTS.md` (project-specific)
   - `./GEMINI.md` (if exists in project)
   - `~/.gemini/GEMINI.md` (user-level)
-- **Ruler Writes:** `.gemini/system.md` (NOT READ BY TOOL!)
+- **Ruler Syncs:** Root `AGENTS.md` via `agentsmd` agent
 - **settings.json:** `.gemini/settings.json`
   - `contextFileName: "AGENTS.md"` — Primary context file
   - `mcpServers: {...}` — MCP server configs
@@ -120,17 +122,17 @@
   - `search` — Pattern search
   - Prompt execution (one-shot Q&A)
 - **Hooks:** None (CLI-based, limited hook support)
-- **Status:** ⚠️ CRITICAL: Ruler output not aligned with tool expectation
-- **Fix Required:** Either update settings.json OR Ruler output_path
+- **Status:** ✅ ALIGNED — Tool reads root AGENTS.md, Ruler syncs there
+- **Decision:** NO `output_path` section — extends AgentsMdAgent
 
-#### **Qwen Code** (Ruler target: `qwencode`) ⚠️ CONFIG MISMATCH
-- **CRITICAL:** Tool uses `settings.json` with `contextFileName: "AGENTS.md"`
+#### **Qwen Code** (Ruler target: `agentsmd`) ✅ ALIGNED
+- **Context Loading:** `settings.json` with `contextFileName: "AGENTS.md"`
 - **Tool Reads:** `AGENTS.md` (from settings.json), PLUS hierarchical loading:
   - `./AGENTS.md` (project root)
   - `./.qwen/AGENTS.md` (project-specific)
   - `./QWEN.md` (if exists in project)
   - `~/.qwen/QWEN.md` (user-level)
-- **Ruler Writes:** `.qwen/system.md` (NOT READ BY TOOL!)
+- **Ruler Syncs:** Root `AGENTS.md` via `agentsmd` agent
 - **settings.json:** `.qwen/settings.json`
   - `contextFileName: "AGENTS.md"` — Primary context file
   - `mcpServers: {...}` — MCP server configs
@@ -141,11 +143,12 @@
   - `Edit` — File modification
   - `Bash` — Command execution
 - **Hooks:** None
-- **Status:** ⚠️ CRITICAL: Ruler output not aligned with tool expectation
-- **Fix Required:** Either update settings.json OR Ruler output_path
+- **Status:** ✅ ALIGNED — Tool reads root AGENTS.md, Ruler syncs there
+- **Decision:** NO `output_path` section — extends AgentsMdAgent
 
-#### **OpenCode (OpenAI)** (Ruler target: `opencode`) ❓ VERIFY
-- **Config Path:** `.opencode/system.md` (MAY NEED AGENTS.md alignment)
+#### **OpenCode (OpenAI)** (Ruler target: `agentsmd`) ✅ ALIGNED
+- **Context Loading:** `settings.json` with `contextFileName: "AGENTS.md"`
+- **Ruler Syncs:** Root `AGENTS.md` via `agentsmd` agent
 - **Sync Source:** `.ruler/AGENTS.md`
 - **Supported Tools:**
   - `Read` — File reading
@@ -153,7 +156,8 @@
   - `Bash` — Command execution
   - `Search` — Code search
 - **Hooks:** None
-- **Status:** ❓ VERIFY: Check if OpenCode uses settings.json with contextFileName
+- **Status:** ✅ ALIGNED — Tool reads root AGENTS.md, Ruler syncs there
+- **Decision:** NO `output_path` section — extends AgentsMdAgent
 
 #### **Codex CLI** (Ruler target: `codexcli`)
 - **Config Path:** Not in ruler.toml (MISSING)
@@ -222,12 +226,17 @@ Targets:
 4. roo             → .roo/rules/system.md
 5. kiro            → .kiro/steering/system.md
 6. windsurf        → .windsurf/rules/system.md
-7. qwencode        → .qwen/system.md
-8. opencode        → .opencode/system.md
-9. geminicli       → NOT FOUND (see issue below)
-10. agentsmd       → .agents/system.md
+7. qwencode        → AGENTS.md (root) — via AgentsMdAgent ✅ DECISION IMPLEMENTED
+8. opencode        → AGENTS.md (root) — via AgentsMdAgent ✅ DECISION IMPLEMENTED
+9. geminicli       → AGENTS.md (root) — via AgentsMdAgent ✅ DECISION IMPLEMENTED
+10. agentsmd       → AGENTS.md (root) — CLI tools read this ✅
 11. codexcli       → NOT FOUND (config in ruler.toml missing)
 ```
+
+**Decision Implemented (2026-04-10):**
+- CLI tools (amp, qwen, opencode, kilocode) — NO output_path needed, read root AGENTS.md
+- Hybrid tools (cursor, windsurf, roo) — output_path is OPTIONAL
+- IDE tools (claude, cline, kiro, trae) — KEEP output_path
 
 ---
 
@@ -244,14 +253,16 @@ Targets:
   - Remove `"codexcli"` from rulesync.jsonc targets
 - **Owner:** [PENDING USER REVIEW]
 
-#### Issue #2: Gemini CLI Path Mismatch
-- **Severity:** MEDIUM
-- **Problem:** `geminicli` target in rulesync.jsonc maps to `.qwen/system.md` (shared with Qwen)
-- **Impact:** Potential rule sync conflicts between Gemini and Qwen
-- **Action:** Either:
-  - Create separate `.gemini/system.md` path, OR
-  - Verify Gemini CLI and Qwen share identical configs (intentional)
-- **Owner:** [PENDING USER REVIEW]
+#### Issue #2: Gemini/Qwen/OpenCode/AMP Path Mismatch ✅ RESOLVED
+- **Severity:** ~~MEDIUM~~ RESOLVED
+- **Problem:** ~~`geminicli` target in rulesync.jsonc maps to `.qwen/system.md` (shared with Qwen)~~
+- **Decision Implemented (2026-04-10):**
+  - CLI tools (amp, qwen, opencode, kilocode) extend AgentsMdAgent
+  - They read root `AGENTS.md` via `settings.json` `contextFileName`
+  - NO custom `output_path` sections needed in ruler.toml
+  - Deleted files: `.qwen/system.md`, `.agents/system.md`, `.opencode/system.md`, `.kilo/rules/system.md`
+  - Removed sections: `[agents.amp]`, `[agents.qwen]`, `[agents.opencode]`, `[agents.kilocode]`
+- **Owner:** DECISION COMPLETE
 
 ---
 
@@ -305,9 +316,10 @@ Targets:
 
 ### Immediate (Pre-Phase 5)
 
+- [x] **CLI Tools Output Path:** DECISION IMPLEMENTED — NO output_path needed for CLI tools (AgentsMdAgent)
 - [ ] **Fix Codex CLI Config:** Add to ruler.toml OR remove from rulesync.jsonc
-- [ ] **Verify Gemini/Qwen Path:** Confirm if separate configs needed or intentional sharing
-- [ ] **Complete Ruler Config:** Add Kiro and Trae config blocks
+- [x] **Verify Gemini/Qwen/OpenCode/AMP:** Confirmed — all use root AGENTS.md via AgentsMdAgent ✅
+- [ ] **Complete Ruler Config:** Verify Kiro and Trae config blocks
 
 ### Phase 5 & Beyond
 
@@ -329,19 +341,24 @@ Configuration Source:
   .ruler/ruler.toml                    ← Agent platform config
   rulesync.jsonc                       ← Sync targets
 
-Agent Config Paths (13 total):
+Agent Config Paths:
+
+**CLI Tools (AgentsMdAgent - read root AGENTS.md):**
+  AGENTS.md (root)                     ← SYNCED BY RULER agentsmd agent
+  .gemini/settings.json               ← contextFileName: "AGENTS.md"
+  .qwen/settings.json                 ← contextFileName: "AGENTS.md"
+  .opencode/settings.json             ← contextFileName: "AGENTS.md"
+
+**IDE Tools (output_path KEEP):**
   CLAUDE.md
-  .agents/system.md
-  .cursor/rules/system.md
+  .cursor/rules/system.md              ← HYBRID: output_path OPTIONAL
   .clinerules/system.md
-  .windsurf/rules/system.md
-  .roo/rules/system.md
+  .windsurf/rules/system.md           ← HYBRID: output_path OPTIONAL
+  .roo/rules/system.md                ← HYBRID: output_path OPTIONAL
   .kiro/steering/system.md
   .trae/rules/system.md
-  .qwen/system.md
-  .opencode/system.md
-  (codex — MISSING)
-  (gemini — shares .qwen/system.md)
+
+**NOTE:** `.qwen/system.md`, `.agents/system.md`, `.opencode/system.md`, `.kilo/rules/system.md` DELETED per 2026-04-10 decision.
 
 Hook Enforcement:
   .claude/hooks.yaml                   ← 4 rules, production-ready
@@ -372,10 +389,14 @@ rulez lint --config .claude/hooks.yaml
 
 ## Part 7: User Review Checklist
 
+**Decision Implemented (2026-04-10):**
+- [x] **CLI Tools Output Path:** NO output_path needed — extends AgentsMdAgent
+- [x] **Gemini/Qwen/OpenCode/AMP Path:** ALIGNED — read root AGENTS.md
+
 **Before proceeding to Phase 5, please review:**
 
 - [ ] **Codex CLI Issue:** Should it be added to ruler.toml or removed from rulesync?
-- [ ] **Gemini/Qwen Path:** Intentional sharing or should they be separate?
+- [x] ~~**Gemini/Qwen Path:** Intentional sharing or should they be separate?~~ DECISION COMPLETE
 - [ ] **Ruler Config:** Should Kiro and Trae config blocks be added?
 - [ ] **Phase 5 Scope:** Which agents (if any) should get hooks enforcement beyond Claude?
 - [ ] **Tool Matrix:** Are all tool support levels accurate per your agents?
@@ -383,6 +404,6 @@ rulez lint --config .claude/hooks.yaml
 
 ---
 
-**Generated by:** Amp (Rush Mode)  
-**Status:** Ready for user review  
-**Next Step:** Phase 5 (File Cleanup - OPTIONAL) or custom implementation based on review feedback
+**Generated by:** Amp (Rush Mode)
+**Status:** Decision implemented, ready for verification
+**Next Step:** Run `ruler apply` to sync root AGENTS.md
