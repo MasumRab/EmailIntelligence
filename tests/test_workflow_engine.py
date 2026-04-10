@@ -70,7 +70,7 @@ def test_workflow_validation():
     invalid_workflow = Workflow("invalid_workflow", {"A": node_a, "B": node_b}, invalid_connections)
 
     is_valid, errors = invalid_workflow.validate()
-    assert not is_valid, "Workflow should be invalid, but validation passed"
+    assert not is_valid, f"Workflow should be invalid, but validation passed"
     assert len(errors) > 0, "Should have validation errors"
 
 
@@ -108,8 +108,6 @@ def test_error_handling_and_recovery():
     """Test error handling and recovery mechanisms"""
 
     def good_operation(x):
-        if x is None:
-            return 1
         return x + 1
 
     def failing_operation(x):
@@ -174,14 +172,11 @@ def test_parallel_execution():
     def dummy_operation(x):
         return x + 1
 
-    def dummy_operation_d(x, y):
-        return x + y
-
     # Create nodes that can run in parallel after A: A -> B, A -> C, then B,C -> D
     node_a = Node("A", "Node A", dummy_operation, ["input"], ["output"])
     node_b = Node("B", "Node B", dummy_operation, ["input"], ["output"])
     node_c = Node("C", "Node C", dummy_operation, ["input"], ["output"])
-    node_d = Node("D", "Node D", dummy_operation_d, ["input1", "input2"], ["output"])
+    node_d = Node("D", "Node D", dummy_operation, ["input1", "input2"], ["output"])
 
     connections = [
         {"from": {"node_id": "A", "output": "output"}, "to": {"node_id": "B", "input": "input"}},

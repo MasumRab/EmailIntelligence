@@ -40,7 +40,7 @@ def update_file(filepath: Path) -> bool:
                 if match != new_version:
                     needs_update = True
                     break
-
+            
             if needs_update:
                 updated = re.sub(old_pattern, new_version, updated)
                 changes_made.append(f"{old_pattern} -> {new_version}")

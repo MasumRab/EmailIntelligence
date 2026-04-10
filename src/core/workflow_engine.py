@@ -263,13 +263,8 @@ class WorkflowRunner:
 
             # If memory optimization is enabled, pre-calculate which nodes' results can be cleaned up
             cleanup_schedule = {}
-            if memory_optimized and not parallel_execution:
+            if memory_optimized:
                 cleanup_schedule = self._calculate_cleanup_schedule(execution_order)
-            elif memory_optimized and parallel_execution:
-                logger.warning(
-                    "Memory cleanup scheduling is disabled in parallel mode to avoid "
-                    "premature deletion of required node results."
-                )
 
             if parallel_execution:
                 # Execute with parallel execution for independent nodes
@@ -583,30 +578,29 @@ class WorkflowRunner:
         Calculate which node results can be cleaned up after each node executes.
         This helps optimize memory usage by removing results that are no longer needed.
         """
-        cleanup_schedule = {node_id: [] for node_id in execution_order}
-
-        # Build an adjacency list mapping source nodes to all their target nodes
-        # This prevents having to loop through all connections repeatedly
-        node_targets = {node_id: set() for node_id in execution_order}
-        for conn in self.workflow.connections:
-            source = conn["from"]["node_id"]
-            target = conn["to"]["node_id"]
-            if source in node_targets:
-                node_targets[source].add(target)
+        cleanup_schedule = {}
 
         # For each node in the execution order, determine which previous nodes' results
         # are no longer needed after this node executes
         for i, node_id in enumerate(execution_order):
-            subsequent_nodes = set(execution_order[i + 1 :])
+            cleanup_schedule[node_id] = []
+
             # Check all previous nodes to see if their results are still needed
             for prev_node_id in execution_order[:i]:
                 # Check if any subsequent nodes need the result from prev_node_id
                 still_needed = False
 
-                # If there's an intersection between subsequent nodes and the target nodes
-                # of the previous node, it means the result is still needed
-                if node_targets.get(prev_node_id, set()).intersection(subsequent_nodes):
-                    still_needed = True
+                for subsequent_node_id in execution_order[i + 1 :]:
+                    # Check if there's a connection from prev_node to subsequent_node
+                    for conn in self.workflow.connections:
+                        if (
+                            conn["from"]["node_id"] == prev_node_id
+                            and conn["to"]["node_id"] == subsequent_node_id
+                        ):
+                            still_needed = True
+                            break
+                    if still_needed:
+                        break
 
                 # If not still needed by any subsequent nodes, it can be cleaned up
                 if not still_needed:
@@ -689,37 +683,3 @@ class WorkflowRunner:
         except Exception:
             logger.warning(f"Condition evaluation failed for: {condition}")
             return False
-
-
-    def _build_node_context(self, node_id: str) -> Dict[str, Any]:
-        """
-        Build the execution context for a specific node by gathering inputs
-        from previous node outputs and the initial context.
-        """
-        inbound_connections = [
-            conn for conn in self.workflow.connections if conn["to"]["node_id"] == node_id
-        ]
-        connected_inputs = {conn["to"]["input"] for conn in inbound_connections}
-        node = self.workflow.nodes[node_id]
-
-        base_context = getattr(self, "execution_context", {})
-        node_context = {
-            key: base_context[key]
-            for key in node.inputs
-            if key not in connected_inputs and key in base_context
-        }
-
-        for conn in inbound_connections:
-            source_node = conn["from"]["node_id"]
-            source_output = conn["from"]["output"]
-            target_input = conn["to"]["input"]
-
-            if (
-                source_node not in self.node_results
-                or source_output not in self.node_results[source_node]
-            ):
-                node_context[target_input] = None
-                continue
-            node_context[target_input] = self.node_results[source_node][source_output]
-
-        return node_context

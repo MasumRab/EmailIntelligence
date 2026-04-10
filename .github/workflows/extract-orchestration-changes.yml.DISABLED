@@ -32,11 +32,11 @@ on:
 jobs:
   extract-changes:
     runs-on: ubuntu-latest
-
+    
     permissions:
       contents: write
       pull-requests: write
-
+    
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -53,13 +53,13 @@ jobs:
         id: detect
         run: |
           SOURCE_BRANCH="${GITHUB_REF#refs/heads/}"
-
+          
           # Get list of changed files
           CHANGED=$(git diff --name-only origin/main..HEAD 2>/dev/null || echo "")
-
+          
           # Check if any orchestration files changed
           ORCH_CHANGED=$(echo "$CHANGED" | grep -E '^(setup/|deployment/|scripts/lib/|scripts/install-hooks.sh|scripts/sync_setup_worktrees.sh|scripts/reverse_sync_orchestration.sh|scripts/cleanup_orchestration.sh|\.flake8|\.pylintrc|pyproject.toml|requirements|uv\.lock|tsconfig\.json|tailwind\.config\.ts|vite\.config\.ts|drizzle\.config\.ts|components\.json|\.gitignore|\.gitattributes|launch\.py)' || echo "")
-
+          
           if [[ -z "$ORCH_CHANGED" ]]; then
             echo "No orchestration files changed"
             echo "detected=false" >> $GITHUB_OUTPUT
@@ -76,9 +76,9 @@ jobs:
           SOURCE_BRANCH="${{ steps.detect.outputs.source_branch }}"
           TARGET_BRANCH="orchestration-tools-changes"
           BASE_BRANCH="main"
-
+          
           echo "📦 Extracting orchestration changes from $SOURCE_BRANCH..."
-
+          
           # Fetch orchestration-tools-changes (create if doesn't exist)
           git fetch origin "$TARGET_BRANCH" 2>/dev/null || {
             echo "Creating new $TARGET_BRANCH branch"
@@ -86,16 +86,16 @@ jobs:
             git rm -rf .
             git commit --allow-empty -m "Initial orchestration-tools-changes branch"
           }
-
+          
           # Check out target branch
           git checkout "$TARGET_BRANCH" || git checkout -b "$TARGET_BRANCH"
-
+          
           # Reset to base branch
           git reset --hard "$BASE_BRANCH"
-
+          
           # Extract only orchestration files from source
           echo "Checking out orchestration files from $SOURCE_BRANCH..."
-
+          
           # Lists of orchestration patterns
           ORCH_FILES=(
             "setup/"
@@ -120,7 +120,7 @@ jobs:
             ".gitattributes"
             "launch.py"
           )
-
+          
           # Check out each orchestration file from source
           for file in "${ORCH_FILES[@]}"; do
             if git show "$SOURCE_BRANCH:$file" >/dev/null 2>&1; then
@@ -129,7 +129,7 @@ jobs:
               git add "$file"
             fi
           done
-
+          
           # Create squashed commit with summary
           COMMIT_MSG="chore: extract orchestration changes from $SOURCE_BRANCH
 
@@ -140,12 +140,12 @@ Extraction timestamp: $(date -u +'%Y-%m-%dT%H:%M:%SZ')
 
 Changed orchestration files:
 $(git diff --cached --name-only | sed 's/^/  - /')"
-
+          
           git commit -m "$COMMIT_MSG" || {
             echo "No changes to commit - orchestration files unchanged"
             exit 0
           }
-
+          
           echo "✓ Extraction complete"
 
       - name: Force Push to Remote
@@ -162,7 +162,7 @@ $(git diff --cached --name-only | sed 's/^/  - /')"
           script: |
             const sourceRef = context.payload.pull_request.head.ref;
             const prNumber = context.issue.number;
-
+            
             github.rest.issues.createComment({
               issue_number: prNumber,
               owner: context.repo.owner,
