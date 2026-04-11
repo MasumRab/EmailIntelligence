@@ -18,6 +18,7 @@ from typing import List, Tuple
 def run_command(cmd: List[str]) -> str:
     """Run shell command and return output"""
     # pylint: disable=broad-except
+    # sourcery skip: avoid-single-call-to-subprocess, subprocess-run-without-check
     try:
         result = subprocess.run(
             cmd, shell=False, capture_output=True, text=True, check=True
@@ -31,6 +32,7 @@ def run_command(cmd: List[str]) -> str:
 def get_file_content(file_path: str, ref: str = "HEAD") -> str:
     """Get file content at specific ref"""
     try:
+        # sourcery skip: avoid-single-call-to-subprocess
         return run_command(["git", "show", f"{ref}:{file_path}"])
     except Exception as e:  # pylint: disable=broad-except
         print(f"Error getting {file_path} at {ref}: {e}")
@@ -40,6 +42,7 @@ def get_file_content(file_path: str, ref: str = "HEAD") -> str:
 def get_changed_lines(file_path: str, base_ref: str, target_ref: str) -> List[int]:
     """Get line numbers changed between base and target"""
     try:
+        # sourcery skip: avoid-single-call-to-subprocess
         diff = run_command(
             ["git", "diff", f"{base_ref}..{target_ref}", "--", file_path]
         )
@@ -83,6 +86,7 @@ def intelligent_merge(
     """
 
     # Get the merge base
+    # sourcery skip: avoid-single-call-to-subprocess
     base_ref = run_command(["git", "merge-base", local_ref, remote_ref]).strip()
 
     if not base_ref:
