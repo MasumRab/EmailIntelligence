@@ -29,9 +29,9 @@ logger = logging.getLogger(__name__)
 
 # Try to import optional dependencies
 try:
-    import nltk
+    import nltk  # noqa: F401
     from textblob import TextBlob
-    from transformers import AutoModelForSequenceClassification, AutoTokenizer
+    from transformers import AutoModelForSequenceClassification, AutoTokenizer  # noqa: F401
 
     HAS_NLTK = True
     HAS_SKLEARN_AND_JOBLIB = True
@@ -52,9 +52,6 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(
 logger = logging.getLogger(__name__)
 
 
-def clean_text(text: str) -> str:
-    """Basic text cleaning utility."""
-    return text.lower().strip()
 
 
 # Define paths for pre-trained models
