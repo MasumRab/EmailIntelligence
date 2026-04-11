@@ -27,16 +27,25 @@ class OverlapAnalysis:
     recommendation: str
 
 
-def run_command(cmd: str) -> str:
+def run_command(cmd: List[str]) -> str:
     """Run shell command and return output"""
-    result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
-    return result.stdout
+    # pylint: disable=broad-except
+    # sourcery skip: avoid-single-call-to-subprocess, subprocess-run-without-check, subprocess-run-with-shell
+    try:
+        result = subprocess.run(
+            cmd, shell=False, capture_output=True, text=True, check=True
+        )
+        return result.stdout
+    except subprocess.CalledProcessError as e:
+        # Ignore non-zero exit codes since diff returns 1 when there are differences
+        return e.stdout
 
 
 def get_changed_lines(file_path: str, commit_range: str) -> Set[int]:
     """Get line numbers that changed in a commit range"""
     try:
-        diff = run_command(f"git diff {commit_range} -- {file_path}")
+        # sourcery skip: avoid-single-call-to-subprocess, subprocess-run-with-shell
+        diff = run_command(["git", "diff", commit_range, "--", file_path])
         changed_lines = set()
 
         for line in diff.split("\n"):
