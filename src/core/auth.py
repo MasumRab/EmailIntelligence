@@ -9,7 +9,7 @@ from datetime import datetime, timedelta
 from typing import Optional, Dict, Any, List
 import time
 import secrets
-from argon2 import PasswordHasher
+from argon2 import PasswordHasher, exceptions
 
 import jwt
 from fastapi import HTTPException, status, Depends
@@ -31,7 +31,7 @@ class TokenData(BaseModel):
     role: Optional[str] = "user"
 
 
-from enum import Enum
+from enum import Enum  # noqa: E402
 
 
 class UserRole(str, Enum):
@@ -102,10 +102,10 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     ph = PasswordHasher()
     try:
         return ph.verify(hashed_password, plain_password)
-    except argon2.exceptions.VerifyMismatchError:
+    except exceptions.VerifyMismatchError:
         # Password verification failed
         return False
-    except argon2.exceptions.InvalidHashError:
+    except exceptions.InvalidHashError:
         # Invalid hash format
         logger.warning("Invalid password hash format")
         return False
