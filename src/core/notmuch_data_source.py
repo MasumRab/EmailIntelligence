@@ -7,9 +7,12 @@ with AI analysis, smart filtering, and tagging functionality.
 
 import asyncio
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, TYPE_CHECKING
 from datetime import datetime
 import email
+
+if TYPE_CHECKING:
+    from src.core.database import DatabaseManager
 
 # Import notmuch only when needed to allow import in environments without it
 try:
