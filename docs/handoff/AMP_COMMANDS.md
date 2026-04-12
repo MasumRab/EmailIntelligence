@@ -655,3 +655,58 @@ Use `scripts/distribute_files.sh` for safe file distribution.
 - Phase Docs: `docs/handoff/phase-*.md`
 - Branch Policy: `~/.letta/skills/branch-isolation-guard/SKILL.md`
 - Tool Ecosystem: `~/.letta/skills/tool-ecosystem-manager/SKILL.md`
+
+---
+
+## Analysis Scripts
+
+### `scripts/analyze_agent_rules.py` / `.mjs`
+
+Browser automation for [agentrulegen.com/analyze](https://agentrulegen.com/analyze).
+
+**Purpose:** Submit config files and scrape analysis results (redundant, essential, improvable, missing).
+
+**Requirements:**
+```bash
+pip install playwright && playwright install chromium
+# Or: npm install playwright && npx playwright install chromium
+```
+
+**Usage:**
+```bash
+python scripts/analyze_agent_rules.py .ruler/AGENTS.md
+python scripts/analyze_agent_rules.py .claude/hooks.yaml
+node scripts/analyze_agent_rules.mjs rulesync.jsonc
+```
+
+**Output:**
+```json
+{
+  "file": ".ruler/AGENTS.md",
+  "redundant": ["Duplicate patterns"],
+  "essential": ["Security guidelines"],
+  "improvable": ["Could add conventions"],
+  "missing": ["No React patterns"]
+}
+```
+
+### AMP Integration Example
+
+```
+"Run scripts/analyze_agent_rules.py on .ruler/AGENTS.md and report redundant patterns"
+"Analyze .claude/hooks.yaml for missing security rules"
+```
+
+**Full documentation:** `docs/scripts/README.md`
+
+### Jules Session Analysis
+
+```bash
+# Analyze Jules sessions for patterns
+python scripts/analyze_agent_rules.py --jules-sessions jules_sessions/
+
+# Extract optimization patterns from specific session
+python scripts/analyze_agent_rules.py --extract-patterns jules_sessions/pr571_session.json
+```
+
+**Jules documentation:** `jules_sessions/README.md`
