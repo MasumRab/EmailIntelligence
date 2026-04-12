@@ -106,3 +106,5 @@ CONFIG_ANALYSIS.md
 MERGIFY_BRANCH_ANALYSIS_FINAL.md
 PR_480_RESOLUTION.md
 taskmaster-worktree-config.yml
+data/
+__pycache__/
