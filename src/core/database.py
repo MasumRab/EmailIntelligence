@@ -636,6 +636,12 @@ class DatabaseManager(DataSource):
         is_unread: Optional[bool] = None,
     ) -> List[Dict[str, Any]]:
         """Get emails with pagination and filtering. Optimized to use generator for memory efficiency."""
+        # Check query cache to avoid redundant filtering and pagination iterations
+        cache_key = f"get_emails:{limit}:{offset}:{category_id}:{is_unread}"
+        cached_result = self.caching_manager.get_query_result(cache_key)
+        if cached_result is not None:
+            return cached_result
+
         # Use cached sorted list to avoid sorting on every request
         source_emails = self._get_sorted_emails()
 
@@ -653,7 +659,9 @@ class DatabaseManager(DataSource):
         # islice(iter, start, stop). stop is offset + limit.
         paginated_emails = list(itertools.islice(email_iter, offset, offset + limit))
 
-        return [self._add_category_details(email) for email in paginated_emails]
+        results = [self._add_category_details(email) for email in paginated_emails]
+        self.caching_manager.put_query_result(cache_key, results)
+        return results
 
     async def update_email_by_message_id(
         self, message_id: str, update_data: Dict[str, Any]
