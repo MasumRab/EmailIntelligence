@@ -1,6 +1,4 @@
 import pytest
-import asyncio
-from unittest.mock import MagicMock
 from src.core.database import DatabaseManager, DatabaseConfig, FIELD_ID
 
 @pytest.fixture
@@ -55,3 +53,40 @@ async def test_search_query_caching_integration(db_manager):
     # Verify new cache entry
     new_cache_key = "search:updated:10"
     assert db_manager.caching_manager.get_query_result(new_cache_key) is not None
+
+
+def test_query_result_cache_capacity():
+    """Test that QueryResultCache respects the capacity limit and evicts LRU."""
+    from src.core.enhanced_caching import QueryResultCache
+
+    cache = QueryResultCache(ttl_seconds=300, capacity=3)
+
+    # Add 3 items
+    cache.put("key1", "value1")
+    cache.put("key2", "value2")
+    cache.put("key3", "value3")
+
+    assert cache.get("key1") == "value1"
+    assert cache.get("key2") == "value2"
+    assert cache.get("key3") == "value3"
+    assert len(cache.cache) == 3
+
+    # Add a 4th item, exceeding capacity. "key1" should be evicted because
+    # it was the least recently used since "key2" and "key3" were accessed later
+    # Actually wait: we accessed them in order key1, key2, key3.
+    # So key1 is the least recently accessed.
+    cache.put("key4", "value4")
+
+    assert cache.get("key1") is None
+    assert cache.get("key4") == "value4"
+    assert len(cache.cache) == 3
+
+    # Access key2 to make it recently used, then add key5
+    cache.get("key2")
+    cache.put("key5", "value5")
+
+    # "key3" should be evicted now
+    assert cache.get("key3") is None
+    assert cache.get("key2") == "value2"
+    assert cache.get("key5") == "value5"
+    assert len(cache.cache) == 3
