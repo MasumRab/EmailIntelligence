@@ -21,7 +21,7 @@ class ConstitutionalRequirement:
     compliance_threshold: float  # 0.0 to 1.0
 
 
-from enum import Enum
+from enum import Enum  # noqa: E402
 
 class ComplianceLevel(Enum):
     """Levels of compliance"""
@@ -36,7 +36,7 @@ class ConstitutionalValidationResult:
     """Result of constitutional validation"""
     overall_score: float  # 0.0 to 1.0
     compliance_level: ComplianceLevel
-    detailed_results: List[ComplianceResult]
+    detailed_results: List["ComplianceResult"]
     summary: str = ""
     recommendations: List[str] = None
 
@@ -137,7 +137,7 @@ class ConstitutionalEngine:
         
         self.requirements = default_requirements
     
-    def analyze_compliance(self, code: str, context: Dict[str, Any] = None) -> List[ComplianceResult]:
+    def analyze_compliance(self, code: str, context: Dict[str, Any] = None) -> List["ComplianceResult"]:
         """Analyze code compliance against constitutional requirements"""
         results = []
         
@@ -190,7 +190,7 @@ class ConstitutionalEngine:
             suggestions=suggestions
         )
     
-    def generate_compliance_report(self, results: List[ComplianceResult]) -> str:
+    def generate_compliance_report(self, results: List["ComplianceResult"]) -> str:
         """Generate a compliance report from analysis results"""
         compliant_count = sum(1 for r in results if r.is_compliant)
         total_count = len(results)
@@ -217,7 +217,7 @@ class ConstitutionalEngine:
         
         return "\n".join(report_lines)
     
-    def get_non_compliant_requirements(self, results: List[ComplianceResult]) -> List[ComplianceResult]:
+    def get_non_compliant_requirements(self, results: List["ComplianceResult"]) -> List[ComplianceResult]:
         """Get only non-compliant requirements"""
         return [r for r in results if not r.is_compliant]
 

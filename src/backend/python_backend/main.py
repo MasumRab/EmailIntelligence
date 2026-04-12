@@ -29,7 +29,7 @@ from src.core.auth import authenticate_user
 
 from ..plugins.plugin_manager import plugin_manager
 from . import (
-    action_routes,
+    
     ai_routes,
     category_routes,
     dashboard_routes,
@@ -43,7 +43,7 @@ from . import (
 )
 from .ai_engine import AdvancedAIEngine
 from .auth import create_access_token
-from .database import db_manager
+
 from .exceptions import AppException, BaseAppException
 
 # Import new components
