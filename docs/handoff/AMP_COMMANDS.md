@@ -75,9 +75,113 @@ Project-specific skills should be placed here.
 
 ## Native AMP Integrations
 
-AMP has MCP servers configured in `~/.config/amp/settings.json`:
+### Oracle (Second Opinion)
 
-### Task Master AI
+AMP's **oracle** tool provides a powerful second-opinion model (GPT-5.4 with high reasoning) for complex analysis and code review.
+
+**When to use:**
+- Complex debugging or code analysis
+- Reviewing architectural decisions
+- Getting a second opinion on approaches
+- Deep reasoning on difficult problems
+
+**Example prompts:**
+```
+"Use the oracle to review the last commit's changes. Verify the logic for notification sound triggers hasn't changed."
+"Ask the oracle whether there isn't a better solution."
+"Analyze how functions X and Y are used. Work with the oracle to figure out how to refactor duplication while keeping backwards compatibility."
+```
+
+**CLI invocation:**
+```bash
+amp -x "Use the oracle to review the agent rules architecture and suggest improvements"
+```
+
+### Librarian (Remote Codebase Search)
+
+AMP's **Librarian** subagent searches remote codebases on GitHub (public and private) and Bitbucket Enterprise.
+
+**When to use:**
+- Cross-repository research
+- Understanding how frameworks/libraries work
+- Finding usage examples in other projects
+- Investigating recent changes in dependencies
+
+**Example prompts:**
+```
+"Search our docs and infra repositories to see how new versions get deployed."
+"Ask the Librarian to investigate the validation code using Zod - why is this error happening?"
+"Use the Librarian to investigate the foo service - were there recent API changes?"
+```
+
+**Requirements:**
+- GitHub: Configure connection in settings (select private repos if needed)
+- Bitbucket: Add `amp.bitbucketToken` to settings
+
+### Subagents (Task Tool)
+
+AMP can spawn **subagents** via the Task tool for parallel work. Each has its own context window and tool access.
+
+**When to use:**
+- Multi-step tasks that can be broken into independent parts
+- Parallel work across different code areas
+- Operations producing extensive output not needed after completion
+- Keeping main thread context clean
+
+**Limitations:**
+- Can't communicate with each other mid-task
+- Start fresh without conversation context
+- Main agent only receives final summary
+
+**Example prompts:**
+```
+"Use 3 subagents to convert these CSS files to Tailwind"
+"Spawn subagents to: 1) identify merge conflict patterns, 2) suggest branch naming conventions, 3) recommend workflow improvements"
+```
+
+### Painter (Image Generation)
+
+AMP's **Painter** tool generates and edits images using Gemini 3 Pro Image.
+
+**When to use:**
+- UI mockups for design review
+- App icons and branding
+- Redacting sensitive info from screenshots
+- Style-guided edits with reference images
+
+**Example prompts:**
+```
+"Use the painter to create a UI mockup for the settings page"
+"Use the painter to generate an app icon - dark background, glowing terminal cursor"
+"Use the painter to redact API keys in this screenshot"
+```
+
+### Code Review with Checks
+
+AMP's built-in **`amp review`** performs code review for bugs, security, performance, and style violations.
+
+**Custom Checks** are defined in `.agents/checks/`:
+
+```markdown
+---
+name: performance
+description: Flags common performance anti-patterns
+severity-default: medium
+tools: [Grep, Read]
+---
+
+Look for these patterns:
+- Nested loops over same collection (O(n²) → O(n) with Set/Map)
+- Repeated array.includes() in a loop
+- Sorting inside a loop
+```
+
+**Check locations:**
+- `.agents/checks/` — project-wide
+- `api/.agents/checks/` — subtree-specific
+- `~/.config/amp/checks/` — global
+
+### Task Master AI (MCP)
 ```json
 {
   "task-master-ai": {
@@ -93,7 +197,7 @@ AMP has MCP servers configured in `~/.config/amp/settings.json`:
 ```
 **Usage:** `task-master list`, `task-master next`, `task-master show <id>`
 
-### CodeKnowledge (ck)
+### CodeKnowledge (ck) (MCP)
 ```json
 {
   "ck": {
@@ -250,6 +354,10 @@ amp threads new --mode deep --execute "You are running a Phase Gate Check.
 
 **Phase:** [PHASE_NUMBER]
 
+**Native AMP Tools:**
+- Use **oracle** for deep reasoning on complex verification
+- Use **Librarian** to cross-reference with framework documentation
+
 **Available Skills:**
 - ~/.letta/skills/branch-isolation-guard — Verify no forbidden merges
 - ~/.letta/skills/tool-ecosystem-manager — Verify tool versions
@@ -270,7 +378,7 @@ grep -q '[EXPECTED]' [FILE] && echo '✓ Content correct' || echo '✗ Content i
 2. ANY FAIL: Update STATE.md with Phase [N]: FAILED, document blockers
 3. DO NOT proceed if ANY check fails
 
-**If FAILED:** Spawn review process for failing items"
+**If FAILED:** Use oracle for deep analysis, then spawn review process"
 ```
 
 ### Error Recovery
@@ -282,6 +390,11 @@ amp threads new --mode deep --execute "You are recovering from a FAILED verifica
 **Expected:** [EXPECTED]
 **Actual:** [ACTUAL]
 
+**Native AMP Tools:**
+- Use **oracle** for deep debugging and root cause analysis
+- Use **Librarian** to search framework docs for correct patterns
+- Use **subagents** for parallel investigation of multiple hypotheses
+
 **Available Skills:**
 - ~/.agents/skills/serena-mcp-agent — Semantic code search for complex issues
 - ~/.agents/skills/coding-agent — Spawn for second opinion
@@ -289,9 +402,10 @@ amp threads new --mode deep --execute "You are recovering from a FAILED verifica
 **Recovery Protocol:**
 1. Re-read the step and phase document
 2. Re-read the file, identify differences
-3. Re-execute with EXACT strings from phase document
-4. Re-verify
-5. If still failing after 3 attempts: Update STATE.md Current Blocker, stop
+3. Use oracle to analyze the root cause
+4. Re-execute with EXACT strings from phase document
+5. Re-verify
+6. If still failing after 3 attempts: Update STATE.md Current Blocker, stop
 
 **If blocked:** Spawn review process with error details"
 ```
@@ -310,7 +424,13 @@ amp threads new --mode rush --execute "You are a Rush-level AMP agent executing 
 - Phases: docs/handoff/phase-01 through phase-04
 - State: docs/handoff/STATE.md
 
-**Available Skills:**
+**Native AMP Tools Available:**
+- **oracle** — Second opinion on complex decisions (use for architecture questions)
+- **Librarian** — Search GitHub/Bitbucket for framework patterns
+- **subagents** — Parallel work when beneficial
+- **Painter** — Generate diagrams if needed for documentation
+
+**Skills Available:**
 - ~/.letta/skills/branch-isolation-guard — Enforce isolation policy
 - ~/.letta/skills/agent-rules-handoff — Phase guidance
 - ~/.letta/skills/tool-ecosystem-manager — Tool verification
@@ -333,9 +453,68 @@ amp threads new --mode rush --execute "You are a Rush-level AMP agent executing 
 
 ## Subagent Workflows
 
+### Oracle (Second Opinion for Complex Analysis)
+
+AMP's native oracle tool provides GPT-5.4 reasoning for deep analysis.
+
+**When to use:**
+- Architectural decisions
+- Complex debugging
+- Code review requiring deep understanding
+- Uncertain about best approach
+
+**Example prompts in AMP:**
+```
+"Use the oracle to review the agent rules architecture"
+"Ask the oracle whether there's a simpler solution"
+"Work with the oracle to figure out how to refactor this while keeping backwards compatibility"
+```
+
+**Direct CLI invocation:**
+```bash
+amp -x "Use the oracle to analyze the Ruler configuration and suggest improvements"
+```
+
+### Librarian (Remote Codebase Research)
+
+AMP's native Librarian searches GitHub and Bitbucket for framework patterns.
+
+**When to use:**
+- Understanding how a library/framework works
+- Finding usage examples in other projects
+- Cross-referencing with official documentation
+- Investigating dependency changes
+
+**Example prompts in AMP:**
+```
+"Use the Librarian to search the Ruler repo for how output_path affects CLI tools"
+"Ask the Librarian how Agent RuleZ hooks work"
+"Search our docs repo for orchestration-tool branch patterns"
+```
+
+**Direct CLI invocation:**
+```bash
+amp -x "Use the Librarian to investigate how Serena MCP handles symbol navigation"
+```
+
+### Subagents (Parallel Work)
+
+AMP's Task tool spawns independent agents for parallel work.
+
+**When to use:**
+- Multiple independent tasks
+- Parallel verification
+- Clean context isolation
+
+**Example prompts:**
+```
+"Spawn 3 subagents to: 1) verify MCP configs, 2) check ruler.toml syntax, 3) test hooks"
+"Use subagents to analyze the codebase from different perspectives"
+```
+
 ### Serena MCP Agent (Semantic Code Search)
 
-For complex refactoring or when token-efficient code navigation is needed:
+For local semantic code navigation:
 
 ```
 Invoke Skill: ~/.agents/skills/serena-mcp-agent
@@ -352,9 +531,9 @@ Invoke Skill: ~/.agents/skills/serena-mcp-agent
 3. Edit: replace_symbol_body name:"validate_config" new_body:"..."
 ```
 
-### Coding Agent (Second Opinion / Parallel Work)
+### Coding Agent (External Second Opinion)
 
-For getting a second opinion or running parallel verification:
+For verification via other AI tools:
 
 ```
 Invoke Skill: ~/.agents/skills/coding-agent
@@ -395,6 +574,15 @@ gemini -p "Check if all MCP configs have correct structure"
 - Uncertain about correct approach
 - Need architectural decision
 
+### Native AMP Tools for Review
+
+| Tool | Use Case |
+|------|----------|
+| **oracle** | Deep analysis of root cause, architectural evaluation |
+| **Librarian** | Search framework docs for correct patterns |
+| **subagents** | Parallel investigation of multiple hypotheses |
+| **amp review** | Built-in code review with custom checks |
+
 ### Review Spawn Command
 
 ```bash
@@ -405,21 +593,27 @@ amp threads new --mode deep --execute "You are running a REVIEW of the Agent Rul
 **Issue:** [DESCRIPTION_OF_ISSUE]
 **Context:** [RELEVANT_CONTEXT]
 
-**Available Skills for Review:**
+**Use Native AMP Tools:**
+- Use **oracle** to deeply analyze the root cause and propose solutions
+- Use **Librarian** to search framework documentation for correct patterns
+- Use **subagents** to investigate multiple hypotheses in parallel
+
+**Available Skills:**
 - ~/.letta/skills/branch-isolation-guard — Branch policy verification
 - ~/.letta/skills/tool-ecosystem-manager — Tool compatibility check
 - ~/.agents/skills/serena-mcp-agent — Deep code analysis
 - ~/.agents/skills/coding-agent — Second opinion (spawn Codex or Claude Code)
 
 **Review Tasks:**
-1. Analyze the failing step or decision point
-2. Check against handoff docs and project conventions
-3. Identify root cause
+1. Use oracle to analyze the failing step or decision point
+2. Use Librarian to search for correct patterns in framework docs
+3. Check against handoff docs and project conventions
 4. Propose concrete fix OR escalate to human
 
 **Output Format:**
 ## Review Summary
 - Issue: [description]
+- Oracle Analysis: [summary from oracle tool]
 - Root Cause: [analysis]
 - Recommendation: [fix or decision]
 - Confidence: [high/medium/low]

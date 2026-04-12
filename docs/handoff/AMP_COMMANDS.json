@@ -6,14 +6,14 @@
       "skills": ["agent-rules-handoff"]
     },
     "phase_1": {
-      "mode": "rush",
+      "mode": "rush", 
       "phase_doc": "docs/handoff/phase-01-emergency-fixes.md",
       "steps": 13,
       "skills": ["branch-isolation-guard", "tool-ecosystem-manager"]
     },
     "phase_2": {
-      "mode": "rush", 
-      "phase_doc": "docs/handoff/phase-02-content-fixes.md",
+      "mode": "rush",
+      "phase_doc": "docs/handoff/phase-02-content-fixes.md", 
       "steps": 8,
       "skills": ["agent-resource-manager", "ast-grep"]
     },
@@ -31,36 +31,54 @@
     },
     "gate_check": {
       "mode": "deep",
-      "skills": ["branch-isolation-guard", "tool-ecosystem-manager"]
+      "skills": ["branch-isolation-guard", "tool-ecosystem-manager"],
+      "native_tools": ["oracle", "librarian"]
     },
     "error_recovery": {
       "mode": "deep",
-      "skills": ["serena-mcp-agent", "coding-agent"]
+      "skills": ["serena-mcp-agent", "coding-agent"],
+      "native_tools": ["oracle", "librarian", "subagents"]
     },
     "review_process": {
       "mode": "deep",
       "description": "Spawn for gate check failures, verification failures, or architectural decisions",
-      "skills": ["branch-isolation-guard", "tool-ecosystem-manager", "serena-mcp-agent", "coding-agent"]
+      "skills": ["branch-isolation-guard", "tool-ecosystem-manager", "serena-mcp-agent", "coding-agent"],
+      "native_tools": ["oracle", "librarian", "subagents", "amp review"]
+    }
+  },
+  "native_amp_tools": {
+    "oracle": {
+      "model": "GPT-5.4 with high reasoning",
+      "purpose": "Second opinion for complex analysis, architecture decisions, deep debugging",
+      "usage": "Direct prompt: 'Use the oracle to review...'"
+    },
+    "librarian": {
+      "purpose": "Search remote codebases (GitHub, Bitbucket)",
+      "usage": "Direct prompt: 'Use the Librarian to search...'",
+      "requires": ["GitHub connection in settings OR amp.bitbucketToken"]
+    },
+    "subagents": {
+      "tool": "Task",
+      "purpose": "Parallel work, independent execution, context isolation",
+      "limitations": ["Cannot communicate mid-task", "Start fresh without context", "Main agent gets summary only"]
+    },
+    "painter": {
+      "model": "Gemini 3 Pro Image",
+      "purpose": "UI mockups, app icons, redacting sensitive info from screenshots"
+    },
+    "amp_review": {
+      "command": "amp review",
+      "purpose": "Code review for bugs, security, performance, style",
+      "checks_dir": ".agents/checks/"
     }
   },
   "skills_directories": {
-    "letta": "~/.letta/skills/",
-    "agents": "~/.agents/skills/",
-    "project": ".agents/skills/"
-  },
-  "subagents": {
-    "serena": {
-      "purpose": "Semantic code search (30x token reduction)",
-      "location": "~/.agents/skills/serena-mcp-agent/SKILL.md"
-    },
-    "coding_agent": {
-      "purpose": "Second opinion, parallel verification",
-      "tools": ["codex", "claude", "opencode", "pi"]
-    },
-    "gemini": {
-      "purpose": "Parallel verification",
-      "location": "~/.agents/skills/gemini/SKILL.md"
-    }
+    "user_global": "~/.config/agents/skills/",
+    "amp_global": "~/.config/amp/skills/",
+    "project": ".agents/skills/",
+    "claude_project": ".claude/skills/",
+    "claude_global": "~/.claude/skills/",
+    "letta": "~/.letta/skills/"
   },
   "mcp_servers": {
     "task-master-ai": {
