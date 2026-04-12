@@ -27,35 +27,32 @@ logger = logging.getLogger("setup-env")
 PROJECT_ROOT = Path(__file__).parent.parent
 
 
-def run_command(command, cwd=None):
-    """Run a shell command and log the output."""
-    logger.info(f"Running command: {command}")
-    try:
-        result = subprocess.run(
-            command,
-            shell=True,
-            check=True,
-            text=True,
-            capture_output=True,
-            cwd=cwd or str(PROJECT_ROOT),
-        )
-        logger.info(result.stdout)
-        return True
-    except subprocess.CalledProcessError as e:
-        logger.error(f"Command failed with exit code {e.returncode}")
-        logger.error(e.stderr)
-        return False
-
-
 def setup_python_environment(dev_mode=False):
     """Set up the Python environment."""
     logger.info("Setting up Python environment...")
 
     # Install Python dependencies
-    if dev_mode:
-        return run_command(f"{sys.executable} -m pip install -r requirements.txt")
-    else:
-        return run_command(f"{sys.executable} -m pip install -r requirements.txt --no-dev")
+    cmd = [sys.executable, "-m", "pip", "install", "-r", "requirements.txt"]
+    if not dev_mode:
+        cmd.append("--no-dev")
+
+    logger.info(f"Running command: {' '.join(cmd)}")
+    try:
+        result = subprocess.run(
+            cmd,
+            shell=False,
+            check=True,
+            text=True,
+            capture_output=True,
+            cwd=str(PROJECT_ROOT),
+        )
+        logger.info(result.stdout)
+        return True
+    except subprocess.CalledProcessError as e:
+        logger.error(f"Command failed with exit code {e.returncode}")
+        if e.stderr:
+            logger.error(e.stderr)
+        return False
 
 
 def setup_node_environment(dev_mode=False):
@@ -63,15 +60,45 @@ def setup_node_environment(dev_mode=False):
     logger.info("Setting up Node.js environment...")
 
     # Check if Node.js is installed
-    if not run_command("node --version"):
+    try:
+        result = subprocess.run(
+            ["node", "--version"],
+            shell=False,
+            check=True,
+            text=True,
+            capture_output=True,
+            cwd=str(PROJECT_ROOT),
+        )
+        logger.info(result.stdout)
+    except subprocess.CalledProcessError as e:
+        logger.error(f"Command failed with exit code {e.returncode}")
+        if e.stderr:
+            logger.error(e.stderr)
         logger.error("Node.js is not installed. Please install Node.js and try again.")
         return False
 
     # Install Node.js dependencies
-    if dev_mode:
-        return run_command("npm install")
-    else:
-        return run_command("npm install --production")
+    cmd = ["npm", "install"]
+    if not dev_mode:
+        cmd.append("--production")
+
+    logger.info(f"Running command: {' '.join(cmd)}")
+    try:
+        result = subprocess.run(
+            cmd,
+            shell=False,
+            check=True,
+            text=True,
+            capture_output=True,
+            cwd=str(PROJECT_ROOT),
+        )
+        logger.info(result.stdout)
+        return True
+    except subprocess.CalledProcessError as e:
+        logger.error(f"Command failed with exit code {e.returncode}")
+        if e.stderr:
+            logger.error(e.stderr)
+        return False
 
 
 def setup_database():
@@ -79,15 +106,60 @@ def setup_database():
     logger.info("Setting up database...")
 
     # Check if PostgreSQL is installed
-    if not run_command("psql --version"):
+    try:
+        result = subprocess.run(
+            ["psql", "--version"],
+            shell=False,
+            check=True,
+            text=True,
+            capture_output=True,
+            cwd=str(PROJECT_ROOT),
+        )
+        logger.info(result.stdout)
+    except subprocess.CalledProcessError as e:
+        logger.error(f"Command failed with exit code {e.returncode}")
+        if e.stderr:
+            logger.error(e.stderr)
         logger.error("PostgreSQL is not installed. Please install PostgreSQL and try again.")
         return False
 
     # Create the database if it doesn't exist
-    run_command("createdb -U postgres emailintelligence || true")
+    create_cmd = ["createdb", "-U", "postgres", "emailintelligence"]
+    logger.info(f"Running command: {' '.join(create_cmd)}")
+    try:
+        result = subprocess.run(
+            create_cmd,
+            shell=False,
+            check=False,
+            text=True,
+            capture_output=True,
+            cwd=str(PROJECT_ROOT),
+        )
+        logger.info(result.stdout)
+    except subprocess.CalledProcessError as e:
+        logger.error(f"Command failed with exit code {e.returncode}")
+        if e.stderr:
+            logger.error(e.stderr)
 
     # Apply migrations
-    return run_command("python deployment/migrate.py apply")
+    migrate_cmd = ["python", "deployment/migrate.py", "apply"]
+    logger.info(f"Running command: {' '.join(migrate_cmd)}")
+    try:
+        result = subprocess.run(
+            migrate_cmd,
+            shell=False,
+            check=True,
+            text=True,
+            capture_output=True,
+            cwd=str(PROJECT_ROOT),
+        )
+        logger.info(result.stdout)
+        return True
+    except subprocess.CalledProcessError as e:
+        logger.error(f"Command failed with exit code {e.returncode}")
+        if e.stderr:
+            logger.error(e.stderr)
+        return False
 
 
 def setup_environment_variables(force=False):
