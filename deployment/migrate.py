@@ -32,17 +32,18 @@ logger = logging.getLogger("migrate")
 PROJECT_ROOT = Path(__file__).parent.parent
 
 
-def run_command(command, cwd=None):
-    """Run a command and log the output."""
-    logger.info(f"Running command: {' '.join(command) if isinstance(command, list) else command}")
+def generate_migration():
+    """Generate a new migration."""
+    cmd = ["npx", "drizzle-kit", "generate:sqlite"]
+    logger.info(f"Running command: {' '.join(cmd)}")
     try:
         result = subprocess.run(
-            command,
+            cmd,
             shell=False,
             check=True,
             text=True,
             capture_output=True,
-            cwd=cwd or str(PROJECT_ROOT),
+            cwd=str(PROJECT_ROOT),
         )
         logger.info(result.stdout)
         return True
@@ -52,24 +53,67 @@ def run_command(command, cwd=None):
         return False
 
 
-def generate_migration():
-    """Generate a new migration."""
-    return run_command(["npx", "drizzle-kit", "generate:sqlite"])
-
-
 def apply_migrations():
     """Apply pending migrations."""
-    return run_command(["npx", "drizzle-kit", "migrate:sqlite"])
+    cmd = ["npx", "drizzle-kit", "migrate:sqlite"]
+    logger.info(f"Running command: {' '.join(cmd)}")
+    try:
+        result = subprocess.run(
+            cmd,
+            shell=False,
+            check=True,
+            text=True,
+            capture_output=True,
+            cwd=str(PROJECT_ROOT),
+        )
+        logger.info(result.stdout)
+        return True
+    except subprocess.CalledProcessError as e:
+        logger.error(f"Command failed with exit code {e.returncode}")
+        logger.error(e.stderr)
+        return False
 
 
 def check_migration_status():
     """Check migration status."""
-    return run_command(["npx", "drizzle-kit", "status:sqlite"])
+    cmd = ["npx", "drizzle-kit", "status:sqlite"]
+    logger.info(f"Running command: {' '.join(cmd)}")
+    try:
+        result = subprocess.run(
+            cmd,
+            shell=False,
+            check=True,
+            text=True,
+            capture_output=True,
+            cwd=str(PROJECT_ROOT),
+        )
+        logger.info(result.stdout)
+        return True
+    except subprocess.CalledProcessError as e:
+        logger.error(f"Command failed with exit code {e.returncode}")
+        logger.error(e.stderr)
+        return False
 
 
 def rollback_migration():
     """Rollback the last migration."""
-    return run_command(["npx", "drizzle-kit", "rollback:sqlite"])
+    cmd = ["npx", "drizzle-kit", "rollback:sqlite"]
+    logger.info(f"Running command: {' '.join(cmd)}")
+    try:
+        result = subprocess.run(
+            cmd,
+            shell=False,
+            check=True,
+            text=True,
+            capture_output=True,
+            cwd=str(PROJECT_ROOT),
+        )
+        logger.info(result.stdout)
+        return True
+    except subprocess.CalledProcessError as e:
+        logger.error(f"Command failed with exit code {e.returncode}")
+        logger.error(e.stderr)
+        return False
 
 
 def main():
