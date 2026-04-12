@@ -1,0 +1,47 @@
+{
+  "conftest.py": {
+    "file_path": "conftest.py",
+    "content_hash": "6778e63e0ddf87483037c6b8e784a3cc7d8830ece78bc0f8ae1ddfd63f8de228",
+    "last_validated": 1763333457.3612573,
+    "validation_results": {
+      "integrated_validation": "pass"
+    },
+    "error_count": 0
+  },
+  "download_hf_models.py": {
+    "file_path": "download_hf_models.py",
+    "content_hash": "71a9c140abde956d7e3fc4fa4eae92efa09eeab110e0672712c68fb5d2020329",
+    "last_validated": 1763333457.3631155,
+    "validation_results": {
+      "integrated_validation": "pass"
+    },
+    "error_count": 0
+  },
+  "setup_linting.py": {
+    "file_path": "setup_linting.py",
+    "content_hash": "edb7a74c571c19abe8996ef449c699ec44b23a95a8c39b0e449766b0cb3c93f2",
+    "last_validated": 1763333457.364766,
+    "validation_results": {
+      "integrated_validation": "pass"
+    },
+    "error_count": 0
+  },
+  "validate_dependencies.py": {
+    "file_path": "validate_dependencies.py",
+    "content_hash": "5e5cf172a87a3d27739fb405cb044985b931b4013b69b1e7e8162df77002cd74",
+    "last_validated": 1763333457.3711104,
+    "validation_results": {
+      "integrated_validation": "pass"
+    },
+    "error_count": 0
+  },
+  "demo_mfa.py": {
+    "file_path": "demo_mfa.py",
+    "content_hash": "653494092fda4c1ec138a405e4b2fb9d03bb5d0774669001ae4d501a658a9d07",
+    "last_validated": 1763333457.3735342,
+    "validation_results": {
+      "integrated_validation": "pass"
+    },
+    "error_count": 0
+  }
+}

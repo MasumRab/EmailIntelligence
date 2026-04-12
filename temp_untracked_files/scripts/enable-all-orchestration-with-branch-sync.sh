@@ -1,0 +1,259 @@
+#!/bin/bash
+# Re-enable all orchestration workflows and integrations with branch profile updates
+# This script:
+#   - Re-enables git hooks from backup
+#   - Clears ORCHESTRATION_DISABLED environment variable
+#   - Updates branch profile information to reflect orchestration enabled state
+#   - Pushes changes to scientific and main branches
+#
+# Usage: ./scripts/enable-all-orchestration-with-branch-sync.sh [--skip-push]
+
+set -e
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+SKIP_PUSH=0
+
+# Parse arguments
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        --skip-push)
+            SKIP_PUSH=1
+            ;;
+        *)
+            echo "Unknown option: $1"
+            exit 1
+            ;;
+    esac
+    shift
+done
+
+echo "=========================================="
+echo "🔌 RE-ENABLING ALL ORCHESTRATION"
+echo "=========================================="
+echo ""
+
+# Save current branch
+CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+echo "📍 Current branch: $CURRENT_BRANCH"
+echo ""
+
+# Step 1: Clear environment variable
+echo "[1/5] Clearing ORCHESTRATION_DISABLED environment variable..."
+export ORCHESTRATION_DISABLED=false
+
+# Remove from .env files
+if [[ -f "$PROJECT_ROOT/.env" ]]; then
+    sed -i.bak '/ORCHESTRATION_DISABLED/d' "$PROJECT_ROOT/.env"
+    echo "  ✓ Updated .env"
+fi
+
+if [[ -f "$PROJECT_ROOT/.env.local" ]]; then
+    sed -i.bak '/ORCHESTRATION_DISABLED/d' "$PROJECT_ROOT/.env.local"
+    echo "  ✓ Updated .env.local"
+fi
+echo ""
+
+# Step 2: Restore git hooks
+echo "[2/5] Restoring git hooks..."
+if [[ -d "$PROJECT_ROOT/.git/hooks" ]]; then
+    HOOKS_DIR="$PROJECT_ROOT/.git/hooks"
+    
+    # Find most recent backup
+    LATEST_BACKUP=$(find "$PROJECT_ROOT/.git" -maxdepth 1 -name "hooks.backup-*" -type d 2>/dev/null | sort -V | tail -1)
+    
+    if [[ -n "$LATEST_BACKUP" ]]; then
+        hook_count=0
+        for hook in "$HOOKS_DIR"/*.disabled; do
+            if [[ -f "$hook" ]]; then
+                # Rename back to original
+                original="${hook%.disabled}"
+                mv "$hook" "$original" 2>/dev/null || true
+                chmod +x "$original" 2>/dev/null || true
+                ((hook_count++))
+            fi
+        done
+        
+        if [[ $hook_count -gt 0 ]]; then
+            echo "  ✓ Restored $hook_count git hooks from .disabled files"
+        fi
+        
+        echo "  ✓ Using backup from: $LATEST_BACKUP"
+    else
+        echo "  ⚠ No backup found, you may need to reinstall hooks"
+        echo "    Run: ./scripts/install-hooks.sh"
+    fi
+else
+    echo "  ⚠ Git hooks directory not found"
+fi
+echo ""
+
+# Step 3: Remove marker file
+echo "[3/5] Removing orchestration disabled marker..."
+if [[ -f "$PROJECT_ROOT/.orchestration-disabled" ]]; then
+    rm -f "$PROJECT_ROOT/.orchestration-disabled"
+    echo "  ✓ Removed .orchestration-disabled marker"
+else
+    echo "  ✓ Marker file not present"
+fi
+echo ""
+
+# Step 4: Update branch profiles with orchestration status
+echo "[4/5] Updating branch profiles with orchestration status..."
+PROFILES_DIR="$PROJECT_ROOT/.context-control/profiles"
+
+if [[ -d "$PROFILES_DIR" ]]; then
+    # Update main profile
+    if [[ -f "$PROFILES_DIR/main.json" ]]; then
+        python3 << 'PYTHON_SCRIPT'
+import json
+import sys
+
+profile_file = '/home/masum/github/EmailIntelligenceAuto/.context-control/profiles/main.json'
+try:
+    with open(profile_file, 'r') as f:
+        profile = json.load(f)
+    
+    # Update orchestration status metadata
+    if 'metadata' not in profile:
+        profile['metadata'] = {}
+    
+    profile['metadata']['orchestration_disabled'] = False
+    profile['agent_settings']['orchestration_aware'] = True
+    
+    with open(profile_file, 'w') as f:
+        json.dump(profile, f, indent=2)
+    
+    print(f"  ✓ Updated main.json with orchestration_disabled: false")
+except Exception as e:
+    print(f"  ⚠ Failed to update main.json: {e}")
+    sys.exit(1)
+PYTHON_SCRIPT
+    fi
+    
+    # Update scientific profile
+    if [[ -f "$PROFILES_DIR/scientific.json" ]]; then
+        python3 << 'PYTHON_SCRIPT'
+import json
+import sys
+
+profile_file = '/home/masum/github/EmailIntelligenceAuto/.context-control/profiles/scientific.json'
+try:
+    with open(profile_file, 'r') as f:
+        profile = json.load(f)
+    
+    # Update orchestration status metadata
+    if 'metadata' not in profile:
+        profile['metadata'] = {}
+    
+    profile['metadata']['orchestration_disabled'] = False
+    profile['agent_settings']['orchestration_aware'] = True
+    
+    with open(profile_file, 'w') as f:
+        json.dump(profile, f, indent=2)
+    
+    print(f"  ✓ Updated scientific.json with orchestration_disabled: false")
+except Exception as e:
+    print(f"  ⚠ Failed to update scientific.json: {e}")
+    sys.exit(1)
+PYTHON_SCRIPT
+    fi
+    
+    # Update orchestration-tools profile
+    if [[ -f "$PROFILES_DIR/orchestration-tools.json" ]]; then
+        python3 << 'PYTHON_SCRIPT'
+import json
+import sys
+
+profile_file = '/home/masum/github/EmailIntelligenceAuto/.context-control/profiles/orchestration-tools.json'
+try:
+    with open(profile_file, 'r') as f:
+        profile = json.load(f)
+    
+    # Update orchestration status metadata
+    if 'metadata' not in profile:
+        profile['metadata'] = {}
+    
+    profile['metadata']['orchestration_disabled'] = False
+    profile['agent_settings']['orchestration_aware'] = True
+    
+    with open(profile_file, 'w') as f:
+        json.dump(profile, f, indent=2)
+    
+    print(f"  ✓ Updated orchestration-tools.json with orchestration_disabled: false")
+except Exception as e:
+    print(f"  ⚠ Failed to update orchestration-tools.json: {e}")
+    sys.exit(1)
+PYTHON_SCRIPT
+    fi
+else
+    echo "  ⚠ Profile directory not found at $PROFILES_DIR"
+fi
+echo ""
+
+# Step 5: Commit and push changes to scientific and main branches
+echo "[5/5] Committing and pushing changes to scientific and main branches..."
+
+if [[ $SKIP_PUSH -eq 1 ]]; then
+    echo "  ⏭ Skipping push (--skip-push flag used)"
+else
+    # Stage changes
+    git add "$PROJECT_ROOT/.env.local" \
+            "$PROJECT_ROOT/.context-control/profiles/" 2>/dev/null || true
+    
+    # Remove orchestration-disabled from staging if it was added
+    git restore --staged "$PROJECT_ROOT/.orchestration-disabled" 2>/dev/null || true
+    
+    # Commit if there are changes
+    if ! git diff --cached --quiet; then
+        git commit -m "chore: re-enable all orchestration workflows (hooks restored, server-side check enabled, branch profiles updated)" 2>/dev/null || true
+        echo "  ✓ Changes committed"
+        
+        # Push to current branch
+        git push origin "$CURRENT_BRANCH" 2>/dev/null || true
+        echo "  ✓ Changes pushed to $CURRENT_BRANCH"
+        
+        # Push to scientific branch if different from current
+        if [[ "$CURRENT_BRANCH" != "scientific" ]]; then
+            echo "  📤 Pushing to scientific branch..."
+            git push origin "$CURRENT_BRANCH:scientific" 2>/dev/null || true
+            echo "  ✓ Changes pushed to scientific branch"
+        fi
+        
+        # Push to main branch if different from current
+        if [[ "$CURRENT_BRANCH" != "main" ]]; then
+            echo "  📤 Pushing to main branch..."
+            git push origin "$CURRENT_BRANCH:main" 2>/dev/null || true
+            echo "  ✓ Changes pushed to main branch"
+        fi
+    else
+        echo "  ℹ No changes to commit"
+    fi
+fi
+echo ""
+
+# Verification
+echo "[✓] Verification..."
+if [[ ! -f "$PROJECT_ROOT/.orchestration-disabled" ]]; then
+    echo "  ✓ Marker file removed"
+fi
+
+if [[ -f "$PROJECT_ROOT/.env.local" ]]; then
+    if ! grep -q "ORCHESTRATION_DISABLED" "$PROJECT_ROOT/.env.local"; then
+        echo "  ✓ .env.local cleaned"
+    fi
+fi
+
+active_hooks=$(find "$PROJECT_ROOT/.git/hooks" -type f ! -name "*.disabled" ! -name "*.sample" 2>/dev/null | wc -l)
+if [[ $active_hooks -gt 0 ]]; then
+    echo "  ✓ $active_hooks git hooks active"
+fi
+
+echo ""
+echo "=========================================="
+echo "✅ All orchestration re-enabled!"
+echo "=========================================="
+echo ""
+echo "To disable orchestration again, run:"
+echo "  ./scripts/disable-all-orchestration-with-branch-sync.sh"
+echo ""

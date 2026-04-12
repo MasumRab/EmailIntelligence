@@ -1,0 +1,78 @@
+#!/usr/bin/env python3
+"""CLI tool for Agent Context Control."""
+
+import sys
+import argparse
+from pathlib import Path
+
+# Add src to path
+sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
+
+from context_control.core import ContextController
+from context_control.environment import detect_branch
+from context_control.validation import ContextValidator
+from context_control.config import init_config
+
+
+def main():
+    """Main CLI entry point."""
+    parser = argparse.ArgumentParser(description="Agent Context Control CLI")
+    parser.add_argument(
+        "--branch",
+        help="Branch name to get context for (default: detect current)"
+    )
+    parser.add_argument(
+        "--agent-id",
+        default="cli",
+        help="Agent ID (default: cli)"
+    )
+    parser.add_argument(
+        "--validate",
+        action="store_true",
+        help="Validate the context instead of displaying it"
+    )
+
+    args = parser.parse_args()
+
+    try:
+        # Initialize configuration
+        init_config()
+        # Get context
+        controller = ContextController()
+        context = controller.get_context_for_branch(
+            branch_name=args.branch,
+            agent_id=args.agent_id
+        )
+
+        if args.validate:
+            # Validate context
+            validator = ContextValidator()
+            result = validator.validate_context(context)
+
+            if result.is_valid:
+                print("✅ Context validation passed")
+                if result.warnings:
+                    print("⚠️  Warnings:")
+                    for warning in result.warnings:
+                        print(f"  - {warning}")
+            else:
+                print("❌ Context validation failed:")
+                for error in result.errors:
+                    print(f"  - {error}")
+                sys.exit(1)
+        else:
+            # Display context
+            print(f"Branch: {context.branch_name or 'N/A'}")
+            print(f"Environment: {context.environment_type}")
+            print(f"Profile ID: {context.profile_id}")
+            print(f"Agent ID: {context.agent_id}")
+            print(f"Accessible files: {len(context.accessible_files)}")
+            print(f"Restricted files: {len(context.restricted_files)}")
+
+    except Exception as e:
+        print(f"Error: {e}", file=sys.stderr)
+        sys.exit(1)
+
+
+if __name__ == "__main__":
+    main()

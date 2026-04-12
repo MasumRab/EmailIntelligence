@@ -9,13 +9,13 @@ import atexit
 import json
 import logging
 import threading
-import time
+import asyncio
 from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from enum import Enum
 from pathlib import Path
 from queue import Queue
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -27,7 +27,7 @@ class AuditEventType(Enum):
     LOGIN_SUCCESS = "login_success"
     LOGIN_FAILURE = "login_failure"
     LOGOUT = "logout"
-    PASSWORD_CHANGE = "password_change"
+    PASSWORD_CHANGE = "password_change"  # nosec
     PERMISSION_CHANGE = "permission_change"
 
     # Data Operations
@@ -132,9 +132,10 @@ class AuditLogger:
 
     def log_event(self, event: AuditEvent):
         """Log an audit event asynchronously."""
+        import queue
         try:
             self._event_queue.put_nowait(event)
-        except asyncio.QueueFull:
+        except queue.Full:
             # If queue is full, log immediately to prevent data loss
             logger.warning(f"Audit queue full, logging synchronously: {event.event_id}")
             self._write_event_immediate(event)
@@ -245,12 +246,13 @@ class AuditLogger:
             events_to_process = []
 
             # Collect events from queue
+            import queue
             try:
                 while len(events_to_process) < 10:  # Process in batches
                     event = self._event_queue.get(timeout=1.0)
                     events_to_process.append(event)
                     self._event_queue.task_done()
-            except asyncio.TimeoutError:
+            except queue.Empty:
                 pass  # No events available
 
             # Write events
@@ -289,12 +291,13 @@ class AuditLogger:
         self._stop_event.set()
 
         # Process remaining events
+        import queue
         try:
             while not self._event_queue.empty():
                 event = self._event_queue.get(timeout=1.0)
                 self._write_event_immediate(event)
                 self._event_queue.task_done()
-        except asyncio.TimeoutError:
+        except queue.Empty:
             pass
 
         if self._processing_thread.is_alive():

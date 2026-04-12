@@ -1,4 +1,4 @@
-<<<<<<< HEAD
+import asyncio
 import logging
 import time
 from enum import Enum
@@ -38,7 +38,9 @@ class Node:
         self.inputs = inputs
         self.outputs = outputs
         self.failure_strategy = failure_strategy  # "stop", "continue", or "retry"
-        self.conditional_expression = conditional_expression  # Optional conditional for execution
+        self.conditional_expression = (
+            conditional_expression  # Optional conditional for execution
+        )
         self.status = NodeExecutionStatus.PENDING
 
     def execute(self, context: Dict[str, Any]) -> Dict[str, Any]:
@@ -66,7 +68,10 @@ class Node:
 
         except Exception as e:
             self.status = NodeExecutionStatus.FAILED
-            logger.error(f"Error executing node '{self.name}' ({self.node_id}): {e}", exc_info=True)
+            logger.error(
+                f"Error executing node '{self.name}' ({self.node_id}): {e}",
+                exc_info=True,
+            )
             raise
 
 
@@ -75,7 +80,9 @@ class Workflow:
     Represents a processing workflow as a directed acyclic graph (DAG) of nodes.
     """
 
-    def __init__(self, name: str, nodes: Dict[str, Node], connections: List[Dict[str, str]]):
+    def __init__(
+        self, name: str, nodes: Dict[str, Node], connections: List[Dict[str, str]]
+    ):
         self.name = name
         self.nodes = nodes
         self.connections = connections  # List of connections in the format {"from": {"node_id": str, "output": str}, "to": {"node_id": str, "input": str}}
@@ -130,9 +137,13 @@ class Workflow:
             to_node_id = conn["to"]["node_id"]
 
             if from_node_id not in self.nodes:
-                errors.append(f"Connection {i}: Source node '{from_node_id}' does not exist")
+                errors.append(
+                    f"Connection {i}: Source node '{from_node_id}' does not exist"
+                )
             if to_node_id not in self.nodes:
-                errors.append(f"Connection {i}: Target node '{to_node_id}' does not exist")
+                errors.append(
+                    f"Connection {i}: Target node '{to_node_id}' does not exist"
+                )
 
         # Check for cycles using the topological sort
         try:
@@ -151,27 +162,19 @@ class Workflow:
             if from_node_id in self.nodes:
                 source_node = self.nodes[from_node_id]
                 if expected_output not in source_node.outputs:
-<<<<<<< HEAD
-                    errors.append(f"Connection from {from_node_id} to {to_node_id}: Output '{expected_output}' does not exist in source node")
-=======
                     errors.append(
                         f"Connection from {from_node_id} to {to_node_id}: "
                         f"Output '{expected_output}' does not exist in source node"
                     )
->>>>>>> scientific
 
             # Check if the input exists in the target node
             if to_node_id in self.nodes:
                 target_node = self.nodes[to_node_id]
                 if expected_input not in target_node.inputs:
-<<<<<<< HEAD
-                    errors.append(f"Connection from {from_node_id} to {to_node_id}: Input '{expected_input}' does not exist in target node")
-=======
                     errors.append(
                         f"Connection from {from_node_id} to {to_node_id}: "
                         f"Input '{expected_input}' does not exist in target node"
                     )
->>>>>>> scientific
 
         return len(errors) == 0, errors
 
@@ -196,7 +199,9 @@ class WorkflowRunner:
         self.workflow = workflow
         self.fail_on_error = fail_on_error
         self.max_retries = max_retries
-        self.max_concurrent = max_concurrent  # Maximum number of nodes to execute in parallel
+        self.max_concurrent = (
+            max_concurrent  # Maximum number of nodes to execute in parallel
+        )
         self.execution_context = {}
         self.node_results = {}
         self.execution_stats = {
@@ -229,7 +234,9 @@ class WorkflowRunner:
         # Validate the workflow before execution
         is_valid, validation_errors = self.workflow.validate()
         if not is_valid:
-            validation_error_msg = f"Workflow validation failed: {', '.join(validation_errors)}"
+            validation_error_msg = (
+                f"Workflow validation failed: {', '.join(validation_errors)}"
+            )
             logger.error(validation_error_msg)
             return {
                 "success": False,
@@ -346,14 +353,10 @@ class WorkflowRunner:
                     self.execution_stats["retries_performed"] += 1
 
                     if retry_count <= self.max_retries:
-<<<<<<< HEAD
-                        logger.warning(f"Node {node.name} failed, retrying ({retry_count}/{self.max_retries}): {str(e)}")
-=======
                         logger.warning(
                             f"Node {node.name} failed, retrying "
                             f"({retry_count}/{self.max_retries}): {str(e)}"
                         )
->>>>>>> scientific
                     else:
                         error_msg = f"Node {node.name} ({node_id}) failed after {self.max_retries} retries: {str(e)}"
                         logger.error(error_msg, exc_info=True)
@@ -366,7 +369,10 @@ class WorkflowRunner:
                         elif node.failure_strategy == "continue":
                             # Continue with execution
                             continue
-                        elif node.failure_strategy == "retry" and retry_count > self.max_retries:
+                        elif (
+                            node.failure_strategy == "retry"
+                            and retry_count > self.max_retries
+                        ):
                             # Already retried max times, continue to next node
                             continue
 
@@ -380,13 +386,10 @@ class WorkflowRunner:
                 for node_to_cleanup in cleanup_schedule[node_id]:
                     if node_to_cleanup in self.node_results:
                         del self.node_results[node_to_cleanup]
-<<<<<<< HEAD
-                        logger.debug(f"Cleaned up results for node {node_to_cleanup} to optimize memory")
-=======
                         logger.debug(
-                            f"Cleaned up results for node " f"{node_to_cleanup} to optimize memory"
+                            f"Cleaned up results for node "
+                            f"{node_to_cleanup} to optimize memory"
                         )
->>>>>>> scientific
 
     async def _run_parallel(self, execution_order, cleanup_schedule):
         """Execute workflow nodes in parallel where possible"""
@@ -410,7 +413,9 @@ class WorkflowRunner:
                 node_id = ready_nodes.pop(0)
 
                 # Create an async task to execute the node
-                task = asyncio.create_task(self._execute_single_node_with_timing(node_id))
+                task = asyncio.create_task(
+                    self._execute_single_node_with_timing(node_id)
+                )
                 running_tasks[node_id] = task
 
             if running_tasks:
@@ -472,13 +477,6 @@ class WorkflowRunner:
                 for node_id in completed_nodes.copy():  # Use copy to avoid mutation during iteration
                     if node_id in cleanup_schedule:
                         for node_to_cleanup in cleanup_schedule[node_id]:
-<<<<<<< HEAD
-                            if (node_to_cleanup in self.node_results and
-                                node_to_cleanup not in running_tasks and
-                                node_to_cleanup not in ready_nodes):
-                                del self.node_results[node_to_cleanup]
-                                logger.debug(f"Cleaned up results for node {node_to_cleanup} to optimize memory")
-=======
                             if (
                                 node_to_cleanup in self.node_results
                                 and node_to_cleanup not in running_tasks
@@ -489,7 +487,6 @@ class WorkflowRunner:
                                     f"Cleaned up results for node "
                                     f"{node_to_cleanup} to optimize memory"
                                 )
->>>>>>> scientific
 
     async def _execute_single_node(self, node_id: str):
         """Execute a single node asynchronously"""
@@ -521,14 +518,10 @@ class WorkflowRunner:
                 self.execution_stats["retries_performed"] += 1
 
                 if retry_count <= self.max_retries:
-<<<<<<< HEAD
-                    logger.warning(f"Node {node.name} failed, retrying ({retry_count}/{self.max_retries}): {str(e)}")
-=======
                     logger.warning(
                         f"Node {node.name} failed, retrying "
                         f"({retry_count}/{self.max_retries}): {str(e)}"
                     )
->>>>>>> scientific
                 else:
                     raise e  # Re-raise the exception after max retries
 
@@ -551,6 +544,26 @@ class WorkflowRunner:
             self.execution_stats["node_execution_times"][node_id] = execution_time
             raise
 
+    def _build_node_context(self, node_id: str) -> Dict[str, Any]:
+        """Build the context for a specific node based on its connections"""
+        node_context = self.execution_context.copy()
+
+        # Add inputs from previous nodes based on connections
+        for conn in self.workflow.connections:
+            if conn["to"]["node_id"] == node_id:
+                source_node_id = conn["from"]["node_id"]
+                output_name = conn["from"].get("output", "output")
+                input_name = conn["to"].get("input", "input")
+
+                if source_node_id in self.node_results:
+                    source_result = self.node_results[source_node_id]
+                    if isinstance(source_result, dict) and output_name in source_result:
+                        node_context[input_name] = source_result[output_name]
+                    else:
+                        node_context[input_name] = source_result
+
+        return node_context
+
     def _calculate_node_dependencies(self) -> Dict[str, List[str]]:
         """Calculate which nodes each node depends on"""
         dependencies = {node_id: [] for node_id in self.workflow.nodes}
@@ -559,40 +572,48 @@ class WorkflowRunner:
             target_node = conn["to"]["node_id"]
             source_node = conn["from"]["node_id"]
 
-            if target_node in dependencies and source_node not in dependencies[target_node]:
+            if (
+                target_node in dependencies
+                and source_node not in dependencies[target_node]
+            ):
                 dependencies[target_node].append(source_node)
 
         return dependencies
 
-    def _calculate_cleanup_schedule(self, execution_order: List[str]) -> Dict[str, List[str]]:
+    def _calculate_cleanup_schedule(
+        self, execution_order: List[str]
+    ) -> Dict[str, List[str]]:
         """
         Calculate which node results can be cleaned up after each node executes.
         This helps optimize memory usage by removing results that are no longer needed.
         """
-        cleanup_schedule = {}
+        cleanup_schedule = {node_id: [] for node_id in execution_order}
 
-        # For each node in the execution order, determine which previous nodes' results
-        # are no longer needed after this node executes
+        # Build adjacency list for quick connection lookups
+        adj = {node_id: [] for node_id in execution_order}
+        for conn in self.workflow.connections:
+            from_node = conn["from"]["node_id"]
+            to_node = conn["to"]["node_id"]
+            if from_node in adj:
+                adj[from_node].append(to_node)
+
+        # Map node_id to its index in execution order
+        node_to_idx = {node_id: i for i, node_id in enumerate(execution_order)}
+
+        # Find the maximum index of a subsequent node that requires each node's result
+        last_used_at = {}
+        for node_id in execution_order:
+            last_used_idx = -1
+            for target_node in adj.get(node_id, []):
+                if target_node in node_to_idx:
+                    last_used_idx = max(last_used_idx, node_to_idx[target_node])
+            last_used_at[node_id] = last_used_idx
+
+        # A node's result can be cleaned up after step `i` if it's not needed by any node > i.
+        # This means last_used_at[prev_node_id] <= i.
         for i, node_id in enumerate(execution_order):
-            cleanup_schedule[node_id] = []
-
-            # Check all previous nodes to see if their results are still needed
             for prev_node_id in execution_order[:i]:
-                # Check if any subsequent nodes need the result from prev_node_id
-                still_needed = False
-
-                for subsequent_node_id in execution_order[i+1:]:
-                    # Check if there's a connection from prev_node to subsequent_node
-                    for conn in self.workflow.connections:
-                        if (conn["from"]["node_id"] == prev_node_id and
-                            conn["to"]["node_id"] == subsequent_node_id):
-                            still_needed = True
-                            break
-                    if still_needed:
-                        break
-
-                # If not still needed by any subsequent nodes, it can be cleaned up
-                if not still_needed:
+                if last_used_at[prev_node_id] <= i:
                     cleanup_schedule[node_id].append(prev_node_id)
 
         return cleanup_schedule
