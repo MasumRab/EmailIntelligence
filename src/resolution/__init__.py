@@ -21,7 +21,7 @@ class ConstitutionalRequirement:
     compliance_threshold: float  # 0.0 to 1.0
 
 
-from enum import Enum
+from enum import Enum # noqa: E402
 
 class ComplianceLevel(Enum):
     """Levels of compliance"""
@@ -36,7 +36,7 @@ class ConstitutionalValidationResult:
     """Result of constitutional validation"""
     overall_score: float  # 0.0 to 1.0
     compliance_level: ComplianceLevel
-    detailed_results: List[ComplianceResult]
+    detailed_results: List[Any]
     summary: str = ""
     recommendations: List[str] = None
 

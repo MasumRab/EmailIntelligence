@@ -29,6 +29,7 @@ from src.core.auth import authenticate_user
 
 from ..plugins.plugin_manager import plugin_manager
 from . import (
+    action_routes,
     ai_routes,
     category_routes,
     dashboard_routes,
