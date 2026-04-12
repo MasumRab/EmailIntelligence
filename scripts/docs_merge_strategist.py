@@ -6,11 +6,9 @@ Determines whether documentation should be shared between branches or kept separ
 based on content analysis and executes the appropriate merge strategy.
 """
 
-import os
 import json
-import subprocess
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Dict, List
 from datetime import datetime
 
 

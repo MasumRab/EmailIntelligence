@@ -55,7 +55,7 @@ def test_agent_health_monitor():
 
     # Get system overview
     overview = monitor.get_system_overview()
-    print(f"System Overview:")
+    print("System Overview:")
     print(f"  Total Agents: {overview['total_agents']}")
     print(f"  Healthy Agents: {overview['healthy_agents']}")
     print(f"  Overall Health: {overview['overall_health']:.2%}")

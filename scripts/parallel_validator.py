@@ -4,12 +4,11 @@ Parallel Validation Workers
 Implement multiple validation processes running simultaneously.
 """
 
-import os
 import re
 import time
 import json
 from pathlib import Path
-from typing import Dict, List, Optional, Set, Tuple
+from typing import Dict, List, Optional
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass, field
 from enum import Enum

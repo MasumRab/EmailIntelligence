@@ -88,7 +88,7 @@ def download_nltk_data():
         for package in packages:
             try:
                 nltk.download(package, quiet=True)
-            except Exception as e:
+            except Exception:
                 # Some packages might fail, continue with others
                 pass
     except ImportError:
@@ -104,7 +104,7 @@ def download_nltk_data():
             from textblob import download_corpora
 
             download_corpora()
-        except Exception as e:
+        except Exception:
             # Try command line approach as fallback
             try:
                 subprocess.run(

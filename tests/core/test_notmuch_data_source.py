@@ -7,7 +7,6 @@ which provides a functional implementation of the DataSource interface for Notmu
 
 import pytest
 from unittest.mock import patch, MagicMock, AsyncMock
-from typing import Dict, List, Any, Optional
 
 from src.core.notmuch_data_source import NotmuchDataSource
 from src.core.database import DatabaseManager

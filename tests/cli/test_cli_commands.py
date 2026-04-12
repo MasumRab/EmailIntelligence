@@ -2,7 +2,7 @@
 
 import pytest
 from argparse import Namespace
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import MagicMock
 
 from src.cli.commands.interface import Command
 from src.cli.commands.factory import CommandFactory

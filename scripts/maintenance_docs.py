@@ -5,12 +5,11 @@ Performs regular maintenance tasks and health checks on the documentation system
 """
 
 import os
-import sys
 import json
 import shutil
 from pathlib import Path
 from datetime import datetime, timedelta
-from typing import Dict, List, Tuple, Optional
+from typing import Dict, List, Optional
 import argparse
 
 class DocsMaintenance:

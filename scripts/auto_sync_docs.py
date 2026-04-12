@@ -4,14 +4,13 @@ Automated Documentation Synchronization System
 Provides scheduled sync, monitoring, and automated conflict resolution.
 """
 
-import os
 import sys
 import json
 import time
 import logging
 from pathlib import Path
 from datetime import datetime, timedelta
-from typing import Dict, List, Optional
+from typing import Dict
 import argparse
 
 try:

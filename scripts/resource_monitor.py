@@ -13,7 +13,7 @@ from typing import Dict, List, Optional, Any, Tuple
 from dataclasses import dataclass, field
 from collections import defaultdict, deque
 import statistics
-from datetime import datetime, timedelta
+from datetime import datetime
 
 
 @dataclass
@@ -568,7 +568,7 @@ class ResourceDashboard:
         print("=" * 40)
 
         cpu_stats = stats['cpu']
-        print(f"CPU Usage:")
+        print("CPU Usage:")
         print(f"  Mean: {cpu_stats['mean']:.1f}%")
         print(f"  Median: {cpu_stats['median']:.1f}%")
         print(f"  Min: {cpu_stats['min']:.1f}%")
@@ -576,7 +576,7 @@ class ResourceDashboard:
         print(f"  95th Percentile: {cpu_stats['percentile_95']:.1f}%")
 
         memory_stats = stats['memory']
-        print(f"\nMemory Usage:")
+        print("\nMemory Usage:")
         print(f"  Mean: {memory_stats['mean']:.1f}%")
         print(f"  Median: {memory_stats['median']:.1f}%")
         print(f"  Min: {memory_stats['min']:.1f}%")

@@ -4,13 +4,11 @@ Incremental Validation
 Only validate changed content to improve performance.
 """
 
-import os
 import hashlib
 import json
 import time
 from pathlib import Path
-from typing import Dict, List, Optional, Set
-from datetime import datetime
+from typing import Dict, List, Optional
 from dataclasses import dataclass, field
 
 

@@ -3,7 +3,6 @@
 Test script for documentation generation template system
 """
 
-import time
 import tempfile
 from pathlib import Path
 from doc_generation_template import (

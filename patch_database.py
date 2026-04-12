@@ -1,4 +1,3 @@
-import os
 
 filepath = 'src/backend/python_backend/database.py'
 with open(filepath, 'r') as f:

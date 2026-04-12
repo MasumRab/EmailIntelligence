@@ -7,7 +7,6 @@ Detects and reports the current worktree context for git hooks.
 import subprocess
 import sys
 import os
-from pathlib import Path
 
 def get_current_branch():
     """Get the current branch name, or empty if detached HEAD."""

@@ -8,11 +8,11 @@ import time
 import json
 import threading
 from pathlib import Path
-from typing import Dict, List, Optional, Any, Tuple, Set
+from typing import Dict, List, Optional, Any
 from dataclasses import dataclass, field
 from collections import defaultdict, deque
 import statistics
-from datetime import datetime, timedelta
+from datetime import datetime
 
 
 @dataclass
@@ -501,7 +501,7 @@ class BottleneckDashboard:
         """Display bottleneck detection summary."""
         summary = self.detector.get_bottleneck_summary()
 
-        print(f"\nBottleneck Detection Summary")
+        print("\nBottleneck Detection Summary")
         print("=" * 35)
         print(f"Total Steps: {summary['total_steps']}")
         print(f"Running Steps: {summary['running_steps']}")
@@ -536,7 +536,7 @@ class BottleneckDashboard:
 
     def display_detailed_analysis(self):
         """Display detailed bottleneck analysis."""
-        print(f"\nDetailed Bottleneck Analysis")
+        print("\nDetailed Bottleneck Analysis")
         print("=" * 30)
 
         # Check for all types of bottlenecks

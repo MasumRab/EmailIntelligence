@@ -1,10 +1,9 @@
 
-import os
 import zipfile
 import pytest
 from unittest.mock import MagicMock, AsyncMock, patch
 from pathlib import Path
-from src.core.plugin_manager import PluginManager, PluginMarketplaceEntry, SecurityError
+from src.core.plugin_manager import PluginManager, PluginMarketplaceEntry
 
 @pytest.mark.asyncio
 async def test_zip_slip_vulnerability():

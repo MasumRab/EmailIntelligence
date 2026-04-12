@@ -4,13 +4,12 @@ Validation Result Caching
 Cache validation results to avoid redundant checks.
 """
 
-import os
 import hashlib
 import json
 import time
 from pathlib import Path
-from typing import Dict, List, Optional, Set, Tuple
-from datetime import datetime, timedelta
+from typing import Dict, List, Optional, Tuple
+from datetime import datetime
 from dataclasses import dataclass, field
 
 

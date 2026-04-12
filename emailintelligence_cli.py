@@ -14,14 +14,14 @@ import subprocess
 import sys
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional, NoReturn
+from typing import Any, Dict, List, Optional
 
 # Constitutional Engine integration
 from src.resolution import ConstitutionalEngine
 
 # Git Operations integration
 from src.git.conflict_detector import GitConflictDetector
-from src.core.conflict_models import Conflict, ConflictBlock, ConflictTypeExtended, RiskLevel
+from src.core.conflict_models import Conflict, ConflictTypeExtended, RiskLevel
 from src.analysis.conflict_analyzer import ConflictAnalyzer
 
 # Additional imports for interface-based architecture
@@ -88,7 +88,7 @@ class EmailIntelligenceCLI:
     def _conflict_to_template(self, conflict: Dict[str, Any], metadata: Dict[str, Any]) -> str:
         """Convert conflict data to specification template format"""
         template_lines = [
-            f"Conflict Analysis Report",
+            "Conflict Analysis Report",
             f"PR: {metadata.get('pr_number', 'Unknown')}",
             f"Source Branch: {metadata.get('source_branch', 'Unknown')}",
             f"Target Branch: {metadata.get('target_branch', 'Unknown')}",
@@ -128,7 +128,7 @@ class EmailIntelligenceCLI:
         compliant_count = sum(1 for r in all_results 
                             if r['result'].compliance_level.value in ['compliant', 'excellent'])
         
-        print(f"\nOverall Summary:")
+        print("\nOverall Summary:")
         print(f"  Files analyzed: {len(all_results)}")
         print(f"  Compliant files: {compliant_count}/{len(all_results)}")
         print(f"  Average compliance: {avg_score:.1%}")
@@ -418,7 +418,6 @@ class EmailIntelligenceCLI:
             interactive: Enable interactive analysis mode
         """
         # Call the async version using asyncio.run for compatibility
-        import asyncio
         return asyncio.run(
             self._analyze_constitutional_async(pr_number, constitution_files, interactive)
         )
@@ -539,7 +538,7 @@ class EmailIntelligenceCLI:
         total_violations = sum(len(r['result'].violations) for r in all_results)
         total_recommendations = sum(len(r['result'].recommendations) for r in all_results)
 
-        print(f"\nOverall Constitutional Analysis Summary:")
+        print("\nOverall Constitutional Analysis Summary:")
         print(f"  Files analyzed: {len(all_results)}")
         print(f"  Total violations: {total_violations}")
         print(f"  Total recommendations: {total_recommendations}")
@@ -800,7 +799,6 @@ class EmailIntelligenceCLI:
             alignment_rules: Path to alignment rules file
             interactive: Enable interactive strategy development
         """
-        import asyncio
 
         metadata_file = self.resolution_branches_dir / f"pr-{pr_number}-metadata.json"
 
@@ -1559,7 +1557,7 @@ class EmailIntelligenceCLI:
 
     def _convert_metadata_to_conflicts(self, metadata_conflicts: List[Dict[str, Any]]) -> List[Conflict]:
         """Convert metadata conflict format to Conflict objects"""
-        from src.core.conflict_models import Conflict, ConflictBlock, ConflictTypeExtended, RiskLevel
+        from src.core.conflict_models import Conflict
 
         conflicts = []
         for meta_conflict in metadata_conflicts:

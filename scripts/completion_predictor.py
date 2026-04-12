@@ -8,7 +8,7 @@ import time
 import json
 import threading
 from pathlib import Path
-from typing import Dict, List, Optional, Any, Tuple
+from typing import Dict, List, Any
 from dataclasses import dataclass, field
 from collections import defaultdict, deque
 import statistics
@@ -413,7 +413,7 @@ class PredictionDashboard:
         """Display prediction accuracy statistics."""
         accuracy = self.predictor.get_prediction_accuracy()
 
-        print(f"\nPrediction Accuracy Report")
+        print("\nPrediction Accuracy Report")
         print("=" * 28)
         print(f"Time Window: {accuracy['time_window_hours']} hours")
         print(f"Total Predictions: {accuracy['total_predictions']}")
@@ -426,7 +426,7 @@ class PredictionDashboard:
         """Display prediction trends."""
         trends = self.predictor.get_prediction_trends()
 
-        print(f"\nPrediction Trends")
+        print("\nPrediction Trends")
         print("=" * 18)
         if trends['trend_data_available']:
             print(f"Trend: {'Improving' if trends['improving'] else 'Deteriorating'}")

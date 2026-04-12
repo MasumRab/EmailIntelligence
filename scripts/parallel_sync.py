@@ -4,13 +4,10 @@ Parallel Sync Workers
 Implement multiple sync processes for different worktrees simultaneously.
 """
 
-import os
 import time
-import threading
-import multiprocessing
 from pathlib import Path
-from typing import List, Dict, Optional, Callable
-from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor, as_completed
+from typing import List, Dict, Optional
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from incremental_sync import IncrementalSync
 import json
 

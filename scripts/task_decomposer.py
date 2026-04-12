@@ -4,11 +4,10 @@ Micro-task Decomposition System
 Breaks large documentation tasks into micro-tasks completable in <15 minutes.
 """
 
-import os
 import re
 import json
 from pathlib import Path
-from typing import List, Dict, Tuple
+from typing import List, Dict
 from datetime import timedelta
 
 

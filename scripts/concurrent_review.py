@@ -8,7 +8,7 @@ import time
 import json
 import threading
 from pathlib import Path
-from typing import Dict, List, Optional, Any, Set
+from typing import Dict, List, Optional, Any
 from dataclasses import dataclass, field
 from collections import defaultdict
 import uuid
@@ -586,30 +586,30 @@ class ReviewDashboard:
         print(f"Reviewers: {len(session.reviewers)} ({', '.join(session.reviewers)})")
         print(f"Duration: {progress.get('duration_seconds', 0):.1f} seconds")
 
-        print(f"\nProgress:")
+        print("\nProgress:")
         print(f"  Participation Rate: {progress.get('participation_rate', 0):.1%}")
         print(f"  Reviewers with Votes: {progress.get('reviewers_with_votes', 0)}/{len(session.reviewers)}")
         print(f"  Reviewers with Feedback: {progress.get('reviewers_with_feedback', 0)}/{len(session.reviewers)}")
 
-        print(f"\nConsensus:")
+        print("\nConsensus:")
         print(f"  Participation Consensus: {consensus.get('participation_consensus', 0):.1%}")
         print(f"  Approval Rate: {consensus.get('approval_rate', 0):.1%}")
         print(f"  Average Rating: {consensus.get('average_rating', 0):.1f}/5")
         print(f"  Consensus Strength: {consensus.get('consensus_strength', 0):.1%}")
 
-        print(f"\nComments:")
+        print("\nComments:")
         print(f"  Total: {comment_summary.get('total_comments', 0)}")
         print(f"  Open: {comment_summary.get('open_comments', 0)}")
         print(f"  Resolved: {comment_summary.get('resolved_comments', 0)}")
         print(f"  Severity Breakdown: {comment_summary.get('severity_breakdown', {})}")
 
-        print(f"\nVoting Results:")
+        print("\nVoting Results:")
         print(f"  Total Votes: {voting_results.get('total_votes', 0)}")
         print(f"  Reviewers Participated: {voting_results.get('reviewers_participated', 0)}/{len(session.reviewers)}")
 
         section_consensus = voting_results.get('section_consensus', {})
         if section_consensus:
-            print(f"  Section Consensus:")
+            print("  Section Consensus:")
             for section_id, result in section_consensus.items():
                 print(f"    {section_id}: {result.get('consensus', 'no_votes')} "
                       f"({result.get('confidence', 0):.1%} confidence)")
@@ -672,7 +672,7 @@ class ReviewDashboard:
             print(f"  Total: {len(section_vote_list)}")
 
             # Show individual votes
-            print(f"  Individual Votes:")
+            print("  Individual Votes:")
             for vote in section_vote_list:
                 timestamp = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(vote.timestamp))
                 print(f"    {vote.agent_id}: {vote.vote_type} - {timestamp}")
@@ -700,7 +700,7 @@ class ReviewDashboard:
             print("\nNo detailed feedback found")
             return
 
-        print(f"\nDetailed Feedback:")
+        print("\nDetailed Feedback:")
         for i, feedback in enumerate(feedback_list, 1):
             timestamp = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(feedback.timestamp))
             print(f"\n{i}. {feedback.agent_id} - {feedback.overall_rating}/5")

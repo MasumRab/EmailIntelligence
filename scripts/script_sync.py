@@ -7,9 +7,8 @@ while preserving branch-specific customizations.
 
 import subprocess
 import sys
-import os
 from pathlib import Path
-from typing import List, Set
+from typing import List
 
 def run_git_command(cmd: List[str], cwd: str = None) -> str:
     """Run a git command and return output."""
@@ -111,7 +110,7 @@ def commit_sync_changes(branch: str) -> bool:
 
     # Commit
     result = subprocess.run([
-        'git', 'commit', '-m', f'Sync scripts from master branch\n\nAutomated script synchronization'
+        'git', 'commit', '-m', 'Sync scripts from master branch\n\nAutomated script synchronization'
     ], capture_output=True, text=True)
 
     if result.returncode != 0:

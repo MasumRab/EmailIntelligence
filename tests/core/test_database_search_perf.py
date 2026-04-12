@@ -1,9 +1,8 @@
 import pytest
 import asyncio
-import os
 import json
 import gzip
-from unittest.mock import MagicMock, AsyncMock, patch
+from unittest.mock import MagicMock, patch
 from src.core.database import DatabaseManager, DatabaseConfig, FIELD_CONTENT, FIELD_ID
 
 @pytest.fixture
