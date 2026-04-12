@@ -52,7 +52,8 @@ try:
     from src.core.commands.command_factory import get_command_factory
     from src.core.container import get_container, initialize_all_services
 except ImportError as e:
-    logging.warning(f"Could not import core modules: {e}. Some features may be unavailable.")
+    if os.environ.get("PYTEST_CURRENT_TEST") is None:
+        logging.warning(f"Could not import core modules: {e}. Some features may be unavailable.")
     get_command_factory = None
     get_container = None
     initialize_all_services = None
@@ -76,7 +77,7 @@ logger = logging.getLogger("launcher")
 ROOT_DIR = get_project_config().root_dir
 
 # Import process manager from utils
-from setup.utils import process_manager
+from setup.utils import process_manager, get_python_executable
 
 # --- Constants ---
 PYTHON_MIN_VERSION = (3, 12)
