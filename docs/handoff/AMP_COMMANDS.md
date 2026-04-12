@@ -56,6 +56,10 @@ CLI tools read root `AGENTS.md` via `settings.json contextFileName`. NO custom `
 | `agent-rules-handoff` | Multi-phase agent rules implementation | All phases |
 | `branch-isolation-guard` | Enforce branch isolation policy | Pre/post execution |
 | `tool-ecosystem-manager` | Detect installed AI tools, verify versions | Phase 0, Phase 9 |
+| `jules-cli` | Jules CLI commands with repo examples | Async coding tasks |
+| `jules-api` | Jules REST API reference | Programmatic integration |
+| `jules-sessions` | Analyze local Jules session JSON | Session tracking |
+| `jules-workflows` | Jules workflow patterns | Automation |
 
 ### Agents Skills (`~/.agents/skills/`)
 
@@ -70,6 +74,19 @@ CLI tools read root `AGENTS.md` via `settings.json contextFileName`. NO custom `
 ### Project Skills (`.agents/skills/`)
 
 Project-specific skills should be placed here.
+
+### Jules Skills (`skills/`)
+
+Distributed via `skills/` directory in repository root:
+
+| Package | Purpose |
+|---------|---------|
+| `jules-cli.skill` | CLI commands with EmailIntelligence examples |
+| `jules-api.skill` | REST API endpoints and SDK |
+| `jules-sessions.skill` | Local session analysis + scripts |
+| `jules-workflows.skill` | Automation patterns |
+
+Install: `unzip skills/*.skill -d ~/.letta/skills/`
 
 ---
 
