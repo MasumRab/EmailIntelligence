@@ -27,14 +27,14 @@ logger = logging.getLogger("setup-env")
 PROJECT_ROOT = Path(__file__).parent.parent
 
 
-def run_command(command, cwd=None):
-    """Run a shell command and log the output."""
-    logger.info(f"Running command: {command}")
+def run_command(command, cwd=None, check=True):
+    """Run a command and log the output."""
+    logger.info(f"Running command: {' '.join(command) if isinstance(command, list) else command}")
     try:
         result = subprocess.run(
             command,
-            shell=True,
-            check=True,
+            shell=False,
+            check=check,
             text=True,
             capture_output=True,
             cwd=cwd or str(PROJECT_ROOT),
@@ -43,7 +43,8 @@ def run_command(command, cwd=None):
         return True
     except subprocess.CalledProcessError as e:
         logger.error(f"Command failed with exit code {e.returncode}")
-        logger.error(e.stderr)
+        if e.stderr:
+            logger.error(e.stderr)
         return False
 
 
@@ -53,9 +54,9 @@ def setup_python_environment(dev_mode=False):
 
     # Install Python dependencies
     if dev_mode:
-        return run_command(f"{sys.executable} -m pip install -r requirements.txt")
+        return run_command([sys.executable, "-m", "pip", "install", "-r", "requirements.txt"])
     else:
-        return run_command(f"{sys.executable} -m pip install -r requirements.txt --no-dev")
+        return run_command([sys.executable, "-m", "pip", "install", "-r", "requirements.txt", "--no-dev"])
 
 
 def setup_node_environment(dev_mode=False):
@@ -63,15 +64,15 @@ def setup_node_environment(dev_mode=False):
     logger.info("Setting up Node.js environment...")
 
     # Check if Node.js is installed
-    if not run_command("node --version"):
+    if not run_command(["node", "--version"]):
         logger.error("Node.js is not installed. Please install Node.js and try again.")
         return False
 
     # Install Node.js dependencies
     if dev_mode:
-        return run_command("npm install")
+        return run_command(["npm", "install"])
     else:
-        return run_command("npm install --production")
+        return run_command(["npm", "install", "--production"])
 
 
 def setup_database():
@@ -79,15 +80,15 @@ def setup_database():
     logger.info("Setting up database...")
 
     # Check if PostgreSQL is installed
-    if not run_command("psql --version"):
+    if not run_command(["psql", "--version"]):
         logger.error("PostgreSQL is not installed. Please install PostgreSQL and try again.")
         return False
 
     # Create the database if it doesn't exist
-    run_command("createdb -U postgres emailintelligence || true")
+    run_command(["createdb", "-U", "postgres", "emailintelligence"], check=False)
 
     # Apply migrations
-    return run_command("python deployment/migrate.py apply")
+    return run_command(["python", "deployment/migrate.py", "apply"])
 
 
 def setup_environment_variables(force=False):

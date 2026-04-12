@@ -33,12 +33,12 @@ PROJECT_ROOT = Path(__file__).parent.parent
 
 
 def run_command(command, cwd=None):
-    """Run a shell command and log the output."""
-    logger.info(f"Running command: {command}")
+    """Run a command and log the output."""
+    logger.info(f"Running command: {' '.join(command) if isinstance(command, list) else command}")
     try:
         result = subprocess.run(
             command,
-            shell=True,
+            shell=False,
             check=True,
             text=True,
             capture_output=True,
@@ -54,22 +54,22 @@ def run_command(command, cwd=None):
 
 def generate_migration():
     """Generate a new migration."""
-    return run_command("npx drizzle-kit generate:sqlite")
+    return run_command(["npx", "drizzle-kit", "generate:sqlite"])
 
 
 def apply_migrations():
     """Apply pending migrations."""
-    return run_command("npx drizzle-kit migrate:sqlite")
+    return run_command(["npx", "drizzle-kit", "migrate:sqlite"])
 
 
 def check_migration_status():
     """Check migration status."""
-    return run_command("npx drizzle-kit status:sqlite")
+    return run_command(["npx", "drizzle-kit", "status:sqlite"])
 
 
 def rollback_migration():
     """Rollback the last migration."""
-    return run_command("npx drizzle-kit rollback:sqlite")
+    return run_command(["npx", "drizzle-kit", "rollback:sqlite"])
 
 
 def main():
