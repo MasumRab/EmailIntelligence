@@ -15,6 +15,7 @@ from typing import Optional
 import time
 import hashlib
 import os
+from datetime import datetime, timezone
 
 # Import the actual backend implementation from the local branch
 from src.backend.python_backend.main import app as local_backend_app
@@ -142,7 +143,7 @@ def create_app() -> FastAPI:
         """Health check endpoint compatible with both architectures."""
         health_status = {
             "status": "healthy",
-            "timestamp": __import__('datetime').datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "context_control_available": CONTEXT_CONTROL_AVAILABLE
         }
         

@@ -11,7 +11,7 @@ from .environment import detect_branch, get_current_branch
 from .logging import get_context_logger
 from .exceptions import ContextNotFoundError, ContextValidationError
 from .storage import ProfileStorage
-from .project import load_project_config, ProjectConfigLoader
+from .project import ProjectConfigLoader
 
 
 logger = get_context_logger()
