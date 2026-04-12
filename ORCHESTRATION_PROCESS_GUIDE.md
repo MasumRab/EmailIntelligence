@@ -240,7 +240,8 @@ git push origin orchestration-tools-changes
 
 # After PR merges:
 git fetch origin
-git merge origin/orchestration-tools  # Sync latest
+# Note: orchestration-tools is isolated - do NOT merge into other branches
+# Use git hooks/scripts to distribute specific files
 # Continue work or create new PR
 ```
 
@@ -346,7 +347,7 @@ done
 
 # 3. After PR merges to orchestration-tools
 git fetch origin
-git merge origin/orchestration-tools
+# Note: orchestration-tools is isolated - use scripts to distribute files
 echo "✓ Continue development or create new PR"
 ```
 
