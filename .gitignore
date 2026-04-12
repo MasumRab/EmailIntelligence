@@ -90,3 +90,5 @@ isolated_ui.log
 =*
 
 worktrees/
+# Jules session activity files (large)
+jules_sessions/*_activities.json

@@ -12,8 +12,20 @@ jules_sessions/
 ├── pr437_activities.json   # Step-by-step actions for PR #437
 ├── pr464_session.json      # Session for PR #464
 ├── pr464_activities.json   # Activities for PR #464
-└── ... (one pair per PR)
+├── ...
+├── README.md               # This documentation
+├── wip_analysis.md         # Analysis of "Jules timeout" tasks
+├── task_schedule.json      # Multi-task orchestration schedule
+└── prompts.md              # Pre-formatted Jules prompts
 ```
+
+### Consolidated Files
+
+| File | Purpose |
+|------|---------|
+| `wip_analysis.md` | Analysis of tasks where Jules timed out — patterns for recovery |
+| `task_schedule.json` | 11-task schedule with phases, dependencies, quality gates |
+| `prompts.md` | Copy-paste ready prompts for EmailIntelligence tasks |
 
 ---
 
