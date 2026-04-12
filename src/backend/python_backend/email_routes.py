@@ -8,15 +8,10 @@ from backend.node_engine.workflow_engine import WorkflowEngine
 from src.core.auth import get_current_active_user
 from src.core.data.repository import EmailRepository, get_email_repository
 
-from ..python_nlp.smart_filters import SmartFilterManager  # Corrected import
-from .ai_engine import AdvancedAIEngine
-from .database import DatabaseManager, get_db
-from .dependencies import get_ai_engine, get_email_service, get_filter_manager, get_workflow_engine
-from .exceptions import AIAnalysisError, DatabaseError, EmailNotFoundException
+from .dependencies import get_workflow_engine
 from .models import EmailCreate, EmailResponse, EmailUpdate
 from .performance_monitor import log_performance
-from .services.email_service import EmailService
-from .utils import create_log_data, handle_pydantic_validation
+from .utils import create_log_data
 
 logger = logging.getLogger(__name__)
 router = APIRouter()

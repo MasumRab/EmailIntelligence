@@ -1,9 +1,6 @@
 import gradio as gr
 import pandas as pd
 import plotly.express as px
-import plotly.graph_objects as go
-import asyncio
-from src.core.factory import get_data_source
 import logging
 
 logger = logging.getLogger(__name__)

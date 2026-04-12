@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 """
 DEPRECATED: This module is part of the deprecated `backend` package.
 It will be removed in a future release.
@@ -11,9 +10,7 @@ security features, scalability, and workflow management.
 
 import asyncio
 import os
-import shutil
 from datetime import datetime
-from typing import Any, Dict, List
 
 from backend.node_engine.email_nodes import (
     ActionNode,
@@ -23,7 +20,7 @@ from backend.node_engine.email_nodes import (
     PreprocessingNode,
 )
 from backend.node_engine.node_base import Connection, Workflow
-from backend.node_engine.security_manager import audit_logger, resource_manager, security_manager
+from backend.node_engine.security_manager import resource_manager
 from backend.node_engine.workflow_engine import workflow_engine
 from backend.node_engine.workflow_manager import workflow_manager
 
@@ -392,5 +389,3 @@ if __name__ == "__main__":
             print("\nFAILURE: Some integration tests failed. Please check the implementation.")
     except Exception as e:
         print(f"\nERROR: Test execution failed with error: {e}")
-=======
->>>>>>> origin/main

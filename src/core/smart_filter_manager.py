@@ -6,7 +6,6 @@ performance monitoring, and integration with the advanced workflow engine.
 It follows the same patterns as other core modules in the src/core directory.
 """
 
-import asyncio
 import json
 import logging
 import os
@@ -15,8 +14,7 @@ import sqlite3
 from collections import Counter
 from dataclasses import dataclass
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional, Set
-from pathlib import Path
+from typing import Any, Dict, List, Optional
 
 from .database import DATA_DIR
 from .performance_monitor import log_performance

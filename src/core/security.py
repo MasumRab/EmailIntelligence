@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 """
 Security Framework for Email Intelligence Platform
 
@@ -8,9 +7,7 @@ including access controls, data sanitization, execution sandboxing, and audit lo
 Also includes security utilities for path validation and sanitization.
 """
 
-import os
 import pathlib
-import asyncio
 import hashlib
 import hmac
 import json
@@ -18,10 +15,9 @@ import logging
 import re
 import secrets
 import time
-from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Union
 from uuid import uuid4
 from pathlib import Path
 
@@ -158,7 +154,6 @@ def sanitize_path(path: Union[str, pathlib.Path]) -> Optional[str]:
     Returns:
         Sanitized path string or None if path is invalid
     """
-    import pathlib
 
     try:
         # Convert to string if it's a Path object
@@ -218,17 +213,10 @@ class DataSanitizer:
                 # This regex will find 'key: value' and replace it with 'key: [REDACTED]'
                 # It handles optional whitespace and stops at the next comma or end of string.
                 data = re.sub(
-<<<<<<< HEAD
                     rf'(\b{re.escape(key)}\b\s*:\s*)[^\s,]+',
                     r'\1[REDACTED]',
                     data,
                     flags=re.IGNORECASE
-=======
-                    rf"(\b{re.escape(key)}\b\s*:\s*)[^\s,]+",
-                    r"\1[REDACTED]",
-                    data,
-                    flags=re.IGNORECASE,
->>>>>>> scientific
                 )
             return data
         elif isinstance(data, dict):
@@ -655,7 +643,6 @@ def sanitize_path(
     Returns:
         Sanitized path string or None if path is invalid
     """
-    import pathlib
 
     try:
         # Convert to string if it's a Path object
@@ -722,5 +709,3 @@ def secure_path_join(
     except Exception as e:
         logger.error(f"Error joining paths: {e}")
         return None
-=======
->>>>>>> origin/main

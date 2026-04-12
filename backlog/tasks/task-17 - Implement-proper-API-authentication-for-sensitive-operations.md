@@ -1,14 +1,7 @@
-<<<<<<< HEAD
 ---
 id: task-17
 title: Implement proper API authentication for sensitive operations
 status: Completed
-<<<<<<< HEAD
-=======
-assignee: []
-created_date: '2025-10-26 14:24'
-updated_date: '2025-10-28 23:47'
->>>>>>> scientific
 labels: []
 dependencies: []
 priority: high
@@ -67,5 +60,3 @@ Implemented comprehensive JWT-based API authentication system for sensitive oper
 
 The implementation provides enterprise-grade authentication while maintaining API usability and performance.
 <!-- SECTION:NOTES:END -->
-=======
->>>>>>> origin/main

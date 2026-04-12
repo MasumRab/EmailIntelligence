@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 """
 DEPRECATED: This module is part of the deprecated `backend` package.
 It will be removed in a future release.
@@ -8,7 +7,7 @@ Provides common functionality for all services
 """
 
 from abc import ABC
-from typing import Any, Dict, List, Optional, TypeVar, Generic
+from typing import Any, Optional, TypeVar
 from pydantic import BaseModel
 from src.core.database import get_db
 from src.core.settings import settings
@@ -44,5 +43,3 @@ class BaseService(ABC):
 
 # Generic type for model operations
 ModelType = TypeVar("ModelType", bound=BaseModel)
-=======
->>>>>>> origin/main

@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 """
 DEPRECATED: This module is part of the deprecated `backend` package.
 It will be removed in a future release.
@@ -9,14 +8,12 @@ This module manages the execution of node-based workflows, handling
 dependencies, execution order, and error management.
 """
 
-import asyncio
 import logging
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
 from backend.node_engine.node_base import (
     BaseNode,
-    Connection,
     DataType,
     ExecutionContext,
     SecurityContext,
@@ -430,5 +427,3 @@ class WorkflowEngine:
 workflow_engine = WorkflowEngine(
     SecurityManager(user_roles={})
 )  # Instantiate with a default SecurityManager
-=======
->>>>>>> origin/main

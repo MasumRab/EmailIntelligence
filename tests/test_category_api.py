@@ -1,5 +1,3 @@
-<<<<<<< HEAD
-import pytest
 from unittest.mock import AsyncMock
 
 from backend.python_backend.models import CategoryCreate
@@ -88,5 +86,3 @@ def test_create_category_db_error(client, mock_db_manager: AsyncMock):
     assert "Failed to create category" in response.json()["detail"]
     validated_category_data = CategoryCreate(**category_data).model_dump()
     mock_db_manager.create_category.assert_called_once_with(validated_category_data)
-=======
->>>>>>> origin/main

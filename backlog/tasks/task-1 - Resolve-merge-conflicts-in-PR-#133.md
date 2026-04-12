@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 ---
 id: task-1
 title: 'Resolve merge conflicts in PR #133'
@@ -65,5 +64,3 @@ Successfully resolved all merge conflicts between main and scientific branches f
 - Code functionality preserved across both branches
 - Repository state is clean and ready for production deployment
 <!-- SECTION:NOTES:END -->
-=======
->>>>>>> origin/main

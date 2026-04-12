@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import json
 import logging
 
@@ -7,15 +6,12 @@ import gradio as gr
 # Import from the new advanced workflow engine in the core
 from src.core.advanced_workflow_engine import (
     Workflow,
-    WorkflowRunner,
-    WorkflowManager,
     get_workflow_manager
 )
 from src.core.advanced_workflow_engine import (
     EmailInputNode, 
     NLPProcessorNode, 
-    EmailOutputNode,
-    BaseNode
+    EmailOutputNode
 )
 
 logger = logging.getLogger(__name__)
@@ -185,5 +181,3 @@ def create_workflow_ui():
             outputs=output_json,
         )
     return workflow_tab
-=======
->>>>>>> origin/main

@@ -6,7 +6,7 @@ Dependency injection system for the Email Intelligence Platform
 Manages service dependencies and provides them to route handlers
 """
 
-from typing import Generator, AsyncGenerator
+from typing import AsyncGenerator
 import logging
 from typing import TYPE_CHECKING, Optional
 from fastapi import Depends

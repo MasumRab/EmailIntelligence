@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 """
 Integrates with the Gmail API for efficient and robust email data retrieval.
 
@@ -14,11 +13,9 @@ import hashlib
 import json
 import logging
 import os
-import re
 import sqlite3
 import time
 from collections import deque
-from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional
@@ -614,5 +611,3 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
-=======
->>>>>>> origin/main

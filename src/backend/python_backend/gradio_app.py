@@ -6,16 +6,12 @@ using Gradio. It includes tabs for dashboard, inbox, email analysis, and visuali
 """
 
 import json
-from typing import Any, Dict, List
 
 import gradio as gr
-import matplotlib.pyplot as plt
-import numpy as np
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 import requests
-import seaborn as sns
 
 from backend.python_nlp.nlp_engine import NLPEngine
 

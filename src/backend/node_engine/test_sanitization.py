@@ -5,7 +5,6 @@ It will be removed in a future release.
 Test for the updated InputSanitizer with proper HTML sanitization.
 """
 
-import os
 import sys
 from pathlib import Path
 

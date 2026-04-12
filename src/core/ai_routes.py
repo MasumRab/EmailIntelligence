@@ -6,7 +6,6 @@ including sentiment analysis, topic classification, and categorization.
 """
 
 import logging
-from typing import Dict, Any
 
 from fastapi import APIRouter, Depends, HTTPException
 

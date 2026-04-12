@@ -1,14 +1,5 @@
 from abc import ABC, abstractmethod
-<<<<<<< HEAD
-<<<<<<< HEAD
-from typing import List, Dict, Any
-=======
 from typing import Any, Dict, List
-
->>>>>>> scientific
-=======
-from typing import List, Dict, Any
->>>>>>> origin/main
 
 class DataSource(ABC):
     """
@@ -16,17 +7,7 @@ class DataSource(ABC):
     """
 
     @abstractmethod
-<<<<<<< HEAD
-<<<<<<< HEAD
     async def get_emails(self, limit: int = 100, offset: int = 0, category_id: int = None, is_unread: bool = None) -> List[Dict[str, Any]]:
-=======
-    async def get_emails(
-        self, limit: int = 100, offset: int = 0, category_id: int = None, is_unread: bool = None
-    ) -> List[Dict[str, Any]]:
->>>>>>> scientific
-=======
-    async def get_emails(self, limit: int = 100, offset: int = 0, category_id: int = None, is_unread: bool = None) -> List[Dict[str, Any]]:
->>>>>>> origin/main
         """
         Fetches a list of emails.
 

@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 """
 DEPRECATED: This module is part of the deprecated `backend` package.
 It will be removed in a future release.
@@ -7,9 +6,8 @@ Category service for the Email Intelligence Platform
 Handles all category-related business logic
 """
 
-from typing import List, Optional, Dict, Any
+from typing import Dict, Any
 from .base_service import BaseService, BaseResponse
-from src.core.database import FIELD_ID
 
 
 class CategoryService(BaseService):
@@ -89,5 +87,3 @@ class CategoryService(BaseService):
                 )
         except Exception as e:
             return await self.handle_error(e, "delete_category")
-=======
->>>>>>> origin/main
