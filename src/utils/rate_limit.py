@@ -6,7 +6,7 @@ import time
 import asyncio
 import structlog
 from typing import Dict, Any
-from collections import defaultdict
+from collections import OrderedDict
 from ..config.settings import settings
 
 logger = structlog.get_logger()
@@ -16,7 +16,8 @@ class RateLimiter:
     """Rate limiter implementation using sliding window"""
 
     def __init__(self):
-        self.requests = defaultdict(list)
+        self.requests = OrderedDict()
+        self.max_clients = 10000  # Max unique clients to track
         self.window_size = settings.rate_limit_window
         self.max_requests = settings.rate_limit_requests
         self._lock = asyncio.Lock()  # Add lock for thread safety
@@ -40,9 +41,20 @@ class RateLimiter:
             current_time = time.time()
             window_start = current_time - self.window_size
 
+            # Ensure client_ip is in OrderedDict and update its recency
+            if client_ip in self.requests:
+                self.requests.move_to_end(client_ip)
+                client_requests = self.requests[client_ip]
+            else:
+                client_requests = []
+                self.requests[client_ip] = client_requests
+                # Evict oldest if we exceed capacity
+                if len(self.requests) > self.max_clients:
+                    self.requests.popitem(last=False)
+
             # Remove old requests outside the window
             self.requests[client_ip] = [
-                req_time for req_time in self.requests[client_ip] if req_time > window_start
+                req_time for req_time in client_requests if req_time > window_start
             ]
 
             # Check if within limit
