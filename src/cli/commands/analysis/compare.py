@@ -17,7 +17,7 @@ class CompareCommand(Command):
     """
     Command for comparing features across different script versions.
     
-    Helps prevent functionality loss during consolidation by identifying 
+    Helps prevent functionality loss during consolidation by identifying
     missing functions, classes, and patterns in newer script versions.
     """
 
@@ -32,13 +32,13 @@ class CompareCommand(Command):
     def add_arguments(self, parser: Any) -> None:
         """Add command-specific arguments."""
         parser.add_argument(
-            "scripts", 
-            nargs="+", 
+            "scripts",
+            nargs="+",
             help="List of script files to compare (in chronological order)"
         )
         parser.add_argument(
-            "--json", 
-            action="store_true", 
+            "--json",
+            action="store_true",
             help="Output comparison results as JSON"
         )
 
@@ -49,7 +49,7 @@ class CompareCommand(Command):
     async def execute(self, args: Namespace) -> int:
         """Execute the comparison command."""
         script_files = args.scripts
-        
+
         # Verify all files exist
         for script_file in script_files:
             if not Path(script_file).exists():
@@ -74,13 +74,13 @@ class CompareCommand(Command):
             with open(file_path, 'r', encoding='utf-8') as f:
                 content = f.read()
             tree = ast.parse(content)
-            
+
             features = {
                 "functions": {node.name for node in ast.walk(tree) if isinstance(node, ast.FunctionDef)},
                 "classes": {node.name for node in ast.walk(tree) if isinstance(node, ast.ClassDef)},
                 "imports": set()
             }
-            
+
             for node in ast.walk(tree):
                 if isinstance(node, ast.Import):
                     for alias in node.names:
@@ -88,7 +88,7 @@ class CompareCommand(Command):
                 elif isinstance(node, ast.ImportFrom):
                     if node.module:
                         features["imports"].add(node.module)
-            
+
             return features
         except Exception as e:
             print(f"Error parsing {file_path}: {e}")
@@ -106,11 +106,11 @@ class CompareCommand(Command):
             'dependency_validation': False,
             'self_healing': False
         }
-        
+
         try:
             with open(file_path, 'r', encoding='utf-8') as f:
                 content = f.read()
-            
+
             # Pattern detection logic
             patterns['dynamic_improvement'] = 'iteration > 1' in content and 'prev_results' in content
             patterns['adaptive_thresholding'] = 'similarity < 0.7' in content or 'threshold.*0.7' in content
@@ -120,10 +120,10 @@ class CompareCommand(Command):
             patterns['iteration_tracking'] = 'iteration_history' in content or 'best_results' in content
             patterns['dependency_validation'] = 'dep_id' in content and 'validate' in content
             patterns['self_healing'] = 'improvement' in content and 'threshold' in content
-            
+
         except Exception:
             pass
-        
+
         return patterns
 
     def _compare_script_chain(self, script_files: List[str]) -> Dict[str, Any]:
@@ -135,14 +135,14 @@ class CompareCommand(Command):
             "patterns": {},
             "missing": {}
         }
-        
+
         for script_file in script_files:
             features = self._extract_features(script_file)
             comparison["functions"][script_file] = list(features["functions"])
             comparison["classes"][script_file] = list(features["classes"])
             comparison["imports"][script_file] = list(features["imports"])
             comparison["patterns"][script_file] = self._detect_patterns(script_file)
-        
+
         # Identify missing functionality between transitions
         for i in range(1, len(script_files)):
             older = script_files[i-1]
@@ -162,7 +162,7 @@ class CompareCommand(Command):
                     "classes": list(missing_classes),
                     "patterns": missing_patterns
                 }
-        
+
         return comparison
 
     def _print_comparison_report(self, comparison: Dict[str, Any], script_files: List[str]) -> None:
@@ -170,7 +170,7 @@ class CompareCommand(Command):
         print("\n" + "=" * 40)
         print("FEATURE MATRIX")
         print("=" * 40)
-        
+
         for script in script_files:
             print(f"\n- {script}:")
             print(f"  Functions: {len(comparison['functions'][script])}")
@@ -181,7 +181,7 @@ class CompareCommand(Command):
             print("\n" + "!" * 40)
             print("MISSING FUNCTIONALITY DETECTED")
             print("!" * 40)
-            
+
             for transition, missing in comparison["missing"].items():
                 print(f"\n[ {transition} ]")
                 if missing["functions"]:
