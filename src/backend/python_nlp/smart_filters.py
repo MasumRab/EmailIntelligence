@@ -109,18 +109,23 @@ class SmartFilterManager:
         """
         if db_path is None:
             db_path = DEFAULT_DB_PATH
-        elif not os.path.isabs(db_path):
+        if db_path != ":memory:" and not os.path.isabs(db_path):
             # Secure path validation to prevent directory traversal
             filename = PathValidator.sanitize_filename(os.path.basename(db_path))
             db_path = os.path.join(DATA_DIR, filename)
 
         # Validate the final path
-        self.db_path = str(PathValidator.validate_and_resolve_db_path(db_path, DATA_DIR))
+        if db_path != ":memory:":
+            self.db_path = str(PathValidator.validate_and_resolve_db_path(db_path, DATA_DIR))
+        else:
+            self.db_path = db_path
         self.logger = logging.getLogger(__name__)
         self.conn = None
         if self.db_path == ":memory:":
             self.conn = sqlite3.connect(":memory:")
             self.conn.row_factory = sqlite3.Row
+        else:
+            os.makedirs(os.path.dirname(self.db_path), exist_ok=True)
         self._init_filter_db()
         self.filter_templates = self._load_filter_templates()
         self.pruning_criteria = self._load_pruning_criteria()
