@@ -30,7 +30,7 @@ def check_uvicorn_installed() -> bool:
             logger.error(f"Unsafe Python executable path: {python_exe}")
             return False
 
-        result = subprocess.run([python_exe, "-c", "import uvicorn"], capture_output=True)  # sourcery skip
+        result = subprocess.run([python_exe, "-c", "import uvicorn"], capture_output=True)  # sourcery skip: command-injection: command-injection
         return result.returncode == 0
     except Exception:
         return False
@@ -39,11 +39,11 @@ def check_uvicorn_installed() -> bool:
 def check_node_npm_installed() -> bool:
     """Check if Node.js and npm are installed."""
     try:
-        result = subprocess.run(["node", "--version"], capture_output=True)  # sourcery skip
+        result = subprocess.run(["node", "--version"], capture_output=True)  # sourcery skip: command-injection: command-injection
         if result.returncode != 0:
             return False
 
-        result = subprocess.run(["npm", "--version"], capture_output=True)  # sourcery skip
+        result = subprocess.run(["npm", "--version"], capture_output=True)  # sourcery skip: command-injection: command-injection
         return result.returncode == 0
     except FileNotFoundError:
         return False
@@ -78,7 +78,7 @@ def install_nodejs_dependencies(directory: str, update: bool = False) -> bool:
         else:
             cmd = ["npm", "install"]
 
-        result = subprocess.run(cmd, cwd=dir_path, capture_output=True, text=True)  # sourcery skip
+        result = subprocess.run(cmd, cwd=dir_path, capture_output=True, text=True)  # sourcery skip: command-injection: command-injection
         if result.returncode == 0:
             logger.info(f"Node.js dependencies installed successfully in {directory}")
             return True
@@ -244,7 +244,7 @@ def setup_node_dependencies(service_path: Path, service_name: str):
     if not node_modules.exists():
         logger.info(f"Installing dependencies for {service_name}...")
         try:
-            result = subprocess.run(["npm", "install"], cwd=service_path, capture_output=True, text=True)  # sourcery skip
+            result = subprocess.run(["npm", "install"], cwd=service_path, capture_output=True, text=True)  # sourcery skip: command-injection: command-injection
             if result.returncode == 0:
                 logger.info(f"Dependencies installed successfully for {service_name}")
             else:
