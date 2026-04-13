@@ -17,12 +17,6 @@ from backend.node_engine.workflow_manager import get_workflow_manager
 from backend.plugins.plugin_manager import plugin_manager
 
 # Try to import security manager if available
-try:
-    from src.core.security import Permission, SecurityLevel, get_security_manager
-
-    security_manager_available = True
-except ImportError:
-    security_manager_available = False
 
 
 def create_workflow_editor_ui():
@@ -318,7 +312,7 @@ def create_advanced_workflow_ui():
 
 
 # Initialize the workflow system when this module is loaded
-initialize_workflow_system()
+# initialize_workflow_system()
 
 if __name__ == "__main__":
     # For testing the workflow editor UI
