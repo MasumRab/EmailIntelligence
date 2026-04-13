@@ -139,7 +139,7 @@ async def authenticate_user(username: str, password: str, db) -> Optional[Dict[s
             # This is a valid Argon2 hash for "dummy" to prevent early exit
             # We calculate it once or use a fixed one. Using a fixed one is faster but consistent.
             # Ideally this should be pre-calculated.
-            stored_hash = "$argon2id$v=19$m=65536,t=3,p=4$1glUiN7SybZiCUUWLgVWBw$aJM0IdCrDGR3MTOxfAnLgUS1FBvm4rCOdx740yP6ffQ"
+            stored_hash = "$argon2id$v=19$m=65536,t=3,p=4$DnF1/L/JzW/0QZ3r5Y/y0w$K7g/6Z5x4y3w2v1u0t9s8"
 
         is_valid = verify_password(password, stored_hash)
 

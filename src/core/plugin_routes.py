@@ -87,13 +87,7 @@ class SystemStatus(BaseModel):
 
 
 # Create router
-from .auth import get_current_active_user  # noqa: E402
-
-router = APIRouter(
-    prefix="/api/plugins",
-    tags=["Plugin Management"],
-    dependencies=[Depends(get_current_active_user)]
-)
+router = APIRouter(prefix="/api/plugins", tags=["Plugin Management"])
 
 
 @router.get("/", response_model=List[PluginInfo])

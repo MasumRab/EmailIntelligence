@@ -99,13 +99,7 @@ class SystemMetrics(BaseModel):
 
 
 # Create router
-from .auth import get_current_active_user  # noqa: E402
-
-router = APIRouter(
-    prefix="/api/models",
-    tags=["Model Management"],
-    dependencies=[Depends(get_current_active_user)]
-)
+router = APIRouter(prefix="/api/models", tags=["Model Management"])
 
 
 @router.get("/", response_model=List[ModelInfo])

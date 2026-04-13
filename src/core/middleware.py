@@ -20,7 +20,9 @@ from .rate_limiter import api_rate_limiter
 logger = logging.getLogger(__name__)
 
 
-class SecurityMiddleware:
+from starlette.middleware.base import BaseHTTPMiddleware
+
+class SecurityMiddleware(BaseHTTPMiddleware):
     """
     FastAPI middleware for security, rate limiting, and audit logging.
     """
@@ -39,7 +41,7 @@ class SecurityMiddleware:
         self.enable_performance_monitoring = enable_performance_monitoring
         self.trusted_proxies = trusted_proxies or []
 
-    async def __call__(self, scope, receive, send):
+    async def dispatch(self, request, call_next):
         if scope["type"] != "http":
             await self.app(scope, receive, send)
             return
@@ -205,7 +207,7 @@ class SecurityHeadersMiddleware:
             "Permissions-Policy": "geolocation=(), microphone=(), camera=()",
         }
 
-    async def __call__(self, scope, receive, send):
+    async def dispatch(self, request, call_next):
         if scope["type"] != "http":
             await self.app(scope, receive, send)
             return
