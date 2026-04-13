@@ -1,1 +1,10 @@
-# Product Definition: CLI Unification\n\n**Goal**: Consolidate scattered Python and Shell scripts into a modular, secure, and domain-organized CLI system.\n\n**Key Objectives**:\n- Unified entry point (`dev.py`)\n- SOLID-compliant modular architecture\n- Security-first execution (Project Root Isolation)\n- Functional domain grouping (git, task, analysis, infra)
+# Product Definition: CLI Unification
+
+**Goal**: Consolidate scattered Python and Shell scripts into a modular, secure, and domain-organized CLI system.
+
+**Key Objectives**:
+- Unified entry point (`dev.py`)
+- SOLID-compliant modular architecture
+- Security-first execution (Project Root Isolation)
+- Functional domain grouping (git, task, analysis, infra)
+- Intelligent conflict resolution (Topology mapping, Logic drift analysis)
