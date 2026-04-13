@@ -3,11 +3,9 @@ Unit tests for the enhanced workflow engine.
 Tests all the new functionality implemented for workflow engine enhancement.
 """
 
-import asyncio
 import os
 import sys
 
-import pytest
 
 # Add the project root to the path to import correctly
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
@@ -70,7 +68,7 @@ def test_workflow_validation():
     invalid_workflow = Workflow("invalid_workflow", {"A": node_a, "B": node_b}, invalid_connections)
 
     is_valid, errors = invalid_workflow.validate()
-    assert not is_valid, f"Workflow should be invalid, but validation passed"
+    assert not is_valid, "Workflow should be invalid, but validation passed"
     assert len(errors) > 0, "Should have validation errors"
 
 
@@ -172,11 +170,14 @@ def test_parallel_execution():
     def dummy_operation(x):
         return x + 1
 
+    def dummy_operation_2args(x, y):
+        return x + y + 1
+
     # Create nodes that can run in parallel after A: A -> B, A -> C, then B,C -> D
     node_a = Node("A", "Node A", dummy_operation, ["input"], ["output"])
     node_b = Node("B", "Node B", dummy_operation, ["input"], ["output"])
     node_c = Node("C", "Node C", dummy_operation, ["input"], ["output"])
-    node_d = Node("D", "Node D", dummy_operation, ["input1", "input2"], ["output"])
+    node_d = Node("D", "Node D", dummy_operation_2args, ["input1", "input2"], ["output"])
 
     connections = [
         {"from": {"node_id": "A", "output": "output"}, "to": {"node_id": "B", "input": "input"}},

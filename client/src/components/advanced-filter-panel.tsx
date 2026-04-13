@@ -1,29 +1,24 @@
 import { useState } from "react";
-import { Button } from "@components/ui/button";
-import { Input } from "@components/ui/input";
-import { Label } from "@components/ui/label";
-import { Checkbox } from "@components/ui/checkbox";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@components/ui/select";
-import { Card, CardContent, CardHeader, CardTitle } from "@components/ui/card";
-import { Badge } from "@components/ui/badge";
+} from "@/components/ui/select";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@components/ui/popover";
-import { Calendar } from "@components/ui/calendar";
-import { CalendarIcon, Plus, Trash2, Filter } from "lucide-react";
+} from "@/components/ui/popover";
+import { Plus, Trash2, Filter } from "lucide-react";
 import type { Category } from "@shared/schema";
 
 interface AdvancedFilterPanelProps {
   categories: Category[];
-  onApplyFilters: (filters: any) => void;
+  onApplyFilters: (filters: Record<string, unknown>) => void;
 }
 
 interface FilterCondition {
@@ -82,7 +77,7 @@ export function AdvancedFilterPanel({
     }
   };
 
-  const updateCondition = (id: string, field: string, value: any) => {
+  const updateCondition = (id: string, field: string, value: string | boolean | Date | null) => {
     setCustomConditions(
       customConditions.map((condition) =>
         condition.id === id ? { ...condition, [field]: value } : condition,
@@ -91,7 +86,7 @@ export function AdvancedFilterPanel({
   };
 
   const applyFilters = () => {
-    const filters: any = {};
+    const filters: Record<string, unknown> = {};
 
     // Keyword-based filters
     if (requiredKeywords.trim()) {
@@ -137,16 +132,16 @@ export function AdvancedFilterPanel({
 
     // Date-based filters
     if (afterDate || beforeDate) {
-      filters.date_criteria = {};
-      if (afterDate) filters.date_criteria.after = afterDate;
-      if (beforeDate) filters.date_criteria.before = beforeDate;
+      filters.date_criteria = {} as any;
+      if (afterDate) (filters.date_criteria as any).after = afterDate;
+      if (beforeDate) (filters.date_criteria as any).before = beforeDate;
     }
 
     // Size-based filters
     if (minSize || maxSize) {
-      filters.size_criteria = {};
-      if (minSize) filters.size_criteria.min_size = parseInt(minSize);
-      if (maxSize) filters.size_criteria.max_size = parseInt(maxSize);
+      filters.size_criteria = {} as any;
+      if (minSize) (filters.size_criteria as any).min_size = parseInt(minSize);
+      if (maxSize) (filters.size_criteria as any).max_size = parseInt(maxSize);
     }
 
     // Category-based filters

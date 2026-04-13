@@ -608,6 +608,59 @@ class WorkflowRunner:
 
         return cleanup_schedule
 
+    def _build_node_context(self, node_id: str) -> Dict[str, Any]:
+        """Build context for a specific node based on connections and global execution context."""
+        context = {}
+        for connection in self.workflow.connections:
+            if connection["to"]["node_id"] == node_id:
+                from_node = connection["from"]["node_id"]
+                from_output = connection["from"]["output"]
+                to_input = connection["to"]["input"]
+
+                # If the output exists in node results, map it to the input
+                if from_node in self.node_results and from_output in self.node_results[from_node]:
+                    context[to_input] = self.node_results[from_node][from_output]
+                # Also check execution context
+                elif from_output in self.execution_context:
+                    context[to_input] = self.execution_context[from_output]
+
+        # Also include any global context that might be needed
+        for key, value in self.execution_context.items():
+            if key not in context:
+                context[key] = value
+
+        return context
+
+
+    def _build_node_context(self, node_id: str) -> Dict[str, Any]:
+        """
+        Build the context for a specific node based on workflow connections.
+        Maps the outputs of previous nodes to the inputs of the current node.
+        """
+        node_context = {}
+
+        # Check connections targeting this node
+        for conn in self.workflow.connections:
+            if conn["to"]["node_id"] == node_id:
+                from_node = conn["from"]["node_id"]
+                from_output = conn["from"]["output"]
+                to_input = conn["to"]["input"]
+
+                # Get the value from the source node's results
+                if from_node in self.node_results and from_output in self.node_results[from_node]:
+                    node_context[to_input] = self.node_results[from_node][from_output]
+                # Fallback to general execution context
+                elif from_output in self.execution_context:
+                    node_context[to_input] = self.execution_context[from_output]
+
+        # Add any other required inputs from the execution context
+        node = self.workflow.nodes[node_id]
+        for expected_input in node.inputs:
+            if expected_input not in node_context and expected_input in self.execution_context:
+                node_context[expected_input] = self.execution_context[expected_input]
+
+        return node_context
+
     def _evaluate_condition(self, condition: str) -> bool:
         """
         Evaluate a condition expression for conditional node execution.

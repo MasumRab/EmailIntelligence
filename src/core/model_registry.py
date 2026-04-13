@@ -484,8 +484,8 @@ class ModelRegistry:
 
             model_path = metadata.path
             if model_path.exists():
-                model = await asyncio.to_thread(AutoModelForSequenceClassification.from_pretrained, str(model_path), local_files_only=True)
-                tokenizer = await asyncio.to_thread(AutoTokenizer.from_pretrained, str(model_path), local_files_only=True)
+                model = AutoModelForSequenceClassification.from_pretrained(str(model_path))
+                tokenizer = AutoTokenizer.from_pretrained(str(model_path))
                 return {"model": model, "tokenizer": tokenizer}
             else:
                 logger.error(f"Transformers model path not found: {model_path}")

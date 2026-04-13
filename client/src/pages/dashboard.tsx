@@ -62,7 +62,7 @@ export default function Dashboard() {
       } else {
         throw new Error("FolderSync failed");
       }
-    } catch (error) {
+    } catch {
       toast({
         title: "FolderSync Failed",
         description: "Unable to sync with Gmail",
@@ -83,10 +83,8 @@ export default function Dashboard() {
   };
 
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
-  const [activeFilters, setActiveFilters] = useState<any>(null);
 
-  const handleApplyFilters = (filters: any) => {
-    setActiveFilters(filters);
+  const handleApplyFilters = (filters: Record<string, unknown>) => {
     // In a real implementation, you would apply these filters to your email query
     console.log("Applying filters:", filters);
     setShowAdvancedFilters(false); // Close the filter panel after applying
