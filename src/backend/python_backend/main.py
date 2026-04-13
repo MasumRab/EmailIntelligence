@@ -29,7 +29,6 @@ from src.core.auth import authenticate_user
 
 from ..plugins.plugin_manager import plugin_manager
 from . import (
-    action_routes,
     ai_routes,
     category_routes,
     dashboard_routes,
@@ -47,7 +46,6 @@ from .database import db_manager
 from .exceptions import AppException, BaseAppException
 
 # Import new components
-from .model_manager import model_manager
 from .performance_monitor import performance_monitor
 from .settings import settings
 
@@ -170,13 +168,13 @@ async def startup_event():
     from .dependencies import initialize_services
 
     await initialize_services()
-    await db_manager.connect()
+    await db_manager._ensure_initialized()
 
 
 @app.on_event("shutdown")
 async def shutdown_event():
     """Application shutdown: disconnect from the database."""
-    await db_manager.close()
+    pass
 
 
 @app.exception_handler(AppException)
@@ -247,7 +245,8 @@ if os.getenv("NODE_ENV") in ["production", "staging"]:
 # or kept here if they are used by multiple route files or for general app setup.
 gmail_service = GmailAIService()  # Used by gmail_routes
 filter_manager = SmartFilterManager()  # Used by filter_routes
-ai_engine = AdvancedAIEngine(model_manager)  # Used by email_routes, action_routes
+from .ai_engine import AdvancedAIEngine
+ai_engine = AdvancedAIEngine(None)
 performance_monitor = performance_monitor  # Used by all routes via @performance_monitor.track
 
 from .routes.v1.category_routes import router as category_router_v1
@@ -266,9 +265,7 @@ app.include_router(gmail_routes.router)
 app.include_router(filter_routes.router)
 app.include_router(training_routes.router)
 app.include_router(workflow_routes.router)
-app.include_router(model_routes.router)
 app.include_router(performance_routes.router)
-app.include_router(action_routes.router)
 app.include_router(dashboard_routes.router)
 app.include_router(ai_routes.router)
 
@@ -383,4 +380,3 @@ env = os.getenv("NODE_ENV", "development")
 host = os.getenv("HOST", "127.0.0.1" if env == "development" else "0.0.0.0")
 reload = env == "development"
 # Use string app path to support reload
-uvicorn.run("main:app", host=host, port=port, reload=reload, log_level="info")

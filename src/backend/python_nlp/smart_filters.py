@@ -22,6 +22,10 @@ from src.core.security import PathValidator
 # Use the project's data directory for database files to avoid cluttering the root
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 DATA_DIR = os.path.join(PROJECT_ROOT, "data")
+if not os.path.exists(DATA_DIR):
+    os.makedirs(DATA_DIR, exist_ok=True)
+if not os.path.exists(DATA_DIR):
+    os.makedirs(DATA_DIR, exist_ok=True)
 DEFAULT_DB_PATH = os.path.join(DATA_DIR, "smart_filters.db")
 
 
@@ -109,13 +113,13 @@ class SmartFilterManager:
         """
         if db_path is None:
             db_path = DEFAULT_DB_PATH
-        elif not os.path.isabs(db_path):
+        elif db_path != ":memory:" and not os.path.isabs(db_path):
             # Secure path validation to prevent directory traversal
             filename = PathValidator.sanitize_filename(os.path.basename(db_path))
             db_path = os.path.join(DATA_DIR, filename)
 
         # Validate the final path
-        self.db_path = str(PathValidator.validate_database_path(db_path, DATA_DIR))
+        self.db_path = str(PathValidator.validate_and_resolve_db_path(db_path, DATA_DIR)) if db_path != ":memory:" else ":memory:"
         self.logger = logging.getLogger(__name__)
         self.conn = None
         if self.db_path == ":memory:":
