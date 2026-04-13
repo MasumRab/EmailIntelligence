@@ -9,11 +9,7 @@ Implements a sample processing node for the node-based workflow system.
 
 from typing import Any, Dict, Type
 
-<<<<<<< HEAD
-from backend.plugins.base_plugin import ProcessingNode
-=======
 from src.backend.plugins.base_plugin import ProcessingNode
->>>>>>> ralph-hub-assembly-1774754264
 
 
 class EmailFilterNode(ProcessingNode):

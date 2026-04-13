@@ -14,29 +14,17 @@ import time
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-<<<<<<< HEAD
-from backend.node_engine.node_base import (
-=======
 from src.backend.node_engine.node_base import (
->>>>>>> ralph-hub-assembly-1774754264
     BaseNode,
     Connection,
     DataType,
     ExecutionContext,
-<<<<<<< HEAD
     GenericType,
-    SecurityContext,
-    Workflow,
-)
-from backend.node_engine.security_manager import SecurityManager  # Import the SecurityManager class
-from backend.node_engine.security_manager import (
-=======
     SecurityContext,
     Workflow,
 )
 from src.backend.node_engine.security_manager import SecurityManager  # Import the SecurityManager class
 from src.backend.node_engine.security_manager import (
->>>>>>> ralph-hub-assembly-1774754264
     ExecutionSandbox,
     InputSanitizer,
     ResourceLimits,
@@ -330,37 +318,14 @@ class WorkflowEngine:
 
                 node.set_input(conn.target_port, source_output)
 
-    # TODO(P2, 2h): Enhance type validation to support more complex type relationships
-    # Pseudo code for complex type relationships:
-    # - Support union types (e.g., EMAIL | EMAIL_LIST)
-    # - Handle inheritance relationships
-    # - Support generic types with constraints
-    # - Add type aliases and custom type definitions
-
-    # TODO(P2, 3h): Add support for optional input ports with default values
-    # Pseudo code for optional ports:
-    # - Modify NodePort to include default_value parameter
-    # - Update validate_inputs to skip validation for optional ports without values
-    # - Modify set_inputs to use default values when not provided
-
-    # TODO(P3, 4h): Implement input transformation pipeline for incompatible but convertible types
-    # Pseudo code for transformation pipeline:
-    # - Create TypeTransformer class with conversion methods
-    # - Add transform_input method to BaseNode
-    # - Support common conversions (string to json, list to single item, etc.)
-    # - Add transformation cost/priority system
-
     def _validate_type_compatibility(
         self, source_type: "DataType", target_type: "DataType"
     ) -> bool:
         """Validate if source and target types are compatible."""
-<<<<<<< HEAD
         # Handle GenericType comparisons
         if isinstance(source_type, GenericType) or isinstance(target_type, GenericType):
             return self._validate_generic_compatibility(source_type, target_type)
 
-=======
->>>>>>> ralph-hub-assembly-1774754264
         if target_type == DataType.ANY:
             return True
         if source_type == target_type:
@@ -379,7 +344,6 @@ class WorkflowEngine:
         # Add more type compatibility rules as needed
         return False
 
-<<<<<<< HEAD
     def _validate_generic_compatibility(
         self,
         source_type: "DataType | GenericType",
@@ -422,29 +386,6 @@ class WorkflowEngine:
             return True
 
         return False
-
-=======
->>>>>>> ralph-hub-assembly-1774754264
-    # TODO(P1, 4h): Expand type compatibility rules to support all defined DataType combinations
-    # Pseudo code for expanded type compatibility:
-    # - Add compatibility matrix for all DataType combinations
-    # - Support OBJECT to JSON conversion
-    # - Handle TEXT/STRING interchangeability
-    # - Add NUMBER to STRING conversion for display purposes
-
-    # TODO(P2, 3h): Add support for generic types and type parameters
-    # Pseudo code for generic types:
-    # - Create GenericType class with type parameters
-    # - Support List[T], Dict[K,V] style generics
-    # - Add type parameter validation and inference
-    # - Handle generic type compatibility checking
-
-    # TODO(P3, 2h): Implement type coercion for compatible but distinct types
-    # Pseudo code for type coercion:
-    # - Create TypeCoercer class with coercion methods
-    # - Add safe coercion (no data loss) vs unsafe coercion
-    # - Support string to number, number to string conversions
-    # - Add coercion cost and safety ratings
 
     async def execute_workflow_async(
         self, workflow: Workflow, initial_inputs: Dict[str, Any] = None

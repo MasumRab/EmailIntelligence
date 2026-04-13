@@ -51,16 +51,37 @@ class BasicSimilarityStrategy(SimilarityStrategy):
         return (struct_score * 0.4) + (lexical_score * 0.6)
 
 class ScientificSimilarityStrategy(SimilarityStrategy):
-    """Intended: High-fidelity vector-based similarity using TF-IDF and Cosine Similarity."""
+    """Intended: High-fidelity similarity using the project's scientific NLPEngine."""
+    def __init__(self):
+        self._engine = None
+
+    def _get_engine(self):
+        if self._engine: return self._engine
+        try:
+            from src.backend.python_nlp.nlp_engine import NLPEngine
+            self._engine = NLPEngine()
+            return self._engine
+        except ImportError:
+            return None
+
     def calculate(self, text1: str, text2: str) -> float:
+        engine = self._get_engine()
+        # If the real engine has a similarity method, use it
+        if engine and hasattr(engine, 'calculate_similarity'):
+            try:
+                return float(engine.calculate_similarity(text1, text2))
+            except: pass
+            
+        # Fallback to local TF-IDF if engine is unavailable or doesn't support similarity
         if not HAS_SCIENTIFIC:
             return 0.0
         try:
+            from sklearn.feature_extraction.text import TfidfVectorizer
+            from sklearn.metrics.pairwise import cosine_similarity
             vectorizer = TfidfVectorizer(token_pattern=r'\w+')
             tfidf = vectorizer.fit_transform([text1, text2])
             return float(cosine_similarity(tfidf[0:1], tfidf[1:2])[0][0])
-        except Exception as e:
-            logger.debug(f"Scientific similarity calculation failed: {e}")
+        except Exception:
             return 0.0
 
 # --- Context (Service) ---

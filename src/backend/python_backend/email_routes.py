@@ -4,11 +4,7 @@ from typing import List, Optional
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
 
-<<<<<<< HEAD
-from backend.node_engine.workflow_engine import WorkflowEngine
-=======
 from src.backend.node_engine.workflow_engine import WorkflowEngine
->>>>>>> ralph-hub-assembly-1774754264
 from src.core.auth import get_current_active_user
 
 from ..python_nlp.smart_filters import SmartFilterManager  # Corrected import
@@ -20,7 +16,6 @@ from .models import EmailCreate, EmailResponse, EmailUpdate
 from .performance_monitor import log_performance
 from .services.email_service import EmailService
 from .utils import create_log_data, handle_pydantic_validation
-from .workflow_engine import WorkflowEngine
 
 logger = logging.getLogger(__name__)
 router = APIRouter()

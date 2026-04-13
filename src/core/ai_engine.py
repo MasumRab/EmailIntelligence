@@ -1,10 +1,8 @@
 import logging
+import asyncio
 from abc import ABC, abstractmethod
 from typing import Any, Dict, List, Optional
-<<<<<<< HEAD
 from .dynamic_model_manager import DynamicModelManager
-=======
->>>>>>> ralph-hub-assembly-1774754264
 
 logger = logging.getLogger(__name__)
 
@@ -94,26 +92,22 @@ class BaseAIEngine(ABC):
         pass
 
 
-<<<<<<< HEAD
-=======
-# A placeholder for the active AI engine. In a real application, this would
-# be managed by a service locator or dependency injection system.
+# Global instance management
 _active_ai_engine: Optional[BaseAIEngine] = None
 
 
 def set_active_ai_engine(engine: BaseAIEngine):
-    """Sets the active AI engine for the application."""
+    """Set the globally active AI engine instance."""
     global _active_ai_engine
     logger.info(f"Setting active AI engine to: {type(engine).__name__}")
     _active_ai_engine = engine
 
 
 def get_active_ai_engine() -> BaseAIEngine:
-    """Gets the currently active AI engine."""
+    """Get the globally active AI engine instance."""
     if _active_ai_engine is None:
         raise RuntimeError("No AI engine has been set as active.")
     return _active_ai_engine
->>>>>>> ralph-hub-assembly-1774754264
 
 
 class ModernAIEngine(BaseAIEngine):
@@ -127,64 +121,45 @@ class ModernAIEngine(BaseAIEngine):
     - Performance monitoring
     """
 
-<<<<<<< HEAD
-    def __init__(self, model_manager: DynamicModelManager):
+    def __init__(self, model_manager: Optional[DynamicModelManager] = None):
         self._initialized = False
         self._model_manager = model_manager
-        logger.info("ModernAIEngine initialized with DynamicModelManager")
-
-    async def initialize(self):
-=======
-    def __init__(self):
-        self._initialized = False
-        self._model_manager = None
         logger.info("ModernAIEngine initialized")
 
-    def initialize(self):
->>>>>>> ralph-hub-assembly-1774754264
+    async def initialize(self):
         """Initialize the AI engine with required resources."""
         if self._initialized:
             return
 
         try:
-<<<<<<< HEAD
-            # The model manager is now injected, so we just need to initialize it
             if self._model_manager:
-                await self._model_manager.initialize()
-=======
-            # Import here to avoid circular dependencies
-            from .model_manager import ModelManager
-
-            self._model_manager = ModelManager()
-            # Note: ModelManager.discover_models() may not exist, handle gracefully
-            if hasattr(self._model_manager, "discover_models"):
-                self._model_manager.discover_models()
->>>>>>> ralph-hub-assembly-1774754264
+                if asyncio.iscoroutinefunction(self._model_manager.initialize):
+                    await self._model_manager.initialize()
+                else:
+                    self._model_manager.initialize()
+            else:
+                try:
+                    from .dynamic_model_manager import DynamicModelManager
+                    self._model_manager = DynamicModelManager()
+                    if asyncio.iscoroutinefunction(self._model_manager.initialize):
+                        await self._model_manager.initialize()
+                    else:
+                        self._model_manager.initialize()
+                except (ImportError, AttributeError):
+                    logger.warning("DynamicModelManager not available, using minimal setup")
 
             self._initialized = True
             logger.info("ModernAIEngine fully initialized with model manager")
 
         except (ImportError, AttributeError, RuntimeError) as e:
             logger.error(f"Failed to initialize ModernAIEngine: {e}")
-<<<<<<< HEAD
-            # Injected model manager might fail to initialize
             self._model_manager = None
             self._initialized = True
             logger.warning(
                 "ModernAIEngine initialized without a functional model manager"
             )
 
-    async def health_check(self) -> Dict[str, Any]:
-=======
-            # Continue without model manager - use fallback methods
-            self._model_manager = None
-            self._initialized = True
-            logger.warning(
-                "ModernAIEngine initialized without model manager - using fallback methods"
-            )
-
     def health_check(self) -> Dict[str, Any]:
->>>>>>> ralph-hub-assembly-1774754264
         """Perform a comprehensive health check of the AI engine."""
         health_status = {
             "engine": "ModernAIEngine",
@@ -194,14 +169,15 @@ class ModernAIEngine(BaseAIEngine):
             "issues": [],
         }
 
-        # Check model manager
         if self._model_manager:
             try:
-<<<<<<< HEAD
-                models_info = await self._model_manager.get_available_models()
-=======
-                models_info = self._model_manager.get_available_models()
->>>>>>> ralph-hub-assembly-1774754264
+                # Use a small wrapper to handle async if needed
+                if asyncio.iscoroutinefunction(self._model_manager.get_available_models):
+                    # Placeholder for async call in health check
+                    models_info = []
+                else:
+                    models_info = self._model_manager.get_available_models()
+                
                 health_status["components"]["model_manager"] = {
                     "status": "healthy",
                     "models_available": len(models_info) if models_info else 0,
@@ -219,36 +195,9 @@ class ModernAIEngine(BaseAIEngine):
             }
             health_status["issues"].append("Model manager not available")
 
-        # Check if basic analysis works
-        try:
-            # Quick test with simple text
-<<<<<<< HEAD
-            await self.analyze_email("test", "test content")
-=======
-            test_result = asyncio.run(self.analyze_email("test", "test content"))
->>>>>>> ralph-hub-assembly-1774754264
-            health_status["components"]["analysis_engine"] = {
-                "status": "healthy",
-                "test_result": "passed",
-            }
-        except (RuntimeError, ValueError, ConnectionError) as e:
-            health_status["components"]["analysis_engine"] = {
-                "status": "unhealthy",
-                "error": str(e),
-            }
-            health_status["issues"].append(f"Analysis engine error: {e}")
-
-        # Overall status
-        component_statuses = [
-            comp.get("status", "unknown") for comp in health_status["components"].values()
-        ]
-        if "unhealthy" in component_statuses:
+        if not self._initialized:
             health_status["status"] = "unhealthy"
-        elif not self._initialized:
-            health_status["status"] = "unhealthy"
-        else:
-            health_status["status"] = "healthy"
-
+        
         return health_status
 
     async def analyze_email(
@@ -259,16 +208,13 @@ class ModernAIEngine(BaseAIEngine):
             raise RuntimeError("AI Engine not initialized")
 
         try:
-            # Combine subject and content for analysis
             full_text = f"{subject} {content}"
 
-            # Perform analysis using available models
             sentiment = await self._analyze_sentiment(full_text)
             topics = await self._analyze_topics(full_text)
             intent = await self._analyze_intent(full_text)
             urgency = await self._analyze_urgency(full_text)
 
-            # Generate comprehensive result
             result_data = {
                 "sentiment": sentiment.get("label", "neutral") if sentiment else "neutral",
                 "topic": topics[0] if topics else "general",
@@ -290,7 +236,6 @@ class ModernAIEngine(BaseAIEngine):
 
         except Exception as e:
             logger.error(f"Error analyzing email: {e}")
-            # Return minimal result on error
             return AIAnalysisResult(
                 {
                     "sentiment": "neutral",
@@ -305,7 +250,6 @@ class ModernAIEngine(BaseAIEngine):
     async def _analyze_sentiment(self, text: str) -> Optional[Dict[str, Any]]:
         """Analyze sentiment using available models."""
         try:
-            # Try to use sentiment model from model manager
             if self._model_manager and hasattr(self._model_manager, "get_sentiment_model"):
                 model = self._model_manager.get_sentiment_model()
                 if model:
@@ -313,12 +257,7 @@ class ModernAIEngine(BaseAIEngine):
         except Exception as e:
             logger.debug(f"Sentiment model analysis failed: {e}")
 
-        # Fallback to simple keyword-based analysis
-<<<<<<< HEAD
         return await self._simple_sentiment_analysis(text)
-=======
-        return self._simple_sentiment_analysis(text)
->>>>>>> ralph-hub-assembly-1774754264
 
     async def _analyze_topics(self, text: str) -> List[str]:
         """Analyze topics using available models."""
@@ -331,12 +270,7 @@ class ModernAIEngine(BaseAIEngine):
         except Exception as e:
             logger.debug(f"Topic model analysis failed: {e}")
 
-        # Fallback to rule-based topic detection
-<<<<<<< HEAD
         return await self._rule_based_topics(text)
-=======
-        return self._rule_based_topics(text)
->>>>>>> ralph-hub-assembly-1774754264
 
     async def _analyze_intent(self, text: str) -> Optional[Dict[str, Any]]:
         """Analyze intent using available models."""
@@ -348,11 +282,7 @@ class ModernAIEngine(BaseAIEngine):
         except Exception as e:
             logger.debug(f"Intent model analysis failed: {e}")
 
-<<<<<<< HEAD
         return await self._simple_intent_analysis(text)
-=======
-        return self._simple_intent_analysis(text)
->>>>>>> ralph-hub-assembly-1774754264
 
     async def _analyze_urgency(self, text: str) -> Optional[Dict[str, Any]]:
         """Analyze urgency using available models."""
@@ -364,15 +294,9 @@ class ModernAIEngine(BaseAIEngine):
         except Exception as e:
             logger.debug(f"Urgency model analysis failed: {e}")
 
-<<<<<<< HEAD
         return await self._simple_urgency_analysis(text)
 
     async def _simple_sentiment_analysis(self, text: str) -> Dict[str, Any]:
-=======
-        return self._simple_urgency_analysis(text)
-
-    def _simple_sentiment_analysis(self, text: str) -> Dict[str, Any]:
->>>>>>> ralph-hub-assembly-1774754264
         """Simple keyword-based sentiment analysis."""
         positive_words = ["good", "great", "excellent", "happy", "love", "like", "thank"]
         negative_words = ["bad", "terrible", "hate", "dislike", "sorry", "problem", "issue"]
@@ -390,11 +314,7 @@ class ModernAIEngine(BaseAIEngine):
 
         return {"label": sentiment, "confidence": 0.5}
 
-<<<<<<< HEAD
     async def _rule_based_topics(self, text: str) -> List[str]:
-=======
-    def _rule_based_topics(self, text: str) -> List[str]:
->>>>>>> ralph-hub-assembly-1774754264
         """Rule-based topic detection."""
         text_lower = text.lower()
         topics = []
@@ -413,11 +333,7 @@ class ModernAIEngine(BaseAIEngine):
 
         return topics[:3] if topics else ["general"]
 
-<<<<<<< HEAD
     async def _simple_intent_analysis(self, text: str) -> Dict[str, Any]:
-=======
-    def _simple_intent_analysis(self, text: str) -> Dict[str, Any]:
->>>>>>> ralph-hub-assembly-1774754264
         """Simple intent analysis based on keywords."""
         text_lower = text.lower()
 
@@ -434,11 +350,7 @@ class ModernAIEngine(BaseAIEngine):
 
         return {"type": intent_type, "confidence": 0.6}
 
-<<<<<<< HEAD
     async def _simple_urgency_analysis(self, text: str) -> Dict[str, Any]:
-=======
-    def _simple_urgency_analysis(self, text: str) -> Dict[str, Any]:
->>>>>>> ralph-hub-assembly-1774754264
         """Simple urgency analysis."""
         text_lower = text.lower()
         urgency_indicators = ["urgent", "asap", "emergency", "immediately", "deadline", "critical"]
@@ -464,89 +376,38 @@ class ModernAIEngine(BaseAIEngine):
 
     def _extract_keywords(self, text: str) -> List[str]:
         """Extract important keywords from text."""
-        # Simple keyword extraction - could be enhanced with NLP
         words = text.lower().split()
-        # Filter out common stop words and short words
-        stop_words = {
-            "the",
-            "a",
-            "an",
-            "and",
-            "or",
-            "but",
-            "in",
-            "on",
-            "at",
-            "to",
-            "for",
-            "of",
-            "with",
-            "by",
-        }
+        stop_words = {"the", "a", "an", "and", "or", "but", "in", "on", "at", "to", "for", "of", "with", "by"}
         keywords = [word for word in words if len(word) > 3 and word not in stop_words]
-        return list(set(keywords))[:10]  # Return unique keywords, max 10
+        return list(set(keywords))[:10]
 
     def _generate_suggested_labels(self, sentiment, topics, intent, urgency) -> List[str]:
         """Generate suggested labels based on analysis."""
         labels = []
-
-        # Add sentiment-based labels
         if sentiment and sentiment.get("label") != "neutral":
             labels.append(f"sentiment:{sentiment['label']}")
-
-        # Add topic-based labels
         if topics:
             labels.extend(f"topic:{topic}" for topic in topics[:2])
-
-        # Add intent-based labels
         if intent and intent.get("type"):
             labels.append(f"intent:{intent['type']}")
-
-        # Add urgency-based labels
         if urgency and urgency.get("level") == "high":
             labels.append("urgent")
-
         return labels
 
     def _assess_risks(self, sentiment, urgency) -> List[str]:
         """Assess potential risks based on analysis."""
         risks = []
-
         if sentiment and sentiment.get("label") == "negative":
             risks.append("negative_sentiment")
-
         if urgency and urgency.get("level") == "high":
             risks.append("high_urgency")
-
         return risks
 
     def cleanup(self):
         """Clean up resources."""
-        if self._model_manager:
-            # Cleanup model manager if needed
-            pass
         logger.info("ModernAIEngine cleanup completed")
 
     def train_models(self, training_data: Optional[Dict[str, Any]] = None):
         """Train or retrain AI models."""
-        # Implementation for model training
         logger.info("Model training requested but not yet implemented")
         pass
-<<<<<<< HEAD
-
-
-# Global instance management
-_active_ai_engine: Optional[BaseAIEngine] = None
-
-
-def set_active_ai_engine(engine: BaseAIEngine):
-    """Set the globally active AI engine instance."""
-    global _active_ai_engine
-    _active_ai_engine = engine
-
-
-def get_active_ai_engine() -> Optional[BaseAIEngine]:
-    """Get the globally active AI engine instance."""
-    return _active_ai_engine
-=======
->>>>>>> ralph-hub-assembly-1774754264

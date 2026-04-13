@@ -35,7 +35,7 @@ from .security import PathValidator, validate_path_safety, SecurityValidator, Se
 
 logger = logging.getLogger(__name__)
 security_validator = SecurityValidator()
-fs_proxy = SecureFileSystemProxy(security_validator)
+fs_proxy_global = SecureFileSystemProxy(security_validator)
 
 
 class NotmuchDataSource(DataSource):
@@ -46,7 +46,10 @@ class NotmuchDataSource(DataSource):
     along with AI-powered analysis and smart filtering.
     """
 
-    def __init__(self, db_path: Optional[str] = None, db_manager: Optional['DatabaseManager'] = None):
+    def __init__(self, db_path: Optional[str] = None, db_manager: Optional['DatabaseManager'] = None, fs_proxy: Optional[SecureFileSystemProxy] = None):
+        # Injected filesystem proxy for gated I/O
+        self.fs_proxy = fs_proxy or fs_proxy_global
+        
         # Validate the database path for security if provided
         if db_path is not None:
             try:
@@ -188,7 +191,7 @@ class NotmuchDataSource(DataSource):
             
             try:
                 # Parse email content from file
-                with fs_proxy.secure_open(filename, 'r', encoding='utf-8', errors='ignore') as f:
+                with self.fs_proxy.secure_open(filename, 'r', encoding='utf-8', errors='ignore') as f:
                     email_message = email.message_from_file(f)
                 
                 email_data = {

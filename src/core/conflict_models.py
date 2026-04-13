@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 """
 Conflict Models
 
@@ -27,6 +26,14 @@ class RiskLevel(Enum):
     MEDIUM = "medium"
     HIGH = "high"
     CRITICAL = "critical"
+
+
+class ValidationStatus(Enum):
+    """Validation status levels"""
+    PASS = "pass"
+    WARNING = "warning"
+    FAIL = "fail"
+    ERROR = "error"
 
 
 @dataclass
@@ -78,11 +85,19 @@ class ResolutionStrategy:
 
 @dataclass
 class ValidationResult:
-    """Result of validation"""
+    """Result of security and constitutional validation."""
     is_valid: bool
-    errors: List[str]
+    violations: List[str]
     warnings: List[str]
-    details: Dict[str, Any]
+    recommendations: List[str]
+    details: Optional[Dict[str, Any]] = None
+    errors: Optional[List[str]] = None
+
+    def __post_init__(self):
+        if self.details is None:
+            self.details = {}
+        if self.errors is None:
+            self.errors = []
 
 
 @dataclass
@@ -92,23 +107,3 @@ class ResolutionPlan:
     strategy: ResolutionStrategy
     validation_result: ValidationResult
     execution_context: Dict[str, Any]
-=======
-from enum import Enum
-from dataclasses import dataclass
-from typing import List, Optional
-
-class ValidationStatus(Enum):
-    """Validation status levels"""
-    PASS = "pass"
-    WARNING = "warning"
-    FAIL = "fail"
-    ERROR = "error"
-
-@dataclass
-class ValidationResult:
-    """Result of security validation."""
-    is_valid: bool
-    violations: List[str]
-    warnings: List[str]
-    recommendations: List[str]
->>>>>>> ralph-hub-assembly-1774754264

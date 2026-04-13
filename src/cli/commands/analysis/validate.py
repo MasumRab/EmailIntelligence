@@ -17,6 +17,9 @@ class ValidateCommand(Command):
     This command executes all validation checks and reports results.
     """
 
+    def __init__(self):
+        self._validator = None
+
     @property
     def name(self) -> str:
         return "code-validate"
@@ -67,6 +70,11 @@ class ValidateCommand(Command):
         """
         try:
             print("Running validation...")
+
+            # Check validator is available
+            if self._validator is None:
+                print("Error: Validator not configured")
+                return 1
 
             # Run validation
             target = {"files": []}  # Basic validation target

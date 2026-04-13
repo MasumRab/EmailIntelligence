@@ -1,19 +1,23 @@
-<<<<<<< HEAD
-# Project Overview
+# EmailIntelligence - Unified Development Environment
+
+## Project Overview
+
+EmailIntelligence is a full-stack application designed to provide intelligent email analysis and management capabilities. The project combines a Python FastAPI backend for AI/NLP tasks with a React frontend and a Gradio-based UI for scientific exploration.
 
 ## General Guidelines
 
-- Use TypeScript for all new code
-- Follow consistent naming conventions
+- Use TypeScript for all new frontend code
+- Use Python 3.12+ for all backend code
+- Follow consistent naming conventions (camelCase for JS/TS, snake_case for Python)
 - Write self-documenting code with clear variable and function names
 - Prefer composition over inheritance
 - Use meaningful comments for complex business logic
 
 ## Code Style
 
-- Use 2 spaces for indentation
-- Use semicolons
-- Use double quotes for strings
+- Use 2 spaces for indentation in JS/TS/JSON
+- Use 4 spaces for indentation in Python
+- Use double quotes for strings in JS/TS
 - Use trailing commas in multi-line objects and arrays
 
 ## Architecture Principles
@@ -27,12 +31,12 @@
 ## Task Master AI Instructions
 **Import Task Master's development workflow commands and guidelines, treat as if import is in the main CLAUDE.md file.**
 @./.taskmaster/CLAUDE.md
-=======
-# Claude AI Assistant - Context & Guidelines
+
+## Claude AI Assistant - Context & Guidelines
 
 > **Note:** This file works alongside `AGENTS.md` (generic AI agent instructions). AGENTS.md contains the core Task Master commands and workflows for all AI agents. This file contains only Claude-specific features and integrations.
 
-## MCP Configuration for Claude Code/Claude AI
+### MCP Configuration for Claude Code/Claude AI
 
 Configure Task Master MCP server in `.mcp.json`:
 
@@ -53,15 +57,15 @@ Configure Task Master MCP server in `.mcp.json`:
 
 **Note:** API keys are configured via `task-master models --setup`, not in MCP configuration.
 
-## Claude-Specific Features
+### Claude-Specific Features
 
-### Context Management
+#### Context Management
 
 - Use `/clear` between different tasks to maintain focus
 - AGENTS.md and CLAUDE.md are auto-loaded for context
 - Use `task-master show <id>` to pull specific task context when needed
 
-### Tool Allowlist
+#### Tool Allowlist
 
 Add to `.claude/settings.json`:
 
@@ -78,7 +82,7 @@ Add to `.claude/settings.json`:
 }
 ```
 
-### Custom Slash Commands
+#### Custom Slash Commands
 
 Create `.claude/commands/taskmaster-next.md`:
 
@@ -91,7 +95,7 @@ Steps:
 3. Provide a summary of what needs to be implemented
 ```
 
-### Parallel Development with Git Worktrees
+#### Parallel Development with Git Worktrees
 
 ```bash
 # Create worktrees for parallel task development
@@ -103,18 +107,18 @@ cd ../project-auth && claude    # Terminal 1: Auth work
 cd ../project-api && claude     # Terminal 2: API work
 ```
 
-## Important Differences from Other Agents
+### Important Differences from Other Agents
 
-### Direct File Access
+#### Direct File Access
 Claude Code can directly edit files with native Edit tool (superior to sed/manual editing).
 
-### Git Integration
+#### Git Integration
 Native git commands - no special syntax needed.
 
-### Session Persistence
+#### Session Persistence
 Use `/clear` for context isolation between tasks. Multiple Claude Code windows can work on different worktrees simultaneously.
 
-## Recommended Model Configuration
+### Recommended Model Configuration
 
 For Claude users:
 
@@ -125,7 +129,7 @@ task-master models --set-research perplexity-llama-3.1-sonar-large-128k-online
 task-master models --set-fallback claude-3-5-haiku-20241022
 ```
 
-## Your Role with Claude Code
+### Your Role with Claude Code
 
 As a Claude assistant with Task Master:
 
@@ -140,4 +144,3 @@ As a Claude assistant with Task Master:
 ---
 
 *See AGENTS.md for complete Task Master commands, workflows, and best practices.*
->>>>>>> a7da61cf1f697de3c8c81f536bf579d36d88e613

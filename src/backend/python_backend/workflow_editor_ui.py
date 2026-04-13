@@ -13,15 +13,9 @@ from typing import Any, Dict, List, Optional
 
 import gradio as gr
 
-<<<<<<< HEAD
-from backend.node_engine.node_base import Connection, Workflow
-from backend.node_engine.workflow_manager import get_workflow_manager
-from backend.plugins.plugin_manager import plugin_manager
-=======
 from src.backend.node_engine.node_base import Connection, Workflow
 from src.backend.node_engine.workflow_manager import workflow_manager
 from src.backend.plugins.plugin_manager import plugin_manager
->>>>>>> ralph-hub-assembly-1774754264
 
 # Try to import security manager if available
 try:
@@ -287,6 +281,10 @@ def create_advanced_workflow_ui():
     Creates the main Gradio interface that includes the workflow editor
     and other advanced features
     """
+    # Create node library
+    from src.backend.node_engine.node_library import NodeLibrary
+    node_library = NodeLibrary()
+
     with gr.Blocks(title="Email Intelligence - Advanced Workflows") as advanced_ui:
         gr.Markdown("# 🚀 Email Intelligence Platform - Advanced Workflows")
         gr.Markdown(

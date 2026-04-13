@@ -8,13 +8,8 @@ import numpy as np
 import pandas as pd
 import pytest
 
-<<<<<<< HEAD
-from backend.python_backend.training_routes import run_training, training_jobs
-from backend.python_nlp.ai_training import ModelConfig
-=======
 from src.backend.python_backend.training_routes import run_training, training_jobs
 from src.backend.python_nlp.ai_training import ModelConfig
->>>>>>> ralph-hub-assembly-1774754264
 
 
 def test_start_training(client):
@@ -26,7 +21,7 @@ def test_start_training(client):
         "parameters": {"epochs": 5},
     }
 
-    with patch("backend.python_backend.training_routes.BackgroundTasks") as mock_bg:
+    with patch("src.backend.python_backend.training_routes.BackgroundTasks") as mock_bg:
         response = client.post("/api/training/start", json=config)
         assert response.status_code == 200
         data = response.json()
@@ -44,7 +39,7 @@ def test_get_training_status(client):
         "parameters": {"epochs": 5},
     }
 
-    with patch("backend.python_backend.training_routes.BackgroundTasks"):
+    with patch("src.backend.python_backend.training_routes.BackgroundTasks"):
         start_response = client.post("/api/training/start", json=config)
         job_id = start_response.json()["job_id"]
 

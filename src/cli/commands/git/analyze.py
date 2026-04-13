@@ -80,7 +80,7 @@ class AnalyzeCommand(Command):
                 # Handle both class and instance for flexible DI
                 repo_ops = self._repo_ops(repo_path) if callable(self._repo_ops) else self._repo_ops
             else:
-                from ..git.repository import RepositoryOperations
+                from ....git.repository import RepositoryOperations
                 repo_ops = RepositoryOperations(repo_path)
 
             # 3. Determine and Validate Branches
@@ -88,7 +88,7 @@ class AnalyzeCommand(Command):
             head_branch = args.head_branch
 
             if not head_branch:
-                stdout, _, rc = await repo_ops.run_command(["rev-parse", "--abbrev-ref", "HEAD"])
+                stdout, _, rc = await repo_ops.run_command(["git", "rev-parse", "--abbrev-ref", "HEAD"])
                 if rc == 0:
                     head_branch = stdout.strip()
                 else:

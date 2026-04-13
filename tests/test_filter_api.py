@@ -1,11 +1,7 @@
 import pytest
 from unittest.mock import AsyncMock, patch, MagicMock
 from src.core.models import FilterRequest, EmailFilterCriteria, EmailFilterActions
-<<<<<<< HEAD
-from backend.python_nlp.smart_filters import EmailFilter
-=======
 from src.backend.python_nlp.smart_filters import EmailFilter
->>>>>>> ralph-hub-assembly-1774754264
 from datetime import datetime
 
 

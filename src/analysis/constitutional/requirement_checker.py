@@ -5,13 +5,8 @@ Implements various checkers for different aspects of code quality.
 """
 
 from typing import List
-<<<<<<< HEAD
 from ...core.conflict_models import RiskLevel
 from .models import RequirementViolation
-=======
-from ..core.conflict_models import RiskLevel
-from .analyzer import RequirementViolation
->>>>>>> ralph-hub-assembly-1774754264
 
 
 class BaseChecker:
@@ -174,12 +169,10 @@ class SecurityChecker(BaseChecker):
         lines = code.split('\n')
         for i, line in enumerate(lines):
             if ('password' in line.lower() or 'secret' in line.lower() or 'key' in line.lower()) and ('=' in line) and ('"' in line or "'" in line):
-                # Check if it's a variable assignment with a string value
-                if ('password' in line.lower() or 'secret' in line.lower() or 'key' in line.lower()) and ('"' in line or "'" in line):
-                    violations.append(RequirementViolation(
-                        rule_id="security-secret-001",
-                        description=f"Potential hardcoded secret found at line {i+1}",
-                        severity=RiskLevel.HIGH
-                    ))
+                violations.append(RequirementViolation(
+                    rule_id="security-secret-001",
+                    description=f"Potential hardcoded secret found at line {i+1}",
+                    severity=RiskLevel.HIGH
+                ))
         
         return violations

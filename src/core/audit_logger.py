@@ -1,7 +1,3 @@
-<<<<<<< HEAD
-=======
-import asyncio
->>>>>>> ralph-hub-assembly-1774754264
 """
 Advanced Audit Logging System for Email Intelligence Platform
 
@@ -14,10 +10,7 @@ import json
 import logging
 import threading
 import time
-<<<<<<< HEAD
 import asyncio
-=======
->>>>>>> ralph-hub-assembly-1774754264
 from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from enum import Enum
@@ -35,11 +28,7 @@ class AuditEventType(Enum):
     LOGIN_SUCCESS = "login_success"
     LOGIN_FAILURE = "login_failure"
     LOGOUT = "logout"
-<<<<<<< HEAD
     PASSWORD_CHANGE = "password_change"  # nosec
-=======
-    PASSWORD_CHANGE = "password_change"
->>>>>>> ralph-hub-assembly-1774754264
     PERMISSION_CHANGE = "permission_change"
 
     # Data Operations
@@ -262,8 +251,8 @@ class AuditLogger:
                     event = self._event_queue.get(timeout=1.0)
                     events_to_process.append(event)
                     self._event_queue.task_done()
-            except asyncio.TimeoutError:
-                pass  # No events available
+            except Exception:
+                pass  # No events available or timeout
 
             # Write events
             for event in events_to_process:
@@ -306,7 +295,7 @@ class AuditLogger:
                 event = self._event_queue.get(timeout=1.0)
                 self._write_event_immediate(event)
                 self._event_queue.task_done()
-        except asyncio.TimeoutError:
+        except Exception:
             pass
 
         if self._processing_thread.is_alive():

@@ -20,6 +20,7 @@ from .git.align import GitAlignCommand
 from .git.merge_semantic import GitMergeSemanticCommand
 from .git.auto_resolve import GitAutoResolveCommand
 from .git.discover import GitDiscoverCommand
+from .git.topology import TopologyMapperCommand
 
 # 2. Analysis Domain
 from .analysis.validate import ValidateCommand
@@ -65,6 +66,8 @@ __all__ = [
     "GitMergeSemanticCommand",
     "GitAutoResolveCommand",
     "GitDiscoverCommand",
+    "TopologyMapperCommand",
+    "LogicDriftAnalyzerCommand",
     # Analysis
     "ValidateCommand",
     "CompareCommand",

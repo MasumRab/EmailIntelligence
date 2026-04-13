@@ -15,11 +15,7 @@ import plotly.graph_objects as go
 import requests
 import seaborn as sns
 
-<<<<<<< HEAD
-from backend.python_nlp.nlp_engine import NLPEngine
-=======
 from src.backend.python_nlp.nlp_engine import NLPEngine
->>>>>>> ralph-hub-assembly-1774754264
 
 # Initialize the NLP Engine
 nlp_engine = NLPEngine()
@@ -211,14 +207,11 @@ with gr.Blocks(title="Email Intelligence", theme=gr.themes.Soft()) as iface:
                 fn=analyze_batch, inputs=data_input, outputs=[batch_output, stats_output]
             )
 
-<<<<<<< HEAD
-=======
         with gr.TabItem("Workflow Editor"):
             gr.Markdown("### 🔄 Node-Based Workflow Editor")
             from .workflow_editor_ui import create_workflow_editor_ui
             workflow_editor_component = create_workflow_editor_ui()
 
->>>>>>> ralph-hub-assembly-1774754264
         with gr.TabItem("Jupyter Notebook"):
             gr.Markdown("### Interactive Jupyter Analysis")
             gr.Markdown("For advanced scientific analysis, launch Jupyter Notebook.")

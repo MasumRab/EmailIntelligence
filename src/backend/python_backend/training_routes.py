@@ -10,11 +10,7 @@ This module provides API endpoints for training AI models used in email analysis
 import logging
 from typing import Any, Dict
 
-<<<<<<< HEAD
-from fastapi import APIRouter, BackgroundTasks, HTTPException
-=======
 from fastapi import APIRouter, BackgroundTasks, HTTPException, Depends
->>>>>>> ralph-hub-assembly-1774754264
 
 from src.core.auth import get_current_active_user
 

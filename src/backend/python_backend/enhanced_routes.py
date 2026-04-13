@@ -10,11 +10,7 @@ from typing import Any, Dict, List
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
-<<<<<<< HEAD
-from backend.node_engine.workflow_manager import workflow_manager
-=======
 from src.backend.node_engine.workflow_manager import workflow_manager
->>>>>>> ralph-hub-assembly-1774754264
 
 from ..plugins.plugin_manager import plugin_manager
 from .model_manager import model_manager
@@ -128,13 +124,8 @@ async def get_workflow(workflow_id: str):
 @router.post("/workflows")
 async def create_workflow(request: WorkflowCreateRequest):
     """Create a new workflow."""
-<<<<<<< HEAD
-    from backend.node_engine.email_nodes import AIAnalysisNode, EmailSourceNode, PreprocessingNode
-    from backend.node_engine.node_base import Workflow
-=======
     from src.backend.node_engine.email_nodes import AIAnalysisNode, EmailSourceNode, PreprocessingNode
     from src.backend.node_engine.node_base import Workflow
->>>>>>> ralph-hub-assembly-1774754264
 
     workflow = Workflow(name=request.name, description=request.description)
     # Add some default nodes for demonstration

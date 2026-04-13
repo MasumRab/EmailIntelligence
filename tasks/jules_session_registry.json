@@ -1,86 +1,330 @@
 {
   "repository": "MasumRab/EmailIntelligence",
-  "last_sync": "2026-03-24T14:35:00Z",
+  "last_sync": "2026-04-13T12:00:00Z",
+  "analysis_summary": {
+    "total_sessions_investigated": 17,
+    "sessions_with_conflicts": 6,
+    "sessions_with_high_deletion": 5,
+    "failed_sessions": 7,
+    "partial_success": 1,
+    "merged_prs_with_jules_commits": 20
+  },
+  "active_sessions_nudged": [
+    {
+      "session_id": "9787173685158425816",
+      "title": "Sentinel: Autonomous Security Remediation Agent",
+      "status": "AWAITING_USER_FEEDBACK",
+      "nudge_sent": "2026-04-13T12:00:00Z",
+      "nudge_message": "Action: Push security fixes to existing PRs"
+    },
+    {
+      "session_id": "501417479112563725",
+      "title": "Automated CI Repair for EmailIntelligence PRs",
+      "status": "AWAITING_USER_FEEDBACK",
+      "nudge_sent": "2026-04-13T12:00:00Z",
+      "nudge_message": "Fix CI failures one PR at a time"
+    },
+    {
+      "session_id": "3329550361238354756",
+      "title": "Fix Failing CI Checks in PRs",
+      "status": "AWAITING_USER_FEEDBACK",
+      "nudge_sent": "2026-04-13T12:00:00Z",
+      "nudge_message": "Push CI fixes to existing PRs"
+    },
+    {
+      "session_id": "3108841316244190984",
+      "title": "Bolt Performance Optimization Agent",
+      "status": "AWAITING_USER_FEEDBACK",
+      "nudge_sent": "2026-04-13T12:00:00Z",
+      "nudge_message": "Push performance optimizations to existing PRs"
+    },
+    {
+      "session_id": "1718535776004701779",
+      "title": "Fix Failing CI Checks for scientific PRs",
+      "status": "FAILED",
+      "nudge_sent": "2026-04-13T12:00:00Z",
+      "nudge_message": "Restart with focused scope - pick ONE PR to fix"
+    },
+    {
+      "session_id": "17230506058855569154",
+      "title": "Automated CI Failure Repair for EmailIntelligence PRs",
+      "status": "AWAITING_USER_FEEDBACK",
+      "nudge_sent": "2026-04-13T12:30:00Z",
+      "nudge_message": "Fix CI failures in open PRs - one at a time"
+    },
+    {
+      "session_id": "14526103937317527694",
+      "title": "Fix Failing CI Checks in EmailIntelligence PRs",
+      "status": "AWAITING_USER_FEEDBACK",
+      "nudge_sent": "2026-04-13T12:30:00Z",
+      "nudge_message": "Fix CI failures in open PRs - one at a time"
+    },
+    {
+      "session_id": "7831562456284511166",
+      "title": "Fix Failing CI Checks in MasumRab/EmailIntelligence PRs",
+      "status": "AWAITING_USER_FEEDBACK",
+      "nudge_sent": "2026-04-13T12:30:00Z",
+      "nudge_message": "Fix CI failures in open PRs - one at a time"
+    },
+    {
+      "session_id": "381423427753404511",
+      "title": "Fix failing CI checks for EmailIntelligence PRs",
+      "status": "AWAITING_USER_FEEDBACK",
+      "nudge_sent": "2026-04-13T12:30:00Z",
+      "nudge_message": "Fix CI failures in open PRs - one at a time"
+    },
+    {
+      "session_id": "14540362026225469649",
+      "title": "Sentinel: Autonomous Security Hardening Agent",
+      "status": "AWAITING_USER_FEEDBACK",
+      "nudge_sent": "2026-04-13T12:30:00Z",
+      "nudge_message": "Continue autonomous security work"
+    },
+    {
+      "session_id": "14220203592363167967",
+      "title": "Automated CI Repair for EmailIntelligence Pull Requests",
+      "status": "AWAITING_USER_FEEDBACK",
+      "nudge_sent": "2026-04-13T12:30:00Z",
+      "nudge_message": "Fix CI failures in open PRs - one at a time"
+    },
+    {
+      "session_id": "11315881698264364189",
+      "title": "Fix Failing CI in EmailIntelligence PRs",
+      "status": "AWAITING_USER_FEEDBACK",
+      "nudge_sent": "2026-04-13T12:30:00Z",
+      "nudge_message": "Fix CI failures in open PRs - one at a time"
+    },
+    {
+      "session_id": "8098457377596089277",
+      "title": "Sentinel: Autonomous Security Remediation Agent",
+      "status": "AWAITING_USER_FEEDBACK",
+      "nudge_sent": "2026-04-13T12:30:00Z",
+      "nudge_message": "Push security fixes to existing PRs"
+    },
+    {
+      "session_id": "17550449748453978346",
+      "title": "Fix failing CI checks for EmailIntelligence PRs",
+      "status": "AWAITING_USER_FEEDBACK",
+      "nudge_sent": "2026-04-13T12:30:00Z",
+      "nudge_message": "Fix CI failures in open PRs - one at a time"
+    },
+    {
+      "session_id": "12679619644744086809",
+      "title": "Bolt: Performance Optimization Agent",
+      "status": "AWAITING_USER_FEEDBACK",
+      "nudge_sent": "2026-04-13T12:30:00Z",
+      "nudge_message": "Push performance optimizations to existing PRs"
+    },
+    {
+      "session_id": "3844664086246781608",
+      "title": "Sentinel: Autonomous Security Remediation Agent",
+      "status": "AWAITING_USER_FEEDBACK",
+      "nudge_sent": "2026-04-13T12:30:00Z",
+      "nudge_message": "Push security fixes to existing PRs"
+    },
+    {
+      "session_id": "10052513681880916076",
+      "title": "Fix failing CI checks in MasumRab/EmailIntelligence",
+      "status": "AWAITING_USER_FEEDBACK",
+      "nudge_sent": "2026-04-13T12:30:00Z",
+      "nudge_message": "Fix CI failures in open PRs - one at a time"
+    },
+    {
+      "session_id": "5013138083547654050",
+      "title": "Fix Failing CI and Review PRs in EmailIntelligence",
+      "status": "AWAITING_USER_FEEDBACK",
+      "nudge_sent": "2026-04-13T12:30:00Z",
+      "nudge_message": "Fix CI failures in open PRs"
+    },
+    {
+      "session_id": "12706650364775836825",
+      "title": "Fix Failing CI Checks for Open Pull Requests",
+      "status": "AWAITING_USER_FEEDBACK",
+      "nudge_sent": "2026-04-13T12:30:00Z",
+      "nudge_message": "Fix CI failures in open PRs - one at a time"
+    },
+    {
+      "session_id": "12772292616880399643",
+      "title": "Fix Failing Pull Request CI Checks and Perform Reviews",
+      "status": "AWAITING_USER_FEEDBACK",
+      "nudge_sent": "2026-04-13T12:30:00Z",
+      "nudge_message": "Fix CI failures in open PRs"
+    },
+    {
+      "session_id": "2140584468424237267",
+      "title": "Sentinel: Security-Focused Codebase Guardian",
+      "status": "AWAITING_USER_FEEDBACK",
+      "nudge_sent": "2026-04-13T12:30:00Z",
+      "nudge_message": "Push security fixes to existing PRs"
+    },
+    {
+      "session_id": "10020942061822270894",
+      "title": "Sentinel: Autonomous Security Remediation Agent",
+      "status": "AWAITING_USER_FEEDBACK",
+      "nudge_sent": "2026-04-13T12:30:00Z",
+      "nudge_message": "Push security fixes to existing PRs"
+    }
+  ],
+  "prs_requiring_resolution": [
+    {
+      "pr_number": 286,
+      "session_id": "8645133856938915124",
+      "title": "Bolt: Optimize ContextIsolator pattern matching",
+      "status": "CONFLICTING",
+      "deletion_ratio": "88%",
+      "analysis": "Massive deletions are config file replacements (.github/, .clinerules/, .cursor/) not code deletion",
+      "comment_url": "https://github.com/MasumRab/EmailIntelligence/pull/286#issuecomment-4232357131",
+      "resolution_steps": "git merge origin/scientific --no-commit; if config conflict: git checkout --theirs -- .github .clinerules .cursor"
+    },
+    {
+      "pr_number": 440,
+      "session_id": "7592875515078415283",
+      "title": "Bolt: Optimize workflow cleanup",
+      "status": "CONFLICTING",
+      "deletion_ratio": "78%",
+      "analysis": "Same pattern as #286 - config file additions",
+      "comment_url": "https://github.com/MasumRab/EmailIntelligence/pull/440#issuecomment-4232357472"
+    },
+    {
+      "pr_number": 211,
+      "session_id": "13941376577602437089",
+      "title": "Restore Core Logic",
+      "status": "CONFLICTING",
+      "deletion_ratio": "52%",
+      "analysis": "Core code changes - need to keep both implementations",
+      "comment_url": "https://github.com/MasumRab/EmailIntelligence/pull/211#issuecomment-4232357787"
+    },
+    {
+      "pr_number": 300,
+      "session_id": "17065719860896443446",
+      "title": "Bolt: Optimize ContextIsolator regex",
+      "status": "CONFLICTING",
+      "deletion_ratio": "88%",
+      "analysis": "Likely duplicate of PR #286",
+      "comment_url": "https://github.com/MasumRab/EmailIntelligence/pull/300#issuecomment-4232358090"
+    },
+    {
+      "pr_number": 236,
+      "session_id": "13091824377716859301",
+      "title": "Bolt: Optimize context pattern matching",
+      "status": "CONFLICTING",
+      "deletion_ratio": "88%",
+      "analysis": "Third duplicate of PR #286",
+      "comment_url": "https://github.com/MasumRab/EmailIntelligence/pull/236#issuecomment-4232358368"
+    },
+    {
+      "pr_number": 271,
+      "session_id": "14410989945895259602",
+      "title": "Thread-safe lazy loading",
+      "status": "CONFLICTING",
+      "deletion_ratio": "18%",
+      "analysis": "Small PR - straightforward resolution in src/core/database.py only"
+    },
+    {
+      "pr_number": 632,
+      "title": "Sentinel: Fix Authorization Bypass",
+      "status": "MERGEABLE",
+      "deletion_ratio": "97%",
+      "analysis": "High deletion for security fix - verify completeness"
+    },
+    {
+      "pr_number": 169,
+      "title": "Modular AI Platform",
+      "status": "MERGEABLE",
+      "deletion_ratio": "31%",
+      "analysis": "CI fails due to post-session commits, not Jules code"
+    }
+  ],
   "sessions": [
     {
       "pr_number": 169,
       "task_id": "17280940896223333459",
       "console_link": "https://jules.google.com/session/17280940896223333459",
-      "status": "RUNNING",
+      "status": "MERGEABLE",
       "head_branch": "feat/modular-ai-platform",
       "base_branch": "main",
-      "intervention_required": false,
-      "last_update_msg": "Session started successfully. Monitoring for CI failures and logic parity."
+      "intervention_required": true,
+      "issue": "CI failing due to post-session commits",
+      "last_update_msg": "Commented - ready for merge once CI passes"
     },
     {
       "pr_number": 211,
       "task_id": "13941376577602437089",
       "console_link": "https://jules.google.com/session/13941376577602437089",
-      "status": "RUNNING",
+      "status": "CONFLICTING",
       "head_branch": "main-1",
       "base_branch": "main",
-      "intervention_required": false,
-      "last_update_msg": "Priority PR audit session started"
+      "intervention_required": true,
+      "issue": "Merge conflicts - code changes",
+      "last_update_msg": "Commented with resolution steps"
     },
     {
       "pr_number": 286,
       "task_id": "8645133856938915124",
       "console_link": "https://jules.google.com/session/8645133856938915124",
-      "status": "RUNNING",
+      "status": "CONFLICTING",
       "head_branch": "bolt-optimize-pattern-matching-7371064084655869135",
       "base_branch": "scientific",
-      "intervention_required": false,
-      "last_update_msg": "Restarted with environment isolation constraints"
+      "intervention_required": true,
+      "issue": "Merge conflicts - config files mostly",
+      "last_update_msg": "Commented - resolve by accepting scientific config"
     },
     {
       "pr_number": 300,
       "task_id": "17065719860896443446",
       "console_link": "https://jules.google.com/session/17065719860896443446",
-      "status": "RUNNING",
+      "status": "CONFLICTING",
       "head_branch": "bolt-context-control-performance-8783619865872562669",
       "base_branch": "scientific",
-      "intervention_required": false,
-      "last_update_msg": "Priority PR audit session started"
+      "intervention_required": true,
+      "issue": "Duplicate of #286 - commented to verify",
+      "last_update_msg": "Commented - check if duplicate"
     },
     {
       "pr_number": 236,
       "task_id": "13091824377716859301",
       "console_link": "https://jules.google.com/session/13091824377716859301",
-      "status": "RUNNING",
+      "status": "CONFLICTING",
       "head_branch": "bolt-optimize-pattern-matching-10172118564768457831",
       "base_branch": "scientific",
-      "intervention_required": false,
-      "last_update_msg": "Restarted with environment isolation constraints"
+      "intervention_required": true,
+      "issue": "Duplicate of #286 - commented to verify",
+      "last_update_msg": "Commented - check relationship"
     },
     {
       "pr_number": 271,
       "task_id": "14410989945895259602",
       "console_link": "https://jules.google.com/session/14410989945895259602",
-      "status": "RUNNING",
+      "status": "CONFLICTING",
       "head_branch": "lazy-loading-db-12470278036898642197",
       "base_branch": "main",
-      "intervention_required": false,
-      "last_update_msg": "Priority PR audit session started"
+      "intervention_required": true,
+      "issue": "Merge conflicts - small PR",
+      "last_update_msg": "Not commented yet - simple resolution"
     },
     {
       "pr_number": 527,
       "task_id": "804955492758980486",
       "console_link": "https://jules.google.com/session/804955492758980486",
-      "status": "RUNNING",
+      "status": "CLOSED",
       "head_branch": "fix/issue-114-merge-nested-ifs-1095776210587247285",
       "base_branch": "main",
-      "intervention_required": false,
-      "last_update_msg": "Next priority task initialized"
+      "intervention_required": true,
+      "issue": "Closed without merge - needs reopen",
+      "last_update_msg": "Not yet addressed"
     },
     {
       "pr_number": 440,
       "task_id": "7592875515078415283",
       "console_link": "https://jules.google.com/session/7592875515078415283",
-      "status": "RUNNING",
-      "head_branch": "bolt-workflow-cleanup-optimization-47100...",
-      "base_branch": "main",
-      "intervention_required": false,
-      "last_update_msg": "Nudged for updates"
+      "status": "CONFLICTING",
+      "head_branch": "bolt/optimize-workflow-cleanup-6435047672108938677",
+      "base_branch": "scientific",
+      "intervention_required": true,
+      "issue": "Merge conflicts - config files",
+      "last_update_msg": "Commented with resolution steps"
     }
-  ]
+  ],
+  "response_templates_updated": "2026-04-13T12:00:00Z",
+  "templates_location": "~/.letta/skills/jules-sessions/references/response_templates.md"
 }

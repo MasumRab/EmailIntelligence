@@ -53,9 +53,9 @@ class MergeSmartCommand(Command):
         file_path = Path(args.file)
         
         if self._security_validator:
-            is_safe, error = self._security_validator.validate_path_security(str(file_path.absolute()))
+            is_safe = self._security_validator.validate_io(str(file_path.absolute()))
             if not is_safe:
-                print(f"Error: Security violation: {error}"); return 1
+                print(f"Error: Security violation: Path is not safe"); return 1
 
         if not file_path.exists():
             print(f"Error: File '{file_path}' not found."); return 1

@@ -12,17 +12,10 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
 # Import node-based workflow components
-<<<<<<< HEAD
-from backend.node_engine.node_base import Workflow as NodeWorkflow
-from backend.node_engine.workflow_engine import WorkflowEngine
-from backend.node_engine.workflow_engine import workflow_engine as node_workflow_engine
-from backend.node_engine.workflow_manager import workflow_manager as node_workflow_manager
-=======
 from src.backend.node_engine.node_base import Workflow as NodeWorkflow
 from src.backend.node_engine.workflow_engine import WorkflowEngine
 from src.backend.node_engine.workflow_engine import workflow_engine as node_workflow_engine
 from src.backend.node_engine.workflow_manager import workflow_manager as node_workflow_manager
->>>>>>> ralph-hub-assembly-1774754264
 from src.core.auth import get_current_active_user
 
 from .dependencies import get_workflow_engine
@@ -134,11 +127,7 @@ async def create_workflow(
                 node_config = node_data.get("config", {})
 
                 # Import and create the appropriate node based on type
-<<<<<<< HEAD
-                from backend.node_engine.email_nodes import (
-=======
                 from src.backend.node_engine.email_nodes import (
->>>>>>> ralph-hub-assembly-1774754264
                     ActionNode,
                     AIAnalysisNode,
                     EmailSourceNode,
@@ -161,13 +150,8 @@ async def create_workflow(
 
                 workflow.add_node(node)
 
-            # Create connections
             for conn_data in workflow_data.connections:
-<<<<<<< HEAD
-                from backend.node_engine.node_base import Connection
-=======
                 from src.backend.node_engine.node_base import Connection
->>>>>>> ralph-hub-assembly-1774754264
 
                 connection = Connection(
                     source_node_id=conn_data["source_node_id"],

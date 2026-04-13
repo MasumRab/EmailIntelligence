@@ -14,28 +14,17 @@ import shutil
 from datetime import datetime
 from typing import Any, Dict, List
 
-<<<<<<< HEAD
-from backend.node_engine.email_nodes import (
-=======
 from src.backend.node_engine.email_nodes import (
->>>>>>> ralph-hub-assembly-1774754264
     ActionNode,
     AIAnalysisNode,
     EmailSourceNode,
     FilterNode,
     PreprocessingNode,
 )
-<<<<<<< HEAD
-from backend.node_engine.node_base import Connection, Workflow
-from backend.node_engine.security_manager import audit_logger, resource_manager, security_manager
-from backend.node_engine.workflow_engine import workflow_engine
-from backend.node_engine.workflow_manager import workflow_manager
-=======
 from src.backend.node_engine.node_base import Connection, Workflow
 from src.backend.node_engine.security_manager import audit_logger, resource_manager, security_manager
 from src.backend.node_engine.workflow_engine import workflow_engine
 from src.backend.node_engine.workflow_manager import workflow_manager
->>>>>>> ralph-hub-assembly-1774754264
 
 
 async def test_complete_email_workflow():

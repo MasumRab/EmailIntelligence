@@ -3,13 +3,8 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-<<<<<<< HEAD
-from backend.python_backend.ai_engine import AdvancedAIEngine, AIAnalysisResult
-from backend.python_backend.model_manager import ModelManager
-=======
 from src.backend.python_backend.ai_engine import AdvancedAIEngine, AIAnalysisResult
 from src.backend.python_backend.model_manager import ModelManager
->>>>>>> ralph-hub-assembly-1774754264
 
 # This mock is for the database, which is used for category lookups
 mock_db_manager_for_ai_engine = MagicMock()

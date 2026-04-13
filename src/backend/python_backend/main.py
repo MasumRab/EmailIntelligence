@@ -24,17 +24,12 @@ from pydantic import ValidationError
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from src.backend.python_nlp.gmail_service import GmailAIService
-
-# Removed: from .smart_filters import EmailFilter (as per instruction)
 from src.backend.python_nlp.smart_filters import SmartFilterManager
 from src.core.auth import authenticate_user
 
 from ..plugins.plugin_manager import plugin_manager
 from . import (
-<<<<<<< HEAD
     action_routes,
-=======
->>>>>>> ralph-hub-assembly-1774754264
     ai_routes,
     category_routes,
     dashboard_routes,
@@ -91,13 +86,12 @@ class ErrorHandlingMiddleware(BaseHTTPMiddleware):
 
             # Track error rate
             with error_lock:
-                # Ensure status_code is defined before use
                 if isinstance(exc, (AppException, BaseAppException)):
                     status_code = exc.status_code
                 elif isinstance(exc, ValidationError):
                     status_code = 422
                 else:
-                    status_code = 500 # Default to 500 for unhandled exceptions
+                    status_code = 500
 
             # Format error response consistently
             if isinstance(exc, (AppException, BaseAppException)):
@@ -112,11 +106,7 @@ class ErrorHandlingMiddleware(BaseHTTPMiddleware):
                         "success": False,
                         "message": "An internal error occurred",
                         "error_code": "INTERNAL_ERROR",
-<<<<<<< HEAD
                         "details": None,
-=======
-                        "details": str(exc),
->>>>>>> ralph-hub-assembly-1774754264
                         "request_id": request_id,
                     }
                     status_code = exc.status_code
@@ -125,11 +115,7 @@ class ErrorHandlingMiddleware(BaseHTTPMiddleware):
                     "success": False,
                     "message": "Validation error",
                     "error_code": "VALIDATION_ERROR",
-<<<<<<< HEAD
                     "details": None,  # Do not expose internal error message
-=======
-                    "details": str(exc),
->>>>>>> ralph-hub-assembly-1774754264
                     "request_id": request_id,
                 }
                 status_code = 422
@@ -138,11 +124,7 @@ class ErrorHandlingMiddleware(BaseHTTPMiddleware):
                     "success": False,
                     "message": "An unexpected error occurred",
                     "error_code": "INTERNAL_ERROR",
-<<<<<<< HEAD
                     "details": None,  # Never expose internal error in response
-=======
-                    "details": str(exc) if settings.debug else None,
->>>>>>> ralph-hub-assembly-1774754264
                     "request_id": request_id,
                 }
                 status_code = 500
@@ -219,9 +201,6 @@ async def base_app_exception_handler(request: Request, exc: BaseAppException):
     )
 
 
-# Exception handlers removed - now handled by ErrorHandlingMiddleware
-
-
 @app.exception_handler(ValidationError)
 async def validation_exception_handler(request: Request, exc: ValidationError):
     """Handle Pydantic validation errors with detailed 422 responses."""
@@ -247,29 +226,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
-# Pydantic models are now primarily defined in .models
-# Ensure any models needed directly by main.py (e.g. for health endpoint response) are defined or imported.
-# For this refactor, ActionExtractionRequest and ActionItem were moved to models.py.
-# Other shared request/response models like EmailResponse, CategoryResponse etc. are also in models.py.
-
-# Set up metrics if in production or staging environment
-if os.getenv("NODE_ENV") in ["production", "staging"]:
-    from .metrics import setup_metrics
-
-    setup_metrics(app)
-
 # Initialize services
-# Services are now initialized within their respective route files
-# or kept here if they are used by multiple route files or for general app setup.
 gmail_service = GmailAIService()  # Used by gmail_routes
 filter_manager = SmartFilterManager()  # Used by filter_routes
-<<<<<<< HEAD
 ai_engine = AdvancedAIEngine(model_manager)  # Used by email_routes, action_routes
-=======
-ai_engine = AdvancedAIEngine(model_manager)  # Used by email_routes and other AI-related routes
->>>>>>> ralph-hub-assembly-1774754264
-performance_monitor = performance_monitor  # Used by all routes via @performance_monitor.track
+performance_monitor_inst = performance_monitor  # Used by all routes via @performance_monitor.track
 
 from .routes.v1.category_routes import router as category_router_v1
 
@@ -289,10 +250,7 @@ app.include_router(training_routes.router)
 app.include_router(workflow_routes.router)
 app.include_router(model_routes.router)
 app.include_router(performance_routes.router)
-<<<<<<< HEAD
 app.include_router(action_routes.router)
-=======
->>>>>>> ralph-hub-assembly-1774754264
 app.include_router(dashboard_routes.router)
 app.include_router(ai_routes.router)
 
@@ -325,16 +283,14 @@ except ImportError:
     # Fallback if node engine is not available
     workflow_manager_instance = None
 
-# Request/Response Models previously defined here are now in .models
-# Ensure route files import them from .models
-
 
 # Authentication endpoints
 @app.post("/token")
 async def login(username: str, password: str):
     """Login endpoint to get access token"""
     # Use the new authentication system
-    db = await get_db()
+    from .dependencies import get_db as get_local_db
+    db = await get_local_db()
     user = await authenticate_user(username, password, db)
 
     if not user:
@@ -362,8 +318,6 @@ async def login(username: str, password: str):
 async def health_check(request: Request):
     """System health check"""
     try:
-        # Perform any necessary checks, e.g., DB connectivity if desired
-        # await db.execute_query("SELECT 1") # Example DB check
         return {
             "status": "healthy",
             "timestamp": datetime.now().isoformat(),
@@ -371,7 +325,7 @@ async def health_check(request: Request):
             "app_name": settings.app_name,
         }
     except (ValueError, RuntimeError, OSError) as e:  # Specific exceptions for health check
-        logger.error(  # Simple log for health check itself
+        logger.error(
             json.dumps(
                 {
                     "message": "Health check failed",
@@ -402,21 +356,9 @@ async def get_error_stats():
 if __name__ == "__main__":
     import uvicorn
 
-port = int(os.getenv("PORT", 8000))
-env = os.getenv("NODE_ENV", "development")
-host = os.getenv("HOST", "127.0.0.1" if env == "development" else "0.0.0.0")
-reload = env == "development"
-# Use string app path to support reload
-<<<<<<< HEAD
-uvicorn.run("main:app", host=host, port=port, reload=reload, log_level="info")
-=======
-if __name__ == "__main__":
-    import uvicorn
-
     port = int(os.getenv("PORT", 8000))
     env = os.getenv("NODE_ENV", "development")
     host = os.getenv("HOST", "127.0.0.1" if env == "development" else "0.0.0.0")
     reload = env == "development"
     # Use string app path to support reload
     uvicorn.run("main:app", host=host, port=port, reload=reload, log_level="info")
->>>>>>> ralph-hub-assembly-1774754264

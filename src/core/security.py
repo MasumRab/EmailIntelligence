@@ -72,6 +72,15 @@ class SecurityValidator:
         """
         return validate_path_safety(path, self.base_dir)
 
+    def validate_path_security(self, path: str) -> tuple:
+        """
+        Validates path security for file operations.
+        Returns (is_safe: bool, error_message: str).
+        """
+        if validate_path_safety(path, self.base_dir):
+            return (True, "")
+        return (False, f"Path '{path}' is not safe - directory traversal detected")
+
     def sanitize(self, path: str) -> Optional[Path]:
         """Sanitizes a path."""
         return sanitize_path(path, self.base_dir)
@@ -427,7 +436,12 @@ class PathValidator:
     def sanitize_filename(filename: str) -> str:
         """Sanitize a filename by removing dangerous characters"""
         sanitized = re.sub(r'[<>:"/\\|?*]', "_", filename)
-        if sanitized.upper() in ["CON", "PRN", "AUX", "NUL"] or sanitized.upper().startswith(("COM", "LPT")):
+        if sanitized.upper() in [
+            "CON",
+            "PRN",
+            "AUX",
+            "NUL",
+        ] or sanitized.upper().startswith(("COM", "LPT")):
             sanitized = f"_{sanitized}"
         return sanitized
 

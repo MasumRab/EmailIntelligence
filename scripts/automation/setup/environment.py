@@ -1,31 +1,30 @@
 """
-<<<<<<< HEAD
-Environment management for the launch system.
+Environment setup utilities for EmailIntelligence launcher.
 
 This module handles virtual environment creation, dependency installation,
 and environment setup operations.
-=======
-Environment setup utilities for EmailIntelligence launcher
->>>>>>> a7da61cf1f697de3c8c81f536bf579d36d88e613
 """
 
 import logging
 import os
 import platform
-<<<<<<< HEAD
 import shutil
 import subprocess
 import sys
 import venv
 from pathlib import Path
-from typing import List
+from typing import Any, Dict, List, Optional, Pattern
+import re
+import fnmatch
 
 from scripts.automation.setup.project_config import get_project_config
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("launcher")
 
 # Global paths
-ROOT_DIR = Path(__file__).resolve().parent.parent
+ROOT_DIR = Path(__file__).resolve().parent.parent.parent.parent
+VENV_DIR = "venv"
+CONDA_ENV_NAME = os.getenv("CONDA_ENV_NAME", "base")
 
 
 def is_wsl():
@@ -35,33 +34,12 @@ def is_wsl():
             content = f.read().lower()
             return "microsoft" in content or "wsl" in content
     except Exception:
-        return False
+        # Fallback using platform
+        return "microsoft" in platform.uname().release.lower() or "wsl" in platform.uname().release.lower()
 
 
 def setup_wsl_environment():
     """Setup WSL-specific environment variables if in WSL."""
-=======
-import subprocess
-from pathlib import Path
-
-logger = logging.getLogger("launcher")
-
-# Get root directory (avoid circular import)
-ROOT_DIR = Path(__file__).parent.parent
-
-# Constants
-VENV_DIR = "venv"
-CONDA_ENV_NAME = os.getenv("CONDA_ENV_NAME", "base")
-
-
-def is_wsl():
-    """Check if running in Windows Subsystem for Linux."""
-    return "microsoft" in platform.uname().release.lower() or "wsl" in platform.uname().release.lower()
-
-
-def setup_wsl_environment():
-    """Setup WSL-specific environment variables if in WSL"""
->>>>>>> a7da61cf1f697de3c8c81f536bf579d36d88e613
     if not is_wsl():
         return
 
@@ -83,11 +61,7 @@ def setup_wsl_environment():
 
 
 def check_wsl_requirements():
-<<<<<<< HEAD
     """Check WSL-specific requirements and warn if needed."""
-=======
-    """Check WSL-specific requirements and warn if needed"""
->>>>>>> a7da61cf1f697de3c8c81f536bf579d36d88e613
     if not is_wsl():
         return
 
@@ -96,10 +70,47 @@ def check_wsl_requirements():
         result = subprocess.run(["xset", "-q"], capture_output=True, timeout=2)
         if result.returncode != 0:
             logger.warning("X11 server not accessible - GUI applications may not work")
-<<<<<<< HEAD
             logger.info("Install VcXsrv, MobaXterm, or similar X11 server on Windows")
     except (subprocess.TimeoutExpired, FileNotFoundError):
-        pass  # Silently ignore X11 check failures
+        logger.warning("X11 server check failed - GUI applications may not work")
+
+
+def is_conda_available():
+    """Check if conda is available."""
+    try:
+        result = subprocess.run(["conda", "--version"], capture_output=True, text=True)
+        return result.returncode == 0
+    except FileNotFoundError:
+        return False
+
+
+def get_conda_env_info():
+    """Get information about the current conda environment."""
+    try:
+        result = subprocess.run(["conda", "info", "--envs"], capture_output=True, text=True)
+        return result.stdout
+    except Exception:
+        return "Conda environment info not available"
+
+
+def activate_conda_env():
+    """Try to activate the conda environment."""
+    if not is_conda_available():
+        return False
+
+    try:
+        # This is tricky in a subprocess - we'd need to source the conda script
+        # For now, just check if we're already in the right environment
+        current_env = os.environ.get("CONDA_DEFAULT_ENV", "")
+        if current_env == CONDA_ENV_NAME:
+            logger.info(f"Already in conda environment: {current_env}")
+            return True
+        else:
+            logger.info(f"Conda environment {CONDA_ENV_NAME} not active")
+            return False
+    except Exception as e:
+        logger.warning(f"Could not check conda environment: {e}")
+        return False
 
 
 def get_python_executable() -> str:
@@ -282,137 +293,49 @@ def handle_setup(args, venv_path):
     """Handle the complete setup process."""
     logger.info("Starting environment setup...")
 
-    if args.use_conda:
-=======
-    except (subprocess.TimeoutExpired, FileNotFoundError):
-        logger.warning("X11 server check failed - GUI applications may not work")
-
-
-def is_conda_available():
-    """Check if conda is available."""
-    try:
-        result = subprocess.run(["conda", "--version"], capture_output=True, text=True)
-        return result.returncode == 0
-    except FileNotFoundError:
-        return False
-
-
-def get_conda_env_info():
-    """Get information about the current conda environment."""
-    try:
-        result = subprocess.run(["conda", "info", "--envs"], capture_output=True, text=True)
-        return result.stdout
-    except Exception:
-        return "Conda environment info not available"
-
-
-def activate_conda_env():
-    """Try to activate the conda environment."""
-    if not is_conda_available():
-        return False
-
-    try:
-        # This is tricky in a subprocess - we'd need to source the conda script
-        # For now, just check if we're already in the right environment
-        current_env = os.environ.get("CONDA_DEFAULT_ENV", "")
-        if current_env == CONDA_ENV_NAME:
-            logger.info(f"Already in conda environment: {current_env}")
-            return True
-        else:
-            logger.info(f"Conda environment {CONDA_ENV_NAME} not active")
-            return False
-    except Exception as e:
-        logger.warning(f"Could not check conda environment: {e}")
-        return False
-
-
-def handle_setup(args, venv_path):
-    """Handles the complete setup process."""
-    logger.info("Starting environment setup...")
-
     if getattr(args, 'use_conda', False):
->>>>>>> a7da61cf1f697de3c8c81f536bf579d36d88e613
         # For Conda, we assume the environment is already set up
         # Could add Conda environment creation here in the future
         logger.info("Using Conda environment - assuming dependencies are already installed")
     else:
         # Use venv
-<<<<<<< HEAD
-        create_venv(venv_path, args.force_recreate_venv)
+        create_venv(venv_path, getattr(args, 'force_recreate_venv', False))
         install_package_manager(venv_path, "uv")
         setup_dependencies(venv_path, False)
-        if not args.no_download_nltk:
+        if not getattr(args, 'no_download_nltk', False):
             download_nltk_data(venv_path)
 
         # Setup Node.js dependencies
         config = get_project_config()
 
-        # Setup frontend dependencies
-        frontend_path = config.get_service_path("frontend")
-        if frontend_path and frontend_path.exists():
-            from scripts.automation.setup.services import setup_node_dependencies
-            setup_node_dependencies(frontend_path, "Frontend Client")
-
-        # Setup TypeScript backend dependencies
-        ts_backend_path = config.get_service_path("typescript_backend")
-        if ts_backend_path and ts_backend_path.exists():
-            from scripts.automation.setup.services import setup_node_dependencies
-            setup_node_dependencies(ts_backend_path, "TypeScript Backend")
-=======
         try:
-            from scripts.automation.setup.launch import create_venv, install_package_manager, setup_dependencies, download_nltk_data
-            create_venv(venv_path, getattr(args, 'force_recreate_venv', False))
-            install_package_manager(venv_path, "uv")
-            setup_dependencies(venv_path, False)
-            if not getattr(args, 'no_download_nltk', False):
-                download_nltk_data(venv_path)
-        except ImportError:
-            logger.warning("Some setup functions not available yet")
+            from scripts.automation.setup.services import setup_node_dependencies
+            
+            # Setup frontend dependencies
+            frontend_path = config.get_service_path("frontend")
+            if frontend_path and frontend_path.exists():
+                setup_node_dependencies(frontend_path, "Frontend Client")
 
-        # Setup Node.js dependencies
-        try:
-            from scripts.automation.setup.launch import setup_node_dependencies
-            setup_node_dependencies(ROOT_DIR / "client", "Frontend Client")
-            setup_node_dependencies(ROOT_DIR / "backend" / "server-ts", "TypeScript Backend")
+            # Setup TypeScript backend dependencies
+            ts_backend_path = config.get_service_path("typescript_backend")
+            if ts_backend_path and ts_backend_path.exists():
+                setup_node_dependencies(ts_backend_path, "TypeScript Backend")
         except ImportError:
-            logger.warning("Node setup functions not available yet")
->>>>>>> a7da61cf1f697de3c8c81f536bf579d36d88e613
+            logger.warning("setup_node_dependencies function not available yet")
 
     logger.info("Setup complete.")
 
 
 def prepare_environment(args):
-<<<<<<< HEAD
     """Prepare the environment for running the application."""
-    if not args.no_venv:
-        # Try conda first
-        from scripts.automation.setup.utils import activate_conda_env
-        if not activate_conda_env():
-            # Fall back to venv setup
-            handle_setup(args, ROOT_DIR / "venv")
-=======
-    """Prepares the environment for running the application."""
     if not getattr(args, 'no_venv', False):
         # Try conda first
         if not activate_conda_env():
-            venv_path = ROOT_DIR / VENV_DIR
-            try:
-                from scripts.automation.setup.launch import create_venv
-                create_venv(venv_path)
-            except ImportError:
-                logger.warning("create_venv function not available yet")
-
+            # Fall back to venv setup
+            handle_setup(args, ROOT_DIR / "venv")
+        
         if getattr(args, 'update_deps', False):
-            try:
-                from scripts.automation.setup.launch import setup_dependencies
-                setup_dependencies(ROOT_DIR / VENV_DIR, False)
-            except ImportError:
-                logger.warning("setup_dependencies function not available yet")
+            setup_dependencies(ROOT_DIR / "venv", False)
 
     if not getattr(args, 'no_download_nltk', False):
-        try:
-            from scripts.automation.setup.launch import download_nltk_data
-            download_nltk_data()
-        except ImportError:
-            logger.warning("download_nltk_data function not available yet")
->>>>>>> a7da61cf1f697de3c8c81f536bf579d36d88e613
+        download_nltk_data()

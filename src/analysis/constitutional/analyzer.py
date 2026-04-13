@@ -6,25 +6,15 @@ Orchestrates the checking of code against constitutional rules.
 from pathlib import Path
 from typing import List, Dict, Any
 
-<<<<<<< HEAD
 from ...core.interfaces import IConstitutionalAnalyzer
 from ...core.conflict_models import Conflict, AnalysisResult, RiskLevel
 from ...utils.logger import get_logger
 from .models import RequirementViolation
-=======
-from ..core.interfaces import IConstitutionalAnalyzer
-from ..core.conflict_models import Conflict, AnalysisResult, RiskLevel
-from ..utils.logger import get_logger
->>>>>>> ralph-hub-assembly-1774754264
 from .requirement_checker import (
     ErrorHandlingChecker,
     TypeHintChecker,
     DocstringChecker,
     SecurityChecker,
-<<<<<<< HEAD
-=======
-    RequirementViolation,
->>>>>>> ralph-hub-assembly-1774754264
 )
 
 
@@ -87,23 +77,4 @@ class ConstitutionalAnalyzer(IConstitutionalAnalyzer):
         )
         
         logger.info(f"Constitutional analysis completed with score: {compliance_score:.2f}")
-<<<<<<< HEAD
         return analysis_result
-=======
-        return analysis_result
-
-
-class RequirementViolation:
-    """
-    Represents a violation of a constitutional requirement.
-    """
-    
-    def __init__(self, rule_id: str, description: str, severity: RiskLevel, location: str = None):
-        self.rule_id = rule_id
-        self.description = description
-        self.severity = severity
-        self.location = location
-
-    def __str__(self):
-        return f"[{self.severity.value}] {self.rule_id}: {self.description}"
->>>>>>> ralph-hub-assembly-1774754264
