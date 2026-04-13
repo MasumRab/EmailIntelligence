@@ -100,3 +100,9 @@ worktrees/
 backlog/config.yml.bak
 original_readme.md
 scripts/hooks/
+CONFIG_ANALYSIS.md
+
+# Analysis artifacts
+MERGIFY_BRANCH_ANALYSIS_FINAL.md
+PR_480_RESOLUTION.md
+taskmaster-worktree-config.yml

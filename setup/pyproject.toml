@@ -13,6 +13,7 @@ dependencies = [
     "fastapi>=0.115.12",
     "uvicorn[standard]>=0.34.3",
     "pydantic>=2.11.5",
+    "pydantic-settings>=2.0.0",
     "python-dotenv>=1.1.0",
     "python-multipart>=0.0.20",
     "email-validator>=2.2.0",
@@ -33,6 +34,14 @@ dependencies = [
     "networkx>=3.2.1",
     "argon2-cffi>=23.1.0",
     "psutil>=5.9.0",
+
+    # Utilities
+    "pyyaml>=6.0",
+    "jinja2>=3.0",
+    "itsdangerous>=2.0",
+    "pillow>=10.0",
+    "aiofiles>=23.0",
+    "orjson>=3.9",
 
     # Compatibility fixes
     # markupsafe 3.0.2 lacks wheels for Python 3.11/3.12 on some platforms

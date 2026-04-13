@@ -20,6 +20,12 @@ from datetime import datetime, timezone
 from functools import wraps
 from typing import Any, Callable, Dict, List, Optional
 
+import atexit
+from collections import defaultdict, deque
+from dataclasses import asdict
+from pathlib import Path
+from typing import Union
+
 import psutil
 
 logger = logging.getLogger(__name__)
@@ -179,19 +185,10 @@ def _create_decorator(func, op_name):
         return sync_wrapper
 
 
-import atexit
-
 # Enhanced performance monitoring system with additional features
-from collections import defaultdict, deque
-from dataclasses import asdict, dataclass
-from pathlib import Path
-from typing import Any, Dict, Optional, Union
-
-logger = logging.getLogger(__name__)
-
 
 @dataclass
-class PerformanceMetric:
+class OptimizedPerformanceMetric:
     """Represents a performance metric with minimal overhead."""
 
     name: str
@@ -298,7 +295,7 @@ class OptimizedPerformanceMonitor:
         if sample_rate < 1.0 and random.random() > sample_rate:
             return
 
-        metric = PerformanceMetric(
+        metric = OptimizedPerformanceMetric(
             name=name,
             value=value,
             unit=unit,
@@ -310,17 +307,6 @@ class OptimizedPerformanceMonitor:
         # Add to buffer (thread-safe)
         with self._buffer_lock:
             self._metrics_buffer.append(metric)
-
-    def log_performance(self, log_entry: Dict[str, Any]) -> None:
-        """Compatibility method for legacy log_performance decorator."""
-        operation = log_entry.get("operation", "unknown")
-        duration = log_entry.get("duration_seconds", 0) * 1000  # Convert to ms
-        self.record_metric(
-            name=f"operation_duration_{operation}",
-            value=duration,
-            unit="ms",
-            tags={"operation": operation},
-        )
 
     def time_function(
         self, name: str, tags: Optional[Dict[str, str]] = None, sample_rate: float = 1.0

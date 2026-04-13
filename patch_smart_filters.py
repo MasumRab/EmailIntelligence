@@ -3,7 +3,6 @@ with open(filepath, "r") as f:
     content = f.read()
 
 import os
-DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))), "src", "data")
 
 old_block = """DATA_DIR = os.path.join(PROJECT_ROOT, "data")"""
 new_block = """DATA_DIR = os.path.join(PROJECT_ROOT, "data")

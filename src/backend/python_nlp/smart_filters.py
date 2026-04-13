@@ -24,6 +24,8 @@ PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(_
 DATA_DIR = os.path.join(PROJECT_ROOT, "data")
 if not os.path.exists(DATA_DIR):
     os.makedirs(DATA_DIR, exist_ok=True)
+if not os.path.exists(DATA_DIR):
+    os.makedirs(DATA_DIR, exist_ok=True)
 DEFAULT_DB_PATH = os.path.join(DATA_DIR, "smart_filters.db")
 
 
