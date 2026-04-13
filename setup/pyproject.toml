@@ -142,3 +142,7 @@ where = ["src"]
 [[tool.uv.index]]
 name = "pytorch-cpu"
 url = "https://download.pytorch.org/whl/cpu"
+
+[tool.pytest.ini_options]
+addopts = "--ignore=src/backend/python_backend/tests --ignore=scripts"
+testpaths = ["tests", "src/backend/python_nlp/tests"]
