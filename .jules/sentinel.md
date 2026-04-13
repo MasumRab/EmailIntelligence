@@ -1,5 +1,12 @@
-## 2024-05-18: Timezone-Aware Datetimes in Pydantic Models
+# Sentinel Notes
 
-* **Vulnerability Discover:** The Pydantic models in `src/context_control/models.py` and the FastAPI app in `src/main.py` were using `datetime.utcnow()` without timezone information. This can lead to timezone confusion vulnerabilities (CWE-116), especially when dates are serialized/deserialized across different systems or when comparing timestamps.
-* **Learning:** Use `datetime.now(timezone.utc)` to ensure that all datetimes are timezone-aware. In Pydantic models with a `default_factory`, use a lambda function `lambda: datetime.now(timezone.utc)` to evaluate the current time when the model is instantiated.
-* **Prevention Note:** Ensure that all newly added datetimes are timezone-aware using `datetime.now(timezone.utc)` instead of `datetime.utcnow()`.
+## 2024-05-24: Command Injection via Generic Process Wrappers
+
+**Vulnerability Discovered:**
+The repository contained multiple utility scripts (`scripts/intelligent_merge_analyzer.py` and `scripts/path_change_detector.py`) that utilized a generic wrapper function `run_command` calling `subprocess.run(shell=True)`. This wrapper abstracted the string formatting away from the process execution.
+
+**Learning:**
+Generic wrappers around process execution often defeat static analysis tools like `bandit` or `Sourcery`, as the command inputs are passed as generic variables rather than analyzable string literals. This provides a false sense of security while maintaining the risk of shell/command injection. In this instance, `git diff` and `git ls-tree` commands were executing dynamically formatted strings.
+
+**Prevention:**
+Always inline the `subprocess.run` calls directly into the target function using `shell=False` and a list of arguments `[executable, arg1, arg2...]`. This enables tools to statically analyze the executable being called and prevents shell meta-character injection. Generic `run_command` wrappers should be avoided when the commands being run accept dynamic external inputs.

@@ -17,7 +17,6 @@ class ProjectConfigLoader:
         """Load project configuration from various sources.
         Returns:
             ProjectConfig instance with merged settings
-        """
         # For now, return a default configuration
         # In a real implementation, this would load from project files
         return ProjectConfig(

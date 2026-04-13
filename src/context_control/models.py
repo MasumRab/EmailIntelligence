@@ -2,7 +2,7 @@
 
 from typing import Dict, List, Optional, Any
 from pydantic import BaseModel, Field
-from datetime import datetime, timezone
+from datetime import datetime
 
 
 class ProjectConfig(BaseModel):
@@ -40,8 +40,8 @@ class ProjectConfig(BaseModel):
     )
 
     # Metadata
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
-    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
 
     class Config:
         """Pydantic configuration."""
@@ -82,8 +82,8 @@ class ContextProfile(BaseModel):
     )
 
     # Metadata
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
-    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
     version: str = Field(default="1.0.0", description="Profile version")
 
     class Config:
@@ -126,7 +126,7 @@ class AgentContext(BaseModel):
     is_active: bool = Field(
         default=True, description="Whether this context is currently active"
     )
-    activated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    activated_at: datetime = Field(default_factory=datetime.utcnow)
     last_validated: Optional[datetime] = Field(None)
 
     # Security tracking
@@ -150,5 +150,5 @@ class ContextValidationResult(BaseModel):
     warnings: List[str] = Field(default_factory=list, description="Validation warnings")
 
     # Additional metadata
-    validated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    validated_at: datetime = Field(default_factory=datetime.utcnow)
     context_id: Optional[str] = Field(None, description="ID of the validated context")
