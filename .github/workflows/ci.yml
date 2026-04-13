@@ -25,12 +25,12 @@ jobs:
       !contains(github.event.pull_request.labels.*.name, 'ci:skip-tests')
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
         with:
           python-version: '3.12'
           cache: 'pip'
-      - uses: astral-sh/setup-uv@v5
+      - uses: astral-sh/setup-uv@v7
         with:
           enable-cache: true
       - name: Install dependencies
@@ -39,7 +39,7 @@ jobs:
         run: |
           uv run pytest tests/ src/ modules/ -v --tb=short \
             --cov=src --cov=modules --cov-report=xml --cov-report=term-missing \
-            --cov-fail-under=70
+            --cov-fail-under=80
       - name: Run Security Scans
         run: uv run bandit -r src/ modules/
       - name: Run linting
@@ -48,7 +48,6 @@ jobs:
           uv run ruff format --check src/ modules/
       - name: Type checking
         run: uv run mypy src/ modules/ --show-error-codes --no-strict-optional
-        continue-on-error: true
 
   lint-only:
     if: |
@@ -58,12 +57,12 @@ jobs:
     runs-on: ubuntu-latest
     continue-on-error: true
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
         with:
           python-version: '3.12'
           cache: 'pip'
-      - uses: astral-sh/setup-uv@v5
+      - uses: astral-sh/setup-uv@v7
         with:
           enable-cache: true
       - name: Install dependencies
