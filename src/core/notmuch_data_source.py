@@ -20,6 +20,9 @@ except ImportError:
     NOTMUCH_AVAILABLE = False
 
 from .data_source import DataSource
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from .database import SQLiteManager
 # Import DatabaseManager locally to avoid circular imports
 # from .database import DatabaseManager
 from .smart_filter_manager import SmartFilterManager
@@ -44,7 +47,7 @@ class NotmuchDataSource(DataSource):
     along with AI-powered analysis and smart filtering.
     """
 
-    def __init__(self, db_path: Optional[str] = None, db_manager: Optional['DatabaseManager'] = None):
+    def __init__(self, db_path: Optional[str] = None, db_manager: Optional['SQLiteManager'] = None):
         # Validate the database path for security if provided
         if db_path is not None:
             try:
