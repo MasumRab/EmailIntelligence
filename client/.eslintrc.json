@@ -1,5 +1,10 @@
-// Client-specific ESLint configuration
 {
-  "extends": ["../.eslintrc.json"],
-  "rules": {}
+  "extends": [
+    "../.eslintrc.json"
+  ],
+  "rules": {
+    "@typescript-eslint/no-require-imports": "off",
+    "@typescript-eslint/no-explicit-any": "off"
+  },
+  "root": true
 }

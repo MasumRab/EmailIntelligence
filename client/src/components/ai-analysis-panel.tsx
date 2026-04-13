@@ -100,7 +100,7 @@ export function AIAnalysisPanel({ email, onCategoryUpdate }: AIAnalysisPanelProp
       } else {
         throw new Error('Analysis failed');
       }
-    } catch (error) {
+    } catch {
       toast({
         title: "Analysis Failed",
         description: "Unable to analyze email with AI",
@@ -150,7 +150,7 @@ export function AIAnalysisPanel({ email, onCategoryUpdate }: AIAnalysisPanelProp
       } else {
         throw new Error('Categorization failed');
       }
-    } catch (error) {
+    } catch {
       toast({
         title: "Categorization Failed",
         description: "Unable to apply AI categorization",
@@ -183,7 +183,7 @@ export function AIAnalysisPanel({ email, onCategoryUpdate }: AIAnalysisPanelProp
           description: "Thank you for helping improve AI accuracy",
         });
       }
-    } catch (error) {
+    } catch {
       toast({
         title: "Feedback Failed",
         description: "Unable to record feedback",
@@ -438,7 +438,7 @@ export function AIAnalysisPanel({ email, onCategoryUpdate }: AIAnalysisPanelProp
         <CardContent>
           <div className="text-center py-8 text-gray-500">
             <Brain className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-            <p>Click "Analyze" to get AI-powered insights about this email</p>
+            <p>Click &quot;Analyze&quot; to get AI-powered insights about this email</p>
             <div className="mt-4 text-sm space-y-1">
               <p>• Advanced sentiment and intent detection</p>
               <p>• Smart categorization with confidence scores</p>
