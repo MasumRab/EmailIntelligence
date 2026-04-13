@@ -113,21 +113,20 @@ class _EmailContext:
     @property
     def subject_lower(self) -> str:
         if self._subject_lower is None:
-            self._subject_lower = (self.email.get("subject") or "").lower()
+            self._subject_lower = self.email.get("subject", "").lower()
         return self._subject_lower
 
     @property
     def content_lower(self) -> str:
         if self._content_lower is None:
-            content = self.email.get("content") or self.email.get("body") or ""
-            self._content_lower = content.lower()
+            self._content_lower = self.email.get("content", self.email.get("body", "")).lower()
         return self._content_lower
 
     @property
     def sender_lower(self) -> str:
         if self._sender_lower is None:
-            sender = self.email.get("sender_email") or self.email.get("sender") or ""
-            self._sender_lower = sender.lower()
+            sender_email = self.email.get("sender_email", self.email.get("sender", ""))
+            self._sender_lower = sender_email.lower()
         return self._sender_lower
 
 

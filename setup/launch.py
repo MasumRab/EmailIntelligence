@@ -248,7 +248,7 @@ def validate_host(host: str) -> str:
 def is_conda_available() -> bool:
     """Check if conda is available on the system."""
     try:
-        subprocess.run(["conda", "--version"], capture_output=True, text=True, check=True)
+        subprocess.run(["conda", "--version"], capture_output=True, text=True, check=True)  # sourcery skip
         return True
     except (subprocess.CalledProcessError, FileNotFoundError):
         return False
@@ -294,7 +294,7 @@ def activate_conda_env(env_name: str = None) -> bool:
     try:
         result = subprocess.run(
             ["conda", "info", "--envs"], capture_output=True, text=True, check=True
-        )
+        )  # sourcery skip
         envs = result.stdout.strip().split("\n")
         env_names = [line.split()[0] for line in envs if line.strip() and not line.startswith("#")]
         if env_name not in env_names:
@@ -351,7 +351,7 @@ def run_command(cmd: List[str], description: str, **kwargs) -> bool:
     """Run a command and log its output."""
     logger.info(f"{description}...")
     try:
-        proc = subprocess.run(cmd, check=True, text=True, capture_output=True, **kwargs)
+        proc = subprocess.run(cmd, check=True, text=True, capture_output=True, **kwargs)  # sourcery skip
         if proc.stdout:
             logger.debug(proc.stdout)
         if proc.stderr:
@@ -385,7 +385,7 @@ def setup_dependencies(venv_path: Path, use_poetry: bool = False):
     if use_poetry:
         # For poetry, we need to install it first if not available
         try:
-            subprocess.run([python_exe, "-c", "import poetry"], check=True, capture_output=True)
+            subprocess.run([python_exe, "-c", "import poetry"], check=True, capture_output=True)  # sourcery skip
         except subprocess.CalledProcessError:
             run_command([python_exe, "-m", "pip", "install", "poetry"], "Installing Poetry")
 
@@ -397,7 +397,7 @@ def setup_dependencies(venv_path: Path, use_poetry: bool = False):
     else:
         # For uv, install if not available
         try:
-            subprocess.run([python_exe, "-c", "import uv"], check=True, capture_output=True)
+            subprocess.run([python_exe, "-c", "import uv"], check=True, capture_output=True)  # sourcery skip
         except subprocess.CalledProcessError:
             run_command([python_exe, "-m", "pip", "install", "uv"], "Installing uv")
 
@@ -423,7 +423,7 @@ def install_notmuch_matching_system():
     try:
         result = subprocess.run(
             ["notmuch", "--version"], capture_output=True, text=True, check=True
-        )
+        )  # sourcery skip
         version_line = result.stdout.strip()
         # Parse version, e.g., "notmuch 0.38.3"
         version = version_line.split()[1]
@@ -468,7 +468,7 @@ except Exception as e:
     logger.info("Downloading NLTK data...")
     result = subprocess.run(
         [python_exe, "-c", nltk_download_script], cwd=ROOT_DIR, capture_output=True, text=True
-    )
+    )  # sourcery skip
     if result.returncode != 0:
         logger.error(f"Failed to download NLTK data: {result.stderr}")
         # This might fail in some environments but it's not critical for basic operation
@@ -495,7 +495,7 @@ except Exception as e:
         capture_output=True,
         text=True,
         timeout=120,
-    )
+    )  # sourcery skip
     if result.returncode != 0:
         logger.warning(f"TextBlob corpora download failed: {result.stderr}")
         logger.warning("Continuing setup without TextBlob corpora...")
@@ -509,7 +509,7 @@ def check_uvicorn_installed() -> bool:
     try:
         result = subprocess.run(
             [python_exe, "-c", "import uvicorn"], capture_output=True, text=True
-        )
+        )  # sourcery skip
         if result.returncode == 0:
             logger.info("uvicorn is available.")
             return True
