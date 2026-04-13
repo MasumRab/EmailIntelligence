@@ -9,7 +9,7 @@ from datetime import datetime, timedelta
 from typing import Optional, Dict, Any, List
 import time
 import secrets
-from argon2 import PasswordHasher
+from argon2 import PasswordHasher, exceptions
 
 import jwt
 from fastapi import HTTPException, status, Depends
@@ -31,7 +31,7 @@ class TokenData(BaseModel):
     role: Optional[str] = "user"
 
 
-from enum import Enum
+from enum import Enum  # noqa: E402
 
 
 class UserRole(str, Enum):
@@ -102,10 +102,10 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     ph = PasswordHasher()
     try:
         return ph.verify(hashed_password, plain_password)
-    except argon2.exceptions.VerifyMismatchError:
+    except exceptions.VerifyMismatchError:
         # Password verification failed
         return False
-    except argon2.exceptions.InvalidHashError:
+    except exceptions.InvalidHashError:
         # Invalid hash format
         logger.warning("Invalid password hash format")
         return False
@@ -139,7 +139,7 @@ async def authenticate_user(username: str, password: str, db) -> Optional[Dict[s
             # This is a valid Argon2 hash for "dummy" to prevent early exit
             # We calculate it once or use a fixed one. Using a fixed one is faster but consistent.
             # Ideally this should be pre-calculated.
-            stored_hash = "$argon2id$v=19$m=65536,t=3,p=4$DnF1/L/JzW/0QZ3r5Y/y0w$K7g/6Z5x4y3w2v1u0t9s8"
+            stored_hash = "$argon2id$v=19$m=65536,t=3,p=4$1glUiN7SybZiCUUWLgVWBw$aJM0IdCrDGR3MTOxfAnLgUS1FBvm4rCOdx740yP6ffQ"
 
         is_valid = verify_password(password, stored_hash)
 
