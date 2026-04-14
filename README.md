@@ -3,23 +3,24 @@
 ## Table of Contents
 
 - [Project Overview](#project-overview)
-- [Project Structure](#project-structure)
-- [Quick Start](#quick-start)
-- [Documentation](#documentation)
-- [CI/CD Guide](#cicd-guide)
 - [Prerequisites](#prerequisites)
-- [Setup](#setup)
-  - [AI Models Setup](#ai-models-setup)
-  - [Database Setup for Development](#database-setup-for-development)
+- [Getting Started](#getting-started)
+- [Project Architecture](#project-architecture)
+- [Directory Structure](#directory-structure)
+- [Launcher Usage](#launcher-usage)
+- [Development Notes](#development-notes)
+- [Troubleshooting](#troubleshooting)
 - [Configuration](#configuration)
 - [Security Considerations](#security-considerations)
 - [Gmail API Integration Setup](#gmail-api-integration-setup)
 - [Running the Application](#running-the-application)
 - [AI System Overview](#ai-system-overview)
 - [Building for Production](#building-for-production)
+- [Docker Deployment](#deployment-with-docker)
 - [Database](#database)
 - [Extension System](#extension-system)
 - [Debugging Hangs](#debugging-hangs)
+- [Known Vulnerabilities](#known-vulnerabilities)
 
 ## Project Overview
 
@@ -29,7 +30,7 @@ The application uses a modular architecture with a unified launcher system (`lau
 
 The Gradio UI acts as a full-featured client to the FastAPI backend.
 
-```
+```text
 Gradio UI (gradio_app.py)
 =========================
 |
@@ -53,6 +54,11 @@ Gradio UI (gradio_app.py)
 ```
 
 ## Prerequisites
+
+- Python 3.11+ (3.12 recommended)
+- Node.js 18+ and npm
+- Git
+- (Optional) Conda for environment management
 
 ## Getting Started
 
@@ -112,7 +118,7 @@ The application is composed of five main, interconnected services:
 
 ## Directory Structure
 
-```
+```text
 .
 ├── backend/
 │   ├── node_engine/      # Node-based workflow engine and specialized email nodes
@@ -145,8 +151,6 @@ The `launch.py` script is the single entry point for all development tasks.
     ```
 
 ### Running Specific Services
-
-You can run any combination of services by using the `--no-<service>` flags.
 
 You can run any combination of services by using the launcher scripts:
 -   **Run only the Python backend and Gradio UI:**
@@ -383,7 +387,7 @@ This project includes comprehensive documentation:
 
 ### Getting Started
 - **[Getting Started Guide](docs/getting_started.md)**: Complete setup guide for new developers (under 30 minutes)
-- **[Quick Start](#quick-start)**: Fast setup for experienced developers
+- **[Getting Started](#getting-started)**: Fast setup for experienced developers
 
 ### Development Guides
 - **[Client Development Guide](docs/client_development.md)**: Frontend application structure and development
@@ -407,7 +411,7 @@ This project includes comprehensive documentation:
 
 ## Setup
 
-The primary method for setting up EmailIntelligence for development is using the sequence described in the [Quick Start](#quick-start):
+The primary method for setting up EmailIntelligence for development is using the sequence described in the [Getting Started](#getting-started) section:
 1.  Clone the repository.
 2.  Install development dependencies:
     - For Ubuntu/WSL environments, run `./setup_environment_wsl.sh` (requires sudo) to install all necessary system packages and create the Python virtual environment.
