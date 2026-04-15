@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 """
 Security Framework for Email Intelligence Platform
 
@@ -8,9 +7,7 @@ including access controls, data sanitization, execution sandboxing, and audit lo
 Also includes security utilities for path validation and sanitization.
 """
 
-import os
 import pathlib
-import asyncio
 import hashlib
 import hmac
 import json
@@ -18,10 +15,9 @@ import logging
 import re
 import secrets
 import time
-from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Union
 from uuid import uuid4
 from pathlib import Path
 
@@ -100,85 +96,7 @@ class SecurityValidator:
         return True
 
 
-def validate_path_safety(
-    path: Union[str, pathlib.Path], base_dir: Optional[Union[str, pathlib.Path]] = None
-) -> bool:
-    """
-    Validate that a path is safe and doesn't contain directory traversal attempts.
 
-    Args:
-        path: The path to validate
-        base_dir: Optional base directory to resolve relative to
-
-    Returns:
-        True if path is safe, False otherwise
-    """
-    import pathlib
-
-    try:
-        path_obj = pathlib.Path(path).resolve()
-
-        # Check for directory traversal patterns
-        path_str = str(path_obj)
-
-        # Common directory traversal patterns
-        # Check for directory traversal attempts by looking for '..' as a path segment
-        if any(part == ".." for part in path_obj.parts):
-            logger.warning(f"Potential directory traversal detected in path: {path}")
-            return False
-
-        # If base_dir is specified, ensure path is within base_dir
-        if base_dir:
-            base_obj = pathlib.Path(base_dir).resolve()
-            try:
-                # Check if path is within base_dir
-                path_obj.relative_to(base_obj)
-            except ValueError:
-                logger.warning(f"Path {path} is outside allowed base directory {base_dir}")
-                return False
-
-        # Additional safety checks
-        if any(char in path_str for char in ["<", ">", "|", "?", "*"]):
-            logger.warning(f"Potentially dangerous characters detected in path: {path}")
-            return False
-
-        return True
-    except Exception as e:
-        logger.warning(f"Error during path validation: {e}")
-        return False
-
-
-def sanitize_path(path: Union[str, pathlib.Path]) -> Optional[str]:
-    """
-    Sanitize a path by removing or encoding potentially dangerous characters.
-
-    Args:
-        path: The path to sanitize
-
-    Returns:
-        Sanitized path string or None if path is invalid
-    """
-    import pathlib
-
-    try:
-        # Convert to string if it's a Path object
-        path_str = str(path)
-
-        # Basic sanitization - remove dangerous sequences
-        path_str = path_str.replace("../", "").replace("..\\", "")
-
-        # Normalize path separators
-        path_str = path_str.replace("\\", "/")
-
-        # Additional checks to ensure validity
-        if any(char in path_str for char in ["<", ">", "|", "?", "*"]):
-            logger.warning(f"Invalid characters in path after sanitization: {path_str}")
-            return None
-
-        return path_str
-    except Exception as e:
-        logger.warning(f"Error during path sanitization: {e}")
-        return None
 
 
 class DataSanitizer:
@@ -218,17 +136,13 @@ class DataSanitizer:
                 # This regex will find 'key: value' and replace it with 'key: [REDACTED]'
                 # It handles optional whitespace and stops at the next comma or end of string.
                 data = re.sub(
-<<<<<<< HEAD
                     rf'(\b{re.escape(key)}\b\s*:\s*)[^\s,]+',
                     r'\1[REDACTED]',
                     data,
-                    flags=re.IGNORECASE
-=======
                     rf"(\b{re.escape(key)}\b\s*:\s*)[^\s,]+",
                     r"\1[REDACTED]",
                     data,
                     flags=re.IGNORECASE,
->>>>>>> scientific
                 )
             return data
         elif isinstance(data, dict):
@@ -655,7 +569,6 @@ def sanitize_path(
     Returns:
         Sanitized path string or None if path is invalid
     """
-    import pathlib
 
     try:
         # Convert to string if it's a Path object
@@ -722,5 +635,3 @@ def secure_path_join(
     except Exception as e:
         logger.error(f"Error joining paths: {e}")
         return None
-=======
->>>>>>> origin/main

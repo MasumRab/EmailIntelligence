@@ -1,3 +1,4 @@
+import asyncio
 import logging
 import time
 from enum import Enum
@@ -169,8 +170,6 @@ class Workflow:
         return len(errors) == 0, errors
 
 
-import asyncio
-from concurrent.futures import ThreadPoolExecutor
 
 class WorkflowRunner:
     """
@@ -247,10 +246,10 @@ class WorkflowRunner:
 
             if parallel_execution:
                 # Execute with parallel execution for independent nodes
-                result = asyncio.run(self._run_parallel(execution_order, cleanup_schedule))
+                asyncio.run(self._run_parallel(execution_order, cleanup_schedule))
             else:
                 # Execute nodes in topological order sequentially
-                result = self._run_sequential(execution_order, cleanup_schedule)
+                self._run_sequential(execution_order, cleanup_schedule)
 
             execution_time = time.time() - start_time
             self.execution_stats["total_execution_time"] = execution_time

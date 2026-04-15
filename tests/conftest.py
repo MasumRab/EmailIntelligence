@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import os
 import sys
 
@@ -134,5 +133,3 @@ def client(mock_db_manager: AsyncMock):
     del app.dependency_overrides[get_db]
     if HAS_NOTMUCH:
         del app.dependency_overrides[get_data_source]
-=======
->>>>>>> origin/main

@@ -1,3 +1,12 @@
+from fastapi import Request
+from fastapi import HTTPException
+from fastapi.responses import JSONResponse
+from fastapi.exceptions import RequestValidationError as ValidationError
+from starlette.middleware.cors import CORSMiddleware
+import platform
+import psutil
+import requests
+from datetime import datetime
 import argparse
 import logging
 
@@ -85,7 +94,7 @@ def create_system_status_tab():
         with gr.TabItem("Overview"):
             with gr.Row():
                 with gr.Column():
-                    status_indicator = gr.Textbox(
+                    gr.Textbox(
                         label="System Status",
                         value="🟢 Online",
                         interactive=False
@@ -326,9 +335,9 @@ def create_ai_lab_tab():
 
                 with gr.Column():
                     gr.Markdown("### Model Testing")
-                    test_input = gr.Textbox(label="Test Input", placeholder="Enter text to test model...")
-                    test_model_btn = gr.Button("🧪 Test Model", variant="secondary")
-                    test_output = gr.JSON(label="Test Results")
+                    gr.Textbox(label="Test Input", placeholder="Enter text to test model...")
+                    gr.Button("🧪 Test Model", variant="secondary")
+                    gr.JSON(label="Test Results")
 
             def refresh_model_status():
                 """Get current model status."""
@@ -502,16 +511,16 @@ def create_gmail_integration_tab():
             with gr.Row():
                 with gr.Column():
                     gr.Markdown("### Account Information")
-                    account_status = gr.Textbox(
+                    gr.Textbox(
                         label="Connection Status",
                         value="🔄 Checking...",
                         interactive=False
                     )
-                    last_sync = gr.Textbox(
+                    gr.Textbox(
                         label="Last Sync",
                         interactive=False
                     )
-                    api_quota = gr.Textbox(
+                    gr.Textbox(
                         label="API Quota Status",
                         interactive=False
                     )
@@ -680,7 +689,7 @@ def main():
     parser.add_argument("--reload", action="store_true", help="Enable auto-reloading.")
     args = parser.parse_args()
 
-    app = create_app()
+    create_app()
 
     uvicorn.run(
         "src.main:create_app",

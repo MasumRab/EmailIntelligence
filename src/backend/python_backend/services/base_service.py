@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 """
 DEPRECATED: This module is part of the deprecated `backend` package.
 It will be removed in a future release.
@@ -44,5 +43,3 @@ class BaseService(ABC):
 
 # Generic type for model operations
 ModelType = TypeVar("ModelType", bound=BaseModel)
-=======
->>>>>>> origin/main
