@@ -9,6 +9,7 @@ import logging
 from typing import List, Optional
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
+from .auth import get_current_active_user
 from pydantic import BaseModel, Field
 
 from .dynamic_model_manager import DynamicModelManager
@@ -99,7 +100,7 @@ class SystemMetrics(BaseModel):
 
 
 # Create router
-router = APIRouter(prefix="/api/models", tags=["Model Management"])
+router = APIRouter(prefix="/api/models", tags=["Model Management"], dependencies=[Depends(get_current_active_user)])
 
 
 @router.get("/", response_model=List[ModelInfo])
