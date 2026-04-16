@@ -98,17 +98,44 @@ class FilterPerformance:
     false_negatives: int
 
 
-@dataclass
 class _EmailContext:
     """
     Internal context helper to avoid redundant processing of email fields
-    during filter application loop.
+    during filter application loop. Uses lazy properties to defer string
+    operations until they are actually needed by a filter.
     """
-    email: Dict[str, Any]
-    sender_domain: str
-    subject_lower: str
-    content_lower: str
-    sender_lower: str
+    def __init__(self, email: Dict[str, Any]):
+        self.email = email
+        self._sender_domain = None
+        self._subject_lower = None
+        self._content_lower = None
+        self._sender_lower = None
+
+    @property
+    def sender_lower(self) -> str:
+        if self._sender_lower is None:
+            sender_email = self.email.get("sender_email", self.email.get("sender", ""))
+            self._sender_lower = sender_email.lower()
+        return self._sender_lower
+
+    @property
+    def sender_domain(self) -> str:
+        if self._sender_domain is None:
+            sender_lower = self.sender_lower
+            self._sender_domain = sender_lower.split("@")[1] if "@" in sender_lower else ""
+        return self._sender_domain
+
+    @property
+    def subject_lower(self) -> str:
+        if self._subject_lower is None:
+            self._subject_lower = self.email.get("subject", "").lower()
+        return self._subject_lower
+
+    @property
+    def content_lower(self) -> str:
+        if self._content_lower is None:
+            self._content_lower = self.email.get("content", self.email.get("body", "")).lower()
+        return self._content_lower
 
 
 class SmartFilterManager:
@@ -619,14 +646,7 @@ class SmartFilterManager:
 
         # Handle backward compatibility or raw usage
         if not isinstance(context, _EmailContext):
-            sender_email = context.get("sender_email", context.get("sender", ""))
-            ctx = _EmailContext(
-                email=context,
-                sender_domain=self._extract_domain(sender_email),
-                subject_lower=context.get("subject", "").lower(),
-                content_lower=context.get("content", context.get("body", "")).lower(),
-                sender_lower=sender_email.lower()
-            )
+            ctx = _EmailContext(email=context)
         else:
             ctx = context
 
@@ -732,16 +752,9 @@ class SmartFilterManager:
 
         summary = {"filters_matched": [], "actions_taken": [], "categories": []}
 
-        # Pre-calculate email properties once to avoid repeated processing in the loop
-        # This reduces complexity from O(N_filters * Length) to O(1 * Length + N_filters)
-        sender_email = email_data.get("sender_email", email_data.get("sender", ""))
-        email_context = _EmailContext(
-            email=email_data,
-            sender_domain=self._extract_domain(sender_email),
-            subject_lower=email_data.get("subject", "").lower(),
-            content_lower=email_data.get("content", email_data.get("body", "")).lower(),
-            sender_lower=sender_email.lower()
-        )
+        # Initialize context to avoid repeated processing in the loop
+        # String operations are lazily evaluated only when accessed by filters
+        email_context = _EmailContext(email=email_data)
 
         # Get active filters sorted by priority
         active_filters = await self.get_active_filters_sorted()
