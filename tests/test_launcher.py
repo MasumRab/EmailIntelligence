@@ -9,25 +9,20 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 import pytest
 
-
-try:
-    from setup.launch import (
-        PYTHON_MIN_VERSION,
-        PYTHON_MAX_VERSION,
-        DOTENV_AVAILABLE,
-        main,
-        run_command,
-        _check_setup_warnings
-    )
-except ImportError:
-    PYTHON_MIN_VERSION = (3, 11)
-    PYTHON_MAX_VERSION = (3, 13)
-    DOTENV_AVAILABLE = False
-
-    def main(): pass
-    def run_command(*args, **kwargs): return True
-    def _check_setup_warnings(): pass
-
+from setup.launch import (
+    PYTHON_MAX_VERSION,
+    PYTHON_MIN_VERSION,
+    ROOT_DIR,
+    check_python_version,
+    create_venv,
+    download_nltk_data,
+    main,
+    process_manager,
+    setup_dependencies,
+    start_backend,
+    start_gradio_ui,
+    install_nodejs_dependencies,
+)
 
 
 @patch("launch.logger")
