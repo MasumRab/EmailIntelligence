@@ -1,6 +1,7 @@
 import logging
 
 from fastapi import APIRouter, Depends, HTTPException
+from src.core.auth import get_current_active_user
 
 from .ai_engine import AdvancedAIEngine
 from .database import DatabaseManager
@@ -24,6 +25,7 @@ async def analyze_email(
     request: AIAnalysisRequest,
     ai_engine: AdvancedAIEngine = Depends(get_ai_engine),
     db: DatabaseManager = Depends(get_db),
+    current_user: str = Depends(get_current_active_user),
 ):
     """
     Analyzes email content and returns AI-driven insights.
@@ -44,6 +46,7 @@ async def categorize_email(
     request: AICategorizeRequest,
     db: DatabaseManager = Depends(get_db),
     ai_engine: AdvancedAIEngine = Depends(get_ai_engine),
+    current_user: str = Depends(get_current_active_user),
 ):
     """
     Categorizes an email, either automatically using AI or manually.
@@ -112,6 +115,7 @@ async def categorize_email(
 async def validate_analysis(
     request: AIValidateRequest,
     db: DatabaseManager = Depends(get_db),
+    current_user: str = Depends(get_current_active_user),
 ):
     """
     Validates AI analysis based on user feedback.
