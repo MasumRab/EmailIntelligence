@@ -73,7 +73,7 @@ def detect_critical_patterns(file_path: str) -> Dict[str, bool]:
         
         # Critical pattern detection
         patterns['dynamic_improvement'] = 'iteration > 1' in content and 'prev_results' in content
-        patterns['adaptive_thresholding']'] = 'similarity < 0.7' in content or 'threshold.*0.7' in content
+        patterns['adaptive_thresholding'] = 'similarity < 0.7' in content or 'threshold.*0.7' in content
         patterns['layer_organization'] = 'foundation' in content and 'layer' in content
         patterns['robust_parsing'] = 're.split' in content and 're.sub' in content
         patterns['table_extraction'] = 'table' in content and 'row' in content and '|' in content
@@ -103,9 +103,9 @@ def compare_script_chain(script_files: List[str]) -> Dict[str, Any]:
     
     # Extract features from each script
     for script_file in script_files:
-        comparison["functions"][script_file] = extract_functions_from_file(script_file)
-        comparison["classes"][script_file] = extract_classes_from_file(script_file)
-        comparison["imports"][script_file] = extract_imports_from_file(script_file)
+        comparison["functions"][script_file] = list(extract_functions_from_file(script_file))
+        comparison["classes"][script_file] = list(extract_classes_from_file(script_file))
+        comparison["imports"][script_file] = list(extract_imports_from_file(script_file))
         comparison["patterns"][script_file] = detect_critical_patterns(script_file)
     
     # Identify missing functionality (present in older, missing in newer)
@@ -113,8 +113,13 @@ def compare_script_chain(script_files: List[str]) -> Dict[str, Any]:
         older_script = script_files[i-1]
         newer_script = script_files[i]
         
-        missing_functions = comparison["functions"][older_script] - comparison["functions"][newer_script]
-        missing_classes = comparison["classes"][older_script] - comparison["classes"][newer_script]
+        older_functions = set(comparison["functions"][older_script])
+        newer_functions = set(comparison["functions"][newer_script])
+        older_classes = set(comparison["classes"][older_script])
+        newer_classes = set(comparison["classes"][newer_script])
+        
+        missing_functions = older_functions - newer_functions
+        missing_classes = older_classes - newer_classes
         missing_patterns = {}
         
         for pattern, has_pattern in comparison["patterns"][older_script].items():
