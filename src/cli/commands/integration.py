@@ -30,6 +30,11 @@ from .git.rebase import PlanRebaseCommand
 from .git.stash_resolve import StashResolveCommand
 from .git.topology import TopologyMapperCommand
 from .git.logic_drift import LogicDriftAnalyzerCommand
+from .git.verify_merge import VerifyMergeCommand
+from .git.detect_rebased import DetectRebasedCommand
+from .git.conflicts import GitConflictsCommand
+from .git.branch_health import BranchHealthCommand
+from .git.conflict_bisect import ConflictBisectCommand
 
 # 2. Analysis Domain
 from .analysis.code_audit import AnalyzeCodeCommand
@@ -41,6 +46,7 @@ from .analysis.validate import ValidateCommand
 from .infra.backup import BackupCommand
 from .infra.deploy import DeployCommand
 from .infra.verify import VerifyCommand
+from .infra.install_tools import InstallToolsCommand
 
 # 4. Task Domain
 from .task.analyze_tasks import AnalyzeTasksCommand
@@ -142,6 +148,11 @@ def get_command_registry(factory: Optional[CommandFactory] = None) -> CommandReg
     registry.register_command(StashResolveCommand, "agent-git")
     registry.register_command(TopologyMapperCommand, "agent-git")
     registry.register_command(LogicDriftAnalyzerCommand, "agent-git")
+    registry.register_command(VerifyMergeCommand, "agent-git")
+    registry.register_command(DetectRebasedCommand, "agent-git")
+    registry.register_command(GitConflictsCommand, "agent-git")
+    registry.register_command(BranchHealthCommand, "agent-git")
+    registry.register_command(ConflictBisectCommand, "agent-git")
 
     # Analysis Domain
     registry.register_command(AnalyzeCodeCommand, "agent-analyst")
@@ -153,6 +164,7 @@ def get_command_registry(factory: Optional[CommandFactory] = None) -> CommandReg
     registry.register_command(BackupCommand, "agent-infra")
     registry.register_command(DeployCommand, "agent-infra")
     registry.register_command(VerifyCommand, "agent-infra")
+    registry.register_command(InstallToolsCommand, "agent-infra")
 
     # Task Domain
     registry.register_command(AnalyzeTasksCommand, "agent-workflow")

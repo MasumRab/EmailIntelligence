@@ -17,6 +17,7 @@ try:
     from sklearn.feature_extraction.text import TfidfVectorizer
     from sklearn.metrics.pairwise import cosine_similarity
     import numpy as np
+
     HAS_SCIENTIFIC = True
 except ImportError:
     HAS_SCIENTIFIC = False
@@ -25,40 +26,49 @@ logger = logging.getLogger(__name__)
 
 # --- Strategy Interfaces ---
 
+
 class SimilarityStrategy(ABC):
     """Abstract base class for text similarity algorithms."""
+
     @abstractmethod
     def calculate(self, text1: str, text2: str) -> float:
         pass
 
+
 # --- Concrete Strategies ---
+
 
 class BasicSimilarityStrategy(SimilarityStrategy):
     """Existing: Balanced structural (difflib) and lexical (Jaccard) fallback."""
+
     def calculate(self, text1: str, text2: str) -> float:
         t1, t2 = text1.lower().strip(), text2.lower().strip()
-        
+
         # 1. Structural (difflib)
         struct_score = SequenceMatcher(None, t1, t2).ratio()
-        
+
         # 2. Lexical (Jaccard)
-        tokens1 = set(re.findall(r'\w+', t1))
-        tokens2 = set(re.findall(r'\w+', t2))
+        tokens1 = set(re.findall(r"\w+", t1))
+        tokens2 = set(re.findall(r"\w+", t2))
         if not tokens1 or not tokens2:
             return struct_score
-            
+
         lexical_score = len(tokens1 & tokens2) / len(tokens1 | tokens2)
         return (struct_score * 0.4) + (lexical_score * 0.6)
 
+
 class ScientificSimilarityStrategy(SimilarityStrategy):
     """Intended: High-fidelity similarity using the project's scientific NLPEngine."""
+
     def __init__(self):
         self._engine = None
 
     def _get_engine(self):
-        if self._engine: return self._engine
+        if self._engine:
+            return self._engine
         try:
             from src.backend.python_nlp.nlp_engine import NLPEngine
+
             self._engine = NLPEngine()
             return self._engine
         except ImportError:
@@ -67,24 +77,34 @@ class ScientificSimilarityStrategy(SimilarityStrategy):
     def calculate(self, text1: str, text2: str) -> float:
         engine = self._get_engine()
         # If the real engine has a similarity method, use it
-        if engine and hasattr(engine, 'calculate_similarity'):
+        if engine and hasattr(engine, "calculate_similarity"):
             try:
                 return float(engine.calculate_similarity(text1, text2))
-            except: pass
-            
+            except ImportError:
+                # Module not available - fall through to fallback
+                pass
+            except Exception as e:
+                # Log but don't fail silently - fall through to fallback
+                import logging
+
+                logging.warning(f"NLP similarity calculation failed: {e}")
+
         # Fallback to local TF-IDF if engine is unavailable or doesn't support similarity
         if not HAS_SCIENTIFIC:
             return 0.0
         try:
             from sklearn.feature_extraction.text import TfidfVectorizer
             from sklearn.metrics.pairwise import cosine_similarity
-            vectorizer = TfidfVectorizer(token_pattern=r'\w+')
+
+            vectorizer = TfidfVectorizer(token_pattern=r"\w+")
             tfidf = vectorizer.fit_transform([text1, text2])
             return float(cosine_similarity(tfidf[0:1], tfidf[1:2])[0][0])
         except Exception:
             return 0.0
 
+
 # --- Context (Service) ---
+
 
 class NLPService:
     """
@@ -106,26 +126,44 @@ class NLPService:
         """Calculates similarity using the configured strategy."""
         if not text1 or not text2:
             return 0.0
-        
+
         score = self.strategy.calculate(text1, text2)
-        
+
         # If scientific strategy fails or returns 0 for non-empty strings, use basic fallback
         if score <= 0.0 and not isinstance(self.strategy, BasicSimilarityStrategy):
             return BasicSimilarityStrategy().calculate(text1, text2)
-            
+
         return score
 
     async def extract_keywords(self, text: str, limit: int = 5) -> List[str]:
         """Independent keyword extraction using frequency analysis."""
-        words = re.findall(r'\w+', text.lower())
-        stop_words = {'the', 'a', 'an', 'in', 'on', 'at', 'for', 'to', 'is', 'it', 'and', 'or', 'of', 'with'}
+        words = re.findall(r"\w+", text.lower())
+        stop_words = {
+            "the",
+            "a",
+            "an",
+            "in",
+            "on",
+            "at",
+            "for",
+            "to",
+            "is",
+            "it",
+            "and",
+            "or",
+            "of",
+            "with",
+        }
         filtered = [w for w in words if w not in stop_words and len(w) > 2]
         counts = collections.Counter(filtered)
         return [w for w, c in counts.most_common(limit)]
 
-    async def find_matches(self, query: str, choices: List[str], cutoff: float = 0.6) -> List[str]:
+    async def find_matches(
+        self, query: str, choices: List[str], cutoff: float = 0.6
+    ) -> List[str]:
         """FZF-style fuzzy matching."""
-        if not choices: return []
+        if not choices:
+            return []
         return get_close_matches(query, choices, n=5, cutoff=cutoff)
 
     def is_available(self) -> bool:

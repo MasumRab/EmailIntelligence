@@ -94,7 +94,9 @@ original_readme.md!.agent/
 # Taskmaster
 .taskmaster/
 
-# Ralph Hub Assembly additions
+# CLI state persistence
+.cli_state.json
 .beads/
 .ck/
 .trunk/
+.gitnexus
