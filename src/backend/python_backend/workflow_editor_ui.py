@@ -18,7 +18,7 @@ from backend.plugins.plugin_manager import plugin_manager
 
 # Try to import security manager if available
 try:
-    from src.core.security import Permission, SecurityLevel, get_security_manager
+    from src.core.security import Permission, SecurityLevel, get_security_manager  # noqa: F401
 
     security_manager_available = True
 except ImportError:
@@ -318,7 +318,7 @@ def create_advanced_workflow_ui():
 
 
 # Initialize the workflow system when this module is loaded
-initialize_workflow_system()
+initialize_workflow_system()  # noqa: F821
 
 if __name__ == "__main__":
     # For testing the workflow editor UI

@@ -1,7 +1,7 @@
 import pytest
-import asyncio
+import asyncio  # noqa: F401
 import os
-import time
+import time  # noqa: F401
 from src.core.database import DatabaseManager
 
 

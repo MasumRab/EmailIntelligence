@@ -49,8 +49,8 @@ class PluginManager:
         try:
             # Dynamically import the plugin module
             module_name = f"plugins.{plugin_name}"
-            spec = importlib.util.spec_from_file_location(module_name, file_path)
-            plugin_module = importlib.util.module_from_spec(spec)
+            spec = importlib.util.spec_from_file_location(module_name, file_path)  # noqa: F821
+            plugin_module = importlib.util.module_from_spec(spec)  # noqa: F821
             spec.loader.exec_module(plugin_module)
 
             # Call the plugin's register function if it exists

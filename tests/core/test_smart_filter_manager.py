@@ -1,9 +1,9 @@
 
 import pytest
-import asyncio
+import asyncio  # noqa: F401
 from unittest.mock import MagicMock, AsyncMock
 from datetime import datetime, timezone
-import json
+import json  # noqa: F401
 
 from src.core.smart_filter_manager import SmartFilterManager, EmailFilter, _EmailContext
 

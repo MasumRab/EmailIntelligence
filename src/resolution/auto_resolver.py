@@ -198,7 +198,7 @@ class AutoResolver(IResolutionEngine):
                     resolution_details["success"] = True
                     break
                 resolution_details["resolution_attempts"] += 1
-            except:
+            except:  # noqa: E722
                 continue  # Try next pattern
         
         return {

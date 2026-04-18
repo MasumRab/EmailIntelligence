@@ -1,6 +1,6 @@
 """Tests for core exceptions module."""
 
-import pytest
+import pytest  # noqa: F401
 from src.core.exceptions import (
     BaseAppException,
     DatabaseError,

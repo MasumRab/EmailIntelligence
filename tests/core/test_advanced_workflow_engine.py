@@ -1,5 +1,5 @@
-import asyncio
-from unittest.mock import AsyncMock, MagicMock
+import asyncio  # noqa: F401
+from unittest.mock import AsyncMock, MagicMock  # noqa: F401
 
 import pytest
 
@@ -85,7 +85,7 @@ def test_workflow_cycle_detection():
 
 def test_workflow_serialization():
     wf = Workflow(name="Serialization Test")
-    node1_id = wf.add_node("MockSimpleNode", node_id="node1", x=10, y=20)
+    node1_id = wf.add_node("MockSimpleNode", node_id="node1", x=10, y=20)  # noqa: F841
     data = wf.to_dict()
     new_wf = Workflow.from_dict(data)
 
@@ -157,7 +157,7 @@ def test_manager_workflow_persistence(manager):
 async def test_manager_end_to_end_execution(manager):
     manager.register_node_type("MockSimpleNode", MockSimpleNode)
     wf = manager.create_workflow(name="E2E Test")
-    node1_id = wf.add_node("MockSimpleNode", node_id="node1")
+    node1_id = wf.add_node("MockSimpleNode", node_id="node1")  # noqa: F841
 
     result = await manager.execute_workflow(wf.workflow_id, initial_inputs={"input_val": 10})
 

@@ -1,6 +1,6 @@
 import pytest
 from unittest.mock import AsyncMock, patch, MagicMock
-from src.core.models import FilterRequest, EmailFilterCriteria, EmailFilterActions
+from src.core.models import FilterRequest, EmailFilterCriteria, EmailFilterActions  # noqa: F401
 from backend.python_nlp.smart_filters import EmailFilter
 from datetime import datetime
 

@@ -21,7 +21,7 @@ class ConstitutionalRequirement:
     compliance_threshold: float  # 0.0 to 1.0
 
 
-from enum import Enum
+from enum import Enum  # noqa: E402
 
 class ComplianceLevel(Enum):
     """Levels of compliance"""

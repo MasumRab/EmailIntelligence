@@ -1,7 +1,7 @@
 import pytest
 import time
-import asyncio
-from unittest.mock import AsyncMock, MagicMock, patch
+import asyncio  # noqa: F401
+from unittest.mock import AsyncMock, MagicMock, patch  # noqa: F401
 from src.core.auth import authenticate_user, create_security_context_for_user
 from src.core.security import SecurityContext
 

@@ -13,12 +13,12 @@ def _setup_test_env_early():
 
 _setup_test_env_early()
 
-import subprocess
-from unittest.mock import AsyncMock
+import subprocess  # noqa: E402
+from unittest.mock import AsyncMock  # noqa: E402
 
-import pytest
-from fastapi import FastAPI
-from fastapi.testclient import TestClient
+import pytest  # noqa: E402
+from fastapi import FastAPI  # noqa: E402
+from fastapi.testclient import TestClient  # noqa: E402
 
 
 # Create a minimal test app without gradio dependencies
@@ -64,7 +64,7 @@ def setup_test_environment():
 
 
 # from src.core.database import get_db  # FIXME: get_db function doesn't exist
-from src.core.factory import get_data_source
+from src.core.factory import get_data_source  # noqa: E402
 
 # Use the test app instead of the main app
 # Use the create_test_app function defined above
@@ -88,7 +88,7 @@ def download_nltk_data():
         for package in packages:
             try:
                 nltk.download(package, quiet=True)
-            except Exception as e:
+            except Exception as e:  # noqa: F841
                 # Some packages might fail, continue with others
                 pass
     except ImportError:
@@ -97,14 +97,14 @@ def download_nltk_data():
 
     # Download TextBlob corpora if textblob is available
     try:
-        import textblob
+        import textblob  # noqa: F401
 
         try:
             # Use textblob's programmatic download
             from textblob import download_corpora
 
             download_corpora()
-        except Exception as e:
+        except Exception as e:  # noqa: F841
             # Try command line approach as fallback
             try:
                 subprocess.run(

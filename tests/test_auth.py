@@ -1,11 +1,11 @@
 """
 Tests for authentication functionality
 """
-import pytest
+import pytest  # noqa: F401
 from fastapi.testclient import TestClient
-from fastapi import FastAPI
-from fastapi.security import HTTPAuthorizationCredentials
-from src.core.auth import get_current_active_user, verify_token
+from fastapi import FastAPI  # noqa: F401
+from fastapi.security import HTTPAuthorizationCredentials  # noqa: F401
+from src.core.auth import get_current_active_user, verify_token  # noqa: F401
 from src.main import create_app
 
 # Create the app instance for testing

@@ -1,6 +1,6 @@
 import pytest
-import asyncio
-from unittest.mock import MagicMock
+import asyncio  # noqa: F401
+from unittest.mock import MagicMock  # noqa: F401
 from src.core.database import DatabaseManager, DatabaseConfig, FIELD_ID
 
 @pytest.fixture

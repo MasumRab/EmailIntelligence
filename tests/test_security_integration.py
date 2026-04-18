@@ -79,7 +79,7 @@ class TestSecurityMiddleware:
     def test_audit_logging_enabled(self, secure_client):
         """Test that audit logging is working."""
         with patch.object(audit_logger, "log_api_access") as mock_log:
-            response = secure_client.get("/api/test")
+            response = secure_client.get("/api/test")  # noqa: F841
 
             # Verify audit logging was called
             mock_log.assert_called_once()
@@ -94,7 +94,7 @@ class TestSecurityMiddleware:
         # Clear existing metrics
         performance_monitor._aggregated_metrics.clear()
 
-        response = secure_client.get("/api/test")
+        response = secure_client.get("/api/test")  # noqa: F841
 
         # Check that metrics were recorded (may be sampled, so check for any api metrics)
         metrics = performance_monitor.get_aggregated_metrics()

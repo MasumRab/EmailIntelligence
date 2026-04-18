@@ -1,7 +1,7 @@
 import logging
 
 from fastapi import APIRouter, Depends, HTTPException
-from .auth import get_current_active_user
+from src.core.auth import get_current_active_user
 
 from .ai_engine import AdvancedAIEngine
 from .database import DatabaseManager

@@ -5,7 +5,7 @@ This module tests the factory functions that provide instances of core abstracti
 ensuring proper dependency injection and singleton behavior.
 """
 
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch  # noqa: F401
 
 import pytest
 

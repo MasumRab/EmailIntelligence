@@ -1,6 +1,6 @@
 
 import pytest
-import asyncio
+import asyncio  # noqa: F401
 from pathlib import Path
 from unittest.mock import MagicMock, patch, AsyncMock
 from src.core.plugin_manager import PluginManager, SecurityError
@@ -75,7 +75,7 @@ async def test_download_file_timeout():
 
         try:
             await pm._download_file("https://example.com/slow.zip", dest_path)
-        except:
+        except:  # noqa: E722
             pass
 
         # Check that AsyncClient was initialized with timeout
