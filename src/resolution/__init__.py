@@ -3,11 +3,11 @@ Constitutional Engine
 
 Implements constitutional analysis for code compliance and standards.
 """
-from typing import List, Dict, Any, Optional
-from dataclasses import dataclass
-import json
-import yaml
-from pathlib import Path
+from typing import List, Dict, Any, Optional  # noqa: E402
+from dataclasses import dataclass  # noqa: E402
+import json  # noqa: E402
+import yaml  # noqa: E402
+from pathlib import Path  # noqa: E402
 
 
 @dataclass
@@ -21,7 +21,7 @@ class ConstitutionalRequirement:
     compliance_threshold: float  # 0.0 to 1.0
 
 
-from enum import Enum
+from enum import Enum  # noqa: E402
 
 class ComplianceLevel(Enum):
     """Levels of compliance"""
