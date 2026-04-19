@@ -2,7 +2,7 @@
 
 import pytest
 from argparse import Namespace
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch  # noqa: F401
 
 from src.cli.commands.interface import Command
 from src.cli.commands.factory import CommandFactory
@@ -612,5 +612,5 @@ class TestIntegration:
         """Test handling modular command with custom dispatcher."""
         args = Namespace(modular_command="test")
         mock_dispatcher = MagicMock(return_value=0)
-        result = handle_modular_command(args, dispatcher=mock_dispatcher)
+        result = handle_modular_command(args, dispatcher=mock_dispatcher)  # noqa: F841
         mock_dispatcher.assert_called_once()

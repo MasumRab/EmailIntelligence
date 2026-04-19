@@ -2,7 +2,7 @@
 Tests for password hashing functionality
 """
 
-import pytest
+import pytest  # noqa: F401
 
 from src.core.auth import hash_password, verify_password
 

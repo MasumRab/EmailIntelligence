@@ -65,7 +65,7 @@ def shutdown():
 
     # Restore original methods if needed
     try:
-        from backend.python_nlp.nlp_engine import NLPEngine
+        from backend.python_nlp.nlp_engine import NLPEngine  # noqa: F401
 
         # If we stored the original method somewhere, we could restore it here
         # For now, we'll just log that we're not restoring anything
