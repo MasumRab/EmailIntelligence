@@ -13,6 +13,7 @@ def db_config(tmp_path):
 def db_manager(db_config):
     manager = DatabaseManager(config=db_config)
     manager.caching_manager = MagicMock()
+    manager.caching_manager.get_query_result.return_value = None
     # Mock category cache
     manager.categories_by_id = {}
     manager.emails_data = []
