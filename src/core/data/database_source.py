@@ -1,34 +1,26 @@
 from typing import List, Dict, Any
 from .data_source import DataSource
-<<<<<<< HEAD
-=======
-from ..database import DatabaseManager, create_database_manager, DatabaseConfig
+# Avoid circular import by doing type hinting string evaluation, or importing only what's needed.
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from ..database import DatabaseManager
 from ..factory import get_data_source
 from ..data_source import DataSource as DataSourceProtocol
->>>>>>> scientific
 
 class DatabaseDataSource(DataSource):
     """
     A data source for emails that uses the database.
     """
 
-<<<<<<< HEAD
-    def __init__(self, db_manager):
-=======
-    def __init__(self, db_manager: DatabaseManager):
->>>>>>> scientific
+    def __init__(self, db_manager: 'DatabaseManager'):
         self.db = db_manager
 
     @classmethod
     async def create(cls):
-<<<<<<< HEAD
         # Import locally to avoid circular imports
-        from ..database import get_db
-        db_manager = await get_db()
-=======
+        from ..database import get_db, DatabaseConfig, create_database_manager
         config = DatabaseConfig()
         db_manager = await create_database_manager(config)
->>>>>>> scientific
         return cls(db_manager)
 
     async def get_emails(self, limit: int = 100, offset: int = 0, category_id: int = None, is_unread: bool = None) -> List[Dict[str, Any]]:
@@ -105,9 +97,6 @@ async def get_database_data_source() -> DatabaseDataSource:
     """
     Provides a singleton instance of the DatabaseDataSource.
     """
-<<<<<<< HEAD
-    return await DatabaseDataSource.create()
-=======
     # Use the factory approach instead of the old singleton
     from ..factory import get_data_source
     data_source = await get_data_source()
@@ -119,7 +108,7 @@ async def get_database_data_source() -> DatabaseDataSource:
         return DatabaseDataSource(data_source)
     else:
         # Create a new DatabaseDataSource with proper configuration
+        from ..database import DatabaseConfig, create_database_manager
         config = DatabaseConfig()
         db_manager = await create_database_manager(config)
         return DatabaseDataSource(db_manager)
->>>>>>> scientific

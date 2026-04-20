@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 """
 A system for managing and applying intelligent email filters.
 
@@ -108,9 +107,7 @@ class SmartFilterManager:
                     resolved relative to the project's data directory to prevent
                     path traversal attacks and ensure consistent behavior.
         """
-<<<<<<< HEAD
         self.db_path = db_path
-=======
         if db_path is None:
             db_path = DEFAULT_DB_PATH
         elif not os.path.isabs(db_path):
@@ -120,7 +117,6 @@ class SmartFilterManager:
 
         # Validate the final path
         self.db_path = str(PathValidator.validate_database_path(db_path, DATA_DIR))
->>>>>>> scientific
         self.logger = logging.getLogger(__name__)
         self.conn = None
         if self.db_path == ":memory:":
@@ -471,5 +467,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-=======
->>>>>>> origin/main

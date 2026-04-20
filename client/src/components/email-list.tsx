@@ -2,11 +2,40 @@
  * @file This file contains the EmailList component, which is responsible for
  *       rendering a list of emails, including their loading and empty states.
  */
+import React from "react";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Brain, Star } from "lucide-react";
 import type { EmailWithCategory } from "@shared/schema";
+
+/**
+ * Generates initials from a given name.
+ * @param {string} name - The full name of the sender.
+ * @returns {string} The initials of the sender.
+ */
+const getInitials = (name: string) => {
+  return name.split(' ').map(n => n[0]).join('').toUpperCase();
+};
+
+/**
+ * Determines the badge color based on the category name.
+ * @param {string} [categoryName] - The name of the category.
+ * @returns {string} The Tailwind CSS classes for the badge color.
+ */
+const getCategoryBadgeColor = (categoryName?: string) => {
+  if (!categoryName) return "bg-gray-100 text-gray-800";
+
+  switch (categoryName.toLowerCase()) {
+    case "work & business": return "bg-green-100 text-green-800";
+    case "personal & family": return "bg-blue-100 text-blue-800";
+    case "finance & banking": return "bg-yellow-100 text-yellow-800";
+    case "promotions & marketing": return "bg-red-100 text-red-800";
+    case "travel": return "bg-purple-100 text-purple-800";
+    case "healthcare": return "bg-cyan-100 text-cyan-800";
+    default: return "bg-gray-100 text-gray-800";
+  }
+};
 
 /**
  * @interface EmailListProps
@@ -31,7 +60,7 @@ interface EmailListProps {
  * @param {EmailListProps} props - The props for the component.
  * @returns {JSX.Element} The rendered list of emails, or a loading/empty state.
  */
-export function EmailList({ emails, loading, onEmailSelect }: EmailListProps) {
+export const EmailList = React.memo(function EmailList({ emails, loading, onEmailSelect }: EmailListProps) {
   if (loading) {
     return (
       <div className="divide-y divide-gray-200">
@@ -59,42 +88,6 @@ export function EmailList({ emails, loading, onEmailSelect }: EmailListProps) {
     );
   }
 
-  /**
-   * Generates initials from a given name.
-   * @param {string} name - The full name of the sender.
-   * @returns {string} The initials of the sender.
-   */
-  const getInitials = (name: string) => {
-    return name.split(' ').map(n => n[0]).join('').toUpperCase();
-  };
-
-  /**
-   * Determines the badge color based on the category name.
-   * @param {string} [categoryName] - The name of the category.
-   * @returns {string} The Tailwind CSS classes for the badge color.
-   */
-  const getCategoryBadgeColor = (categoryName?: string) => {
-    if (!categoryName) return "bg-gray-100 text-gray-800";
-    
-    switch (categoryName.toLowerCase()) {
-      case "work & business": return "bg-green-100 text-green-800";
-      case "personal & family": return "bg-blue-100 text-blue-800";
-      case "finance & banking": return "bg-yellow-100 text-yellow-800";
-      case "promotions & marketing": return "bg-red-100 text-red-800";
-      case "travel": return "bg-purple-100 text-purple-800";
-      case "healthcare": return "bg-cyan-100 text-cyan-800";
-      default: return "bg-gray-100 text-gray-800";
-    }
-  };
-
-  /**
-   * Handles the click event on an email item.
-   * @param {EmailWithCategory} email - The selected email object.
-   */
-  const handleEmailClick = (email: EmailWithCategory) => {
-    onEmailSelect(email);
-  };
-
   if (emails.length === 0) {
     return (
       <div className="p-8 text-center text-gray-500">
@@ -110,7 +103,7 @@ export function EmailList({ emails, loading, onEmailSelect }: EmailListProps) {
           <div 
             key={email.id} 
             className="p-4 hover:bg-gray-50 transition-colors cursor-pointer"
-            onClick={() => handleEmailClick(email)}
+            onClick={() => onEmailSelect(email)}
           >
             <div className="flex items-center space-x-4">
               <div className="flex-shrink-0">
@@ -172,4 +165,4 @@ export function EmailList({ emails, loading, onEmailSelect }: EmailListProps) {
       </div>
     </>
   );
-}
+});

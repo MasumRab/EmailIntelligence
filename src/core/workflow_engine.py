@@ -1,4 +1,4 @@
-<<<<<<< HEAD
+import asyncio
 import logging
 import time
 from enum import Enum
@@ -151,33 +151,25 @@ class Workflow:
             if from_node_id in self.nodes:
                 source_node = self.nodes[from_node_id]
                 if expected_output not in source_node.outputs:
-<<<<<<< HEAD
                     errors.append(f"Connection from {from_node_id} to {to_node_id}: Output '{expected_output}' does not exist in source node")
-=======
                     errors.append(
                         f"Connection from {from_node_id} to {to_node_id}: "
                         f"Output '{expected_output}' does not exist in source node"
                     )
->>>>>>> scientific
 
             # Check if the input exists in the target node
             if to_node_id in self.nodes:
                 target_node = self.nodes[to_node_id]
                 if expected_input not in target_node.inputs:
-<<<<<<< HEAD
                     errors.append(f"Connection from {from_node_id} to {to_node_id}: Input '{expected_input}' does not exist in target node")
-=======
                     errors.append(
                         f"Connection from {from_node_id} to {to_node_id}: "
                         f"Input '{expected_input}' does not exist in target node"
                     )
->>>>>>> scientific
 
         return len(errors) == 0, errors
 
 
-import asyncio
-from concurrent.futures import ThreadPoolExecutor
 
 class WorkflowRunner:
     """
@@ -254,10 +246,10 @@ class WorkflowRunner:
 
             if parallel_execution:
                 # Execute with parallel execution for independent nodes
-                result = asyncio.run(self._run_parallel(execution_order, cleanup_schedule))
+                asyncio.run(self._run_parallel(execution_order, cleanup_schedule))
             else:
                 # Execute nodes in topological order sequentially
-                result = self._run_sequential(execution_order, cleanup_schedule)
+                self._run_sequential(execution_order, cleanup_schedule)
 
             execution_time = time.time() - start_time
             self.execution_stats["total_execution_time"] = execution_time
@@ -346,14 +338,11 @@ class WorkflowRunner:
                     self.execution_stats["retries_performed"] += 1
 
                     if retry_count <= self.max_retries:
-<<<<<<< HEAD
                         logger.warning(f"Node {node.name} failed, retrying ({retry_count}/{self.max_retries}): {str(e)}")
-=======
                         logger.warning(
                             f"Node {node.name} failed, retrying "
                             f"({retry_count}/{self.max_retries}): {str(e)}"
                         )
->>>>>>> scientific
                     else:
                         error_msg = f"Node {node.name} ({node_id}) failed after {self.max_retries} retries: {str(e)}"
                         logger.error(error_msg, exc_info=True)
@@ -380,13 +369,10 @@ class WorkflowRunner:
                 for node_to_cleanup in cleanup_schedule[node_id]:
                     if node_to_cleanup in self.node_results:
                         del self.node_results[node_to_cleanup]
-<<<<<<< HEAD
                         logger.debug(f"Cleaned up results for node {node_to_cleanup} to optimize memory")
-=======
                         logger.debug(
                             f"Cleaned up results for node " f"{node_to_cleanup} to optimize memory"
                         )
->>>>>>> scientific
 
     async def _run_parallel(self, execution_order, cleanup_schedule):
         """Execute workflow nodes in parallel where possible"""
@@ -472,13 +458,11 @@ class WorkflowRunner:
                 for node_id in completed_nodes.copy():  # Use copy to avoid mutation during iteration
                     if node_id in cleanup_schedule:
                         for node_to_cleanup in cleanup_schedule[node_id]:
-<<<<<<< HEAD
                             if (node_to_cleanup in self.node_results and
                                 node_to_cleanup not in running_tasks and
                                 node_to_cleanup not in ready_nodes):
                                 del self.node_results[node_to_cleanup]
                                 logger.debug(f"Cleaned up results for node {node_to_cleanup} to optimize memory")
-=======
                             if (
                                 node_to_cleanup in self.node_results
                                 and node_to_cleanup not in running_tasks
@@ -489,7 +473,6 @@ class WorkflowRunner:
                                     f"Cleaned up results for node "
                                     f"{node_to_cleanup} to optimize memory"
                                 )
->>>>>>> scientific
 
     async def _execute_single_node(self, node_id: str):
         """Execute a single node asynchronously"""
@@ -521,14 +504,11 @@ class WorkflowRunner:
                 self.execution_stats["retries_performed"] += 1
 
                 if retry_count <= self.max_retries:
-<<<<<<< HEAD
                     logger.warning(f"Node {node.name} failed, retrying ({retry_count}/{self.max_retries}): {str(e)}")
-=======
                     logger.warning(
                         f"Node {node.name} failed, retrying "
                         f"({retry_count}/{self.max_retries}): {str(e)}"
                     )
->>>>>>> scientific
                 else:
                     raise e  # Re-raise the exception after max retries
 
@@ -692,5 +672,3 @@ class WorkflowRunner:
         except Exception:
             logger.warning(f"Condition evaluation failed for: {condition}")
             return False
-=======
->>>>>>> origin/main

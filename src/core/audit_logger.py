@@ -1,3 +1,4 @@
+import queue
 """
 Advanced Audit Logging System for Email Intelligence Platform
 
@@ -9,13 +10,12 @@ import atexit
 import json
 import logging
 import threading
-import time
 from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from enum import Enum
 from pathlib import Path
 from queue import Queue
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -134,7 +134,7 @@ class AuditLogger:
         """Log an audit event asynchronously."""
         try:
             self._event_queue.put_nowait(event)
-        except asyncio.QueueFull:
+        except queue.Full:
             # If queue is full, log immediately to prevent data loss
             logger.warning(f"Audit queue full, logging synchronously: {event.event_id}")
             self._write_event_immediate(event)
@@ -250,7 +250,7 @@ class AuditLogger:
                     event = self._event_queue.get(timeout=1.0)
                     events_to_process.append(event)
                     self._event_queue.task_done()
-            except asyncio.TimeoutError:
+            except queue.Empty:
                 pass  # No events available
 
             # Write events
@@ -294,7 +294,7 @@ class AuditLogger:
                 event = self._event_queue.get(timeout=1.0)
                 self._write_event_immediate(event)
                 self._event_queue.task_done()
-        except asyncio.TimeoutError:
+        except queue.Empty:
             pass
 
         if self._processing_thread.is_alive():

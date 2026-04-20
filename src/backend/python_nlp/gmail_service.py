@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 """
 A high-level service for comprehensive Gmail integration.
 
@@ -316,8 +315,6 @@ class GmailAIService:
         """Returns a dictionary of processing statistics."""
         return {"processing_stats": self.stats}
 
-<<<<<<< HEAD
-=======
     async def get_performance_metrics(self) -> Dict[str, Any]:
         """
         Get detailed performance metrics for Gmail operations.
@@ -402,7 +399,6 @@ class GmailAIService:
                 "status": "error",
             }
 
->>>>>>> scientific
     async def execute_smart_retrieval(
         self, strategies: List[str] = None, max_api_calls: int = 100, time_budget_minutes: int = 30
     ) -> Dict[str, Any]:
@@ -453,5 +449,3 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
-=======
->>>>>>> origin/main
