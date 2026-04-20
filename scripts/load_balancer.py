@@ -4,12 +4,9 @@ Load Balancer for Documentation Tasks
 Implements automatic task distribution based on agent capabilities and performance history.
 """
 
-import json
-import time
-from pathlib import Path
-from typing import List, Dict, Optional
-from datetime import datetime, timedelta
-from task_queue import TaskRouter, Agent, Task, TaskQueue, Priority, TaskStatus
+from typing import Dict, Optional
+from datetime import datetime
+from task_queue import TaskRouter, Agent, Task, TaskQueue, TaskStatus
 
 
 class LoadBalancer:

@@ -7,11 +7,10 @@ Create automated scheduling for routine documentation maintenance.
 import time
 import json
 import threading
-from datetime import datetime, timedelta
+from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Optional, Any, Callable
 from dataclasses import dataclass, field
-from collections import defaultdict
 import uuid
 
 
@@ -609,7 +608,7 @@ class MaintenanceDashboard:
         """Display overall scheduler status."""
         stats = self.scheduler.get_scheduler_statistics()
 
-        print(f"\nMaintenance Scheduler Status")
+        print("\nMaintenance Scheduler Status")
         print("=" * 29)
         print(f"Total Agents: {stats['total_agents']}")
         print(f"Active Agents: {stats['active_agents']}")
@@ -626,7 +625,7 @@ class MaintenanceDashboard:
         """Display all maintenance agents."""
         agents = self.scheduler.maintenance_agents
 
-        print(f"\nMaintenance Agents")
+        print("\nMaintenance Agents")
         print("=" * 17)
 
         if not agents:
@@ -644,7 +643,7 @@ class MaintenanceDashboard:
         """Display all maintenance schedules."""
         schedules = self.scheduler.maintenance_schedules
 
-        print(f"\nMaintenance Schedules")
+        print("\nMaintenance Schedules")
         print("=" * 22)
 
         if not schedules:
@@ -668,7 +667,7 @@ class MaintenanceDashboard:
         tasks = self.scheduler.maintenance_tasks
         queue = self.scheduler.task_queue
 
-        print(f"\nPending Tasks")
+        print("\nPending Tasks")
         print("=" * 13)
 
         if not queue:

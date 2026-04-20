@@ -2,7 +2,7 @@ import pytest
 from fastapi.testclient import TestClient
 from fastapi import FastAPI
 from src.core.factory import get_email_repository
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock
 import json
 import sys
 import os
@@ -15,7 +15,6 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', '..'))
 
 # Import routes directly to avoid gradio dependency
 from modules.dashboard.routes import router as dashboard_router
-from modules.dashboard.models import ConsolidatedDashboardStats
 
 # Mock data
 mock_emails = [

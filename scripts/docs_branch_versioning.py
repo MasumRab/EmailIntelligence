@@ -6,7 +6,6 @@ Creates and manages branch-specific versions of documentation files.
 Automatically generates branch-specific copies when documentation is modified.
 """
 
-import os
 import sys
 import argparse
 import subprocess

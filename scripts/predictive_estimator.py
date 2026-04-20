@@ -7,11 +7,10 @@ ML-based prediction of task completion times using historical data.
 import json
 import numpy as np
 from pathlib import Path
-from typing import List, Dict, Optional, Tuple
-from datetime import datetime, timedelta
+from typing import List, Dict, Optional
+from datetime import datetime
 from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import StandardScaler
-from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_squared_error, r2_score
 
 

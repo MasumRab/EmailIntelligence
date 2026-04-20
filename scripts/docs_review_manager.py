@@ -6,9 +6,7 @@ Manages the review workflow for documentation sharing decisions,
 provides dashboard interface, and tracks review progress.
 """
 
-import os
 import json
-import subprocess
 from pathlib import Path
 from typing import Dict, List, Optional
 from datetime import datetime, timedelta
@@ -223,7 +221,7 @@ class DocsReviewManager:
             branch_count = sum(1 for r in completed if r.get("decision") == "BRANCH_SPECIFIC")
             print(f"  📤 Shared: {share_count} | 🔀 Branch-Specific: {branch_count}")
 
-        print(f"\n📊 Overall Status:")
+        print("\n📊 Overall Status:")
         total = len(pending) + len(completed)
         if total > 0:
             completion_rate = len(completed) / total * 100

@@ -4,12 +4,9 @@ Event-Driven Task Assignment System
 Replaces polling with event-driven system for immediate task assignment.
 """
 
-import json
-import time
-from pathlib import Path
 from typing import List, Dict, Optional, Callable
 from datetime import datetime
-from task_queue import TaskRouter, Agent, Task, TaskQueue, Priority, TaskStatus
+from task_queue import TaskRouter, Agent, Task, TaskStatus
 from load_balancer import LoadBalancer
 
 

@@ -3,7 +3,6 @@
 Test script for concurrent review workflows system
 """
 
-import time
 import tempfile
 from pathlib import Path
 from concurrent_review import ConcurrentReviewManager, ReviewDashboard

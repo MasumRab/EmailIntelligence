@@ -5,10 +5,9 @@ Test script for resource monitoring system
 
 import time
 import tempfile
-import subprocess
 import psutil
 from pathlib import Path
-from resource_monitor import ResourceMonitor, ResourceDashboard, ResourceSnapshot, ProcessResourceUsage
+from resource_monitor import ResourceMonitor, ResourceDashboard, ResourceSnapshot
 
 
 def test_resource_monitoring():

@@ -3,7 +3,6 @@
 Test script for distributed translation pipeline system
 """
 
-import time
 import tempfile
 from pathlib import Path
 from translation_pipeline import (

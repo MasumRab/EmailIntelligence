@@ -4,10 +4,7 @@ Task Dependency Resolution
 Create system to handle task dependencies in parallel workflows.
 """
 
-import json
-from pathlib import Path
-from typing import List, Dict, Optional, Set
-from datetime import datetime
+from typing import List, Dict, Set
 from task_queue import Task
 
 
@@ -283,7 +280,7 @@ def main():
     graph = TaskDependencyGraph()
 
     # Create some sample tasks
-    from task_queue import Task, Priority, TaskStatus
+    from task_queue import Task, Priority
 
     task1 = Task(
         id="task-1",

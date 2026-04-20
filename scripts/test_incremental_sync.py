@@ -6,11 +6,10 @@ Test script for incremental sync with change detection
 import sys
 import os
 import tempfile
-import shutil
 from pathlib import Path
 sys.path.append(os.path.join(os.path.dirname(__file__)))
 
-from incremental_sync import IncrementalSync, ChangeDetector
+from incremental_sync import IncrementalSync
 
 def test_incremental_sync():
     """Test the incremental sync system."""

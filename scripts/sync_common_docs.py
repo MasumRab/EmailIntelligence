@@ -10,7 +10,6 @@ import sys
 import shutil
 import argparse
 from pathlib import Path
-from typing import List, Optional
 
 class DocumentationSync:
     """Handles synchronization of common documentation across worktrees."""
@@ -139,7 +138,6 @@ class DocumentationSync:
     def _sync_directory(self, source: Path, target: Path, conflict_strategy: str = "overwrite"):
         """Sync contents of source directory to target directory with conflict resolution."""
         import filecmp
-        from datetime import datetime
 
         conflicts = []
         updates = []

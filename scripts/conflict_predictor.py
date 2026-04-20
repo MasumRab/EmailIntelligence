@@ -7,7 +7,7 @@ Predict and resolve conflicts before they occur in parallel workflows.
 import difflib
 import hashlib
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple, Set
+from typing import Dict, List, Optional
 from dataclasses import dataclass
 from enum import Enum
 
@@ -221,7 +221,7 @@ class ConflictResolver:
                 self.auto_merge_failures += 1
                 return None
 
-        except Exception as e:
+        except Exception:
             self.auto_merge_failures += 1
             return None
 

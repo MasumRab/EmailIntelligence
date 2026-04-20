@@ -3,7 +3,6 @@
 Test script to verify agent onboarding guide content
 """
 
-import os
 from pathlib import Path
 
 def test_onboarding_guide_exists():

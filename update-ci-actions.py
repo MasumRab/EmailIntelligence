@@ -4,7 +4,6 @@ Update GitHub Actions versions in workflow files to match Dependabot PRs.
 This fixes CI failures and enables auto-merge for Dependabot.
 """
 
-import os
 import re
 from pathlib import Path
 
@@ -71,7 +70,7 @@ def main():
             updated_count += 1
     
     print()
-    print(f"=== Summary ===")
+    print("=== Summary ===")
     print(f"Files updated: {updated_count}")
     print()
     print("Next steps:")

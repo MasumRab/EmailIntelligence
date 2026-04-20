@@ -8,7 +8,7 @@ import time
 import json
 import threading
 from pathlib import Path
-from typing import Dict, List, Optional, Any, Set, Tuple
+from typing import Dict, List, Optional, Any
 from dataclasses import dataclass, field
 from collections import defaultdict
 import uuid
@@ -608,21 +608,21 @@ class TranslationDashboard:
         print(f"Assigned Agents: {len(job.assigned_agents)} ({', '.join(job.assigned_agents)})")
         print(f"Duration: {progress.get('duration_seconds', 0):.1f} seconds")
 
-        print(f"\nProgress:")
+        print("\nProgress:")
         print(f"  Total Segments: {progress.get('total_segments', 0)}")
         print(f"  Completed: {progress.get('completed_segments', 0)}")
         print(f"  In Progress: {progress.get('in_progress_segments', 0)}")
         print(f"  Pending: {progress.get('pending_segments', 0)}")
         print(f"  Progress: {progress.get('progress_percentage', 0):.1f}%")
 
-        print(f"\nQuality Metrics:")
+        print("\nQuality Metrics:")
         print(f"  Average Quality Score: {quality_metrics.get('average_quality_score', 0):.2f}")
         print(f"  Segments with Reports: {quality_metrics.get('segments_with_quality_reports', 0)}/{quality_metrics.get('total_segments', 0)}")
         print(f"  Total Issues: {quality_metrics.get('total_issues', 0)}")
 
         # Show parallel translation plan
         plan = self.translation_manager.get_parallel_translation_plan(job_id)
-        print(f"\nParallel Translation Plan:")
+        print("\nParallel Translation Plan:")
         for i, wave in enumerate(plan, 1):
             print(f"  Wave {i}: {len(wave)} segments")
 
@@ -630,20 +630,20 @@ class TranslationDashboard:
         """Display translation memory statistics."""
         stats = self.translation_manager.get_translation_memory_stats()
 
-        print(f"\nTranslation Memory Statistics")
+        print("\nTranslation Memory Statistics")
         print("=" * 32)
         print(f"Total Entries: {stats.get('total_entries', 0)}")
         print(f"Average Confidence: {stats.get('average_confidence', 0):.2f}")
 
         language_pairs = stats.get('language_pairs', {})
         if language_pairs:
-            print(f"\nEntries by Language Pair:")
+            print("\nEntries by Language Pair:")
             for pair, count in language_pairs.items():
                 print(f"  {pair}: {count}")
 
         supported_pairs = stats.get('supported_language_pairs', {})
         if supported_pairs:
-            print(f"\nSupported Language Pairs:")
+            print("\nSupported Language Pairs:")
             for source, targets in supported_pairs.items():
                 print(f"  {source} → {', '.join(targets)}")
 
@@ -679,12 +679,12 @@ class TranslationDashboard:
             print(f"   Quality Score: {report.quality_score:.2f}")
 
             if report.issues:
-                print(f"   Issues:")
+                print("   Issues:")
                 for issue in report.issues:
                     print(f"     - {issue}")
 
             if report.suggestions:
-                print(f"   Suggestions:")
+                print("   Suggestions:")
                 for suggestion in report.suggestions:
                     print(f"     - {suggestion}")
 

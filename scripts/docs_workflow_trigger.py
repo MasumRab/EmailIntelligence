@@ -6,7 +6,6 @@ Orchestrates the documentation branch workflow by triggering analysis,
 strategy determination, and review creation when documentation changes are detected.
 """
 
-import os
 import sys
 import subprocess
 from pathlib import Path

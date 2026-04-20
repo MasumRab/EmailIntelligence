@@ -13,13 +13,11 @@ It provides risk assessments, impact analysis, and remediation steps.
 """
 
 import ast
-import os
-import sys
 import re
 import json
 from pathlib import Path
-from typing import List, Dict, Tuple, Any
-from datetime import datetime, timedelta
+from typing import List, Dict
+from datetime import datetime
 
 
 class CodebaseAnalyzer:
@@ -71,7 +69,7 @@ class CodebaseAnalyzer:
                             "timeline": timeline,
                             "effort": "1-4 hours"
                         })
-            except Exception as e:
+            except Exception:
                 continue
                 
         return issues
@@ -150,7 +148,7 @@ class CodebaseAnalyzer:
                         "effort": "3-5 days"
                     })
                     
-            except Exception as e:
+            except Exception:
                 continue
                 
         return issues
@@ -187,7 +185,7 @@ class CodebaseAnalyzer:
                             "effort": "2-8 hours"
                         })
                         
-            except Exception as e:
+            except Exception:
                 continue
                 
         return issues
@@ -252,7 +250,7 @@ class CodebaseAnalyzer:
                             "file": file_path,
                             "cycle": "database <-> settings"
                         })
-                except Exception as e:
+                except Exception:
                     continue
                     
         return circular_deps
@@ -275,7 +273,7 @@ class CodebaseAnalyzer:
                         "file": str(py_file.relative_to(self.root_dir)),
                         "loc": loc
                     })
-            except Exception as e:
+            except Exception:
                 continue
                 
         return large_modules
@@ -309,7 +307,7 @@ class CodebaseAnalyzer:
                         occurrences += count
                         if count > 2:  # More than 2 occurrences in a file
                             file_with_most = str(py_file.relative_to(self.root_dir))
-                except Exception as e:
+                except Exception:
                     continue
                     
             if occurrences > 5:  # More than 5 total occurrences
@@ -345,7 +343,7 @@ class CodebaseAnalyzer:
                                 "name": node.name,
                                 "complexity": complexity
                             })
-            except Exception as e:
+            except Exception:
                 continue
                 
         return complex_functions

@@ -10,7 +10,7 @@ from pathlib import Path
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from setup.project_config import get_project_config, ProjectConfig
+from setup.project_config import get_project_config
 
 def test_config():
     """Test the project configuration system."""

@@ -5,10 +5,9 @@ Test script for conflict prediction and pre-resolution
 
 import sys
 import os
-from pathlib import Path
 sys.path.append(os.path.join(os.path.dirname(__file__)))
 
-from conflict_predictor import ConflictPredictor, ConflictResolver, ConflictPrediction, ConflictType, ConflictSeverity
+from conflict_predictor import ConflictPredictor, ConflictResolver
 
 def test_conflict_prediction():
     """Test the conflict prediction and resolution system."""

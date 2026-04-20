@@ -8,7 +8,7 @@ import os
 sys.path.append(os.path.join(os.path.dirname(__file__)))
 
 from task_dependency_resolver import TaskDependencyGraph
-from task_queue import Task, Priority, TaskStatus
+from task_queue import Task, Priority
 
 def test_task_dependency_resolver():
     """Test the task dependency resolution system."""

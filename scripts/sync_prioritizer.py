@@ -9,8 +9,6 @@ import heapq
 from enum import Enum
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Set
-from datetime import datetime, timedelta
-from parallel_sync import SyncWorker
 from pathlib import Path
 
 

@@ -1,5 +1,3 @@
-import argparse
-import subprocess
 import sys
 from pathlib import Path
 from unittest.mock import MagicMock, patch
@@ -16,7 +14,6 @@ from setup.launch import (
     check_python_version,
     create_venv,
     download_nltk_data,
-    main,
     process_manager,
     setup_dependencies,
     start_backend,

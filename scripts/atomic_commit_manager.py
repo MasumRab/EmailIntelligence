@@ -4,15 +4,12 @@ Atomic Commit Groups
 Group related changes into atomic commits across worktrees.
 """
 
-import os
 import json
 import hashlib
-import time
 from pathlib import Path
-from typing import Dict, List, Optional, Set, Tuple
+from typing import Dict, List, Optional
 from dataclasses import dataclass, asdict
 from datetime import datetime
-from concurrent.futures import ThreadPoolExecutor
 import subprocess
 
 

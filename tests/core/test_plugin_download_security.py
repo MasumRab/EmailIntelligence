@@ -1,6 +1,5 @@
 
 import pytest
-import asyncio
 from pathlib import Path
 from unittest.mock import MagicMock, patch, AsyncMock
 from src.core.plugin_manager import PluginManager, SecurityError

@@ -5,7 +5,6 @@ Implements health checks and automatic failover for agent failures.
 """
 
 import psutil
-import time
 import json
 from pathlib import Path
 from typing import List, Dict, Optional

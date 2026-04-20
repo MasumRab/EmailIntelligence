@@ -9,9 +9,8 @@ import hashlib
 import json
 import time
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple, Set
+from typing import Dict, List, Set
 from datetime import datetime
-from filecmp import dircmp
 import shutil
 
 

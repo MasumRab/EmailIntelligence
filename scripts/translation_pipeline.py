@@ -8,7 +8,7 @@ import time
 import json
 import threading
 from pathlib import Path
-from typing import Dict, List, Optional, Any, Set, Tuple
+from typing import Dict, List, Optional, Any, Tuple
 from dataclasses import dataclass, field
 from collections import defaultdict
 import uuid
@@ -622,7 +622,7 @@ class TranslationDashboard:
         print(f"Status: {job.status}")
         print(f"Duration: {progress.get('duration_seconds', 0):.1f} seconds")
 
-        print(f"\nProgress:")
+        print("\nProgress:")
         print(f"  Total Units: {progress.get('total_units', 0)}")
         print(f"  Completed: {progress.get('completed_units', 0)}")
         print(f"  Failed: {progress.get('failed_units', 0)}")
@@ -630,7 +630,7 @@ class TranslationDashboard:
         print(f"  Pending: {progress.get('pending_units', 0)}")
         print(f"  Overall Progress: {progress.get('progress_percentage', 0):.1f}%")
 
-        print(f"\nLanguage Progress:")
+        print("\nLanguage Progress:")
         language_progress = progress.get('language_progress', {})
         for lang, lang_progress in language_progress.items():
             print(f"  {lang}: {lang_progress['completed_units']}/{lang_progress['total_units']} "
@@ -661,25 +661,25 @@ class TranslationDashboard:
         """Display overall translation statistics."""
         stats = self.translation_manager.get_translation_statistics()
 
-        print(f"\nTranslation Statistics")
+        print("\nTranslation Statistics")
         print("=" * 22)
         print(f"Total Jobs: {stats['total_jobs']}")
         print(f"Completed Jobs: {stats['completed_jobs']}")
         print(f"In Progress Jobs: {stats['in_progress_jobs']}")
         print(f"Job Completion Rate: {stats['completion_rate']:.1f}%")
 
-        print(f"\nTranslation Units:")
+        print("\nTranslation Units:")
         print(f"  Total Units: {stats['total_units']}")
         print(f"  Completed Units: {stats['completed_units']}")
         print(f"  Failed Units: {stats['failed_units']}")
         print(f"  Unit Completion Rate: {stats['unit_completion_rate']:.1f}%")
         print(f"  Failed Unit Rate: {stats['failed_unit_rate']:.1f}%")
 
-        print(f"\nLanguage Coverage:")
+        print("\nLanguage Coverage:")
         for source_lang, target_langs in stats['language_coverage'].items():
             print(f"  {source_lang} → {', '.join(target_langs)}")
 
-        print(f"\nTranslation Memory:")
+        print("\nTranslation Memory:")
         print(f"  Entries: {stats['translation_memory_size']}")
 
     def display_agent_assignments(self, agent_id: str):
@@ -719,15 +719,15 @@ class TranslationDashboard:
                 reverse=True
             )[:5]  # Top 5 most used
 
-        print(f"\nTranslation Memory Statistics")
+        print("\nTranslation Memory Statistics")
         print("=" * 30)
         print(f"Total Entries: {tm_size}")
 
-        print(f"\nQuality Distribution:")
+        print("\nQuality Distribution:")
         for range_name, count in sorted(quality_ranges.items()):
             print(f"  {range_name}%: {count} entries")
 
-        print(f"\nMost Used Entries:")
+        print("\nMost Used Entries:")
         for i, entry in enumerate(sorted_entries, 1):
             print(f"  {i}. {entry.source_text[:50]}... → {entry.target_text[:50]}...")
             print(f"     Quality: {entry.quality_score:.1f}%, Used: {entry.usage_count} times")

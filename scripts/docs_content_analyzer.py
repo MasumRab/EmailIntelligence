@@ -6,12 +6,11 @@ Compares documentation content between branches and analyzes differences
 in purpose, audience, and technical depth to determine sharing strategies.
 """
 
-import os
 import re
 import difflib
 import subprocess
 from pathlib import Path
-from typing import Dict, List, Tuple, Optional
+from typing import Dict, List, Optional
 import json
 
 

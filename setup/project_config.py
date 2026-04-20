@@ -6,7 +6,6 @@ structure, allowing paths and components to be defined dynamically rather than h
 This prevents issues during major refactors when file locations change.
 """
 
-import os
 from pathlib import Path
 from typing import Dict, List, Optional, Set
 from dataclasses import dataclass, field

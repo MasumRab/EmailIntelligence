@@ -8,7 +8,6 @@ process documentation changes.
 """
 
 import sys
-import os
 from pathlib import Path
 
 # Add the scripts directory to the path so we can import our modules
@@ -135,7 +134,7 @@ def main():
     else:
         print("✗ Documentation maintenance workflow failed")
 
-    print(f"\nAgent Workflow Integration Summary:")
+    print("\nAgent Workflow Integration Summary:")
     print(f"Successfully triggered: {success_count}/{total_count} workflows")
 
     if success_count == total_count:
