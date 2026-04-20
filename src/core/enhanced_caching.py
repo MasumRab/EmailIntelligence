@@ -8,7 +8,7 @@ including LRU cache for frequently accessed data and query result caching.
 import logging
 import time
 from collections import OrderedDict
-from typing import Any, Dict, Optional, Tuple
+from typing import Any, Dict, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -70,9 +70,11 @@ class LRUCache:
 class QueryResultCache:
     """Cache for query results with TTL (Time To Live) support."""
 
-    def __init__(self, ttl_seconds: int = 300):  # 5 minutes default
+    def __init__(self, ttl_seconds: int = 300, capacity: int = 200):  # 5 minutes default
         self.ttl_seconds = ttl_seconds
-        self.cache: Dict[str, Tuple[Any, float]] = {}  # (value, timestamp)
+        self.capacity = capacity
+        # Use OrderedDict without generic type hints for compatibility
+        self.cache = OrderedDict()
         self.hits = 0
         self.misses = 0
 
@@ -81,6 +83,8 @@ class QueryResultCache:
         if key in self.cache:
             value, timestamp = self.cache[key]
             if time.time() - timestamp < self.ttl_seconds:
+                # Move to end to mark as recently used
+                self.cache.move_to_end(key)
                 self.hits += 1
                 return value
             else:
@@ -91,7 +95,15 @@ class QueryResultCache:
 
     def put(self, key: str, value: Any) -> None:
         """Put value in cache with current timestamp."""
-        self.cache[key] = (value, time.time())
+        if key in self.cache:
+            # Update existing key and move to end (recently used)
+            self.cache[key] = (value, time.time())
+            self.cache.move_to_end(key)
+        else:
+            self.cache[key] = (value, time.time())
+            # Enforce capacity
+            if len(self.cache) > self.capacity:
+                self.cache.popitem(last=False)
 
     def invalidate(self, key: str) -> None:
         """Remove a specific key from cache."""
