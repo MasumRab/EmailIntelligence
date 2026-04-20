@@ -11,14 +11,19 @@
 | Tool | Responsibility | Config File |
 |------|---------------|-------------|
 | **Ruler** | Primary sync (TOML) | `.ruler/ruler.toml` |
+| **Tier 2 root files** | Tool-specific/root-context content | `GEMINI.md`, `QWEN.md`, `IFLOW.md`, `CRUSH.md`, `LLXPRT.md`, `CLAUDE.md` |
 | **RuleSync** | CI drift detection | `rulesync.jsonc` |
 | **Agent RuleZ** | Runtime enforcement | `.claude/hooks.yaml` |
 
 **Workflow:**
-1. Edit `.ruler/AGENTS.md` for content changes
-2. Run `ruler apply` to distribute
-3. Run `rulesync generate --check` in CI
-4. Agent RuleZ enforces at runtime
+1. Edit `.ruler/AGENTS.md` for Tier 1 shared content changes.
+2. Maintain Tier 2 root files separately for tool-specific behavior; do not assume `AGENTS.md` replaces them.
+3. Run `ruler apply` to distribute Tier 1 shared content.
+4. Reconcile `.github/instructions/tools-manifest.json` with the current branch policy for optional Tier 2 files.
+5. Run `rulesync generate --check` in CI.
+6. Agent RuleZ enforces runtime safety rules.
+
+**Boundary:** Ruler distributes shared instructions. It does not automatically make a reviewed decision about Gemini/Qwen/iFlow/Crush/LLxPRT-specific root content.
 
 ---
 

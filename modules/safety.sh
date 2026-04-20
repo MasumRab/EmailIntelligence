@@ -3,7 +3,7 @@
 
 # Import dependencies if needed
 # Define constants for this module
-readonly SAFETY_BACKUP_DIR="${SAFETY_BACKUP_DIR:-${PROJECT_ROOT:-.}/backups}"
+SAFETY_BACKUP_DIR="${SAFETY_BACKUP_DIR:-${PROJECT_ROOT:-.}/backups}"
 
 # Function to check for uncommitted files
 check_uncommitted_files() {
@@ -169,15 +169,19 @@ create_safety_backup() {
 }
 
 # Function to validate distribution safety
+# @description Validates that it's safe to distribute to the specified branch
+# @param $1 target_branch - the branch to validate distribution safety for
+# @return 0 if distribution is safe, 1 otherwise
+# @side_effects Checks branch status, uncommitted files, and taskmaster isolation
 validate_distribution_safety() {
     local target_branch="$1"
-    
+
     # Check if target branch is a taskmaster branch (should not be modified)
     if [[ "$target_branch" == taskmaster* ]]; then
         echo "ERROR: Cannot distribute to taskmaster branches (worktree isolation required)"
         return 1
     fi
-    
+
     # Check if we're on the same branch we're trying to modify
     local current_branch=$(git rev-parse --abbrev-ref HEAD)
     if [[ "$current_branch" == "$target_branch" ]]; then
@@ -189,13 +193,13 @@ validate_distribution_safety() {
             return 1
         fi
     fi
-    
+
     # Check for uncommitted changes
     check_uncommitted_files "true"  # Just warn, don't force confirmation here
-    
+
     # Validate taskmaster isolation
     validate_taskmaster_isolation
-    
+
     echo "Distribution safety validated for branch: $target_branch"
     return 0
 }

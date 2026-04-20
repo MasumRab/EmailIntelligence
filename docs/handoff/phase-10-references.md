@@ -7,6 +7,18 @@
 
 ## Extended Tool Ecosystem
 
+### Tier 2 Root File Source Map
+
+| File | Best Source | Fallback | Notes |
+|------|-------------|----------|-------|
+| `GEMINI.md` | Current tracked root file/history | Reconstruct from current branch history | Split out Jules template, keep Gemini CLI content at root |
+| `QWEN.md` | Current tracked root file/history | Preserve current content in `docs/SCIENTIFIC_BRANCH_DOCS.md`, then rewrite root file | Must remain at root if Qwen loader depends on it |
+| `IFLOW.md` | `~/github/EmailIntelligenceGem/IFLOW.md` | `docs/handoff/content-archive/ARCHIVED_IFLOW_WORKFLOW.md` + `ARCHIVED_AI_MODELS_SETUP.md` | Unique content worth preserving |
+| `CRUSH.md` | `~/github/EmailIntelligenceGem/CRUSH.md` | Leave absent and mark `not_on_branch` | Mostly duplicated by `AGENTS.md` |
+| `LLXPRT.md` | `~/github/EmailIntelligenceGem/LLXPRT.md` | Leave absent and mark `not_on_branch` | Mostly duplicated by `AGENTS.md` |
+
+---
+
 ### Additional AI Coding Agents
 
 | Tool | Source | Config File | Key Feature |

@@ -1,7 +1,7 @@
 # Phase 9: Multi-Loop Verification
 
-**Purpose:** Verify all fixes across 8 verification loops.
-**Steps:** 8
+**Purpose:** Verify all fixes across 9 verification loops.
+**Steps:** 9
 **Dependencies:** All implementation phases complete
 
 ---
@@ -18,6 +18,21 @@ for d in .roo .cursor .windsurf .trae .kiro .kilo .claude; do
   echo -n "$d/mcp.json: "
   test -s "$d/mcp.json" && echo "OK" || echo "EMPTY/MISSING"
 done
+for f in GEMINI.md QWEN.md .gemini/JULES_TEMPLATE.md docs/SCIENTIFIC_BRANCH_DOCS.md; do
+  echo -n "$f: "
+  test -f "$f" && echo "EXISTS" || echo "MISSING"
+done
+python3 - <<'PY'
+import json, os
+d = json.load(open('.github/instructions/tools-manifest.json'))
+m = {i['id']: i for i in d['instructions']}
+for path, key in [('IFLOW.md', 'model_context_iflow'), ('CRUSH.md', 'model_context_crush'), ('LLXPRT.md', 'model_context_llxprt')]:
+    status = m.get(key, {}).get('status')
+    if os.path.isfile(path):
+        print(f'{path}: RESTORED')
+    else:
+        print(f'{path}: {status or "UNSET"}')
+PY
 ```
 
 ---
@@ -102,9 +117,21 @@ echo "=== LOOP 8: AGENT RULEZ DEBUG ==="
 
 ---
 
+## Loop 9: Agent Content Accuracy
+
+```bash
+echo "=== LOOP 9: AGENT CONTENT VERIFICATION ==="
+bash scripts/verify-agent-content.sh
+```
+
+**PASS:** `Claimed & Stale: 0` and `Undocumented: 0`
+**If stale:** Update `.ruler/AGENTS.md` with accurate directory descriptions, run `ruler apply`, re-run this loop.
+
+---
+
 ## Final Gate
 
 ```bash
 echo "=== FINAL GATE ==="
-echo "All loops must pass. Review output above."
+echo "All loops (1–9) must pass. Review output above."
 ```

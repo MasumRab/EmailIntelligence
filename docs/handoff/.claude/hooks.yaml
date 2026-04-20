@@ -1,0 +1,10 @@
+version: '1.0'
+rules: []
+settings:
+  log_level: info
+  max_context_size: 1048576
+  script_timeout: 5
+  fail_open: true
+  debug_logs: false
+  logging:
+    backends: []

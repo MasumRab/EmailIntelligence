@@ -33,6 +33,7 @@ enabled = true
 
 [agents.cline]
 enabled = true
+output_path = ".clinerules/ruler_instructions.md"
 
 [agents.roo]
 enabled = true

@@ -3,81 +3,53 @@
 
 set -euo pipefail
 
-# Colors for output
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-NC='\033[0m' # No Color
+# Source the test framework
+PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+FRAMEWORK_DIR="$PROJECT_ROOT/tests/modules"
+source "$FRAMEWORK_DIR/test_framework.sh"
 
 echo "🧪 Testing Configuration Module..."
 
 # Mock the required functions from other modules
-PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 MODULE_DIR="$PROJECT_ROOT/modules"
 
 # Source the module to test
 source "$MODULE_DIR/config.sh"
 
-# Counter for test results
-TEST_COUNT=0
-PASS_COUNT=0
-FAIL_COUNT=0
-
-# Test runner function
-run_test() {
-    local test_name="$1"
-    local expected_result="$2"
-    shift 2
-    ((TEST_COUNT++))
-    
-    echo -n "Test $TEST_COUNT: $test_name... "
-    
-    # Capture the result of the function call
-    if "$@" 2>/dev/null; then
-        result=0
-    else
-        result=1
-    fi
-    
-    if [[ $result -eq $expected_result ]]; then
-        echo -e "${GREEN}PASS${NC}"
-        ((PASS_COUNT++))
-    else
-        echo -e "${RED}FAIL${NC}"
-        ((FAIL_COUNT++))
-    fi
-}
+# Initialize test framework
+test_framework_init
 
 # Test 1: Test create_default_config function
 test_create_default_config() {
     # Create a temporary config directory
     local temp_dir=$(mktemp -d)
-    local original_config_path="$CONFIG_FILE_PATH"
     
-    # Override the config path for testing
-    CONFIG_FILE_PATH="$temp_dir/config/distribution.json"
-    
-    # Create the directory
-    mkdir -p "$(dirname "$CONFIG_FILE_PATH")"
-    
-    # Run the function
-    create_default_config
-    
-    # Check if the file was created
-    if [[ -f "$CONFIG_FILE_PATH" ]]; then
-        # Check if it contains expected content
-        if grep -q "sources" "$CONFIG_FILE_PATH" && grep -q "targets" "$CONFIG_FILE_PATH"; then
-            return 0
+    # Override the config path for testing using subshell to isolate
+    (
+        export CONFIG_FILE_PATH="$temp_dir/config/distribution.json"
+        
+        # Create the directory
+        mkdir -p "$(dirname "$CONFIG_FILE_PATH")"
+        
+        # Run the function
+        create_default_config
+        
+        # Check if the file was created
+        if [[ -f "$CONFIG_FILE_PATH" ]]; then
+            # Check if it contains expected content
+            if grep -q "sources" "$CONFIG_FILE_PATH" && grep -q "targets" "$CONFIG_FILE_PATH"; then
+                exit 0
+            else
+                exit 1
+            fi
         else
-            return 1
+            exit 1
         fi
-    else
-        return 1
-    fi
+    )
     
-    # Restore original path
-    CONFIG_FILE_PATH="$original_config_path"
+    # Clean up
     rm -rf "$temp_dir"
+    return $?
 }
 
 # Test 2: Test get_branch_config function
@@ -191,27 +163,21 @@ test_is_validation_required_after_sync() {
 echo "Running configuration module tests..."
 echo ""
 
-run_test "Create default config" 0 test_create_default_config
-run_test "Get branch config for orchestration-tools" 0 test_get_branch_config
-run_test "Get branch config for taskmaster" 0 test_get_branch_config_taskmaster
-run_test "Check branch allowed for distribution" 0 test_is_branch_allowed
-run_test "Get large file threshold" 0 test_get_large_file_threshold
-run_test "Get sensitive patterns" 0 test_get_sensitive_patterns
-run_test "Get required files" 0 test_get_required_files
-run_test "Get distribution method" 0 test_get_distribution_method
-run_test "Check validation required after sync" 0 test_is_validation_required_after_sync
+test_run "Create default config" test_create_default_config 0
+test_run "Get branch config for orchestration-tools" test_get_branch_config 0
+test_run "Get branch config for taskmaster" test_get_branch_config_taskmaster 0
+test_run "Check branch allowed for distribution" test_is_branch_allowed 0
+test_run "Get large file threshold" test_get_large_file_threshold 0
+test_run "Get sensitive patterns" test_get_sensitive_patterns 0
+test_run "Get required files" test_get_required_files 0
+test_run "Get distribution method" test_get_distribution_method 0
+test_run "Check validation required after sync" test_is_validation_required_after_sync 0
 
 # Print summary
-echo ""
-echo "📊 Test Results Summary:"
-echo "Total tests: $TEST_COUNT"
-echo "Passed: $PASS_COUNT"
-echo "Failed: $FAIL_COUNT"
+test_framework_summary "Configuration Module"
 
-if [[ $FAIL_COUNT -eq 0 ]]; then
-    echo -e "${GREEN}🎉 All configuration module tests passed!${NC}"
+if [[ $TEST_FRAMEWORK_FAIL -eq 0 ]]; then
     exit 0
 else
-    echo -e "${RED}❌ Some tests failed.${NC}"
     exit 1
 fi

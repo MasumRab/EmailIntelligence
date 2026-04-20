@@ -15,7 +15,7 @@
 | `.clinerules/` | cerebras-mcp references | 2 | ~80 |
 | `.cursor/rules/` | TypeScript-only | 2 | ~60 |
 | `*_deep.md` files | Duplicates | 6 | 1960 |
-| `tools-manifest.json` | Dead references | 1 | ~50 |
+| `tools-manifest.json` | Stale Tier 2 file status | 1 | ~50 |
 
 ---
 
@@ -81,14 +81,21 @@ rm .kilo/rules/*_deep.md
 
 ---
 
-## Step 6.6 — Fix dead references in tools-manifest.json
+## Step 6.6 — Reconcile Tier 2 file status in tools-manifest.json
 
 **File:** `.github/instructions/tools-manifest.json`
 
-Remove references to:
-- `CRUSH.md` (not found)
-- `LLXPRT.md` (not found)
-- `IFLOW.md` (not found)
+Do NOT remove Tier 2 file references blindly.
+
+Update manifest entries so they match Phase 5 outcomes:
+
+- `GEMINI.md` — remains a root Tier 2 file when present
+- `QWEN.md` — remains a root Tier 2 file when present
+- `IFLOW.md` — set `status: "configured"` if restored, otherwise `status: "not_on_branch"`
+- `CRUSH.md` — set `status: "configured"` if restored, otherwise `status: "not_on_branch"`
+- `LLXPRT.md` — set `status: "configured"` if restored, otherwise `status: "not_on_branch"`
+
+Also update discovery/config notes so Gemini and Qwen do not contradict the live runtime settings.
 
 ---
 
@@ -102,6 +109,8 @@ echo -n "Prisma refs in tool rules: "
 grep -rl "prisma" .clinerules/ .windsurf/rules/ .roo/rules/ .trae/rules/ .kiro/steering/ .kilo/rules/ 2>/dev/null | wc -l
 echo -n "TypeScript-only in Cursor: "
 grep -r "Use TypeScript for all new code" .cursor/rules/ 2>/dev/null | wc -l
+echo -n "Tier 2 manifest unresolved: "
+python3 -c "import json, os; d=json.load(open('.github/instructions/tools-manifest.json')); m={i['id']: i for i in d['instructions']}; print(sum(1 for p,k in [('IFLOW.md','model_context_iflow'),('CRUSH.md','model_context_crush'),('LLXPRT.md','model_context_llxprt')] if not os.path.isfile(p) and m.get(k, {}).get('status') != 'not_on_branch'))"
 ```
 
 **Expected:** All `0`

@@ -3,8 +3,8 @@
 
 # Import dependencies if needed
 # Define constants for this module
-readonly TEMP_DIR="${TEMP_DIR:-${PROJECT_ROOT:-.}/temp}"
-readonly BACKUP_DIR="${BACKUP_DIR:-${PROJECT_ROOT:-.}/backups}"
+TEMP_DIR="${TEMP_DIR:-${PROJECT_ROOT:-.}/temp}"
+BACKUP_DIR="${BACKUP_DIR:-${PROJECT_ROOT:-.}/backups}"
 
 # Function to get git repository information
 get_git_info() {

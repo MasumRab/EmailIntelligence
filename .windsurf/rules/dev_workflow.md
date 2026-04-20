@@ -33,7 +33,7 @@ All your standard command executions should operate on the user's current task c
 For new projects or when users are getting started, operate within the `master` tag context:
 
 -   Start new projects by running `initialize_project` tool / `task-master init` or `parse_prd` / `task-master parse-prd --input='<prd-file.txt>'` (see @`taskmaster.md`) to generate initial tasks.json with tagged structure
--   Configure rule sets during initialization with `--rules` flag (e.g., `task-master init --rules windsurf,windsurf`) or manage them later with `task-master rules add/remove` commands  
+-   Configure rule sets during initialization with `--rules` flag (e.g., `task-master init --rules cline,windsurf`) or manage them later with `task-master rules add/remove` commands  
 -   Begin coding sessions with `get_tasks` / `task-master list` (see @`taskmaster.md`) to see current tasks, status, and IDs
 -   Determine the next task to work on using `next_task` / `task-master next` (see @`taskmaster.md`)
 -   Analyze task complexity with `analyze_project_complexity` / `task-master analyze-complexity --research` (see @`taskmaster.md`) before breaking down tasks
@@ -300,7 +300,7 @@ Taskmaster configuration is managed through two main mechanisms:
 Taskmaster supports multiple AI coding assistant rule sets that can be configured during project initialization or managed afterward:
 
 - **Available Profiles**: Claude Code, Cline, Codex, Windsurf, Roo Code, Trae, Windsurf (claude, cline, codex, windsurf, roo, trae, windsurf)
-- **During Initialization**: Use `task-master init --rules windsurf,windsurf` to specify which rule sets to include
+- **During Initialization**: Use `task-master init --rules cline,windsurf` to specify which rule sets to include
 - **After Initialization**: Use `task-master rules add <profiles>` or `task-master rules remove <profiles>` to manage rule sets
 - **Interactive Setup**: Use `task-master rules setup` to launch an interactive prompt for selecting rule profiles
 - **Default Behavior**: If no `--rules` flag is specified during initialization, all available rule profiles are included

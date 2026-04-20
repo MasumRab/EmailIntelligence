@@ -3,7 +3,7 @@
 
 # Import dependencies if needed
 # Define constants for this module
-readonly DISTRIBUTION_CONFIG_PATH="$PROJECT_ROOT/config/distribution.json"
+DISTRIBUTION_CONFIG_PATH="${DISTRIBUTION_CONFIG_PATH:-$PROJECT_ROOT/config/distribution.json}"
 
 # Function to distribute setup files only
 distribute_setup_files() {

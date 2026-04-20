@@ -3,7 +3,7 @@
 
 # Import dependencies if needed
 # Define constants for this module
-readonly VALIDATION_CONFIG_PATH="${PROJECT_ROOT:-.}/config/validation.json"
+VALIDATION_CONFIG_PATH="${VALIDATION_CONFIG_PATH:-${PROJECT_ROOT:-.}/config/validation.json}"
 
 # Function to validate branch type
 validate_branch_type() {

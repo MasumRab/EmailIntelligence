@@ -3,8 +3,8 @@
 
 # Import dependencies if needed
 # Define constants for this module
-readonly CONFIG_FILE_PATH="${PROJECT_ROOT:-.}/config/distribution.json"
-readonly DEFAULT_CONFIG_PATH="$(dirname "${BASH_SOURCE[0]}")/../config/default.json"
+CONFIG_FILE_PATH="${CONFIG_FILE_PATH:-${PROJECT_ROOT:-.}/config/distribution.json}"
+DEFAULT_CONFIG_PATH="${DEFAULT_CONFIG_PATH:-$(dirname "${BASH_SOURCE[0]}")/../config/default.json}"
 
 # Default configuration structure
 DEFAULT_CONFIG='{
@@ -39,13 +39,17 @@ DEFAULT_CONFIG='{
 }'
 
 # Function to load distribution configuration
+# @description Loads the distribution configuration from the configuration file
+# @param none
+# @return 0 if configuration loaded successfully, 1 otherwise
+# @side_effects Sets up configuration variables for the distribution process
 load_distribution_config() {
     # Check if config file exists, if not create default
     if [[ ! -f "$CONFIG_FILE_PATH" ]]; then
         echo "Configuration file not found, creating default..."
         create_default_config
     fi
-    
+
     # Load configuration from file
     if [[ -f "$CONFIG_FILE_PATH" ]]; then
         echo "Loading configuration from $CONFIG_FILE_PATH"

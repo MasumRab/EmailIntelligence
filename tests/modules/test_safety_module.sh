@@ -3,50 +3,21 @@
 
 set -euo pipefail
 
-# Colors for output
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-NC='\033[0m' # No Color
+# Source the test framework
+PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+FRAMEWORK_DIR="$PROJECT_ROOT/tests/modules"
+source "$FRAMEWORK_DIR/test_framework.sh"
 
 echo "🧪 Testing Safety Module..."
 
 # Mock the required functions from other modules
-PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 MODULE_DIR="$PROJECT_ROOT/modules"
 
 # Source the module to test
 source "$MODULE_DIR/safety.sh"
 
-# Counter for test results
-TEST_COUNT=0
-PASS_COUNT=0
-FAIL_COUNT=0
-
-# Test runner function
-run_test() {
-    local test_name="$1"
-    local expected_result="$2"
-    shift 2
-    ((TEST_COUNT++))
-    
-    echo -n "Test $TEST_COUNT: $test_name... "
-    
-    # Capture the result of the function call
-    if "$@" 2>/dev/null; then
-        result=0
-    else
-        result=1
-    fi
-    
-    if [[ $result -eq $expected_result ]]; then
-        echo -e "${GREEN}PASS${NC}"
-        ((PASS_COUNT++))
-    else
-        echo -e "${RED}FAIL${NC}"
-        ((FAIL_COUNT++))
-    fi
-}
+# Initialize test framework
+test_framework_init
 
 # Test 1: Test check_uncommitted_files function
 test_check_uncommitted_files() {
@@ -96,24 +67,22 @@ test_validate_taskmaster_isolation() {
 
 # Test 6: Test create_safety_backup function
 test_create_safety_backup() {
-    # Create a temporary backup directory for testing
+    # Create a temporary backup directory for testing using subshell to isolate
     local temp_dir=$(mktemp -d)
-    local original_backup_dir="$SAFETY_BACKUP_DIR"
     
-    # Override the backup directory for testing
-    SAFETY_BACKUP_DIR="$temp_dir"
-    
-    # Run the function
-    create_safety_backup "test" 2>/dev/null || true
-    
-    # Restore original path
-    SAFETY_BACKUP_DIR="$original_backup_dir"
+    (
+        export SAFETY_BACKUP_DIR="$temp_dir"
+        
+        # Run the function
+        create_safety_backup "test" 2>/dev/null || true
+        
+        # If we got here without crashing, consider it a pass
+        exit 0
+    )
     
     # Clean up
     rm -rf "$temp_dir"
-    
-    # If we got here without crashing, consider it a pass
-    return 0
+    return $?
 }
 
 # Test 7: Test validate_distribution_safety function
@@ -184,30 +153,24 @@ test_validate_remote_connectivity() {
 echo "Running safety module tests..."
 echo ""
 
-run_test "Check uncommitted files" 0 test_check_uncommitted_files
-run_test "Confirm destructive action (negative test)" 0 test_confirm_destructive_action
-run_test "Preserve orchestration files" 0 test_preserve_orchestration_files
-run_test "Check file overwrite risks" 0 test_check_file_overwrite_risks
-run_test "Validate taskmaster isolation" 0 test_validate_taskmaster_isolation
-run_test "Create safety backup" 0 test_create_safety_backup
-run_test "Validate distribution safety" 0 test_validate_distribution_safety
-run_test "Check for destructive operations" 0 test_check_for_destructive_operations
-run_test "Validate file permissions" 0 test_validate_file_permissions
-run_test "Check disk space" 0 test_check_disk_space
-run_test "Validate git repository state" 0 test_validate_git_repository_state
-run_test "Validate remote connectivity" 0 test_validate_remote_connectivity
+test_run "Check uncommitted files" test_check_uncommitted_files 0
+test_run "Confirm destructive action (negative test)" test_confirm_destructive_action 0
+test_run "Preserve orchestration files" test_preserve_orchestration_files 0
+test_run "Check file overwrite risks" test_check_file_overwrite_risks 0
+test_run "Validate taskmaster isolation" test_validate_taskmaster_isolation 0
+test_run "Create safety backup" test_create_safety_backup 0
+test_run "Validate distribution safety" test_validate_distribution_safety 0
+test_run "Check for destructive operations" test_check_for_destructive_operations 0
+test_run "Validate file permissions" test_validate_file_permissions 0
+test_run "Check disk space" test_check_disk_space 0
+test_run "Validate git repository state" test_validate_git_repository_state 0
+test_run "Validate remote connectivity" test_validate_remote_connectivity 0
 
 # Print summary
-echo ""
-echo "📊 Test Results Summary:"
-echo "Total tests: $TEST_COUNT"
-echo "Passed: $PASS_COUNT"
-echo "Failed: $FAIL_COUNT"
+test_framework_summary "Safety Module"
 
-if [[ $FAIL_COUNT -eq 0 ]]; then
-    echo -e "${GREEN}🎉 All safety module tests passed!${NC}"
+if [[ $TEST_FRAMEWORK_FAIL -eq 0 ]]; then
     exit 0
 else
-    echo -e "${RED}❌ Some tests failed.${NC}"
     exit 1
 fi

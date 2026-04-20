@@ -1,94 +1,34 @@
-# Agent Rules Implementation — Execution State
+# Agent Rules Implementation — State Index
 
-**Started:** [PENDING]
-**Current Phase:** 0
-**Previous Agent:** none
-
----
-
-## Phase Completion Log
-
-### Phase 1: Emergency Fixes
-- **Status:** PENDING
-- **Agent:** [PENDING]
-- **Started:** [NOT STARTED]
-- **Completed:** [NOT STARTED]
-- **Gate Check:** [NOT RUN]
-- **Files Modified:** none
-- **Issues:** none
-
-### Phase 2: Content Fixes
-- **Status:** PENDING
-- **Agent:** [PENDING]
-- **Started:** [NOT STARTED]
-- **Completed:** [NOT STARTED]
-- **Gate Check:** [NOT RUN]
-- **Files Modified:** none
-- **Issues:** none
-
-### Phase 3: Ruler Setup
-- **Status:** PENDING
-- **Agent:** [PENDING]
-- **Started:** [NOT STARTED]
-- **Completed:** [NOT STARTED]
-- **Gate Check:** [NOT RUN]
-- **Files Modified:** none
-- **Issues:** none
-
-### Phase 4: Agent RuleZ Setup
-- **Status:** PENDING
-- **Agent:** [PENDING]
-- **Started:** [NOT STARTED]
-- **Completed:** [NOT STARTED]
-- **Gate Check:** [NOT RUN]
-- **Files Modified:** none
-- **Issues:** none
-
-### Phase 5: File Cleanup (OPTIONAL)
-- **Status:** PENDING
-- **Agent:** [PENDING]
-- **Started:** [NOT STARTED]
-- **Completed:** [NOT STARTED]
-- **Gate Check:** [NOT RUN]
-- **Files Modified:** none
-- **Issues:** none
+**Purpose:** Master index of branch-specific state files.
+**How it works:** Each branch has its own `STATE_<branch>.md` file.
 
 ---
 
-## Current Blocker
-None
+## Branch State Files
+
+| Branch | State File | Status | Last Updated |
+|--------|-----------|--------|--------------|
+| `orchestration-tools` | [STATE_orchestration-tools.md](STATE_orchestration-tools.md) | Active — Phases 1-4 complete | 2026-04-14 |
+| `main` | STATE_main.md | Not yet created | — |
+| `scientific` | STATE_scientific.md | Not yet created | — |
+| `taskmaster` | STATE_taskmaster.md | Not yet created | — |
 
 ---
 
-## Next Agent Instructions
+## Creating a New Branch State File
 
-**To start execution:**
-
-1. Update this file with your agent name and start timestamp
-2. Read `/home/masum/github/EmailIntelligence/docs/AGENT_RULES_IMPLEMENTATION_HANDOFF.md`
-3. Execute Phase 1 steps 1.1-1.13
-4. Run Phase 1 Gate Check after completing all steps
-5. If PASS: Update this file, handoff to next agent for Phase 2
-6. If FAIL: Document failing step in "Current Blocker" section
-
-**AMP Prompt for first agent:**
-
+```bash
+cp docs/handoff/STATE_TEMPLATE.md docs/handoff/STATE_$(git branch --show-current).md
+# Edit the header: replace <BRANCH_NAME> with your branch
 ```
-You are executing Phase 1 of the Agent Rules Implementation Handoff.
 
-**Task:** Execute all steps in Phase 1 of `/home/masum/github/EmailIntelligence/docs/AGENT_RULES_IMPLEMENTATION_HANDOFF.md`
+Then update this index with the new entry.
 
-**Critical Rules:**
-1. Run the VERIFY command after EVERY step
-2. Do NOT proceed to next step if verification fails
-3. Copy strings EXACTLY from the handoff document
-4. One edit per tool call — do not batch
-5. NEVER use git add -A or git add .
+---
 
-**After completing Phase 1:**
-1. Run the Phase 1 Gate Check
-2. If PASS: Update docs/handoff/STATE.md with completion status
-3. If FAIL: Stop and report the failing step with error output
+## Quick Orientation
 
-**Handoff State File:** `/home/masum/github/EmailIntelligence/docs/handoff/STATE.md`
-```
+- **Starting fresh?** → See [README.md](README.md)
+- **Session prompts?** → See [AMP_RUSH_SESSION_CREATION.md](AMP_RUSH_SESSION_CREATION.md)
+- **Gate checks?** → See [MULTI_HANDOFF_EXECUTION_PROCESS.md](MULTI_HANDOFF_EXECUTION_PROCESS.md)

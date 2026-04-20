@@ -1,197 +1,128 @@
-# AMP Rush Model Session Creation
+# AMP Session Creation
 
-**Purpose:** Define the session creation protocol for Rush-level AMP execution  
-**Use:** Start a new LLM agent session with this prompt  
-**Updated:** 2026-04-09
+**Purpose:** Start an Amp agent session for the Agent Rules handoff on any branch.
+**Updated:** 2026-04-14
 
 ---
 
-## Quick Start
-
-### Option 1: Full Task Execution
+## Quick Start — Fresh Run (Any Branch)
 
 ```
-You are a Rush-level AMP agent executing the Agent Rules Implementation.
+You are executing the Agent Rules Implementation Handoff.
 
-**Project:** `/home/masum/github/EmailIntelligenceAider`  
-**Branch:** `orchestration-tools`  
-**Task:** Fix 13 identified issues in AI coding agent configurations
+**Project:** (auto-detected — run from project root)
+**Branch:** `<BRANCH>` (replace with target branch)
+**Handoff Index:** `docs/handoff/README.md`
+**State File:** `docs/handoff/STATE_<BRANCH>.md`
 
-**Handoff Documents:**
-- Master: `docs/AGENT_RULES_IMPLEMENTATION_HANDOFF.md`
-- Phases: `docs/handoff/phase-01-emergency-fixes.md` through `phase-04-agent-rulez.md`
-- State: `docs/handoff/STATE.md`
-- Process: `docs/handoff/MULTI_HANDOFF_EXECUTION_PROCESS.md`
+**Task:** Execute all phases of the Agent Rules handoff on this branch.
 
-**Critical Rules:**
+**Setup:**
+1. If `docs/handoff/STATE_<BRANCH>.md` does not exist, create it from `docs/handoff/STATE_TEMPLATE.md`
+2. Source `docs/handoff/context-guard.sh` to auto-detect environment
+3. Read `docs/handoff/README.md` for phase order and mode guidance
+
+**Execution:**
+1. Read the next pending phase doc from `docs/handoff/phase-NN-*.md`
+2. Execute all steps with verification after each
+3. Run the gate check at the end of each phase
+4. Update `docs/handoff/STATE_<BRANCH>.md` with status, decisions, files modified
+5. Proceed to next phase or handoff if context is full
+
+**Rules:**
 1. Run VERIFY after EVERY step — do not skip
 2. Do NOT proceed if verification fails
-3. Copy strings EXACTLY — do not paraphrase
-4. One edit per tool call — do not batch
-5. NEVER use `git add -A` or `git add .`
-
-**Execution Protocol:**
-1. Read `docs/handoff/STATE.md` for current progress
-2. Execute phase steps with verification
-3. Run gate check after phase completion
-4. Update STATE.md with results
-5. Handoff to next agent if phase complete
-
-**Start with Phase 1:** Read `docs/handoff/phase-01-emergency-fixes.md`
-```
-
-### Option 2: Phase-Specific Execution
-
-```
-You are executing Phase [N] of the Agent Rules Implementation Handoff.
-
-**Phase Document:** `docs/handoff/phase-0[N]-[name].md`
-**State File:** `docs/handoff/STATE.md`
-
-**Task:** Execute all steps in Phase [N] with verification after each step.
-
-**Critical Rules:**
-1. Run VERIFY command after EVERY step
-2. Do NOT proceed to next step if verification fails
-3. Copy strings EXACTLY from phase document
-4. One edit per tool call — do not batch
-
-**After Phase [N] Completion:**
-1. Run Phase [N] Gate Check
-2. Update `docs/handoff/STATE.md` with:
-   - Status: COMPLETE or FAILED
-   - Gate Check output
-   - Files modified
-   - Issues encountered (if any)
-3. If PASS: Document handoff instructions for next agent
-4. If FAIL: Document blocker and stop
-
-**If blocked:** Read `docs/handoff/MULTI_HANDOFF_EXECUTION_PROCESS.md` section "Error Recovery"
+3. Copy strings EXACTLY from phase documents
+4. NEVER use `git add -A` or `git add .`
+5. No merges, rebases, resets, or destructive git commands
 ```
 
 ---
 
-## Session Creation Checklist
+## Mode Selection
 
-Before starting agent execution, verify:
+Use the mode that matches the phases you're executing:
+
+| Mode | Phases | Why |
+|------|--------|-----|
+| **Rush** | 1–4 | Mechanical edits with bash verification — no judgment needed |
+| **Deep** | 5–9 | Tier 2 file decisions require reading live state and making branch-policy calls |
+| **Smart** | 11 | Shell script refactoring — analysis-heavy, self-contained |
+
+### Rush Prompt (Phases 1–4)
+
+```
+Execute Phases 1–4 of the Agent Rules handoff on `<BRANCH>`.
+
+**Project:** (auto-detected — run from project root)
+**Phase docs:** `docs/handoff/phase-01-emergency-fixes.md` through `phase-04-agent-rulez.md`
+**State:** `docs/handoff/STATE_<BRANCH>.md`
+
+Execute each step, verify, run gate check, update state. Do not explain — just execute and verify.
+```
+
+### Deep Prompt (Phases 5–10)
+
+```
+Execute Phases 5–10 of the Agent Rules handoff on `<BRANCH>`.
+
+**Project:** (auto-detected — run from project root)
+**Phase docs:** `docs/handoff/phase-05-file-cleanup.md` through `phase-10-rule-quality.md`
+**State:** `docs/handoff/STATE_<BRANCH>.md`
+
+Phase 5 requires branch-policy decisions for Tier 2 root files (GEMINI.md, QWEN.md, IFLOW.md, CRUSH.md, LLXPRT.md). Check live state first, then decide keep/restore/not_on_branch for each. Record decisions in STATE.
+Phase 10 requires manual evaluation at agentrulegen.com/analyze — paste .ruler/AGENTS.md and record the quality score.
+```
+
+### Smart Prompt (Phase 11)
+
+```
+Execute Phase 11 (Smart Workflow Remediation) on `<BRANCH>`.
+
+**Project:** (auto-detected — run from project root)
+**Phase doc:** `docs/handoff/phase-11-smart-remediation.md`
+**State:** `docs/handoff/STATE_<BRANCH>.md`
+
+This phase is independent of Phases 5–10. It addresses shell script hardening findings.
+```
+
+---
+
+## Resume — Continuing a Partial Run
+
+```
+Resume the Agent Rules handoff on `<BRANCH>`.
+
+**Project:** (auto-detected — run from project root)
+**State:** `docs/handoff/STATE_<BRANCH>.md`
+
+1. Read the state file to find the last completed phase
+2. Read the next pending phase doc
+3. Continue from the first unchecked step
+4. Update state after each phase
+```
+
+For `orchestration-tools` branch specifically, additional resume context exists in:
+- `docs/handoff/phase-12-deep-agent-handoff.md` — corrected Phase 5/6/9 resume with evidence hierarchy
+- `docs/handoff/phase-13-smart-amp-deep-agent-autonomous-handoff.md` — full remaining-phase closure with thread ingestion
+
+---
+
+## Pre-Session Checklist
 
 ```bash
-# 1. Project exists
-test -d /home/masum/github/EmailIntelligenceAider && echo "PROJECT: EXISTS" || echo "PROJECT: MISSING"
-
-# 2. Branch correct  
-cd /home/masum/github/EmailIntelligenceAider && git branch --show-current
-
-# 3. Handoff documents exist
+# First: source docs/handoff/context-guard.sh
+# Verify environment before starting
+test -d "$PROJECT_ROOT" && echo "PROJECT: EXISTS" || echo "PROJECT: MISSING"
+cd "$PROJECT_ROOT" && git branch --show-current
 ls docs/handoff/phase-*.md docs/handoff/STATE.md docs/handoff/README.md
-
-# 4. Current state readable
-cat docs/handoff/STATE.md | head -20
 ```
 
 ---
 
-## Rush-Level Execution Guidelines
+## Error Recovery
 
-### Speed Priorities
-
-| Priority | Action | Example |
-|----------|--------|---------|
-| 1 | Execute step | Write file, edit file |
-| 2 | Verify step | Run verify command |
-| 3 | Update state | Mark step done in STATE.md |
-| 4 | Next step | Proceed if verify passes |
-
-### What to Skip (for Speed)
-
-- Do NOT explain what you're doing — just do it
-- Do NOT show file contents unless verification fails
-- Do NOT ask for confirmation — execute and verify
-- Do NOT comment on code quality — this is infrastructure setup
-
-### What to NEVER Skip
-
-- **VERIFY commands** — always run after each step
-- **Gate checks** — always run after phase completion
-- **State updates** — always update STATE.md
-- **Error reporting** — always document failures
-
----
-
-## Verification Quick Reference
-
-### Phase 1 Verify Commands
-
-| Step | Verify Command | Expected |
-|------|----------------|----------|
-| 1.1-1.2 | `grep -c '<<<<<<' CLAUDE.md` | `0` |
-| 1.3-1.4 | `python3 -c "import json; json.load(open('.roo/mcp.json')); print('VALID')"` | `VALID` |
-| 1.5-1.6 | `python3 -c "import json; json.load(open('.cursor/mcp.json')); print('VALID')"` | `VALID` |
-| 1.7-1.8 | `python3 -c "import json; json.load(open('.claude/mcp.json')); print('VALID')"` | `VALID` |
-| 1.9-1.10 | `grep -c "YOUR_" .windsurf/mcp.json` | `0` |
-| 1.11-1.12 | `python3 -c "import json; json.load(open('.trae/mcp.json')); print('VALID')"` | `VALID` |
-| 1.13 | `test ! -f .rules && echo "DELETED"` | `DELETED` |
-
-### Phase 1 Gate Check
-
-```bash
-echo "=== PHASE 1 GATE ==="
-echo -n "CLAUDE.md: "; grep -c '<<<<<<' CLAUDE.md || echo "0"
-echo -n ".roo/mcp.json: "; python3 -c "import json; json.load(open('.roo/mcp.json')); print('YES')" 2>/dev/null || echo "NO"
-echo -n ".cursor/mcp.json: "; python3 -c "import json; json.load(open('.cursor/mcp.json')); print('YES')" 2>/dev/null || echo "NO"
-echo -n ".claude/mcp.json: "; python3 -c "import json; json.load(open('.claude/mcp.json')); print('YES')" 2>/dev/null || echo "NO"
-echo -n ".windsurf/mcp.json: "; grep -c "YOUR_" .windsurf/mcp.json || echo "0"
-echo -n ".trae/mcp.json: "; python3 -c "import json; json.load(open('.trae/mcp.json')); print('YES')" 2>/dev/null || echo "NO"
-echo -n ".rules: "; test ! -f .rules && echo "DELETED" || echo "EXISTS"
-```
-
----
-
-## Handoff Prompts by Phase
-
-### Phase 1 → Phase 2 Handoff
-
-```
-**HANDOFF: Phase 1 COMPLETE**
-
-**Status:** PASS
-**Agent:** [AGENT_NAME]
-**Next Phase:** 2
-
-**Phase 1 Gate Output:**
-[PASTE GATE CHECK OUTPUT]
-
-**Files Modified:**
-- `.roo/mcp.json` — populated
-- `.cursor/mcp.json` — populated  
-- `.claude/mcp.json` — populated
-- `.windsurf/mcp.json` — placeholders replaced
-- `.trae/mcp.json` — created
-- `.rules` — deleted
-
-**Next Agent Task:**
-Execute Phase 2 of `docs/handoff/phase-02-content-fixes.md`
-```
-
----
-
-## Error Recovery Protocol
-
-### If Verification Fails
-
-1. **Re-read the step** — check phase document for exact instructions
-2. **Re-read the file** — use Read tool, compare to expected
-3. **Re-execute the step** — copy strings EXACTLY from phase document
-4. **Re-verify** — run verify command again
-5. **If still failing** — document in STATE.md under "Current Blocker"
-
----
-
-## Related Documents
-
-| Document | Purpose |
-|----------|---------|
-| `docs/handoff/README.md` | Tool coverage matrix |
-| `docs/handoff/STATE.md` | Execution state tracker |
-| `docs/handoff/MULTI_HANDOFF_EXECUTION_PROCESS.md` | Detailed process |
-| `docs/handoff/phase-*.md` | Granular task specifications |
+1. **Verification fails** → Re-read the step, re-execute with exact strings, re-verify
+2. **Gate check fails** → Document failing check in STATE under "Issues", do not proceed
+3. **Context full** → Update STATE with current progress, handoff to fresh agent with resume prompt
+4. **File missing** → Use `context-agnostic-gates.sh` helpers which report `⚪ NOT PRESENT` instead of failing

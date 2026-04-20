@@ -3,8 +3,8 @@
 
 # Import dependencies if needed
 # Define constants for this module
-readonly LOG_FILE_PATH="${LOG_FILE_PATH:-${PROJECT_ROOT:-.}/logs/orchestration-distribution.log}"
-readonly LOG_LEVEL="${LOG_LEVEL:-INFO}"
+LOG_FILE_PATH="${LOG_FILE_PATH:-${PROJECT_ROOT:-.}/logs/orchestration-distribution.log}"
+LOG_LEVEL="${LOG_LEVEL:-INFO}"
 
 # Function to log distribution event
 log_distribution_event() {

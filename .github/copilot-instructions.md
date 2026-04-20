@@ -6,7 +6,7 @@ As this project's AI coding tool, you must follow the additional conventions bel
 
 ## General Guidelines
 
-- Use TypeScript for all new code
+- Use Python 3.11+ for backend, orchestration, and script changes; use TypeScript for the React client
 - Follow consistent naming conventions
 - Write self-documenting code with clear variable and function names
 - Prefer composition over inheritance
@@ -14,14 +14,12 @@ As this project's AI coding tool, you must follow the additional conventions bel
 
 ## Code Style
 
-- Use 2 spaces for indentation
-- Use semicolons
-- Use double quotes for strings
-- Use trailing commas in multi-line objects and arrays
+- Python: follow Black formatting, 100 char line length, and type-hinted function signatures
+- TypeScript: use 2 spaces, semicolons, and double quotes
 
 ## Architecture Principles
 
-- Organize code by feature, not by file type
+- Keep backend work aligned with the FastAPI/Python modules and frontend work aligned with `client/`
 - Keep related files close together
 - Use dependency injection for better testability
 - Implement proper error handling

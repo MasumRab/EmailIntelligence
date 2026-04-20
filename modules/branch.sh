@@ -3,7 +3,9 @@
 
 # Import dependencies if needed
 # Define constants for this module
-readonly BRANCH_TYPES=("orchestration-tools" "taskmaster" "main" "scientific")
+if [ -z "${BRANCH_TYPES+x}" ]; then
+    BRANCH_TYPES=("orchestration-tools" "taskmaster" "main" "scientific")
+fi
 
 # Function to identify branch type
 identify_branch_type() {
