@@ -1593,8 +1593,6 @@ def _handle_legacy_args(args) -> int:
     return 0
 
 
-<<<<<<< HEAD
-=======
 def _check_setup_warnings():
     """Check for common setup issues and warn users."""
     import sys
@@ -1620,6 +1618,5 @@ def _check_setup_warnings():
         logger.info("💡  Virtual environment exists. Activate it with: source venv/bin/activate")
 
 
->>>>>>> a7da61cf1f697de3c8c81f536bf579d36d88e613
 if __name__ == "__main__":
     main()
