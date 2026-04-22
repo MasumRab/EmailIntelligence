@@ -775,7 +775,7 @@ class DatabaseManager(DataSource):
         cached_result = self.caching_manager.get_query_result(cache_key)
         if cached_result is not None:
             logger.info(f"Query cache hit for term: '{search_term}'")
-            return cached_result
+            return [email.copy() for email in cached_result]
 
         search_term_lower = search_term.lower()
         filtered_emails = []
@@ -840,7 +840,7 @@ class DatabaseManager(DataSource):
         results = [self._add_category_details(email) for email in filtered_emails]
 
         # Cache the results
-        self.caching_manager.put_query_result(cache_key, results)
+        self.caching_manager.put_query_result(cache_key, [e.copy() for e in results])
         return results
 
     # TODO(P1, 6h): Optimize search performance to avoid disk I/O per STATIC_ANALYSIS_REPORT.md
