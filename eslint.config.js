@@ -28,6 +28,8 @@ export default tseslint.config(
       "@typescript-eslint/no-explicit-any": "off",
       "prefer-const": "warn",
       "no-var": "error",
+      "react/prop-types": "off",
+      "react/no-unescaped-entities": "off",
       "@typescript-eslint/no-require-imports": "off",
     },
   }
