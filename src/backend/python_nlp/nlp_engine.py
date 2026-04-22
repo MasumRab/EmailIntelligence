@@ -16,9 +16,9 @@ import sys
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from transformers import AutoModelForSequenceClassification, AutoTokenizer, pipeline
+from transformers import pipeline
 
-from backend.python_nlp.text_utils import clean_text
+
 
 from .analysis_components.importance_model import ImportanceModel
 
@@ -29,9 +29,7 @@ logger = logging.getLogger(__name__)
 
 # Try to import optional dependencies
 try:
-    import nltk
     from textblob import TextBlob
-    from transformers import AutoModelForSequenceClassification, AutoTokenizer
 
     HAS_NLTK = True
     HAS_SKLEARN_AND_JOBLIB = True
