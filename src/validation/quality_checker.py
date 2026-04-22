@@ -47,7 +47,7 @@ class QualityChecker:
                 score=1.0 if not issues else 0.5,
             )
 
-        except Exception as e:
+        except Exception as e:  # pylint: disable=broad-except
             logger.error("Quality check failed", error=str(e))
             return ValidationResult(
                 component="QualityChecker",

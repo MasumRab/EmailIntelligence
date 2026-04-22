@@ -178,7 +178,7 @@ class StandardValidator:
 
             return result
 
-        except Exception as e:
+        except Exception as e:  # pylint: disable=broad-except
             logger.error("Standard validation failed", error=str(e))
 
             return StandardValidationResult(
@@ -282,7 +282,7 @@ class StandardValidator:
                 },
             }
 
-        except Exception as e:
+        except Exception as e:  # pylint: disable=broad-except
             logger.error("Constitutional compliance validation failed", error=str(e))
             return {
                 "score": 0.0,
@@ -373,7 +373,7 @@ class StandardValidator:
 
             return min(1.0, compliance_score)
 
-        except Exception as e:
+        except Exception as e:  # pylint: disable=broad-except
             logger.error("Specification compliance validation failed", error=str(e))
             return 0.3
 
@@ -499,7 +499,7 @@ class StandardValidator:
                 },
             }
 
-        except Exception as e:
+        except Exception as e:  # pylint: disable=broad-except
             logger.error("Feature preservation analysis failed", error=str(e))
             return {
                 "score": 0.0,

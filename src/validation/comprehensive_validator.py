@@ -254,7 +254,7 @@ class ComprehensiveValidator:
 
             return result
 
-        except Exception as e:
+        except Exception as e:  # pylint: disable=broad-except
             logger.error("Comprehensive validation failed", error=str(e))
 
             return ComprehensiveValidationResult(
@@ -350,7 +350,7 @@ class ComprehensiveValidator:
                 "issues": issues,
             }
 
-        except Exception as e:
+        except Exception as e:  # pylint: disable=broad-except
             logger.error("Full workflow validation failed", error=str(e))
             return {
                 "score": 0.0,
@@ -424,7 +424,7 @@ class ComprehensiveValidator:
                 >= self.quality_gates["performance_benchmarks"]["threshold"],
             }
 
-        except Exception as e:
+        except Exception as e:  # pylint: disable=broad-except
             logger.error("Performance benchmarking failed", error=str(e))
             return {"overall_score": 0.0, "benchmarks": {}, "error": str(e)}
 
@@ -470,7 +470,7 @@ class ComprehensiveValidator:
 
             return metrics
 
-        except Exception as e:
+        except Exception as e:  # pylint: disable=broad-except
             logger.error("Advanced metrics calculation failed", error=str(e))
             return {"error": str(e)}
 
@@ -523,7 +523,7 @@ class ComprehensiveValidator:
                 "mitigation_effectiveness": mitigation_score,
             }
 
-        except Exception as e:
+        except Exception as e:  # pylint: disable=broad-except
             logger.error("Risk assessment failed", error=str(e))
             return {"score": 0.0, "error": str(e)}
 
@@ -556,7 +556,7 @@ class ComprehensiveValidator:
                 "specification_generated": specification is not None,
             }
 
-        except Exception as e:
+        except Exception as e:  # pylint: disable=broad-except
             return {"error": str(e), "passed": False, "actual_time": 999.0}
 
     async def _benchmark_strategy_performance(self, conflict_data, targets):
@@ -583,7 +583,7 @@ class ComprehensiveValidator:
                 "strategies_generated": len(strategies),
             }
 
-        except Exception as e:
+        except Exception as e:  # pylint: disable=broad-except
             return {"error": str(e), "passed": False, "actual_time": 999.0}
 
     async def _benchmark_validation_performance(self, resolution_strategy, targets):
@@ -608,7 +608,7 @@ class ComprehensiveValidator:
                 "validation_completed": validation_result is not None,
             }
 
-        except Exception as e:
+        except Exception as e:  # pylint: disable=broad-except
             return {"error": str(e), "passed": False, "actual_time": 999.0}
 
     def _calculate_complexity_score(self, conflict_data, resolution_strategy):

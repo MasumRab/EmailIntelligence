@@ -99,6 +99,6 @@ class ResolveCommand(Command):
                 print(f"Resolution failed: {message}")
                 return 1
 
-        except Exception as e:
+        except Exception as e:  # pylint: disable=broad-except
             print(f"Error during resolution: {e}")
             return 1

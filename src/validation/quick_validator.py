@@ -182,7 +182,7 @@ class QuickValidator:
 
             return result
 
-        except Exception as e:
+        except Exception as e:  # pylint: disable=broad-except
             logger.error("Quick validation failed", error=str(e))
 
             # Return error result
@@ -513,7 +513,7 @@ class QuickValidator:
             try:
                 result = await self.validate_basic_resolution(conflict, strategy)
                 results.append(result)
-            except Exception as e:
+            except Exception as e:  # pylint: disable=broad-except
                 logger.error("Batch validation failed for item", item_index=i, error=str(e))
 
                 # Add error result

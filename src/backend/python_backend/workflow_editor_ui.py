@@ -201,7 +201,7 @@ def create_workflow_editor_ui():
                     )
                 else:
                     return "❌ Failed to save workflow", workflow_manager.list_workflows()
-            except Exception as e:
+            except Exception as e:  # pylint: disable=broad-except
                 return f"❌ Error saving workflow: {str(e)}", workflow_manager.list_workflows()
 
         def load_selected_workflow(workflow_filename: str):
@@ -217,7 +217,7 @@ def create_workflow_editor_ui():
                     )
                 else:
                     return "", "", "", "❌ Failed to load workflow"
-            except Exception as e:
+            except Exception as e:  # pylint: disable=broad-except
                 return "", "", "", f"❌ Error loading workflow: {str(e)}"
 
         def execute_current_workflow(workflow_json_str: str):
@@ -246,7 +246,7 @@ def create_workflow_editor_ui():
                     "node_results": result.node_results,
                     "error": result.error,
                 }
-            except Exception as e:
+            except Exception as e:  # pylint: disable=broad-except
                 return {"error": str(e)}
 
         # Connect events

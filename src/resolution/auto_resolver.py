@@ -74,7 +74,7 @@ class AutoResolver(IResolutionEngine):
                     execution_result["unresolved_conflicts"] += 1
                     execution_result["requires_manual_intervention"] = True
 
-            except Exception as e:
+            except Exception as e:  # pylint: disable=broad-except
                 logger.error(f"Error resolving conflict {i}: {str(e)}")
                 execution_result["unresolved_conflicts"] += 1
                 execution_result["success"] = False
@@ -162,7 +162,7 @@ class AutoResolver(IResolutionEngine):
                     "requires_manual_review": True
                 }
 
-        except Exception as e:
+        except Exception as e:  # pylint: disable=broad-except
             logger.error(f"Semantic merge failed: {str(e)}")
             return {
                 "method": "semantic_merge",
@@ -295,7 +295,7 @@ class AutoResolver(IResolutionEngine):
                         "details": result,
                         "requires_manual_review": False
                     }
-            except Exception:
+            except Exception:  # pylint: disable=broad-except
                 continue  # Try next rule
 
         # If no rules apply, mark for manual review
