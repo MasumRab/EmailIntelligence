@@ -1,6 +1,3 @@
-Please also reference the following documents as needed:
-
-@.claude/memories/CLAUDE.md description: "Claude-specific rules" globs: "**/*"
 # Project Overview
 
 ## General Guidelines
@@ -25,7 +22,3 @@ Please also reference the following documents as needed:
 - Use dependency injection for better testability
 - Implement proper error handling
 - Follow single responsibility principle
-
-## Task Master AI Instructions
-**Import Task Master's development workflow commands and guidelines, treat as if import is in the main CLAUDE.md file.**
-@./.taskmaster/CLAUDE.md

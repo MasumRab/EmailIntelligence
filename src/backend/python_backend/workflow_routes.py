@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 """
 DEPRECATED: This module is part of the deprecated `backend` package.
 It will be removed in a future release.
@@ -68,6 +67,7 @@ async def list_workflows(
     workflow_engine: WorkflowEngine = Depends(get_workflow_engine),
 ):
     """Lists all available workflows (both legacy and node-based).
+
     Requires authentication.
     """
     try:
@@ -111,6 +111,7 @@ async def create_workflow(
     workflow_engine: WorkflowEngine = Depends(get_workflow_engine),
 ):
     """Creates and persists a new workflow (either legacy or node-based).
+
     Requires authentication.
     """
     try:
@@ -186,6 +187,7 @@ async def get_active_workflow(
     workflow_engine: WorkflowEngine = Depends(get_workflow_engine),
 ):
     """Gets information about the currently active workflow.
+
     Requires authentication.
     """
     result = {}
@@ -358,5 +360,3 @@ async def delete_workflow(
         raise HTTPException(
             status_code=500, detail="An unexpected error occurred while deleting the workflow."
         )
-=======
->>>>>>> origin/main

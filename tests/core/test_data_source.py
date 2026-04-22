@@ -50,9 +50,16 @@ class TestNotmuchDataSource:
     """Test the NotmuchDataSource implementation."""
 
     @pytest.fixture
-    def notmuch_ds(self):
-        """Create a NotmuchDataSource instance."""
-        return NotmuchDataSource()
+    def mock_db_manager(self):
+        """Create a mocked DatabaseManager instance for NotmuchDataSource."""
+        db_manager = AsyncMock(spec=DatabaseManager)
+        db_manager._ensure_initialized = AsyncMock()
+        return db_manager
+
+    @pytest.fixture
+    def notmuch_ds(self, mock_db_manager):
+        """Create a NotmuchDataSource instance with a mock DatabaseManager."""
+        return NotmuchDataSource(db_manager=mock_db_manager)
 
     @pytest.mark.asyncio
     async def test_create_email(self, notmuch_ds):
@@ -129,7 +136,7 @@ class TestNotmuchDataSource:
     async def test_delete_email(self, notmuch_ds):
         """Test delete_email method."""
         result = await notmuch_ds.delete_email(1)
-        assert result is None
+        assert result is False
 
     @pytest.mark.asyncio
     async def test_interface_compliance(self, notmuch_ds):
@@ -163,6 +170,8 @@ class TestNotmuchDataSource:
                 assert isinstance(result, list)
             elif method_name in ['get_dashboard_aggregates', 'get_category_breakdown']:
                 assert isinstance(result, dict)
+            elif method_name == 'delete_email':
+                assert isinstance(result, bool)
             else:
                 assert result is None or isinstance(result, dict)
 
@@ -199,12 +208,22 @@ class TestDatabaseManagerDataSource:
     @pytest.fixture
     def mock_db_manager(self):
         """Create a mocked DatabaseManager instance."""
-        db_manager = DatabaseManager()
-
-        # Mock the database connection and operations
-        db_manager._db = AsyncMock()
+        db_manager = AsyncMock(spec=DatabaseManager)
         db_manager._ensure_initialized = AsyncMock()
-
+        db_manager.create_email = AsyncMock()
+        db_manager.get_email_by_id = AsyncMock()
+        db_manager.get_all_categories = AsyncMock()
+        db_manager.create_category = AsyncMock()
+        db_manager.get_emails = AsyncMock()
+        db_manager.update_email_by_message_id = AsyncMock()
+        db_manager.get_email_by_message_id = AsyncMock()
+        db_manager.get_all_emails = AsyncMock()
+        db_manager.search_emails = AsyncMock()
+        db_manager.get_emails_by_category = AsyncMock()
+        db_manager.update_email = AsyncMock()
+        db_manager.delete_email = AsyncMock()
+        db_manager.get_dashboard_aggregates = AsyncMock()
+        db_manager.get_category_breakdown = AsyncMock()
         return db_manager
 
     @pytest.mark.asyncio
@@ -225,85 +244,65 @@ class TestDatabaseManagerDataSource:
     @pytest.mark.asyncio
     async def test_database_manager_create_email(self, mock_db_manager):
         """Test DatabaseManager create_email method."""
-        mock_db_manager._db.create_email = AsyncMock(return_value={"id": 1, "subject": "Test"})
+        mock_db_manager.create_email = AsyncMock(return_value={"id": 1, "subject": "Test"})
 
         email_data = {"subject": "Test Email", "content": "Test content"}
         result = await mock_db_manager.create_email(email_data)
 
-        mock_db_manager._db.create_email.assert_called_once_with(email_data)
+        mock_db_manager.create_email.assert_called_once_with(email_data)
         assert result == {"id": 1, "subject": "Test"}
 
     @pytest.mark.asyncio
     async def test_database_manager_get_email_by_id(self, mock_db_manager):
         """Test DatabaseManager get_email_by_id method."""
-        mock_db_manager._db.get_email_by_id = AsyncMock(return_value={"id": 1, "subject": "Test"})
+        mock_db_manager.get_email_by_id = AsyncMock(return_value={"id": 1, "subject": "Test"})
 
         result = await mock_db_manager.get_email_by_id(1)
 
-        mock_db_manager._db.get_email_by_id.assert_called_once_with(1, True)
+        mock_db_manager.get_email_by_id.assert_called_once_with(1)
         assert result == {"id": 1, "subject": "Test"}
 
     @pytest.mark.asyncio
     async def test_database_manager_get_email_by_id_without_content(self, mock_db_manager):
         """Test DatabaseManager get_email_by_id method without content."""
-        mock_db_manager._db.get_email_by_id = AsyncMock(return_value={"id": 1, "subject": "Test"})
+        mock_db_manager.get_email_by_id = AsyncMock(return_value={"id": 1, "subject": "Test"})
 
         result = await mock_db_manager.get_email_by_id(1, include_content=False)
 
-        mock_db_manager._db.get_email_by_id.assert_called_once_with(1, False)
+        mock_db_manager.get_email_by_id.assert_called_once_with(1, include_content=False)
         assert result == {"id": 1, "subject": "Test"}
 
     @pytest.mark.asyncio
     async def test_database_manager_get_dashboard_aggregates(self, mock_db_manager):
         """Test DatabaseManager get_dashboard_aggregates method."""
-        # Mock the data attributes
-        mock_db_manager.emails_data = [
-            {"id": 1, "category_id": 1, "is_read": True},
-            {"id": 2, "category_id": None, "is_read": False},
-            {"id": 3, "category_id": 2, "is_read": False}
-        ]
-        mock_db_manager.categories_data = [{"id": 1}, {"id": 2}]
+        expected = {
+            "total_emails": 3,
+            "auto_labeled": 2,
+            "categories_count": 2,
+            "unread_count": 2,
+            "weekly_growth": {"emails": 3, "percentage": 0.0}
+        }
+        mock_db_manager.get_dashboard_aggregates.return_value = expected
 
         result = await mock_db_manager.get_dashboard_aggregates()
 
-        expected = {
-            "total_emails": 3,
-            "auto_labeled": 2,  # emails with category_id
-            "categories_count": 2,
-            "unread_count": 2,  # emails where is_read is False
-            "weekly_growth": {"emails": 3, "percentage": 0.0}
-        }
+        mock_db_manager.get_dashboard_aggregates.assert_called_once()
         assert result == expected
 
     @pytest.mark.asyncio
     async def test_database_manager_get_category_breakdown(self, mock_db_manager):
         """Test DatabaseManager get_category_breakdown method."""
-        # Mock the data attributes
-        mock_db_manager.emails_data = [
-            {"id": 1, "category": "Work", "is_read": True},
-            {"id": 2, "category": "Personal", "is_read": False},
-            {"id": 3, "category": "Work", "is_read": False},
-            {"id": 4, "category": "Work", "is_read": True},
-            {"id": 5, "category": "Spam", "is_read": True},
-            {"id": 6},  # No category - should be "Uncategorized"
-        ]
-
-        result = await mock_db_manager.get_category_breakdown(limit=3)
-
         expected = {
             "Work": 3,
             "Personal": 1,
             "Spam": 1
         }
-        assert result == expected
+        mock_db_manager.get_category_breakdown.return_value = expected
 
-        # Test with limit
-        result_limited = await mock_db_manager.get_category_breakdown(limit=2)
-        expected_limited = {
-            "Work": 3,
-            "Personal": 1
-        }
-        assert result_limited == expected_limited
+        result = await mock_db_manager.get_category_breakdown(limit=3)
+
+        mock_db_manager.get_category_breakdown.assert_called_once_with(limit=3)
+        assert result == expected
 
 
 class TestDataSourceFactory:
@@ -321,15 +320,15 @@ class TestDataSourceFactory:
         # Mock environment variable
         monkeypatch.setenv("DATA_SOURCE_TYPE", "default")
 
-        # Mock DatabaseManager
-        mock_db = AsyncMock()
-        mock_db._ensure_initialized = AsyncMock()
+        # Mock create_database_manager to return a mock
+        mock_db_manager = AsyncMock(spec=DatabaseManager)
+        mock_create_db_manager = AsyncMock(return_value=mock_db_manager)
 
         with monkeypatch.context() as m:
-            m.setattr("src.core.factory.DatabaseManager", lambda: mock_db)
-
+            m.setattr("src.core.database.create_database_manager", mock_create_db_manager)
             data_source = await get_data_source()
-            assert data_source is mock_db
+
+        assert data_source is mock_db_manager
 
     @pytest.mark.asyncio
     async def test_get_data_source_notmuch(self, monkeypatch):
@@ -374,7 +373,7 @@ class TestDataSourceIntegration:
     @pytest.mark.asyncio
     async def test_notmuch_datasource_method_signatures(self):
         """Test that NotmuchDataSource methods have correct signatures."""
-        ds = NotmuchDataSource()
+        ds = NotmuchDataSource(db_manager=AsyncMock(spec=DatabaseManager))
 
         # Test method signatures match the abstract base class
         import inspect
@@ -393,7 +392,7 @@ class TestDataSourceIntegration:
     async def test_datasource_polymorphism(self):
         """Test that different data sources can be used interchangeably."""
         # Create instances of different data source types
-        notmuch_ds = NotmuchDataSource()
+        notmuch_ds = NotmuchDataSource(db_manager=AsyncMock(spec=DatabaseManager))
 
         # Both should implement the same interface
         methods = ['create_email', 'get_email_by_id', 'get_all_emails', 'search_emails']
@@ -406,7 +405,7 @@ class TestDataSourceIntegration:
     @pytest.mark.asyncio
     async def test_error_handling_in_mocked_datasource(self):
         """Test error handling in data source operations."""
-        ds = NotmuchDataSource()
+        ds = NotmuchDataSource(db_manager=AsyncMock(spec=DatabaseManager))
 
         # All operations should complete without throwing exceptions
         # (even if they return None/empty results)

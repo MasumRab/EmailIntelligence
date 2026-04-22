@@ -78,5 +78,21 @@
       }
     },
     "total_syncs": 0
+  },
+  {
+    "timestamp": "2025-11-02T03:02:21.611990",
+    "worktrees": {
+      "docs-main": {
+        "common_docs": 46,
+        "branch_docs": 24,
+        "total_docs": 70
+      },
+      "docs-scientific": {
+        "common_docs": 46,
+        "branch_docs": 43,
+        "total_docs": 89
+      }
+    },
+    "total_syncs": 0
   }
 ]

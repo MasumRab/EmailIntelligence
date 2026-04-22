@@ -84,11 +84,7 @@ The launch script now includes better process management capabilities:
            "backend/python_nlp/nlp_engine.py",
            # ... other critical files
        ]
-<<<<<<< HEAD
-
-=======
        
->>>>>>> scientific
        conflicts_found = False
        for file_path in critical_files:
            full_path = ROOT_DIR / file_path
@@ -102,19 +98,11 @@ The launch script now includes better process management capabilities:
                                conflicts_found = True
                except Exception as e:
                    logger.warning(f"Could not check {file_path} for conflicts: {e}")
-<<<<<<< HEAD
-
-       if conflicts_found:
-           logger.error("Please resolve all merge conflicts before proceeding.")
-           return False
-
-=======
        
        if conflicts_found:
            logger.error("Please resolve all merge conflicts before proceeding.")
            return False
        
->>>>>>> scientific
        logger.info("No unresolved merge conflicts detected in critical files.")
        return True
    ```
@@ -124,49 +112,29 @@ The launch script now includes better process management capabilities:
    def check_required_components() -> bool:
        """Check for required components and configurations."""
        issues = []
-<<<<<<< HEAD
-
-=======
        
->>>>>>> scientific
        # Check Python version
        current_version = sys.version_info[:2]
         if not ((3, 12) <= current_version <= (3, 13)):
             issues.append(f"Python version {current_version} is not compatible. Required: 3.12-3.13")
-<<<<<<< HEAD
-
-=======
        
->>>>>>> scientific
        # Check key directories
        required_dirs = ["backend", "client", "server", "shared", "tests"]
        for dir_name in required_dirs:
            if not (ROOT_DIR / dir_name).exists():
                issues.append(f"Required directory '{dir_name}' is missing.")
-<<<<<<< HEAD
-
-=======
        
->>>>>>> scientific
        # Check key files
        required_files = ["pyproject.toml", "README.md", "requirements.txt"]
        for file_name in required_files:
            if not (ROOT_DIR / file_name).exists():
                issues.append(f"Required file '{file_name}' is missing.")
-<<<<<<< HEAD
-
-=======
        
->>>>>>> scientific
        if issues:
            for issue in issues:
                logger.error(issue)
            return False
-<<<<<<< HEAD
-
-=======
        
->>>>>>> scientific
        logger.info("All required components are present.")
        return True
    ```
@@ -175,16 +143,6 @@ The launch script now includes better process management capabilities:
    ```python
    class ProcessManager:
        """Manages child processes for the application."""
-<<<<<<< HEAD
-
-       def __init__(self):
-           self.processes = []
-
-       def add_process(self, process):
-           """Add a process to be managed."""
-           self.processes.append(process)
-
-=======
        
        def __init__(self):
            self.processes = []
@@ -193,7 +151,6 @@ The launch script now includes better process management capabilities:
            """Add a process to be managed."""
            self.processes.append(process)
        
->>>>>>> scientific
        def cleanup(self):
            """Explicitly cleanup all managed processes."""
            logger.info("Performing explicit resource cleanup...")

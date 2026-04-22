@@ -1,176 +1,79 @@
 """
-Authentication and authorization system for the Email Intelligence Platform.
+Authentication module for the Email Intelligence Platform.
 
-This module implements JWT-based authentication for API endpoints using the new
-core architecture and database management system.
+This module implements JWT-based authentication for API endpoints and integrates with the existing security framework.
 """
 
+import logging
 from datetime import datetime, timedelta
-<<<<<<< HEAD
-from typing import Optional
-=======
 from typing import Optional, Dict, Any, List
 import hashlib
 import secrets
 from argon2 import PasswordHasher
 
->>>>>>> scientific
 import jwt
 from fastapi import HTTPException, status, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel
-import hashlib
-import secrets
 
-<<<<<<< HEAD
-from .database import get_db, DatabaseManager
-from .security import DataSanitizer
-=======
-from .database import get_db
+# Database imports removed - use dependency injection with create_database_manager
 from .settings import settings
 
 # Import the security framework components
 from .security import SecurityContext, Permission, SecurityLevel
 
 logger = logging.getLogger(__name__)
->>>>>>> scientific
 
 
 class TokenData(BaseModel):
+    """Data structure for JWT token payload"""
     username: Optional[str] = None
+    role: Optional[str] = "user"
 
 
-class AuthManager:
-    """
-    Authentication manager for the Email Intelligence Platform.
-    
-    This class handles user authentication, token management, and authorization.
-    """
-    
-    def __init__(self):
-        self.db_manager = None
-        
-    async def initialize(self):
-        """Initialize the AuthManager with database connection."""
-        from .database import get_db
-        self.db_manager = await get_db()
-        
-    async def authenticate_user(self, username: str, password: str) -> Optional[dict]:
-        """Authenticate a user with username and password."""
-        if not self.db_manager:
-            await self.initialize()
-            
-        # In a real implementation, this would check against the database
-        # For now, we'll return a mock user
-        return {
-            "id": 1,
-            "username": username,
-            "email": f"{username}@example.com"
-        }
-        
-    def create_access_token(self, data: dict, expires_delta: Optional[timedelta] = None) -> str:
-        """Create a JWT access token."""
-        to_encode = data.copy()
-        if expires_delta:
-            expire = datetime.utcnow() + expires_delta
-        else:
-            expire = datetime.utcnow() + timedelta(minutes=15)
-        to_encode.update({"exp": expire})
-        encoded_jwt = jwt.encode(to_encode, "SECRET_KEY", algorithm="HS256")
-        return encoded_jwt
-        
-    async def get_current_user(self, token: str) -> Optional[dict]:
-        """Get the current user from a JWT token."""
-        # In a real implementation, this would decode the token and get user from database
-        # For now, we'll return a mock user
-        return {
-            "id": 1,
-            "username": "testuser",
-            "email": "testuser@example.com"
-        }
+from enum import Enum
+
+
+class UserRole(str, Enum):
+    """User roles for role-based access control"""
+    ADMIN = "admin"
+    USER = "user"
+    GUEST = "guest"
+
+
+class User(BaseModel):
+    """User model for authentication"""
+    username: str
+    hashed_password: str
+    role: UserRole = UserRole.USER
+    permissions: Optional[List[str]] = []
 
 
 # Initialize security scheme
 security = HTTPBearer()
 
 
-def hash_password(password: str) -> str:
-    """Hash a password using salted hashing."""
-    salt = secrets.token_hex(16)
-    pwdhash = hashlib.pbkdf2_hmac('sha256', password.encode('utf-8'), salt.encode('utf-8'), 100000)
-    return salt + pwdhash.hex()
+def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
+    """
+    Create a JWT access token with the provided data.
 
+    Args:
+        data: Dictionary containing the data to encode in the token
+        expires_delta: Optional timedelta for token expiration
 
-def verify_password(plain_password: str, hashed_password: str) -> bool:
-    """Verify a plain password against a hashed password."""
-    salt = hashed_password[:32]
-    stored_password = hashed_password[32:]
-    pwdhash = hashlib.pbkdf2_hmac('sha256', plain_password.encode('utf-8'), salt.encode('utf-8'), 100000)
-    return pwdhash.hex() == stored_password
-
-
-async def create_user(username: str, password: str, db: DatabaseManager) -> bool:
-    """Create a new user with hashed password."""
-    # Check if user already exists
-    users = db.users_data
-    for user in users:
-        if user.get("username") == username:
-            return False  # User already exists
-    
-    # Hash the password
-    hashed_password = hash_password(password)
-
-    # Create new user
-    new_user = {
-        "id": len(users) + 1,
-        "username": username,
-        "hashed_password": hashed_password,
-        "created_at": datetime.utcnow().isoformat(),
-        "is_active": True
-    }
-
-    db.users_data.append(new_user)
-    await db._save_data("users")
-    return True
-
-
-async def authenticate_user(username: str, password: str, db: DatabaseManager) -> Optional[dict]:
-    """Authenticate a user by username and password."""
-    users = db.users_data
-    for user in users:
-        if user.get("username") == username and user.get("is_active", True):
-            if verify_password(password, user.get("hashed_password")):
-                return user
-    return None
-
-
-def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
-    """Create a JWT access token with the provided data."""
-    # Try to get the settings if possible
-    try:
-        from ..backend.python_backend.settings import settings
-        secret_key = settings.secret_key
-        algorithm = settings.algorithm
-        expire_minutes = settings.access_token_expire_minutes
-    except ImportError:
-        # Fallback to core settings
-        from .settings import settings
-        secret_key = settings.secret_key
-        algorithm = settings.algorithm
-        expire_minutes = settings.access_token_expire_minutes
-
+    Returns:
+        Encoded JWT token as a string
+    """
     to_encode = data.copy()
     if expires_delta:
         expire = datetime.utcnow() + expires_delta
     else:
-        expire = datetime.utcnow() + timedelta(minutes=expire_minutes)
+        expire = datetime.utcnow() + timedelta(minutes=15)
     to_encode.update({"exp": expire})
-    encoded_jwt = jwt.encode(to_encode, secret_key, algorithm=algorithm)
+    encoded_jwt = jwt.encode(to_encode, settings.secret_key, algorithm=settings.algorithm)
     return encoded_jwt
 
 
-<<<<<<< HEAD
-=======
 def hash_password(password: str) -> str:
     """
     Hash a password using Argon2.
@@ -199,8 +102,16 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     ph = PasswordHasher()
     try:
         return ph.verify(hashed_password, plain_password)
-    except Exception:
-        # Verification failed (wrong password, corrupted hash, etc.)
+    except argon2.exceptions.VerifyMismatchError:
+        # Password verification failed
+        return False
+    except argon2.exceptions.InvalidHashError:
+        # Invalid hash format
+        logger.warning("Invalid password hash format")
+        return False
+    except Exception as e:
+        # Other unexpected errors
+        logger.error(f"Unexpected error during password verification: {e}")
         return False
 
 
@@ -261,7 +172,6 @@ async def create_user(username: str, password: str, db) -> bool:
         return False
 
 
->>>>>>> scientific
 async def verify_token(
     credentials: HTTPAuthorizationCredentials = Depends(security)
 ) -> TokenData:
@@ -270,18 +180,16 @@ async def verify_token(
     
     This function checks if the provided token is valid and returns the token data.
     If the token is invalid or expired, it raises an HTTPException.
-    """
-    # Try to get the settings if possible
-    try:
-        from ..backend.python_backend.settings import settings
-        secret_key = settings.secret_key
-        algorithm = settings.algorithm
-    except ImportError:
-        # Fallback to core settings
-        from .settings import settings
-        secret_key = settings.secret_key
-        algorithm = settings.algorithm
 
+    Args:
+        credentials: HTTP authorization credentials containing the bearer token
+
+    Returns:
+        TokenData containing the username and role from the token
+
+    Raises:
+        HTTPException: If token is invalid or expired
+    """
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
@@ -290,54 +198,78 @@ async def verify_token(
     try:
         payload = jwt.decode(
             credentials.credentials, 
-            secret_key,
-            algorithms=[algorithm]
+            settings.secret_key,
+            algorithms=[settings.algorithm]
         )
         username: str = payload.get("sub")
+        role: str = payload.get("role", "user")
         if username is None:
             raise credentials_exception
-        token_data = TokenData(username=username)
+        token_data = TokenData(username=username, role=role)
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token has expired",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
     except jwt.PyJWTError:
         raise credentials_exception
-    except Exception:
+    except Exception as e:
+        logger.error(f"Unexpected error during token verification: {e}")
         raise credentials_exception
     
     return token_data
 
 
-async def get_current_user(token_data: TokenData = Depends(verify_token)) -> str:
+def get_current_active_user(token_data: TokenData = Depends(verify_token)) -> TokenData:
     """
     Get the current authenticated user from the token.
     
     This function can be used as a dependency to protect endpoints.
+
+    Args:
+        token_data: Token data from verified JWT token
+
+    Returns:
+        TokenData containing username and role of the authenticated user
     """
-    return token_data.username
+    # In a real implementation, you would fetch user details from a database
+    # For now, we just return the token data
+    return token_data
 
 
-async def get_current_active_user(current_user: str = Depends(get_current_user)) -> str:
+def require_role(required_role: UserRole):
     """
-    Get the current active user, ensuring they are active.
-    """
-    db = await get_db()
-    users = db.users_data
+    Dependency to require a specific role for accessing an endpoint.
     
-    for user in users:
-        if user.get("username") == current_user and user.get("is_active", True):
-            return current_user
+    Args:
+        required_role: The role required to access the endpoint
 
-    raise HTTPException(status_code=400, detail="Inactive user")
-
-
-def create_authentication_middleware():
+    Returns:
+        A dependency function that checks the user's role
     """
-    Create and return an authentication middleware.
+    def role_checker(token_data: TokenData = Depends(verify_token)) -> TokenData:
+        # In a real implementation, you would check the user's actual role from the database
+        # For now, we'll check the role from the token
+        if token_data.role != required_role.value:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"Access denied. {required_role.value} role required."
+            )
+        return token_data
+    return role_checker
+
+
+def require_any_role(required_roles: List[UserRole]):
+    """
+    Dependency to require any of the specified roles for accessing an endpoint.
     
-    This is a placeholder function that could be expanded to implement
-    custom authentication middleware if needed.
+    Args:
+        required_roles: List of roles that can access the endpoint
+
+    Returns:
+        A dependency function that checks the user's role
     """
-<<<<<<< HEAD
-    pass
-=======
     def role_checker(token_data: TokenData = Depends(verify_token)) -> TokenData:
         # In a real implementation, you would check the user's actual role from the database
         # For now, we'll check the role from the token
@@ -378,4 +310,3 @@ def create_security_context_for_user(username: str) -> SecurityContext:
     )
     
     return context
->>>>>>> scientific
