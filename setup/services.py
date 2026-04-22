@@ -172,7 +172,9 @@ def start_backend(host: str, port: int, debug: bool = False):
 
     # Sanitize host parameter to prevent command injection
     import re
-    if not re.match(r'^[a-zA-Z0-9.-]+
+    if not re.match(r'^[a-zA-Z0-9.-]+$', host):
+        logger.error(f'Invalid host format: {host}')
+        return
 
 
 def start_node_service(service_path: Path, service_name: str, port: int, api_url: str):
@@ -263,6 +265,8 @@ def start_gradio_ui(host, port, share, debug):
     # Sanitize host parameter to prevent command injection
     import re
     if not re.match(r'^[a-zA-Z0-9.-]+$', host):
+        logger.error(f'Invalid host format: {host}')
+        return
         logger.error(f"Invalid host parameter: {host}")
         return
 
@@ -344,7 +348,7 @@ def start_services(args):
         if available_services.get("frontend", False):
             frontend_config = config.get_service_config("frontend")
             frontend_path = config.get_service_path("frontend")
-            start_node_service(frontend_path, "Frontend Client", args.frontend_port, api_url), host):
+            start_node_service(frontend_path, "Frontend Client", args.frontend_port, api_url)
         logger.error(f"Invalid host parameter: {host}")
         return
 

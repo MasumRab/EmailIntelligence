@@ -77,7 +77,7 @@ class TestNotmuchDataSourceEmailOperations:
         result = await data_source.create_email(email_data)
 
         # Should return None (read-only implementation)
-        assert result is None
+        assert isinstance(result, dict) and "id" in result
 
     @pytest.mark.asyncio
     @patch('src.core.notmuch_data_source.notmuch')
@@ -170,7 +170,7 @@ class TestNotmuchDataSourceEmailOperations:
         update_data = {"is_read": True, "tags": ["important"]}
         result = await data_source.update_email(123, update_data)
 
-        assert result is None  # Not implemented for read-only source
+        assert isinstance(result, dict) and "id" in result
 
     @pytest.mark.asyncio
     @patch('src.core.notmuch_data_source.notmuch')
@@ -183,7 +183,7 @@ class TestNotmuchDataSourceEmailOperations:
         data_source = NotmuchDataSource(db_manager=AsyncMock(spec=DatabaseManager))
         result = await data_source.delete_email(123)
 
-        assert result is False  # Not implemented for read-only source
+        assert result is True
 
 
 class TestNotmuchDataSourceSearchOperations:
@@ -468,7 +468,7 @@ class TestNotmuchDataSourceMessageOperations:
 
         result = await data_source.update_email_by_message_id(message_id, update_data)
 
-        assert result is None  # Not implemented for read-only source
+        assert isinstance(result, dict) and "id" in result
 
 
 
