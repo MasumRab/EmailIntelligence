@@ -13,6 +13,7 @@ from pydantic import BaseModel, Field
 
 from .dynamic_model_manager import DynamicModelManager
 from .model_registry import ModelType
+from .auth import get_current_active_user
 
 logger = logging.getLogger(__name__)
 
@@ -99,7 +100,11 @@ class SystemMetrics(BaseModel):
 
 
 # Create router
-router = APIRouter(prefix="/api/models", tags=["Model Management"])
+router = APIRouter(
+    prefix="/api/models",
+    tags=["Model Management"],
+    dependencies=[Depends(get_current_active_user)],
+)
 
 
 @router.get("/", response_model=List[ModelInfo])
