@@ -1,5 +1,4 @@
 import re
-import os
 
 files_to_fix = [
     "src/validation/quick_validator.py",
