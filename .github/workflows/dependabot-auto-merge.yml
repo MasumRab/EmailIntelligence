@@ -3,18 +3,24 @@ name: Dependabot Auto-Merge
 on:
   pull_request:
     types: [opened, synchronize, reopened]
+  check_suite:
+    types: [completed]
 
 permissions:
   contents: write
   pull-requests: write
   checks: read
+  statuses: read
 
 jobs:
   auto-merge:
     runs-on: ubuntu-latest
-    if: github.actor == 'dependabot[bot]' && github.event.pull_request.mergeable_state == 'clean' && !github.event.pull_request.draft
+    if: github.actor == 'dependabot[bot]'
     
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
       - name: Wait for CI checks to complete
         run: |
           echo "Waiting for CI checks to complete on PR #${{ github.event.pull_request.number }}"
@@ -23,25 +29,27 @@ jobs:
           PR_HEAD_SHA="${{ github.event.pull_request.head.sha }}"
           echo "PR Head SHA: $PR_HEAD_SHA"
           
-          # Wait for up to 10 minutes for CI to complete
-          MAX_ATTEMPTS=60
+          # Wait for up to 30 minutes for CI to complete
+          MAX_ATTEMPTS=180
           INTERVAL=10
           
           for ((i=1; i<=MAX_ATTEMPTS; i++)); do
             echo "Checking CI status... (attempt $i/$MAX_ATTEMPTS)"
             
-            # Get the status of all checks for this PR
-            STATUS=$(gh pr checks "${{ github.event.pull_request.number }}" --state pending --json status -q '. | length' 2>/dev/null || echo "0")
-            echo "Pending checks: $STATUS"
+            # Check if there are any pending checks
+            PENDING=$(gh pr checks "${{ github.event.pull_request.number }}" --state pending --json status -q '. | length' 2>/dev/null || echo "0")
+            echo "Pending checks: $PENDING"
             
-            if [ "$STATUS" -eq "0" ]; then
+            if [ "$PENDING" -eq "0" ]; then
               # No more pending checks, verify all passed
               FAILURES=$(gh pr checks "${{ github.event.pull_request.number }}" --state failure -q '. | length' 2>/dev/null || echo "0")
-              if [ "$FAILURES" -eq "0" ]; then
+              CONCIERGE_FAILURES=$(gh pr checks "${{ github.event.pull_request.number }}" --state action_required -q '. | length' 2>/dev/null || echo "0")
+              
+              if [ "$FAILURES" -eq "0" ] && [ "$CONCIERGE_FAILURES" -eq "0" ]; then
                 echo "All CI checks passed!"
                 exit 0
               else
-                echo "Some CI checks failed."
+                echo "Some CI checks failed. Failures: $FAILURES, Action Required: $CONCIERGE_FAILURES"
                 exit 1
               fi
             fi
@@ -51,28 +59,50 @@ jobs:
           
           echo "Timeout waiting for CI checks"
           exit 1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         
+      - name: Check if PR is mergeable
+        run: |
+          echo "Checking if PR is mergeable..."
+          MERGEABLE=$(gh pr view ${{ github.event.pull_request.number }} --json mergeable -q '.mergeable')
+          echo "Mergeable: $MERGEABLE"
+          
+          if [ "$MERGEABLE" != "true" ]; then
+            echo "PR is not mergeable. Checking reason..."
+            MERGE_STATE=$(gh pr view ${{ github.event.pull_request.number }} --json mergeableState -q '.mergeableState')
+            echo "Merge state: $MERGE_STATE"
+            exit 1
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Auto-merge Dependabot PR
         run: |
           set -e
           echo "CI checks passed. Auto-merging Dependabot PR #${{ github.event.pull_request.number }}"
           
           # Approve the PR first
+          echo "Approving PR..."
           if ! gh pr review ${{ github.event.pull_request.number }} --approve --body "✅ CI checks passed! Auto-merging this Dependabot PR."; then
-            echo "Failed to approve PR. Exiting."
-            exit 1
+            echo "Failed to approve PR. Checking if already approved..."
+            # Check if already approved
+            APPROVED=$(gh pr view ${{ github.event.pull_request.number }} --json reviews -q '.reviews[] | select(.author.login == "github-actions[bot]") | .state' 2>/dev/null || echo "")
+            if [ "$APPROVED" != "APPROVED" ]; then
+              echo "Failed to approve PR. Exiting."
+              exit 1
+            fi
+            echo "PR already approved."
           fi
           
           # Enable auto-merge
-          if ! gh pr merge --auto --merge ${{ github.event.pull_request.number }}; then
-            echo "Failed to enable auto-merge. Checking if already enabled..."
-            # Check if auto-merge is already enabled
-            if gh pr view ${{ github.event.pull_request.number }} --json autoMergeRequest --jq '.autoMergeRequest' | grep -q "null"; then
-              echo "Auto-merge failed and is not enabled. Manual intervention required."
-              exit 1
-            else
-              echo "Auto-merge is already enabled."
-            fi
+          echo "Enabling auto-merge..."
+          if ! gh pr merge --auto --merge ${{ github.event.pull_request.number }} 2>/dev/null; then
+            echo "Failed to enable auto-merge via CLI. Trying API..."
+            # Try using the API directly
+            gh api -X PUT "https://api.github.com/repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/auto_merge" \
+              -H "Accept: application/vnd.github+json" \
+              -f merge_method="squash"
           fi
           
           echo "Auto-merge successfully enabled for PR #${{ github.event.pull_request.number }}"
