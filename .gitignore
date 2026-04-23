@@ -100,3 +100,8 @@ worktrees/
 backlog/config.yml.bak
 original_readme.md
 scripts/hooks/
+
+# Agent artifacts
+.claude/
+.bandit
+.roo/
