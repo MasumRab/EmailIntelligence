@@ -38,11 +38,11 @@ class CleanupCommand(Command):
             int: Exit code (0 for success, non-zero for failure)
         """
         try:
-            from setup.utils import process_manager
+            from setup.utils import process_manager_instance
             logger.info("Starting manual cleanup...")
             
             # Perform process cleanup
-            process_manager.cleanup()
+            process_manager_instance.cleanup()
             
             logger.info("Manual cleanup completed successfully!")
             return 0
