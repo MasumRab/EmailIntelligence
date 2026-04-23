@@ -43,14 +43,8 @@ class ContextControlMiddleware(BaseHTTPMiddleware):
     
     def __init__(self, app):
         super().__init__(app)
-        try:
-            self.context_controller = ContextController() if CONTEXT_CONTROL_AVAILABLE else None
-            self.validator = ContextValidator() if CONTEXT_CONTROL_AVAILABLE else None
-        except Exception as e:
-            # Prevent middleware initialization from crashing the entire app if context control is broken
-            logging.error(f"Failed to initialize ContextControlMiddleware components: {e}")
-            self.context_controller = None
-            self.validator = None
+        self.context_controller = ContextController() if CONTEXT_CONTROL_AVAILABLE else None
+        self.validator = ContextValidator() if CONTEXT_CONTROL_AVAILABLE else None
     
     async def dispatch(self, request: StarletteRequest, call_next):
         """Process request with context control."""
@@ -74,20 +68,12 @@ class ContextControlMiddleware(BaseHTTPMiddleware):
                 # If context creation fails, continue without it
                 request.state.context_error = str(e)
         
-        # Process the request safely
-        try:
-            response = await call_next(request)
-        except Exception as e:
-            # If context processing broke standard request pipeline unexpectedly, ensure we don't drop the error
-            logging.error(f"Request processing failed during context control dispatch: {e}")
-            raise
+        # Process the request
+        response = await call_next(request)
 
         # Add context-related headers to response
         if hasattr(request.state, 'context_id'):
-            try:
-                response.headers["X-Context-ID"] = request.state.context_id
-            except Exception:
-                pass  # Do not fail request if header injection fails
+            response.headers["X-Context-ID"] = request.state.context_id
             
         # Add timing information
         process_time = time.time() - start_time
@@ -116,21 +102,15 @@ def create_app() -> FastAPI:
         app.add_middleware(ContextControlMiddleware)
     
     # Add CORS middleware as expected by both architectures
-    allowed_origins = os.environ.get("ALLOWED_ORIGINS")
-    if allowed_origins:
-        origins_list = [origin.strip() for origin in allowed_origins.split(",") if origin.strip()]
-    else:
-        # Default restricted origins for local development if not configured
-        origins_list = [
-            "http://localhost:3000",
-            "http://127.0.0.1:3000",
-            "http://localhost:8000",
-            "http://127.0.0.1:8000",
-        ]
+
+    # Parse allowed origins from environment variable, default to restrictive local access
+    allowed_origins = os.environ.get("ALLOWED_ORIGINS", "http://localhost:3000,http://127.0.0.1:3000").split(",")
+    # Remove empty strings if any
+    allowed_origins = [origin.strip() for origin in allowed_origins if origin.strip()]
 
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=origins_list,  # Restrict allowed origins to prevent CSRF
+        allow_origins=allowed_origins,
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
