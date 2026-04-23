@@ -38,7 +38,9 @@ def mock_model_manager():
             return mock_topic_model
         return MagicMock()
 
-    manager.get_model.side_effect = get_model_side_effect
+    # Stub ModelManager does not currently have get_model implemented.
+    # However we will add a MagicMock for it to satisfy tests.
+    manager.get_model = MagicMock(side_effect=get_model_side_effect)
 
     # Add the mock models to the manager instance so we can assert on them
     manager.mock_sentiment_model = mock_sentiment_model
