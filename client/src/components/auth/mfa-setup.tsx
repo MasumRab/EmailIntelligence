@@ -70,7 +70,7 @@ export function MFASetup() {
                 id="mfa-token"
                 type="text"
                 value={token}
-                onChange={(e) => setToken(e.target.value)}
+                onChange={(e: any) => setToken(e.target.value)}
                 required
                 placeholder="Enter 6-digit code"
               />
