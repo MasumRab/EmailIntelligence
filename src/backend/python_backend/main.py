@@ -29,7 +29,6 @@ from src.core.auth import authenticate_user
 
 from ..plugins.plugin_manager import plugin_manager
 from . import (
-    action_routes,
     ai_routes,
     category_routes,
     dashboard_routes,
@@ -268,7 +267,6 @@ app.include_router(training_routes.router)
 app.include_router(workflow_routes.router)
 app.include_router(model_routes.router)
 app.include_router(performance_routes.router)
-app.include_router(action_routes.router)
 app.include_router(dashboard_routes.router)
 app.include_router(ai_routes.router)
 
@@ -377,10 +375,9 @@ async def get_error_stats():
 
 if __name__ == "__main__":
     import uvicorn
-
-port = int(os.getenv("PORT", 8000))
-env = os.getenv("NODE_ENV", "development")
-host = os.getenv("HOST", "127.0.0.1" if env == "development" else "0.0.0.0")
-reload = env == "development"
-# Use string app path to support reload
-uvicorn.run("main:app", host=host, port=port, reload=reload, log_level="info")
+    port = int(os.getenv("PORT", 8000))
+    env = os.getenv("NODE_ENV", "development")
+    host = os.getenv("HOST", "127.0.0.1" if env == "development" else "0.0.0.0")
+    reload = env == "development"
+    # Use string app path to support reload
+    uvicorn.run("main:app", host=host, port=port, reload=reload, log_level="info")
