@@ -1,4 +1,4 @@
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 from .data_source import DataSource
 from ..database import DatabaseManager, create_database_manager, DatabaseConfig
 from ..factory import get_data_source
@@ -35,17 +35,17 @@ class DatabaseDataSource(DataSource):
         """
         return await self.db.update_email(email_id, email_data)
 
-    async def get_email_by_id(self, email_id: Any) -> Dict[str, Any]:
+    async def get_email_by_id(self, email_id: Any, include_content: bool = True) -> Optional[Dict[str, Any]]:
         """
         Fetches a single email by its ID from the database.
         """
-        return await self.db.get_email_by_id(email_id)
+        return await self.db.get_email_by_id(email_id, include_content=include_content)
 
-    async def search_emails(self, query: str) -> List[Dict[str, Any]]:
+    async def search_emails(self, query: str, limit: int = 50) -> List[Dict[str, Any]]:
         """
         Searches for emails matching a query in the database.
         """
-        return await self.db.search_emails(query)
+        return await self.db.search_emails_with_limit(query, limit=limit)
 
     async def add_tags(self, email_id: Any, tags: List[str]) -> bool:
         """
