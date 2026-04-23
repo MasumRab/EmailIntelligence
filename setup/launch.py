@@ -47,15 +47,22 @@ from setup.utils import print_system_info, process_manager
 # Import test stages
 from setup.test_stages import test_stages
 
+# Version constraints
+PYTHON_MIN_VERSION = (3, 11)
+PYTHON_MAX_VERSION = (3, 13)
+
 # Import command pattern components (with error handling for refactors)
 try:
     from src.core.commands.command_factory import get_command_factory
     from src.core.container import get_container, initialize_all_services
+    COMMAND_PATTERN_AVAILABLE = True
 except ImportError as e:
-    logging.warning(f"Could not import core modules: {e}. Some features may be unavailable.")
+    if not os.environ.get("PYTEST_CURRENT_TEST"):
+        logging.warning(f"Could not import core modules: {e}. Some features may be unavailable.")
     get_command_factory = None
     get_container = None
     initialize_all_services = None
+    COMMAND_PATTERN_AVAILABLE = False
 
 try:
     from dotenv import load_dotenv
@@ -837,11 +844,12 @@ def print_system_info():
         print(f"{cf}: {'Found' if exists else 'Not found'}")
 
 
-def main():
+def init_command_pattern_services():
     # Initialize services if command pattern is available
     if COMMAND_PATTERN_AVAILABLE and initialize_all_services and get_container:
         initialize_all_services(get_container())
 
+def old_main():
     # Parse command line arguments
     parser = argparse.ArgumentParser(description="EmailIntelligence Unified Launcher")
 
@@ -1045,8 +1053,7 @@ def main():
     _check_setup_warnings()
 
     # Initialize services (only if core modules are available)
-    if initialize_all_services and get_container:
-        initialize_all_services(get_container())
+    init_command_pattern_services()
 
     # Parse command line arguments
     parser = argparse.ArgumentParser(description="EmailIntelligence Unified Launcher")
