@@ -147,11 +147,15 @@ export function EmailList({ emails, loading, onEmailSelect }: EmailListProps) {
                       {email.categoryData.name}
                     </Badge>
                   )}
-                  {email.labels?.map((label: string, index: number) => (
+                  {Array.isArray(email.labels) ? email.labels.map((label: string, index: number) => (
                     <Badge key={index} variant="outline" className="text-xs">
                       {label}
                     </Badge>
-                  ))}
+                  )) : email.labels ? (
+                    <Badge variant="outline" className="text-xs">
+                      {email.labels}
+                    </Badge>
+                  ) : null}
                   {email.confidence && (
                     <span className="text-xs text-gray-500 flex items-center">
                       <Brain className="h-3 w-3 mr-1" />

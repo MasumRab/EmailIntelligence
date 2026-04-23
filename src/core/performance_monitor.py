@@ -16,6 +16,7 @@ import logging
 import threading
 import time
 from dataclasses import dataclass
+from collections import OrderedDict
 from datetime import datetime, timezone
 from functools import wraps
 from typing import Any, Callable, Dict, List, Optional
@@ -179,19 +180,14 @@ def _create_decorator(func, op_name):
         return sync_wrapper
 
 
-import atexit
-
 # Enhanced performance monitoring system with additional features
 from collections import defaultdict, deque
-from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any, Dict, Optional, Union
-
-logger = logging.getLogger(__name__)
-
+import atexit
 
 @dataclass
-class PerformanceMetric:
+class EnhancedPerformanceMetric:
     """Represents a performance metric with minimal overhead."""
 
     name: str
@@ -245,7 +241,7 @@ class OptimizedPerformanceMonitor:
         self.log_file.parent.mkdir(parents=True, exist_ok=True)
 
         # Metrics storage
-        self._metrics_buffer: deque[PerformanceMetric] = deque(maxlen=max_metrics_buffer)
+        self._metrics_buffer: deque[EnhancedPerformanceMetric] = deque(maxlen=max_metrics_buffer)
         self._aggregated_metrics: Dict[str, AggregatedMetric] = {}
 
         # Threading and async
@@ -262,17 +258,6 @@ class OptimizedPerformanceMonitor:
         atexit.register(self.shutdown)
 
         logger.info("OptimizedPerformanceMonitor initialized")
-
-    def log_performance(self, log_entry: Dict[str, Any]) -> None:
-        """Compatibility method for legacy log_performance decorator."""
-        # Extract fields from log_entry to map to record_metric
-        operation = log_entry.get("operation", "unknown_operation")
-        duration_ms = log_entry.get("duration_seconds", 0) * 1000
-        self.record_metric(
-            name=operation,
-            value=duration_ms,
-            unit="ms"
-        )
 
     def record_metric(
         self,
@@ -298,7 +283,7 @@ class OptimizedPerformanceMonitor:
         if sample_rate < 1.0 and random.random() > sample_rate:
             return
 
-        metric = PerformanceMetric(
+        metric = EnhancedPerformanceMetric(
             name=name,
             value=value,
             unit=unit,
@@ -386,7 +371,7 @@ class OptimizedPerformanceMonitor:
             )
         return self._aggregated_metrics.copy()
 
-    def get_recent_metrics(self, name: str, limit: int = 100) -> List[PerformanceMetric]:
+    def get_recent_metrics(self, name: str, limit: int = 100) -> List[EnhancedPerformanceMetric]:
         """Get recent raw metrics for a specific name."""
         with self._buffer_lock:
             return [m for m in self._metrics_buffer if m.name == name][-limit:]

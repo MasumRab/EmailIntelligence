@@ -68,11 +68,12 @@ class LRUCache:
 
 
 class QueryResultCache:
-    """Cache for query results with TTL (Time To Live) support."""
+    """Cache for query results with TTL (Time To Live) support and LRU eviction."""
 
-    def __init__(self, ttl_seconds: int = 300):  # 5 minutes default
+    def __init__(self, ttl_seconds: int = 300, capacity: int = 1000):  # 5 minutes default
         self.ttl_seconds = ttl_seconds
-        self.cache: Dict[str, Tuple[Any, float]] = {}  # (value, timestamp)
+        self.capacity = capacity
+        self.cache = OrderedDict()  # key -> (value, timestamp)
         self.hits = 0
         self.misses = 0
 
@@ -82,6 +83,7 @@ class QueryResultCache:
             value, timestamp = self.cache[key]
             if time.time() - timestamp < self.ttl_seconds:
                 self.hits += 1
+                self.cache.move_to_end(key)
                 return value
             else:
                 # Expired, remove it
@@ -90,7 +92,11 @@ class QueryResultCache:
         return None
 
     def put(self, key: str, value: Any) -> None:
-        """Put value in cache with current timestamp."""
+        """Put value in cache with current timestamp, evicting oldest if necessary."""
+        if key in self.cache:
+            self.cache.move_to_end(key)
+        elif len(self.cache) >= self.capacity:
+            self.cache.popitem(last=False)
         self.cache[key] = (value, time.time())
 
     def invalidate(self, key: str) -> None:
