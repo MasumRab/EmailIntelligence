@@ -5,6 +5,7 @@ Prioritize urgent syncs over routine updates.
 """
 
 import time
+import uuid
 import heapq
 from enum import Enum
 from dataclasses import dataclass, field
@@ -132,7 +133,7 @@ class SyncPrioritizer:
         sync_type = self._determine_sync_type(sync_reason)
         estimated_duration = self._estimate_sync_duration(files)
 
-        task_id = f"sync_{worker_id}_{int(time.time())}"
+        task_id = f"sync_{worker_id}_{uuid.uuid4().hex[:12]}"
 
         task = SyncTask(
             task_id=task_id,

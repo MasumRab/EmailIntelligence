@@ -65,31 +65,33 @@ class AgentProfile:
     def update_performance(self, tasks_completed: int = 0, success_rate: float = None, 
                           avg_completion_time: float = None, quality_score: float = None):
         """Update performance metrics."""
+        # Capture task count before incrementing for use in weighted averages
+        previous_tasks = self.performance_metrics['tasks_completed']
+        
         if tasks_completed > 0:
             self.performance_metrics['tasks_completed'] += tasks_completed
             
         if success_rate is not None:
-            # Calculate weighted average
-            current_tasks = self.performance_metrics['tasks_completed']
+            # Calculate weighted average using previous task count
             current_rate = self.performance_metrics['success_rate']
             self.performance_metrics['success_rate'] = (
-                (current_rate * current_tasks + success_rate * tasks_completed) / 
-                (current_tasks + tasks_completed)
-            ) if (current_tasks + tasks_completed) > 0 else success_rate
+                (current_rate * previous_tasks + success_rate * tasks_completed) / 
+                (previous_tasks + tasks_completed)
+            ) if (previous_tasks + tasks_completed) > 0 else success_rate
             
         if avg_completion_time is not None:
             current_time = self.performance_metrics['avg_completion_time']
             self.performance_metrics['avg_completion_time'] = (
-                (current_time * current_tasks + avg_completion_time * tasks_completed) / 
-                (current_tasks + tasks_completed)
-            ) if (current_tasks + tasks_completed) > 0 else avg_completion_time
+                (current_time * previous_tasks + avg_completion_time * tasks_completed) / 
+                (previous_tasks + tasks_completed)
+            ) if (previous_tasks + tasks_completed) > 0 else avg_completion_time
             
         if quality_score is not None:
             current_quality = self.performance_metrics['quality_score']
             self.performance_metrics['quality_score'] = (
-                (current_quality * current_tasks + quality_score * tasks_completed) / 
-                (current_tasks + tasks_completed)
-            ) if (current_tasks + tasks_completed) > 0 else quality_score
+                (current_quality * previous_tasks + quality_score * tasks_completed) / 
+                (previous_tasks + tasks_completed)
+            ) if (previous_tasks + tasks_completed) > 0 else quality_score
             
         self.last_updated = datetime.now().isoformat()
 
