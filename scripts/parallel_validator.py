@@ -8,6 +8,7 @@ import os
 import re
 import time
 import json
+import threading
 from pathlib import Path
 from typing import Dict, List, Optional, Set, Tuple
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -270,6 +271,7 @@ class ParallelValidationManager:
         self.workers: Dict[str, ValidationWorker] = {}
         self.validation_history: List[ValidationTask] = []
         self.validation_log_file = Path("validation_log.json")
+        self.validation_lock = threading.Lock()  # Thread-safe lock for validation operations
         self.load_validation_log()
 
     def load_validation_log(self):
@@ -372,8 +374,10 @@ class ParallelValidationManager:
 
         worker = self.workers[task.worker_id]
         result = worker.run_validation_task(task)
-        self.validation_history.append(result)
-        self.save_validation_log()
+        # Thread-safe append to history
+        with self.validation_lock:
+            self.validation_history.append(result)
+            self.save_validation_log()
         return result
 
     def run_parallel_validation(self, tasks: List[ValidationTask]) -> Dict[str, ValidationTask]:
