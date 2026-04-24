@@ -193,7 +193,9 @@ class IncrementalValidator:
             # Update cache with new results
             for file_path in files_to_validate:
                 file_str = str(file_path)
-                result = results.get(file_str, "pass")
+                if file_str not in results:
+                    raise ValueError(f"Missing validation result for {file_path}")
+                result = results[file_str]
                 error_count = 0  # Would be determined by validation function
                 self.cache.update_cache_entry(file_path, validation_type, result, error_count)
 
@@ -262,7 +264,9 @@ class IncrementalValidator:
             # Update cache
             for file_path in files_to_validate_list:
                 file_str = str(file_path)
-                result = results.get(file_str, "pass")
+                if file_str not in results:
+                    raise ValueError(f"Missing validation result for {file_path}")
+                result = results[file_str]
                 error_count = 0
                 self.cache.update_cache_entry(file_path, validation_type, result, error_count)
 
