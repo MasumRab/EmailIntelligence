@@ -17,7 +17,17 @@ import re
 def run_command(command):
     """Run a shell command and return the output."""
     try:
-        result = subprocess.run(command, shell=True, capture_output=True, text=True, check=True)
+        # Convert string to list if needed
+        if isinstance(command, str):
+            command = command.split()
+        # Use shell=False to prevent shell injection
+        result = subprocess.run(
+            command,
+            shell=False,
+            capture_output=True,
+            text=True,
+            check=True
+        )
         return result.stdout.strip()
     except subprocess.CalledProcessError as e:
         print(f"Error running command: {command}")
@@ -26,7 +36,7 @@ def run_command(command):
 
 def get_local_branches():
     """Get list of local branches."""
-    output = run_command("git branch")
+    output = run_command(["git", "branch"])
     if output is None:
         return []
 
@@ -39,7 +49,7 @@ def get_local_branches():
 
 def get_remote_branches():
     """Get list of remote branches."""
-    output = run_command("git branch -r")
+    output = run_command(["git", "branch", "-r"])
     if output is None:
         return []
 

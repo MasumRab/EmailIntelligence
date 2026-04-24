@@ -166,9 +166,12 @@ def sanitize_html(html_content: str) -> str:
     if not html_content:
         return ""
 
-    # Remove script tags
+    # Remove script tags (including those with trailing whitespace like </script >)
     html_content = re.sub(
-        r"<script[^>]*>.*?</script>", "", html_content, flags=re.DOTALL | re.IGNORECASE
+        r"<script[^>]*>.*?</script\s*>",
+        "",
+        html_content,
+        flags=re.DOTALL | re.IGNORECASE
     )
 
     # Remove style tags

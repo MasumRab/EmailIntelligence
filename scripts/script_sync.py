@@ -8,6 +8,7 @@ while preserving branch-specific customizations.
 import subprocess
 import sys
 import os
+import shutil
 from pathlib import Path
 from typing import List, Set
 
@@ -68,10 +69,11 @@ def sync_scripts_from_master(master_branch: str, target_branch: str, preserve_cu
 
     if target_has_scripts:
         # Use git read-tree to merge scripts directory from master
+        # git read-tree -m expects: current tree (H) first, incoming tree (M) second
         result = subprocess.run([
             'git', 'read-tree', '-m', '-u',
-            f'{master_branch}:scripts',  # Source tree
-            f'{target_branch}:scripts'   # Current tree
+            f'{target_branch}:scripts',  # Current tree (H)
+            f'{master_branch}:scripts'    # Master tree to merge (M)
         ], capture_output=True, text=True)
     else:
         # Target doesn't have scripts, just checkout from master
