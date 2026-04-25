@@ -6,9 +6,9 @@ Version 1 API routes for email operations
 Following the new architectural patterns with service layer and API versioning
 """
 
-from typing import Optional
+from typing import Annotated, Optional
 import logging
-from fastapi import APIRouter, BackgroundTasks, Depends, Request
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
 
 from src.core.models import EmailResponse, EmailCreate, EmailUpdate
 from backend.python_backend.services.email_service import EmailService
@@ -31,7 +31,7 @@ async def get_emails_v1(
     category_id: Optional[int] = None,
     is_unread: Optional[bool] = None,
     search: Optional[str] = None,
-    email_service: EmailService = Depends(get_email_service),
+    email_service: Annotated[EmailService, Depends(get_email_service)],
 ):
     """
     Retrieves a list of emails with optional filtering, pagination, and search.
@@ -60,11 +60,8 @@ async def get_emails_v1(
     if result.success:
         return result
     else:
-        # If there was an error, return the error response
-        # Use a proper error message instead of EmailNotFoundException
-        raise EmailNotFoundException(
-            message="Failed to retrieve emails"
-        )
+        # Return 500-level service error instead of 404 for database failures
+        raise HTTPException(status_code=500, detail="Failed to retrieve emails")
 
 
 @router.get("/emails/{email_id}", response_model=EmailResponse)

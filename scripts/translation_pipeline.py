@@ -51,7 +51,18 @@ class TranslationJob:
     start_time: float = 0.0
     end_time: float = 0.0
     translation_units: List[TranslationUnit] = field(default_factory=list)
+    quality_reports: List["UnitTranslationQualityReport"] = field(default_factory=list)
     metadata: Dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass
+class UnitTranslationQualityReport:
+    report_id: str
+    unit_id: str
+    issues: List[str] = field(default_factory=list)
+    suggestions: List[str] = field(default_factory=list)
+    reviewer: str = "system"
+    quality_score: float = 0.0
 
 
 @dataclass
@@ -372,19 +383,17 @@ class DistributedTranslationManager:
             if not job:
                 return ""
             
-            # Add to job's quality reports
-            if not hasattr(job, 'quality_reports'):
-                job.quality_reports = []
+            # Use target_languages[0] instead of non-existent target_language
+            target_lang = job.target_languages[0] if job.target_languages else "unknown"
             
-            report = TranslationQualityReport(
-                job_id=job_id,
-                target_language=getattr(job, 'target_language', 'unknown'),
-                quality_score=quality_score,
-                consistency_score=0.0,
-                terminology_accuracy=0.0,
-                completeness=0.0,
-                fluency=0.0,
-                accuracy=quality_score
+            # Create unit-level quality report with correct fields
+            report = UnitTranslationQualityReport(
+                report_id=report_id,
+                unit_id=unit_id,
+                issues=issues,
+                suggestions=suggestions,
+                reviewer=reviewer,
+                quality_score=quality_score
             )
             job.quality_reports.append(report)
             return report_id

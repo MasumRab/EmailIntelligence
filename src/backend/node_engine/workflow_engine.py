@@ -81,9 +81,7 @@ class WorkflowEngine:
         """
         execution_id = workflow.workflow_id
         start_time = time.time()
-        self.logger.info(
-            f"Starting execution of workflow: {workflow.name} (ID: {execution_id})"
-        )
+        self.logger.info(f"Starting execution of workflow: {workflow.name} (ID: {execution_id})")
 
         # --- SECURITY CHECK: VERIFY USER PERMISSION TO EXECUTE WORKFLOW ---
         class MockUser:
@@ -222,13 +220,7 @@ class WorkflowEngine:
                     )
 
                     # Log node execution with enhanced performance data
-                    audit_logger.log_node_execution(
-                        workflow.workflow_id,
-                        node_id,
-                        node.name,
-                        "success",
-                        node_execution_duration,
-                    )
+                    audit_logger.log_node_execution(workflow.workflow_id, node_id, node.name, "success", node_execution_duration)
                 except Exception as e:
                     error_msg = f"Node {node_id} execution failed: {str(e)}"
                     context.add_error(
@@ -239,13 +231,7 @@ class WorkflowEngine:
                     self.logger.error(error_msg, exc_info=True)
 
                     # Log failed node execution
-                    audit_logger.log_node_execution(
-                        workflow.workflow_id,
-                        node_id,
-                        node.name,
-                        "failed",
-                        -1,  # Indicate error
-                    )
+                    audit_logger.log_node_execution(workflow.workflow_id, node_id, node.name, "failed", -1)
 
                     raise WorkflowExecutionException(error_msg) from e
 
@@ -275,9 +261,7 @@ class WorkflowEngine:
             context.metadata["status"] = "failed"
             context.metadata["error"] = str(e)
 
-            self.logger.error(
-                f"Workflow {workflow.name} execution failed: {str(e)}", exc_info=True
-            )
+            self.logger.error(f"Workflow {workflow.name} execution failed: {str(e)}", exc_info=True)
 
             # Re-raise the exception to indicate failure
             raise

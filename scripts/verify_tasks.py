@@ -96,26 +96,29 @@ class TaskVerifier:
             'code_changes': False
         }
 
-        notes = task_data['implementation_notes'].lower()
-        title = task_data['title'].lower()
+        # Preserve original implementation_notes for parsing (don't lowercase)
+        notes = task_data['implementation_notes']
+        title = task_data['title'].lower()  # Only lowercase title for keyword checks
 
-        # Check for file creation mentions
-        file_mentions = re.findall(r'created?\s+([^,\n.]+)', notes)
+        # Check for file creation mentions - use case-insensitive regex, capture dots and path chars
+        file_mentions = re.findall(r'created?\s+([^\s,]+(?:\.[^\s,]+)*)', notes, re.IGNORECASE)
         for mention in file_mentions:
+            # Trim surrounding punctuation but preserve extension
+            mention = mention.strip('.,;:')
             if '.' in mention:  # Likely a file
-                checks['files_exist'].append(self.check_file_exists(mention.strip()))
+                checks['files_exist'].append(self.check_file_exists(mention))
 
-        # Check for test mentions
-        if 'test' in notes or 'testing' in notes:
+        # Check for test mentions - use case-insensitive check
+        if 'test' in notes.lower() or 'testing' in notes.lower():
             checks['tests_exist'].append(self.check_test_exists(title.split()[0]))
 
-        # Check for documentation updates
-        if 'doc' in notes or 'readme' in notes or 'guide' in notes:
+        # Check for documentation updates - use case-insensitive check
+        if 'doc' in notes.lower() or 'readme' in notes.lower() or 'guide' in notes.lower():
             # Check if docs were recently modified (simplified check)
             checks['docs_updated'] = bool(list(self.docs_dir.glob("*.md")))
 
-        # Check for code changes
-        if any(keyword in notes for keyword in ['implement', 'add', 'create', 'update', 'refactor']):
+        # Check for code changes - use case-insensitive check
+        if any(keyword in notes.lower() for keyword in ['implement', 'add', 'create', 'update', 'refactor']):
             checks['code_changes'] = True
 
         return checks
