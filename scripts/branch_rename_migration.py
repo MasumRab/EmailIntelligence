@@ -156,13 +156,17 @@ def rename_local_branch(old_name, new_name):
 def delete_remote_branch(branch_name):
     """Delete a remote branch."""
     print(f"Deleting remote branch '{branch_name}'")
-    result = run_command(f"git push origin --delete {branch_name.replace('origin/', '')}")
+    # Extract branch name without origin/ prefix
+    branch = branch_name.replace('origin/', '')
+    # Use list-based command to avoid shell injection
+    result = run_command(["git", "push", "origin", "--delete", branch])
     return result is not None
 
 def push_new_branch(branch_name):
     """Push a new branch to remote."""
     print(f"Pushing new branch '{branch_name}'")
-    result = run_command(f"git push -u origin {branch_name}")
+    # Use list-based command to avoid shell injection
+    result = run_command(["git", "push", "-u", "origin", branch_name])
     return result is not None
 
 def main():

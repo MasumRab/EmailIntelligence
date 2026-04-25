@@ -171,7 +171,8 @@ class ResourceMonitor:
                         create_time=create_time,
                         status=status,
                         username=username,
-                        cmdline=cmdline
+                        cmdline=cmdline,
+                        timestamp=time.time()  # Add explicit timestamp for filtering
                     )
 
                     with self._lock:
