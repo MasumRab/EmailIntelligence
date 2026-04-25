@@ -51,7 +51,7 @@ class AgentProfile:
             self.certifications.append(certification)
             self.last_updated = datetime.now().isoformat()
             
-    def add_training(self, training_name: str, completion_date: str, score: float = None):
+    def add_training(self, training_name: str, completion_date: str, score: Optional[float] = None):
         """Add completed training to the agent's record."""
         training_record = {
             'training_name': training_name,
@@ -62,8 +62,8 @@ class AgentProfile:
         self.training_completed.append(training_record)
         self.last_updated = datetime.now().isoformat()
         
-    def update_performance(self, tasks_completed: int = 0, success_rate: float = None, 
-                          avg_completion_time: float = None, quality_score: float = None):
+    def update_performance(self, tasks_completed: int = 0, success_rate: Optional[float] = None, 
+                          avg_completion_time: Optional[float] = None, quality_score: Optional[float] = None):
         """Update performance metrics."""
         # Capture task count before incrementing for use in weighted averages
         previous_tasks = self.performance_metrics['tasks_completed']
@@ -136,7 +136,7 @@ class AgentCapabilityRegistry:
         return [profile for profile in self.agents.values() 
                 if profile.skills.get(skill_name, 0) >= min_proficiency]
                 
-    def match_agent_to_task(self, task_type: str, required_skills: List[str] = None) -> List[AgentProfile]:
+    def match_agent_to_task(self, task_type: str, required_skills: Optional[List[str]] = None) -> List[AgentProfile]:
         """Find agents that match a task type and required skills."""
         matched_agents = []
         
@@ -164,7 +164,7 @@ class AgentCapabilityRegistry:
             profile.update_performance(**kwargs)
             self.save_registry()
             
-    def add_agent_training(self, agent_name: str, training_name: str, completion_date: str, score: float = None):
+    def add_agent_training(self, agent_name: str, training_name: str, completion_date: str, score: Optional[float] = None):
         """Add training to an agent's record."""
         profile = self.get_agent_profile(agent_name)
         if profile:
