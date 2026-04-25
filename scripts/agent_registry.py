@@ -250,9 +250,18 @@ class AgentCapabilityRegistry:
             'recently_updated': [
                 profile.agent_name 
                 for profile in self.agents.values() 
-                if datetime.fromisoformat(profile.last_updated) > datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+                if self._is_recently_updated(profile.last_updated)
             ]
         }
+
+    def _is_recently_updated(self, timestamp_str: str) -> bool:
+        """Check if timestamp is from today (handles parsing errors safely)."""
+        try:
+            review_time = datetime.fromisoformat(timestamp_str)
+            today_start = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+            return review_time > today_start
+        except (ValueError, TypeError):
+            return False
 
 
 def main():
