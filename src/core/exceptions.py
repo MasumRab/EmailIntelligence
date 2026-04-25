@@ -2,6 +2,8 @@
 Custom exceptions for the Email Intelligence Platform.
 """
 
+from typing import Optional
+
 
 class BaseAppException(Exception):
     """Base exception class for the application."""
@@ -40,7 +42,7 @@ class GmailServiceError(BaseAppException):
 class EmailNotFoundException(BaseAppException):
     """Exception raised when an email is not found."""
 
-    def __init__(self, email_id: str = None, message: str = None):
+    def __init__(self, email_id: Optional[str] = None, message: Optional[str] = None):
         self.email_id = email_id
         if message:
             detail = message

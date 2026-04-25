@@ -789,18 +789,50 @@ _db_manager = None
 
 
 def get_db_manager_sync():
-    """Synchronous function to get database manager (for backwards compatibility)."""
+    """Synchronous function to get database manager (for backwards compatibility).
+    
+    Uses lazy initialization to avoid asyncio.run() at module import time,
+    which can crash if there's already an event loop running.
+    """
     global _db_manager
     if _db_manager is None:
         import asyncio
+        import os
 
-        _db_manager = DatabaseManager()
-        asyncio.run(_db_manager._ensure_initialized())
+        # Get data directory from environment or use default
+        data_dir = os.environ.get("DATA_DIR", "backend/data")
+        
+        _db_manager = DatabaseManager(data_dir=data_dir)
+        try:
+            asyncio.run(_db_manager._ensure_initialized())
+        except RuntimeError as e:
+            # If we're in a context with an existing event loop, skip async init
+            if "asyncio.run() cannot be called from a running event loop" in str(e):
+                # Return uninitialized manager, initialization will happen on first use
+                pass
+            else:
+                raise
     return _db_manager
 
 
-# Backwards compatibility: export a synchronous db_manager
-try:
-    db_manager = get_db_manager_sync()
-except Exception:
-    db_manager = None
+# Lazy initialization - only create manager when first accessed
+_lazy_db_manager = None
+
+def _get_lazy_db_manager():
+    """Get or create database manager lazily."""
+    global _lazy_db_manager
+    if _lazy_db_manager is None:
+        _lazy_db_manager = get_db_manager_sync()
+    return _lazy_db_manager
+
+# Backwards compatibility: export a lazy-loading db_manager property
+class _LazyDBManager:
+    """Lazy wrapper to defer database manager initialization."""
+    _instance = None
+    
+    def __getattr__(self, name):
+        if _LazyDBManager._instance is None:
+            _LazyDBManager._instance = get_db_manager_sync()
+        return getattr(_LazyDBManager._instance, name)
+
+db_manager = _LazyDBManager()

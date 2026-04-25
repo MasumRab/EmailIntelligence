@@ -23,6 +23,13 @@ except ImportError:
 from .data_source import DataSource
 
 # Import DatabaseManager locally to avoid circular imports
+# Use TYPE_CHECKING to avoid runtime import issues
+from __future__ import annotations
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from ..backend.python_backend.database import DatabaseManager
+
 # from .database import DatabaseManager
 from .smart_filter_manager import SmartFilterManager
 from .ai_engine import ModernAIEngine
@@ -630,7 +637,7 @@ class NotmuchDataSource(DataSource):
                 category=ErrorCategory.INTEGRATION,
                 context=error_context,
             )
-            logger.error("Notmuch database not available. Error ID: {error_id}")
+            logger.error(f"Notmuch database not available. Error ID: {error_id}")
             return False
 
         try:

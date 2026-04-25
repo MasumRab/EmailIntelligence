@@ -836,7 +836,8 @@ class DatabaseManager(DataSource):
         cache_key = f"search:{search_term.lower()}:{limit}"
         cached_result = self.caching_manager.get_query_result(cache_key)
         if cached_result is not None:
-            logger.info(f"Query cache hit for term: '{search_term}'")
+            # Log at debug level to avoid exposing user search terms in production logs
+            logger.debug(f"Query cache hit for term length: {len(search_term)}")
             return cached_result
 
         search_term_lower = search_term.lower()

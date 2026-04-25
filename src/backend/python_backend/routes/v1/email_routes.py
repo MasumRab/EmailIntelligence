@@ -61,9 +61,10 @@ async def get_emails_v1(
         return result
     else:
         # If there was an error, return the error response
+        # Use a proper error message instead of EmailNotFoundException
         raise EmailNotFoundException(
-            message_id=None, email_id=None
-        )  # This is just a placeholder
+            message="Failed to retrieve emails"
+        )
 
 
 @router.get("/emails/{email_id}", response_model=EmailResponse)

@@ -5,6 +5,8 @@ This module defines the API routes for the dashboard endpoints,
 including statistics and metrics for the Email Intelligence platform.
 """
 
+import logging
+
 from fastapi import APIRouter, Depends, HTTPException
 from typing import Dict, Any
 
@@ -14,6 +16,8 @@ from .services.email_service import EmailService
 from src.core.auth import get_current_active_user
 
 router = APIRouter(prefix="/api/dashboard", tags=["dashboard"])
+
+logger = logging.getLogger(__name__)
 
 
 @router.get("/stats", response_model=Dict[str, Any])
@@ -69,8 +73,10 @@ async def get_dashboard_stats(
             "message": "Dashboard statistics retrieved successfully",
         }
     except Exception as e:
+        # Log the actual error server-side but return generic message to client
+        logger.exception(f"Failed to fetch dashboard stats: {e}")
         raise HTTPException(
-            status_code=500, detail=f"Failed to fetch dashboard stats: {str(e)}"
+            status_code=500, detail="Failed to fetch dashboard stats. Please try again later."
         ) from e
 
 
