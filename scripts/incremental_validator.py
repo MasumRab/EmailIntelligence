@@ -196,7 +196,9 @@ class IncrementalValidator:
                 if file_str not in results:
                     raise ValueError(f"Missing validation result for {file_path}")
                 result = results[file_str]
-                error_count = 0  # Would be determined by validation function
+                # Note: error_count extraction would depend on validation function format
+                # Current implementation assumes simple pass/fail result format
+                error_count = 1 if result == "fail" else 0
                 self.cache.update_cache_entry(file_path, validation_type, result, error_count)
 
         # Combine cached and new results

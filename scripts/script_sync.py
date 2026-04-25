@@ -58,7 +58,6 @@ def sync_scripts_from_master(master_branch: str, target_branch: str, preserve_cu
     scripts_dir = Path("scripts")
     backup_dir = Path(".scripts_backup")
     if scripts_dir.exists() and preserve_custom:
-        import shutil
         if backup_dir.exists():
             shutil.rmtree(backup_dir)
         shutil.copytree(scripts_dir, backup_dir)

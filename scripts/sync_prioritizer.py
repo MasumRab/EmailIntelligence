@@ -161,7 +161,7 @@ class SyncPrioritizer:
         important_extensions = {'.md', '.py', '.json', '.yml', '.yaml'}
         important_files = [f for f in files if Path(f).suffix.lower() in important_extensions]
 
-        if important_files and len(important_files) / len(files) > 0.5:
+        if important_files and len(files) > 0 and len(important_files) / len(files) > 0.5:
             return Priority.HIGH
 
         # High priority for API or configuration files

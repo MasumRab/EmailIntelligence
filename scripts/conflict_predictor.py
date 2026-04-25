@@ -6,6 +6,7 @@ Predict and resolve conflicts before they occur in parallel workflows.
 
 import difflib
 import hashlib
+import time
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple, Set
 from dataclasses import dataclass
@@ -53,7 +54,7 @@ class ConflictPredictor:
     def add_file_change(self, path: str, content: str, operation: str, worker_id: str):
         """Add a file change to track for conflict prediction."""
         content_hash = hashlib.sha256(content.encode()).hexdigest()
-        change = FileChange(path, content_hash, operation, worker_id, 0.0)  # timestamp would be actual time
+        change = FileChange(path, content_hash, operation, worker_id, time.time())
         self.file_changes.append(change)
 
     def predict_conflicts(self, pending_changes: List[FileChange]) -> List[ConflictPrediction]:
