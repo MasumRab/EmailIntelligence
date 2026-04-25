@@ -1,89 +1,127 @@
 # AMP Session Creation
 
-**Purpose:** Start an Amp agent session for the Agent Rules handoff on any branch.
-**Updated:** 2026-04-14
+**Purpose:** Start an Amp agent session for the Agent Rules handoff on any branch, from any folder.
+**Updated:** 2026-04-24
 
 ---
 
-## Quick Start — Fresh Run (Any Branch)
+## Quick Start — Fresh Run (Any Branch, Any Folder)
 
 ```
 You are executing the Agent Rules Implementation Handoff.
 
-**Project:** (auto-detected — run from project root)
-**Branch:** `<BRANCH>` (replace with target branch)
-**Handoff Index:** `docs/handoff/README.md`
-**State File:** `docs/handoff/STATE_<BRANCH>.md`
+**Setup — auto-detect everything:**
+1. Run `source docs/handoff/context-guard.sh` to detect project root, branch, and agent tools
+2. The branch name and state file path are now in $CURRENT_BRANCH and $STATE_FILE
+   - STATE_FILE is auto-set to: `docs/handoff/STATE_$(git branch --show-current).md`
+3. If $STATE_FILE does not exist, create it: `cp docs/handoff/STATE_TEMPLATE.md "$STATE_FILE"`
+4. Read `docs/handoff/README.md` for phase order and mode guidance
 
-**Task:** Execute all phases of the Agent Rules handoff on this branch.
-
-**Setup:**
-1. If `docs/handoff/STATE_<BRANCH>.md` does not exist, create it from `docs/handoff/STATE_TEMPLATE.md`
-2. Source `docs/handoff/context-guard.sh` to auto-detect environment
-3. Read `docs/handoff/README.md` for phase order and mode guidance
+**Pre-flight — check for merge conflicts across the repo:**
+   grep -rn '<<<<<<< ' . --include='*.md' --include='*.toml' --include='*.json' --include='*.sh' --include='*.yaml' | grep -v '.git/' | head -20
+If any conflicts exist in handoff-relevant files (.ruler/ruler.toml, AGENTS.md, CLAUDE.md, docs/handoff/*), resolve them FIRST and record the resolution in $STATE_FILE.
 
 **Execution:**
 1. Read the next pending phase doc from `docs/handoff/phase-NN-*.md`
 2. Execute all steps with verification after each
 3. Run the gate check at the end of each phase
-4. Update `docs/handoff/STATE_<BRANCH>.md` with status, decisions, files modified
+4. Update $STATE_FILE with status, decisions, files modified
 5. Proceed to next phase or handoff if context is full
 
 **Rules:**
 1. Run VERIFY after EVERY step — do not skip
 2. Do NOT proceed if verification fails
-3. Copy strings EXACTLY from phase documents
-4. NEVER use `git add -A` or `git add .`
-5. No merges, rebases, resets, or destructive git commands
+3. NEVER use `git add -A` or `git add .`
+4. No merges, rebases, resets, or destructive git commands
+5. Before editing ANY file, check it for merge conflict markers — resolve first if found
 ```
 
 ---
 
 ## Mode Selection
 
-Use the mode that matches the phases you're executing:
-
 | Mode | Phases | Why |
 |------|--------|-----|
 | **Rush** | 1–4 | Mechanical edits with bash verification — no judgment needed |
-| **Deep** | 5–9 | Tier 2 file decisions require reading live state and making branch-policy calls |
+| **Deep** | 5–10 | Tier 2 file decisions, stack evaluation — requires branch-policy judgment |
 | **Smart** | 11 | Shell script refactoring — analysis-heavy, self-contained |
 
-### Rush Prompt (Phases 1–4)
+### Prompt 1 — Rush (Phases 1–4)
 
 ```
-Execute Phases 1–4 of the Agent Rules handoff on `<BRANCH>`.
+Execute Phases 1–4 of the Agent Rules handoff.
 
-**Project:** (auto-detected — run from project root)
+**Setup:**
+1. Run: source docs/handoff/context-guard.sh
+2. If $STATE_FILE doesn't exist, create it from STATE_TEMPLATE.md
+
+**Pre-flight — merge conflict scan:**
+   grep -rn '<<<<<<< ' .ruler/ AGENTS.md CLAUDE.md docs/handoff/ --include='*.md' --include='*.toml' 2>/dev/null | head -10
+Resolve any conflicts BEFORE starting. Phase 1 Step 1.1 checks CLAUDE.md specifically — but check all files you touch.
+
 **Phase docs:** `docs/handoff/phase-01-emergency-fixes.md` through `phase-04-agent-rulez.md`
-**State:** `docs/handoff/STATE_<BRANCH>.md`
 
-Execute each step, verify, run gate check, update state. Do not explain — just execute and verify.
+Execute each step, verify, run gate check, update $STATE_FILE. Do not explain — just execute and verify.
 ```
 
-### Deep Prompt (Phases 5–10)
+### Prompt 2 — Deep (Phases 5–9)
 
 ```
-Execute Phases 5–10 of the Agent Rules handoff on `<BRANCH>`.
+Execute Phases 5–9 of the Agent Rules handoff.
 
-**Project:** (auto-detected — run from project root)
-**Phase docs:** `docs/handoff/phase-05-file-cleanup.md` through `phase-10-rule-quality.md`
-**State:** `docs/handoff/STATE_<BRANCH>.md`
+**Setup:**
+1. Run: source docs/handoff/context-guard.sh
+2. Read $STATE_FILE to confirm Phases 1–4 are complete
+
+**Pre-flight — merge conflict scan:**
+   grep -rn '<<<<<<< ' . --include='*.md' --include='*.toml' --include='*.json' | grep -v .git/ | head -20
+Resolve any conflicts in files you need to edit. Record resolutions in $STATE_FILE decision log.
+
+**Phase docs:** `docs/handoff/phase-05-file-cleanup.md` through `phase-09-verification.md`
 
 Phase 5 requires branch-policy decisions for Tier 2 root files (GEMINI.md, QWEN.md, IFLOW.md, CRUSH.md, LLXPRT.md). Check live state first, then decide keep/restore/not_on_branch for each. Record decisions in STATE.
-Phase 10 requires manual evaluation at agentrulegen.com/analyze — paste .ruler/AGENTS.md and record the quality score.
 ```
 
-### Smart Prompt (Phase 11)
+### Prompt 3 — Deep (Phase 10)
 
 ```
-Execute Phase 11 (Smart Workflow Remediation) on `<BRANCH>`.
+Execute Phase 10 (Agent Rules Quality Evaluation).
 
-**Project:** (auto-detected — run from project root)
+**Setup:**
+1. Run: source docs/handoff/context-guard.sh
+2. Read $STATE_FILE to confirm Phase 9 is complete
+
+**Pre-flight — merge conflict check on ruler config:**
+   grep '<<<<<<< ' .ruler/ruler.toml 2>/dev/null && echo "RESOLVE FIRST" || echo "Clean"
+If .ruler/ruler.toml has conflicts, resolve before running ruler apply.
+
+**Phase doc:** `docs/handoff/phase-10-rule-quality.md`
+
+Steps:
+1. Run `bash scripts/detect-branch-stack.sh` — note branch style and template recommendations
+2. Run `bash scripts/verify-agent-content.sh` — confirm structural accuracy
+3. Run `bash scripts/detect-branch-stack.sh --generate-eval` — generate evaluation skeleton
+4. For each recommended template, fetch rules from agentrulegen.com/templates/<name>
+   Use the PERMISSIVE model: INCLUDE by default, only HARD CONFLICT excludes
+5. Distill INCLUDE rules into one-liner additions for .ruler/AGENTS.md (stay under 80 lines)
+6. Apply: `ruler apply` then re-run verify-agent-content.sh
+7. Paste .ruler/AGENTS.md into agentrulegen.com/analyze and record quality score in $STATE_FILE
+8. Run gate check
+```
+
+### Prompt 4 — Smart (Phase 11, independent)
+
+```
+Execute Phase 11 (Smart Workflow Remediation).
+
+**Setup:**
+1. Run: source docs/handoff/context-guard.sh
+
 **Phase doc:** `docs/handoff/phase-11-smart-remediation.md`
-**State:** `docs/handoff/STATE_<BRANCH>.md`
 
 This phase is independent of Phases 5–10. It addresses shell script hardening findings.
+Before editing any shell script, check for merge conflict markers and resolve first.
+Update $STATE_FILE when complete.
 ```
 
 ---
@@ -91,38 +129,49 @@ This phase is independent of Phases 5–10. It addresses shell script hardening 
 ## Resume — Continuing a Partial Run
 
 ```
-Resume the Agent Rules handoff on `<BRANCH>`.
+Resume the Agent Rules handoff.
 
-**Project:** (auto-detected — run from project root)
-**State:** `docs/handoff/STATE_<BRANCH>.md`
-
-1. Read the state file to find the last completed phase
-2. Read the next pending phase doc
-3. Continue from the first unchecked step
-4. Update state after each phase
+**Setup:**
+1. Run: source docs/handoff/context-guard.sh
+2. Read $STATE_FILE to find the last completed phase
+3. Run: grep -rn '<<<<<<< ' . --include='*.md' --include='*.toml' --include='*.json' | grep -v .git/ | head -20
+4. If merge conflicts exist in any handoff-relevant files, resolve them first
+5. Read the next pending phase doc
+6. Continue from the first unchecked step
+7. Update $STATE_FILE after each phase
 ```
-
-For `orchestration-tools` branch specifically, additional resume context exists in:
-- `docs/handoff/phase-12-deep-agent-handoff.md` — corrected Phase 5/6/9 resume with evidence hierarchy
-- `docs/handoff/phase-13-smart-amp-deep-agent-autonomous-handoff.md` — full remaining-phase closure with thread ingestion
 
 ---
 
 ## Pre-Session Checklist
 
 ```bash
-# First: source docs/handoff/context-guard.sh
-# Verify environment before starting
-test -d "$PROJECT_ROOT" && echo "PROJECT: EXISTS" || echo "PROJECT: MISSING"
-cd "$PROJECT_ROOT" && git branch --show-current
-ls docs/handoff/phase-*.md docs/handoff/STATE.md docs/handoff/README.md
+source docs/handoff/context-guard.sh
+# Output shows: Project Root, Branch, Agent Tools, State File
+# If state file doesn't exist, create it:
+# cp docs/handoff/STATE_TEMPLATE.md "$STATE_FILE"
 ```
+
+---
+
+## Cross-Variant Usage
+
+To run the handoff on a different EmailIntelligence variant:
+
+```bash
+bash ~/github/scripts/handoff/run-handoff.sh EmailIntelligenceGem
+# or
+bash ~/github/scripts/handoff/run-handoff.sh EmailIntelligenceAuto
+```
+
+This copies the framework into the variant, creates the state file, and prints all prompts.
 
 ---
 
 ## Error Recovery
 
-1. **Verification fails** → Re-read the step, re-execute with exact strings, re-verify
-2. **Gate check fails** → Document failing check in STATE under "Issues", do not proceed
-3. **Context full** → Update STATE with current progress, handoff to fresh agent with resume prompt
-4. **File missing** → Use `context-agnostic-gates.sh` helpers which report `⚪ NOT PRESENT` instead of failing
+1. **Merge conflicts found** → Resolve, record resolution in $STATE_FILE decision log, then continue
+2. **Verification fails** → Re-read the step, re-execute with exact strings, re-verify
+3. **Gate check fails** → Document failing check in $STATE_FILE under "Issues", do not proceed
+4. **Context full** → Update $STATE_FILE with current progress, handoff to fresh agent with Resume prompt
+5. **File missing** → Use `context-agnostic-gates.sh` helpers which report `⚪ NOT PRESENT` instead of failing
