@@ -225,7 +225,7 @@ This documentation file exists only on the `{branch_name}` branch and not on the
         })
         self.save_merge_history(history)
 
-    def execute_strategy(self, strategy: str, doc_path: str, analysis: Dict = None, branch: str = None):
+    def execute_strategy(self, strategy: str, doc_path: str, analysis: Optional[Dict] = None, branch: Optional[str] = None):
         """Execute the determined strategy."""
         if strategy == "SHARE":
             self.execute_share_strategy(doc_path)

@@ -147,7 +147,7 @@ class EmailCache:
         """Initializes the EmailCache."""
         # Secure path validation
         self.cache_path = str(
-            PathValidator.validate_database_path(cache_path, Path(cache_path).parent)
+            PathValidator.validate_and_resolve_db_path(cache_path, Path(cache_path).parent)
         )
         self.conn = sqlite3.connect(self.cache_path, check_same_thread=False)
         self._init_cache()
@@ -175,7 +175,9 @@ class EmailCache:
 
     def get_cached_email(self, message_id: str) -> Optional[Dict[str, Any]]:
         """Retrieves a cached email by its message ID."""
-        cursor = self.conn.execute("SELECT * FROM emails WHERE message_id = ?", (message_id,))
+        cursor = self.conn.execute(
+            "SELECT * FROM emails WHERE message_id = ?", (message_id,)
+        )
         row = cursor.fetchone()
         if row:
             return {
@@ -194,7 +196,9 @@ class EmailCache:
 
     def cache_email(self, email_data: Dict[str, Any]) -> None:
         """Caches a single email's data."""
-        content_hash = hashlib.sha256(email_data.get("content", "").encode()).hexdigest()
+        content_hash = hashlib.sha256(
+            email_data.get("content", "").encode()
+        ).hexdigest()
         self.conn.execute(
             "INSERT OR REPLACE INTO emails VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
             (
@@ -272,7 +276,9 @@ class GmailDataCollector:
             try:
                 creds = Credentials.from_authorized_user_file(TOKEN_JSON_PATH, SCOPES)
             except Exception as e:
-                self.logger.error(f"Error loading credentials from {TOKEN_JSON_PATH}: {e}")
+                self.logger.error(
+                    f"Error loading credentials from {TOKEN_JSON_PATH}: {e}"
+                )
         if creds and creds.valid:
             self.gmail_service = build("gmail", "v1", credentials=creds)
         elif creds and creds.expired and creds.refresh_token:
@@ -325,7 +331,9 @@ class GmailDataCollector:
 
     def set_gmail_service(self, service):
         """Sets the Gmail API service instance."""
-        self.logger.warning("set_gmail_service is deprecated as auth is handled internally.")
+        self.logger.warning(
+            "set_gmail_service is deprecated as auth is handled internally."
+        )
         self.gmail_service = service
 
     async def collect_emails_incremental(
@@ -345,7 +353,9 @@ class GmailDataCollector:
         Returns:
             An EmailBatch object containing the collected emails.
         """
-        sync_id = hashlib.sha256(f"{query_filter}_{datetime.now().date()}".encode()).hexdigest()
+        sync_id = hashlib.sha256(
+            f"{query_filter}_{datetime.now().date()}".encode()
+        ).hexdigest()
         sync_state = self.cache.get_sync_state(query_filter) or {
             "sync_id": sync_id,
             "query_filter": query_filter,
@@ -355,7 +365,9 @@ class GmailDataCollector:
             "next_page_token": None,
         }
         if since_date:
-            query_filter = f"{query_filter} after:{since_date.strftime('%Y/%m/%d')}".strip()
+            query_filter = (
+                f"{query_filter} after:{since_date.strftime('%Y/%m/%d')}".strip()
+            )
 
         collected_messages: List[Dict[str, Any]] = []
         page_token = sync_state.get("next_page_token")
@@ -372,7 +384,9 @@ class GmailDataCollector:
                 )
                 if not message_list.get("messages"):
                     break
-                batch_messages = await self._process_message_batch(message_list["messages"])
+                batch_messages = await self._process_message_batch(
+                    message_list["messages"]
+                )
                 collected_messages.extend(batch_messages)
                 sync_state.update(
                     {
@@ -386,7 +400,9 @@ class GmailDataCollector:
                 if not message_list.get("nextPageToken"):
                     break
                 page_token = message_list["nextPageToken"]
-                self.logger.info(f"Collected {len(collected_messages)} emails so far...")
+                self.logger.info(
+                    f"Collected {len(collected_messages)} emails so far..."
+                )
         except Exception as e:
             self.logger.error(f"Error collecting emails: {e}")
             self.cache.update_sync_state(sync_state)
@@ -408,7 +424,12 @@ class GmailDataCollector:
                 return (
                     self.gmail_service.users()
                     .messages()
-                    .list(userId="me", q=query, pageToken=page_token, maxResults=max_results)
+                    .list(
+                        userId="me",
+                        q=query,
+                        pageToken=page_token,
+                        maxResults=max_results,
+                    )
                     .execute()
                 )
             except HttpError as error:
@@ -426,7 +447,10 @@ class GmailDataCollector:
         """Simulates a Gmail API response for development purposes."""
         base_time = int(time.time())
         messages = [
-            {"id": f"msg_{base_time}_{i:03d}", "threadId": f"thread_{base_time}_{i // 3:03d}"}
+            {
+                "id": f"msg_{base_time}_{i:03d}",
+                "threadId": f"thread_{base_time}_{i // 3:03d}",
+            }
             for i in range(min(max_results, 10))
         ]
         response = {"messages": messages, "resultSizeEstimate": len(messages)}
@@ -440,12 +464,11 @@ class GmailDataCollector:
         """Processes a batch of message IDs to retrieve their full content."""
         semaphore = asyncio.Semaphore(self.config.max_concurrent_requests)
         tasks = [
-            self._get_message_with_semaphore(semaphore, msg_info["id"]) for msg_info in message_ids
+            self._get_message_with_semaphore(semaphore, msg_info["id"])
+            for msg_info in message_ids
         ]
         results = await asyncio.gather(*tasks, return_exceptions=True)
-        return [
-            res for res in results if res and not isinstance(res, Exception)
-        ]  # type: ignore [misc]
+        return [res for res in results if res and not isinstance(res, Exception)]  # type: ignore [misc]
 
     async def _get_message_with_semaphore(
         self, semaphore: asyncio.Semaphore, message_id: str
@@ -483,24 +506,31 @@ class GmailDataCollector:
         self.cache.cache_email(email_data)
         return email_data
 
-    def _parse_message_payload(self, message: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    def _parse_message_payload(
+        self, message: Dict[str, Any]
+    ) -> Optional[Dict[str, Any]]:
         """Parses the raw payload of a message from the Gmail API."""
         try:
-            headers = {h["name"]: h["value"] for h in message.get("payload", {}).get("headers", [])}
+            headers = {
+                h["name"]: h["value"]
+                for h in message.get("payload", {}).get("headers", [])
+            }
             content = ""
             if "parts" in message["payload"]:
                 for part in message["payload"]["parts"]:
                     if part["mimeType"] == "text/plain" and "data" in part["body"]:
                         import base64
 
-                        content = base64.urlsafe_b64decode(part["body"]["data"]).decode("utf-8")
+                        content = base64.urlsafe_b64decode(part["body"]["data"]).decode(
+                            "utf-8"
+                        )
                         break
             elif "body" in message["payload"] and "data" in message["payload"]["body"]:
                 import base64
 
-                content = base64.urlsafe_b64decode(message["payload"]["body"]["data"]).decode(
-                    "utf-8"
-                )
+                content = base64.urlsafe_b64decode(
+                    message["payload"]["body"]["data"]
+                ).decode("utf-8")
             return {
                 "message_id": message["id"],
                 "thread_id": message.get("threadId", ""),
@@ -514,12 +544,15 @@ class GmailDataCollector:
                 ).isoformat(),
             }
         except Exception as e:
-            self.logger.error(f"Error parsing message payload for {message.get('id')}: {e}")
+            self.logger.error(
+                f"Error parsing message payload for {message.get('id')}: {e}"
+            )
             return None
 
     def _extract_email_address(self, sender_header: str) -> str:
         """Extracts the email address from a 'From' header string."""
         from email.utils import parseaddr
+
         # Use parseaddr to robustly extract the email address from the header
         name, email_addr = parseaddr(sender_header)
         return email_addr if email_addr else sender_header
@@ -584,7 +617,9 @@ class GmailDataCollector:
         if strategy_name not in strategies:
             raise ValueError(f"Unknown strategy: {strategy_name}")
         strategy = strategies[strategy_name]
-        self.logger.info(f"Executing strategy: {strategy_name} - {strategy['description']}")
+        self.logger.info(
+            f"Executing strategy: {strategy_name} - {strategy['description']}"
+        )
         return await self.collect_emails_incremental(
             query_filter=strategy["query"], max_emails=strategy["max_emails"]
         )
@@ -593,7 +628,8 @@ class GmailDataCollector:
 async def main():
     """Demonstrates the usage of the GmailDataCollector."""
     logging.basicConfig(
-        level=logging.INFO, format="%(asctime)s - %(levelname)s - %(name)s - %(message)s"
+        level=logging.INFO,
+        format="%(asctime)s - %(levelname)s - %(name)s - %(message)s",
     )
     logger = logging.getLogger(__name__)
     collector = GmailDataCollector()

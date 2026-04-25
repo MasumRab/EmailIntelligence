@@ -8,10 +8,11 @@ while preserving branch-specific customizations.
 import subprocess
 import sys
 import os
+import shutil
 from pathlib import Path
-from typing import List, Set
+from typing import List, Optional, Set
 
-def run_git_command(cmd: List[str], cwd: str = None) -> str:
+def run_git_command(cmd: List[str], cwd: Optional[str] = None) -> str:
     """Run a git command and return output."""
     result = subprocess.run(['git'] + cmd, capture_output=True, text=True, cwd=cwd)
     if result.returncode != 0:
@@ -57,7 +58,6 @@ def sync_scripts_from_master(master_branch: str, target_branch: str, preserve_cu
     scripts_dir = Path("scripts")
     backup_dir = Path(".scripts_backup")
     if scripts_dir.exists() and preserve_custom:
-        import shutil
         if backup_dir.exists():
             shutil.rmtree(backup_dir)
         shutil.copytree(scripts_dir, backup_dir)
@@ -68,10 +68,11 @@ def sync_scripts_from_master(master_branch: str, target_branch: str, preserve_cu
 
     if target_has_scripts:
         # Use git read-tree to merge scripts directory from master
+        # git read-tree -m expects: current tree (H) first, incoming tree (M) second
         result = subprocess.run([
             'git', 'read-tree', '-m', '-u',
-            f'{master_branch}:scripts',  # Source tree
-            f'{target_branch}:scripts'   # Current tree
+            f'{target_branch}:scripts',  # Current tree (H)
+            f'{master_branch}:scripts'    # Master tree to merge (M)
         ], capture_output=True, text=True)
     else:
         # Target doesn't have scripts, just checkout from master

@@ -6,9 +6,9 @@ Version 1 API routes for email operations
 Following the new architectural patterns with service layer and API versioning
 """
 
-from typing import Optional
+from typing import Annotated, Optional
 import logging
-from fastapi import APIRouter, BackgroundTasks, Depends, Request
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
 
 from src.core.models import EmailResponse, EmailCreate, EmailUpdate
 from backend.python_backend.services.email_service import EmailService
@@ -31,7 +31,7 @@ async def get_emails_v1(
     category_id: Optional[int] = None,
     is_unread: Optional[bool] = None,
     search: Optional[str] = None,
-    email_service: EmailService = Depends(get_email_service),
+    email_service: Annotated[EmailService, Depends(get_email_service)],
 ):
     """
     Retrieves a list of emails with optional filtering, pagination, and search.
@@ -53,19 +53,23 @@ async def get_emails_v1(
         result = await email_service.search_emails(search, limit)
     else:
         # Use get_all_emails with filters
-        result = await email_service.get_all_emails(limit, offset, category_id, is_unread)
+        result = await email_service.get_all_emails(
+            limit, offset, category_id, is_unread
+        )
 
     if result.success:
         return result
     else:
-        # If there was an error, return the error response
-        raise EmailNotFoundException(message_id=None, email_id=None)  # This is just a placeholder
+        # Return 500-level service error instead of 404 for database failures
+        raise HTTPException(status_code=500, detail="Failed to retrieve emails")
 
 
 @router.get("/emails/{email_id}", response_model=EmailResponse)
 @log_performance(operation="get_email_v1")
 async def get_email_v1(
-    request: Request, email_id: int, email_service: EmailService = Depends(get_email_service)
+    request: Request,
+    email_id: int,
+    email_service: EmailService = Depends(get_email_service),
 ):
     """
     Retrieves a specific email by its unique ID.
@@ -122,10 +126,8 @@ async def create_email_v1(
         response = EmailResponse(**result.data)
         return response
     else:
-        # Handle error case - in a complete implementation, we'd have specific error handling
-        from fastapi import HTTPException
-
-        raise HTTPException(status_code=500, detail=result.error)
+        # Handle error case - return generic message to avoid leaking internal error details
+        raise HTTPException(status_code=500, detail="Failed to retrieve email")
 
 
 @router.put("/emails/{email_id}", response_model=EmailResponse)

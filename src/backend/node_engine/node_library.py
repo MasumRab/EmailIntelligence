@@ -235,7 +235,11 @@ class NodeLibrary:
         return result
 
     def create_node(
-        self, node_type: str, config: Dict[str, Any] = None, node_id: str = None, name: str = None
+        self,
+        node_type: str,
+        config: Dict[str, Any] = None,
+        node_id: str = None,
+        name: str = None,
     ):
         """Create an instance of a node."""
         if node_type not in self._nodes:

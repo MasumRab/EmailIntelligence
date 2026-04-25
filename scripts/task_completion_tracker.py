@@ -55,7 +55,7 @@ class TaskCompletionTracker:
 
             self._save_tracking_data()
 
-    def get_completion_rate(self, agent_id: str = None, task_type: str = None,
+    def get_completion_rate(self, agent_id: Optional[str] = None, task_type: Optional[str] = None,
                           time_window_hours: int = 24) -> float:
         """Get completion rate for agent, task type, or overall."""
         with self._lock:
@@ -73,7 +73,7 @@ class TaskCompletionTracker:
             successful = sum(1 for record in relevant_records if record.success)
             return successful / len(relevant_records) * 100
 
-    def get_average_completion_time(self, agent_id: str = None, task_type: str = None,
+    def get_average_completion_time(self, agent_id: Optional[str] = None, task_type: Optional[str] = None,
                                   time_window_hours: int = 24) -> float:
         """Get average completion time for agent, task type, or overall."""
         with self._lock:
@@ -90,8 +90,8 @@ class TaskCompletionTracker:
 
             return statistics.mean(record.duration for record in relevant_records)
 
-    def get_completion_trends(self, agent_id: str = None, task_type: str = None,
-                            time_windows: List[int] = None) -> List[Tuple[int, float]]:
+    def get_completion_trends(self, agent_id: Optional[str] = None, task_type: Optional[str] = None,
+                            time_windows: Optional[List[int]] = None) -> List[Tuple[int, float]]:
         """Get completion rate trends over different time windows."""
         if time_windows is None:
             time_windows = [1, 6, 12, 24, 168]  # 1h, 6h, 12h, 24h, 168h (1 week)

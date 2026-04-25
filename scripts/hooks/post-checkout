@@ -1,0 +1,21 @@
+#!/bin/bash
+
+# Post-checkout hook to automatically set up environment on main/scientific branches
+
+BRANCH=$(git rev-parse --abbrev-ref HEAD)
+
+if [[ "$BRANCH" == "main" || "$BRANCH" == "scientific" ]]; then
+    echo "Checking out $BRANCH branch. Running environment setup..."
+    if command -v python &> /dev/null; then
+        python launch.py --setup --skip-prepare > /dev/null 2>&1 &
+        echo "Setup started in background. Check logs for status."
+    else
+        echo "Python not found, skipping setup."
+    fi
+
+    # Documentation sync for branch-specific content
+    echo "Syncing documentation for $BRANCH branch..."
+    if command -v python3 &> /dev/null; then
+        python3 scripts/docs_branch_versioning.py --cleanup --branch "$BRANCH"
+    fi
+fi

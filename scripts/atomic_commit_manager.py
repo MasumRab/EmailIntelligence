@@ -26,10 +26,13 @@ class CommitGroup:
     created_at: str
     status: str = "pending"  # pending, in_progress, completed, failed
     commit_hashes: Dict[str, str] = None  # worktree -> commit_hash
+    previous_hashes: Dict[str, str] = None  # worktree -> previous HEAD hash for rollback
 
     def __post_init__(self):
         if self.commit_hashes is None:
             self.commit_hashes = {}
+        if self.previous_hashes is None:
+            self.previous_hashes = {}
 
 
 class AtomicCommitManager:
@@ -111,6 +114,19 @@ class AtomicCommitManager:
         self.save_commit_groups()
 
         try:
+            # First, save current HEAD for all worktrees before committing
+            for worktree in group.worktrees:
+                worktree_path = self.project_root / "worktrees" / worktree
+                if worktree_path.exists():
+                    result = subprocess.run(
+                        ["git", "rev-parse", "HEAD"],
+                        cwd=worktree_path, 
+                        capture_output=True, 
+                        text=True
+                    )
+                    if result.returncode == 0:
+                        group.previous_hashes[worktree] = result.stdout.strip()
+            
             # Commit to each worktree
             success_count = 0
             for worktree in group.worktrees:
@@ -131,6 +147,10 @@ class AtomicCommitManager:
                 result = True
             else:
                 group.status = "failed"
+                # Automatically rollback partial commits
+                if success_count > 0:
+                    print(f"Partial commit failure - rolling back {success_count} worktrees...")
+                    self.rollback_commit_group(group.group_id)
                 result = False
 
             self.save_commit_groups()
@@ -149,8 +169,15 @@ class AtomicCommitManager:
             # Add files to git
             for file_path in files:
                 full_path = worktree_path / file_path
+                # Prevent path traversal
+                try:
+                    full_path = full_path.resolve()
+                    full_path.relative_to(worktree_path.resolve())
+                except ValueError:
+                    print(f"Invalid file path (outside worktree): {file_path}")
+                    continue
                 if full_path.exists():
-                    subprocess.run(["git", "add", str(full_path)],
+                    subprocess.run(["git", "add", str(full_path)], 
                                  cwd=worktree_path, check=True, capture_output=True)
 
             # Create commit
@@ -195,14 +222,16 @@ class AtomicCommitManager:
             return False
 
         try:
-            # Rollback each worktree that had a successful commit
-            for worktree, commit_hash in group.commit_hashes.items():
+            # Rollback each worktree that had a successful commit using saved previous hashes
+            for worktree in group.commit_hashes:
                 worktree_path = self.project_root / "worktrees" / worktree
-                if worktree_path.exists() and commit_hash:
-                    # Reset to previous commit
-                    subprocess.run([
-                        "git", "reset", "--hard", f"{commit_hash}~1"
-                    ], cwd=worktree_path, check=True, capture_output=True)
+                previous_hash = group.previous_hashes.get(worktree)
+                if worktree_path.exists() and previous_hash:
+                    # Reset to the previous HEAD (before the failed commit)
+                    subprocess.run(
+                        ["git", "reset", "--hard", previous_hash],
+                        cwd=worktree_path, check=True, capture_output=True
+                    )
 
             group.status = "rolled_back"
             self.save_commit_groups()

@@ -144,8 +144,6 @@ def validate_environment() -> bool:
     return True
 
 
-        return False
-
     conda_info = get_conda_env_info()
     if conda_info["is_active"]:
 

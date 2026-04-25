@@ -154,9 +154,9 @@ class BottleneckDetector:
                 # Check if step is taking too long
                 stats = self.get_step_duration_stats(step.step_name)
                 if stats:
-                    # Use either the percentile threshold or minimum duration, whichever is higher
+                    # Use the configured percentile threshold (default 95th) or minimum duration
                     threshold = max(
-                        stats.get('percentile_95', min_duration),
+                        stats.get(f'percentile_{int(duration_threshold_percentile)}', min_duration),
                         min_duration
                     )
 

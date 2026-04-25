@@ -8,6 +8,7 @@ import os
 import re
 import time
 import json
+import threading
 from pathlib import Path
 from typing import Dict, List, Optional, Set, Tuple
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -120,7 +121,9 @@ class ValidationWorker:
             links = re.findall(link_pattern, content)
 
             for text, url in links:
-                # Check for broken URLs (simplified check)
+                # Handle URL with fragment (e.g., "page.html#section")
+                url_base = url.split('#')[0]  # Get base URL without fragment
+                
                 if url.startswith('http'):
                     # In a real implementation, we would check if URL is accessible
                     # For now, we'll just check basic URL format
@@ -133,11 +136,11 @@ class ValidationWorker:
                             severity="warning"
                         ))
                 elif url.startswith('#'):
-                    # Anchor link - check if it's a valid heading
-                    pass  # Would need to check document structure
+                    # Anchor link - valid in markdown, pass
+                    pass
                 else:
-                    # Relative link - check if file exists
-                    link_path = Path(file_path).parent / url
+                    # Relative link - check if file exists (use base URL without fragment)
+                    link_path = Path(file_path).parent / url_base
                     if not link_path.exists():
                         errors.append(ValidationError(
                             file_path=str(file_path),
@@ -186,10 +189,9 @@ class ValidationWorker:
                     severity="warning"
                 ))
 
-            # Check for placeholder text
+            # Check for placeholder text (excluding valid markdown links)
             placeholder_patterns = [
                 r'\{\{.*?\}\}',  # {{placeholder}}
-                r'\[.*?\]\(.*?\)',  # [text](url) - but not markdown links
                 r'TODO:', r'FIXME:', r'XXX:'
             ]
 
@@ -270,6 +272,7 @@ class ParallelValidationManager:
         self.workers: Dict[str, ValidationWorker] = {}
         self.validation_history: List[ValidationTask] = []
         self.validation_log_file = Path("validation_log.json")
+        self.validation_lock = threading.Lock()  # Thread-safe lock for validation operations
         self.load_validation_log()
 
     def load_validation_log(self):
@@ -372,8 +375,10 @@ class ParallelValidationManager:
 
         worker = self.workers[task.worker_id]
         result = worker.run_validation_task(task)
-        self.validation_history.append(result)
-        self.save_validation_log()
+        # Thread-safe append to history
+        with self.validation_lock:
+            self.validation_history.append(result)
+            self.save_validation_log()
         return result
 
     def run_parallel_validation(self, tasks: List[ValidationTask]) -> Dict[str, ValidationTask]:

@@ -31,9 +31,12 @@ class TaskDecomposer:
         sections = self._split_into_sections(content, doc_file.name)
 
         for i, section in enumerate(sections):
-            task = self._create_micro_task(section, doc_file, i)
-            if task:
-                tasks.append(task)
+            result = self._create_micro_task(section, doc_file, i)
+            if result:
+                if isinstance(result, list):
+                    tasks.extend(result)
+                else:
+                    tasks.append(result)
 
         return tasks
 
@@ -82,8 +85,11 @@ class TaskDecomposer:
 
         return timedelta(minutes=minutes)
 
-    def _create_micro_task(self, section: Dict, source_file: Path, index: int) -> Dict:
-        """Create a micro-task from a section."""
+    def _create_micro_task(self, section: Dict, source_file: Path, index: int) -> Optional[List[Dict]]:
+        """Create a micro-task from a section.
+        
+        Returns a list of tasks (single or multiple if section was split).
+        """
         estimated_time = section.get('estimated_time', timedelta(minutes=5))
 
         # If section is too large, split it further
@@ -91,10 +97,10 @@ class TaskDecomposer:
             sub_sections = self._split_large_section(section)
             tasks = []
             for i, sub_section in enumerate(sub_sections):
-                task = self._create_micro_task(sub_section, source_file, index * 100 + i)
-                if task:
-                    tasks.append(task)
-            return tasks[0] if tasks else None
+                subtasks = self._create_micro_task(sub_section, source_file, index * 100 + i)
+                if subtasks:
+                    tasks.extend(subtasks if isinstance(subtasks, list) else [subtasks])
+            return tasks if tasks else None
 
         # Create single task
         task = {
@@ -110,7 +116,7 @@ class TaskDecomposer:
             'priority': 'normal'
         }
 
-        return task
+        return [task]
 
     def _split_large_section(self, section: Dict) -> List[Dict]:
         """Split a large section into smaller parts."""

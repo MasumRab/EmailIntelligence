@@ -79,6 +79,61 @@ def test_python_interpreter_discovery_avoids_substring_match(
             check_python_version()
 
 
+@patch("launch.logger")
+def test_install_deps_npm_install_fails(mock_logger, mock_run, mock_which, mock_exists):
+    """
+    Verifies that install_nodejs_dependencies exits gracefully if 'npm install' fails.
+    """
+    result = install_nodejs_dependencies("client")
+
+    assert result is False, "Function should return False when npm install fails"
+    mock_logger.error.assert_any_call("Failed: Installing Node.js dependencies for 'client/'")
+
+
+@patch("launch.os.environ", {"LAUNCHER_REEXEC_GUARD": "0"})
+@patch("launch.sys.argv", ["launch.py"])
+@patch("launch.platform.system", return_value="Linux")
+@patch("launch.sys.version_info", (3, 10, 0))  # Incompatible version
+@patch("launch.shutil.which")
+@patch("launch.subprocess.run")
+@patch("launch.os.execv", side_effect=Exception("Called execve"))
+@patch("launch.sys.exit")
+@patch("launch.logger")
+def test_python_interpreter_discovery_avoids_substring_match(
+    mock_logger, mock_exit, mock_execve, mock_subprocess_run, mock_which, _mock_system
+):
+    """
+    Tests that the launcher does not incorrectly match partial version strings.
+    """
+    # Arrange
+    mock_which.side_effect = [
+        "/usr/bin/python-tricky",
+        "/usr/bin/python-good",
+        None,
+    ]
+    mock_subprocess_run.side_effect = [
+        MagicMock(stdout="Python 3.1.11", stderr="", returncode=0),  # Should be rejected
+        MagicMock(stdout="Python 3.12.5", stderr="", returncode=0),  # Should be accepted
+    ]
+
+    def test_compatible_version(self):
+        """Test that compatible Python versions pass."""
+        with (
+            patch("launch.sys.version_info", (3, 12, 0)),
+            patch("launch.sys.version", "3.12.0"),
+            patch("launch.logger") as mock_logger,
+        ):
+
+            check_python_version()
+            mock_logger.info.assert_called_with("Python version 3.12.0 is compatible.")
+
+    @patch("launch.sys.version_info", (3, 8, 0))
+    def test_incompatible_version(self):
+        """Test that incompatible Python versions exit."""
+        with pytest.raises(SystemExit):
+            check_python_version()
+
+
 class TestVirtualEnvironment:
     """Test virtual environment creation and management."""
 

@@ -57,6 +57,7 @@ class ParallelSyncManager:
         self.workers: Dict[str, SyncWorker] = {}
         self.sync_history: List[Dict] = []
         self.sync_log_file = Path("parallel_sync_log.json")
+        self.sync_lock = threading.Lock()  # Thread-safe lock for sync operations
         self.load_sync_log()
 
     def load_sync_log(self):
@@ -104,14 +105,15 @@ class ParallelSyncManager:
         worker = self.workers[worker_id]
         result = worker.sync_once(extensions)
 
-        # Log the sync operation
+        # Log the sync operation (thread-safe with lock)
         log_entry = {
             'timestamp': time.time(),
             'worker_id': worker_id,
             'result': result
         }
-        self.sync_history.append(log_entry)
-        self.save_sync_log()
+        with self.sync_lock:
+            self.sync_history.append(log_entry)
+            self.save_sync_log()
 
         return result
 

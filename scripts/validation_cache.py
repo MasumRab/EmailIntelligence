@@ -128,8 +128,8 @@ class ValidationResultCacheManager:
         return None
 
     def set_result(self, validator_type: str, file_path: Path, result: str,
-                   errors: List[str] = None, duration: float = 0.0,
-                   metadata: Dict = None) -> bool:
+                   errors: Optional[List[str]] = None, duration: float = 0.0,
+                   metadata: Optional[Dict] = None) -> bool:
         """Set validation result in cache."""
         if errors is None:
             errors = []

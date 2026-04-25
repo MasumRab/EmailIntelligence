@@ -32,7 +32,7 @@ def setup_logging(
     # Default format
     if format_string is None:
         format_string = (
-            "%(asctime)s - %(name)s - %(levelname)s - " "[%(context_id)s] %(message)s"
+            "%(asctime)s - %(name)s - %(levelname)s - [%(context_id)s] %(message)s"
         )
 
     formatter = logging.Formatter(format_string)
