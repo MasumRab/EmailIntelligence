@@ -86,7 +86,7 @@ For each template marked ✅ or ⚠️ in Step 10.1's output:
 For ⚠️ PARTIAL templates: only evaluate rules where the code pattern exists on this branch.
 For ⚪ SKIP templates: skip entirely.
 
-**Pre-built evaluation:** For the `orchestration-tools` branch, a complete rule-by-rule evaluation exists in `phase-10-stack-evaluation.md`. Use it directly instead of re-evaluating.
+**Pre-built evaluation:** For branches with a pre-built evaluation (check `phase-10-stack-evaluation-{branch}.md` where `{branch}` is your current branch), use it directly instead of re-evaluating. If no pre-built file exists, proceed with Steps 10.4–10.5 below.
 
 Also browse **Popular Rules** at `agentrulegen.com` for:
 - Python rules with high upvotes
@@ -210,8 +210,9 @@ diff <(sed -n '/^# EmailIntelligence/,$p' CLAUDE.md) .ruler/AGENTS.md > /dev/nul
 echo ""
 echo "--- Stack Evaluation ---"
 BRANCH="$(git branch --show-current)"
+SAFE_BRANCH="$(echo "$BRANCH" | sed 's|/|_|g')"
 echo -n "Pre-built evaluation for $BRANCH: "
-[ -f "docs/handoff/phase-10-stack-evaluation.md" ] && echo "EXISTS" || echo "MISSING"
+[ -f "docs/handoff/phase-10-stack-evaluation-${SAFE_BRANCH}.md" ] && echo "EXISTS" || echo "AUTO-GENERATED"
 ```
 
 **PASS criteria:**

@@ -131,9 +131,13 @@ Run all 9 loops defined in `phase-09-verification.md`.
 
 ### Phase 10: Agent Rules Quality Evaluation
 
-Gate check is in `phase-10-rule-quality.md` Step 10.5.
+Gate check is in `phase-10-rule-quality.md` Step 10.8.
 
 Manual step required: paste `.ruler/AGENTS.md` into `agentrulegen.com/analyze` and record the quality score.
+
+Run `bash scripts/detect-branch-stack.sh` first to determine which templates to evaluate for the current branch's style family.
+
+**Pre-built evaluations:** If `phase-10-stack-evaluation-{branch}.md` exists for your branch (with `{branch}` replaced by current branch name), use it directly. Otherwise, run `bash scripts/detect-branch-stack.sh --generate-eval` to auto-create evaluation skeleton for your branch.
 
 ---
 
