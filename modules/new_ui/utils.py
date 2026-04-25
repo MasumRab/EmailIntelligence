@@ -4,6 +4,7 @@ Utility functions for the Email Intelligence Platform
 
 import re
 import hashlib
+from collections import Counter
 from typing import List, Dict, Any, Optional, Union
 from datetime import datetime, timezone
 
@@ -166,9 +167,9 @@ def sanitize_html(html_content: str) -> str:
     if not html_content:
         return ""
 
-    # Remove script tags (including those with trailing whitespace like </script >)
+    # Remove script tags (including those with trailing whitespace like </script > or </script\t\n bar>)
     html_content = re.sub(
-        r"<script[^>]*>.*?</script\s*>",
+        r"<script[^>]*>.*?</script.*?>",
         "",
         html_content,
         flags=re.DOTALL | re.IGNORECASE

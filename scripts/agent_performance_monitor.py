@@ -9,7 +9,7 @@ import time
 import json
 import threading
 from pathlib import Path
-from typing import Dict, List, Optional, Any
+from typing import Any, Dict, List, Optional
 from dataclasses import dataclass, field
 from collections import deque, defaultdict
 from datetime import datetime, timedelta
@@ -55,7 +55,7 @@ class PerformanceSnapshot:
 
 
 class RealTimePerformanceMonitor:
-    def __init__(self, metrics_file: Path = None, max_history: int = 1000):
+    def __init__(self, metrics_file: Optional[Path] = None, max_history: int = 1000):
         self.metrics_file = metrics_file or Path(".agent_performance_metrics.json")
         self.max_history = max_history
         self.agent_metrics: Dict[str, deque] = defaultdict(lambda: deque(maxlen=max_history))
@@ -66,8 +66,13 @@ class RealTimePerformanceMonitor:
         self._lock = threading.RLock()
 
         self.load_metrics()
+    
     def start_monitoring(self, interval: float = 5.0):
         """Start real-time monitoring in a background thread."""
+        # Validate interval before starting
+        if interval <= 0:
+            raise ValueError("interval must be > 0")
+        
         if self.monitoring_active:
             return
             

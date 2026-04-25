@@ -6,7 +6,7 @@ This module provides authentication endpoints for the new modular architecture.
 
 import logging
 from datetime import timedelta
-from typing import List, Optional
+from typing import Annotated, List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
@@ -131,8 +131,8 @@ async def login(user_credentials: UserLogin, db: DataSource = Depends(get_data_s
 
 @router.post("/mfa/setup", response_model=MFASetupResponse)
 async def setup_mfa(
-    current_user: TokenData = Depends(get_current_active_user),
-    db: DataSource = Depends(get_data_source),
+    current_user: Annotated[TokenData, Depends(get_current_active_user)],
+    db: Annotated[DataSource, Depends(get_data_source)],
 ):
     """Setup MFA for the current user"""
 

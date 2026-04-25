@@ -5,7 +5,7 @@ from datetime import datetime
 
 import gradio as gr
 from fastapi import FastAPI, HTTPException
-import requests
+import httpx
 
 from .models import SystemStatus, HealthCheck
 
@@ -150,26 +150,28 @@ async def get_system_status() -> SystemStatus:
 
         # Get dashboard stats
         try:
-            dashboard_response = requests.get(
-                "http://127.0.0.1:8000/api/dashboard/stats", timeout=5
-            )
-            dashboard_data = (
-                dashboard_response.json()
-                if dashboard_response.status_code == 200
-                else {}
-            )
-        except (requests.RequestException, ValueError):
+            async with httpx.AsyncClient() as client:
+                dashboard_response = await client.get(
+                    "http://127.0.0.1:8000/api/dashboard/stats", timeout=5.0
+                )
+                dashboard_data = (
+                    dashboard_response.json()
+                    if dashboard_response.status_code == 200
+                    else {}
+                )
+        except (httpx.RequestError, ValueError):
             dashboard_data = {}
 
         # Get Gmail performance metrics
         try:
-            gmail_response = requests.get(
-                "http://127.0.0.1:8000/api/gmail/performance", timeout=5
-            )
-            gmail_data = (
-                gmail_response.json() if gmail_response.status_code == 200 else {}
-            )
-        except (requests.RequestException, ValueError):
+            async with httpx.AsyncClient() as client:
+                gmail_response = await client.get(
+                    "http://127.0.0.1:8000/api/gmail/performance", timeout=5.0
+                )
+                gmail_data = (
+                    gmail_response.json() if gmail_response.status_code == 200 else {}
+                )
+        except (httpx.RequestError, ValueError):
             gmail_data = {}
 
         return SystemStatus(

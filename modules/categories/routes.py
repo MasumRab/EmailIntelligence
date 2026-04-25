@@ -1,5 +1,5 @@
 import logging
-from typing import List
+from typing import Annotated, List
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 
@@ -18,8 +18,8 @@ router = APIRouter()
 @log_performance("get_categories")
 async def get_categories(
     request: Request,
-    current_user: str = Depends(get_current_active_user),
-    db: DataSource = Depends(get_data_source),
+    current_user: Annotated[str, Depends(get_current_active_user)],
+    db: Annotated[DataSource, Depends(get_data_source)],
 ):
     """
     Retrieves all categories from the database.
