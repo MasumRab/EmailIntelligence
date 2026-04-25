@@ -400,11 +400,11 @@ class DistributedTranslationManager:
     def get_available_agents(self, source_language: str, target_language: str) -> List[str]:
         """Get available agents for a language pair."""
         with self._lock:
-            agents = []
-            for agent_id, caps in self.agent_capabilities.items():
-                if caps.get('source_lang') == source_language and caps.get('target_lang') == target_language:
-                    agents.append(agent_id)
-            return agents
+            return [
+                agent_id
+                for agent_id, caps in self.agent_capabilities.items()
+                if (source_language, target_language) in caps
+            ]
 
     def get_translation_quality_report(self, job_id: str, target_language: str) -> TranslationQualityReport:
         """Generate a quality report for a translation job and language."""

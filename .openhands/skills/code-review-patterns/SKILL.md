@@ -160,7 +160,7 @@ from dateutil.relativedelta import relativedelta
 return (datetime.now() + relativedelta(months=1)).timestamp()
 ```
 
-### Use next(iter(set)) Instead of list(set)[0]
+### Use `next(iter(set))` Instead of `list(set)[0]`
 
 ❌ Avoid:
 ```python
