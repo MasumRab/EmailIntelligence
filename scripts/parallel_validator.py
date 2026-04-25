@@ -187,10 +187,9 @@ class ValidationWorker:
                     severity="warning"
                 ))
 
-            # Check for placeholder text
+            # Check for placeholder text (excluding valid markdown links)
             placeholder_patterns = [
                 r'\{\{.*?\}\}',  # {{placeholder}}
-                r'\[.*?\]\(.*?\)',  # [text](url) - but not markdown links
                 r'TODO:', r'FIXME:', r'XXX:'
             ]
 
