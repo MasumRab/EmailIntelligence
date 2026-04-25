@@ -21,7 +21,7 @@ class EventType:
 
 
 class Event:
-    def __init__(self, event_type: str, data: Dict, timestamp: str = None):
+    def __init__(self, event_type: str, data: Dict, timestamp: Optional[str] = None):
         self.type = event_type
         self.data = data
         self.timestamp = timestamp or datetime.now().isoformat()

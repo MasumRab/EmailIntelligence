@@ -126,10 +126,8 @@ async def create_email_v1(
         response = EmailResponse(**result.data)
         return response
     else:
-        # Handle error case - in a complete implementation, we'd have specific error handling
-        from fastapi import HTTPException
-
-        raise HTTPException(status_code=500, detail=result.error)
+        # Handle error case - return generic message to avoid leaking internal error details
+        raise HTTPException(status_code=500, detail="Failed to retrieve email")
 
 
 @router.put("/emails/{email_id}", response_model=EmailResponse)

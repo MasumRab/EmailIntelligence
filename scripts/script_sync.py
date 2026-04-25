@@ -10,9 +10,9 @@ import sys
 import os
 import shutil
 from pathlib import Path
-from typing import List, Set
+from typing import List, Optional, Set
 
-def run_git_command(cmd: List[str], cwd: str = None) -> str:
+def run_git_command(cmd: List[str], cwd: Optional[str] = None) -> str:
     """Run a git command and return output."""
     result = subprocess.run(['git'] + cmd, capture_output=True, text=True, cwd=cwd)
     if result.returncode != 0:
