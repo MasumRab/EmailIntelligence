@@ -170,17 +170,35 @@ def start_backend(host: str, port: int, debug: bool = False):
     # Validate the python executable path to prevent command injection
     if not validate_path_safety(python_exe):
         logger.error(f"Unsafe Python executable path: {python_exe}")
-        return
+        return None
 
     # Sanitize host parameter to prevent command injection
     import re
     if not re.match(r'^[a-zA-Z0-9.-]+$', host):
         logger.error(f"Invalid host parameter: {host}")
-        return
+        return None
 
     # Validate and start the backend
     logger.info(f"Starting backend on {host}:{port}...")
-    # Implementation would go here...
+    
+    # Find the backend entry point
+    backend_path = Path(__file__).parent.parent / "backend" / "python_backend" / "main.py"
+    if not backend_path.exists():
+        logger.error(f"Backend not found at {backend_path}")
+        return None
+
+    # Start the backend process
+    try:
+        process = subprocess.Popen(
+            [str(python_exe), str(backend_path)],
+            cwd=backend_path.parent,
+            env={**os.environ, "BACKEND_HOST": host, "BACKEND_PORT": str(port)}
+        )
+        logger.info(f"Backend started with PID {process.pid}")
+        return process
+    except Exception as e:
+        logger.error(f"Failed to start backend: {e}")
+        return None
 
 
 def start_node_service(service_path: Path, service_name: str, port: int, api_url: str):

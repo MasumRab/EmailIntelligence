@@ -243,8 +243,10 @@ def main():
             if delete_remote_branch(f"origin/{old_name}"):
                 print(f"✓ Deleted remote branch 'origin/{old_name}'")
                 # Then push the new branch (assuming it exists locally)
-                # Note: This assumes the local branch has already been renamed
-                # In a real scenario, you'd need to check if the local branch exists
+                if push_new_branch(new_name):
+                    print(f"✓ Pushed new remote branch 'origin/{new_name}'")
+                else:
+                    print(f"✗ Failed to push new remote branch 'origin/{new_name}'")
             else:
                 print(f"✗ Failed to delete remote branch 'origin/{old_name}'")
 
