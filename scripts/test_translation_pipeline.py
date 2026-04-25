@@ -317,7 +317,7 @@ def test_agent_translation_stats():
             source_segments=source_segments
         )
 
-        manager.start_translation_job(job_id, ["stats-agent"])
+        manager.start_job_processing(job_id)
 
         # Translate segments
         job = manager.get_translation_job(job_id)
@@ -408,7 +408,7 @@ def test_translation_persistence():
             source_segments=source_segments
         )
 
-        manager1.start_translation_job(job_id, ["persist-agent"])
+        manager1.start_job_processing(job_id)
 
         # Translate a segment
         job = manager1.get_translation_job(job_id)

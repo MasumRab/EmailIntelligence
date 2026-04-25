@@ -362,6 +362,50 @@ class DistributedTranslationManager:
         with self._lock:
             return [job for job in self.translation_jobs.values() if job.document_id == document_id]
 
+    def add_quality_report(self, job_id: str, unit_id: str, quality_score: float,
+                     issues: List[str], suggestions: List[str], reviewer: str = "system") -> str:
+        """Add a quality report to a translation unit."""
+        report_id = str(uuid.uuid4())
+        
+        with self._lock:
+            job = self.translation_jobs.get(job_id)
+            if not job:
+                return ""
+            
+            # Add to job's quality reports
+            if not hasattr(job, 'quality_reports'):
+                job.quality_reports = []
+            
+            report = TranslationQualityReport(
+                job_id=job_id,
+                target_language=getattr(job, 'target_language', 'unknown'),
+                quality_score=quality_score,
+                consistency_score=0.0,
+                terminology_accuracy=0.0,
+                completeness=0.0,
+                fluency=0.0,
+                accuracy=quality_score
+            )
+            job.quality_reports.append(report)
+            return report_id
+
+    def get_quality_reports(self, job_id: str) -> List[TranslationQualityReport]:
+        """Get all quality reports for a translation job."""
+        with self._lock:
+            job = self.translation_jobs.get(job_id)
+            if not job:
+                return []
+            return getattr(job, 'quality_reports', [])
+
+    def get_available_agents(self, source_language: str, target_language: str) -> List[str]:
+        """Get available agents for a language pair."""
+        with self._lock:
+            agents = []
+            for agent_id, caps in self.agent_capabilities.items():
+                if caps.get('source_lang') == source_language and caps.get('target_lang') == target_language:
+                    agents.append(agent_id)
+            return agents
+
     def get_translation_quality_report(self, job_id: str, target_language: str) -> TranslationQualityReport:
         """Generate a quality report for a translation job and language."""
         with self._lock:
