@@ -121,7 +121,9 @@ class ValidationWorker:
             links = re.findall(link_pattern, content)
 
             for text, url in links:
-                # Check for broken URLs (simplified check)
+                # Handle URL with fragment (e.g., "page.html#section")
+                url_base = url.split('#')[0]  # Get base URL without fragment
+                
                 if url.startswith('http'):
                     # In a real implementation, we would check if URL is accessible
                     # For now, we'll just check basic URL format
@@ -134,11 +136,11 @@ class ValidationWorker:
                             severity="warning"
                         ))
                 elif url.startswith('#'):
-                    # Anchor link - check if it's a valid heading
-                    pass  # Would need to check document structure
+                    # Anchor link - valid in markdown, pass
+                    pass
                 else:
-                    # Relative link - check if file exists
-                    link_path = Path(file_path).parent / url
+                    # Relative link - check if file exists (use base URL without fragment)
+                    link_path = Path(file_path).parent / url_base
                     if not link_path.exists():
                         errors.append(ValidationError(
                             file_path=str(file_path),
