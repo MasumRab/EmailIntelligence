@@ -125,10 +125,16 @@ class EventDrivenTaskAssigner:
 
     def _assign_next_task_to_agent(self, agent: Agent):
         """Assign the next suitable task to an agent."""
-        # Find the next suitable task for the agent
-        task = self.load_balancer.find_best_agent_for_task(agent)  # This needs to be public
-        if task:
-            self.load_balancer.assign_task_to_agent(task, agent)
+        # Get next pending task from queues and assign to this specific agent
+        for queue in self.router.queues.values():
+            pending = [t for t in queue.tasks if t.status == TaskStatus.PENDING]
+            if pending:
+                task = pending[0]  # Get first pending task
+                task.assigned_agent = agent.name
+                task.status = TaskStatus.IN_PROGRESS
+                task.assigned_at = datetime.now().isoformat()
+                agent.assign_task(task)
+                break
 
     def _reassign_failed_task(self, task: Task):
         """Reassign a failed task."""
@@ -137,10 +143,14 @@ class EventDrivenTaskAssigner:
         task.assigned_agent = None
         task.assigned_at = None
 
-        # Try to assign to a different agent
-        best_agent = self.load_balancer.find_best_agent_for_task(task)
-        if best_agent:
-            self.load_balancer.assign_task_to_agent(task, best_agent)
+        # Find available agent and assign directly
+        for agent in self.router.agents:
+            if agent.has_capacity():
+                task.assigned_agent = agent.name
+                task.status = TaskStatus.IN_PROGRESS
+                task.assigned_at = datetime.now().isoformat()
+                agent.assign_task(task)
+                break
         else:
             print(f"No suitable agent found for failed task {task.id}")
 
