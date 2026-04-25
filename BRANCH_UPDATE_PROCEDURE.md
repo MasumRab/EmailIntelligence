@@ -357,10 +357,9 @@ git push origin --delete local-only-branch
 # Check what failed
 git log <branch>..origin/<branch>
 
-# Option 1: Manually merge conflicts
-git checkout <branch>
-git pull origin <branch>
-git merge orchestration-tools  # Merge latest from source
+# Option 1: ~~Manually merge~~ DEPRECATED - do NOT merge orchestration-tools
+# Use distribution scripts instead:
+./scripts/distribute-orchestration-files.sh
 
 # Option 2: Skip protected branches
 ./scripts/update-all-branches.sh --skip protected-branch

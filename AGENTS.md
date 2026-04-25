@@ -8,39 +8,23 @@
 ## Project Overview
 EmailIntelligence is a Python/FastAPI + React/TypeScript full-stack application for intelligent email analysis. Primary language is Python 3.11+.
 
-## Branch Context
-This branch (`orchestration-tools`) focuses on CLI tooling, agent infrastructure, and orchestration scripts. The full application backend (AI engine, database, FastAPI routes) lives on the `scientific` branch.
-
 ## Code Conventions
 - Python: Black formatting, 100 char line length, type hints required, Google-style docstrings
 - TypeScript: Strict mode, 2-space indent, semicolons, double quotes
-- Shell: `set -euo pipefail`, quote all variables, use `mktemp` for temp files
-- Test: pytest for Python, `cd client && npm run lint` for TypeScript
+- Test: pytest for Python, npm run test for TypeScript
 
 ## Build Commands
-- Backend: `python launch.py` (wrapper → `setup/launch.py`)
+- Backend: `python launch.py`
 - Frontend: `cd client && npm run build`
 - Test: `pytest` (Python), `cd client && npm run lint` (TypeScript)
 - Lint: `flake8 .` / `mypy .` / `pylint src modules`
 
 ## Key Directories
-- `src/cli/` — Modular CLI with subcommands: git, agent, task, analysis, infra, automation
-- `src/core/` — Core interfaces, factory, conflict models, exceptions
-- `src/strategy/` — Multi-phase resolution strategy, risk assessment, reordering
-- `src/analysis/` — Code analysis modules
-- `src/resolution/` — Conflict resolution engine
-- `src/validation/` — Validation framework
-- `src/git/` — Git integration layer
-- `src/context_control/` — Context contamination prevention
-- `src/utils/` — Shared utility modules
-- `cli/` — Root CLI package (backward-compatible entry point via `emailintelligence_cli.py`)
-- `setup/` — Unified launcher with DI container, routing, services, settings
-- `client/` — React frontend (Vite + Radix UI + TanStack Query + Tailwind)
-- `modules/` — Orchestration shell scripts (branch.sh, config.sh, safety.sh, etc.)
-- `scripts/` — Automation and orchestration scripts (100+)
-- `backend/python_backend/` — Deprecated Pydantic models (active backend is on `scientific`)
-- `config/` — Distribution and default configuration
-- `docs/handoff/` — Multi-phase agent rules handoff framework
+- `src/core/` — AI engine, database manager, workflow engines
+- `backend/python_backend/` — FastAPI backend
+- `client/` — React frontend (Vite)
+- `modules/` — Pluggable feature modules
+- `rules/` — Shared YAML linting rules
 
 ## Task Management
 This project uses Task Master AI for task tracking. See `.taskmaster/` for configuration.

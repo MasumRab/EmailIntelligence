@@ -6,6 +6,43 @@
 
 ---
 
+## ⚠️ CRITICAL: contextFileName Alignment
+
+**Discovery:** Gemini CLI and Qwen Code use `settings.json` with `contextFileName: "AGENTS.md"`.
+
+This means **8+ tools read AGENTS.md natively** (AgentsMdAgent base class):
+- `gemini-cli`, `qwen`, `opencode`, `amp`, `kilocode`, `cursor`, `windsurf`, `roo`
+
+**Implication:**
+- Custom `output_path` entries create files these tools may never read
+- Only tools with unique paths need custom output_path:
+  - `claude` → `CLAUDE.md`
+  - `cline` → `.clinerules/`
+  - `kiro` → `.kiro/steering/`
+  - `trae` → `.trae/rules/`
+
+**Decision Implemented:**
+- **No `output_path` for pure CLI tools** (amp, qwen, opencode, kilocode) — they read root `AGENTS.md` natively
+- **Keep `output_path` for IDE tools** (claude, cline, kiro, trae) — unique paths required
+- **Keep `output_path` for hybrid tools** (cursor, windsurf, roo) — optional, may read both locations
+- **6 redundant `system.md` files were DELETED:** `.qwen/system.md`, `.agents/system.md`, `.cursor/rules/system.md`, `.windsurf/rules/system.md`, `.roo/rules/system.md`, `.kilo/rules/system.md`
+
+**Result:** ruler.toml NO LONGER has agent sections for amp, qwen, opencode, kilocode — Ruler uses built-in defaults.
+
+**Files that should be DELETED:**
+- `.qwen/system.md`, `.agents/system.md`, `.opencode/system.md`, `.kilo/rules/system.md` (pure CLI tools — no output_path)
+
+**Files that MAY exist (hybrid tools with optional output_path):**
+- `.cursor/rules/system.md`, `.windsurf/rules/system.md`, `.roo/rules/system.md` (may be recreated by ruler apply)
+
+**Verification:**
+```bash
+# Verify AGENTS.md exists at project root
+test -f AGENTS.md && echo "AGENTS.md: EXISTS" || echo "AGENTS.md: MISSING"
+```
+
+---
+
 ## External Reference
 
 - **Ruler GitHub:** https://github.com/intellectronica/ruler
@@ -81,19 +118,18 @@ local = false
 
 # Only enable agents we actually use
 default_agents = [
-  "claude",
-  "cursor",
-  "cline",
-  "copilot",
-  "roo",
-  "kiro",
-  "trae",
-  "windsurf",
-  "amp",
-  "gemini-cli",
-  "qwen",
-  "opencode",
-  "codex",
+  "gemini-cli",   # CLI Tier 1 (primary)
+  "qwen",         # CLI Tier 1
+  "opencode",     # CLI Tier 1
+  "amp",          # CLI Tier 1
+  "kilocode",     # CLI Tier 1
+  "claude",       # IDE Tier 2
+  "cursor",       # IDE Tier 2
+  "cline",        # IDE Tier 2
+  "roo",          # IDE Tier 2
+  "kiro",         # IDE Tier 2
+  "trae",         # IDE Tier 2
+  "windsurf",     # IDE Tier 2
 ]
 
 [agents.claude]
@@ -102,30 +138,27 @@ output_path = "CLAUDE.md"
 
 [agents.cursor]
 enabled = true
+output_path = ".cursor/rules/system.md"
 
 [agents.cline]
 enabled = true
+output_path = ".clinerules/system.md"
 
 [agents.roo]
 enabled = true
+output_path = ".roo/rules/system.md"
 
 [agents.kiro]
 enabled = true
+output_path = ".kiro/steering/system.md"
 
 [agents.trae]
 enabled = true
+output_path = ".trae/rules/system.md"
 
 [agents.windsurf]
 enabled = true
-
-[agents.amp]
-enabled = true
-
-[agents.qwen]
-enabled = true
-
-[agents.opencode]
-enabled = true
+output_path = ".windsurf/rules/system.md"
 
 # MCP Server Configuration
 [mcp_servers.task-master-ai]

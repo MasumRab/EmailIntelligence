@@ -149,3 +149,44 @@ grep -rl "prisma" .clinerules/ .windsurf/rules/ .roo/rules/ .trae/rules/ .kiro/s
 echo -n "rulesync.jsonc valid: "
 python3 -c "import json; json.load(open('rulesync.jsonc')); print('VALID')" 2>/dev/null || echo "INVALID"
 ```
+
+---
+
+## Step 2.7a — Create rulesync.jsonc (if missing)
+
+**File:** `rulesync.jsonc`
+
+**Action:** CREATE if file doesn't exist.
+
+```jsonc
+{
+  "targets": [
+    "claudecode",
+    "cursor",
+    "cline",
+    "roo",
+    "kiro",
+    "windsurf",
+    "qwencode",
+    "opencode",
+    "geminicli",
+    "agentsmd",
+    "codexcli"
+  ],
+  "source": ".ruler/AGENTS.md",
+  "drift_detection": {
+    "enabled": true,
+    "strict": true
+  }
+}
+```
+
+**Verify:**
+```bash
+test -f rulesync.jsonc && echo "CREATED" || echo "MISSING"
+python3 -c "import json; d=json.load(open('rulesync.jsonc')); print(f'{len(d[\"targets\"])} targets')"
+```
+
+**Expected:** 11 targets configured.
+
+**NOTE:** This step was added to address gap where Step 2.7 said "Update" but file may not exist.

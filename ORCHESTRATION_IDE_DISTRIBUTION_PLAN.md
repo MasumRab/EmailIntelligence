@@ -1,9 +1,21 @@
 # Orchestration IDE Agent Distribution Plan
 
-**Status:** Active  
-**Branch:** orchestration-tools  
-**Last Updated:** 2025-11-17  
-**Commit:** 60bc0f0d
+**Status:** ⚠️ PARTIALLY OUTDATED — Merge instructions deprecated
+**Branch:** orchestration-tools
+**Last Updated:** 2026-04-12
+**Policy:** `orchestration-tools` is fully isolated — use distribution scripts, NOT merges
+
+---
+
+## ⚠️ Critical Policy Update (2026-04-12)
+
+**NO MERGES in either direction.** The merge-based distribution documented below is **deprecated**.
+
+**Use instead:**
+```bash
+scripts/distribute_alignment_scripts.sh
+scripts/distribute-orchestration-files.sh
+```
 
 ---
 
