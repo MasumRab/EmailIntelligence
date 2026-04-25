@@ -294,6 +294,12 @@ echo "Redundancy signals (rules agents can infer from config files):"
 # ============================================================
 
 if $GENERATE_EVAL; then
+<<<<<<< HEAD
+=======
+    SAFE_BRANCH="$(echo "$BRANCH" | sed 's|/|_|g')"
+    EVAL_FILE="$ROOT/docs/handoff/phase-10-stack-evaluation-${SAFE_BRANCH}.md"
+
+>>>>>>> 9c5155ec3d8b883d4c0ae49ec5da337f072a1bbf
     echo ""
     echo "=== GENERATING EVALUATION SKELETON ==="
     echo "Output: $EVAL_FILE"
@@ -405,11 +411,14 @@ Gate check threshold: 80 lines
 FOOTEREOF
 
     echo "✅ Generated: $EVAL_FILE"
+<<<<<<< HEAD
 elif [ -f "$EVAL_FILE" ]; then
     echo ""
     echo "=== EVALUATION SKELETON ==="
     echo "✅ Using existing: $EVAL_FILE"
     echo "   To regenerate, delete the file and re-run this script"
+=======
+>>>>>>> 9c5155ec3d8b883d4c0ae49ec5da337f072a1bbf
 fi
 
 echo ""
