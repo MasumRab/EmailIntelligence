@@ -147,6 +147,10 @@ class AtomicCommitManager:
                 result = True
             else:
                 group.status = "failed"
+                # Automatically rollback partial commits
+                if success_count > 0:
+                    print(f"Partial commit failure - rolling back {success_count} worktrees...")
+                    self.rollback_commit_group(group.group_id)
                 result = False
 
             self.save_commit_groups()
