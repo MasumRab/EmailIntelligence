@@ -2,6 +2,14 @@
 
 **Purpose:** Ready-to-use AMP CLI command strings with correct tool configurations based on actual usage patterns.
 
+> **REQUIRED PREAMBLE:** Each `amp threads new --execute "..."` string in
+> this file MUST be prepended with the contract from
+> [`AMP_PROMPT_PREAMBLE.md`](AMP_PROMPT_PREAMBLE.md). It enforces complete
+> task completion (no early stops) and token efficiency on large
+> unstructured tasks (no whole-file reads, batched calls, summary
+> outputs, context-agnostic). When copying a command below, paste the
+> preamble first inside the quoted execute string.
+
 **Critical Insight:** Tools like Gemini CLI and Qwen Code use `settings.json` with `contextFileName: "AGENTS.md"` — they may NOT read what Ruler writes (`system.md`)!
 
 **AMP Modes:**

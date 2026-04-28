@@ -2,8 +2,15 @@
 
 **Purpose:** Complete reference for AMP CLI commands with native tools, skills integration, and subagent workflows.
 
-**Last Updated:** 2026-04-12
+**Last Updated:** 2026-04-28
 **Branch:** orchestration-tools (isolated - NO merges)
+
+> **REQUIRED PREAMBLE:** Every command in this document MUST be prefixed with
+> the completion + token-efficiency contract from
+> [`AMP_PROMPT_PREAMBLE.md`](AMP_PROMPT_PREAMBLE.md). The preamble enforces:
+> persist-until-done semantics, no whole-file reads, batched tool calls,
+> summary outputs, and context-agnostic execution. Prompts that omit it
+> are non-conforming and should be regenerated.
 
 ---
 

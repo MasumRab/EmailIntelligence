@@ -8,14 +8,15 @@ Execution-ready task files for implementing agent rules infrastructure across Em
 
 1. Copy `STATE_TEMPLATE.md` → `STATE_<branch>.md` (track per-phase completion)
 2. Source `context-guard.sh` (auto-detects project root, branch, CWD, tools)
-3. Execute phases 1→9 in order (see Execution Order below)
+3. Execute phases 0→11 in order (see Execution Order below)
 
 ## Phase Files
 
 | Phase | File | Steps | Focus |
 |-------|------|-------|-------|
+| 0 | `phase-00-content-bootstrap.md` | 4 | agentrulegen.com templates (bootstrap) |
 | 1 | `phase-01-emergency-fixes.md` | 13 | MCP configs, merge conflicts |
-| 2 | `phase-02-content-fixes.md` | 7 | Prisma refs, TypeScript-only |
+| 2 | `phase-02-content-fixes.md` | 8 | Prisma refs, TypeScript-only, RuleSync |
 | 3 | `phase-03-ruler-setup.md` | 6 | TOML sync configuration |
 | 4 | `phase-04-agent-rulez.md` | 6 | Runtime hooks setup |
 | 5 | `phase-05-file-cleanup.md` | 6 | Tier 2 root files: GEMINI, QWEN, IFLOW, CRUSH, LLXPRT |
@@ -23,16 +24,25 @@ Execution-ready task files for implementing agent rules infrastructure across Em
 | 7 | `phase-07-hierarchy.md` | 3 | Directory AGENTS.md files |
 | 8 | `phase-08-orchestration.md` | 4 | Tool responsibility matrix |
 | 9 | `phase-09-verification.md` | 9 | Multi-loop verification |
-| 10 | `phase-10-rule-quality.md` | 8 | Branch-dependent quality evaluation (detect-branch-stack.sh + agentrulegen.com) |
-| 11 | `phase-11-smart-remediation.md` | 8 | Independent — shell hardening |
+| 10a | `phase-10-references.md` | 3 | External reference lookup |
+| 10b | `phase-10-rule-quality.md` | 8 | Branch-dependent quality evaluation (detect-branch-stack.sh + agentrulegen.com) |
+| 10c | `phase-10-stack-evaluation.md` | — | Pre-built rule-by-rule gap analysis for `orchestration-tools` |
+| 11a | `phase-11-smart-remediation.md` | 8 | Independent — shell hardening |
+| 11b | `phase-11-token-analysis.md` | 5 | Token usage analysis and optimization |
+| 12 | `phase-12-deep-agent-handoff.md` | — | Resume-only — `orchestration-tools` deep agent handoff |
+| 13 | `phase-13-smart-amp-deep-agent-autonomous-handoff.md` | — | Resume-only — autonomous smart/amp/deep agent handoff |
+| 14 | `phase-14-gitignore-unification.md` | 6 | Branch-aware `.gitignore` consolidation (audit → apply → branch-specific tail) |
 
 ## Execution Order
 
-1. Phases 1–5 sequential (dependencies exist)
-2. Phases 6–8 parallel after Phase 5
-3. Phase 9 after all implementation phases
-4. Phase 10 after Phase 9 (quality evaluation)
-5. Phase 11 independent (no dependency on 5–10)
+1. **Phase 0:** Use agentrulegen.com to bootstrap content (optional, fresh repos)
+2. **Phases 1–5:** Sequential (dependencies exist) — required core fixes
+3. **Phases 6–8:** Parallel after Phase 5
+4. **Phase 9:** Multi-loop verification, after all implementation phases
+5. **Phase 10:** Reference + quality evaluation (a/b/c, post-9)
+6. **Phase 11:** Independent — shell hardening (a) and token optimization (b)
+7. **Phases 12–13:** Resume-only handoffs for specific branches (see "Resume on Existing Branch")
+8. **Phase 14:** `.gitignore` unification — independent, run after Phase 9 or any time the working tree is clean
 
 ## Mode Selection Guide
 
@@ -40,13 +50,13 @@ Execution-ready task files for implementing agent rules infrastructure across Em
 |------|--------|-----------|
 | Rush | 1–4 | Mechanical edits, no judgment needed |
 | Deep | 5–10 | Requires branch-policy judgment and quality review |
-| Smart | 11 | Shell script refactoring |
+| Smart | 11 | Shell script refactoring + token analysis |
 
 ## Resume on Existing Branch
 
 1. Open the branch's `STATE_<branch>.md` to find the last completed phase
 2. Read the incomplete phase doc and continue from the next unchecked step
-3. For `orchestration-tools` resume specifically, `phase-12-deep-agent-handoff.md` and `phase-13-smart-amp-deep-agent-autonomous-handoff.md` exist in this directory
+3. For `orchestration-tools` resume specifically, use `phase-12-deep-agent-handoff.md` and `phase-13-smart-amp-deep-agent-autonomous-handoff.md`
 
 ## Context-Agnostic Framework
 
@@ -59,7 +69,6 @@ Execution-ready task files for implementing agent rules infrastructure across Em
 | [STATE_TEMPLATE.md](STATE_TEMPLATE.md) | Template for creating new branch state files |
 | `scripts/detect-branch-stack.sh` | Auto-detects tech stack and recommends agentrulegen.com templates per branch |
 | `scripts/verify-agent-content.sh` | Audits .ruler/AGENTS.md claims against live branch state |
-| [phase-10-stack-evaluation.md](phase-10-stack-evaluation.md) | Pre-built rule-by-rule gap analysis for `orchestration-tools` |
 
 ## Tool Coverage Matrix
 
@@ -97,3 +106,10 @@ Execution-ready task files for implementing agent rules infrastructure across Em
 | **Ruler** | `.ruler/ruler.toml` | TOML-based sync |
 | **Agent RuleZ** | `.claude/hooks.yaml` | Runtime enforcement |
 | **Task Master AI** | `.mcp.json` | Task management MCP |
+
+## Reference Documents
+
+- `docs/AGENT_RULES_GAP_ANALYSIS_AND_CONTENT_MAP.md` — Issue inventory
+- `docs/handoff/AGENTS_REVIEW_PROCESS.md` — Review workflow (if present)
+- `docs/handoff/TOOL_ECOSYSTEM_COMPATIBILITY.md` — Tool capabilities (if present)
+- `docs/handoff/AGENT_TOOLS_HIERARCHY.md` — Tool layering (if present)

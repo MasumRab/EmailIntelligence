@@ -14,7 +14,7 @@
       "mode": "rush",
       "description": "Fix 13 critical MCP configuration issues",
       "cli_command": "amp threads new --mode rush --execute \"You are executing Phase 1 Emergency Fixes. **Phase Document:** docs/handoff/phase-01-emergency-fixes.md. **Tasks (13 steps):** 1.1-1.2: Resolve CLAUDE.md merge conflict. 1.3-1.4: Fix .roo/mcp.json. 1.5-1.6: Fix .cursor/mcp.json. 1.7-1.8: Fix .claude/mcp.json. 1.9-1.10: Fix .windsurf/mcp.json. 1.11-1.12: Create .trae/mcp.json. 1.13: Delete .rules file. **Critical Rules:** Run VERIFY after EVERY step. Copy strings EXACTLY. NEVER use git add -A. **Start with Step 1.1:** Read docs/handoff/phase-01-emergency-fixes.md\"",
-      "prompt_only": "You are executing Phase 1 Emergency Fixes of the Agent Rules Implementation.\n\n**Phase Document:** docs/handoff/phase-01-emergency-fixes.md\n**State File:** docs/handoff/STATE.md\n\n**Tasks (13 steps):**\n1.1-1.2: Resolve CLAUDE.md merge conflict\n1.3-1.4: Fix .roo/mcp.json (empty → populated)\n1.5-1.6: Fix .cursor/mcp.json (empty → populated)\n1.7-1.8: Fix .claude/mcp.json (empty → populated)\n1.9-1.10: Fix .windsurf/mcp.json (placeholder keys → env vars)\n1.11-1.12: Create .trae/mcp.json\n1.13: Delete .rules file\n\n**Critical Rules:**\n1. Run VERIFY command after EVERY step — do not skip\n2. Do NOT proceed if verification fails\n3. Copy strings EXACTLY from phase document\n4. One edit per tool call — do not batch\n5. NEVER use git add -A or git add .\n\n**Start with Step 1.1:** Read docs/handoff/phase-01-emergency-fixes.md"
+      "prompt_only": "You are executing Phase 1 Emergency Fixes of the Agent Rules Implementation.\n\n**Phase Document:** docs/handoff/phase-01-emergency-fixes.md\n**State File:** docs/handoff/STATE.md\n\n**Tasks (13 steps):**\n1.1-1.2: Resolve CLAUDE.md merge conflict\n1.3-1.4: Fix .roo/mcp.json (empty \u2192 populated)\n1.5-1.6: Fix .cursor/mcp.json (empty \u2192 populated)\n1.7-1.8: Fix .claude/mcp.json (empty \u2192 populated)\n1.9-1.10: Fix .windsurf/mcp.json (placeholder keys \u2192 env vars)\n1.11-1.12: Create .trae/mcp.json\n1.13: Delete .rules file\n\n**Critical Rules:**\n1. Run VERIFY command after EVERY step \u2014 do not skip\n2. Do NOT proceed if verification fails\n3. Copy strings EXACTLY from phase document\n4. One edit per tool call \u2014 do not batch\n5. NEVER use git add -A or git add .\n\n**Start with Step 1.1:** Read docs/handoff/phase-01-emergency-fixes.md"
     },
     {
       "id": "amp_phase_2",
@@ -46,7 +46,7 @@
       "mode": "deep",
       "description": "Run comprehensive gate check after phase completion",
       "cli_command": "amp threads new --mode deep --execute \"You are running a Phase Gate Check for the Agent Rules Implementation. **Phase:** [PHASE_NUMBER]. **Gate Check:** Verify file existence, content correctness, validation. **After Gate Check:** If ALL PASS: Update STATE.md with Phase [N]: COMPLETE. If ANY FAIL: Update STATE.md with Phase [N]: FAILED. Do NOT proceed if ANY check fails. Report results in format: ## Phase [N] Gate Check Results - Overall: PASS/FAIL\"",
-      "prompt_only": "You are running a Phase Gate Check for the Agent Rules Implementation.\n\n**Phase:** [PHASE_NUMBER]\n\n**Gate Check Commands:**\necho '=== PHASE [N] GATE CHECK ==='\n\n# File existence checks\nfor f in [FILES_TO_CHECK]; do\n  test -f \"$f\" && echo '✅ $f: EXISTS' || echo '❌ $f: MISSING'\ndone\n\n# Content checks\ngrep -q '[EXPECTED_CONTENT]' [FILE] && echo '✅ Content correct' || echo '❌ Content incorrect'\n\n**After Gate Check:**\n1. If ALL PASS: Update STATE.md with Phase [N]: COMPLETE\n2. If ANY FAIL: Update STATE.md with Phase [N]: FAILED and document blockers\n3. Do NOT proceed to next phase if ANY check fails"
+      "prompt_only": "You are running a Phase Gate Check for the Agent Rules Implementation.\n\n**Phase:** [PHASE_NUMBER]\n\n**Gate Check Commands:**\necho '=== PHASE [N] GATE CHECK ==='\n\n# File existence checks\nfor f in [FILES_TO_CHECK]; do\n  test -f \"$f\" && echo '\u2705 $f: EXISTS' || echo '\u274c $f: MISSING'\ndone\n\n# Content checks\ngrep -q '[EXPECTED_CONTENT]' [FILE] && echo '\u2705 Content correct' || echo '\u274c Content incorrect'\n\n**After Gate Check:**\n1. If ALL PASS: Update STATE.md with Phase [N]: COMPLETE\n2. If ANY FAIL: Update STATE.md with Phase [N]: FAILED and document blockers\n3. Do NOT proceed to next phase if ANY check fails"
     },
     {
       "id": "amp_error_recovery",
@@ -62,25 +62,47 @@
       "mode": "rush",
       "description": "Execute all required phases in sequence",
       "cli_command": "amp threads new --mode rush --execute \"You are a Rush-level AMP agent executing the Agent Rules Implementation. **Project:** /home/masum/github/EmailIntelligence. **Branch:** orchestration-tools. **Task:** Fix 13 identified issues in AI coding agent configurations. **Handoff Documents:** Master: docs/AGENT_RULES_IMPLEMENTATION_HANDOFF.md. Phases: docs/handoff/phase-01-emergency-fixes.md through phase-04-agent-rulez.md. State: docs/handoff/STATE.md. **Critical Rules:** Run VERIFY after EVERY step. NEVER use git add -A. **Execution Order:** Phase 1-4 (REQUIRED). **Start with Phase 1:** Read docs/handoff/phase-01-emergency-fixes.md\"",
-      "prompt_only": "You are a Rush-level AMP agent executing the Agent Rules Implementation.\n\n**Project:** /home/masum/github/EmailIntelligence\n**Branch:** orchestration-tools\n**Task:** Fix 13 identified issues in AI coding agent configurations\n\n**Handoff Documents:**\n- Master: docs/AGENT_RULES_IMPLEMENTATION_HANDOFF.md\n- Phases: docs/handoff/phase-01-emergency-fixes.md through phase-04-agent-rulez.md\n- State: docs/handoff/STATE.md\n- Process: docs/handoff/MULTI_HANDOFF_EXECUTION_PROCESS.md\n\n**Critical Rules:**\n1. Run VERIFY after EVERY step — do not skip\n2. Do NOT proceed if verification fails\n3. Copy strings EXACTLY — do not paraphrase\n4. One edit per tool call — do not batch\n5. NEVER use git add -A or git add .\n\n**Start with Phase 1:** Read docs/handoff/phase-01-emergency-fixes.md"
+      "prompt_only": "You are a Rush-level AMP agent executing the Agent Rules Implementation.\n\n**Project:** /home/masum/github/EmailIntelligence\n**Branch:** orchestration-tools\n**Task:** Fix 13 identified issues in AI coding agent configurations\n\n**Handoff Documents:**\n- Master: docs/AGENT_RULES_IMPLEMENTATION_HANDOFF.md\n- Phases: docs/handoff/phase-01-emergency-fixes.md through phase-04-agent-rulez.md\n- State: docs/handoff/STATE.md\n- Process: docs/handoff/MULTI_HANDOFF_EXECUTION_PROCESS.md\n\n**Critical Rules:**\n1. Run VERIFY after EVERY step \u2014 do not skip\n2. Do NOT proceed if verification fails\n3. Copy strings EXACTLY \u2014 do not paraphrase\n4. One edit per tool call \u2014 do not batch\n5. NEVER use git add -A or git add .\n\n**Start with Phase 1:** Read docs/handoff/phase-01-emergency-fixes.md"
     }
   ],
   "mode_guidelines": {
     "rush": {
       "description": "Fast execution, minimal verification",
-      "use_for": ["Phase 0-4", "Simple fixes", "Template generation"]
+      "use_for": [
+        "Phase 0-4",
+        "Simple fixes",
+        "Template generation"
+      ]
     },
     "deep": {
       "description": "Thorough analysis, comprehensive verification",
-      "use_for": ["Gate checks", "Error recovery", "Token analysis", "Phase 9 verification"]
+      "use_for": [
+        "Gate checks",
+        "Error recovery",
+        "Token analysis",
+        "Phase 9 verification"
+      ]
     },
     "smart": {
       "description": "Balanced approach",
-      "use_for": ["Phase 5-8", "Mixed complexity tasks"]
+      "use_for": [
+        "Phase 5-8",
+        "Mixed complexity tasks"
+      ]
     },
     "large": {
       "description": "Extended context for complex tasks",
-      "use_for": ["Multi-phase execution", "Large file analysis"]
+      "use_for": [
+        "Multi-phase execution",
+        "Large file analysis"
+      ]
     }
+  },
+  "_preamble": {
+    "required": true,
+    "source": "docs/handoff/AMP_PROMPT_PREAMBLE.md",
+    "purpose": "Completion contract + token-efficiency rules for large unstructured tasks",
+    "applies_to": "every amp threads new --execute string referenced from this file",
+    "version": "2026-04-28"
   }
 }
