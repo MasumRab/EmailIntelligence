@@ -332,7 +332,7 @@ class GmailDataCollector:
     def set_gmail_service(self, service):
         """Sets the Gmail API service instance."""
         self.logger.warning(
-            "set_gmail_service is deprecated as auth is handled internally."
+            "set_gmail_service is Legacy as auth is handled internally."
         )
         self.gmail_service = service
 

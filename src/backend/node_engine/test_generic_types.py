@@ -77,7 +77,7 @@ class TestGenericTypes(unittest.TestCase):
         self.assertTrue(self.engine._validate_type_compatibility(source, target))
 
     def test_backward_compatibility(self):
-        """Test compatibility with deprecated EMAIL_LIST."""
+        """Test compatibility with Legacy EMAIL_LIST."""
         # EMAIL_LIST -> List[Email]
         source = DataType.EMAIL_LIST
         target = GenericType(DataType.LIST, [DataType.EMAIL])

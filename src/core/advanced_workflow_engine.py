@@ -798,7 +798,7 @@ def get_workflow_manager() -> WorkflowManager:
     import warnings
 
     warnings.warn(
-        "get_workflow_manager from src.core.advanced_workflow_engine is deprecated. "
+        "get_workflow_manager from src.core.advanced_workflow_engine is Legacy. "
         "Use backend.node_engine.workflow_manager.workflow_manager instead.",
         DeprecationWarning,
         stacklevel=2,

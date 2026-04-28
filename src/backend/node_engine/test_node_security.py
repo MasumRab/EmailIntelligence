@@ -1,6 +1,7 @@
 """
-DEPRECATED: This module is part of the deprecated `backend` package.
-It will be removed in a future release.
+Legacy Component - Maintained for Backward Compatibility.
+Kept to preserve compatibility and to allow open PRs to migrate into the main architecture.
+Planned migration: track related PRs; do not remove without explicit cross-team approval.
 
 Test module for security and scalability features of the node-based workflow system.
 """
@@ -54,10 +55,10 @@ async def test_security_features():
 
     # Test that trusted nodes can execute
     print(
-        f"EmailSourceNode trusted: {security_manager.validate_node_execution('EmailSourceNode', {{}})}"
+        f"EmailSourceNode trusted: {security_manager.validate_node_execution('EmailSourceNode', {})}"
     )
     print(
-        f"PreprocessingNode trusted: {security_manager.validate_node_execution('PreprocessingNode', {{}})}"
+        f"PreprocessingNode trusted: {security_manager.validate_node_execution('PreprocessingNode', {})}"
     )
 
     # Execute workflow with security

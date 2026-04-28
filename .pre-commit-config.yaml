@@ -64,4 +64,13 @@ repos:
         language: system
         files: ^(?!(client/))
 
+  # Prevent reintroduction of 'deprecated'
+  - repo: local
+    hooks:
+      - id: check-deprecated
+        name: Check for deprecated terminology
+        entry: ./scripts/check_deprecated.py
+        language: script
+        types: [text]
+
 default_stages: [pre-commit]

@@ -72,3 +72,9 @@
 - **Commits**: Meaningful messages focusing on "why" not "what"
 - **Security**: Never expose secrets/keys, never log sensitive data
 - **Dependencies**: Check existing usage before adding new libraries
+## Legacy Code Policy
+
+Files marked as `Legacy Component - Maintained for Backward Compatibility` are explicitly protected.
+**DO NOT** remove, auto-clean, or refactor these files without explicit cross-team human approval.
+These files are kept to preserve compatibility and to allow open PRs to migrate into the main architecture.
+Check `LEGACY_MANIFEST.md` for the list of legacy files and their migration status.
