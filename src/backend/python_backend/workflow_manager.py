@@ -93,6 +93,8 @@ class WorkflowManager:
         try:
             if filename is None:
                 filename = f"{workflow.name.replace(' ', '_').lower()}_{int(datetime.now().timestamp())}.json"
+            else:
+                filename = Path(filename).name
 
             filepath = self.workflows_dir / filename
 
@@ -114,6 +116,8 @@ class WorkflowManager:
     def load_workflow(self, filename: str) -> Optional[Workflow]:
         """Load a workflow from a JSON file"""
         try:
+            # Sanitize the filename to prevent path traversal
+            filename = Path(filename).name
             filepath = self.workflows_dir / filename
 
             if not filepath.exists():
