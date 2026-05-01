@@ -5,41 +5,22 @@ Ensures all branches have the latest scripts from a master branch,
 while preserving branch-specific customizations.
 """
 
-import subprocess
+import shutil
 import sys
-import os
 from pathlib import Path
-from typing import List, Set
+from typing import List
 
-def run_git_command(cmd: List[str], cwd: str = None) -> str:
-    """Run a git command and return output."""
-    result = subprocess.run(['git'] + cmd, capture_output=True, text=True, cwd=cwd)
-    if result.returncode != 0:
-        print(f"Git command failed: {' '.join(cmd)}")
-        print(f"Error: {result.stderr}")
-        return ""
-    return result.stdout.strip()
+from scripts.git_utils import GitHelper, create_git_helper
 
-def get_current_branch() -> str:
-    """Get current branch name."""
-    return run_git_command(['branch', '--show-current'])
-
-def get_all_branches() -> List[str]:
-    """Get all local branches."""
-    output = run_git_command(['branch'])
-    branches = [line.strip().lstrip('*+ ') for line in output.split('\n') if line.strip()]
-    return branches
+# Global git helper instance
+git = create_git_helper()
 
 def checkout_branch(branch: str) -> bool:
     """Checkout a branch."""
-    # Check if branch is currently checked out in a worktree
-    worktree_output = run_git_command(['worktree', 'list'])
-    for line in worktree_output.split('\n'):
-        if f'[{branch}]' in line:
-            print(f"Branch {branch} is currently checked out in a worktree, skipping")
-            return False
-    result = subprocess.run(['git', 'checkout', branch], capture_output=True, text=True)
-    return result.returncode == 0
+    if git.is_branch_checked_out_in_worktree(branch):
+        print(f"Branch {branch} is currently checked out in a worktree, skipping")
+        return False
+    return git.checkout(branch)
 
 def sync_scripts_from_master(master_branch: str, target_branch: str, preserve_custom: bool = True) -> bool:
     """
@@ -57,36 +38,32 @@ def sync_scripts_from_master(master_branch: str, target_branch: str, preserve_cu
     scripts_dir = Path("scripts")
     backup_dir = Path(".scripts_backup")
     if scripts_dir.exists() and preserve_custom:
-        import shutil
         if backup_dir.exists():
             shutil.rmtree(backup_dir)
         shutil.copytree(scripts_dir, backup_dir)
         print(f"Backed up current scripts to {backup_dir}")
 
     # Check if target branch has scripts directory
-    target_has_scripts = run_git_command(['ls-tree', '-d', f'{target_branch}:scripts']) != ""
+    target_has_scripts = git.tree_exists(target_branch, "scripts")
 
     if target_has_scripts:
-        # Use git read-tree to merge scripts directory from master
-        result = subprocess.run([
-            'git', 'read-tree', '-m', '-u',
-            f'{master_branch}:scripts',  # Source tree
-            f'{target_branch}:scripts'   # Current tree
-        ], capture_output=True, text=True)
+        success = git.read_tree(f'{master_branch}:scripts', f'{target_branch}:scripts')
+        if not success:
+            print(f"Failed to sync scripts: read-tree failed")
+            if backup_dir.exists() and preserve_custom:
+                if scripts_dir.exists():
+                    shutil.rmtree(scripts_dir)
+                shutil.move(str(backup_dir), str(scripts_dir))
+            return False
     else:
-        # Target doesn't have scripts, just checkout from master
-        result = subprocess.run([
-            'git', 'checkout', master_branch, '--', 'scripts/'
-        ], capture_output=True, text=True)
-
-    if result.returncode != 0:
-        print(f"Failed to sync scripts: {result.stderr}")
-        # Restore backup if it exists
-        if backup_dir.exists() and preserve_custom:
-            if scripts_dir.exists():
-                shutil.rmtree(scripts_dir)
-            shutil.move(str(backup_dir), str(scripts_dir))
-        return False
+        success = git.checkout(master_branch, ["scripts/"])
+        if not success:
+            print(f"Failed to sync scripts: checkout failed")
+            if backup_dir.exists() and preserve_custom:
+                if scripts_dir.exists():
+                    shutil.rmtree(scripts_dir)
+                shutil.move(str(backup_dir), str(scripts_dir))
+            return False
 
     # Clean up backup
     if backup_dir.exists():
@@ -97,25 +74,18 @@ def sync_scripts_from_master(master_branch: str, target_branch: str, preserve_cu
 
 def commit_sync_changes(branch: str) -> bool:
     """Commit the synced script changes."""
-    # Check if there are changes
-    status = run_git_command(['status', '--porcelain'])
-    if not status:
+    if not git.is_dirty():
         print(f"No changes to commit in {branch}")
         return True
 
-    # Add scripts directory
-    result = subprocess.run(['git', 'add', 'scripts/'], capture_output=True, text=True)
-    if result.returncode != 0:
-        print(f"Failed to add scripts: {result.stderr}")
+    if not git.add([Path("scripts")]):
+        print(f"Failed to add scripts")
         return False
 
-    # Commit
-    result = subprocess.run([
-        'git', 'commit', '-m', f'Sync scripts from master branch\n\nAutomated script synchronization'
-    ], capture_output=True, text=True)
-
-    if result.returncode != 0:
-        print(f"Failed to commit: {result.stderr}")
+    commit_msg = "Sync scripts from master branch\n\nAutomated script synchronization"
+    result = git.commit(commit_msg)
+    if not result:
+        print(f"Failed to commit")
         return False
 
     print(f"Committed script sync in {branch}")
@@ -133,13 +103,13 @@ def main():
     all_branches = '--all-branches' in sys.argv
     preserve_custom = '--no-preserve' not in sys.argv
 
-    current_branch = get_current_branch()
+    current_branch = git.get_current_branch()
     print(f"Current branch: {current_branch}")
     print(f"Master branch: {master_branch}")
     print(f"Preserve customizations: {preserve_custom}")
 
     if all_branches:
-        branches = get_all_branches()
+        branches = git.get_all_branches()
         branches.remove(master_branch)  # Don't sync master to itself
     else:
         branches = [current_branch] if current_branch != master_branch else []
@@ -155,7 +125,6 @@ def main():
             print(f"Failed to sync {branch}")
             continue
 
-        # Commit changes
         if not commit_sync_changes(branch):
             print(f"Failed to commit changes in {branch}")
 
