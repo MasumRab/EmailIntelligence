@@ -1,5 +1,7 @@
 """
-DEPRECATED: This module is part of the deprecated `backend` package.
+Legacy Component - Maintained for Backward Compatibility.
+
+This module is part of the legacy `backend` package.
 It will be removed in a future release.
 
 Configuration management for the Email Intelligence Platform
