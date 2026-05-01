@@ -3,6 +3,7 @@ import reactHooks from 'eslint-plugin-react-hooks';
 import tseslint from '@typescript-eslint/eslint-plugin';
 import parser from '@typescript-eslint/parser';
 import reactRefresh from 'eslint-plugin-react-refresh';
+import globals from 'globals';
 
 export default [
   {
