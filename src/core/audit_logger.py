@@ -241,6 +241,7 @@ class AuditLogger:
 
     def _process_events(self):
         """Background thread to process audit events."""
+        import queue
         while not self._stop_event.is_set():
             events_to_process = []
 
@@ -250,7 +251,7 @@ class AuditLogger:
                     event = self._event_queue.get(timeout=1.0)
                     events_to_process.append(event)
                     self._event_queue.task_done()
-            except asyncio.TimeoutError:
+            except queue.Empty:
                 pass  # No events available
 
             # Write events
