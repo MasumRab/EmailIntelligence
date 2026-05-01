@@ -17,9 +17,9 @@ warnings.warn(
 
 # NOTE: Import paths updated to src-prefixed imports to work with new project structure
 
-from .ai_engine import AdvancedAIEngine, AIAnalysisResult
-from .database import DatabaseManager, get_db  # noqa: F401
-from .models import (
+from .ai_engine import AdvancedAIEngine, AIAnalysisResult  # noqa: E402
+from .database import DatabaseManager, get_db  # noqa: F401,E402
+from .models import (  # noqa: E402
     ActivityCreate,
     ActivityResponse,
     AIAnalysisResponse,

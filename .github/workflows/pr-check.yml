@@ -78,7 +78,7 @@ jobs:
         run: uv sync --all-extras --dev
 
       - name: Ruff lint check
-        run: uv run ruff check src/ modules/ setup/ || true
+        run: uv run ruff check src/ modules/ setup/ --ignore E402 || true
 
       - name: Ruff format check
         run: uv run ruff format --check src/ modules/ setup/ || true

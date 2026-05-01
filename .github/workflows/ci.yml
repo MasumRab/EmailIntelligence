@@ -69,5 +69,5 @@ jobs:
         run: uv sync --all-extras
       - name: Run ruff
         run: |
-          uv run ruff check src/ modules/ || true
+          uv run ruff check src/ modules/ --ignore E402 || true
           uv run ruff format --check src/ modules/ || true
