@@ -12,7 +12,7 @@ The `launch.py` script is the primary method for setting up and managing the Pyt
 *   **Application Launching**: Serves as the main entry point for running the application, tests, and other utilities.
 
 **Note on `setup_python.sh`:**
-The `scripts/setup_python.sh` script is **deprecated** and should no longer be used. It is a legacy script and may be removed. **`launch.py` is the sole recommended tool for consistent and correct environment setup and dependency management.** All users should prioritize its use.
+The `scripts/setup_python.sh` script is **Legacy** and should no longer be used. It is a legacy script and may be removed. **`launch.py` is the sole recommended tool for consistent and correct environment setup and dependency management.** All users should prioritize its use.
 
 ## Key Components Managed by `launch.py`
 

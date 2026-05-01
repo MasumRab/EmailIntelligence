@@ -1,11 +1,11 @@
 [
     {
-        "_deprecated": true,
         "id": 1,
         "name": "Primary",
         "description": "Default primary category",
         "color": "#4CAF50",
-        "count": 0
+        "count": 0,
+        "_legacy_maintained_for_backward_compatibility": true
     },
     {
         "id": 2,

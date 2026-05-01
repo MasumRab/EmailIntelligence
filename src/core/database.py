@@ -1059,14 +1059,14 @@ async def create_database_manager(config: DatabaseConfig) -> DatabaseManager:
     return manager
 
 
-# DEPRECATED: Legacy singleton pattern - kept for backward compatibility
+# Legacy: Legacy singleton pattern - kept for backward compatibility
 # TODO: Remove this once all code has been migrated to dependency injection
 _db_manager_instance = None
 
 
 async def get_db() -> DatabaseManager:
     """
-    DEPRECATED: Provides backward compatibility for existing code.
+    Legacy: Provides backward compatibility for existing code.
     Use create_database_manager() with explicit configuration instead.
 
     This function maintains the old singleton pattern for code that hasn't
@@ -1075,7 +1075,7 @@ async def get_db() -> DatabaseManager:
     import warnings
 
     warnings.warn(
-        "get_db() is deprecated. Use create_database_manager() with DatabaseConfig instead.",
+        "get_db() is Legacy. Use create_database_manager() with DatabaseConfig instead.",
         DeprecationWarning,
         stacklevel=2,
     )

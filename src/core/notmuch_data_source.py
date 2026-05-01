@@ -5,6 +5,7 @@ This module provides a comprehensive data source that integrates Notmuch databas
 with AI analysis, smart filtering, and tagging functionality.
 """
 
+from __future__ import annotations
 import asyncio
 import logging
 from typing import Any, Dict, List, Optional
@@ -24,7 +25,6 @@ from .data_source import DataSource
 
 # Import DatabaseManager locally to avoid circular imports
 # Use TYPE_CHECKING to avoid runtime import issues
-from __future__ import annotations
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:

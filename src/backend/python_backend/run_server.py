@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """
-DEPRECATED: This module is part of the deprecated `backend` package.
-It will be removed in a future release.
+Legacy Component - Maintained for Backward Compatibility.
+Kept to preserve compatibility and to allow open PRs to migrate into the main architecture.
+Planned migration: track related PRs; do not remove without explicit cross-team approval.
 
 Production server runner for Gmail AI Email Management
 Optimized Python FastAPI backend with comprehensive performance monitoring

@@ -1,6 +1,7 @@
 """
-DEPRECATED: This module is part of the deprecated `backend` package.
-It will be removed in a future release.
+Legacy Component - Maintained for Backward Compatibility.
+Kept to preserve compatibility and to allow open PRs to migrate into the main architecture.
+Planned migration: track related PRs; do not remove without explicit cross-team approval.
 
 Workflow Persistence System for Email Intelligence Platform
 
@@ -161,7 +162,7 @@ def get_workflow_manager() -> WorkflowManager:
     import warnings
 
     warnings.warn(
-        "get_workflow_manager from backend.python_backend.workflow_manager is deprecated. "
+        "get_workflow_manager from backend.python_backend.workflow_manager is Legacy. "
         "Use backend.node_engine.workflow_manager.workflow_manager instead.",
         DeprecationWarning,
         stacklevel=2,
