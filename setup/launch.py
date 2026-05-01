@@ -1,8 +1,11 @@
 #!/usr/bin/env python3
 """
 EmailIntelligence Unified Launcher
+"""
 
 import os
+import argparse
+import logging
 import platform
 import shutil
 import subprocess
@@ -144,10 +147,6 @@ def validate_environment() -> bool:
     return True
 
 
-        return False
-
-    conda_info = get_conda_env_info()
-    if conda_info["is_active"]:
 
 
 # --- Helper Functions ---
