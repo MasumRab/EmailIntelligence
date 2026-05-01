@@ -461,4 +461,33 @@ Context contamination occurs when information from one task/conversation bleeds 
 
 ---
 
+## Legacy Component Handling
+
+This project uses "Legacy Component" as the standard marker for deprecated code, replacing inconsistent "deprecated" terminology. See `LEGACY_MANIFEST.md` for the full list.
+
+### When Working with Legacy Components
+
+1. **Read the marker header** - All legacy components include a header explaining their status
+2. **Avoid adding new features** - Legacy components should not be extended
+3. **Plan for migration** - Budget time to replace legacy code in future tasks
+4. **Document changes** - If you must modify legacy code, explain why in the commit
+
+### Legacy Component Marker Template
+
+```python
+# Legacy Component
+# 
+# Reason: [Why is this component marked as legacy?]
+# Alternative: [What should be used instead?]
+# Migration: [What steps need to be taken?]
+# Review Date: [When should this be revisited?]
+```
+
+### Known Legacy Components
+
+- `setup/launch.py` - Legacy launcher, replaced by `launch.py`
+- `src/backend/node_engine/workflow_manager.py` - Part of deprecated backend package
+
+---
+
 _This guide ensures Claude Code has immediate access to Task Master's essential functionality for agentic development workflows._
