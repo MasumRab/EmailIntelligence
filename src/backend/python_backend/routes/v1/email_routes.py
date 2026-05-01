@@ -27,12 +27,12 @@ router = APIRouter(prefix="/v1")
 @log_performance(operation="get_emails_v1")
 async def get_emails_v1(
     request: Request,
+    email_service: Annotated[EmailService, Depends(get_email_service)],
     limit: int = 50,
     offset: int = 0,
     category_id: Optional[int] = None,
     is_unread: Optional[bool] = None,
     search: Optional[str] = None,
-    email_service: Annotated[EmailService, Depends(get_email_service)],
 ):
     """
     Retrieves a list of emails with optional filtering, pagination, and search.
