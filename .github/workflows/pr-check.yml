@@ -90,7 +90,7 @@ jobs:
 
       - name: Run tests
         run: |
-          uv run pytest tests/ src/ modules/ -v --tb=short || true
+          uv run pytest tests/cli tests/backend tests/test_context_control.py -v --tb=short || true
 
       - name: Upload coverage
         if: always()

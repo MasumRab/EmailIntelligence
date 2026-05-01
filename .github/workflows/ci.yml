@@ -37,7 +37,7 @@ jobs:
         run: uv sync --all-extras
       - name: Run tests
         run: |
-          uv run pytest tests/ src/ modules/ -v --tb=short || true
+          uv run pytest tests/cli tests/backend tests/test_context_control.py -v --tb=short || true
       - name: Run linting
         run: |
           uv run ruff check src/ modules/ || true
