@@ -9,8 +9,9 @@ import logging
 from typing import List, Optional
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
-from .auth import get_current_active_user
 from pydantic import BaseModel, Field
+
+from .auth import get_current_active_user
 
 from .dynamic_model_manager import DynamicModelManager
 from .model_registry import ModelType
