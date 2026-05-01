@@ -254,7 +254,7 @@ async def register(user_data: UserCreate, db: DataSource = Depends(get_data_sour
 
     access_token_expires = timedelta(minutes=settings.access_token_expire_minutes)
     access_token = create_access_token(
-        data={"sub": user_data.username, "role": "user"}, expires_delta=access_token_expires
+        data={"sub": user_data.username, "role": UserRole.USER.value}, expires_delta=access_token_expires
     )
 
     return {"access_token": access_token, "token_type": "bearer"}
