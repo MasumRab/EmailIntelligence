@@ -227,7 +227,6 @@ class DatabaseManager(DataSource):
             self._build_indexes()
             self._initialized = True
 
-    # TODO(P1, 4h): Remove hidden side effects from initialization per functional_analysis_report.md
     # TODO(P2, 3h): Implement lazy loading strategy that is more predictable and testable
 
     @log_performance(operation="build_indexes")
@@ -261,7 +260,6 @@ class DatabaseManager(DataSource):
                 and self.categories_by_id[cat_id].get(FIELD_COUNT) != count
             ):
                 self.categories_by_id[cat_id][FIELD_COUNT] = count
-                self._dirty_data.add(DATA_TYPE_CATEGORIES)
 
         # Build content availability index
         # This allows us to skip os.path.exists checks during search
@@ -284,7 +282,7 @@ class DatabaseManager(DataSource):
     async def _load_data(self) -> None:
         """
         Loads data from JSON files into memory.
-        If a data file does not exist, it creates an empty one.
+        If a data file does not exist, it initializes an empty list in memory.
         """
         # Invalidate sorted cache on load
         self._sorted_emails_cache = None
@@ -302,8 +300,7 @@ class DatabaseManager(DataSource):
                     logger.info(f"Loaded {len(data)} items from compressed file: {file_path}")
                 else:
                     setattr(self, data_list_attr, [])
-                    await self._save_data_to_file(data_type)
-                    logger.info(f"Created empty data file: {file_path}")
+                    logger.info(f"Initialized empty in-memory list for missing file: {file_path}")
             except (IOError, json.JSONDecodeError) as e:
                 error_context = create_error_context(
                     component="DatabaseManager",
