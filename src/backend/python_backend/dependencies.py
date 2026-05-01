@@ -57,7 +57,7 @@ async def initialize_services():
     # Initialize core managers first
     if _model_manager_instance is None:
         _model_manager_instance = ModelManager()
-        _model_manager_instance.discover_models()
+        # _model_manager_instance.discover_models()
 
     if _ai_engine_instance is None:
         _ai_engine_instance = AdvancedAIEngine(model_manager=_model_manager_instance)
@@ -101,7 +101,7 @@ def get_model_manager() -> "ModelManager":
     global _model_manager_instance
     if _model_manager_instance is None:
         _model_manager_instance = ModelManager()
-        _model_manager_instance.discover_models()
+        # _model_manager_instance.discover_models()
     return _model_manager_instance
 
 
