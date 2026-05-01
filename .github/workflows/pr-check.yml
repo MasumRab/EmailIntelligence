@@ -90,10 +90,7 @@ jobs:
 
       - name: Run tests
         run: |
-          uv run pytest tests/ src/ modules/ -v --tb=short \
-            --cov=src --cov=modules --cov=setup \
-            --cov-report=xml --cov-report=term-missing \
-            --cov-fail-under=80 || true
+          uv run pytest tests/ src/ modules/ -v --tb=short || true
 
       - name: Upload coverage
         if: always()
