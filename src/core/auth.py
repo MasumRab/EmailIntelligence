@@ -31,7 +31,7 @@ class TokenData(BaseModel):
     role: Optional[str] = "user"
 
 
-from enum import Enum  # noqa: E402
+from enum import Enum
 
 
 class UserRole(str, Enum):
@@ -102,10 +102,10 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     ph = PasswordHasher()
     try:
         return ph.verify(hashed_password, plain_password)
-    except Exception.VerifyMismatchError:
+    except argon2.exceptions.VerifyMismatchError:
         # Password verification failed
         return False
-    except Exception.InvalidHashError:
+    except argon2.exceptions.InvalidHashError:
         # Invalid hash format
         logger.warning("Invalid password hash format")
         return False
