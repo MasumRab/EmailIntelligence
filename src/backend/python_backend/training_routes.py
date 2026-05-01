@@ -1,6 +1,7 @@
 """
-DEPRECATED: This module is part of the deprecated `backend` package.
-It will be removed in a future release.
+Legacy Component - Maintained for Backward Compatibility.
+Kept to preserve compatibility and to allow open PRs to migrate into the main architecture.
+Planned migration: track related PRs; do not remove without explicit cross-team approval.
 
 Training Routes for AI Model Training
 
@@ -10,7 +11,7 @@ This module provides API endpoints for training AI models used in email analysis
 import logging
 from typing import Any, Dict
 
-from fastapi import APIRouter, BackgroundTasks, HTTPException
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 
 from src.core.auth import get_current_active_user
 
@@ -63,7 +64,9 @@ async def start_training(
 
 @router.get("/api/training/status/{job_id}")
 @log_performance(operation="get_training_status")
-async def get_training_status(job_id: str, current_user: str = Depends(get_current_active_user)):
+async def get_training_status(
+    job_id: str, current_user: str = Depends(get_current_active_user)
+):
     """
     Get the status of a training job.
 
@@ -154,9 +157,9 @@ async def run_training(job_id: str, model_config: ModelConfig):
         joblib.dump((model, vectorizer), model_path)
 
         training_jobs[job_id]["status"] = "completed"
-        training_jobs[job_id][
-            "message"
-        ] = f"Training completed successfully. Accuracy: {accuracy:.2f}"
+        training_jobs[job_id]["message"] = (
+            f"Training completed successfully. Accuracy: {accuracy:.2f}"
+        )
         training_jobs[job_id]["accuracy"] = accuracy
         training_jobs[job_id]["model_path"] = model_path
 

@@ -1,6 +1,7 @@
 """
-DEPRECATED: This module is part of the deprecated `backend` package.
-It will be removed in a future release.
+Legacy Component - Maintained for Backward Compatibility.
+Kept to preserve compatibility and to allow open PRs to migrate into the main architecture.
+Planned migration: track related PRs; do not remove without explicit cross-team approval.
 
 Base classes for the node-based workflow system.
 
@@ -65,8 +66,6 @@ class GenericType:
         )
 
 
-
-
 class SecurityContext:
     """Security context for node execution."""
 
@@ -106,7 +105,11 @@ class Connection:
     """Represents a connection between two nodes."""
 
     def __init__(
-        self, source_node_id: str, source_port: str, target_node_id: str, target_port: str
+        self,
+        source_node_id: str,
+        source_port: str,
+        target_node_id: str,
+        target_port: str,
     ):
         self.source_node_id = source_node_id
         self.source_port = source_port
@@ -142,7 +145,9 @@ class ExecutionContext:
             return node_output.get(port_name)
         return None
 
-    def add_error(self, node_id: str, error: str, details: Optional[Dict[str, Any]] = None):
+    def add_error(
+        self, node_id: str, error: str, details: Optional[Dict[str, Any]] = None
+    ):
         """Add an error to the execution context."""
         error_info = {
             "node_id": node_id,
@@ -156,7 +161,12 @@ class ExecutionContext:
 class BaseNode(ABC):
     """Abstract base class for all nodes in the workflow system."""
 
-    def __init__(self, node_id: Optional[str] = None, name: Optional[str] = None, description: str = ""):
+    def __init__(
+        self,
+        node_id: Optional[str] = None,
+        name: Optional[str] = None,
+        description: str = "",
+    ):
         self.node_id = node_id or str(uuid.uuid4())
         self.name = name or self.__class__.__name__
         self.description = description
@@ -164,7 +174,9 @@ class BaseNode(ABC):
         self.output_ports: List[NodePort] = []
         self.inputs: Dict[str, Any] = {}
         self.outputs: Dict[str, Any] = {}
-        self.logger = logging.getLogger(f"{self.__class__.__module__}.{self.__class__.__name__}")
+        self.logger = logging.getLogger(
+            f"{self.__class__.__module__}.{self.__class__.__name__}"
+        )
         self._parent_workflow_id: Optional[str] = None
 
     @abstractmethod
@@ -245,13 +257,17 @@ class BaseNode(ABC):
 class Workflow:
     """Represents a complete workflow of connected nodes."""
 
-    def __init__(self, workflow_id: Optional[str] = None, name: str = "", description: str = ""):
+    def __init__(
+        self, workflow_id: Optional[str] = None, name: str = "", description: str = ""
+    ):
         self.workflow_id = workflow_id or str(uuid.uuid4())
         self.name = name
         self.description = description
         self.nodes: Dict[str, BaseNode] = {}
         self.connections: List[Connection] = []
-        self.logger = logging.getLogger(f"{self.__class__.__module__}.{self.__class__.__name__}")
+        self.logger = logging.getLogger(
+            f"{self.__class__.__module__}.{self.__class__.__name__}"
+        )
 
     def add_node(self, node: BaseNode):
         """Add a node to the workflow."""
@@ -273,22 +289,30 @@ class Workflow:
         """Add a connection between nodes."""
         # Validate that the nodes exist in the workflow
         if connection.source_node_id not in self.nodes:
-            raise ValueError(f"Source node {connection.source_node_id} does not exist in workflow")
+            raise ValueError(
+                f"Source node {connection.source_node_id} does not exist in workflow"
+            )
         if connection.target_node_id not in self.nodes:
-            raise ValueError(f"Target node {connection.target_node_id} does not exist in workflow")
+            raise ValueError(
+                f"Target node {connection.target_node_id} does not exist in workflow"
+            )
 
         # Validate the ports exist on the respective nodes
         source_node = self.nodes[connection.source_node_id]
         target_node = self.nodes[connection.target_node_id]
 
-        source_port_exists = any(p.name == connection.source_port for p in source_node.output_ports)
+        source_port_exists = any(
+            p.name == connection.source_port for p in source_node.output_ports
+        )
         if not source_port_exists:
             raise ValueError(
                 f"Source port {connection.source_port} does not exist on node "
                 f"{connection.source_node_id}"
             )
 
-        target_port_exists = any(p.name == connection.target_port for p in target_node.input_ports)
+        target_port_exists = any(
+            p.name == connection.target_port for p in target_node.input_ports
+        )
         if not target_port_exists:
             raise ValueError(
                 f"Target port {connection.target_port} does not exist on node "
@@ -353,7 +377,9 @@ class Workflow:
     def _get_execution_order_manual(self) -> List[str]:
         """Fallback manual topological sort implementation."""
         # Build adjacency list of dependencies
-        dependencies: Dict[str, List[str]] = {node_id: [] for node_id in self.nodes.keys()}
+        dependencies: Dict[str, List[str]] = {
+            node_id: [] for node_id in self.nodes.keys()
+        }
 
         for conn in self.connections:
             dependencies[conn.target_node_id].append(conn.source_node_id)

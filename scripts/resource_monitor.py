@@ -32,6 +32,7 @@ class ResourceSnapshot:
 
 @dataclass
 class ProcessResourceUsage:
+    """Resource usage for a single process."""
     pid: int
     name: str
     cpu_percent: float
@@ -42,6 +43,12 @@ class ProcessResourceUsage:
     status: str
     username: str
     cmdline: List[str]
+    timestamp: float = 0.0  # Add timestamp for filtering
+    
+    def __post_init__(self):
+        # Use create_time as timestamp if not provided
+        if self.timestamp == 0.0:
+            self.timestamp = self.create_time
 
 
 @dataclass
@@ -164,7 +171,8 @@ class ResourceMonitor:
                         create_time=create_time,
                         status=status,
                         username=username,
-                        cmdline=cmdline
+                        cmdline=cmdline,
+                        timestamp=time.time()  # Add explicit timestamp for filtering
                     )
 
                     with self._lock:

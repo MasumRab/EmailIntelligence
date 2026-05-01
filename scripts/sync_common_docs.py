@@ -136,13 +136,21 @@ class DocumentationSync:
         else:
             print("docs-scientific: NOT FOUND")
 
-    def _sync_directory(self, source: Path, target: Path, conflict_strategy: str = "overwrite"):
-        """Sync contents of source directory to target directory with conflict resolution."""
+    def _sync_directory(self, source: Path, target: Path, conflict_strategy: str = "overwrite", delete_orphaned: bool = False):
+        """Sync contents of source directory to target directory with conflict resolution.
+        
+        Args:
+            source: Source directory path
+            target: Target directory path
+            conflict_strategy: How to handle conflicts ("overwrite", "backup", "skip")
+            delete_orphaned: If True, delete files in target that don't exist in source
+        """
         import filecmp
         from datetime import datetime
 
         conflicts = []
         updates = []
+        deletions = []
 
         # Walk through source directory
         for source_path in source.rglob("*"):
@@ -171,11 +179,23 @@ class DocumentationSync:
                     shutil.copy2(source_path, target_path)
                     updates.append(str(relative_path))
 
+        # Handle deletions: files in target but not in source
+        if delete_orphaned:
+            for target_path in target.rglob("*"):
+                if target_path.is_file():
+                    relative_path = target_path.relative_to(target)
+                    source_path = source / relative_path
+                    if not source_path.exists():
+                        target_path.unlink()
+                        deletions.append(str(relative_path))
+
         # Report results
         if updates:
             print(f"  Updated {len(updates)} files")
         if conflicts:
             print(f"  Resolved {len(conflicts)} conflicts")
+        if deletions:
+            print(f"  Deleted {len(deletions)} orphaned files")
 
     def _handle_conflict(self, source_path: Path, target_path: Path, relative_path: Path, strategy: str) -> bool:
         """Handle file conflicts based on the specified strategy.

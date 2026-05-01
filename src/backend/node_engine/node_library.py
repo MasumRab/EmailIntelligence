@@ -1,6 +1,7 @@
 """
-DEPRECATED: This module is part of the deprecated `backend` package.
-It will be removed in a future release.
+Legacy Component - Maintained for Backward Compatibility.
+Kept to preserve compatibility and to allow open PRs to migrate into the main architecture.
+Planned migration: track related PRs; do not remove without explicit cross-team approval.
 
 Node Library for the Email Intelligence Platform.
 
@@ -235,7 +236,11 @@ class NodeLibrary:
         return result
 
     def create_node(
-        self, node_type: str, config: Dict[str, Any] = None, node_id: str = None, name: str = None
+        self,
+        node_type: str,
+        config: Dict[str, Any] = None,
+        node_id: str = None,
+        name: str = None,
     ):
         """Create an instance of a node."""
         if node_type not in self._nodes:

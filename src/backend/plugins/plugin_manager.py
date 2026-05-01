@@ -1,6 +1,7 @@
 """
-DEPRECATED: This module is part of the deprecated `backend` package.
-It will be removed in a future release.
+Legacy Component - Maintained for Backward Compatibility.
+Kept to preserve compatibility and to allow open PRs to migrate into the main architecture.
+Planned migration: track related PRs; do not remove without explicit cross-team approval.
 
 Plugin Manager for Email Intelligence Platform
 
@@ -50,7 +51,9 @@ class PluginManager:
                             if issubclass(obj, ProcessingNode):
                                 # Create an instance and register it
                                 plugin_instance = obj()
-                                self._processing_nodes[plugin_instance.name] = plugin_instance
+                                self._processing_nodes[plugin_instance.name] = (
+                                    plugin_instance
+                                )
                                 logger.info(
                                     f"Loaded processing node plugin: {plugin_instance.name}"
                                 )
@@ -58,7 +61,9 @@ class PluginManager:
                                 # Create an instance and register it
                                 plugin_instance = obj()
                                 self._ui_plugins[plugin_instance.name] = plugin_instance
-                                logger.info(f"Loaded UI component plugin: {plugin_instance.name}")
+                                logger.info(
+                                    f"Loaded UI component plugin: {plugin_instance.name}"
+                                )
                             elif issubclass(obj, BasePlugin):
                                 # Create an instance and register it
                                 plugin_instance = obj()

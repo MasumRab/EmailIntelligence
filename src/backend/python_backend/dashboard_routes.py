@@ -5,6 +5,8 @@ This module defines the API routes for the dashboard endpoints,
 including statistics and metrics for the Email Intelligence platform.
 """
 
+import logging
+
 from fastapi import APIRouter, Depends, HTTPException
 from typing import Dict, Any
 
@@ -15,11 +17,13 @@ from src.core.auth import get_current_active_user
 
 router = APIRouter(prefix="/api/dashboard", tags=["dashboard"])
 
+logger = logging.getLogger(__name__)
+
 
 @router.get("/stats", response_model=Dict[str, Any])
 async def get_dashboard_stats(
     email_service: EmailService = Depends(get_email_service),
-    current_user: str = Depends(get_current_active_user)
+    current_user: str = Depends(get_current_active_user),
 ):
     """
     Retrieve dashboard statistics including total emails, auto-labeled count,
@@ -50,6 +54,7 @@ async def get_dashboard_stats(
 
         # Trigger background job for growth calculation (non-blocking)
         from src.core.job_queue import get_job_queue
+
         job_queue = get_job_queue()
         growth_job_id = job_queue.enqueue_weekly_growth_calculation(email_service)
 
@@ -58,19 +63,21 @@ async def get_dashboard_stats(
             auto_labeled=auto_labeled,
             categories=categories_count,
             time_saved=time_saved,
-            weekly_growth=weekly_growth
+            weekly_growth=weekly_growth,
         )
 
         return {
             "success": True,
             "data": stats,
-            "jobs": {
-                "weekly_growth_job": growth_job_id
-            },
-            "message": "Dashboard statistics retrieved successfully"
+            "jobs": {"weekly_growth_job": growth_job_id},
+            "message": "Dashboard statistics retrieved successfully",
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to fetch dashboard stats: {str(e)}") from e
+        # Log the actual error server-side but return generic message to client
+        logger.exception(f"Failed to fetch dashboard stats: {e}")
+        raise HTTPException(
+            status_code=500, detail="Failed to fetch dashboard stats. Please try again later."
+        ) from e
 
 
 @router.get("/jobs/{job_id}")
@@ -90,17 +97,23 @@ def get_job_status(job_id: str, current_user: str = Depends(get_current_active_u
             "status": job_result.status,
             "result": job_result.result,
             "error": job_result.error,
-            "created_at": job_result.created_at.isoformat() if job_result.created_at else None,
-            "completed_at": job_result.completed_at.isoformat() if job_result.completed_at else None
+            "created_at": job_result.created_at.isoformat()
+            if job_result.created_at
+            else None,
+            "completed_at": job_result.completed_at.isoformat()
+            if job_result.completed_at
+            else None,
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to get job status: {str(e)}") from e
+        raise HTTPException(
+            status_code=500, detail=f"Failed to get job status: {str(e)}"
+        ) from e
 
 
 @router.post("/jobs/weekly-growth")
 def trigger_weekly_growth_calculation(
     email_service: EmailService = Depends(get_email_service),
-    current_user: str = Depends(get_current_active_user)
+    current_user: str = Depends(get_current_active_user),
 ):
     """
     Manually trigger weekly growth calculation as background job
@@ -114,7 +127,7 @@ def trigger_weekly_growth_calculation(
         return {
             "success": True,
             "job_id": job_id,
-            "message": "Weekly growth calculation job queued"
+            "message": "Weekly growth calculation job queued",
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to queue job: {str(e)}")
@@ -123,7 +136,7 @@ def trigger_weekly_growth_calculation(
 @router.post("/jobs/performance-metrics")
 def trigger_performance_metrics_aggregation(
     email_service: EmailService = Depends(get_email_service),
-    current_user: str = Depends(get_current_active_user)
+    current_user: str = Depends(get_current_active_user),
 ):
     """
     Manually trigger performance metrics aggregation as background job
@@ -137,7 +150,7 @@ def trigger_performance_metrics_aggregation(
         return {
             "success": True,
             "job_id": job_id,
-            "message": "Performance metrics aggregation job queued"
+            "message": "Performance metrics aggregation job queued",
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to queue job: {str(e)}")

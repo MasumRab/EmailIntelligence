@@ -1,6 +1,7 @@
 """
-DEPRECATED: This module is part of the deprecated `backend` package.
-It will be removed in a future release.
+Legacy Component - Maintained for Backward Compatibility.
+Kept to preserve compatibility and to allow open PRs to migrate into the main architecture.
+Planned migration: track related PRs; do not remove without explicit cross-team approval.
 
 API routes for enhanced features: model management, workflows, and performance monitoring
 """
@@ -53,7 +54,9 @@ async def load_model(model_name: str):
     """Load a specific model into memory."""
     success = model_manager.load_model(model_name)
     if not success:
-        raise HTTPException(status_code=400, detail=f"Failed to load model {model_name}")
+        raise HTTPException(
+            status_code=400, detail=f"Failed to load model {model_name}"
+        )
     return {"message": f"Model {model_name} loaded successfully"}
 
 
@@ -62,7 +65,9 @@ async def unload_model(model_name: str):
     """Unload a specific model from memory."""
     success = model_manager.unload_model(model_name)
     if not success:
-        raise HTTPException(status_code=400, detail=f"Failed to unload model {model_name}")
+        raise HTTPException(
+            status_code=400, detail=f"Failed to unload model {model_name}"
+        )
     return {"message": f"Model {model_name} unloaded successfully"}
 
 
@@ -124,7 +129,11 @@ async def get_workflow(workflow_id: str):
 @router.post("/workflows")
 async def create_workflow(request: WorkflowCreateRequest):
     """Create a new workflow."""
-    from backend.node_engine.email_nodes import AIAnalysisNode, EmailSourceNode, PreprocessingNode
+    from backend.node_engine.email_nodes import (
+        AIAnalysisNode,
+        EmailSourceNode,
+        PreprocessingNode,
+    )
     from backend.node_engine.node_base import Workflow
 
     workflow = Workflow(name=request.name, description=request.description)
@@ -141,7 +150,9 @@ async def create_workflow(request: WorkflowCreateRequest):
     from backend.node_engine.node_base import Connection
 
     workflow.add_connection(Connection("input_1", "emails", "processor_1", "emails"))
-    workflow.add_connection(Connection("processor_1", "processed_emails", "output_1", "emails"))
+    workflow.add_connection(
+        Connection("processor_1", "processed_emails", "output_1", "emails")
+    )
 
     file_path = workflow_manager.save_workflow(workflow)
 
@@ -166,7 +177,10 @@ async def get_performance_metrics(minutes: int = 5, source_filter: str = None):
     metrics = performance_monitor.get_recent_metrics(minutes, source_filter)
     return [
         PerformanceMetricResponse(
-            timestamp=metric.timestamp, value=metric.value, unit=metric.unit, source=metric.source
+            timestamp=metric.timestamp,
+            value=metric.value,
+            unit=metric.unit,
+            source=metric.source,
         )
         for metric in metrics
     ]

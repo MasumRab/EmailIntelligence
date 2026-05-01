@@ -1,6 +1,7 @@
 """
-DEPRECATED: This module is part of the deprecated `backend` package.
-It will be removed in a future release.
+Legacy Component - Maintained for Backward Compatibility.
+Kept to preserve compatibility and to allow open PRs to migrate into the main architecture.
+Planned migration: track related PRs; do not remove without explicit cross-team approval.
 
 Workflow Manager for the Email Intelligence Platform.
 
@@ -29,7 +30,9 @@ class WorkflowManager:
 
     def __init__(self, workflows_dir: str = "data/workflows"):
         self.workflows_dir = workflows_dir
-        self.logger = logging.getLogger(f"{self.__class__.__module__}.{self.__class__.__name__}")
+        self.logger = logging.getLogger(
+            f"{self.__class__.__module__}.{self.__class__.__name__}"
+        )
 
         # Create workflows directory if it doesn't exist
         os.makedirs(workflows_dir, exist_ok=True)
@@ -72,7 +75,9 @@ class WorkflowManager:
         raw_filepath = os.path.join(self.workflows_dir, filename)
         filepath = os.path.normpath(raw_filepath)
         if not filepath.startswith(os.path.abspath(self.workflows_dir) + os.sep):
-            self.logger.warning(f"Attempted file access outside workflows_dir: {filepath}")
+            self.logger.warning(
+                f"Attempted file access outside workflows_dir: {filepath}"
+            )
             return None
 
         if not os.path.exists(filepath):
@@ -111,10 +116,16 @@ class WorkflowManager:
                             "id": workflow_data.get("workflow_id"),
                             "name": workflow_data.get("name", "Unnamed"),
                             "description": workflow_data.get("description", ""),
-                            "created_at": workflow_data.get("metadata", {}).get("created_at"),
-                            "modified_at": workflow_data.get("metadata", {}).get("modified_at"),
+                            "created_at": workflow_data.get("metadata", {}).get(
+                                "created_at"
+                            ),
+                            "modified_at": workflow_data.get("metadata", {}).get(
+                                "modified_at"
+                            ),
                             "node_count": len(workflow_data.get("nodes", [])),
-                            "connection_count": len(workflow_data.get("connections", [])),
+                            "connection_count": len(
+                                workflow_data.get("connections", [])
+                            ),
                         }
                     )
                 except Exception as e:
@@ -136,7 +147,9 @@ class WorkflowManager:
         raw_filepath = os.path.join(self.workflows_dir, filename)
         filepath = os.path.normpath(raw_filepath)
         if not filepath.startswith(os.path.abspath(self.workflows_dir) + os.sep):
-            self.logger.warning(f"Attempted deletion of file outside workflows_dir: {filepath}")
+            self.logger.warning(
+                f"Attempted deletion of file outside workflows_dir: {filepath}"
+            )
             return False
 
         if os.path.exists(filepath):

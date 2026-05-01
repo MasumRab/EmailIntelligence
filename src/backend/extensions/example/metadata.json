@@ -1,5 +1,5 @@
 {
-    "deprecated": true,
+    "Legacy": true,
     "name": "example",
     "version": "0.1.0",
     "description": "Example extension that enhances sentiment analysis with emojis and detailed metrics",

@@ -201,7 +201,7 @@ def test_job_progress():
 
         # Get updated progress
         updated_progress = manager.get_job_progress(job_id)
-        assert updated_progress['completed_segments'] == 1, "Should have 1 completed segment"
+        assert updated_progress['completed_units'] == 1, "Should have 1 completed segment"
         assert updated_progress['progress_percentage'] == 33.333333333333336, "Progress should be ~33%"
 
         print("✓ Job progress tracking test passed")
@@ -317,7 +317,7 @@ def test_agent_translation_stats():
             source_segments=source_segments
         )
 
-        manager.start_translation_job(job_id, ["stats-agent"])
+        manager.start_job_processing(job_id)
 
         # Translate segments
         job = manager.get_translation_job(job_id)
@@ -408,7 +408,7 @@ def test_translation_persistence():
             source_segments=source_segments
         )
 
-        manager1.start_translation_job(job_id, ["persist-agent"])
+        manager1.start_job_processing(job_id)
 
         # Translate a segment
         job = manager1.get_translation_job(job_id)

@@ -1,6 +1,7 @@
 """
-DEPRECATED: This module is part of the deprecated `backend` package.
-It will be removed in a future release.
+Legacy Component - Maintained for Backward Compatibility.
+Kept to preserve compatibility and to allow open PRs to migrate into the main architecture.
+Planned migration: track related PRs; do not remove without explicit cross-team approval.
 
 Category service for the Email Intelligence Platform
 Handles all category-related business logic
@@ -29,7 +30,9 @@ class CategoryService(BaseService):
             db = await self.get_db()
             categories = await db.get_all_categories()
             return BaseResponse(
-                success=True, message="Categories retrieved successfully", data=categories
+                success=True,
+                message="Categories retrieved successfully",
+                data=categories,
             )
         except Exception as e:
             return await self.handle_error(e, "get_all_categories")
@@ -41,7 +44,9 @@ class CategoryService(BaseService):
             created_category = await db.create_category(category_data)
             if created_category:
                 return BaseResponse(
-                    success=True, message="Category created successfully", data=created_category
+                    success=True,
+                    message="Category created successfully",
+                    data=created_category,
                 )
             else:
                 return BaseResponse(
@@ -52,14 +57,18 @@ class CategoryService(BaseService):
         except Exception as e:
             return await self.handle_error(e, "create_category")
 
-    async def update_category(self, category_id: int, update_data: Dict[str, Any]) -> BaseResponse:
+    async def update_category(
+        self, category_id: int, update_data: Dict[str, Any]
+    ) -> BaseResponse:
         """Update a category by its ID"""
         try:
             db = await self.get_db()
             updated_category = await db.update_category(category_id, update_data)
             if updated_category:
                 return BaseResponse(
-                    success=True, message="Category updated successfully", data=updated_category
+                    success=True,
+                    message="Category updated successfully",
+                    data=updated_category,
                 )
             else:
                 return BaseResponse(

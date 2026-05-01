@@ -1,14 +1,15 @@
 """
-DEPRECATED: This module is part of the deprecated `backend` package.
-It will be removed in a future release.
+Legacy Component - Maintained for Backward Compatibility.
+Kept to preserve compatibility and to allow open PRs to migrate into the main architecture.
+Planned migration: track related PRs; do not remove without explicit cross-team approval.
 
 Version 1 API routes for category operations
 Following the new architectural patterns with service layer and API versioning
 """
 
-from typing import List
+from typing import List, Optional
 import logging
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, HTTPException, Request
 
 from src.core.models import CategoryResponse, CategoryCreate
 from backend.python_backend.services.category_service import CategoryService
@@ -43,10 +44,8 @@ async def get_categories_v1(
         # since the response model is List[CategoryResponse]
         return result.data
     else:
-        # Handle error case - in a complete implementation, we'd have specific error handling
-        from fastapi import HTTPException
-
-        raise HTTPException(status_code=500, detail=result.error)
+        # Handle error case - return generic message to avoid leaking internal error details
+        raise HTTPException(status_code=500, detail="Failed to retrieve categories")
 
 
 @router.post("/categories", response_model=CategoryResponse)
@@ -79,7 +78,5 @@ async def create_category_v1(
         # for now we'll use the returned data directly
         return result.data
     else:
-        # Handle error case
-        from fastapi import HTTPException
-
-        raise HTTPException(status_code=500, detail=result.error)
+        # Handle error case - return generic message to avoid leaking internal error details
+        raise HTTPException(status_code=500, detail="Failed to create category")

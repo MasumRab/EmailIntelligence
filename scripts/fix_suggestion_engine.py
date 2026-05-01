@@ -46,6 +46,22 @@ class FixSuggestionEngine:
         self.applied_fixes = []
         self.suggestion_log = []
 
+    def _parse_confidence(self, confidence_val) -> FixConfidence:
+        """Parse confidence value from various formats."""
+        if isinstance(confidence_val, FixConfidence):
+            return confidence_val
+        if isinstance(confidence_val, str):
+            # Normalize the string: strip, uppercase, remove enum prefix if present
+            normalized = confidence_val.strip().upper()
+            if '.' in normalized:
+                normalized = normalized.split('.')[-1]
+            try:
+                return FixConfidence[normalized]
+            except KeyError:
+                pass
+        # Default to LOW if parsing fails
+        return FixConfidence.LOW
+
     def _load_fix_patterns(self) -> Dict:
         """Load fix patterns and rules."""
         # In a real implementation, this would load from a configuration file
@@ -112,7 +128,7 @@ class FixSuggestionEngine:
                         line_number=i,
                         original_text=match.group(0),
                         suggested_text=re.sub(pattern_info['pattern'], pattern_info['replacement'], match.group(0)),
-                        confidence=FixConfidence[pattern_info['confidence'].upper()],
+                        confidence=self._parse_confidence(pattern_info['confidence']),
                         description=pattern_info['description'],
                         auto_apply=pattern_info['auto_apply'],
                         suggestion_id=f"link_{len(suggestions)}"
@@ -163,7 +179,7 @@ class FixSuggestionEngine:
                         line_number=i,
                         original_text=match.group(0),
                         suggested_text=re.sub(pattern_info['pattern'], pattern_info['replacement'], match.group(0)),
-                        confidence=FixConfidence[pattern_info['confidence'].upper()],
+                        confidence=self._parse_confidence(pattern_info['confidence']),
                         description=pattern_info['description'],
                         auto_apply=pattern_info['auto_apply'],
                         suggestion_id=f"format_{len(suggestions)}"
@@ -186,7 +202,7 @@ class FixSuggestionEngine:
                     line_number=None,
                     original_text=match.group(0),
                     suggested_text=re.sub(pattern_info['pattern'], pattern_info['replacement'], match.group(0)),
-                    confidence=FixConfidence[pattern_info['confidence'].upper()],
+                    confidence=self._parse_confidence(pattern_info['confidence']),
                     description=pattern_info['description'],
                     auto_apply=pattern_info['auto_apply'],
                     suggestion_id=f"consistency_{len(suggestions)}"

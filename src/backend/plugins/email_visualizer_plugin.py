@@ -1,6 +1,7 @@
 """
-DEPRECATED: This module is part of the deprecated `backend` package.
-It will be removed in a future release.
+Legacy Component - Maintained for Backward Compatibility.
+Kept to preserve compatibility and to allow open PRs to migrate into the main architecture.
+Planned migration: track related PRs; do not remove without explicit cross-team approval.
 
 Sample UI Component Plugin for Email Intelligence Platform
 
@@ -46,7 +47,9 @@ class EmailVisualizerPlugin(UIComponentPlugin):
         return [
             gr.Markdown("## Email Visualization Tools"),
             gr.Textbox(label="Search Emails"),
-            gr.Dropdown(["All", "Important", "Unread", "Filtered"], label="Filter View"),
+            gr.Dropdown(
+                ["All", "Important", "Unread", "Filtered"], label="Filter View"
+            ),
         ]
 
     def get_input_widgets(self) -> List[gr.components.Component]:

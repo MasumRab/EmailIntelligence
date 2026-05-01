@@ -1,6 +1,7 @@
 """
-DEPRECATED: This module is part of the deprecated `backend` package.
-It will be removed in a future release.
+Legacy Component - Maintained for Backward Compatibility.
+Kept to preserve compatibility and to allow open PRs to migrate into the main architecture.
+Planned migration: track related PRs; do not remove without explicit cross-team approval.
 
 Base service class for the Email Intelligence Platform
 Provides common functionality for all services
@@ -35,7 +36,9 @@ class BaseService(ABC):
             self._db = await get_db()
         return self._db
 
-    async def handle_error(self, error: Exception, operation: str = "unknown") -> BaseResponse:
+    async def handle_error(
+        self, error: Exception, operation: str = "unknown"
+    ) -> BaseResponse:
         """Handle errors consistently across services"""
         error_msg = f"Error in {operation}: {str(error)}"
         return BaseResponse(success=False, message="An error occurred", error=error_msg)

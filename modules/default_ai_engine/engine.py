@@ -45,7 +45,10 @@ class DefaultAIEngine(BaseAIEngine):
         return None
 
     async def analyze_email(
-        self, subject: str, content: str, categories: Optional[List[Dict[str, Any]]] = None
+        self,
+        subject: str,
+        content: str,
+        categories: Optional[List[Dict[str, Any]]] = None,
     ) -> AIAnalysisResult:
         """Analyzes email content and returns a standardized analysis result."""
         try:
@@ -60,7 +63,10 @@ class DefaultAIEngine(BaseAIEngine):
         except Exception as e:
             logger.error(f"An error occurred during AI analysis: {e}", exc_info=True)
             return AIAnalysisResult(
-                {"reasoning": f"AI analysis error: {e}", "risk_flags": ["ai_analysis_failed"]}
+                {
+                    "reasoning": f"AI analysis error: {e}",
+                    "risk_flags": ["ai_analysis_failed"],
+                }
             )
 
     def health_check(self) -> Dict[str, Any]:
@@ -85,16 +91,29 @@ class DefaultAIEngine(BaseAIEngine):
             if training_data is None:
                 # Define sample training data
                 training_data = {
-                    "sentiment": {"texts": ["I love this", "This is terrible"], "labels": ["positive", "negative"]},
-                    "topic": {"texts": ["Meeting tomorrow", "Invoice due"], "labels": ["work_business", "finance_banking"]},
+                    "sentiment": {
+                        "texts": ["I love this", "This is terrible"],
+                        "labels": ["positive", "negative"],
+                    },
+                    "topic": {
+                        "texts": ["Meeting tomorrow", "Invoice due"],
+                        "labels": ["work_business", "finance_banking"],
+                    },
                 }
 
             # Train and save models
             for model_type, data in training_data.items():
                 logger.info(f"Training {model_type} model...")
-                pipeline = Pipeline([("tfidf", TfidfVectorizer(max_features=1000)), ("clf", LogisticRegression())])
+                pipeline = Pipeline(
+                    [
+                        ("tfidf", TfidfVectorizer(max_features=1000)),
+                        ("clf", LogisticRegression()),
+                    ]
+                )
                 pipeline.fit(data["texts"], data["labels"])
-                model_path = os.path.join(self.nlp_engine.model_dir, f"{model_type}_model.pkl")
+                model_path = os.path.join(
+                    self.nlp_engine.model_dir, f"{model_type}_model.pkl"
+                )
                 joblib.dump(pipeline, model_path)
                 logger.info(f"{model_type.capitalize()} model saved to {model_path}")
 

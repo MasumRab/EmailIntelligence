@@ -77,9 +77,9 @@ class ChangeDetector:
             if cached.mtime == mtime:
                 return cached
 
-        # Calculate new hash
+        # Calculate new hash and store with relative path (consistent with lookups)
         hash_value = self.calculate_file_hash(file_path)
-        file_hash = FileHash(str(file_path), hash_value, mtime)
+        file_hash = FileHash(relative_path, hash_value, mtime)  # Store relative path, not absolute
         self.hash_cache[relative_path] = file_hash
         self.save_hash_cache()
         return file_hash

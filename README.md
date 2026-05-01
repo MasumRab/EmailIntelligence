@@ -29,7 +29,7 @@ The application uses a modular architecture with a unified launcher system (`lau
 
 The Gradio UI acts as a full-featured client to the FastAPI backend.
 
-```
+```text
 Gradio UI (gradio_app.py)
 =========================
 |
@@ -54,7 +54,12 @@ Gradio UI (gradio_app.py)
 
 ## Prerequisites
 
-## Getting Started
+- **Python 3.12+**: Required for the backend services
+- **Node.js 16+**: Required for the frontend (optional if running API-only)
+- **Git**: For cloning the repository
+- **Conda (optional)**: For conda environment management (venv is used by default)
+
+## Getting Started {#quick-start}
 
 A single script, `launch.py`, manages the entire development environment, from installing dependencies to running services.
 
@@ -112,7 +117,7 @@ The application is composed of five main, interconnected services:
 
 ## Directory Structure
 
-```
+```text
 .
 ├── backend/
 │   ├── node_engine/      # Node-based workflow engine and specialized email nodes
@@ -178,8 +183,8 @@ Use `python launch.py --help` to see all available options.
 
 ## Troubleshooting
 
-2.  **Run the Launcher Script:**
-    This script automates the entire setup and launch process.
+**Run the Launcher Script:**
+This script automates the entire setup and launch process.
 
     *   For Linux/macOS:
         ```bash

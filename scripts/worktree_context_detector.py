@@ -52,8 +52,8 @@ def get_worktree_path():
 
 def main():
     if len(sys.argv) > 1 and sys.argv[1] == '--worktree':
-        branch = get_current_branch()
-        print(branch)
+        worktree = get_worktree_path()
+        print(worktree if worktree else "")
     else:
         # Default behavior
         branch = get_current_branch()

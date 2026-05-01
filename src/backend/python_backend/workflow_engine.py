@@ -75,7 +75,11 @@ class WorkflowEngine:
 
     def _save_settings(self):
         """Saves the current settings to the JSON file."""
-        settings = {"active_workflow": self.active_workflow.name if self.active_workflow else None}
+        settings = {
+            "active_workflow": self.active_workflow.name
+            if self.active_workflow
+            else None
+        }
         try:
             with open(self.settings_file, "w") as f:
                 json.dump(settings, f, indent=4)
@@ -86,7 +90,9 @@ class WorkflowEngine:
     def register_workflow(self, workflow: BaseWorkflow):
         """Registers a new workflow."""
         if workflow.name in self._workflows:
-            logger.warning(f"Workflow '{workflow.name}' is already registered. Overwriting.")
+            logger.warning(
+                f"Workflow '{workflow.name}' is already registered. Overwriting."
+            )
         logger.info(f"Registering workflow: {workflow.name}")
         self._workflows[workflow.name] = workflow
 
@@ -118,7 +124,9 @@ class WorkflowEngine:
                 try:
                     with open(file_path, "r") as f:
                         config = json.load(f)
-                        await self.create_and_register_workflow_from_config(config, from_file=True)
+                        await self.create_and_register_workflow_from_config(
+                            config, from_file=True
+                        )
                 except Exception as e:
                     logger.error(f"Failed to load workflow from '{filename}': {e}")
 
@@ -131,7 +139,9 @@ class WorkflowEngine:
         else:
             self.set_active_workflow(default_workflow.name)
 
-        logger.info(f"Workflows discovered. Active workflow: '{self.active_workflow.name}'")
+        logger.info(
+            f"Workflows discovered. Active workflow: '{self.active_workflow.name}'"
+        )
 
     async def create_and_register_workflow_from_config(
         self, config: Dict[str, Any], from_file: bool = False
@@ -145,7 +155,9 @@ class WorkflowEngine:
             raise ValueError(f"A workflow with name '{workflow_name}' already exists.")
 
         # Create the workflow instance first to ensure it's valid
-        file_workflow = FileBasedWorkflow(self._ai_engine, self._filter_manager, self._db, config)
+        file_workflow = FileBasedWorkflow(
+            self._ai_engine, self._filter_manager, self._db, config
+        )
 
         # Save the configuration to a file if it's a new creation from the API
         if not from_file:
@@ -199,11 +211,18 @@ class DefaultWorkflow(BaseWorkflow):
         return "default"
 
     async def execute(self, email_data: Dict[str, Any]) -> Dict[str, Any]:
-        logger.info(f"Executing default workflow for email: {email_data.get('subject')}")
-        ai_analysis = await self._ai_engine.analyze_email(
-            email_data["subject"], email_data["content"], models_to_use=self.models, db=self._db
+        logger.info(
+            f"Executing default workflow for email: {email_data.get('subject')}"
         )
-        filter_results = await self._filter_manager.apply_filters_to_email_data(email_data)
+        ai_analysis = await self._ai_engine.analyze_email(
+            email_data["subject"],
+            email_data["content"],
+            models_to_use=self.models,
+            db=self._db,
+        )
+        filter_results = await self._filter_manager.apply_filters_to_email_data(
+            email_data
+        )
         processed_data = email_data.copy()
         processed_data.update(
             {
@@ -242,9 +261,14 @@ class FileBasedWorkflow(BaseWorkflow):
             f"Executing file-based workflow '{self.name}' for email: {email_data.get('subject')}"
         )
         ai_analysis = await self._ai_engine.analyze_email(
-            email_data["subject"], email_data["content"], models_to_use=self.models, db=self._db
+            email_data["subject"],
+            email_data["content"],
+            models_to_use=self.models,
+            db=self._db,
         )
-        filter_results = await self._filter_manager.apply_filters_to_email_data(email_data)
+        filter_results = await self._filter_manager.apply_filters_to_email_data(
+            email_data
+        )
         processed_data = email_data.copy()
         processed_data.update(
             {

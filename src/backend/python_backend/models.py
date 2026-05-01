@@ -1,6 +1,7 @@
 """
-DEPRECATED: This module is part of the deprecated `backend` package.
-It will be removed in a future release.
+Legacy Component - Maintained for Backward Compatibility.
+Kept to preserve compatibility and to allow open PRs to migrate into the main architecture.
+Planned migration: track related PRs; do not remove without explicit cross-team approval.
 
 Pydantic Models for Gmail AI Email Management
 Data validation and serialization models
@@ -162,7 +163,9 @@ class ActionItem(BaseModel):
     """Represents an actionable item identified in an email."""
 
     description: str = Field(..., description="The description of the action item.")
-    due_date: Optional[datetime] = Field(None, description="The due date for the action item.")
+    due_date: Optional[datetime] = Field(
+        None, description="The due date for the action item."
+    )
     completed: bool = Field(False, description="Whether the action item is completed.")
 
 
@@ -420,12 +423,16 @@ class TrainingRequest(BaseModel):
     """Model for a request to train the AI models."""
 
     trainingQuery: str = Field(default="newer_than:30d", alias="training_query")
-    maxTrainingEmails: int = Field(default=5000, ge=100, le=10000, alias="max_training_emails")
+    maxTrainingEmails: int = Field(
+        default=5000, ge=100, le=10000, alias="max_training_emails"
+    )
     modelTypes: List[str] = Field(
         default_factory=lambda: ["sentiment", "topic", "intent", "urgency"],
         alias="model_types",
     )
-    validationSplit: float = Field(default=0.2, ge=0.1, le=0.5, alias="validation_split")
+    validationSplit: float = Field(
+        default=0.2, ge=0.1, le=0.5, alias="validation_split"
+    )
 
     class Config:
         allow_population_by_field_name = True

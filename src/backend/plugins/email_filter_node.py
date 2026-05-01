@@ -1,6 +1,7 @@
 """
-DEPRECATED: This module is part of the deprecated `backend` package.
-It will be removed in a future release.
+Legacy Component - Maintained for Backward Compatibility.
+Kept to preserve compatibility and to allow open PRs to migrate into the main architecture.
+Planned migration: track related PRs; do not remove without explicit cross-team approval.
 
 Sample Email Processing Node Plugin for Email Intelligence Platform
 
@@ -51,7 +52,9 @@ class EmailFilterNode(ProcessingNode):
         """Process the input data."""
         # For this sample, we'll just pass through the run method
         if isinstance(data, dict) and "emails" in data and "filter_criteria" in data:
-            return self.run(emails=data["emails"], filter_criteria=data["filter_criteria"])
+            return self.run(
+                emails=data["emails"], filter_criteria=data["filter_criteria"]
+            )
         return {"filtered_emails": [], "stats": {}}
 
     def run(self, **kwargs) -> Dict[str, Any]:
@@ -70,7 +73,10 @@ class EmailFilterNode(ProcessingNode):
             # Example: filter by sender
             if "sender" in criteria:
                 sender_filter = criteria["sender"]
-                if sender_filter and email.get("sender", "").lower() != sender_filter.lower():
+                if (
+                    sender_filter
+                    and email.get("sender", "").lower() != sender_filter.lower()
+                ):
                     include = False
 
             # Example: filter by subject contains

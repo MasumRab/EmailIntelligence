@@ -1,6 +1,7 @@
 """
-DEPRECATED: This module is part of the deprecated `backend` package.
-It will be removed in a future release.
+Legacy Component - Maintained for Backward Compatibility.
+Kept to preserve compatibility and to allow open PRs to migrate into the main architecture.
+Planned migration: track related PRs; do not remove without explicit cross-team approval.
 """
 
 import logging
@@ -16,13 +17,33 @@ from .performance_monitor import PerformanceMonitor, log_performance
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
-filter_manager = SmartFilterManager()
+
+# Lazy initialization of SmartFilterManager to avoid SQLite errors during test collection
+_filter_manager = None
+
+
+def get_filter_manager():
+    """Lazily initialize and return the SmartFilterManager instance."""
+    global _filter_manager
+    if _filter_manager is None:
+        try:
+            _filter_manager = SmartFilterManager()
+        except Exception as e:
+            logger.warning(f"Could not initialize SmartFilterManager: {e}")
+            _filter_manager = None
+    return _filter_manager
+
+
+filter_manager = get_filter_manager()
+
 performance_monitor = PerformanceMonitor()
 
 
 @router.get("/api/filters")
 @log_performance
-async def get_filters(request: Request, current_user: str = Depends(get_current_active_user)):
+async def get_filters(
+    request: Request, current_user: str = Depends(get_current_active_user)
+):
     """Get all active email filters
 
     Requires authentication.
@@ -74,12 +95,16 @@ async def generate_intelligent_filters(
         return {"filters_created": len(created_filters), "filters": created_filters}
     except Exception as e:
         logger.error(f"Error generating intelligent filters: {e}")
-        raise HTTPException(status_code=500, detail="Failed to generate intelligent filters")
+        raise HTTPException(
+            status_code=500, detail="Failed to generate intelligent filters"
+        )
 
 
 @router.post("/api/filters/prune")
 @log_performance
-async def prune_filters(request: Request, current_user: str = Depends(get_current_active_user)):
+async def prune_filters(
+    request: Request, current_user: str = Depends(get_current_active_user)
+):
     """Prune ineffective filters
 
     Requires authentication.

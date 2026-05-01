@@ -1,6 +1,7 @@
 """
-DEPRECATED: This module is part of the deprecated `backend` package.
-It will be removed in a future release.
+Legacy Component - Maintained for Backward Compatibility.
+Kept to preserve compatibility and to allow open PRs to migrate into the main architecture.
+Planned migration: track related PRs; do not remove without explicit cross-team approval.
 
 Workflow Editor UI for Email Intelligence Platform
 
@@ -61,8 +62,12 @@ def create_workflow_editor_ui():
                 workflow_description = gr.Textbox(label="Description", lines=2)
 
                 with gr.Row():
-                    save_workflow_btn = gr.Button("💾 Save Workflow", variant="secondary")
-                    load_workflow_btn = gr.Button("📂 Load Workflow", variant="secondary")
+                    save_workflow_btn = gr.Button(
+                        "💾 Save Workflow", variant="secondary"
+                    )
+                    load_workflow_btn = gr.Button(
+                        "📂 Load Workflow", variant="secondary"
+                    )
 
                 workflow_list = gr.Dropdown(
                     choices=workflow_manager.list_workflows(), label="Saved Workflows"
@@ -196,9 +201,15 @@ def create_workflow_editor_ui():
                         workflow_manager.list_workflows(),
                     )
                 else:
-                    return "❌ Failed to save workflow", workflow_manager.list_workflows()
+                    return (
+                        "❌ Failed to save workflow",
+                        workflow_manager.list_workflows(),
+                    )
             except Exception as e:
-                return f"❌ Error saving workflow: {str(e)}", workflow_manager.list_workflows()
+                return (
+                    f"❌ Error saving workflow: {str(e)}",
+                    workflow_manager.list_workflows(),
+                )
 
         def load_selected_workflow(workflow_filename: str):
             try:
@@ -246,7 +257,9 @@ def create_workflow_editor_ui():
                 return {"error": str(e)}
 
         # Connect events
-        add_node_btn.click(fn=add_node_to_workflow, inputs=available_nodes, outputs=workflow_json)
+        add_node_btn.click(
+            fn=add_node_to_workflow, inputs=available_nodes, outputs=workflow_json
+        )
 
         save_workflow_btn.click(
             fn=save_current_workflow,

@@ -9,8 +9,8 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../.
 
 from modules.new_ui.backend_adapter import BackendClient
 
-class TestBackendClient(unittest.TestCase):
 
+class TestBackendClient(unittest.TestCase):
     def setUp(self):
         self.client = BackendClient()
 
@@ -22,7 +22,9 @@ class TestBackendClient(unittest.TestCase):
         # Create a mock for the analysis result
         mock_analysis_result = MagicMock()
         mock_analysis_result.to_dict.return_value = {
-            "sentiment": "positive", "confidence": 0.9, "topic": "work"
+            "sentiment": "positive",
+            "confidence": 0.9,
+            "topic": "work",
         }
 
         # Configure analyze_email to return the result object
@@ -38,7 +40,9 @@ class TestBackendClient(unittest.TestCase):
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
         try:
-            result = loop.run_until_complete(self.client.analyze_text("Subject\nContent"))
+            result = loop.run_until_complete(
+                self.client.analyze_text("Subject\nContent")
+            )
         finally:
             loop.close()
 
@@ -60,9 +64,11 @@ class TestBackendClient(unittest.TestCase):
 
         # Clean up
         import pathlib
+
         file_path = pathlib.Path(__file__).parent.parent / "data" / f"{key}.json"
         if file_path.exists():
             file_path.unlink()
+
 
 if __name__ == "__main__":
     unittest.main()

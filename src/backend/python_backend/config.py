@@ -1,6 +1,7 @@
 """
-DEPRECATED: This module is part of the deprecated `backend` package.
-It will be removed in a future release.
+Legacy Component - Maintained for Backward Compatibility.
+Kept to preserve compatibility and to allow open PRs to migrate into the main architecture.
+Planned migration: track related PRs; do not remove without explicit cross-team approval.
 
 Configuration for the FastAPI application, using Pydantic's BaseSettings.
 """
@@ -17,7 +18,9 @@ class Settings(BaseSettings):
     These settings are loaded from environment variables or a .env file.
     """
 
-    DATA_DIR: Path = Path("backend/data")  # Default, can be overridden by DATA_DIR env var
+    DATA_DIR: Path = Path(
+        "backend/data"
+    )  # Default, can be overridden by DATA_DIR env var
 
     @property
     def EMAILS_FILE(self) -> Path:

@@ -6,6 +6,7 @@ Predict and resolve conflicts before they occur in parallel workflows.
 
 import difflib
 import hashlib
+import time
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple, Set
 from dataclasses import dataclass
@@ -53,7 +54,7 @@ class ConflictPredictor:
     def add_file_change(self, path: str, content: str, operation: str, worker_id: str):
         """Add a file change to track for conflict prediction."""
         content_hash = hashlib.sha256(content.encode()).hexdigest()
-        change = FileChange(path, content_hash, operation, worker_id, 0.0)  # timestamp would be actual time
+        change = FileChange(path, content_hash, operation, worker_id, time.time())
         self.file_changes.append(change)
 
     def predict_conflicts(self, pending_changes: List[FileChange]) -> List[ConflictPrediction]:
@@ -190,28 +191,28 @@ class ConflictResolver:
             if len(worker_contents) < 2:
                 return None
 
-            # Attempt to merge using difflib
+            # Attempt to merge using difflib across all workers (not just first two)
             base_content = worker_contents[0].splitlines(keepends=True)
-            new_content = worker_contents[1].splitlines(keepends=True)
+            
+            # Merge sequentially through all worker contents
+            for i in range(1, len(worker_contents)):
+                new_content = worker_contents[i].splitlines(keepends=True)
+                merged_lines = []
+                matcher = difflib.SequenceMatcher(None, base_content, new_content)
 
-            # Create a simple merge - in a real system, this would be more sophisticated
-            merged_lines = []
-            matcher = difflib.SequenceMatcher(None, base_content, new_content)
+                for tag, i1, i2, j1, j2 in matcher.get_opcodes():
+                    if tag == 'equal':
+                        merged_lines.extend(base_content[i1:i2])
+                    elif tag == 'replace':
+                        merged_lines.extend(new_content[j1:j2])
+                    elif tag == 'delete':
+                        pass
+                    elif tag == 'insert':
+                        merged_lines.extend(new_content[j1:j2])
+                
+                base_content = merged_lines  # Use merged result for next iteration
 
-            for tag, i1, i2, j1, j2 in matcher.get_opcodes():
-                if tag == 'equal':
-                    merged_lines.extend(base_content[i1:i2])
-                elif tag == 'replace':
-                    # For overlapping changes, prefer the new content but mark conflict
-                    merged_lines.extend(new_content[j1:j2])
-                elif tag == 'delete':
-                    # Content deleted in new version
-                    pass
-                elif tag == 'insert':
-                    # Content added in new version
-                    merged_lines.extend(new_content[j1:j2])
-
-            merged_content = ''.join(merged_lines)
+            merged_content = ''.join(base_content)
 
             # Check if merge was clean (no conflicts)
             if '<<<<<<<' not in merged_content and '=======' not in merged_content:

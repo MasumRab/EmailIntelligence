@@ -1,5 +1,5 @@
 /*
- * DEPRECATED: This file is part of the deprecated `backend` package.
+ * Legacy: This file is part of the Legacy `backend` package.
  * It will be removed in a future release.
  */
 import { drizzle } from 'drizzle-orm/neon-http';

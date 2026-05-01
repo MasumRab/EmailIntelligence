@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """
-DEPRECATED: This module is part of the deprecated `backend` package.
-It will be removed in a future release.
+Legacy Component - Maintained for Backward Compatibility.
+Kept to preserve compatibility and to allow open PRs to migrate into the main architecture.
+Planned migration: track related PRs; do not remove without explicit cross-team approval.
 
 Example Extension for EmailIntelligence
 
@@ -65,7 +66,7 @@ def shutdown():
 
     # Restore original methods if needed
     try:
-        from backend.python_nlp.nlp_engine import NLPEngine
+        from backend.python_nlp.nlp_engine import NLPEngine  # noqa: F401
 
         # If we stored the original method somewhere, we could restore it here
         # For now, we'll just log that we're not restoring anything

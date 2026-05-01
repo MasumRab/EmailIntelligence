@@ -1,6 +1,7 @@
 """
-DEPRECATED: This module is part of the deprecated `backend` package.
-It will be removed in a future release.
+Legacy Component - Maintained for Backward Compatibility.
+Kept to preserve compatibility and to allow open PRs to migrate into the main architecture.
+Planned migration: track related PRs; do not remove without explicit cross-team approval.
 
 Workflow Persistence System for Email Intelligence Platform
 
@@ -30,7 +31,9 @@ class Workflow:
         self.connections: List[Dict[str, Any]] = []
         self.config: Dict[str, Any] = {}
 
-    def add_node(self, node_type: str, node_id: str, x: float = 0, y: float = 0, **kwargs) -> None:
+    def add_node(
+        self, node_type: str, node_id: str, x: float = 0, y: float = 0, **kwargs
+    ) -> None:
         """Add a node to the workflow"""
         node = {
             "id": node_id,
@@ -42,7 +45,11 @@ class Workflow:
         self.updated_at = datetime.now().isoformat()
 
     def add_connection(
-        self, source_node_id: str, source_output: str, target_node_id: str, target_input: str
+        self,
+        source_node_id: str,
+        source_output: str,
+        target_node_id: str,
+        target_input: str,
     ) -> None:
         """Add a connection between nodes"""
         connection = {
@@ -86,7 +93,9 @@ class WorkflowManager:
     def __init__(self, workflows_dir: str = "workflows"):
         self.workflows_dir = Path(workflows_dir)
         self.workflows_dir.mkdir(exist_ok=True)
-        self._workflow_history: Dict[str, List[str]] = {}  # workflow name to version history
+        self._workflow_history: Dict[
+            str, List[str]
+        ] = {}  # workflow name to version history
 
     def save_workflow(self, workflow: Workflow, filename: Optional[str] = None) -> bool:
         """Save a workflow to a JSON file"""
@@ -153,7 +162,7 @@ def get_workflow_manager() -> WorkflowManager:
     import warnings
 
     warnings.warn(
-        "get_workflow_manager from backend.python_backend.workflow_manager is deprecated. "
+        "get_workflow_manager from backend.python_backend.workflow_manager is Legacy. "
         "Use backend.node_engine.workflow_manager.workflow_manager instead.",
         DeprecationWarning,
         stacklevel=2,

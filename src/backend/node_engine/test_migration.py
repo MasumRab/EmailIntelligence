@@ -1,10 +1,10 @@
 """
-DEPRECATED: This module is part of the deprecated `backend` package.
-It will be removed in a future release.
+Legacy Component - Maintained for Backward Compatibility.
+Kept to preserve compatibility and to allow open PRs to migrate into the main architecture.
+Planned migration: track related PRs; do not remove without explicit cross-team approval.
 
 Test module for workflow migration utilities.
 """
-
 
 from backend.node_engine.migration_utils import (
     WorkflowMigrationManager,
@@ -78,7 +78,9 @@ def test_migration_manager():
 
     try:
         plan = manager.generate_migration_plan(legacy_config)
-        print(f"[PASS] Migration manager test passed! Plan has keys: {list(plan.keys())}")
+        print(
+            f"[PASS] Migration manager test passed! Plan has keys: {list(plan.keys())}"
+        )
         return True
     except Exception as e:
         print(f"[FAIL] Migration manager test failed: {e}")
