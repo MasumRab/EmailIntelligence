@@ -11,7 +11,7 @@ import shutil
 from pathlib import Path
 from typing import List, Optional
 
-from git_utils import GitHelper, create_git_helper
+from scripts.git_utils import GitHelper, create_git_helper
 
 
 class DocsBranchVersioning:

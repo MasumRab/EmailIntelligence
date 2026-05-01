@@ -10,7 +10,7 @@ import sys
 from pathlib import Path
 from typing import List
 
-from git_utils import GitHelper, create_git_helper
+from scripts.git_utils import GitHelper, create_git_helper
 
 # Global git helper instance
 git = create_git_helper()

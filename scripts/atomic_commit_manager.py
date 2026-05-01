@@ -13,7 +13,7 @@ from dataclasses import dataclass, asdict
 from datetime import datetime
 from concurrent.futures import ThreadPoolExecutor
 
-from git_utils import GitHelper, create_git_helper
+from scripts.git_utils import GitHelper, create_git_helper
 
 
 @dataclass
