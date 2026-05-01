@@ -4,16 +4,16 @@ Atomic Commit Groups
 Group related changes into atomic commits across worktrees.
 """
 
-import os
-import json
 import hashlib
-import time
+import json
+import logging
 from pathlib import Path
-from typing import Dict, List, Optional, Set, Tuple
+from typing import Dict, List, Optional
 from dataclasses import dataclass, asdict
 from datetime import datetime
 from concurrent.futures import ThreadPoolExecutor
-import subprocess
+
+from git_utils import GitHelper, create_git_helper
 
 
 @dataclass
@@ -146,39 +146,18 @@ class AtomicCommitManager:
                           commit_message: str) -> Optional[str]:
         """Commit files to a specific worktree."""
         try:
+            git = GitHelper(cwd=worktree_path)
+            
             # Add files to git
             for file_path in files:
                 full_path = worktree_path / file_path
                 if full_path.exists():
-                    subprocess.run(["git", "add", str(full_path)],
-                                 cwd=worktree_path, check=True, capture_output=True)
+                    git.add([full_path])
 
             # Create commit
-            result = subprocess.run([
-                "git", "commit", "-m", commit_message
-            ], cwd=worktree_path, capture_output=True, text=True)
+            result = git.commit(commit_message, allow_empty=True)
+            return result
 
-            if result.returncode == 0:
-                # Get commit hash
-                hash_result = subprocess.run([
-                    "git", "rev-parse", "HEAD"
-                ], cwd=worktree_path, capture_output=True, text=True, check=True)
-                return hash_result.stdout.strip()
-            else:
-                # Check if it's because there's nothing to commit
-                if "nothing to commit" in result.stderr:
-                    # Get current HEAD hash
-                    hash_result = subprocess.run([
-                        "git", "rev-parse", "HEAD"
-                    ], cwd=worktree_path, capture_output=True, text=True, check=True)
-                    return hash_result.stdout.strip()
-                else:
-                    print(f"Git commit failed: {result.stderr}")
-                    return None
-
-        except subprocess.CalledProcessError as e:
-            print(f"Git operation failed in {worktree_path}: {e}")
-            return None
         except Exception as e:
             print(f"Error committing to {worktree_path}: {e}")
             return None
@@ -200,9 +179,14 @@ class AtomicCommitManager:
                 worktree_path = self.project_root / "worktrees" / worktree
                 if worktree_path.exists() and commit_hash:
                     # Reset to previous commit
-                    subprocess.run([
-                        "git", "reset", "--hard", f"{commit_hash}~1"
-                    ], cwd=worktree_path, check=True, capture_output=True)
+                    git = GitHelper(cwd=worktree_path)
+                    # Get the parent commit for rollback
+                    try:
+                        result = git.run(["rev-parse", f"{commit_hash}~1"])
+                        parent_hash = result.stdout.strip()
+                        git.reset_hard(parent_hash)
+                    except Exception as e:
+                        print(f"Could not rollback {worktree}: {e}")
 
             group.status = "rolled_back"
             self.save_commit_groups()

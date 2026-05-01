@@ -6,12 +6,12 @@ Creates and manages branch-specific versions of documentation files.
 Automatically generates branch-specific copies when documentation is modified.
 """
 
-import os
-import sys
 import argparse
-import subprocess
+import shutil
 from pathlib import Path
 from typing import List, Optional
+
+from git_utils import GitHelper, create_git_helper
 
 
 class DocsBranchVersioning:
@@ -20,29 +20,15 @@ class DocsBranchVersioning:
         self.scientific_branch = "scientific"
         self.docs_dir = Path("docs")
         self.supported_branches = [self.main_branch, self.scientific_branch]
+        self.git = create_git_helper()
 
     def get_current_branch(self) -> str:
         """Get the current git branch name."""
-        try:
-            result = subprocess.run(
-                ["git", "rev-parse", "--abbrev-ref", "HEAD"],
-                capture_output=True, text=True, check=True
-            )
-            return result.stdout.strip()
-        except subprocess.CalledProcessError:
-            return ""
+        return self.git.get_current_branch()
 
     def get_modified_docs(self) -> List[str]:
         """Get list of modified documentation files in staging area."""
-        try:
-            result = subprocess.run(
-                ["git", "diff", "--cached", "--name-only"],
-                capture_output=True, text=True, check=True
-            )
-            files = result.stdout.strip().split('\n')
-            return [f for f in files if f.startswith('docs/') and f.endswith('.md')]
-        except subprocess.CalledProcessError:
-            return []
+        return self.git.get_staged_docs("docs/")
 
     def create_branch_version(self, file_path: str, branch: str) -> bool:
         """Create a branch-specific version of the documentation file."""
@@ -55,23 +41,13 @@ class DocsBranchVersioning:
             print(f"Warning: Source file {file_path} does not exist")
             return False
 
-        # Create branch-specific filename
-        stem = source_path.stem
-        suffix = source_path.suffix
-        branch_specific_name = f"{stem}-{branch}{suffix}"
-        branch_specific_path = source_path.parent / branch_specific_name
+        branch_specific_path = source_path.parent / f"{source_path.stem}-{branch}{source_path.suffix}"
 
         try:
-            # Copy the file
-            import shutil
             shutil.copy2(source_path, branch_specific_path)
-
-            # Add to git staging
-            subprocess.run(["git", "add", str(branch_specific_path)], check=True)
-
+            self.git.add([branch_specific_path])
             print(f"Created branch-specific version: {branch_specific_path}")
             return True
-
         except Exception as e:
             print(f"Error creating branch version for {file_path}: {e}")
             return False
