@@ -11,6 +11,8 @@ from typing import List, Optional
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
+from .auth import get_current_active_user
+
 from .plugin_base import PluginSecurityLevel
 from .plugin_manager import PluginManager
 
@@ -87,7 +89,7 @@ class SystemStatus(BaseModel):
 
 
 # Create router
-router = APIRouter(prefix="/api/plugins", tags=["Plugin Management"])
+router = APIRouter(prefix="/api/plugins", tags=["Plugin Management"], dependencies=[Depends(get_current_active_user)])
 
 
 @router.get("/", response_model=List[PluginInfo])
