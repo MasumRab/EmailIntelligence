@@ -14,17 +14,6 @@ import subprocess
 import sys
 import re
 
-def run_git_command(args):
-    """Run a git command safely and return the output."""
-    try:
-        result = subprocess.run(
-            ["git"] + args, shell=False, capture_output=True, text=True, check=True
-        )
-        return result.stdout.strip()
-    except subprocess.CalledProcessError as e:
-        print(f"Error running git {' '.join(args)}: {e.stderr}")
-        return None
-
 
 def get_local_branches():
     """Get list of local branches."""
@@ -40,7 +29,7 @@ def get_local_branches():
     branches = []
     for line in output.split("\n"):
         # Remove the asterisk and whitespace
-        branch = line.lstrip("* ").strip()
+        branch = line.replace("*", "").strip()
         branches.append(branch)
     return branches
 
@@ -64,7 +53,7 @@ def get_remote_branches():
     for line in output.split("\n"):
         branch = line.strip()
         # Skip HEAD reference
-        if "->" not in branch:
+        if "->" not in branch and "HEAD" not in branch:
             branches.append(branch)
     return branches
 
@@ -191,7 +180,7 @@ def delete_remote_branch(branch_name):
     try:
         subprocess.run(
             ["git", "push", "origin", "--delete", branch_name.replace("origin/", "")],
-            ["git", "push", "origin", "--delete", branch_name.removeprefix("origin/")],
+            shell=False,
             capture_output=True,
             text=True,
             check=True,
@@ -252,7 +241,7 @@ def main():
 
     for branch in remote_branches:
         # Extract branch name without origin/
-        branch_name = branch.removeprefix("origin/")
+        branch_name = branch.replace("origin/", "")
         if is_valid_branch_name(branch_name):
             print(f"✓ {branch} (valid)")
         else:
