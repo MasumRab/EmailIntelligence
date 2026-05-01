@@ -19,7 +19,6 @@ def nlp_engine_with_mocks():
         patch("joblib.load", MagicMock(return_value=MagicMock())),
         patch("backend.python_nlp.nlp_engine.HAS_NLTK", True),
         patch("backend.python_nlp.nlp_engine.HAS_SKLEARN_AND_JOBLIB", True),
-            patch("backend.python_nlp.nlp_engine.pipeline", MagicMock()),
         patch(
             "backend.python_nlp.nlp_engine.NLPEngine._analyze_sentiment",
             MagicMock(
@@ -111,8 +110,7 @@ def test_analyze_email_orchestration(nlp_engine_with_mocks):
     assert result["categories"] == ["Mock Category"]
 
 
-@patch("backend.python_nlp.nlp_engine.pipeline")
-def test_sentiment_analysis_fallback_logic(mock_pipeline):
+def test_sentiment_analysis_fallback_logic():
     """
     Test the internal fallback logic of the _analyze_sentiment method directly.
     """
@@ -141,14 +139,12 @@ def test_sentiment_analysis_fallback_logic(mock_pipeline):
 
 
 @patch("backend.python_nlp.nlp_engine.NLPEngine._load_model", return_value=None)
-@patch('backend.python_nlp.nlp_engine.pipeline')
-def test_analyze_email_success_path(mock_pipeline, mock_load_model):
+def test_analyze_email_success_path(mock_load_model):
     """
     Test the successful, standard analysis flow of the analyze_email method.
     """
     with (
         patch("backend.python_nlp.nlp_engine.HAS_SKLEARN_AND_JOBLIB", True),
-            patch("backend.python_nlp.nlp_engine.pipeline", MagicMock()),
         patch("backend.python_nlp.nlp_engine.HAS_NLTK", True),
         patch(
             "backend.python_nlp.nlp_engine.NLPEngine._categorize_content",
@@ -201,14 +197,12 @@ def test_analyze_email_success_path(mock_pipeline, mock_load_model):
 
 
 @patch("backend.python_nlp.nlp_engine.NLPEngine._load_model", return_value=None)
-@patch('backend.python_nlp.nlp_engine.pipeline')
-def test_analyze_email_full_fallback_on_exception(mock_pipeline, mock_load_model):
+def test_analyze_email_full_fallback_on_exception(mock_load_model):
     """
     Test that a generic exception during analysis triggers the full fallback.
     """
     with (
         patch("backend.python_nlp.nlp_engine.HAS_SKLEARN_AND_JOBLIB", True),
-            patch("backend.python_nlp.nlp_engine.pipeline", MagicMock()),
         patch("backend.python_nlp.nlp_engine.HAS_NLTK", True),
         patch.object(
             NLPEngine, "_preprocess_text", side_effect=Exception("Unexpected error")
@@ -225,8 +219,7 @@ def test_analyze_email_full_fallback_on_exception(mock_pipeline, mock_load_model
         assert result["validation"]["method"] == "fallback"
 
 
-@patch("backend.python_nlp.nlp_engine.pipeline")
-def test_analyze_topic_model_path(mock_pipeline):
+def test_analyze_topic_model_path():
     """Test _analyze_topic uses the model path when available."""
     with (
         patch("backend.python_nlp.nlp_engine.NLPEngine._analyze_topic_model") as mock_model,
@@ -240,8 +233,7 @@ def test_analyze_topic_model_path(mock_pipeline):
         assert result["topic"] == "model_topic"
 
 
-@patch("backend.python_nlp.nlp_engine.pipeline")
-def test_analyze_topic_fallback_path(mock_pipeline):
+def test_analyze_topic_fallback_path():
     """Test _analyze_topic uses the fallback path when the model is unavailable."""
     with (
         patch("backend.python_nlp.nlp_engine.NLPEngine._analyze_topic_model") as mock_model,
@@ -256,8 +248,7 @@ def test_analyze_topic_fallback_path(mock_pipeline):
         assert result["topic"] == "fallback_topic"
 
 
-@patch("backend.python_nlp.nlp_engine.pipeline")
-def test_analyze_intent_model_path(mock_pipeline):
+def test_analyze_intent_model_path():
     """Test _analyze_intent uses the model path when available."""
     with (
         patch("backend.python_nlp.nlp_engine.NLPEngine._analyze_intent_model") as mock_model,
@@ -271,8 +262,7 @@ def test_analyze_intent_model_path(mock_pipeline):
         assert result["intent"] == "model_intent"
 
 
-@patch("backend.python_nlp.nlp_engine.pipeline")
-def test_analyze_intent_fallback_path(mock_pipeline):
+def test_analyze_intent_fallback_path():
     """Test _analyze_intent uses the fallback path when the model is unavailable."""
     with (
         patch("backend.python_nlp.nlp_engine.NLPEngine._analyze_intent_model") as mock_model,
@@ -287,8 +277,7 @@ def test_analyze_intent_fallback_path(mock_pipeline):
         assert result["intent"] == "fallback_intent"
 
 
-@patch("backend.python_nlp.nlp_engine.pipeline")
-def test_analyze_urgency_model_path(mock_pipeline):
+def test_analyze_urgency_model_path():
     """Test _analyze_urgency uses the model path when available."""
     with (
         patch("backend.python_nlp.nlp_engine.NLPEngine._analyze_urgency_model") as mock_model,
@@ -302,8 +291,7 @@ def test_analyze_urgency_model_path(mock_pipeline):
         assert result["urgency"] == "model_urgency"
 
 
-@patch("backend.python_nlp.nlp_engine.pipeline")
-def test_analyze_urgency_fallback_path(mock_pipeline):
+def test_analyze_urgency_fallback_path():
     """Test _analyze_urgency uses the fallback path when the model is unavailable."""
     with (
         patch("backend.python_nlp.nlp_engine.NLPEngine._analyze_urgency_model") as mock_model,
