@@ -105,10 +105,10 @@
     "cross-env": "^7.0.3",
     "drizzle-kit": "^1.0.0-beta.1-fd5d1e8",
     "esbuild": "^0.25.0",
-    "eslint": "^8.57.1",
-    "eslint-plugin-react": "^7.37.0",
+    "eslint": "^9.0.0",
+    "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^5.0.0",
-    "eslint-plugin-react-refresh": "^0.4.4",
+    "eslint-plugin-react-refresh": "^0.4.5",
     "postcss": "^8.4.47",
     "prettier": "^3.4.0",
     "tailwindcss": "^3.4.17",
@@ -118,15 +118,6 @@
     "vitest": "^3.2.4"
   },
   "overrides": {
-    "@babel/core": "^7.29.1",
-    "brace-expansion": "^2.0.3",
-    "form-data": "^4.0.6",
-    "js-yaml": "^4.1.2",
-    "lodash": "^4.17.24",
-    "path-to-regexp": "^0.1.13",
-    "picomatch": "^4.0.4",
-    "qs": "^6.15.2",
-    "yaml": "^2.8.3",
     "drizzle-kit": {
       "esbuild": "^0.25.5",
       "@esbuild-kit/esm-loader": {
