@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # Dependabot configuration for automated dependency updates
 # https://docs.github.com/en/code-security/dependabot/dependabot-version-updates/configuration-options-for-dependabot-version-updates
 
@@ -25,22 +24,17 @@ updates:
           - "patch"
 
   # Python pip dependencies
-=======
-version: 2
-updates:
-  # Python dependencies
->>>>>>> sentinel-fix-command-injection-4893894402315046894
   - package-ecosystem: "pip"
     directory: "/"
     schedule:
       interval: "weekly"
       day: "monday"
       time: "09:00"
-<<<<<<< HEAD
       timezone: "UTC"
     labels:
       - "dependencies"
       - "python"
+      - "automerge"
     commit-message:
       prefix: "chore(deps)"
     open-pull-requests-limit: 10
@@ -49,40 +43,12 @@ updates:
       - dependency-name: "*"
         update-types:
           - "version-update:semver-major"
-=======
-      timezone: "America/Los_Angeles"
-    labels:
-      - "dependencies"
-      - "python"
-      - "automerge"
-    commit-message:
-      prefix: "chore(deps)"
-    open-pull-requests-limit: 10
->>>>>>> sentinel-fix-command-injection-4893894402315046894
     groups:
       python-minor:
         update-types:
           - "minor"
           - "patch"
-<<<<<<< HEAD
-=======
-  
-  # GitHub Actions
-  - package-ecosystem: "github-actions"
-    directory: "/"
-    schedule:
-      interval: "weekly"
-      day: "monday"
-      time: "09:00"
-      timezone: "America/Los_Angeles"
-    labels:
-      - "dependencies"
-      - "ci/cd"
-      - "automerge"
-    commit-message:
-      prefix: "ci"
-    open-pull-requests-limit: 5
-  
+
   # npm dependencies (for client/frontend)
   - package-ecosystem: "npm"
     directory: "/client"
@@ -90,7 +56,7 @@ updates:
       interval: "weekly"
       day: "monday"
       time: "09:00"
-      timezone: "America/Los_Angeles"
+      timezone: "UTC"
     labels:
       - "dependencies"
       - "javascript"
@@ -103,4 +69,3 @@ updates:
         update-types:
           - "minor"
           - "patch"
->>>>>>> sentinel-fix-command-injection-4893894402315046894
