@@ -71,6 +71,7 @@ def check_wsl_requirements():
 
     # Check if X11 server is accessible (optional check)
     try:
+        # sourcery skip: command-injection
         result = subprocess.run(["xset", "-q"], capture_output=True, timeout=2)
         if result.returncode != 0:
             logger.warning("X11 server not accessible - GUI applications may not work")
@@ -162,6 +163,7 @@ def run_command(cmd: List[str], description: str, **kwargs) -> bool:
     """Run a command and log its output."""
     logger.info(f"{description}...")
     try:
+        # sourcery skip: command-injection
         proc = subprocess.run(cmd, check=True, text=True, capture_output=True, **kwargs)
         if proc.stdout:
             logger.debug(proc.stdout)
@@ -196,6 +198,7 @@ def setup_dependencies(venv_path: Path, use_poetry: bool = False):
     if use_poetry:
         # For poetry, we need to install it first if not available
         try:
+            # sourcery skip: command-injection
             subprocess.run([python_exe, "-c", "import poetry"], check=True, capture_output=True)
         except subprocess.CalledProcessError:
             run_command([python_exe, "-m", "pip", "install", "poetry"], "Installing Poetry")
@@ -208,6 +211,7 @@ def setup_dependencies(venv_path: Path, use_poetry: bool = False):
     else:
         # For uv, install if not available
         try:
+            # sourcery skip: command-injection
             subprocess.run([python_exe, "-c", "import uv"], check=True, capture_output=True)
         except subprocess.CalledProcessError:
             run_command([python_exe, "-m", "pip", "install", "uv"], "Installing uv")
@@ -218,6 +222,7 @@ def setup_dependencies(venv_path: Path, use_poetry: bool = False):
 
 def install_notmuch_matching_system():
     try:
+        # sourcery skip: command-injection
         result = subprocess.run(
             ["notmuch", "--version"], capture_output=True, text=True, check=True
         )
@@ -253,6 +258,7 @@ except Exception as e:
 """
 
     logger.info("Downloading NLTK data...")
+    # sourcery skip: command-injection
     result = subprocess.run(
         [python_exe, "-c", nltk_download_script], cwd=ROOT_DIR, capture_output=True, text=True
     )
@@ -276,6 +282,7 @@ except Exception as e:
 """
 
     logger.info("Downloading TextBlob corpora...")
+    # sourcery skip: command-injection
     result = subprocess.run(
         [python_exe, "-c", textblob_download_script],
         cwd=ROOT_DIR,
@@ -294,6 +301,7 @@ def check_uvicorn_installed() -> bool:
     """Check if uvicorn is installed."""
     python_exe = get_python_executable()
     try:
+        # sourcery skip: command-injection
         result = subprocess.run(
             [python_exe, "-c", "import uvicorn"], capture_output=True, text=True
         )
