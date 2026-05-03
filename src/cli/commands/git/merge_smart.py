@@ -150,7 +150,7 @@ class MergeSmartCommand(Command):
             r_mod = ln in remote_chg
 
             if l_mod and r_mod and l != r:
-                merged.extend([f"<<<<<<< LOCAL ({l_ref})", l, "=======", r, f">>>>>>> REMOTE ({r_ref})"])
+                merged.extend([f"<<< LEFT_REF", l, "=======", r, f">>>>>>> REMOTE ({r_ref})"])
                 conflicts += 1
             elif l_mod: merged.append(l)
             elif r_mod: merged.append(r)

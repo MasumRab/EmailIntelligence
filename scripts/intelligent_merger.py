@@ -120,7 +120,7 @@ def intelligent_merge(
 
         if local_changed and remote_changed:
             # Both changed - conflict!
-            merged_lines.append(f"<<<<<<< LOCAL ({local_ref})")
+            merged_lines.append(f"<<< MERGE_LEFT")
             merged_lines.append(local_line)
             merged_lines.append("=======")
             merged_lines.append(remote_line)
