@@ -9,6 +9,7 @@ node-based workflows, inspired by ComfyUI's interface design.
 """
 
 import json
+from backend.node_engine.workflow_engine import initialize_workflow_system
 
 import gradio as gr
 
@@ -16,13 +17,6 @@ from backend.node_engine.node_base import Workflow
 from backend.node_engine.workflow_manager import get_workflow_manager
 from backend.plugins.plugin_manager import plugin_manager
 
-# Try to import security manager if available
-try:
-    from src.core.security import Permission, SecurityLevel, get_security_manager
-
-    security_manager_available = True
-except ImportError:
-    security_manager_available = False
 
 
 def create_workflow_editor_ui():
