@@ -164,7 +164,7 @@ def run_command(cmd: List[str], description: str, **kwargs) -> bool:
     logger.info(f"{description}...")
     try:
         # sourcery skip: command-injection
-        proc = subprocess.run(cmd, check=True, text=True, capture_output=True, **kwargs)
+        proc = subprocess.run([str(c) for c in cmd], check=True, text=True, capture_output=True, shell=False, **kwargs)
         if proc.stdout:
             logger.debug(proc.stdout)
         if proc.stderr:
@@ -189,7 +189,7 @@ def create_venv(venv_path: Path, recreate: bool = False):
 
 def install_package_manager(venv_path: Path, manager: str):
     python_exe = get_venv_executable(venv_path, "python")
-    run_command([python_exe, "-m", "pip", "install", manager], f"Installing {manager}")
+    run_command([str(python_exe), "-m", "pip", "install", manager], f"Installing {manager}")
 
 
 def setup_dependencies(venv_path: Path, use_poetry: bool = False):
@@ -199,12 +199,12 @@ def setup_dependencies(venv_path: Path, use_poetry: bool = False):
         # For poetry, we need to install it first if not available
         try:
             # sourcery skip: command-injection
-            subprocess.run([python_exe, "-c", "import poetry"], check=True, capture_output=True)
+            subprocess.run([str(python_exe), "-c", "import poetry"], check=True, capture_output=True, shell=False)
         except subprocess.CalledProcessError:
-            run_command([python_exe, "-m", "pip", "install", "poetry"], "Installing Poetry")
+            run_command([str(python_exe), "-m", "pip", "install", "poetry"], "Installing Poetry")
 
         run_command(
-            [python_exe, "-m", "poetry", "install", "--with", "dev"],
+            [str(python_exe), "-m", "poetry", "install", "--with", "dev"],
             "Installing dependencies with Poetry",
             cwd=ROOT_DIR,
         )
@@ -212,9 +212,9 @@ def setup_dependencies(venv_path: Path, use_poetry: bool = False):
         # For uv, install if not available
         try:
             # sourcery skip: command-injection
-            subprocess.run([python_exe, "-c", "import uv"], check=True, capture_output=True)
+            subprocess.run([str(python_exe), "-c", "import uv"], check=True, capture_output=True, shell=False)
         except subprocess.CalledProcessError:
-            run_command([python_exe, "-m", "pip", "install", "uv"], "Installing uv")
+            run_command([str(python_exe), "-m", "pip", "install", "uv"], "Installing uv")
 
         # Install notmuch with version matching system
         install_notmuch_matching_system()
@@ -260,7 +260,7 @@ except Exception as e:
     logger.info("Downloading NLTK data...")
     # sourcery skip: command-injection
     result = subprocess.run(
-        [python_exe, "-c", nltk_download_script], cwd=ROOT_DIR, capture_output=True, text=True
+        [str(python_exe), "-c", nltk_download_script], cwd=ROOT_DIR, capture_output=True, text=True
     )
     if result.returncode != 0:
         logger.error(f"Failed to download NLTK data: {result.stderr}")
@@ -284,7 +284,7 @@ except Exception as e:
     logger.info("Downloading TextBlob corpora...")
     # sourcery skip: command-injection
     result = subprocess.run(
-        [python_exe, "-c", textblob_download_script],
+        [str(python_exe), "-c", textblob_download_script],
         cwd=ROOT_DIR,
         capture_output=True,
         text=True,
@@ -303,7 +303,7 @@ def check_uvicorn_installed() -> bool:
     try:
         # sourcery skip: command-injection
         result = subprocess.run(
-            [python_exe, "-c", "import uvicorn"], capture_output=True, text=True
+            [str(python_exe), "-c", "import uvicorn"], capture_output=True, text=True
         )
         if result.returncode == 0:
             logger.info("uvicorn is available.")
@@ -424,7 +424,7 @@ def setup_node_dependencies(service_path: Path, service_name: str):
 def start_gradio_ui(host, port, share, debug):
     logger.info("Starting Gradio UI...")
     python_exe = get_python_executable()
-    cmd = [python_exe, "-m", "src.main"]  # Assuming Gradio is launched from main
+    cmd = [str(python_exe), "-m", "src.main"]  # Assuming Gradio is launched from main
     if share:
         cmd.append("--share")
     if debug:
