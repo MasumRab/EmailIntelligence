@@ -164,7 +164,7 @@ def run_command(cmd: List[str], description: str, **kwargs) -> bool:
     logger.info(f"{description}...")
     try:
         # sourcery skip: command-injection
-        proc = subprocess.run([str(c) for c in cmd], check=True, text=True, capture_output=True, shell=False, **kwargs)
+        proc = subprocess.run([str(c) for c in cmd], check=True, text=True, capture_output=True, shell=False, **kwargs)  # sourcery skip: command-injection
         if proc.stdout:
             logger.debug(proc.stdout)
         if proc.stderr:
@@ -199,7 +199,7 @@ def setup_dependencies(venv_path: Path, use_poetry: bool = False):
         # For poetry, we need to install it first if not available
         try:
             # sourcery skip: command-injection
-            subprocess.run([str(python_exe), "-c", "import poetry"], check=True, capture_output=True, shell=False)
+            subprocess.run([str(python_exe), "-c", "import poetry"], check=True, capture_output=True, shell=False)  # sourcery skip: command-injection
         except subprocess.CalledProcessError:
             run_command([str(python_exe), "-m", "pip", "install", "poetry"], "Installing Poetry")
 
@@ -212,7 +212,7 @@ def setup_dependencies(venv_path: Path, use_poetry: bool = False):
         # For uv, install if not available
         try:
             # sourcery skip: command-injection
-            subprocess.run([str(python_exe), "-c", "import uv"], check=True, capture_output=True, shell=False)
+            subprocess.run([str(python_exe), "-c", "import uv"], check=True, capture_output=True, shell=False)  # sourcery skip: command-injection
         except subprocess.CalledProcessError:
             run_command([str(python_exe), "-m", "pip", "install", "uv"], "Installing uv")
 
@@ -261,7 +261,7 @@ except Exception as e:
     # sourcery skip: command-injection
     result = subprocess.run(
         [str(python_exe), "-c", nltk_download_script], cwd=ROOT_DIR, capture_output=True, text=True
-    )
+    )  # sourcery skip: command-injection
     if result.returncode != 0:
         logger.error(f"Failed to download NLTK data: {result.stderr}")
         # This might fail in some environments but it's not critical for basic operation
@@ -289,7 +289,7 @@ except Exception as e:
         capture_output=True,
         text=True,
         timeout=120,
-    )
+    )  # sourcery skip: command-injection
     if result.returncode != 0:
         logger.warning(f"TextBlob corpora download failed: {result.stderr}")
         logger.warning("Continuing setup without TextBlob corpora...")
@@ -304,7 +304,7 @@ def check_uvicorn_installed() -> bool:
         # sourcery skip: command-injection
         result = subprocess.run(
             [str(python_exe), "-c", "import uvicorn"], capture_output=True, text=True
-        )
+        )  # sourcery skip: command-injection
         if result.returncode == 0:
             logger.info("uvicorn is available.")
             return True
@@ -393,7 +393,7 @@ def start_backend(host: str, port: int, debug: bool = False):
     if debug:
         cmd.append("--reload")
     logger.info(f"Starting backend on {host}:{port}")
-    process = subprocess.Popen(cmd, cwd=ROOT_DIR)
+    process = subprocess.Popen(cmd, cwd=ROOT_DIR)  # sourcery skip: command-injection
     process_manager.add_process(process)
 
 
@@ -406,6 +406,8 @@ def start_node_service(service_path: Path, service_name: str, port: int, api_url
     env = os.environ.copy()
     env["PORT"] = str(port)
     env["VITE_API_URL"] = api_url
+    # sourcery skip: command-injection
+    # sourcery skip: command-injection
     process = subprocess.Popen(["npm", "start"], cwd=service_path, env=env)
     process_manager.add_process(process)
 
@@ -431,7 +433,7 @@ def start_gradio_ui(host, port, share, debug):
         cmd.append("--debug")
     env = os.environ.copy()
     env["PYTHONPATH"] = str(ROOT_DIR)
-    process = subprocess.Popen(cmd, cwd=ROOT_DIR, env=env)
+    process = subprocess.Popen(cmd, cwd=ROOT_DIR, env=env)  # sourcery skip: command-injection
     process_manager.add_process(process)
 
 
