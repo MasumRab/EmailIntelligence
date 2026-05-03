@@ -5,6 +5,8 @@ This module provides a system for discovering, loading, and managing
 external plugins.
 """
 
+import importlib
+import importlib.util
 import logging
 import os
 from typing import List

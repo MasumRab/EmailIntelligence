@@ -1,14 +1,16 @@
 #!/usr/bin/env python3
 """
 EmailIntelligence Unified Launcher
-
+"""
 import os
 import platform
 import shutil
 import subprocess
 import sys
 import venv
+import logging
 from pathlib import Path
+from typing import List
 from typing import List
 
 
@@ -28,8 +30,10 @@ logger = logging.getLogger("launcher")
 
 
 # --- Global state ---
-
+process_manager = None  # mock
 # --- Constants ---
+from pathlib import Path
+ROOT_DIR = Path(__file__).resolve().parent.parent
 PYTHON_MIN_VERSION = (3, 12)
 PYTHON_MAX_VERSION = (3, 13)
 VENV_DIR = "venv"
@@ -142,13 +146,6 @@ def validate_environment() -> bool:
 
     logger.info("Environment validation passed.")
     return True
-
-
-        return False
-
-    conda_info = get_conda_env_info()
-    if conda_info["is_active"]:
-
 
 # --- Helper Functions ---
 def get_venv_executable(venv_path: Path, executable: str) -> Path:
@@ -719,6 +716,7 @@ def _add_legacy_args(parser):
 
 def _handle_legacy_args(args) -> int:
     """Handle legacy argument parsing for backward compatibility."""
+    pass
     # Setup WSL environment if applicable (early setup)
     setup_wsl_environment()
     check_wsl_requirements()

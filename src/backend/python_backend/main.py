@@ -6,29 +6,29 @@ FastAPI Backend for Gmail AI Email Management
 Unified Python backend with optimized performance and integrated NLP
 """
 
-import json
-import logging
-import os
-import threading
-import time
-import uuid
-from collections import defaultdict
-from datetime import datetime, timedelta
+import json  # noqa: E402
+import logging  # noqa: E402
+import os  # noqa: E402
+import threading  # noqa: E402
+import time  # noqa: E402
+import uuid  # noqa: E402
+from collections import defaultdict  # noqa: E402
+from datetime import datetime, timedelta  # noqa: E402
 
-from fastapi import FastAPI, HTTPException, Request, status
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
-from pydantic import ValidationError
-from starlette.middleware.base import BaseHTTPMiddleware
+from fastapi import FastAPI, HTTPException, Request, status  # noqa: E402
+from fastapi.middleware.cors import CORSMiddleware  # noqa: E402
+from fastapi.responses import JSONResponse  # noqa: E402
+from pydantic import ValidationError  # noqa: E402
+from starlette.middleware.base import BaseHTTPMiddleware  # noqa: E402
 
-from src.backend.python_nlp.gmail_service import GmailAIService
+from src.backend.python_nlp.gmail_service import GmailAIService  # noqa: E402
 
 # Removed: from .smart_filters import EmailFilter (as per instruction)
-from src.backend.python_nlp.smart_filters import SmartFilterManager
-from src.core.auth import authenticate_user
+from src.backend.python_nlp.smart_filters import SmartFilterManager  # noqa: E402
+from src.core.auth import authenticate_user  # noqa: E402
 
-from ..plugins.plugin_manager import plugin_manager
-from . import (
+from ..plugins.plugin_manager import plugin_manager  # noqa: E402
+from . import (  # noqa: E402
     action_routes,
     ai_routes,
     category_routes,
@@ -41,15 +41,15 @@ from . import (
     training_routes,
     workflow_routes,
 )
-from .ai_engine import AdvancedAIEngine
-from .auth import create_access_token
-from .database import db_manager
-from .exceptions import AppException, BaseAppException
+from .ai_engine import AdvancedAIEngine  # noqa: E402
+from .auth import create_access_token  # noqa: E402
+from .database import db_manager  # noqa: E402
+from .exceptions import AppException, BaseAppException  # noqa: E402
 
 # Import new components
-from .model_manager import model_manager
-from .performance_monitor import performance_monitor
-from .settings import settings
+from .model_manager import model_manager  # noqa: E402
+from .performance_monitor import performance_monitor  # noqa: E402
+from .settings import settings  # noqa: E402
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -250,10 +250,10 @@ filter_manager = SmartFilterManager()  # Used by filter_routes
 ai_engine = AdvancedAIEngine(model_manager)  # Used by email_routes, action_routes
 performance_monitor = performance_monitor  # Used by all routes via @performance_monitor.track
 
-from .routes.v1.category_routes import router as category_router_v1
+from .routes.v1.category_routes import router as category_router_v1  # noqa: E402
 
 # Include versioned API routers
-from .routes.v1.email_routes import router as email_router_v1
+from .routes.v1.email_routes import router as email_router_v1  # noqa: E402
 
 # Mount versioned APIs
 app.include_router(email_router_v1, prefix="/api/v1", tags=["emails-v1"])
@@ -273,22 +273,22 @@ app.include_router(dashboard_routes.router)
 app.include_router(ai_routes.router)
 
 # Include enhanced feature routers
-from .enhanced_routes import router as enhanced_router
+from .enhanced_routes import router as enhanced_router  # noqa: E402
 
 app.include_router(enhanced_router, prefix="/api/enhanced", tags=["enhanced"])
 
 # Include workflow routes (legacy and node-based)
-from .workflow_routes import router as workflow_router
+from .workflow_routes import router as workflow_router  # noqa: E402
 
 app.include_router(workflow_router, prefix="", tags=["workflows"])
 
 # Include advanced workflow routes (will use node-based system)
-from .advanced_workflow_routes import router as advanced_workflow_router
+from .advanced_workflow_routes import router as advanced_workflow_router  # noqa: E402
 
 app.include_router(advanced_workflow_router, prefix="/api/workflows", tags=["advanced-workflows"])
 
 # Include node-based workflow routes
-from .node_workflow_routes import router as node_workflow_router
+from .node_workflow_routes import router as node_workflow_router  # noqa: E402
 
 app.include_router(node_workflow_router, prefix="/api/nodes", tags=["node-workflows"])
 
@@ -310,6 +310,7 @@ except ImportError:
 async def login(username: str, password: str):
     """Login endpoint to get access token"""
     # Use the new authentication system
+    from .database import get_db
     db = await get_db()
     user = await authenticate_user(username, password, db)
 

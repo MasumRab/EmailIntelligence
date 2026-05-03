@@ -134,6 +134,14 @@ with gr.Blocks(title="Email Intelligence", theme=gr.themes.Soft()) as iface:
                     topic_chart_fig,
                 )
 
+        with gr.TabItem("Visualization"):
+            gr.Markdown("### Data Visualization")
+            sentiment_chart = gr.Plot(label="Sentiment Gauge")
+            topic_chart = gr.Plot(label="Topic Pie Chart")
+            gr.Markdown(
+                "The charts above will automatically update after you analyze an email in the 'Single Email Analysis' tab."
+            )
+
             analyze_button.click(
                 fn=update_outputs,
                 inputs=[email_subject, email_content],
@@ -146,14 +154,6 @@ with gr.Blocks(title="Email Intelligence", theme=gr.themes.Soft()) as iface:
                     sentiment_chart,
                     topic_chart,
                 ],
-            )
-
-        with gr.TabItem("Visualization"):
-            gr.Markdown("### Data Visualization")
-            sentiment_chart = gr.Plot(label="Sentiment Gauge")
-            topic_chart = gr.Plot(label="Topic Pie Chart")
-            gr.Markdown(
-                "The charts above will automatically update after you analyze an email in the 'Single Email Analysis' tab."
             )
 
         with gr.TabItem("Scientific Analysis"):
