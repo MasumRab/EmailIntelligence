@@ -5,7 +5,7 @@ This directory contains specialized runbooks for repairing and maintaining criti
 ## Available Runbooks
 
 - [Launcher Repair Runbook](launcher_repair_runbook.md) - Handling `setup/launch.py`, infrastructure core, and conflict resolution.
-- [Scientific Subtree Repair Runbook](scientific_subtree_repair_runbook.md) - Managing Git subtree integration and synchronization for the `scientific` branch.
+- [Scientific Branch Repair Runbook](scientific_branch_repair_runbook.md) - Maintaining the `scientific` branch, including its `setup` subtree and specialized ML components.
 - [Taskmaster Repair Runbook](taskmaster_repair_runbook.md) - Troubleshooting the Task Master AI integration, database integrity, and MCP connectivity.
 
 ## General Maintenance Principles
