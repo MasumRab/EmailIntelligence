@@ -172,9 +172,12 @@ def create_app() -> FastAPI:
                     "context_control_available": True
                 }
             except Exception as e:
+                # Log the detailed exception and stack trace on the server
+                logging.exception("Failed to load ContextControlConfig")
+                # Return a generic error message to the client without exposing internals
                 return {
                     "context_control_available": True,
-                    "config_error": str(e)
+                    "message": "An internal error occurred while retrieving the context control configuration."
                 }
         else:
             return {
