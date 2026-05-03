@@ -52,8 +52,9 @@ class GitHelper:
         cmd = ["git"] + args
         self.logger.debug(f"Running: {' '.join(cmd)}")
 
+        # sourcery skip: command-injection
         result = subprocess.run(
-            ["git"] + args,
+            cmd,
             cwd=self.cwd,
             check=check,
             capture_output=capture_output,
