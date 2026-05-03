@@ -71,6 +71,7 @@ The launcher is designed to respect individual developer environments without po
 
 ### User Configuration Files
 *   **`launch-user.env` (High Priority):** This file is loaded first. Use it for machine-specific overrides (e.g., custom database URLs, local API keys).
+    *   *Note: This file is excluded via `.gitignore` (matching the `*.env` pattern) to prevent accidental commits of local secrets.*
 *   **`.env` (Standard):** Used for project-wide defaults.
 
 ### Isolating Feature Blocks
@@ -90,7 +91,7 @@ Run a byte-code compilation check to catch syntax errors, indentation issues, or
 ```bash
 python3 -m py_compile setup/launch.py
 ```
-If this command produces any output, the script is broken and will fail to execute.
+**Verification:** Ensure this command exits with a zero (0) exit code. If it throws an exception or returns a non-zero exit status, the script is broken and will fail to execute.
 
 ### Orchestration Validation
 Run the full orchestration test suite to ensure broader system compatibility:
