@@ -171,24 +171,21 @@ python scripts/verify-dependencies.py
 
 ---
 
-### Task 3.4: Optional - Merge to Main ⏭️
-**Status:** DEFERRED  
-**Decision:** Optional merge deferred pending approval
+### Task 3.4: ~~Optional - Merge to Main~~ DEPRECATED
 
-**When to Merge:**
+**Status:** ❌ DO NOT EXECUTE
+**Policy Change:** `orchestration-tools` is now fully isolated — NO merges to/from other branches.
+
+**Previous Instruction (now invalid):**
+~~git checkout main~~
+~~git merge orchestration-tools~~
+
+**Correct Approach:**
+Use git hooks and distribution scripts instead:
 ```bash
-git checkout main
-git merge orchestration-tools
-git push origin main
+scripts/distribute_alignment_scripts.sh
+scripts/distribute-orchestration-files.sh
 ```
-
-**Impact of Merge:**
-- main will receive all Phase 1-2 scripts and documentation
-- main will receive all 32 agent configuration directories  
-- main scripts and markdown tools available on production branch
-- Sync test will pass (all files on all branches)
-
-**Recommendation:** Optional - merge only if main should have complete orchestration-tools infrastructure
 
 ---
 

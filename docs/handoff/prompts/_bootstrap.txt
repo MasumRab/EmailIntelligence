@@ -1,0 +1,38 @@
+## BOOTSTRAP — resolve $HANDOFF_DIR (works on any branch, any variant)
+# The current branch may NOT have docs/handoff/ committed (it lives on
+# orchestration-tools). This block resolves a usable handoff dir without
+# changing the working tree of the current branch.
+PROJECT_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+WORKSPACE_ROOT="$(dirname "$PROJECT_ROOT")"
+HANDOFF_DIR=""
+# 1. Project-local (this branch already has it)
+if [ -d "$PROJECT_ROOT/docs/handoff" ]; then
+  HANDOFF_DIR="$PROJECT_ROOT/docs/handoff"
+# 2. Workspace mirror (cross-variant shared copy)
+elif [ -d "$WORKSPACE_ROOT/docs/handoff" ]; then
+  HANDOFF_DIR="$WORKSPACE_ROOT/docs/handoff"
+# 3. Pull from orchestration-tools branch into a temp dir (no checkout)
+elif git -C "$PROJECT_ROOT" cat-file -e orchestration-tools:docs/handoff/context-guard.sh 2>/dev/null; then
+  HANDOFF_DIR="$(mktemp -d -t handoff.XXXXXX)"
+  git -C "$PROJECT_ROOT" archive orchestration-tools docs/handoff \
+    | tar -x -C "$HANDOFF_DIR" --strip-components=2
+# 4. Same for origin/orchestration-tools
+elif git -C "$PROJECT_ROOT" cat-file -e origin/orchestration-tools:docs/handoff/context-guard.sh 2>/dev/null; then
+  HANDOFF_DIR="$(mktemp -d -t handoff.XXXXXX)"
+  git -C "$PROJECT_ROOT" archive origin/orchestration-tools docs/handoff \
+    | tar -x -C "$HANDOFF_DIR" --strip-components=2
+else
+  echo "FATAL: no handoff dir locatable. Try: git fetch origin orchestration-tools" >&2
+  return 1 2>/dev/null || exit 1
+fi
+export PROJECT_ROOT HANDOFF_DIR
+echo "HANDOFF_DIR=$HANDOFF_DIR  PROJECT_ROOT=$PROJECT_ROOT"
+source "$HANDOFF_DIR/context-guard.sh"
+# context-guard.sh sets CURRENT_BRANCH; STATE file lives in HANDOFF_DIR (read-only mirror)
+# OR in $PROJECT_ROOT/docs/handoff/ if writable. Prefer project-local for STATE persistence:
+STATE_DIR="$PROJECT_ROOT/docs/handoff"
+[ -d "$STATE_DIR" ] || STATE_DIR="$HANDOFF_DIR"
+STATE_FILE="$STATE_DIR/STATE_${CURRENT_BRANCH}.md"
+[ -f "$STATE_FILE" ] || cp "$HANDOFF_DIR/STATE_TEMPLATE.md" "$STATE_FILE" 2>/dev/null || true
+echo "STATE_FILE=$STATE_FILE"
+## END BOOTSTRAP

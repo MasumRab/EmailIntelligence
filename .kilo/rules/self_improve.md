@@ -32,16 +32,13 @@ alwaysApply: true
     - Implementation details have changed
 
 - **Example Pattern Recognition:**
-  ```typescript
+  ```python
   // If you see repeated patterns like:
-  const data = await prisma.user.findMany({
-    select: { id: true, email: true },
-    where: { status: 'ACTIVE' }
-  });
+  results = db.session.query(User).filter(User.status == "active").all()
   
-  // Consider adding to [prisma.md](.kilo/rules/prisma.md):
+  // Consider adding to [taskmaster.md](.kilo/rules/taskmaster.md):
   // - Standard select fields
-  // - Common where conditions
+  // - Common query helpers
   // - Performance optimization patterns
   ```
 

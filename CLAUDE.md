@@ -1,112 +1,61 @@
-# Claude AI Assistant - Context & Guidelines
 
-> **Note:** This file works alongside `AGENTS.md` (generic AI agent instructions). AGENTS.md contains the core Task Master commands and workflows for all AI agents. This file contains only Claude-specific features and integrations.
 
-## MCP Configuration for Claude Code/Claude AI
+<!-- Source: .ruler/AGENTS.md -->
 
-Configure Task Master MCP server in `.mcp.json`:
+# EmailIntelligence — AI Agent Instructions
 
-```json
-{
-  "mcpServers": {
-    "task-master-ai": {
-      "command": "npx",
-      "args": ["-y", "task-master-ai"],
-      "env": {
-        "ANTHROPIC_API_KEY": "your_key_here",
-        "PERPLEXITY_API_KEY": "your_key_here"
-      }
-    }
-  }
-}
-```
+## Project Overview
+EmailIntelligence is a Python/FastAPI + React/TypeScript full-stack application for intelligent email analysis. Primary language is Python 3.11+.
 
-**Note:** API keys are configured via `task-master models --setup`, not in MCP configuration.
+## Branch Context
+This branch (`orchestration-tools`) focuses on CLI tooling, agent infrastructure, and orchestration scripts. The full application backend (AI engine, database, FastAPI routes) lives on the `scientific` branch.
 
-## Claude-Specific Features
+## Code Conventions
+- Python: Black formatting, 100 char line length, type hints required, Google-style docstrings
+- TypeScript: Strict mode, 2-space indent, semicolons, double quotes
+- Shell: `set -euo pipefail`, quote all variables, use `mktemp` for temp files
+- Test: pytest for Python, `cd client && npm run lint` for TypeScript
 
-### Context Management
+## Build Commands
+- Backend: `python launch.py` (wrapper → `setup/launch.py`)
+- Frontend: `cd client && npm run build`
+- Test: `pytest` (Python), `cd client && npm run lint` (TypeScript)
+- Lint: `flake8 .` / `mypy .` / `pylint src modules`
 
-- Use `/clear` between different tasks to maintain focus
-- AGENTS.md and CLAUDE.md are auto-loaded for context
-- Use `task-master show <id>` to pull specific task context when needed
+## Key Directories
+- `src/cli/` — Modular CLI with subcommands: git, agent, task, analysis, infra, automation
+- `src/core/` — Core interfaces, factory, conflict models, exceptions
+- `src/strategy/` — Multi-phase resolution strategy, risk assessment, reordering
+- `src/analysis/` — Code analysis modules
+- `src/resolution/` — Conflict resolution engine
+- `src/validation/` — Validation framework
+- `src/git/` — Git integration layer
+- `src/context_control/` — Context contamination prevention
+- `src/utils/` — Shared utility modules
+- `cli/` — Root CLI package (backward-compatible entry point via `emailintelligence_cli.py`)
+- `setup/` — Unified launcher with DI container, routing, services, settings
+- `client/` — React frontend (Vite + Radix UI + TanStack Query + Tailwind)
+- `modules/` — Orchestration shell scripts (branch.sh, config.sh, safety.sh, etc.)
+- `scripts/` — Automation and orchestration scripts (100+)
+- `backend/python_backend/` — Deprecated Pydantic models (active backend is on `scientific`)
+- `config/` — Distribution and default configuration
+- `docs/handoff/` — Multi-phase agent rules handoff framework
 
-### Tool Allowlist
+## Task Management
+This project uses Task Master AI for task tracking. See `.taskmaster/` for configuration.
+Use `task-master list`, `task-master next`, `task-master show <id>` for workflow.
 
-Add to `.claude/settings.json`:
+Recommended workflow:
+- Start with `task-master next` or `task-master list`, then inspect details with `task-master show <id>`.
+- Set the active task to `in-progress` when you begin work, and mark it `done`, `blocked`, `deferred`, or `cancelled` as the outcome becomes clear.
+- Record implementation notes, discoveries, and follow-up work with `task-master update-subtask --id=<id> --prompt="..."` or `task-master update-task --id=<id> --prompt="..."`.
+- When new work appears, add or decompose it with `task-master add-task --prompt="..."` or `task-master expand --id=<id>`.
+- Prefer Task Master CLI or MCP commands over manual edits to files under `.taskmaster/`.
 
-```json
-{
-  "allowedTools": [
-    "Edit",
-    "Bash(task-master *)",
-    "Bash(git commit:*)",
-    "Bash(git add:*)",
-    "Bash(npm run *)",
-    "mcp__task_master_ai__*"
-  ]
-}
-```
-
-### Custom Slash Commands
-
-Create `.claude/commands/taskmaster-next.md`:
-
-```markdown
-Find the next available Task Master task and show its details.
-
-Steps:
-1. Run `task-master next` to get the next task
-2. If a task is available, run `task-master show <id>` for full details
-3. Provide a summary of what needs to be implemented
-```
-
-### Parallel Development with Git Worktrees
-
-```bash
-# Create worktrees for parallel task development
-git worktree add ../project-auth feature/auth-system
-git worktree add ../project-api feature/api-refactor
-
-# Run Claude in each worktree
-cd ../project-auth && claude    # Terminal 1: Auth work
-cd ../project-api && claude     # Terminal 2: API work
-```
-
-## Important Differences from Other Agents
-
-### Direct File Access
-Claude Code can directly edit files with native Edit tool (superior to sed/manual editing).
-
-### Git Integration
-Native git commands - no special syntax needed.
-
-### Session Persistence
-Use `/clear` for context isolation between tasks. Multiple Claude Code windows can work on different worktrees simultaneously.
-
-## Recommended Model Configuration
-
-For Claude users:
-
-```bash
-# Set Claude as primary model
-task-master models --set-main claude-3-5-sonnet-20241022
-task-master models --set-research perplexity-llama-3.1-sonar-large-128k-online
-task-master models --set-fallback claude-3-5-haiku-20241022
-```
-
-## Your Role with Claude Code
-
-As a Claude assistant with Task Master:
-
-1. **Use MCP tools naturally** - They integrate transparently via `.mcp.json`
-2. **Direct file editing** - Use Edit tool for clean, efficient changes
-3. **Context isolation** - Use `/clear` between tasks to stay focused
-4. **Custom commands** - Leverage `.claude/commands/` for repeated workflows
-5. **Parallel worktrees** - Manage multiple features in separate terminals
-
-**Key Principle:** Use native Claude capabilities (Edit, file reading) combined with Task Master MCP for comprehensive task management.
-
----
-
-*See AGENTS.md for complete Task Master commands, workflows, and best practices.*
+## Critical Rules
+- NEVER commit secrets or API keys
+- NEVER use `eval()` or `exec()`
+- NEVER hard-code file paths
+- Use dependency injection over global state
+- Add type hints to all function parameters and return values
+- Run `bash scripts/verify-agent-content.sh` to verify agent file accuracy after updates

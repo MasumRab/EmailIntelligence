@@ -1,0 +1,34 @@
+{
+  "targets": [
+    "claudecode",
+    "cursor",
+    "cline",
+    "roo",
+    "kiro",
+    "windsurf",
+    "qwencode",
+    "opencode",
+    "geminicli",
+    "agentsmd",
+    "codexcli"
+  ],
+  "features": [
+    "rules",
+    "ignore",
+    "mcp",
+    "commands",
+    "subagents",
+    "skills",
+    "hooks",
+    "permissions"
+  ],
+  "baseDirs": [
+    "."
+  ],
+  "delete": false,
+  "verbose": false,
+  "global": false,
+  "simulatedCommands": true,
+  "simulatedSubagents": true,
+  "modularMcp": false
+}

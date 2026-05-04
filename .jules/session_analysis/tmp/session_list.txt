@@ -1,0 +1,52 @@
+           ID                                    Description                                    Repo                Last active                Status         
+ 7956689661359593335     <agent>  <identity>    name: repository_maintenance_agent  …  MasumRab/gemini-fulls…  22h24m1s ago            Awaiting User F
+ 4382690703778783503     Working in the repo root (MasumRab/kaggle-notebooks-analysi…  MasumRab/kaggle-noteb…  12h9m59s ago            Completed      
+ 13172420826211369022    Working in the repo root (MasumRab/kaggle-notebooks-analysi…  MasumRab/kaggle-noteb…  13h49m47s ago           Awaiting User F
+ 15382282479524749113    Working in the repo root (MasumRab/kaggle-notebooks-analysi…  MasumRab/kaggle-noteb…  11h44m44s ago           Completed      
+ 16119518583252118332    Working in the repo root (MasumRab/kaggle-notebooks-analysi…  MasumRab/kaggle-noteb…  12h18m47s ago           Completed      
+ 7979893028704332984     Working in the repo root (MasumRab/kaggle-notebooks-analysi…  MasumRab/kaggle-noteb…  1 day ago               Awaiting User F
+ 330861280601380324      You are working on Pull Requests in repository MasumRab/Ema…  MasumRab/EmailIntelli…  1 day ago                              
+ 15747235369970060290    ## Task: Add min/max after data exploration**Details:**- Fi…  MasumRab/kaggle-noteb…  13h9m4s ago                            
+ 14586978430582998057    ## Task: Adjust text pipeline steps**Details:**- File: tool…  MasumRab/kaggle-noteb…  12h33m31s ago           Awaiting Plan A
+ 889894849452507426      # 🧪 Testing Improvement TaskYou are a testing-focused agen…  MasumRab/kaggle-noteb…  1 day ago               Completed      
+ 3927471279591052912     [Thinking]The user wants only the prompts that don't requir…  MasumRab/kaggle-noteb…  1 day ago               Awaiting User F
+ 16638769467548151530    Working in the repo root (MasumRab/kaggle-notebooks-analysi…  MasumRab/kaggle-noteb…  2 days ago              Awaiting User F
+ 15825577862454854794    Working in the repo root (MasumRab/kaggle-notebooks-analysi…  MasumRab/kaggle-noteb…  1 day ago               Completed      
+ 18399042686349633468    Working in the repo root (MasumRab/kaggle-notebooks-analysi…  MasumRab/kaggle-noteb…  1 day ago               Completed      
+ 16994837303056291039    Working in the repo root (MasumRab/kaggle-notebooks-analysi…  MasumRab/kaggle-noteb…  2 days ago              Awaiting User F
+ 8371048452105557519     Working in the repo root (MasumRab/kaggle-notebooks-analysi…  MasumRab/kaggle-noteb…  2 days ago              Failed         
+ 17472365826538539796    Working in the repo root (MasumRab/kaggle-notebooks-analysi…  MasumRab/kaggle-noteb…  6h4m0s ago              Completed      
+ 12088601342813459447    Working in the repo root (MasumRab/kaggle-notebooks-analysi…  MasumRab/kaggle-noteb…  2 days ago              Completed      
+ 15682446560131661605    You are "Sentinel" 🛡️ - a security-focused agent who protect  MasumRab/EmailIntelli…  2 days ago                             
+ 11567873765075606709    You are working on Pull Requests in repository MasumRab/Ema…  MasumRab/EmailIntelli…  2 days ago              Completed      
+ 13005011563799472129    You are working on Pull Requests in repository MasumRab/Ema…  MasumRab/EmailIntelli…  3 days ago              Failed         
+ 16320746218997740002    You are "Sentinel" 🛡️ - a security-focused agent who protect  MasumRab/EmailIntelli…  3 days ago              Failed         
+ 9555800917544880734      name = "scheduled-codebase-audit" description = "Analyse a…  MasumRab/gemini-cli-p…  4 days ago              Completed      
+ 10531784973387268978    Review and verify the discoverability documentation in this…  MasumRab/kaggle-noteb…  3 days ago              Completed      
+ 6075209213249275023     Complete the critically incomplete test suite for this repo…  MasumRab/kaggle-noteb…  2 days ago              Completed      
+ 5324802957609118816     You are working on Pull Requests in repository MasumRab/Ema…  MasumRab/EmailIntelli…  4 days ago                             
+ 10606494334515511375    You are working on Pull Requests in repository MasumRab/Ema…  MasumRab/EmailIntelli…  4 days ago                             
+ 6243044266694699100     You are "Sentinel" 🛡️ - a security-focused agent who protect  MasumRab/EmailIntelli…  4 days ago                             
+ 2721690914154446086     You are working on Pull Requests in repository MasumRab/Ema…  MasumRab/EmailIntelli…  5 days ago                             
+ 474940669257573315      You are working on Pull Requests in repository MasumRab/Ema…  MasumRab/EmailIntelli…  2 days ago              Completed      
+ 8016358531059558537     You are "Sentinel" 🛡️ - a security-focused agent who protect  MasumRab/EmailIntelli…  2 days ago              Completed      
+ 13847520812025655943    You are working on Pull Requests in repository MasumRab/Ema…  MasumRab/EmailIntelli…  6 days ago                             
+ 15401347045413575330    You are working on Pull Requests in repository MasumRab/Ema…  MasumRab/EmailIntelli…  6 days ago                             
+ 5624515155288278217     there seems the big issues with the way the commands are im…  MasumRab/gemini-cli-p…  4 days ago              Completed      
+ 15310599703825757849    You are "Sentinel" 🛡️ - a security-focused agent who protect  MasumRab/EmailIntelli…  6 days ago              In Progress    
+ 12960568779206459562    # 🔒 Security Vulnerability Fix TaskYou are a security-focu…  MasumRab/kaggle-noteb…  13h24m31s ago                          
+ 4664297246313082182     ## Task: Update actual shape for ImageFeature**Details:**- …  MasumRab/kaggle-noteb…  3 days ago              Completed      
+ 17250563797883836208    # 🧪 Testing Improvement TaskYou are a testing-focused agen…  MasumRab/kaggle-noteb…  13h16m33s ago                          
+ 10865630989900669675    You are working on Pull Requests in repository MasumRab/Ema…  MasumRab/EmailIntelli…  7 days ago              Failed         
+ 9952332485723527849     You are working on Pull Requests in repository MasumRab/Ema…  MasumRab/EmailIntelli…  7 days ago                             
+ 2281891166145596786     You are "Sentinel" 🛡️ - a security-focused agent who protect  MasumRab/EmailIntelli…  7 days ago              Awaiting User F
+ 9164742845732374282     You are working on Pull Requests in repository MasumRab/Ema…  MasumRab/EmailIntelli…  8 days ago              Failed         
+ 4819412441763000548     You are working on Pull Requests in repository MasumRab/Ema…  MasumRab/EmailIntelli…  8 days ago              Failed         
+ 11806280539751524203    <agent>  <identity>    name: repository_maintenance_agent  …  MasumRab/gemini-fulls…  8 days ago              Awaiting User F
+ 14535563393146852202    You are "Sentinel" 🛡️ - a security-focused agent who protect  MasumRab/EmailIntelli…  8 days ago              In Progress    
+ 16572034054047473480    You are "Bolt" ⚡ - a performance-obsessed agent who makes …  MasumRab/EmailIntelli…  8 days ago              Completed      
+ 15586951256576345271    You are "Sentinel" 🛡️ - a security-focused agent who protect  MasumRab/EmailIntelli…  9 days ago              Awaiting User F
+ 237124919842135197      You are "Bolt" ⚡ - a performance-obsessed agent who makes …  MasumRab/EmailIntelli…  9 days ago              Completed      
+ 15487891763455903732    # 🔒 Security Vulnerability Fix TaskYou are a security-focu…  MasumRab/kaggle-noteb…  2 days ago              Completed      
+ 16059062363378722371    # ⚡ Performance Optimization TaskYou are a performance-foc…  MasumRab/kaggle-noteb…  9 days ago              Completed      
+                                                                                                                                                      

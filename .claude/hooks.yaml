@@ -1,0 +1,69 @@
+# RuleZ Configuration — EmailIntelligence
+# Docs: https://github.com/SpillwaveSolutions/agent_rulez
+
+version: "1.0"
+
+settings:
+  debug_logs: false
+  log_level: info
+  fail_open: true
+  script_timeout: 5
+
+rules:
+  # === SECURITY: Block dangerous git operations ===
+  - name: block-force-push
+    description: Prevent force push to main/master/scientific branches
+    matchers:
+      tools: [Bash]
+      command_match: "git push.*(--force|-f).*(main|master|scientific)"
+    actions:
+      block: true
+    metadata:
+      priority: 100
+      enabled: true
+
+  - name: block-hard-reset
+    description: Prevent destructive git reset on protected branches
+    matchers:
+      tools: [Bash]
+      command_match: "git reset --hard"
+    actions:
+      block: true
+    metadata:
+      priority: 90
+      enabled: true
+
+  # === SECURITY: Prevent secret exposure ===
+  - name: block-env-cat
+    description: Prevent reading .env files that may contain secrets
+    matchers:
+      tools: [Bash]
+      command_match: "cat.*\\.env"
+    actions:
+      block: true
+    metadata:
+      priority: 95
+      enabled: true
+
+  - name: block-credentials-read
+    description: Prevent reading credentials directory
+    matchers:
+      tools: [Read]
+      path_match: "credentials/"
+    actions:
+      block: true
+    metadata:
+      priority: 100
+      enabled: true
+
+  # === SAFETY: Prevent bulk file operations ===
+  - name: block-git-add-all
+    description: Prevent git add -A or git add . (stage specific files instead)
+    matchers:
+      tools: [Bash]
+      command_match: "git add (-A|\\.|--all)"
+    actions:
+      block: true
+    metadata:
+      priority: 85
+      enabled: true
