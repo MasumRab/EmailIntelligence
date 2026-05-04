@@ -51,10 +51,21 @@ jobs:
             core.info(`Found ${labelNames.length} labels: ${labelNames.join(', ')}`);
             return labelNames;
 
+      - name: 'Check auth before running'
+        id: 'check_auth'
+        run: |
+          if [[ -n "${{ secrets.GEMINI_API_KEY }}" || -n "${{ secrets.GOOGLE_API_KEY }}" || -n "${{ vars.GCP_WIF_PROVIDER }}" ]]; then
+            echo "auth_present=true" >> $GITHUB_OUTPUT
+          else
+            echo "auth_present=false" >> $GITHUB_OUTPUT
+            echo "No auth provided, skipping."
+          fi
+
       - name: 'Run Gemini issue analysis'
         id: 'gemini_analysis'
         if: |-
           ${{ steps.get_labels.outputs.available_labels != '' }}
+        if: ${{ steps.check_auth.outputs.auth_present == 'true' }}
         uses: 'google-github-actions/run-gemini-cli@v0' # ratchet:exclude
         env:
           GITHUB_TOKEN: '' # Do NOT pass any auth tokens here since this runs on untrusted inputs

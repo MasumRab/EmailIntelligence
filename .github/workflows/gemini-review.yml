@@ -41,7 +41,18 @@ jobs:
       - name: 'Checkout repository'
         uses: 'actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8' # ratchet:actions/checkout@v4
 
+      - name: 'Check auth before running'
+        id: 'check_auth'
+        run: |
+          if [[ -n "${{ secrets.GEMINI_API_KEY }}" || -n "${{ secrets.GOOGLE_API_KEY }}" || -n "${{ vars.GCP_WIF_PROVIDER }}" ]]; then
+            echo "auth_present=true" >> $GITHUB_OUTPUT
+          else
+            echo "auth_present=false" >> $GITHUB_OUTPUT
+            echo "No auth provided, skipping."
+          fi
+
       - name: 'Run Gemini pull request review'
+        if: ${{ steps.check_auth.outputs.auth_present == 'true' }}
         uses: 'google-github-actions/run-gemini-cli@v0' # ratchet:exclude
         id: 'gemini_pr_review'
         env:
