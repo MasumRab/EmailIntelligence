@@ -405,10 +405,10 @@ def _add_common_args(parser):
 
 
 def _add_legacy_args(parser):
-    """Add legacy arguments - Maintained for Backward Compatibility."""
-    parser.add_argument("--setup", action="store_true", help="Set up the environment (Legacy Component - Maintained for Backward Compatibility)")
+    """Add legacy arguments for backward compatibility."""
+    parser.add_argument("--setup", action="store_true", help="Set up the environment (legacy)")
     parser.add_argument(
-        "--stage", choices=["dev", "test"], default="dev", help="Application mode (Legacy Component - Maintained for Backward Compatibility)"
+        "--stage", choices=["dev", "test"], default="dev", help="Application mode (legacy)"
     )
     parser.add_argument(
         "--env-file",
@@ -488,7 +488,7 @@ def _add_legacy_args(parser):
 
 
 def _handle_legacy_args(args) -> int:
-    """Handle legacy argument parsing - Maintained for Backward Compatibility."""
+    """Handle legacy argument parsing for backward compatibility."""
     setup_wsl_environment()
     check_wsl_requirements()
 
