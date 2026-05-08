@@ -1,6 +1,6 @@
 """Tests for core constants module."""
 
-import pytest  # noqa: F401
+import pytest
 from src.core.constants import DEFAULT_CATEGORY_COLOR, DEFAULT_CATEGORIES
 
 

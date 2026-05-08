@@ -1,4 +1,4 @@
-import pytest  # noqa: F401
+import pytest
 from unittest.mock import AsyncMock
 
 from src.core.models import CategoryCreate

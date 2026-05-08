@@ -163,7 +163,7 @@ class BackendClient:
                     with open(file_path, 'r') as f:
                         data = json.load(f)
                         workflows.append(data)
-                except:  # noqa: E722
+                except:
                     continue
         except Exception as e:
             logger.error(f"Error listing workflows: {e}")

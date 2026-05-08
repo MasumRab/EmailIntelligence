@@ -2,7 +2,7 @@
 Test suite for MFA implementation
 """
 
-import asyncio  # noqa: F401
+import asyncio
 
 import pytest
 

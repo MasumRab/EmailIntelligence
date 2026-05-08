@@ -1,5 +1,5 @@
 
-import pytest  # noqa: F401
+import pytest
 from src.core.security import DataSanitizer
 
 class TestDataSanitizerImproved:

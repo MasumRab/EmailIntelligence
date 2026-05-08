@@ -1,7 +1,7 @@
-import pytest  # noqa: F401
-from unittest.mock import AsyncMock, patch  # noqa: F401
-from src.core.models import EmailCreate, EmailUpdate  # noqa: F401
-from src.core.ai_engine import AIAnalysisResult  # noqa: F401
+import pytest
+from unittest.mock import AsyncMock, patch
+from src.core.models import EmailCreate, EmailUpdate
+from src.core.ai_engine import AIAnalysisResult
 from datetime import datetime
 
 

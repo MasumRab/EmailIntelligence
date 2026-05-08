@@ -1,10 +1,10 @@
 
-import os  # noqa: F401
+import os
 import zipfile
 import pytest
 from unittest.mock import MagicMock, AsyncMock, patch
 from pathlib import Path
-from src.core.plugin_manager import PluginManager, PluginMarketplaceEntry, SecurityError  # noqa: F401
+from src.core.plugin_manager import PluginManager, PluginMarketplaceEntry, SecurityError
 
 @pytest.mark.asyncio
 async def test_zip_slip_vulnerability():
