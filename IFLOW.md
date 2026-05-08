@@ -29,7 +29,7 @@ EmailIntelligence/
 │   │   ├── main.py         # Legacy FastAPI app entry point
 │   │   ├── ai_engine.py    # Legacy AI analysis engine
 │   │   ├── database.py     # Legacy database management
-│   │   └── ...             # Other legacy backend modules
+│   │   └── ...             # Other Legacy Component - Maintained for Backward Compatibility backend modules
 │   ├── python_nlp/         # Core NLP models and analysis components
 │   │   ├── nlp_engine.py   # Main NLP engine
 │   │   └── ...             # Analysis components (sentiment, topic, etc.)
