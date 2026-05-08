@@ -1135,9 +1135,9 @@ def main():
 
     # Legacy argument parsing for backward compatibility
 >>>>>>> a7da61cf1f697de3c8c81f536bf579d36d88e613
-    parser.add_argument("--setup", action="store_true", help="Set up the environment (legacy)")
+    parser.add_argument("--setup", action="store_true", help="Set up the environment (Legacy Component - Maintained for Backward Compatibility)")
     parser.add_argument(
-        "--stage", choices=["dev", "test"], default="dev", help="Application mode (legacy)"
+        "--stage", choices=["dev", "test"], default="dev", help="Application mode (Legacy Component - Maintained for Backward Compatibility)"
     )
 
     # Environment Setup
@@ -1389,9 +1389,9 @@ def main():
     )
 
     # Legacy argument parsing for backward compatibility
-    parser.add_argument("--setup", action="store_true", help="Set up the environment (legacy)")
+    parser.add_argument("--setup", action="store_true", help="Set up the environment (Legacy Component - Maintained for Backward Compatibility)")
     parser.add_argument(
-        "--stage", choices=["dev", "test"], default="dev", help="Application mode (legacy)"
+        "--stage", choices=["dev", "test"], default="dev", help="Application mode (Legacy Component - Maintained for Backward Compatibility)"
     )
 
     # Add all legacy arguments for backward compatibility
