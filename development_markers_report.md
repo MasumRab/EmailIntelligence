@@ -41,7 +41,7 @@ This report catalogs all TODOs, FIXMEs, and other development markers found in t
 - **backend/python_nlp/smart_filters.py:1417-1418** - Column name notes in DB
 - **backend/python_backend/main.py:40** - Circular dependency warning
 - **backend/python_backend/workflow_routes.py:186** - Node-based workflow note
-- **backend/python_backend/workflow_routes.py:334** - Legacy system note
+- **backend/python_backend/workflow_routes.py:334** - Legacy Component - Maintained for Backward Compatibility system note
 
 ### Debug/Development Notes
 - **launch.py:277** - `# Always log stdout for visibility, especially for debugging setup steps.`
@@ -80,7 +80,7 @@ This report catalogs all TODOs, FIXMEs, and other development markers found in t
 
 ### Workflow System
 - Missing proper workflow selection implementation (TODO in email_routes.py)
-- Legacy system compatibility notes
+- Legacy Component - Maintained for Backward Compatibility system compatibility notes
 
 ### Plugin System
 - Notes about plugin import requirements

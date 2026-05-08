@@ -32,9 +32,9 @@ POST /api/auth/login
 }
 ```
 
-### Method 2: Using the Legacy Token Endpoint
+### Method 2: Using the Legacy Component - Maintained for Backward Compatibility Token Endpoint
 
-For backward compatibility, you can also use the legacy token endpoint:
+For backward compatibility, you can also use the Legacy Component - Maintained for Backward Compatibility token endpoint:
 
 ```
 POST /token

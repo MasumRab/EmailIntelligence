@@ -27,7 +27,7 @@
 ### 3. Priority Task Analysis
 - Analyzed the high-priority TODO in `backend/python_backend/email_routes.py:129` regarding workflow selection
 - Found that the system currently uses a hardcoded sample workflow instead of selecting based on user preferences or system configuration
-- Identified that the system has both legacy and node-based workflows
+- Identified that the system has both Legacy Component - Maintained for Backward Compatibility and node-based workflows
 - Examined the workflow manager and routes to understand how workflows are managed
 - Reviewed category service missing methods (update_category and delete_category)
 

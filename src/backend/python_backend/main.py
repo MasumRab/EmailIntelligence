@@ -259,7 +259,7 @@ from .routes.v1.email_routes import router as email_router_v1
 app.include_router(email_router_v1, prefix="/api/v1", tags=["emails-v1"])
 app.include_router(category_router_v1, prefix="/api/v1", tags=["categories-v1"])
 
-# Include legacy routers for backward compatibility
+# Include Legacy Component - Maintained for Backward Compatibility routers for backward compatibility
 app.include_router(email_routes.router)
 app.include_router(category_routes.router)
 app.include_router(gmail_routes.router)
@@ -277,7 +277,7 @@ from .enhanced_routes import router as enhanced_router
 
 app.include_router(enhanced_router, prefix="/api/enhanced", tags=["enhanced"])
 
-# Include workflow routes (legacy and node-based)
+# Include workflow routes (Legacy Component - Maintained for Backward Compatibility and node-based)
 from .workflow_routes import router as workflow_router
 
 app.include_router(workflow_router, prefix="", tags=["workflows"])

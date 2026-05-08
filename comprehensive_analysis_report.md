@@ -574,7 +574,7 @@ Found 62 potential orphan files:
 | task-130 - Repository-Pattern-Enhancement.md | 39 | 0 | 0 | 0 | Documentation |
 | task-131 - Module-System-Improvements.md | 39 | 0 | 0 | 0 | Documentation |
 | task-135 - Global-State-Management-Refactoring.md | 39 | 0 | 0 | 0 | Documentation |
-| task-136 - Legacy-Code-Migration-Plan.md | 39 | 0 | 0 | 0 | Documentation |
+| task-136 - Legacy Component - Maintained for Backward Compatibility-Code-Migration-Plan.md | 39 | 0 | 0 | 0 | Documentation |
 | task-143 - Dependency-Management-Improvements.md | 39 | 0 | 0 | 0 | Documentation |
 | task-144 - Code-Organization-Improvements.md | 39 | 0 | 0 | 0 | Documentation |
 | task-147 - Implement-node-reconstruction-in-advanced_workflow_routes.py-or-ensure-proper-removal.md | 22 | 0 | 0 | 0 | Documentation |
@@ -624,9 +624,9 @@ Found 62 potential orphan files:
 | task-33 - Phase-1.7-Implement-time_saved-calculation-logic-(2-minutes-per-auto-labeled-email)-in-dashboard-routes.md | 35 | 0 | 0 | 0 | Documentation |
 | task-34 - Phase-1.8-Update-performance-metrics-calculation-to-work-with-new-aggregated-data-approach.md | 36 | 0 | 0 | 0 | Documentation |
 | task-35 - Phase-1.9-Update-modules-dashboard-__init__.py-registration-to-handle-authentication-dependencies-properly.md | 35 | 0 | 0 | 0 | Documentation |
-| task-37 - Phase-1.11-Add-integration-tests-to-verify-dashboard-works-with-both-modular-and-legacy-data-sources.md | 29 | 0 | 0 | 0 | Testing |
+| task-37 - Phase-1.11-Add-integration-tests-to-verify-dashboard-works-with-both-modular-and-Legacy Component - Maintained for Backward Compatibility-data-sources.md | 29 | 0 | 0 | 0 | Testing |
 | task-38 - Phase-1.12-Update-API-documentation-to-reflect-new-consolidated-DashboardStats-response-model.md | 29 | 0 | 0 | 0 | Documentation |
-| task-39 - Phase-1.13-Add-deprecation-warnings-and-migration-guide-for-legacy-dashboard-routes.md | 29 | 0 | 0 | 0 | Documentation |
+| task-39 - Phase-1.13-Add-deprecation-warnings-and-migration-guide-for-Legacy Component - Maintained for Backward Compatibility-dashboard-routes.md | 29 | 0 | 0 | 0 | Documentation |
 
 ### Directory: `backlog/tasks/dashboard/phase2`
 
@@ -745,7 +745,7 @@ Found 62 potential orphan files:
 | create-launch-script-fixes-pr.md | 71 | 0 | 0 | 0 | Documentation |
 | filtering-system-outstanding-tasks.md | 99 | 0 | 0 | 0 | Documentation |
 | post-merge-validation.md | 64 | 0 | 0 | 0 | Documentation |
-| task-11 - Legacy-Code-Migration-Plan.md | 41 | 0 | 0 | 0 | Documentation |
+| task-11 - Legacy Component - Maintained for Backward Compatibility-Code-Migration-Plan.md | 41 | 0 | 0 | 0 | Documentation |
 | task-110 - Task-6.1-Create-parallel-documentation-generation-templates.md | 24 | 0 | 0 | 0 | Documentation |
 | task-111 - Task-6.2-Implement-concurrent-review-workflows.md | 24 | 0 | 0 | 0 | Documentation |
 | task-112 - Task-6.3-Develop-distributed-translation-pipelines.md | 24 | 0 | 0 | 0 | Documentation |
@@ -785,7 +785,7 @@ Found 62 potential orphan files:
 | task-34 - Documentation-Integration-&-Maintenance-Setup.md | 25 | 0 | 0 | 0 | Documentation |
 | task-34 - Phase-1.8-Update-performance-metrics-calculation-to-work-with-new-aggregated-data-approach.md | 36 | 0 | 0 | 0 | Documentation |
 | task-38 - Phase-1.12-Update-API-documentation-to-reflect-new-consolidated-DashboardStats-response-model.md | 29 | 0 | 0 | 0 | Documentation |
-| task-39 - Phase-1.13-Add-deprecation-warnings-and-migration-guide-for-legacy-dashboard-routes.md | 29 | 0 | 0 | 0 | Documentation |
+| task-39 - Phase-1.13-Add-deprecation-warnings-and-migration-guide-for-Legacy Component - Maintained for Backward Compatibility-dashboard-routes.md | 29 | 0 | 0 | 0 | Documentation |
 | task-4 - Performance-Optimization-Caching-Strategy.md | 41 | 0 | 0 | 0 | Documentation |
 | task-40 - Phase-2.1-Implement-Redis-memory-caching-for-dashboard-statistics-to-reduce-database-load-and-improve-response-times.md | 30 | 0 | 0 | 0 | Documentation |
 | task-41 - Phase-2.2-Add-background-job-processing-for-heavy-dashboard-calculations-(weekly-growth,-performance-metrics-aggregation).md | 30 | 0 | 0 | 0 | Documentation |
@@ -887,7 +887,7 @@ Found 62 potential orphan files:
 | task-21 - Create-Abstraction-Layer-Tests-on-Main.md | 58 | 0 | 0 | 0 | Testing |
 | task-22 - Create-Task-Verification-Framework.md | 91 | 0 | 0 | 0 | Testing |
 | task-36 - Phase-1.10-Update-test_dashboard.py-to-test-consolidated-functionality-with-new-response-model-and-authentication.md | 30 | 0 | 0 | 0 | Testing |
-| task-37 - Phase-1.11-Add-integration-tests-to-verify-dashboard-works-with-both-modular-and-legacy-data-sources.md | 29 | 0 | 0 | 0 | Testing |
+| task-37 - Phase-1.11-Add-integration-tests-to-verify-dashboard-works-with-both-modular-and-Legacy Component - Maintained for Backward Compatibility-data-sources.md | 29 | 0 | 0 | 0 | Testing |
 | task-4 - Fix-test-suite-issues.md | 42 | 0 | 0 | 0 | Testing |
 | task-52 - Phase-3.5-Implement-A-B-testing-framework-for-dashboard-feature-experimentation-and-analytics.md | 30 | 0 | 0 | 0 | Testing |
 | task-9 - Advanced-Testing-Infrastructure.md | 41 | 0 | 0 | 0 | Testing |
@@ -1279,7 +1279,7 @@ Found 62 potential orphan files:
 | task-107 - Task-5.4-Add-resource-utilization-monitoring.md | 24 | 0 | 0 | 0 | Documentation |
 | task-108 - Task-5.5-Develop-completion-prediction-algorithms.md | 24 | 0 | 0 | 0 | Documentation |
 | task-109 - EPIC-Agent-Workflow-Templates-Develop-templates-for-agents-to-generate-documentation-in-parallel.md | 26 | 0 | 0 | 0 | Documentation |
-| task-11 - Legacy-Code-Migration-Plan.md | 41 | 0 | 0 | 0 | Documentation |
+| task-11 - Legacy Component - Maintained for Backward Compatibility-Code-Migration-Plan.md | 41 | 0 | 0 | 0 | Documentation |
 | task-11 - Testing-&-Documentation-Completion-Achieve-95%+-test-coverage-and-complete-comprehensive-documentation.md | 102 | 0 | 0 | 0 | Testing |
 | task-110 - Task-6.1-Create-parallel-documentation-generation-templates.md | 24 | 0 | 0 | 0 | Documentation |
 | task-111 - Task-6.2-Implement-concurrent-review-workflows.md | 24 | 0 | 0 | 0 | Documentation |
@@ -1331,9 +1331,9 @@ Found 62 potential orphan files:
 | task-34 - Phase-1.8-Update-performance-metrics-calculation-to-work-with-new-aggregated-data-approach.md | 36 | 0 | 0 | 0 | Documentation |
 | task-35 - Phase-1.9-Update-modules-dashboard-__init__.py-registration-to-handle-authentication-dependencies-properly.md | 35 | 0 | 0 | 0 | Documentation |
 | task-36 - Phase-1.10-Update-test_dashboard.py-to-test-consolidated-functionality-with-new-response-model-and-authentication.md | 30 | 0 | 0 | 0 | Testing |
-| task-37 - Phase-1.11-Add-integration-tests-to-verify-dashboard-works-with-both-modular-and-legacy-data-sources.md | 29 | 0 | 0 | 0 | Testing |
+| task-37 - Phase-1.11-Add-integration-tests-to-verify-dashboard-works-with-both-modular-and-Legacy Component - Maintained for Backward Compatibility-data-sources.md | 29 | 0 | 0 | 0 | Testing |
 | task-38 - Phase-1.12-Update-API-documentation-to-reflect-new-consolidated-DashboardStats-response-model.md | 29 | 0 | 0 | 0 | Documentation |
-| task-39 - Phase-1.13-Add-deprecation-warnings-and-migration-guide-for-legacy-dashboard-routes.md | 29 | 0 | 0 | 0 | Documentation |
+| task-39 - Phase-1.13-Add-deprecation-warnings-and-migration-guide-for-Legacy Component - Maintained for Backward Compatibility-dashboard-routes.md | 29 | 0 | 0 | 0 | Documentation |
 | task-4 - Fix-test-suite-issues.md | 42 | 0 | 0 | 0 | Testing |
 | task-4 - Performance-Optimization-Caching-Strategy.md | 41 | 0 | 0 | 0 | Documentation |
 | task-40 - Phase-2.1-Implement-Redis-memory-caching-for-dashboard-statistics-to-reduce-database-load-and-improve-response-times.md | 30 | 0 | 0 | 0 | Documentation |

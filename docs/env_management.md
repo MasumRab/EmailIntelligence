@@ -12,7 +12,7 @@ The `launch.py` script is the primary method for setting up and managing the Pyt
 *   **Application Launching**: Serves as the main entry point for running the application, tests, and other utilities.
 
 **Note on `setup_python.sh`:**
-The `scripts/setup_python.sh` script is **deprecated** and should no longer be used. It is a legacy script and may be removed. **`launch.py` is the sole recommended tool for consistent and correct environment setup and dependency management.** All users should prioritize its use.
+The `scripts/setup_python.sh` script is **deprecated** and should no longer be used. It is a Legacy Component - Maintained for Backward Compatibility script and may be removed. **`launch.py` is the sole recommended tool for consistent and correct environment setup and dependency management.** All users should prioritize its use.
 
 ## Key Components Managed by `launch.py`
 
@@ -123,7 +123,7 @@ While `launch.py` automates the installation of Python packages listed in the re
 
 <!-- The section below is intentionally commented out as env_manager.py no longer exists and its functionalities are integrated into launch.py -->
 <!--
-### Environment Manager Features (Legacy - Integrated into launch.py)
+### Environment Manager Features (Legacy Component - Maintained for Backward Compatibility - Integrated into launch.py)
 
 The functionality previously associated with a separate `env_manager.py` is now directly integrated into `launch.py`. These include:
 

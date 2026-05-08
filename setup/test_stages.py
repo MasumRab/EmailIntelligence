@@ -98,3 +98,26 @@ class TestStages:
 
 # The launch script expects to import this specific object.
 test_stages = TestStages()
+
+
+def handle_test_stage(args):
+    """Handle test stage execution based on provided arguments."""
+    if getattr(args, "unit", False):
+        test_stages.run_unit_tests(getattr(args, "coverage", False), getattr(args, "debug", False))
+    
+    if getattr(args, "integration", False):
+        test_stages.run_integration_tests(getattr(args, "coverage", False), getattr(args, "debug", False))
+        
+    if getattr(args, "e2e", False):
+        test_stages.run_e2e_tests(True, getattr(args, "debug", False))
+        
+    if getattr(args, "performance", False):
+        test_stages.run_performance_tests(60, 10, getattr(args, "debug", False))
+        
+    if getattr(args, "security", False):
+        test_stages.run_security_tests("http://localhost:8000", getattr(args, "debug", False))
+
+    if args.stage == "test" and not any([args.unit, args.integration, args.e2e, args.performance, args.security]):
+        # Default to running unit and integration tests if in test stage and no specific test type selected
+        test_stages.run_unit_tests(getattr(args, "coverage", False), getattr(args, "debug", False))
+        test_stages.run_integration_tests(getattr(args, "coverage", False), getattr(args, "debug", False))

@@ -2,7 +2,7 @@
 
 **This directory is part of the deprecated `backend` package and will be removed in a future release.**
 
-This directory contains the legacy monolithic Python backend for the EmailIntelligence application. It is a FastAPI application that handled all backend logic, including API endpoints, AI/NLP services, and database interactions.
+This directory contains the Legacy Component - Maintained for Backward Compatibility monolithic Python backend for the EmailIntelligence application. It is a FastAPI application that handled all backend logic, including API endpoints, AI/NLP services, and database interactions.
 
 ## Migration Status
 

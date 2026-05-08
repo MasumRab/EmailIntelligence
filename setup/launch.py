@@ -4,7 +4,7 @@ EmailIntelligence Unified Launcher
 
 This script provides a single, unified way to set up, manage, and run all
 components of the EmailIntelligence application. It supports both a modern
-command-based interface and legacy arguments for backward compatibility.
+command-based interface and Legacy Component - Maintained for Backward Compatibility arguments for backward compatibility.
 
 Features:
 - Environment setup (venv/conda)
@@ -119,7 +119,7 @@ def _add_common_args(parser):
     parser.add_argument("--debug", action="store_true", help="Enable debug mode.")
 
 def _add_legacy_args(parser):
-    """Add all flags to ensure backward compatibility as per Runbook."""
+    """Add all flags to ensure backward compatibility as per Runbook (Legacy Component - Maintained for Backward Compatibility)."""
     # Environment & Setup
     parser.add_argument("--setup", action="store_true", help="Set up the environment (Legacy Component - Maintained for Backward Compatibility)")
     parser.add_argument("--stage", choices=["dev", "test"], default="dev", help="Application mode (Legacy Component - Maintained for Backward Compatibility)")
@@ -154,7 +154,7 @@ def _add_legacy_args(parser):
     parser.add_argument("--share", action="store_true", help="Create a public URL.")
 
 def _handle_legacy_args(args) -> int:
-    """Primary dispatcher for legacy argument support."""
+    """Primary dispatcher for Legacy Component - Maintained for Backward Compatibility argument support."""
     # 1. Environment Overrides
     if DOTENV_AVAILABLE:
         user_env = ROOT_DIR / "launch-user.env"

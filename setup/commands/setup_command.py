@@ -30,7 +30,7 @@ class SetupCommand(Command):
 
     def validate_args(self) -> bool:
         """Validate command arguments."""
-        # Setup command accepts various legacy arguments
+        # Setup command accepts various Legacy Component - Maintained for Backward Compatibility arguments
         return True
 
     def execute(self) -> int:

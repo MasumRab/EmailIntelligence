@@ -4,7 +4,7 @@
 
 This document describes the unified Node Engine architecture of the Email Intelligence Platform, which consolidates all workflow systems into a single, modular, extensible AI processing platform with node-based workflows. The Node Engine replaces the previous competing systems (Basic Workflow, Advanced Core) and provides a standardized, secure, and scalable foundation for email processing pipelines, inspired by leading AI frameworks like ComfyUI, Automatic1111, and Stability-AI systems.
 
-**Migration Note**: As of the latest update, all workflow functionality has been unified under the Node Engine. Legacy systems have been deprecated with warnings. All new development should use the Node Engine APIs.
+**Migration Note**: As of the latest update, all workflow functionality has been unified under the Node Engine. Legacy Component - Maintained for Backward Compatibility systems have been deprecated with warnings. All new development should use the Node Engine APIs.
 
 ## Architecture Overview
 

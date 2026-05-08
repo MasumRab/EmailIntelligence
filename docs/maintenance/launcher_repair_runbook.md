@@ -48,7 +48,7 @@ To prevent "Bootstrap Paradoxes" (where the launcher fails to start because of a
 When merging the `orchestration-tools` branch or other feature-heavy branches, conflicts in `setup/launch.py` are common.
 
 ### Global vs. Branch-Specific Logic
-*   **Global Flags:** All shared launcher flags must be added in the `_add_legacy_args(parser)` function to ensure backward compatibility.
+*   **Global Flags:** All shared launcher flags must be added in the `_add_Legacy Component - Maintained for Backward Compatibility_args(parser)` function to ensure backward compatibility.
 *   **Feature Flags:** Branch-specific flags should be isolated to their own argument groups if possible.
 
 ### Automated Conflict Detection
@@ -60,8 +60,8 @@ This utility scans critical files (defined in `setup/project_config.py`) for `<<
 
 ### Resolution Strategy
 1.  **Identify Infrastructure Changes:** Prioritize keeping the "Infrastructure Core" (imports, paths) clean.
-2.  **Consolidate Args:** If two branches add similar flags, consolidate them in `_add_legacy_args`.
-3.  **Preserve the Dispatcher:** Ensure `main()` always points to `_handle_legacy_args(args)`, which acts as the primary dispatcher.
+2.  **Consolidate Args:** If two branches add similar flags, consolidate them in `_add_Legacy Component - Maintained for Backward Compatibility_args`.
+3.  **Preserve the Dispatcher:** Ensure `main()` always points to `_handle_Legacy Component - Maintained for Backward Compatibility_args(args)`, which acts as the primary dispatcher.
 
 ---
 

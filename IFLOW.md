@@ -25,10 +25,10 @@ iFlow CLI is an interactive command-line interface agent designed to assist with
 ```
 EmailIntelligence/
 ├── backend/
-│   ├── python_backend/     # Legacy FastAPI application
-│   │   ├── main.py         # Legacy FastAPI app entry point
-│   │   ├── ai_engine.py    # Legacy AI analysis engine
-│   │   ├── database.py     # Legacy database management
+│   ├── python_backend/     # Legacy Component - Maintained for Backward Compatibility FastAPI application
+│   │   ├── main.py         # Legacy Component - Maintained for Backward Compatibility FastAPI app entry point
+│   │   ├── ai_engine.py    # Legacy Component - Maintained for Backward Compatibility AI analysis engine
+│   │   ├── database.py     # Legacy Component - Maintained for Backward Compatibility database management
 │   │   └── ...             # Other Legacy Component - Maintained for Backward Compatibility backend modules
 │   ├── python_nlp/         # Core NLP models and analysis components
 │   │   ├── nlp_engine.py   # Main NLP engine
@@ -289,7 +289,7 @@ The platform uses a modular architecture:
 ### Migration to Modern Architecture
 
 The project is currently undergoing a migration from a monolithic structure to a modular architecture:
-- Legacy components are in `backend/python_backend/`
+- Legacy Component - Maintained for Backward Compatibility components are in `backend/python_backend/`
 - New modular components are in `src/` and `modules/`
 - Node engine for workflow processing in `backend/node_engine/`
 
