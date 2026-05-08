@@ -133,7 +133,7 @@ PORT=8000
 
 ### Code Organization
 
-- Backend code is organized in `backend/python_backend/` (legacy) and `backend/python_nlp/` (NLP components)
+- Backend code is organized in `backend/python_backend/` (Legacy Component - Maintained for Backward Compatibility) and `backend/python_nlp/` (NLP components)
 - Core application logic is in `src/` with Gradio UI integration
 - Node-based workflow engine in `backend/node_engine/`
 - Modular functionality in `modules/`
