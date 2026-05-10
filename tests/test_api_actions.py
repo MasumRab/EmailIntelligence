@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import pytest
 from unittest.mock import AsyncMock, patch
 from src.core.ai_engine import AIAnalysisResult
@@ -69,5 +68,3 @@ def test_extract_actions_ai_engine_exception(client, mock_ai_engine):
 
     assert response.status_code == 500
     assert "Failed to extract action items" in response.json()["detail"]
-=======
->>>>>>> origin/main

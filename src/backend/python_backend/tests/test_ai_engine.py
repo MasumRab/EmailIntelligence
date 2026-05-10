@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import os
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -151,5 +150,3 @@ async def test_analyze_email_model_failure(
     assert isinstance(result, AIAnalysisResult)
     assert "Critical failure" in result.reasoning
     assert "Model exploded" in result.reasoning
-=======
->>>>>>> origin/main

@@ -38,8 +38,7 @@ class BranchHealthCommand:
 
     def _check_conflict_markers(self) -> None:
         """Check for unresolved merge conflict markers."""
-        markers = ["<<<<<<<", "=======", ">>>>>>>"]
-        for marker in markers:
+        markers = ["        for marker in markers:
             output = self._run_git([
                 "grep", "-r", f"^{marker}", "--include=*.py", "--include=*.md",
                 "--include=*.yml", "--include=*.yaml", "."
