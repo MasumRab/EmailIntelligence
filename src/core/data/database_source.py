@@ -1,6 +1,6 @@
 from typing import List, Dict, Any
 from .data_source import DataSource
-from ..database import DatabaseManager, create_database_manager, DatabaseConfig
+# circular import resolved
 from ..factory import get_data_source
 from ..data_source import DataSource as DataSourceProtocol
 
@@ -9,7 +9,6 @@ class DatabaseDataSource(DataSource):
     A data source for emails that uses the database.
     """
 
-    def __init__(self, db_manager):
     def __init__(self, db_manager: DatabaseManager):
         self.db = db_manager
 
