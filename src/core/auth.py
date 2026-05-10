@@ -1,3 +1,4 @@
+import logging
 """
 Authentication and authorization system for the Email Intelligence Platform.
 
