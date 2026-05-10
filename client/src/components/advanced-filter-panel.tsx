@@ -1,23 +1,23 @@
 import { useState } from "react";
-import { Button } from "@components/ui/button";
-import { Input } from "@components/ui/input";
-import { Label } from "@components/ui/label";
-import { Checkbox } from "@components/ui/checkbox";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@components/ui/select";
-import { Card, CardContent, CardHeader, CardTitle } from "@components/ui/card";
-import { Badge } from "@components/ui/badge";
+} from "@/components/ui/select";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@components/ui/popover";
-import { Calendar } from "@components/ui/calendar";
+} from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
 import { CalendarIcon, Plus, Trash2, Filter } from "lucide-react";
 import type { Category } from "@shared/schema";
 
@@ -183,7 +183,7 @@ export function AdvancedFilterPanel({
               </Label>
               <Input
                 value={requiredKeywords}
-                onChange={(e) => setRequiredKeywords(e.target.value)}
+                onChange={(e: any) => setRequiredKeywords(e.target.value)}
                 placeholder="e.g., urgent, important"
               />
             </div>
@@ -193,7 +193,7 @@ export function AdvancedFilterPanel({
               </Label>
               <Input
                 value={excludedKeywords}
-                onChange={(e) => setExcludedKeywords(e.target.value)}
+                onChange={(e: any) => setExcludedKeywords(e.target.value)}
                 placeholder="e.g., spam, advertisement"
               />
             </div>
@@ -210,7 +210,7 @@ export function AdvancedFilterPanel({
               </Label>
               <Input
                 value={requiredSenders}
-                onChange={(e) => setRequiredSenders(e.target.value)}
+                onChange={(e: any) => setRequiredSenders(e.target.value)}
                 placeholder="e.g., boss@company.com"
               />
             </div>
@@ -220,7 +220,7 @@ export function AdvancedFilterPanel({
               </Label>
               <Input
                 value={excludedSenders}
-                onChange={(e) => setExcludedSenders(e.target.value)}
+                onChange={(e: any) => setExcludedSenders(e.target.value)}
                 placeholder="e.g., marketing@company.com"
               />
             </div>
@@ -237,7 +237,7 @@ export function AdvancedFilterPanel({
               </Label>
               <Input
                 value={requiredRecipients}
-                onChange={(e) => setRequiredRecipients(e.target.value)}
+                onChange={(e: any) => setRequiredRecipients(e.target.value)}
                 placeholder="e.g., team@company.com"
               />
             </div>
@@ -247,7 +247,7 @@ export function AdvancedFilterPanel({
               </Label>
               <Input
                 value={excludedRecipients}
-                onChange={(e) => setExcludedRecipients(e.target.value)}
+                onChange={(e: any) => setExcludedRecipients(e.target.value)}
                 placeholder="e.g., alumni@university.edu"
               />
             </div>
@@ -265,7 +265,7 @@ export function AdvancedFilterPanel({
               <Input
                 type="date"
                 value={afterDate}
-                onChange={(e) => setAfterDate(e.target.value)}
+                onChange={(e: any) => setAfterDate(e.target.value)}
               />
             </div>
             <div>
@@ -275,7 +275,7 @@ export function AdvancedFilterPanel({
               <Input
                 type="date"
                 value={beforeDate}
-                onChange={(e) => setBeforeDate(e.target.value)}
+                onChange={(e: any) => setBeforeDate(e.target.value)}
               />
             </div>
           </div>
@@ -290,7 +290,7 @@ export function AdvancedFilterPanel({
               <Input
                 type="number"
                 value={minSize}
-                onChange={(e) => setMinSize(e.target.value)}
+                onChange={(e: any) => setMinSize(e.target.value)}
                 placeholder="e.g., 100"
               />
             </div>
@@ -299,7 +299,7 @@ export function AdvancedFilterPanel({
               <Input
                 type="number"
                 value={maxSize}
-                onChange={(e) => setMaxSize(e.target.value)}
+                onChange={(e: any) => setMaxSize(e.target.value)}
                 placeholder="e.g., 5000"
               />
             </div>
@@ -358,7 +358,7 @@ export function AdvancedFilterPanel({
           <Checkbox
             id="case-sensitive"
             checked={isCaseSensitive}
-            onCheckedChange={(checked) => setIsCaseSensitive(!!checked)}
+            onCheckedChange={(checked: any) => setIsCaseSensitive(!!checked)}
           />
           <Label htmlFor="case-sensitive">Case sensitive matching</Label>
         </div>
@@ -386,7 +386,7 @@ export function AdvancedFilterPanel({
               >
                 <Select
                   value={condition.field}
-                  onValueChange={(value) =>
+                  onValueChange={(value: any) =>
                     updateCondition(condition.id, "field", value)
                   }
                 >
@@ -403,7 +403,7 @@ export function AdvancedFilterPanel({
 
                 <Select
                   value={condition.operator}
-                  onValueChange={(value) =>
+                  onValueChange={(value: any) =>
                     updateCondition(condition.id, "operator", value)
                   }
                 >
@@ -421,7 +421,7 @@ export function AdvancedFilterPanel({
 
                 <Input
                   value={condition.value}
-                  onChange={(e) =>
+                  onChange={(e: any) =>
                     updateCondition(condition.id, "value", e.target.value)
                   }
                   placeholder="Value"

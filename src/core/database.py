@@ -18,7 +18,7 @@ import hashlib
 # For now, we are assuming they will be available in the new location.
 from .performance_monitor import log_performance
 from .constants import DEFAULT_CATEGORY_COLOR, DEFAULT_CATEGORIES
-from .data.data_source import DataSource
+
 
 from .security import validate_path_safety, sanitize_path
 
@@ -126,7 +126,7 @@ FIELD_CATEGORY_NAME = "categoryName"
 FIELD_CATEGORY_COLOR = "categoryColor"
 
 
-class DatabaseManager(DataSource):
+class DatabaseManager:
     """Optimized async database manager with in-memory caching, write-behind,
     and hybrid on-demand content loading."""
 

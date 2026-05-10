@@ -1,0 +1,4 @@
+src/backend/python_backend/*
+src/backend/extensions/example/*
+src/backend/data/*.json
+tests/deprecated/*

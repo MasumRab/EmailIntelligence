@@ -2,7 +2,6 @@
 Settings for the Email Intelligence Platform core modules.
 """
 
-<<<<<<< HEAD
 class Settings:
     """Settings class for core modules."""
     secret_key = "your-secret-key-here"
@@ -34,7 +33,6 @@ class SettingsManager:
 
 
 settings = Settings()
-=======
 import os
 from typing import Optional
 
@@ -53,4 +51,3 @@ class Settings:
 
 
 settings = Settings()
->>>>>>> scientific

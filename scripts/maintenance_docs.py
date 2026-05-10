@@ -111,6 +111,44 @@ class DocsMaintenance:
         health['overall_status'] = 'healthy' if not health['issues'] else 'issues_found'
         return health
 
+
+    def _load_protected_legacy_patterns(self) -> list:
+        """Load protected legacy patterns from config file."""
+        if hasattr(self, '_legacy_patterns'):
+            return self._legacy_patterns
+
+        protect_file = self.project_root / '.legacy-code-protect'
+        self._legacy_patterns = []
+        if protect_file.exists():
+            with open(protect_file, 'r') as f:
+                self._legacy_patterns = [line.strip() for line in f if line.strip() and not line.startswith('#')]
+        return self._legacy_patterns
+
+    def _is_protected_legacy_path(self, filepath: Path) -> bool:
+        """Check if a path is protected by legacy code protection policy."""
+        patterns = self._load_protected_legacy_patterns()
+        if not patterns:
+            return False
+
+        import fnmatch
+        try:
+            rel_path = str(filepath.relative_to(self.project_root))
+        except ValueError:
+            return False # Path not in project root
+
+        # Ensure path uses forward slashes for matching
+        rel_path = rel_path.replace('\\', '/')
+
+        for pattern in patterns:
+            if fnmatch.fnmatch(rel_path, pattern):
+                return True
+            if pattern.endswith('/*'):
+                dir_pattern = pattern[:-2]
+                # Proper path prefix checking
+                if rel_path == dir_pattern or rel_path.startswith(dir_pattern + '/'):
+                    return True
+        return False
+
     def perform_cleanup_tasks(self) -> Dict:
         """Perform cleanup tasks."""
         print("  🧹 Performing cleanup tasks...")
@@ -156,12 +194,16 @@ class DocsMaintenance:
         for pattern in temp_patterns:
             for temp_file in self.project_root.rglob(pattern):
                 if temp_file.is_file():
+                    if self._is_protected_legacy_path(temp_file):
+                        continue
                     temp_file.unlink()
                     cleanup['temp_files_removed'] += 1
 
         # Remove empty directories
         def remove_empty_dirs(path: Path):
             if path.is_dir() and not any(path.iterdir()):
+                if self._is_protected_legacy_path(path):
+                    return False
                 path.rmdir()
                 cleanup['empty_dirs_removed'] += 1
                 return True
@@ -315,6 +357,10 @@ class DocsMaintenance:
         # Find all markdown files in the project
         for md_file in self.project_root.rglob("*.md"):
             if md_file.is_file():
+                # Skip legacy protected files
+                if getattr(self, '_is_protected_legacy_path', lambda x: False)(md_file):
+                    continue
+
                 # Get relative path from project root
                 relative_path = str(md_file.relative_to(self.project_root))
 

@@ -20,10 +20,8 @@ class ConflictsCommand:
     def __init__(self, path: str):
         self.repo_path = Path(path).resolve()
         self.conflict_pattern = re.compile(
-            r"^<<<<<<< [^\n]*\n"
-            r"^=======\n?"
-            r"^>>>>>>> [^\n]*$"
-        )
+            r"^            r"^=======\n?"
+            r"^        )
 
     def _run_git(self, args: List[str], check: bool = False) -> str:
         """Run a git command."""
@@ -43,8 +41,7 @@ class ConflictsCommand:
         Returns:
             List of file paths with conflicts
         """
-        output = self._run_git(["grep", "-rl", "<<<<<<<", "."])
-        if output:
+        output = self._run_git(["grep", "-rl", "        if output:
             return output.split('\n')
         return []
 
