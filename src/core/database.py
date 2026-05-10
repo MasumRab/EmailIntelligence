@@ -18,7 +18,7 @@ import hashlib
 # For now, we are assuming they will be available in the new location.
 from .performance_monitor import log_performance
 from .constants import DEFAULT_CATEGORY_COLOR, DEFAULT_CATEGORIES
-from .data.data_source import DataSource
+
 
 from .security import validate_path_safety, sanitize_path
 
