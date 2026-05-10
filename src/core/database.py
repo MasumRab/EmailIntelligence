@@ -126,7 +126,7 @@ FIELD_CATEGORY_NAME = "categoryName"
 FIELD_CATEGORY_COLOR = "categoryColor"
 
 
-class DatabaseManager(DataSource):
+class DatabaseManager:
     """Optimized async database manager with in-memory caching, write-behind,
     and hybrid on-demand content loading."""
 

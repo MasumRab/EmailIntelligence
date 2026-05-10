@@ -220,10 +220,6 @@ class DataSanitizer:
                     rf'(\b{re.escape(key)}\b\s*:\s*)[^\s,]+',
                     r'\1[REDACTED]',
                     data,
-                    flags=re.IGNORECASE
-                    rf"(\b{re.escape(key)}\b\s*:\s*)[^\s,]+",
-                    r"\1[REDACTED]",
-                    data,
                     flags=re.IGNORECASE,
                 )
             return data
