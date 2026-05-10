@@ -116,29 +116,29 @@ class DocsMaintenance:
         """Load protected legacy patterns from config file."""
         if hasattr(self, '_legacy_patterns'):
             return self._legacy_patterns
-            
+
         protect_file = self.project_root / '.legacy-code-protect'
         self._legacy_patterns = []
         if protect_file.exists():
             with open(protect_file, 'r') as f:
                 self._legacy_patterns = [line.strip() for line in f if line.strip() and not line.startswith('#')]
         return self._legacy_patterns
-        
+
     def _is_protected_legacy_path(self, filepath: Path) -> bool:
         """Check if a path is protected by legacy code protection policy."""
         patterns = self._load_protected_legacy_patterns()
         if not patterns:
             return False
-            
+
         import fnmatch
         try:
             rel_path = str(filepath.relative_to(self.project_root))
         except ValueError:
             return False # Path not in project root
-            
+
         # Ensure path uses forward slashes for matching
         rel_path = rel_path.replace('\\', '/')
-            
+
         for pattern in patterns:
             if fnmatch.fnmatch(rel_path, pattern):
                 return True
