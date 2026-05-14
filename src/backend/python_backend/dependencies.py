@@ -53,8 +53,8 @@ async def initialize_services():
     global _model_manager_instance, _ai_engine_instance, _filter_manager_instance, _workflow_engine_instance, _plugin_manager_instance, _gmail_service_instance
 
     # db = await get_db()  # Deprecated
-    from src.core.database import create_database_manager, DatabaseConfig
-    db = create_database_manager(DatabaseConfig())
+    from src.core.database import DatabaseManager, DatabaseConfig
+    db = DatabaseManager(DatabaseConfig())
     await db.connect()
 
     # Initialize core managers first
@@ -176,7 +176,7 @@ async def get_category_service() -> "CategoryService":
 
 async def get_database():
     """Provides database instance (for existing code that uses direct database access)"""
-    from src.core.database import create_database_manager, DatabaseConfig
-    db = create_database_manager(DatabaseConfig())
+    from src.core.database import DatabaseManager, DatabaseConfig
+    db = DatabaseManager(DatabaseConfig())
     await db.connect()
     return db
