@@ -29,7 +29,6 @@ from src.core.auth import authenticate_user
 
 from ..plugins.plugin_manager import plugin_manager
 from . import (
-    action_routes,
     ai_routes,
     category_routes,
     dashboard_routes,
@@ -43,12 +42,13 @@ from . import (
 )
 from .ai_engine import AdvancedAIEngine
 from .auth import create_access_token
-from .database import db_manager
 from .exceptions import AppException, BaseAppException
 
 # Import new components
-from .model_manager import model_manager
+from .model_manager import ModelManager
 from .performance_monitor import performance_monitor
+
+model_manager = ModelManager()
 from .settings import settings
 
 # Configure logging
@@ -263,12 +263,10 @@ app.include_router(category_router_v1, prefix="/api/v1", tags=["categories-v1"])
 app.include_router(email_routes.router)
 app.include_router(category_routes.router)
 app.include_router(gmail_routes.router)
-app.include_router(filter_routes.router)
 app.include_router(training_routes.router)
 app.include_router(workflow_routes.router)
 app.include_router(model_routes.router)
 app.include_router(performance_routes.router)
-app.include_router(action_routes.router)
 app.include_router(dashboard_routes.router)
 app.include_router(ai_routes.router)
 
@@ -383,4 +381,5 @@ env = os.getenv("NODE_ENV", "development")
 host = os.getenv("HOST", "127.0.0.1" if env == "development" else "0.0.0.0")
 reload = env == "development"
 # Use string app path to support reload
+import uvicorn
 uvicorn.run("main:app", host=host, port=port, reload=reload, log_level="info")
