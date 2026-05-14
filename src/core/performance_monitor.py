@@ -357,6 +357,8 @@ class OptimizedPerformanceMonitor:
             func = name
             return decorator(func)
         else:
+            outer_self = self
+
             # Used as @time_function("name") or with time_function("name"):
             class TimerContext:
                 def __enter__(self):
@@ -365,7 +367,7 @@ class OptimizedPerformanceMonitor:
 
                 def __exit__(self, exc_type, exc_val, exc_tb):
                     duration = (time.perf_counter() - self.start_time) * 1000
-                    self.record_metric(
+                    outer_self.record_metric(
                         name=name, value=duration, unit="ms", tags=tags, sample_rate=sample_rate
                     )
 
