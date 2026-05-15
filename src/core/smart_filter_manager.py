@@ -432,7 +432,9 @@ class SmartFilterManager:
         """Extracts meaningful keywords from a string of text."""
         if not text:
             return []
-        return [word for word in re.findall(r"\b[a-zA-Z]{3,}\b", text.lower()) if len(word) > 3]
+        if not hasattr(self, "_keyword_pattern"):
+            self._keyword_pattern = re.compile(r"\b[a-zA-Z]{4,}\b")
+        return self._keyword_pattern.findall(text.lower())
 
     def _is_automated_email(self, email: Dict[str, Any]) -> bool:
         """Determines if an email is likely automated."""
