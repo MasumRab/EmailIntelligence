@@ -1,3 +1,18 @@
+import atexit
+from collections import defaultdict, deque
+from dataclasses import asdict, dataclass
+from pathlib import Path
+from typing import Any, Dict, Optional, Union
+from datetime import datetime, timezone
+from functools import wraps
+from typing import Callable, List
+import asyncio
+import json
+import logging
+import threading
+import time
+import psutil
+
 """
 Performance Monitoring for Email Intelligence Platform
 
@@ -10,31 +25,13 @@ Also includes the optimized version features:
 - Configurable sampling rates
 """
 
-import asyncio
-import json
-import logging
-import threading
-import time
-from dataclasses import dataclass
-from datetime import datetime, timezone
-from functools import wraps
-from typing import Any, Callable, Dict, List, Optional
 
-import psutil
 
 logger = logging.getLogger(__name__)
 
 LOG_FILE = "performance_metrics_log.jsonl"
 
 
-@dataclass
-class PerformanceMetric:
-    """Represents a single performance metric"""
-
-    timestamp: float
-    value: float
-    unit: str
-    source: str
 
 
 @dataclass
@@ -179,13 +176,8 @@ def _create_decorator(func, op_name):
         return sync_wrapper
 
 
-import atexit
 
 # Enhanced performance monitoring system with additional features
-from collections import defaultdict, deque
-from dataclasses import asdict, dataclass
-from pathlib import Path
-from typing import Any, Dict, Optional, Union
 
 logger = logging.getLogger(__name__)
 
@@ -262,17 +254,6 @@ class OptimizedPerformanceMonitor:
         atexit.register(self.shutdown)
 
         logger.info("OptimizedPerformanceMonitor initialized")
-
-    def log_performance(self, log_entry: Dict[str, Any]) -> None:
-        """Compatibility method for legacy log_performance decorator."""
-        # Extract fields from log_entry to map to record_metric
-        operation = log_entry.get("operation", "unknown_operation")
-        duration_ms = log_entry.get("duration_seconds", 0) * 1000
-        self.record_metric(
-            name=operation,
-            value=duration_ms,
-            unit="ms"
-        )
 
     def record_metric(
         self,
