@@ -15,6 +15,7 @@ from .resolve_command import ResolveCommand
 from .validate_command import ValidateCommand
 from .analyze_history_command import AnalyzeHistoryCommand
 from .plan_rebase_command import PlanRebaseCommand
+from .sonar_issues_command import SonarIssuesCommand
 
 __all__ = [
     # Core architecture
@@ -27,4 +28,5 @@ __all__ = [
     "ValidateCommand",
     "AnalyzeHistoryCommand",
     "PlanRebaseCommand",
+    "SonarIssuesCommand",
 ]
