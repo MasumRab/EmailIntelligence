@@ -1,0 +1,17 @@
+--- src/backend/python_backend/main.py
++++ src/backend/python_backend/main.py
+@@ -169,13 +169,12 @@
+     from .dependencies import initialize_services
+
+     await initialize_services()
+-    await db_manager.connect()
++    await initialize_db()
+
+
+ @app.on_event("shutdown")
+ async def shutdown_event():
+     """Application shutdown: disconnect from the database."""
+-    await db_manager.close()
+
+
+ # Set up CORS

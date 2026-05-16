@@ -169,12 +169,13 @@ async def startup_event():
     from .dependencies import initialize_services
 
     await initialize_services()
-    await initialize_db()
+    await db_manager.connect()
 
 
 @app.on_event("shutdown")
 async def shutdown_event():
     """Application shutdown: disconnect from the database."""
+    await db_manager.close()
 
 
 @app.exception_handler(AppException)
@@ -380,4 +381,4 @@ env = os.getenv("NODE_ENV", "development")
 host = os.getenv("HOST", "127.0.0.1" if env == "development" else "0.0.0.0")
 reload = env == "development"
 # Use string app path to support reload
-pass
+uvicorn.run("main:app", host=host, port=port, reload=reload, log_level="info")

@@ -1,0 +1,23 @@
+--- src/backend/python_backend/main.py
++++ src/backend/python_backend/main.py
+@@ -201,8 +201,8 @@
+     logger.info("Initializing database manager...")
+     # Connect to the database based on configuration
+     # Note: If no db type is specified, it uses Notmuch as default
+-    await db_manager.connect()
+-    logger.info(f"Database connected successfully. Active manager: {db_manager.__class__.__name__}")
++    await initialize_db()
++    logger.info("Database connected successfully.")
+
+     # Verify required directories exist
+     data_dir = os.environ.get("DATA_DIR", "data")
+@@ -232,7 +232,8 @@
+ @app.on_event("shutdown")
+ async def shutdown_event():
+     logger.info("Shutting down the application and closing database connections...")
+-    await db_manager.close()
++    # Not implemented directly in get_db but needed for cleanliness
++    # This is a stub if needed
+
+
+ # Add a health check endpoint
