@@ -29,6 +29,7 @@ from src.core.auth import authenticate_user
 
 from ..plugins.plugin_manager import plugin_manager
 from . import (
+    action_routes,
     ai_routes,
     category_routes,
     dashboard_routes,
@@ -42,7 +43,7 @@ from . import (
 )
 from .ai_engine import AdvancedAIEngine
 from .auth import create_access_token
-from .database import get_db, initialize_db
+from .database import db_manager
 from .exceptions import AppException, BaseAppException
 
 # Import new components
@@ -169,12 +170,13 @@ async def startup_event():
     from .dependencies import initialize_services
 
     await initialize_services()
-    await initialize_db()
+    await db_manager.connect()
 
 
 @app.on_event("shutdown")
 async def shutdown_event():
     """Application shutdown: disconnect from the database."""
+    await db_manager.close()
 
 
 @app.exception_handler(AppException)
@@ -266,6 +268,7 @@ app.include_router(training_routes.router)
 app.include_router(workflow_routes.router)
 app.include_router(model_routes.router)
 app.include_router(performance_routes.router)
+app.include_router(action_routes.router)
 app.include_router(dashboard_routes.router)
 app.include_router(ai_routes.router)
 
@@ -380,4 +383,4 @@ env = os.getenv("NODE_ENV", "development")
 host = os.getenv("HOST", "127.0.0.1" if env == "development" else "0.0.0.0")
 reload = env == "development"
 # Use string app path to support reload
-pass
+uvicorn.run("main:app", host=host, port=port, reload=reload, log_level="info")
