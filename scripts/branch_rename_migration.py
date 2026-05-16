@@ -13,27 +13,19 @@ This script helps migrate branch names to follow the standardized naming convent
 import subprocess
 import sys
 import re
-import shlex
-
-
-def run_command(command):
-    """Run a shell command and return the output."""
-    try:
-        if isinstance(command, str):
-            command = shlex.split(command)
-        result = subprocess.run(
-            command, shell=False, capture_output=True, text=True, check=True
-        )
-        return result.stdout.strip()
-    except subprocess.CalledProcessError as e:
-        print(f"Error running command: {' '.join(command)}")
-        print(f"Error: {e.stderr}")
-        return None
-
 
 def get_local_branches():
     """Get list of local branches."""
-    output = run_command("git branch")
+    try:
+        result = subprocess.run(
+            ["git", "branch"], shell=False, capture_output=True, text=True, check=True
+        )
+        output = result.stdout.strip()
+    except subprocess.CalledProcessError as e:
+        print(f"Error running command: git branch")
+        print(f"Error: {e.stderr}")
+        output = None
+
     if output is None:
         return []
 
@@ -47,7 +39,16 @@ def get_local_branches():
 
 def get_remote_branches():
     """Get list of remote branches."""
-    output = run_command("git branch -r")
+    try:
+        result = subprocess.run(
+            ["git", "branch", "-r"], shell=False, capture_output=True, text=True, check=True
+        )
+        output = result.stdout.strip()
+    except subprocess.CalledProcessError as e:
+        print(f"Error running command: git branch -r")
+        print(f"Error: {e.stderr}")
+        output = None
+
     if output is None:
         return []
 
@@ -162,24 +163,44 @@ def suggest_new_name(branch_name):
 def rename_local_branch(old_name, new_name):
     """Rename a local branch."""
     print(f"Renaming local branch '{old_name}' to '{new_name}'")
-    result = run_command(f"git branch -m {old_name} {new_name}")
-    return result is not None
+    try:
+        subprocess.run(
+            ["git", "branch", "-m", old_name, new_name], shell=False, capture_output=True, text=True, check=True
+        )
+        return True
+    except subprocess.CalledProcessError as e:
+        print(f"Error running command: git branch -m {old_name} {new_name}")
+        print(f"Error: {e.stderr}")
+        return False
 
 
 def delete_remote_branch(branch_name):
     """Delete a remote branch."""
     print(f"Deleting remote branch '{branch_name}'")
-    result = run_command(
-        f"git push origin --delete {branch_name.replace('origin/', '')}"
-    )
-    return result is not None
+    clean_branch = branch_name.replace('origin/', '')
+    try:
+        subprocess.run(
+            ["git", "push", "origin", "--delete", clean_branch], shell=False, capture_output=True, text=True, check=True
+        )
+        return True
+    except subprocess.CalledProcessError as e:
+        print(f"Error running command: git push origin --delete {clean_branch}")
+        print(f"Error: {e.stderr}")
+        return False
 
 
 def push_new_branch(branch_name):
     """Push a new branch to remote."""
     print(f"Pushing new branch '{branch_name}'")
-    result = run_command(f"git push -u origin {branch_name}")
-    return result is not None
+    try:
+        subprocess.run(
+            ["git", "push", "-u", "origin", branch_name], shell=False, capture_output=True, text=True, check=True
+        )
+        return True
+    except subprocess.CalledProcessError as e:
+        print(f"Error running command: git push -u origin {branch_name}")
+        print(f"Error: {e.stderr}")
+        return False
 
 
 def main():
@@ -241,11 +262,12 @@ def main():
         # Delete local branches marked for deletion
         for branch in branches_to_delete:
             print(f"Deleting local branch '{branch}'")
-            result = run_command(f"git branch -d {branch}")
-            if result is not None:
+            try:
+                subprocess.run(["git", "branch", "-d", branch], shell=False, capture_output=True, text=True, check=True)
                 print(f"✓ Deleted local branch '{branch}'")
-            else:
+            except subprocess.CalledProcessError as e:
                 print(f"✗ Failed to delete local branch '{branch}'")
+                print(f"Error: {e.stderr}")
 
         # Delete remote branches marked for deletion
         for branch in remote_branches_to_delete:

@@ -5,7 +5,8 @@ import pytest
 from fastapi.testclient import TestClient
 
 from backend.python_backend.dependencies import initialize_services
-from backend.python_backend.main import app
+from src.main import create_app
+app = create_app()
 
 
 # Create a single mock for each manager, scoped to the entire test session.
