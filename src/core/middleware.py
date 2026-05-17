@@ -154,29 +154,36 @@ class SecurityMiddleware:
 
     def _get_client_ip(self, request: Request) -> str:
         """Extract real client IP, considering proxies."""
-        # Check X-Forwarded-For header
+        client_host = request.client.host if request.client else "unknown"
+
+        # If no trusted proxies configured, never trust headers
+        if not self.trusted_proxies:
+            return client_host
+
+        # Check if the immediate peer is trusted
+        try:
+            peer_ip = ipaddress.ip_address(client_host)
+            is_trusted = any(
+                peer_ip in ipaddress.ip_network(proxy) for proxy in self.trusted_proxies
+            )
+        except ValueError:
+            is_trusted = False
+
+        if not is_trusted:
+            return client_host
+
+        # Check X-Forwarded-For header (standard for proxies)
         forwarded_for = request.headers.get("x-forwarded-for")
         if forwarded_for:
             # Take the first IP in the chain
-            client_ip = forwarded_for.split(",")[0].strip()
+            return forwarded_for.split(",")[0].strip()
 
-            # Validate the IP from proxy
-            real_ip = request.headers.get("x-real-ip")
-            if real_ip and real_ip != client_ip:
-                # Verify the proxy is trusted
-                try:
-                    proxy_ip = ipaddress.ip_address(request.client.host)
-                    if any(
-                        proxy_ip in ipaddress.ip_network(proxy) for proxy in self.trusted_proxies
-                    ):
-                        return real_ip
-                except (ValueError, ipaddress.AddressValueError):
-                    pass
+        # Check X-Real-IP (used by some proxies like Nginx)
+        real_ip = request.headers.get("x-real-ip")
+        if real_ip:
+            return real_ip
 
-            return client_ip
-
-        # Fall back to direct client IP
-        return request.client.host if request.client else "unknown"
+        return client_host
 
     def _get_user_id(self, request: Request) -> Optional[str]:
         """Extract user ID from request (JWT token, session, etc.)."""
