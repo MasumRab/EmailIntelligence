@@ -36,6 +36,8 @@ class SonarQubeClient:
 
         self.project_key = project_key or os.environ.get("SONAR_PROJECT_KEY")
         self.token = token or os.environ.get("SONAR_TOKEN")
+        if not self.token:
+            raise ValueError("SonarQube token must be provided via 'token' argument or SONAR_TOKEN environment variable")
 
         self.session = requests.Session()
         if self.token:
