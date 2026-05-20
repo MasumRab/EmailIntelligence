@@ -163,6 +163,7 @@ class SonarQubeClient:
             response = self.search_issues(
                 severities=severities,
                 types=types,
+                paged=True,
                 page_size=page_size,
                 page_index=page_index
             )
