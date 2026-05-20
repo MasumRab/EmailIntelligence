@@ -68,7 +68,7 @@ class NotmuchDataSource(DataSource):
                 from .database import SQLiteManager
                 # Use SQLiteManager as concrete implementation instead of abstract DatabaseManager
                 self.db = SQLiteManager()
-            except Exception as e:
+            except Exception as e:  # pylint: disable=broad-except
                 logger.warning(f"Could not initialize DatabaseManager, proceeding without: {e}")
                 self.db = None  # Allow operation without database manager
         self.ai_engine = None
@@ -79,7 +79,7 @@ class NotmuchDataSource(DataSource):
         if NOTMUCH_AVAILABLE:
             try:
                 self.notmuch_db = notmuch.Database(self.db_path) if self.db_path else notmuch.Database()
-            except Exception as e:
+            except Exception as e:  # pylint: disable=broad-except
                 logger.error(f"Error initializing notmuch database: {e}")
                 self.notmuch_db = None
         else:
@@ -101,7 +101,7 @@ class NotmuchDataSource(DataSource):
             except ValueError as e:
                 logger.error(f"Invalid database path: {e}")
                 self.notmuch_db = None
-            except Exception as e:
+            except Exception as e:  # pylint: disable=broad-except
                 logger.error(f"Error opening notmuch database: {e}")
                 self.notmuch_db = None
 
@@ -109,7 +109,7 @@ class NotmuchDataSource(DataSource):
         if self.db is not None:
             try:
                 await self.db._ensure_initialized()
-            except Exception as e:
+            except Exception as e:  # pylint: disable=broad-except
                 logger.warning(f"DatabaseManager initialization failed, proceeding without: {e}")
                 self.db = None  # Allow operation without database manager
 
@@ -118,7 +118,7 @@ class NotmuchDataSource(DataSource):
             try:
                 self.ai_engine = ModernAIEngine()
                 self.ai_engine.initialize()
-            except Exception as e:
+            except Exception as e:  # pylint: disable=broad-except
                 logger.warning(f"Could not initialize AI engine: {e}")
                 self.ai_engine = None
 
@@ -126,7 +126,7 @@ class NotmuchDataSource(DataSource):
         if self.filter_manager is None:
             try:
                 self.filter_manager = SmartFilterManager()
-            except Exception as e:
+            except Exception as e:  # pylint: disable=broad-except
                 logger.warning(f"Could not initialize SmartFilterManager: {e}")
                 self.filter_manager = None
 
@@ -158,7 +158,7 @@ class NotmuchDataSource(DataSource):
                     }
                 )
             return results
-        except Exception as e:
+        except Exception as e:  # pylint: disable=broad-except
             logger.error(f"Error searching emails in notmuch: {e}")
             return []
 
@@ -222,7 +222,7 @@ class NotmuchDataSource(DataSource):
                     email_data["body"] = content
                     
                 return email_data
-            except Exception as e:
+            except Exception as e:  # pylint: disable=broad-except
                 logger.error(f"Error processing email {message_id}: {e}")
                 return {
                     "id": message.get_message_id(),
@@ -234,7 +234,7 @@ class NotmuchDataSource(DataSource):
                     "body": f"Error decoding content: {e}"
                 }
 
-        except Exception as e:
+        except Exception as e:  # pylint: disable=broad-except
             logger.error(f"Error retrieving email by message ID {message_id}: {e}")
             return None
 
@@ -277,7 +277,7 @@ class NotmuchDataSource(DataSource):
                     }
                 )
             return results
-        except Exception as e:
+        except Exception as e:  # pylint: disable=broad-except
             logger.error(f"Error getting emails from notmuch: {e}")
             return []
 
@@ -296,7 +296,7 @@ class NotmuchDataSource(DataSource):
         try:
             tags = self.notmuch_db.get_all_tags()
             return [{"name": tag, "id": tag} for tag in tags]
-        except Exception as e:
+        except Exception as e:  # pylint: disable=broad-except
             logger.error(f"Error retrieving notmuch tags: {e}")
             return []
 
@@ -324,7 +324,7 @@ class NotmuchDataSource(DataSource):
             try:
                 # Schedule AI analysis as a background task
                 asyncio.create_task(self._analyze_and_tag_email_background(result["message_id"], email_data))
-            except Exception as e:
+            except Exception as e:  # pylint: disable=broad-except
                 logger.warning(f"Failed to schedule background AI analysis: {e}")
         
         return result
@@ -345,7 +345,7 @@ class NotmuchDataSource(DataSource):
                     sentiment = self.ai_engine.analyze_sentiment(full_text)
                     if sentiment:
                         analysis_results["sentiment"] = sentiment
-            except Exception as e:
+            except Exception as e:  # pylint: disable=broad-except
                 logger.warning(f"Sentiment analysis failed for email {message_id}: {e}")
 
             # Topic classification
@@ -354,7 +354,7 @@ class NotmuchDataSource(DataSource):
                     topics = self.ai_engine.classify_topic(full_text)
                     if topics:
                         analysis_results["topics"] = topics
-            except Exception as e:
+            except Exception as e:  # pylint: disable=broad-except
                 logger.warning(f"Topic classification failed for email {message_id}: {e}")
 
             # Apply smart filters for categorization
@@ -378,11 +378,11 @@ class NotmuchDataSource(DataSource):
                             # Update tags in notmuch
                             await self.update_tags_for_message(message_id, new_tags)
 
-            except Exception as e:
+            except Exception as e:  # pylint: disable=broad-except
                 logger.warning(f"Smart filtering failed for email {message_id}: {e}")
 
             logger.info(f"Completed background AI analysis and tagging for email {message_id}")
-        except Exception as e:
+        except Exception as e:  # pylint: disable=broad-except
             logger.error(f"Critical error in background email analysis and tagging for {message_id}: {e}")
 
     async def get_email_by_id(
@@ -501,7 +501,7 @@ class NotmuchDataSource(DataSource):
                 "unread_count": unread_count,
                 "weekly_growth": weekly_growth
             }
-        except Exception as e:
+        except Exception as e:  # pylint: disable=broad-except
             logger.error(f"Error getting dashboard aggregates from notmuch: {e}")
             # Return default values on error
             return {
@@ -545,7 +545,7 @@ class NotmuchDataSource(DataSource):
             # Sort by count descending and apply limit
             sorted_tags = sorted(tag_counts.items(), key=lambda x: x[1], reverse=True)
             return dict(sorted_tags[:limit])
-        except Exception as e:
+        except Exception as e:  # pylint: disable=broad-except
             logger.error(f"Error getting category breakdown from notmuch: {e}")
             # Return empty dict on error
             return {}
@@ -606,12 +606,12 @@ class NotmuchDataSource(DataSource):
             if self.ai_engine:
                 try:
                     asyncio.create_task(self._reanalyze_email(message_id))
-                except Exception as e:
+                except Exception as e:  # pylint: disable=broad-except
                     logger.warning(f"Failed to schedule re-analysis for email {message_id}: {e}")
             
             return True
 
-        except Exception as e:
+        except Exception as e:  # pylint: disable=broad-except
             error_context = create_error_context(
                 component="NotmuchDataSource",
                 operation="update_tags_for_message",
@@ -651,7 +651,7 @@ class NotmuchDataSource(DataSource):
                     sentiment = self.ai_engine.analyze_sentiment(full_text)
                     if sentiment:
                         analysis_results["sentiment"] = sentiment
-            except Exception as e:
+            except Exception as e:  # pylint: disable=broad-except
                 logger.warning(f"Sentiment analysis failed for email {message_id}: {e}")
 
             # Topic classification
@@ -660,11 +660,11 @@ class NotmuchDataSource(DataSource):
                     topics = self.ai_engine.classify_topic(full_text)
                     if topics:
                         analysis_results["topics"] = topics
-            except Exception as e:
+            except Exception as e:  # pylint: disable=broad-except
                 logger.warning(f"Topic classification failed for email {message_id}: {e}")
 
             logger.info(f"Completed re-analysis for email {message_id}")
-        except Exception as e:
+        except Exception as e:  # pylint: disable=broad-except
             logger.error(f"Critical error in email re-analysis for {message_id}: {e}")
 
     async def analyze_and_tag_email(self, message_id: str) -> bool:
@@ -697,7 +697,7 @@ class NotmuchDataSource(DataSource):
                     sentiment = self.ai_engine.analyze_sentiment(full_text)
                     if sentiment:
                         analysis_results["sentiment"] = sentiment
-            except Exception as e:
+            except Exception as e:  # pylint: disable=broad-except
                 logger.warning(f"Sentiment analysis failed for email {message_id}: {e}")
 
             # Topic classification
@@ -706,7 +706,7 @@ class NotmuchDataSource(DataSource):
                     topics = self.ai_engine.classify_topic(full_text)
                     if topics:
                         analysis_results["topics"] = topics
-            except Exception as e:
+            except Exception as e:  # pylint: disable=broad-except
                 logger.warning(f"Topic classification failed for email {message_id}: {e}")
 
             # Apply smart filters for categorization
@@ -732,13 +732,13 @@ class NotmuchDataSource(DataSource):
                             # Update tags in notmuch
                             await self.update_tags_for_message(message_id, new_tags)
 
-            except Exception as e:
+            except Exception as e:  # pylint: disable=broad-except
                 logger.warning(f"Smart filtering failed for email {message_id}: {e}")
 
             logger.info(f"Completed AI analysis and tagging for email {message_id}")
             return True
 
-        except Exception as e:
+        except Exception as e:  # pylint: disable=broad-except
             logger.error(f"Critical error in email analysis and tagging for {message_id}: {e}")
             return False
 

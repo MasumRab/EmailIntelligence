@@ -28,7 +28,7 @@ async def get_categories(
     try:
         categories = await db.get_all_categories()
         return [CategoryResponse(**cat) for cat in categories]
-    except Exception as e:
+    except Exception as e:  # pylint: disable=broad-except
         logger.error(f"Failed to get categories: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail="Failed to fetch categories")
 
@@ -48,6 +48,6 @@ async def create_category(
     try:
         created_category_dict = await db.create_category(category.model_dump())
         return CategoryResponse(**created_category_dict)
-    except Exception as e:
+    except Exception as e:  # pylint: disable=broad-except
         logger.error(f"Failed to create category: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail="Failed to create category.")

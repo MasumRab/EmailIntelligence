@@ -134,7 +134,7 @@ class BaseNode(ABC):
             logger.info(f"Node {self.name} executed successfully in {execution_time:.2f}s")
             return final_output
 
-        except Exception as e:
+        except Exception as e:  # pylint: disable=broad-except
             execution_time = time.time() - start_time
             self._status = NodeExecutionStatus.FAILED
             logger.error(f"Node {self.name} failed: {str(e)}", exc_info=True)
@@ -427,7 +427,7 @@ class WorkflowRunner:
                 node_results=context["__node_outputs"],
             )
 
-        except Exception as e:
+        except Exception as e:  # pylint: disable=broad-except
             execution_time = time.time() - start_time
             logger.error(f"Workflow {workflow.name} failed: {str(e)}", exc_info=True)
 
@@ -569,7 +569,7 @@ class WorkflowManager:
             logger.info(f"Workflow saved to {filepath}")
             return True
 
-        except Exception as e:
+        except Exception as e:  # pylint: disable=broad-except
             logger.error(f"Failed to save workflow: {str(e)}")
             return False
 
@@ -601,7 +601,7 @@ class WorkflowManager:
             logger.info(f"Workflow loaded from {fullpath}")
             return workflow
 
-        except Exception as e:
+        except Exception as e:  # pylint: disable=broad-except
             logger.error(f"Failed to load workflow from {workflow_filename}: {str(e)}")
             return None
 

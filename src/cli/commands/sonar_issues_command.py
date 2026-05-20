@@ -113,7 +113,7 @@ class SonarIssuesCommand(Command):
 
             return 0
 
-        except Exception as e:
+        except Exception as e:  # pylint: disable=broad-except
             print(f"Error communicating with SonarQube API: {e}")
             return 1
 

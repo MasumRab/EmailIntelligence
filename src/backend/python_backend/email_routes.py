@@ -51,7 +51,7 @@ async def get_emails(
         else:
             result = await email_service.get_emails(category_id, limit, offset, is_unread)
         return [EmailResponse(**email) for email in result]
-    except Exception as e:
+    except Exception as e:  # pylint: disable=broad-except
         logger.error(f"Failed to get emails: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail="Failed to retrieve emails")
 
@@ -83,12 +83,12 @@ async def get_email_by_id(
         if not email:
             raise HTTPException(status_code=404, detail="Email not found")
         return EmailResponse(**email)
-    except Exception as e:
+    except Exception as e:  # pylint: disable=broad-except
         logger.error(f"Failed to get emails: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail="Failed to retrieve emails")
     except HTTPException:
         raise
-    except Exception as e:
+    except Exception as e:  # pylint: disable=broad-except
         log_data = {
             "message": f"Unhandled error fetching email id {email_id}",
             "endpoint": str(request.url),
@@ -116,7 +116,7 @@ async def create_email(
     try:
         # Run the active workflow to process the email data
         await workflow_engine.run_workflow(email.model_dump())
-    except Exception as e:
+    except Exception as e:  # pylint: disable=broad-except
         log_data = create_log_data(
             message="Unhandled error in create_email",
             request_url=request.url,
@@ -160,7 +160,7 @@ async def update_email(
         return EmailResponse(**updated_email)
     except HTTPException:
         raise
-    except Exception as e:
+    except Exception as e:  # pylint: disable=broad-except
         log_data = {
             "message": f"Unhandled error updating email id {email_id}",
             "endpoint": str(request.url),
