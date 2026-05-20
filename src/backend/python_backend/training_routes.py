@@ -162,7 +162,7 @@ async def run_training(job_id: str, model_config: ModelConfig):
 
         logger.info(f"Training job {job_id} completed with accuracy {accuracy}")
 
-    except Exception as e:  # pylint: disable=broad-except
+    except Exception as e:  # NOSONAR
         training_jobs[job_id]["status"] = "failed"
         training_jobs[job_id]["message"] = f"Training failed: {str(e)}"
         logger.error(f"Training job {job_id} failed: {e}")

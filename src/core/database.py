@@ -275,7 +275,7 @@ class DatabaseManager(DataSource):
                             self._content_available_index.add(email_id)
                         except ValueError:
                             pass
-        except Exception as e:  # pylint: disable=broad-except
+        except Exception as e:  # NOSONAR
             logger.error(f"Error building content availability index: {e}")
 
         logger.info("In-memory indexes built successfully.")

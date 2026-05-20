@@ -62,5 +62,5 @@ class PluginManager:
             else:
                 logger.warning(f"Plugin '{plugin_name}' does not have a 'register' function.")
 
-        except Exception as e:  # pylint: disable=broad-except
+        except Exception as e:
             logger.error(f"Failed to load plugin '{plugin_name}': {e}", exc_info=True)

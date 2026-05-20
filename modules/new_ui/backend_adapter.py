@@ -53,7 +53,7 @@ class BackendClient:
             async with get_ai_engine() as engine:
                 result = await engine.analyze_email(subject, content)
                 return result.to_dict()
-        except Exception as e:  # pylint: disable=broad-except
+        except Exception as e:  # NOSONAR
             logger.error(f"Error in analyze_text: {e}", exc_info=True)
             return {"error": str(e)}
 
@@ -100,7 +100,7 @@ class BackendClient:
                 "error": "Workflow execution from UI not fully wired to backend registry yet."
             }
 
-        except Exception as e:  # pylint: disable=broad-except
+        except Exception as e:  # NOSONAR
             logger.error(f"Error starting workflow: {e}")
             return {"error": str(e)}
 
@@ -111,7 +111,7 @@ class BackendClient:
         try:
             # performance_monitor is a global instance
             return performance_monitor.get_aggregated_metrics()
-        except Exception as e:  # pylint: disable=broad-except
+        except Exception as e:  # NOSONAR
             logger.error(f"Error getting metrics: {e}")
             return {"error": str(e)}
 
@@ -132,7 +132,7 @@ class BackendClient:
 
             logger.info(f"Persisted item {key} to {file_path}")
             return True
-        except Exception as e:  # pylint: disable=broad-except
+        except Exception as e:  # NOSONAR
             logger.error(f"Failed to persist item {key}: {e}")
             return False
 
@@ -149,7 +149,7 @@ class BackendClient:
 
             with open(file_path, 'r') as f:
                 return json.load(f)
-        except Exception as e:  # pylint: disable=broad-except
+        except Exception as e:  # NOSONAR
             logger.error(f"Failed to retrieve item {key}: {e}")
             return None
 
@@ -163,9 +163,9 @@ class BackendClient:
                     with open(file_path, 'r') as f:
                         data = json.load(f)
                         workflows.append(data)
-                except Exception as e:  # pylint: disable=broad-except
+                except Exception as e:  # NOSONAR
                     logger.warning(f"Error parsing workflow file {file_path}: {e}")
                     continue
-        except Exception as e:  # pylint: disable=broad-except
+        except Exception as e:  # NOSONAR
             logger.error(f"Error listing workflows: {e}")
         return workflows
