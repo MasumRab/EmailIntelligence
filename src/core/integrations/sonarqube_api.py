@@ -7,7 +7,7 @@ It allows fetching, searching, and managing code quality issues.
 
 import os
 import logging
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Union
 import requests
 
 logger = logging.getLogger(__name__)
@@ -36,8 +36,6 @@ class SonarQubeClient:
 
         self.project_key = project_key or os.environ.get("SONAR_PROJECT_KEY")
         self.token = token or os.environ.get("SONAR_TOKEN")
-        if not self.token:
-            raise ValueError("SonarQube token must be provided via 'token' argument or SONAR_TOKEN environment variable")
 
         self.session = requests.Session()
         if self.token:
@@ -82,30 +80,38 @@ class SonarQubeClient:
         statuses: str = None,
         paged: bool = False,
         page_size: int = 100,
-        page_index: int = 1
-    ) -> Dict[str, Any]:
+        page_index: int = 1,
+    ) -> Union[List[Dict[str, Any]], Dict[str, Any]]:
         """
         Search for issues in the configured project.
 
-        Args:
-            severities: Comma-separated list of severities (INFO, MINOR, MAJOR, CRITICAL, BLOCKER)
-            types: Comma-separated list of types (CODE_SMELL, BUG, VULNERABILITY, SECURITY_HOTSPOT)
-            statuses: Comma-separated list of statuses (OPEN, CONFIRMED, REOPENED, RESOLVED, CLOSED)
-            paged: Whether to return the raw paginated response
-            page_size: Number of items per page (max 500)
-            page_index: 1-based page index
+        When ``paged`` is ``False`` (default), this method returns only the list of
+        issues from the first page that matches the given filters.
 
-        Returns:
-            Dictionary containing the search results
+        When ``paged`` is ``True``, this method returns the full paginated response
+        from SonarQube (including paging metadata and any additional fields).
+
+        :param severities: Comma-separated list of severities (e.g. "BLOCKER,CRITICAL").
+        :param types: Comma-separated list of types (e.g. "BUG,VULNERABILITY,CODE_SMELL").
+        :param statuses: Comma-separated list of statuses (e.g. "OPEN,CONFIRMED").
+        :param paged: If True, return the full paginated response; otherwise return
+                      only the list of issues.
+        :param page_size: Page size (SonarQube parameter ``ps``).
+        :param page_index: Page index, 1-based (SonarQube parameter ``p``).
+        :return: If ``paged`` is False, returns ``List[Dict[str, Any]]`` of issues.
+                 If ``paged`` is True, returns the full SonarQube response as
+                 ``Dict[str, Any]``.
         """
-        if not self.project_key:
-            raise ValueError("project_key must be configured to search issues")
-
-        params = {
-            "componentKeys": self.project_key,
+        params: Dict[str, Any] = {
+            # SonarQube paging parameters
             "ps": min(page_size, 500),
-            "p": page_index
+            "p": page_index,
         }
+
+        # Respect existing project configuration if present on the client
+        project_key = getattr(self, "project_key", None)
+        if project_key:
+            params["componentKeys"] = project_key
 
         if severities:
             params["severities"] = severities
@@ -117,7 +123,19 @@ class SonarQubeClient:
             # Default to unresolved issues if not specified
             params["resolved"] = "false"
 
-        return self._make_request("GET", "/api/issues/search", params)
+        # Delegate to the existing request helper on this client
+        response: Dict[str, Any] = self._make_request(
+            method="GET",
+            endpoint="/api/issues/search",
+            params=params,
+        )
+
+        if paged:
+            # Caller handles pagination metadata and any further paging logic
+            return response
+
+        # Default behavior: return just the issues list
+        return response.get("issues", [])
 
     def get_issues(
         self,

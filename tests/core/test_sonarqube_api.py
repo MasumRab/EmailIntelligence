@@ -39,7 +39,7 @@ def test_search_issues(mock_request, sonar_client):
     result = sonar_client.search_issues(severities="MAJOR", types="BUG")
 
     # Assertions
-    assert result == {"issues": [{"key": "ISSUE-1"}]}
+    assert result == [{"key": "ISSUE-1"}]
     mock_request.assert_called_once_with(
         "GET",
         "https://mock-sonar.com/api/issues/search",
@@ -72,7 +72,9 @@ def test_get_issue_details(mock_request, sonar_client):
         params={"issues": "ISSUE-1"}
     )
 
-def test_search_issues_missing_project_key():
+@patch("src.core.integrations.sonarqube_api.SonarQubeClient._make_request")
+def test_search_issues_missing_project_key(mock_request):
+    mock_request.return_value = {"issues": []}
     client = SonarQubeClient(project_key=None)
-    with pytest.raises(ValueError, match="project_key must be configured"):
-        client.search_issues()
+    result = client.search_issues()
+    assert result == []

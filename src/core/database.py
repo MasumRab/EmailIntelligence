@@ -101,7 +101,7 @@ class DatabaseConfig:
 
 
 # Import DataSource locally to avoid circular imports
-from .data.data_source import DataSource  # noqa: E402
+from .data.data_source import DataSource  # noqa: E402  # noqa: E402
 
 class DatabaseManager(DataSource):
     """Optimized async database manager with in-memory caching, write-behind,

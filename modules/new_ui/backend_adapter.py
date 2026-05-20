@@ -163,7 +163,8 @@ class BackendClient:
                     with open(file_path, 'r') as f:
                         data = json.load(f)
                         workflows.append(data)
-                except:
+                except Exception as e:
+                    logger.warning(f"Error parsing workflow file {file_path}: {e}")
                     continue
         except Exception as e:
             logger.error(f"Error listing workflows: {e}")

@@ -67,7 +67,7 @@ class SonarIssuesCommand(Command):
         try:
             from src.core.integrations.sonarqube_api import SonarQubeClient
             dependencies["sonar_client"] = SonarQubeClient()
-        except (ImportError, ValueError) as e:
+        except ImportError as e:
             dependencies["sonar_client_error"] = str(e)
             dependencies["sonar_client"] = None
 
