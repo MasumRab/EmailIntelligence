@@ -56,9 +56,9 @@ def setup_python_environment(dev_mode=False):
 
     # Install Python dependencies
     if dev_mode:
-        return run_command(f"{sys.executable} -m pip install -r requirements.txt")
+        return run_command([sys.executable, "-m", "pip", "install", "-r", "requirements.txt"])
     else:
-        return run_command(f"{sys.executable} -m pip install -r requirements.txt --no-dev")
+        return run_command([sys.executable, "-m", "pip", "install", "-r", "requirements.txt", "--no-dev"])
 
 
 def setup_node_environment(dev_mode=False):
@@ -66,15 +66,15 @@ def setup_node_environment(dev_mode=False):
     logger.info("Setting up Node.js environment...")
 
     # Check if Node.js is installed
-    if not run_command("node --version"):
+    if not run_command(["node", "--version"]):
         logger.error("Node.js is not installed. Please install Node.js and try again.")
         return False
 
     # Install Node.js dependencies
     if dev_mode:
-        return run_command("npm install")
+        return run_command(["npm", "install"])
     else:
-        return run_command("npm install --production")
+        return run_command(["npm", "install", "--production"])
 
 
 def setup_database():
@@ -82,7 +82,7 @@ def setup_database():
     logger.info("Setting up database...")
 
     # Check if PostgreSQL is installed
-    if not run_command("psql --version"):
+    if not run_command(["psql", "--version"]):
         logger.error("PostgreSQL is not installed. Please install PostgreSQL and try again.")
         return False
 

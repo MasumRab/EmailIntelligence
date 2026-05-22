@@ -59,22 +59,22 @@ def run_command(command, cwd=None):
 
 def generate_migration():
     """Generate a new migration."""
-    return run_command("npx drizzle-kit generate:sqlite")
+    return run_command(["npx", "drizzle-kit", "generate:sqlite"])
 
 
 def apply_migrations():
     """Apply pending migrations."""
-    return run_command("npx drizzle-kit migrate:sqlite")
+    return run_command(["npx", "drizzle-kit", "migrate:sqlite"])
 
 
 def check_migration_status():
     """Check migration status."""
-    return run_command("npx drizzle-kit status:sqlite")
+    return run_command(["npx", "drizzle-kit", "status:sqlite"])
 
 
 def rollback_migration():
     """Rollback the last migration."""
-    return run_command("npx drizzle-kit rollback:sqlite")
+    return run_command(["npx", "drizzle-kit", "rollback:sqlite"])
 
 
 def main():
