@@ -322,3 +322,7 @@ LLXPRT.md
 /opencode.json
 /opencode.json.bak
 # END Ruler Generated Files
+
+# === Branch-specific exceptions ===
+# .taskmaster is a submodule tracking origin/taskmaster — must persist across all branches
+!.taskmaster/
