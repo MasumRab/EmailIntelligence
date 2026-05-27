@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 ---
 id: task-14
 title: Implement PromptEngineer class for LLM interaction or update README
@@ -19,13 +18,12 @@ The README.md mentions a `PromptEngineer` class in `backend/python_nlp/ai_traini
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-<<<<<<< HEAD
 - [ ] #1 Locate or create the `PromptEngineer` class in the appropriate backend module.
 - [ ] #2 Implement initial capabilities for LLM interaction within the `PromptEngineer` class (e.g., basic prompt templating, integration with a placeholder LLM service).
 - [ ] #3 If the class is deemed unnecessary or out of scope, update the README.md to remove the reference to `PromptEngineer` and clarify the AI system\'s current LLM strategy.
 - [ ] #4 Add basic unit tests for the `PromptEngineer` class if implemented.
 <!-- AC:END -->
-=======
+
 - [x] #1 Locate or create the `PromptEngineer` class in the appropriate backend module.
 - [x] #2 Implement initial capabilities for LLM interaction within the `PromptEngineer` class (e.g., basic prompt templating, integration with a placeholder LLM service).
 - [x] #3 If the class is deemed unnecessary or out of scope, update the README.md to remove the reference to `PromptEngineer` and clarify the AI system\'s current LLM strategy.
@@ -60,6 +58,3 @@ Implemented the `PromptEngineer` class in `backend/python_nlp/ai_training.py` wi
 
 The implementation provides a solid foundation for LLM integration while maintaining compatibility with the existing local AI model architecture.
 <!-- SECTION:NOTES:END -->
->>>>>>> scientific
-=======
->>>>>>> origin/main

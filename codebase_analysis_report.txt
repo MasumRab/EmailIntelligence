@@ -1,5 +1,3 @@
-<<<<<<< HEAD
-================================================================================
 EMAIL INTELLIGENCE PLATFORM - CODEBASE ANALYSIS REPORT
 ================================================================================
 Analysis Date: 2025-10-29 04:30:41
@@ -375,4 +373,3 @@ RECOMMENDATIONS
 4. Implement automated code quality checks in CI/CD pipeline
 5. Establish coding standards and guidelines for the team
 =======
->>>>>>> origin/main

@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # EmailIntelligence - Unified Development Environment (iFlow Context)
 
 ## Project Overview
@@ -46,8 +45,7 @@ EmailIntelligence/
 ```
 ```
 
-<<<<<<< HEAD
-=======
+
 ## Building and Running
 
 ### Prerequisites
@@ -412,5 +410,3 @@ The platform uses a modular architecture:
 - Use dependency injection over global state
 - Check existing dependencies before adding new libraries
 - Follow security best practices
-=======
->>>>>>> origin/main

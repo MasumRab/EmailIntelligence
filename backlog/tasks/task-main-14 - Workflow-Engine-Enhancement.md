@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 ---
 id: task-main-14
 title: Workflow Engine Enhancement
@@ -34,5 +33,3 @@ Improve the workflow engine with better execution logic, error handling, and per
 - Implement detailed logging for debugging workflow execution
 - Add performance metrics collection (execution time, memory usage, etc.)
 - Ensure backward compatibility with existing workflows
-=======
->>>>>>> origin/main

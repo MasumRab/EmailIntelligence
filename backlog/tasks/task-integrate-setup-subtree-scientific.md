@@ -11,7 +11,6 @@ Integrate the new setup subtree methodology into the scientific branch, allowing
 5. Ensure all CI/CD processes account for the new structure
 
 ## Subtasks
-<<<<<<< HEAD
 - [ ] Update scientific branch launch scripts to reference setup subtree
 - [ ] Test launch functionality from scientific branch after subtree integration
 - [ ] Update scientific branch documentation to reflect subtree usage
@@ -25,7 +24,7 @@ Integrate the new setup subtree methodology into the scientific branch, allowing
 - [ ] CI/CD pipeline works correctly with new structure
 - [ ] Documentation updated to reflect new workflow
 - [ ] No regression in existing scientific functionality
-=======
+
 - [x] Update scientific branch launch scripts to reference setup subtree
 - [x] Test launch functionality from scientific branch after subtree integration
 - [x] Update scientific branch documentation to reflect subtree usage
@@ -39,7 +38,6 @@ Integrate the new setup subtree methodology into the scientific branch, allowing
 - [x] CI/CD pipeline works correctly with new structure
 - [x] Documentation updated to reflect new workflow
 - [x] No regression in existing scientific functionality
->>>>>>> scientific
 
 ## Task Dependencies
 - Setup subtree directory structure created (completed)
@@ -51,12 +49,11 @@ High
 8 hours
 
 ## Status
-<<<<<<< HEAD
 Pending
 
 ## Additional Notes
 This integration will allow the scientific branch to continue its specialized development while benefiting from centralized setup improvements. Special attention should be paid to ensure scientific-specific dependencies and configurations continue to work with the common launch infrastructure.
-=======
+
 Completed
 
 ## Completion Notes
@@ -72,4 +69,3 @@ Successfully implemented subtree integration for scientific branch:
 The subtree methodology has been implemented and team members can follow the process to integrate
 the setup subtree into the scientific branch, allowing for centralized management of launch and setup files
 while maintaining branch independence.
->>>>>>> scientific
