@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 """
 AI Model Training Configuration.
 
@@ -10,12 +9,10 @@ It also includes the PromptEngineer class for LLM interaction capabilities.
 
 import json
 from dataclasses import dataclass, field
-<<<<<<< HEAD
 from typing import Any, Dict, Optional, List
 import json
-=======
+
 from typing import Any, Dict, List, Optional
->>>>>>> scientific
 
 
 @dataclass
@@ -37,7 +34,6 @@ class PromptEngineer:
     to use them in addition to the existing local models.
     """
 
-<<<<<<< HEAD
     def __init__(self):
         self.templates = {}
         self.defaults = {
@@ -48,7 +44,7 @@ class PromptEngineer:
     def register_template(self, name: str, template: str):
         """Register a new prompt template."""
         self.templates[name] = template
-=======
+
     def __init__(self, template: str = None):
         self.template = template
         self.templates = {}
@@ -92,11 +88,9 @@ class PromptEngineer:
             return self.template.format(**kwargs)
         else:
             raise ValueError("No template provided to PromptEngineer")
->>>>>>> scientific
 
     def generate_prompt(self, template_name: str, **kwargs) -> str:
         """
-<<<<<<< HEAD
         Generate a prompt using a named template and provided variables.
 
         Args:
@@ -118,17 +112,14 @@ class PromptEngineer:
         except KeyError as e:
             raise ValueError(f"Missing required variable {e} for template '{template_name}'")
 
-    def create_email_categorization_prompt(self, subject: str, content: str, categories: List[str]) -> str:
-=======
-        Execute the prompt by filling template and adding execution prefix (backward compatibility method).
-        """
+    def execute_prompt_v2(self, **kwargs) -> str:
+        """Execute the prompt by filling template and adding execution prefix (backward compatibility method)."""
         filled = self.fill(**kwargs)
         return f"Executing prompt: {filled}"
 
     def create_email_categorization_prompt(
         self, subject: str, content: str, categories: List[str]
     ) -> str:
->>>>>>> scientific
         """
         Create a prompt for email categorization based on available categories.
 
@@ -187,5 +178,3 @@ class PromptEngineer:
             f"Provide a concise summary that captures the key points and any important details."
         )
         return prompt
-=======
->>>>>>> origin/main

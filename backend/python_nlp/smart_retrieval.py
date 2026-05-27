@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import argparse
 import asyncio
 import json
@@ -102,14 +101,13 @@ class SmartRetrievalManager:
             return None
 
     def get_optimized_retrieval_strategies(self) -> List[RetrievalStrategy]:
+        """Get optimized retrieval strategies."""
+        # Implementation would go here
+        return []
 
     def get_incremental_query(
         self, strategy: RetrievalStrategy, checkpoint: Optional[SyncCheckpoint] = None
     ) -> str:
-<<<<<<< HEAD
-        base_query = strategy.query_filter
-        if checkpoint and checkpoint.last_sync_date:
-=======
         """
         Generate incremental query for a strategy.
 
@@ -129,7 +127,6 @@ class SmartRetrievalManager:
                 return f"{base_query} after:{date_filter}"
             else:
                 return f"after:{date_filter}"
->>>>>>> scientific
         return base_query
 
     async def execute_smart_retrieval(
@@ -138,22 +135,14 @@ class SmartRetrievalManager:
         max_api_calls: int = 100,
         time_budget_minutes: int = 30,
     ) -> Dict[str, Any]:
+        """
+        Execute smart retrieval using the provided strategies.
 
         Args:
             strategies: A list of strategies to execute. If None, uses default optimized strategies.
             max_api_calls: The maximum number of API calls to make.
             time_budget_minutes: The time limit in minutes for the retrieval process.
 
-<<<<<<< HEAD
-        row = cursor.fetchone()
-            if row:
-                return SyncCheckpoint(
-                    strategy_name, datetime.fromisoformat(row[0]), row[1], 0, None, 0
-                )
-        return None
-
-    def _save_checkpoint(self, checkpoint: SyncCheckpoint):
-=======
         Returns:
             A dictionary with retrieval results.
         """
@@ -165,17 +154,10 @@ class SmartRetrievalManager:
         try:
             conn = sqlite3.connect(self.checkpoint_db_path)
             cursor = conn.cursor()
->>>>>>> scientific
 
             # Convert datetime to ISO format string for storage
             last_sync_str = checkpoint.last_sync_date.isoformat() if checkpoint.last_sync_date else None
 
-<<<<<<< HEAD
-async def main_cli():
-    """Provides a command-line interface for the SmartGmailRetriever."""
-    parser = argparse.ArgumentParser(description="Smart Gmail Retriever CLI")
-    asyncio.run(main_cli())
-=======
             # Use INSERT OR REPLACE to handle both new and existing checkpoints
             cursor.execute('''
             INSERT OR REPLACE INTO sync_checkpoints
@@ -199,6 +181,44 @@ async def main_cli():
         finally:
             if conn:
                 conn.close()
+
+    def _save_checkpoint_v2(self, checkpoint: SyncCheckpoint):
+        """Save a sync checkpoint to the database."""
+        try:
+            conn = sqlite3.connect(self.checkpoint_db_path)
+            cursor = conn.cursor()
+
+            # Convert datetime to ISO format string for storage
+            last_sync_str = checkpoint.last_sync_date.isoformat() if checkpoint.last_sync_date else None
+
+            # Use INSERT OR REPLACE to handle both new and existing checkpoints
+            cursor.execute('''
+            INSERT OR REPLACE INTO sync_checkpoints
+            (strategy_name, last_sync_date, last_history_id, processed_count, next_page_token, errors_count)
+            VALUES (?, ?, ?, ?, ?, ?)
+            ''', (
+            checkpoint.strategy_name,
+            last_sync_str,
+            checkpoint.last_history_id,
+            checkpoint.processed_count,
+            checkpoint.next_page_token,
+            checkpoint.errors_count
+            ))
+
+            conn.commit()
+            self.logger.info(f"Checkpoint saved for strategy: {checkpoint.strategy_name}")
+
+        except sqlite3.Error as e:
+            self.logger.error(f"Failed to save checkpoint: {e}")
+            raise
+        finally:
+            if conn:
+                conn.close()
+
+async def main_cli_v2():
+    """Provides a command-line interface for the SmartGmailRetriever."""
+    parser = argparse.ArgumentParser(description="Smart Gmail Retriever CLI")
+    asyncio.run(main_cli_v2())
 # 
 # 
 # async def main_cli():
@@ -265,6 +285,3 @@ async def main_cli():
 #     
 #     if __name__ == "__main__":
 #     asyncio.run(main_cli())
->>>>>>> scientific
-=======
->>>>>>> origin/main
