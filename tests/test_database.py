@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import pytest
 import asyncio
 import os
@@ -174,5 +173,3 @@ async def test_database_backup(db_manager: DatabaseManager, tmp_path):
     # Test cleanup
     db_manager._cleanup_old_backups(keep=1)
     assert len(os.listdir(db_manager._backup_dir)) == 1
-=======
->>>>>>> origin/main
