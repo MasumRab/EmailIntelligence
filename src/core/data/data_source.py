@@ -1,32 +1,31 @@
 from abc import ABC, abstractmethod
-<<<<<<< HEAD
-<<<<<<< HEAD
 from typing import List, Dict, Any
-=======
+
 from typing import Any, Dict, List
-
->>>>>>> scientific
-=======
-from typing import List, Dict, Any
->>>>>>> origin/main
-
 class DataSource(ABC):
     """
     Abstract base class for a data source.
     """
 
     @abstractmethod
-<<<<<<< HEAD
-<<<<<<< HEAD
     async def get_emails(self, limit: int = 100, offset: int = 0, category_id: int = None, is_unread: bool = None) -> List[Dict[str, Any]]:
-=======
-    async def get_emails(
+        """
+        Fetches a list of emails.
+
+        Args:
+            limit: The maximum number of emails to return.
+            offset: The starting offset for the emails.
+            category_id: Optional category ID to filter emails.
+            is_unread: Optional flag to filter unread emails.
+
+        Returns:
+            A list of email objects.
+        """
+        pass
+
+    async def get_emails_v2(
         self, limit: int = 100, offset: int = 0, category_id: int = None, is_unread: bool = None
     ) -> List[Dict[str, Any]]:
->>>>>>> scientific
-=======
-    async def get_emails(self, limit: int = 100, offset: int = 0, category_id: int = None, is_unread: bool = None) -> List[Dict[str, Any]]:
->>>>>>> origin/main
         """
         Fetches a list of emails.
 
