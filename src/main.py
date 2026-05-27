@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import argparse
 import logging
 
@@ -19,8 +18,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-<<<<<<< HEAD
-=======
+
 def create_system_status_tab():
     """Create the System Status tab with monitoring and diagnostics."""
 
@@ -544,7 +542,6 @@ def create_gmail_integration_tab():
             connection_test_result.value = test_gmail_connection()
 
 
->>>>>>> scientific
 def create_app():
     """
     Creates and configures the main FastAPI application and Gradio UI.
@@ -556,8 +553,6 @@ def create_app():
         version="3.0.0",
     )
 
-<<<<<<< HEAD
-=======
     # Add CORS middleware
     app.add_middleware(
         CORSMiddleware,
@@ -605,7 +600,6 @@ def create_app():
             content={"detail": "Internal server error", "message": "An unexpected error occurred"},
         )
 
->>>>>>> scientific
     @app.get("/")
     async def root():
         """Redirect root to Gradio UI."""
@@ -700,5 +694,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-=======
->>>>>>> origin/main
