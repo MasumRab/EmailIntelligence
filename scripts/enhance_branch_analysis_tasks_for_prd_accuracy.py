@@ -92,8 +92,7 @@ Establish the strategic framework and decision criteria for aligning multiple fe
 
 ## Success Criteria
 
-Task {task_info['id']} is complete when:
-
+Task {task_id} is complete when:
 ### Functional Requirements
 - [ ] Target selection criteria explicitly defined with measurable parameters - Verification: Criteria applied to sample branches with consistent results
 - [ ] Alignment strategy framework documented with clear decision trees - Verification: Framework correctly assigns targets to test branches
@@ -1465,7 +1464,7 @@ def enhance_task_007_specification(content: str, task_info: Dict[str, Any]) -> s
     """
     Enhance Task 007 specification for feature branch identification and categorization.
     """
-    enhanced = f"""# Task {task_info['id']}: Develop Feature Branch Identification and Categorization Tool
+    enhanced = """# Task {task_id}: Develop Feature Branch Identification and Categorization Tool
 
 **Status:** pending
 **Priority:** medium
@@ -1493,7 +1492,7 @@ Create a Python tool to automatically identify active feature branches, analyze 
 
 ## Success Criteria
 
-Task {task_info['id']} is complete when:
+Task {task_id} is complete when:
 
 ### Functional Requirements
 - [ ] Tool identifies all active feature branches - Verification: Compare against manual branch listing
@@ -1984,6 +1983,7 @@ src/
 - Real-time analysis for active development branches
 
 """
+    enhanced = enhanced.replace("{task_id}", task_info['id'])
     return enhanced
 
 

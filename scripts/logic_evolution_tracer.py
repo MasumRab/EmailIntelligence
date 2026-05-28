@@ -193,7 +193,8 @@ def main():
         print(f"      Avg Lines: {complexity['avg_lines_per_function']:.1f}")
         print(f"      Max Lines: {complexity['max_lines_per_function']}")
         if complexity['complex_functions']:
-            print(f"      Complex: {[f['name']}({f['lines']}L)" for f in complexity['complex_functions']]}")
+            complex_funcs = ", ".join(f"{f['name']}({f['lines']}L)" for f in complexity['complex_functions'])
+            print(f"      Complex: {complex_funcs}")
     
     # Identify critical losses
     critical_losses = []

@@ -188,61 +188,6 @@ def consolidate_tasks():
     return selected_count
 
 
-def consolidate_tasks():
-    """Consolidate task files from multiple directories into the primary tasks directory."""
-    print("🔍 Analyzing task files across directories...")
-    
-    # Define directories to search
-    search_dirs = [
-        Path("tasks"),
-        Path("enhanced_improved_tasks"),
-        Path("improved_tasks"),
-        Path("restructured_tasks_14_section"),
-        Path("task_data")
-    ]
-    
-    # Collect all task files by ID
-    all_task_groups = {}
-    for search_dir in search_dirs:
-        if search_dir.exists():
-            print(f"  📂 Checking {search_dir}/")
-            task_groups = find_task_files_by_id(search_dir)
-            
-            for task_id, paths in task_groups.items():
-                if task_id not in all_task_groups:
-                    all_task_groups[task_id] = []
-                all_task_groups[task_id].extend(paths)
-    
-    print(f"  📋 Found {len(all_task_groups)} unique task IDs across all directories")
-    
-    # Select the best version for each task
-    primary_tasks_dir = Path("tasks")
-    primary_tasks_dir.mkdir(exist_ok=True)
-    
-    selected_count = 0
-    for task_id, task_paths in all_task_groups.items():
-        best_path, best_content = select_best_task_version(task_paths)
-        
-        if best_path:
-            # Create a new filename in the primary tasks directory
-            new_filename = f"task-{task_id.replace('.', '-')}.md"
-            new_path = primary_tasks_dir / new_filename
-            
-            # Write the best content to the primary directory
-            with open(new_path, 'w', encoding='utf-8') as f:
-                f.write(best_content)
-            
-            print(f"  ✅ Selected best version for task {task_id} from {best_path.name}")
-            selected_count += 1
-        else:
-            print(f"  ❌ Could not select best version for task {task_id}")
-    
-    print(f"\n📊 Consolidation complete!")
-    print(f"   Selected {selected_count} task files for the primary tasks directory")
-    print(f"   Original files remain in their respective directories")
-    print(f"   The primary tasks directory now contains the most complete versions")
-    
-    return selected_count
 
 
 def main():

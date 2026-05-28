@@ -41,7 +41,7 @@ def analyze_function_importance(
             "validate.*dep",
             "layer.*found",
         ],
-        "robust_parsing": ["re\.split", "re\.sub", "clean.*id", "parse.*table"],
+        "robust_parsing": [r"re\.split", r"re\.sub", "clean.*id", "parse.*table"],
         "self_healing": ["best.*result", "history.*track", "error.*recover"],
         "testing_validation": ["test.*scenario", "validate.*result", "check.*function"],
     }

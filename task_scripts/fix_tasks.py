@@ -125,14 +125,6 @@ class ComprehensiveTaskFixer:
         print(f"  - Created verified backup: {backup_path}")
         return str(backup_path)
 
-    def validate_path_security(self, filepath: str) -> bool:
-        """Validate file path security"""
-        normalized_path = os.path.normpath(filepath)
-        for pattern in self.security_patterns:
-            if re.search(pattern, normalized_path, re.IGNORECASE):
-                print(f"  - Security violation: {filepath}")
-                return False
-        return True
 
     def check_merge_conflicts(self, filepath: str) -> bool:
         """Check for Git merge conflict markers"""
