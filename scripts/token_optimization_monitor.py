@@ -331,7 +331,7 @@ def main():
         sys.exit(0)
     else:
         print("❌ Token optimization target not met")
-        print(f"Efficiency: {analysis.get('efficiency', 0):.3f}")
+        print(f"Efficiency: {analysis.get('overall_efficiency', 0):.3f}")
         print("Run with --report for detailed analysis")
         sys.exit(1)
 
