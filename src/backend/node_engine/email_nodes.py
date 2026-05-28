@@ -113,34 +113,6 @@ class EmailSourceNode(BaseNode):
             ),
         ]
 
-    async def execute(self, context: ExecutionContext) -> Dict[str, Any]:
-        """Execute the email source operation."""
-        try:
-            # For now, we'll simulate email retrieval
-            # In a real implementation, this would connect to email APIs
-            emails = await self._fetch_emails()
-
-            result = {
-                "emails": emails,
-                "status": {
-                    "success": True,
-                    "count": len(emails),
-                    "timestamp": datetime.now().isoformat(),
-                },
-            }
-
-            return result
-        except Exception as e:
-            context.add_error(self.node_id, f"Email source failed: {str(e)}")
-            return {
-                "emails": [],
-                "status": {
-                    "success": False,
-                    "error": str(e),
-                    "timestamp": datetime.now().isoformat(),
-                },
-            }
-
     async def _fetch_emails(self) -> List[Dict[str, Any]]:
         """Fetch emails from the configured provider."""
         # This is a placeholder - in real implementation, it would use GmailAIService

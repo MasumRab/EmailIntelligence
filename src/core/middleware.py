@@ -205,41 +205,6 @@ class SecurityHeadersMiddleware:
             "Permissions-Policy": "geolocation=(), microphone=(), camera=()",
         }
 
-    async def __call__(self, scope, receive, send):
-        if scope["type"] != "http":
-            await self.app(scope, receive, send)
-            return
-
-        async def send_wrapper(message):
-            if message["type"] == "http.response.start":
-                headers = message.get("headers", [])
-                # Add security headers
-                for header_name, header_value in self.security_headers.items():
-                    headers.append([header_name.encode(), header_value.encode()])
-                message["headers"] = headers
-
-            await send(message)
-
-        await self.app(scope, receive, send_wrapper)
-
-
-# Convenience functions for creating middleware
-def create_security_middleware(
-    app,
-    enable_rate_limiting: bool = True,
-    enable_audit_logging: bool = True,
-    enable_performance_monitoring: bool = True,
-    trusted_proxies: Optional[list] = None,
-):
-    """Create security middleware with specified options."""
-    return SecurityMiddleware(
-        app,
-        enable_rate_limiting=enable_rate_limiting,
-        enable_audit_logging=enable_audit_logging,
-        enable_performance_monitoring=enable_performance_monitoring,
-        trusted_proxies=trusted_proxies,
-    )
-
 
 def create_security_headers_middleware(app):
     """Create security headers middleware."""

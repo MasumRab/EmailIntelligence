@@ -174,9 +174,6 @@ def log_enhanced_performance(operation_or_func=None, *, operation: str = ""):
         # Used as @log_enhanced_performance("custom_name")
         op_name = operation
 
-        def decorator(func):
-            return _create_enhanced_decorator(func, op_name)
-
         return decorator
     else:
         # Used as @log_enhanced_performance(operation="custom_name")
@@ -265,8 +262,3 @@ def _create_enhanced_decorator(func, op_name):
 
 
 # Backward compatibility - keep the original decorator
-def log_performance(operation_or_func=None, *, operation: str = ""):
-    """
-    Maintains backward compatibility with the original performance logging decorator.
-    """
-    return log_enhanced_performance(operation_or_func, operation=operation)

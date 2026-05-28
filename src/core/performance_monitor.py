@@ -53,12 +53,6 @@ class ProcessingEvent:
 class PerformanceMonitor:
     """Monitors and tracks performance metrics across the system"""
 
-    def __init__(self):
-        self.metrics: List[PerformanceMetric] = []
-        self.processing_events: List[ProcessingEvent] = []
-        self.lock = threading.Lock()
-        self._ensure_log_file_exists()
-
     def _ensure_log_file_exists(self):
         """Ensure the log file exists"""
         try:
@@ -66,15 +60,6 @@ class PerformanceMonitor:
                 pass
         except Exception as e:
             logger.warning(f"Failed to create performance log file: {e}")
-
-    def log_performance(self, log_entry: Dict[str, Any]) -> None:
-        """Log a performance entry to the log file"""
-        try:
-            with self.lock:
-                with open(LOG_FILE, "a") as f:
-                    f.write(json.dumps(log_entry) + "\n")
-        except Exception as e:
-            logger.warning(f"Failed to log performance: {e}")
 
     def get_system_metrics(self) -> Dict[str, Any]:
         """Get current system metrics"""
@@ -114,9 +99,6 @@ def log_performance(operation_or_func=None, *, operation: str = ""):
     elif operation_or_func is not None and operation == "":
         # Used as @log_performance("custom_name")
         op_name = operation
-
-        def decorator(func):
-            return _create_decorator(func, op_name)
 
         return decorator
     else:
@@ -457,11 +439,3 @@ performance_monitor = OptimizedPerformanceMonitor()
 
 
 # Convenience functions
-def record_metric(*args, **kwargs):
-    """Convenience function to record metrics."""
-    performance_monitor.record_metric(*args, **kwargs)
-
-
-def time_function(*args, **kwargs):
-    """Convenience function to time functions."""
-    return performance_monitor.time_function(*args, **kwargs)

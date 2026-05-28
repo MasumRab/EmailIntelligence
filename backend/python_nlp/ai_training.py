@@ -34,17 +34,6 @@ class PromptEngineer:
     to use them in addition to the existing local models.
     """
 
-    def __init__(self):
-        self.templates = {}
-        self.defaults = {
-            "system_prompt": "You are an AI assistant specialized in email analysis and management. You help users categorize emails, identify important information, and suggest actions.",
-            "email_analysis_template": "Analyze the following email:\nSubject: {subject}\nContent: {content}\n\nProvide: 1) Topic, 2) Sentiment, 3) Intent, 4) Urgency level, 5) Key action items."
-        }
-
-    def register_template(self, name: str, template: str):
-        """Register a new prompt template."""
-        self.templates[name] = template
-
     def __init__(self, template: str = None):
         self.template = template
         self.templates = {}
@@ -56,29 +45,6 @@ class PromptEngineer:
     def register_template(self, name: str, template: str):
         """Register a new prompt template."""
         self.templates[name] = template
-
-    def generate_prompt(self, template_name: str, **kwargs) -> str:
-        """
-        Generate a prompt using a named template and provided variables.
-
-        Args:
-            template_name: Name of the template to use
-            **kwargs: Variables to substitute in the template
-
-        Returns:
-            str: The generated prompt
-        """
-        if template_name in self.templates:
-            template = self.templates[template_name]
-        elif template_name in self.defaults:
-            template = self.defaults[template_name]
-        else:
-            raise ValueError(f"Template '{template_name}' not found")
-
-        try:
-            return template.format(**kwargs)
-        except KeyError as e:
-            raise ValueError(f"Missing required variable {e} for template '{template_name}'")
 
     def fill(self, **kwargs) -> str:
         """

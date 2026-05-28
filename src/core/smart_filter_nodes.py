@@ -18,34 +18,6 @@ logger = logging.getLogger(__name__)
 class SmartFilterInputNode(BaseNode):
     """Node that provides email data as input to smart filtering workflows."""
 
-    def get_metadata(self) -> NodeMetadata:
-        return NodeMetadata(
-            name="Smart Filter Input",
-            description="Provides email data as input to smart filtering workflows",
-            version="1.0.0",
-            input_types={},
-            output_types={
-                "email": dict,
-                "subject": str,
-                "content": str,
-                "sender": str,
-                "sender_email": str,
-            },
-        )
-
-    async def process(self, inputs: Dict[str, Any]) -> Dict[str, Any]:
-        # Get email data from inputs or use provided email_data parameter
-        email_data = inputs.get("email_data", {})
-
-        return {
-            "email": email_data,
-            "subject": email_data.get("subject", ""),
-            "content": email_data.get("content", email_data.get("body", "")),
-            "sender": email_data.get("sender", ""),
-            "sender_email": email_data.get("sender_email", email_data.get("sender", "")),
-        }
-
-
 class SmartFilterProcessingNode(BaseNode):
     """Node that applies smart filters to email data."""
 

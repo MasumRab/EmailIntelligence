@@ -261,11 +261,3 @@ def get_node_info(node_type: str) -> Dict[str, Any]:
     return node_library.get_node_info(node_type)
 
 
-def get_nodes_by_category() -> Dict[str, List[Dict[str, Any]]]:
-    """Get all nodes grouped by category."""
-    return node_library.get_nodes_by_category()
-
-
-def get_all_node_info() -> List[Dict[str, Any]]:
-    """Get information about all available nodes."""
-    return node_library.get_all_node_info()

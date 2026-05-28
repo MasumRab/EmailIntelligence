@@ -47,41 +47,6 @@ class BaseAIEngine(ABC):
     """
 
     @abstractmethod
-    def initialize(self):
-        """
-        Initializes the AI engine, loading models and preparing resources.
-        This method is called once when the application starts.
-        """
-        pass
-
-    @abstractmethod
-    async def analyze_email(
-        self, subject: str, content: str, categories: Optional[List[Dict[str, Any]]] = None
-    ) -> AIAnalysisResult:
-        """
-        Analyzes the content of an email to extract insights.
-
-        Args:
-            subject: The subject of the email.
-            content: The body of the email.
-            categories: An optional list of category dictionaries for category matching.
-
-        Returns:
-            An AIAnalysisResult object containing the analysis.
-        """
-        pass
-
-    @abstractmethod
-    def health_check(self) -> Dict[str, Any]:
-        """
-        Performs a health check of the AI engine and its components.
-
-        Returns:
-            A dictionary containing the health status of the engine.
-        """
-        pass
-
-    @abstractmethod
     def cleanup(self):
         """
         Cleans up any resources used by the AI engine.
@@ -109,11 +74,6 @@ class ModernAIEngine(BaseAIEngine):
     - Urgency detection
     - Smart filtering integration
     """
-    
-    def __init__(self):
-        self.initialized = False
-        self.models_loaded = False
-        logger.info("ModernAIEngine initialized")
     
     def initialize(self):
         """

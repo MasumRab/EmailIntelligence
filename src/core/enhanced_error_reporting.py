@@ -199,29 +199,6 @@ class EnhancedErrorReporter:
 enhanced_error_reporter = EnhancedErrorReporter()
 
 
-def log_error(
-    error: Union[Exception, str],
-    severity: ErrorSeverity = ErrorSeverity.ERROR,
-    category: ErrorCategory = ErrorCategory.UNKNOWN,
-    context: Optional[ErrorContext] = None,
-    details: Optional[Dict[str, Any]] = None
-) -> str:
-    """
-    Log an error with structured information.
-    
-    Args:
-        error: The error or error message to log
-        severity: The severity level of the error
-        category: The category of the error
-        context: Context information about the error
-        details: Additional details about the error
-    
-    Returns:
-        A unique error ID
-    """
-    return enhanced_error_reporter.log_error(error, severity, category, context, details)
-
-
 def create_error_context(
     user_id: Optional[str] = None,
     session_id: Optional[str] = None,
@@ -244,11 +221,6 @@ def create_error_context(
 def get_error_statistics() -> Dict[str, Any]:
     """Get current error statistics."""
     return enhanced_error_reporter.get_error_stats()
-
-
-def get_recent_errors(limit: int = 100) -> List[Dict[str, Any]]:
-    """Get recent errors from the log."""
-    return enhanced_error_reporter.get_recent_errors()
 
 
 def get_errors_by_category(category: ErrorCategory) -> List[Dict[str, Any]]:

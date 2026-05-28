@@ -77,16 +77,6 @@ class BaseNode(ABC):
         self._status: NodeExecutionStatus = NodeExecutionStatus.PENDING
         self._last_executed: Optional[float] = None
 
-    @abstractmethod
-    def get_metadata(self) -> NodeMetadata:
-        """Return metadata about the node"""
-        pass
-
-    @abstractmethod
-    async def process(self, inputs: Dict[str, Any]) -> Dict[str, Any]:
-        """Process the input data and return outputs"""
-        pass
-
     def set_security_context(self, context: Optional[SecurityContext]):
         """Set the security context for this node"""
         self._security_context = context
@@ -199,18 +189,6 @@ class Connection:
             "target_node_id": self.target_node_id,
             "target_input": self.target_input,
         }
-
-    @classmethod
-    def from_dict(cls, data: Dict[str, str]) -> "Connection":
-        """Create connection from dictionary"""
-        return cls(
-            connection_id=data.get("connection_id"),
-            source_node_id=data["source_node_id"],
-            source_output=data["source_output"],
-            target_node_id=data["target_node_id"],
-            target_input=data["target_input"],
-        )
-
 
 class Workflow:
     """Represents a complete node-based workflow"""

@@ -63,17 +63,6 @@ class AuthManager:
             "email": f"{username}@example.com"
         }
         
-    def create_access_token(self, data: dict, expires_delta: Optional[timedelta] = None) -> str:
-        """Create a JWT access token."""
-        to_encode = data.copy()
-        if expires_delta:
-            expire = datetime.utcnow() + expires_delta
-        else:
-            expire = datetime.utcnow() + timedelta(minutes=15)
-        to_encode.update({"exp": expire})
-        encoded_jwt = jwt.encode(to_encode, "SECRET_KEY", algorithm="HS256")
-        return encoded_jwt
-        
     async def get_current_user(self, token: str) -> Optional[dict]:
         """Get the current user from a JWT token."""
         # In a real implementation, this would decode the token and get user from database
@@ -87,56 +76,6 @@ class AuthManager:
 
 # Initialize security scheme
 security = HTTPBearer()
-
-
-def hash_password(password: str) -> str:
-    """Hash a password using salted hashing."""
-    salt = secrets.token_hex(16)
-    pwdhash = hashlib.pbkdf2_hmac('sha256', password.encode('utf-8'), salt.encode('utf-8'), 100000)
-    return salt + pwdhash.hex()
-
-
-def verify_password(plain_password: str, hashed_password: str) -> bool:
-    """Verify a plain password against a hashed password."""
-    salt = hashed_password[:32]
-    stored_password = hashed_password[32:]
-    pwdhash = hashlib.pbkdf2_hmac('sha256', plain_password.encode('utf-8'), salt.encode('utf-8'), 100000)
-    return pwdhash.hex() == stored_password
-
-
-async def create_user(username: str, password: str, db: DatabaseManager) -> bool:
-    """Create a new user with hashed password."""
-    # Check if user already exists
-    users = db.users_data
-    for user in users:
-        if user.get("username") == username:
-            return False  # User already exists
-    
-    # Hash the password
-    hashed_password = hash_password(password)
-
-    # Create new user
-    new_user = {
-        "id": len(users) + 1,
-        "username": username,
-        "hashed_password": hashed_password,
-        "created_at": datetime.utcnow().isoformat(),
-        "is_active": True
-    }
-
-    db.users_data.append(new_user)
-    await db._save_data("users")
-    return True
-
-
-async def authenticate_user(username: str, password: str, db: DatabaseManager) -> Optional[dict]:
-    """Authenticate a user by username and password."""
-    users = db.users_data
-    for user in users:
-        if user.get("username") == username and user.get("is_active", True):
-            if verify_password(password, user.get("hashed_password")):
-                return user
-    return None
 
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):

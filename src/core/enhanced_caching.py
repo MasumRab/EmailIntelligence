@@ -44,17 +44,6 @@ class LRUCache:
         
         self.cache[key] = value
     
-    def invalidate(self, key: str) -> None:
-        """Remove a specific key from cache."""
-        if key in self.cache:
-            del self.cache[key]
-    
-    def clear(self) -> None:
-        """Clear all cache entries."""
-        self.cache.clear()
-        self.hits = 0
-        self.misses = 0
-    
     def get_stats(self) -> Dict[str, Any]:
         """Get cache statistics."""
         total = self.hits + self.misses
@@ -89,10 +78,6 @@ class QueryResultCache:
                 del self.cache[key]
         self.misses += 1
         return None
-    
-    def put(self, key: str, value: Any) -> None:
-        """Put value in cache with current timestamp."""
-        self.cache[key] = (value, time.time())
     
     def invalidate(self, key: str) -> None:
         """Remove a specific key from cache."""

@@ -336,28 +336,3 @@ migration_manager = WorkflowMigrationManager()
 
 
 # Convenience functions for direct usage
-def migrate_legacy_workflow(
-    legacy_config: Dict[str, Any], workflow_name: str = None
-) -> NodeWorkflow:
-    """Migrate a legacy workflow configuration to node-based format."""
-    return migration_manager.migration_service.migrate_legacy_workflow(legacy_config, workflow_name)
-
-
-def migrate_workflow_file(file_path: str, output_path: str = None) -> str:
-    """Migrate a legacy workflow file to node-based format."""
-    return migration_manager.migration_service.migrate_workflow_file(file_path, output_path)
-
-
-def get_migration_report(legacy_config: Dict[str, Any]) -> Dict[str, Any]:
-    """Generate a migration report for a legacy configuration."""
-    return migration_manager.migration_service.get_migration_report(legacy_config)
-
-
-def migrate_all_legacy_workflows(legacy_workflows_dir: str) -> Dict[str, Any]:
-    """Migrate all legacy workflows in a directory."""
-    return migration_manager.migrate_all_legacy_workflows(legacy_workflows_dir)
-
-
-def generate_migration_plan(legacy_config: Dict[str, Any]) -> Dict[str, Any]:
-    """Generate a detailed migration plan for a legacy workflow."""
-    return migration_manager.generate_migration_plan(legacy_config)

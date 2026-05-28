@@ -78,7 +78,7 @@ class WorkflowEngine:
         # --- SECURITY CHECK: VERIFY USER PERMISSION TO EXECUTE WORKFLOW ---
         class MockUser:
             def __init__(self, user_id: str):
-                self.id = user_id
+                self.user_id = user_id
 
         mock_user = (
             MockUser(user_id) if user_id else MockUser("anonymous")

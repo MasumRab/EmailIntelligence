@@ -262,15 +262,6 @@ class PerformanceMonitor:
         """Stop the system resource monitoring"""
         self._system_monitoring = False
 
-    def log_performance(self, log_entry: Dict[str, Any]) -> None:
-        """Log a performance entry to file"""
-        try:
-            with open(LOG_FILE, "a", encoding="utf-8") as f:
-                f.write(json.dumps(log_entry) + "\n")
-        except Exception as e:
-            logger.error(f"Failed to write performance log: {e}")
-
-
 # Global performance monitor instance
 performance_monitor = PerformanceMonitor()
 
@@ -293,9 +284,6 @@ def log_performance(operation_or_func=None, *, operation: str = ""):
     elif operation_or_func is not None and operation == "":
         # Used as @log_performance("custom_name")
         op_name = operation
-
-        def decorator(func):
-            return _create_decorator(func, op_name)
 
         return decorator
     else:

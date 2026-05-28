@@ -44,11 +44,6 @@ class BaseWorkflow(ABC):
     def name(self) -> str:
         pass
 
-    @abstractmethod
-    async def execute(self, email_data: Dict[str, Any]) -> Dict[str, Any]:
-        pass
-
-
 class WorkflowEngine:
     """
     Manages the registration and execution of workflows.

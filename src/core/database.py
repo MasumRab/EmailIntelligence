@@ -61,36 +61,6 @@ from .security import validate_path_safety, sanitize_path
 class DatabaseConfig:
     """Configuration for the DatabaseManager."""
 
-    def __init__(
-        self,
-        data_dir: Optional[str] = None,
-        emails_file: Optional[str] = None,
-        categories_file: Optional[str] = None,
-        users_file: Optional[str] = None,
-        email_content_dir: Optional[str] = None,
-    ):
-        # Make data directory configurable via environment variable
-        self.data_dir = data_dir or os.getenv("DATA_DIR", "data")
-
-        # Validate data directory path
-        if not validate_path_safety(self.data_dir):
-            raise ValueError(f"Unsafe data directory path: {self.data_dir}")
-
-        self.emails_file = emails_file or os.path.join(self.data_dir, "emails.json.gz")
-        self.categories_file = categories_file or os.path.join(self.data_dir, "categories.json.gz")
-        self.users_file = users_file or os.path.join(self.data_dir, "users.json.gz")
-        self.email_content_dir = email_content_dir or os.path.join(self.data_dir, "email_content")
-
-        # Validate all file paths
-        for path_attr in ["emails_file", "categories_file", "users_file", "email_content_dir"]:
-            path_value = getattr(self, path_attr)
-            if not validate_path_safety(path_value, self.data_dir):
-                raise ValueError(f"Unsafe {path_attr} path: {path_value}")
-
-        # Ensure directories exist
-        os.makedirs(self.email_content_dir, exist_ok=True)
-
-
 # COMPLETED: Refactored global state management to use dependency injection
 # - Created DatabaseConfig class to hold configuration
 # - Modified DatabaseManager.__init__ to accept DatabaseConfig instance

@@ -74,11 +74,6 @@ class Workflow:
     Represents a processing workflow as a directed acyclic graph (DAG) of nodes.
     """
 
-    def __init__(self, name: str, nodes: Dict[str, Node], connections: List[Dict[str, str]]):
-        self.name = name
-        self.nodes = nodes
-        self.connections = connections  # List of connections in the format {"from": {"node_id": str, "output": str}, "to": {"node_id": str, "input": str}}
-
     def to_graph(self) -> nx.DiGraph:
         """
         Convert workflow to a NetworkX directed graph for topological analysis.

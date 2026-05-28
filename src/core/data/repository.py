@@ -76,9 +76,6 @@ class EmailRepository(ABC):
 class DatabaseEmailRepository(EmailRepository):
     """Email repository implementation using DatabaseManager."""
 
-    def __init__(self, db_manager: DataSource):
-        self.db_manager = db_manager
-
     async def create_email(self, email_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         return await self.db_manager.create_email(email_data)
 
@@ -102,10 +99,6 @@ class DatabaseEmailRepository(EmailRepository):
 
     async def shutdown(self) -> None:
         await self.db_manager.shutdown()
-
-    async def get_dashboard_aggregates(self) -> Dict[str, Any]:
-        """Retrieves aggregated dashboard statistics for efficient server-side calculations."""
-        return await self.data_source.get_dashboard_aggregates()
 
     async def get_category_breakdown(self, limit: int = 10) -> Dict[str, int]:
         """Retrieves category breakdown statistics with configurable limit."""

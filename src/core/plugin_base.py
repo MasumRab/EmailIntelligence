@@ -114,10 +114,6 @@ class HookSystem:
     with each other through this mechanism.
     """
 
-    def __init__(self):
-        self._hooks: Dict[str, List[Dict[str, Any]]] = {}
-        self._lock = asyncio.Lock()
-
     async def register_hook(
         self, hook_name: str, callback: Callable, plugin_id: str, priority: int = 100
     ) -> str:

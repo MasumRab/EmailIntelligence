@@ -61,56 +61,6 @@ async def get_category_service() -> AsyncGenerator[CategoryService, None]:
         pass
 
 
-async def get_ai_engine() -> AsyncGenerator[AdvancedAIEngine, None]:
-    """Provides an AdvancedAIEngine instance"""
-    engine = AdvancedAIEngine()
-    try:
-        yield engine
-    finally:
-        # Perform any cleanup if needed
-        pass
-
-
-async def get_filter_manager() -> AsyncGenerator[SmartFilterManager, None]:
-    """Provides a SmartFilterManager instance"""
-    manager = SmartFilterManager()
-    try:
-        yield manager
-    finally:
-        # Perform any cleanup if needed
-        pass
-
-
-async def get_workflow_engine() -> AsyncGenerator[WorkflowEngine, None]:
-    """Provides a WorkflowEngine instance"""
-    engine = WorkflowEngine()
-    try:
-        yield engine
-    finally:
-        # Perform any cleanup if needed
-        pass
-
-
-async def get_gmail_service() -> AsyncGenerator[GmailAIService, None]:
-    """Provides a GmailAIService instance"""
-    service = GmailAIService()
-    try:
-        yield service
-    finally:
-        # Perform any cleanup if needed
-        pass
-
-
-async def get_model_manager() -> AsyncGenerator[ModelManager, None]:
-    """Provides a ModelManager instance"""
-    manager = ModelManager()
-    try:
-        yield manager
-    finally:
-        # Perform any cleanup if needed
-        pass
-
-
 # For backward compatibility with existing code
 async def get_database():
     """Provides database instance (for existing code that uses direct database access)"""
