@@ -206,6 +206,23 @@ class SecurityHeadersMiddleware:
         }
 
 
+def create_security_middleware(
+    app,
+    enable_rate_limiting: bool = True,
+    enable_audit_logging: bool = True,
+    enable_performance_monitoring: bool = True,
+    trusted_proxies: Optional[list] = None,
+):
+    """Create security middleware with specified options."""
+    return SecurityMiddleware(
+        app,
+        enable_rate_limiting=enable_rate_limiting,
+        enable_audit_logging=enable_audit_logging,
+        enable_performance_monitoring=enable_performance_monitoring,
+        trusted_proxies=trusted_proxies,
+    )
+
+
 def create_security_headers_middleware(app):
     """Create security headers middleware."""
     return SecurityHeadersMiddleware(app)

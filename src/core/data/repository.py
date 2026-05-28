@@ -76,6 +76,10 @@ class EmailRepository(ABC):
 class DatabaseEmailRepository(EmailRepository):
     """Email repository implementation using DatabaseManager."""
 
+    def __init__(self, db_manager: DataSource):
+        self.db_manager = db_manager
+        self.data_source = db_manager
+
     async def create_email(self, email_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         return await self.db_manager.create_email(email_data)
 

@@ -54,6 +54,10 @@ class AIAnalysisResult:
 class AdvancedAIEngine:
     """Optimized Advanced AI engine that uses a model manager for dynamic model loading."""
 
+    def __init__(self, model_manager: ModelManager):
+        self.model_manager = model_manager
+        self.category_lookup_map: Dict[str, Dict[str, Any]] = {}
+
     def initialize(self):
         """Initialize AI engine."""
         try:
