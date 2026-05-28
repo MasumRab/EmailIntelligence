@@ -9,10 +9,7 @@ class DatabaseDataSource(DataSource):
     A data source for emails that uses the database.
     """
 
-    def __init__(self, db_manager):
-        self.db = db_manager
-
-    def __init___v2(self, db_manager: DatabaseManager):
+    def __init__(self, db_manager: DatabaseManager):
         self.db = db_manager
 
     @classmethod

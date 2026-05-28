@@ -82,23 +82,6 @@ async def get_training_status(
 
     return training_jobs[job_id]
 
-
-async def get_training_status_v2(job_id: str, current_user: str = Depends(get_current_active_user)):
-    """
-    Get the status of a training job.
-    Requires authentication.
-
-    Args:
-        job_id: The ID of the training job
-
-    Returns:
-        Dict with job status information
-    """
-    if job_id not in training_jobs:
-        raise HTTPException(status_code=404, detail="Training job not found")
-
-    return training_jobs[job_id]
-
 async def run_training(job_id: str, model_config: ModelConfig):
     """
     Background task to run model training.

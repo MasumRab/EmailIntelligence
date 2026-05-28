@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
-from typing import List, Dict, Any
-
 from typing import Any, Dict, List
+
+
 class DataSource(ABC):
     """
     Abstract base class for a data source.
@@ -9,23 +9,6 @@ class DataSource(ABC):
 
     @abstractmethod
     async def get_emails(self, limit: int = 100, offset: int = 0, category_id: int = None, is_unread: bool = None) -> List[Dict[str, Any]]:
-        """
-        Fetches a list of emails.
-
-        Args:
-            limit: The maximum number of emails to return.
-            offset: The starting offset for the emails.
-            category_id: Optional category ID to filter emails.
-            is_unread: Optional flag to filter unread emails.
-
-        Returns:
-            A list of email objects.
-        """
-        pass
-
-    async def get_emails_v2(
-        self, limit: int = 100, offset: int = 0, category_id: int = None, is_unread: bool = None
-    ) -> List[Dict[str, Any]]:
         """
         Fetches a list of emails.
 
@@ -129,7 +112,7 @@ class DataSource(ABC):
         pass
 
     @abstractmethod
-    async def create_category(self, category_data: Dict[str, Any]) -> Dict[str, Any]:
+    async def create_category(self, email_data: Dict[str, Any]) -> Dict[str, Any]:
         """
         Creates a new category.
         """

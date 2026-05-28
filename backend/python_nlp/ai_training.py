@@ -112,11 +112,6 @@ class PromptEngineer:
         except KeyError as e:
             raise ValueError(f"Missing required variable {e} for template '{template_name}'")
 
-    def execute_prompt_v2(self, **kwargs) -> str:
-        """Execute the prompt by filling template and adding execution prefix (backward compatibility method)."""
-        filled = self.fill(**kwargs)
-        return f"Executing prompt: {filled}"
-
     def create_email_categorization_prompt(
         self, subject: str, content: str, categories: List[str]
     ) -> str:

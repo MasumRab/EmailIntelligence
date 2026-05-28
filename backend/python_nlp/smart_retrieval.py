@@ -182,43 +182,6 @@ class SmartRetrievalManager:
             if conn:
                 conn.close()
 
-    def _save_checkpoint_v2(self, checkpoint: SyncCheckpoint):
-        """Save a sync checkpoint to the database."""
-        try:
-            conn = sqlite3.connect(self.checkpoint_db_path)
-            cursor = conn.cursor()
-
-            # Convert datetime to ISO format string for storage
-            last_sync_str = checkpoint.last_sync_date.isoformat() if checkpoint.last_sync_date else None
-
-            # Use INSERT OR REPLACE to handle both new and existing checkpoints
-            cursor.execute('''
-            INSERT OR REPLACE INTO sync_checkpoints
-            (strategy_name, last_sync_date, last_history_id, processed_count, next_page_token, errors_count)
-            VALUES (?, ?, ?, ?, ?, ?)
-            ''', (
-            checkpoint.strategy_name,
-            last_sync_str,
-            checkpoint.last_history_id,
-            checkpoint.processed_count,
-            checkpoint.next_page_token,
-            checkpoint.errors_count
-            ))
-
-            conn.commit()
-            self.logger.info(f"Checkpoint saved for strategy: {checkpoint.strategy_name}")
-
-        except sqlite3.Error as e:
-            self.logger.error(f"Failed to save checkpoint: {e}")
-            raise
-        finally:
-            if conn:
-                conn.close()
-
-async def main_cli_v2():
-    """Provides a command-line interface for the SmartGmailRetriever."""
-    parser = argparse.ArgumentParser(description="Smart Gmail Retriever CLI")
-    asyncio.run(main_cli_v2())
 # 
 # 
 # async def main_cli():
