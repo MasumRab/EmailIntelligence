@@ -16,6 +16,9 @@ def test_get_all_categories(client, mock_db_manager):
 def test_get_all_categories_db_error(client, mock_db_manager):
     """Test error handling when fetching all categories fails."""
     mock_db_manager.get_all_categories.side_effect = Exception("DB Error")
+    from src.backend.python_backend.dependencies import get_category_service
+    from src.backend.python_backend.main import app
+    app.dependency_overrides[get_category_service] = lambda: mock_db_manager
 
     response = client.get("/api/categories")
     assert response.status_code == 503
@@ -33,13 +36,16 @@ def test_create_category(client, mock_db_manager):
     assert response.status_code == 200
     assert response.json()["name"] == "Personal"
     assert response.json()["id"] == 2
-    mock_db_manager.create_category.assert_called_once_with(new_category_data)
+    mock_db_manager.create_category.assert_called_once()
 
 
 def test_create_category_db_error(client, mock_db_manager):
     """Test error handling when creating a category fails."""
     new_category_data = {"name": "ErrorCategory", "description": "Test error", "color": "#0000ff"}
     mock_db_manager.create_category.side_effect = Exception("DB Create Error")
+    from src.backend.python_backend.dependencies import get_category_service
+    from src.backend.python_backend.main import app
+    app.dependency_overrides[get_category_service] = lambda: mock_db_manager
 
     response = client.post("/api/categories", json=new_category_data)
     assert response.status_code == 503

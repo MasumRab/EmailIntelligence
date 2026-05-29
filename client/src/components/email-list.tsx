@@ -147,7 +147,7 @@ export function EmailList({ emails, loading, onEmailSelect }: EmailListProps) {
                       {email.categoryData.name}
                     </Badge>
                   )}
-                  {email.labels?.map((label: string, index: number) => (
+                  {Array.isArray(email.labels) && email.labels.map((label: string, index: number) => (
                     <Badge key={index} variant="outline" className="text-xs">
                       {label}
                     </Badge>
