@@ -13,23 +13,21 @@ This script helps migrate branch names to follow the standardized naming convent
 import subprocess
 import sys
 import re
-
-def run_command(command):
-    """Run a shell command and return the output."""
-    try:
-        result = subprocess.run(command, shell=True, capture_output=True, text=True, check=True)
-        return result.stdout.strip()
-    except subprocess.CalledProcessError as e:
-        print(f"Error running command: {command}")
-        print(f"Error: {e.stderr}")
-        return None
+from typing import List
 
 def get_local_branches():
     """Get list of local branches."""
-    output = run_command("git branch")
+    try:
+        result = subprocess.run(["git", "branch"], shell=False, capture_output=True, text=True, check=True)
+        output = result.stdout.strip()
+    except subprocess.CalledProcessError as e:
+        print(f"Error running command: git branch")
+        print(f"Error: {e.stderr}")
+        output = None
+
     if output is None:
         return []
-    
+
     branches = []
     for line in output.split('\n'):
         # Remove the asterisk and whitespace
@@ -39,10 +37,17 @@ def get_local_branches():
 
 def get_remote_branches():
     """Get list of remote branches."""
-    output = run_command("git branch -r")
+    try:
+        result = subprocess.run(["git", "branch", "-r"], shell=False, capture_output=True, text=True, check=True)
+        output = result.stdout.strip()
+    except subprocess.CalledProcessError as e:
+        print(f"Error running command: git branch -r")
+        print(f"Error: {e.stderr}")
+        output = None
+
     if output is None:
         return []
-    
+
     branches = []
     for line in output.split('\n'):
         branch = line.strip()
@@ -62,7 +67,7 @@ def is_valid_branch_name(branch_name):
         r'^main$',
         r'^scientific$'
     ]
-    
+
     for pattern in valid_patterns:
         if re.match(pattern, branch_name):
             return True
@@ -72,18 +77,18 @@ def suggest_new_name(branch_name):
     """Suggest a new name for a branch that doesn't follow the convention."""
     # Handle special cases - some branches should just be deleted
     obsolete_branches = [
-        'backup-branch', 'branch-alignment', 'scientific-consolidated', 
+        'backup-branch', 'branch-alignment', 'scientific-consolidated',
         'scientific-minimal-rebased', 'backup-scientific-before-rebase-50',
         'backup/20251027_120805_audit_branch', 'coderabbitai/utg/f31e8bd',
         'jules/audit-sqlite-branch', 'replit-agent', 'shared-docs-only'
     ]
-    
+
     if branch_name in obsolete_branches:
         return None  # Mark for deletion
-    
+
     if branch_name in ['main', 'scientific']:
         return None  # These are valid
-    
+
     # Handle branches with slash but wrong prefix
     if '/' in branch_name:
         parts = branch_name.split('/')
@@ -99,7 +104,7 @@ def suggest_new_name(branch_name):
         # Handle fix-* branches that should be bugfix/*
         elif parts[0] == 'fix' or 'fix' in parts[0]:
             return f"bugfix/{'/'.join(parts[1:]) if len(parts) > 1 else parts[0]}"
-    
+
     # Handle branches without slash
     if 'feature-' in branch_name:
         return f"feature/{branch_name.replace('feature-', '')}"
@@ -113,7 +118,7 @@ def suggest_new_name(branch_name):
         return f"docs/{branch_name.replace('docs-', '')}"
     elif 'refactor-' in branch_name:
         return f"refactor/{branch_name.replace('refactor-', '')}"
-    
+
     # Special cases for specific branches
     if branch_name == 'docs-cleanup':
         return 'docs/cleanup'
@@ -123,7 +128,7 @@ def suggest_new_name(branch_name):
         return 'bugfix/launch-setup-fixes'
     elif branch_name == 'worktree-workflow-system':
         return 'feature/worktree-workflow-system'
-    
+
     # For other branches, determine based on name content
     if 'fix' in branch_name or 'bug' in branch_name or 'error' in branch_name or 'test' in branch_name:
         return f"bugfix/{branch_name.replace('fix-', '').replace('bug-', '').replace('test-', '').lower()}"
@@ -133,27 +138,42 @@ def suggest_new_name(branch_name):
         return f"refactor/{branch_name.replace('refactor-', '').lower()}"
     elif 'feature' in branch_name:
         return f"feature/{branch_name.replace('feature-', '').lower()}"
-    
+
     # Default to feature/ for other branches
     return f"feature/{branch_name.lower()}"
 
 def rename_local_branch(old_name, new_name):
     """Rename a local branch."""
     print(f"Renaming local branch '{old_name}' to '{new_name}'")
-    result = run_command(f"git branch -m {old_name} {new_name}")
-    return result is not None
+    try:
+        subprocess.run(["git", "branch", "-m", old_name, new_name], shell=False, capture_output=True, text=True, check=True)
+        return True
+    except subprocess.CalledProcessError as e:
+        print(f"Error running command: git branch -m {old_name} {new_name}")
+        print(f"Error: {e.stderr}")
+        return False
 
 def delete_remote_branch(branch_name):
     """Delete a remote branch."""
     print(f"Deleting remote branch '{branch_name}'")
-    result = run_command(f"git push origin --delete {branch_name.replace('origin/', '')}")
-    return result is not None
+    try:
+        subprocess.run(["git", "push", "origin", "--delete", branch_name.replace('origin/', '')], shell=False, capture_output=True, text=True, check=True)
+        return True
+    except subprocess.CalledProcessError as e:
+        print(f"Error running command: git push origin --delete {branch_name.replace('origin/', '')}")
+        print(f"Error: {e.stderr}")
+        return False
 
 def push_new_branch(branch_name):
     """Push a new branch to remote."""
     print(f"Pushing new branch '{branch_name}'")
-    result = run_command(f"git push -u origin {branch_name}")
-    return result is not None
+    try:
+        subprocess.run(["git", "push", "-u", "origin", branch_name], shell=False, capture_output=True, text=True, check=True)
+        return True
+    except subprocess.CalledProcessError as e:
+        print(f"Error running command: git push -u origin {branch_name}")
+        print(f"Error: {e.stderr}")
+        return False
 
 def main():
     """Main function."""
@@ -163,12 +183,12 @@ def main():
     else:
         print("EXECUTION MODE - Changes will be made")
         dry_run = False
-    
+
     print("\n=== Local Branches Analysis ===")
     local_branches = get_local_branches()
     branches_to_rename = []
     branches_to_delete = []
-    
+
     for branch in local_branches:
         if is_valid_branch_name(branch):
             print(f"✓ {branch} (valid)")
@@ -180,12 +200,12 @@ def main():
             else:
                 print(f"✗ {branch} (invalid) - Suggest deletion")
                 branches_to_delete.append(branch)
-    
+
     print("\n=== Remote Branches Analysis ===")
     remote_branches = get_remote_branches()
     remote_branches_to_delete = []
     remote_branches_to_rename = []
-    
+
     for branch in remote_branches:
         # Extract branch name without origin/
         branch_name = branch.replace('origin/', '')
@@ -199,34 +219,36 @@ def main():
             else:
                 print(f"✗ {branch} (invalid) - Suggest deletion")
                 remote_branches_to_delete.append(branch_name)
-    
+
     # Execute changes if not in dry run mode
     if not dry_run:
         print("\n=== Executing Changes ===")
-        
+
         # Rename local branches
         for old_name, new_name in branches_to_rename:
             if rename_local_branch(old_name, new_name):
                 print(f"✓ Renamed local branch '{old_name}' to '{new_name}'")
             else:
                 print(f"✗ Failed to rename local branch '{old_name}' to '{new_name}'")
-        
+
         # Delete local branches marked for deletion
         for branch in branches_to_delete:
             print(f"Deleting local branch '{branch}'")
-            result = run_command(f"git branch -d {branch}")
-            if result is not None:
+            try:
+                subprocess.run(["git", "branch", "-d", branch], shell=False, capture_output=True, text=True, check=True)
                 print(f"✓ Deleted local branch '{branch}'")
-            else:
+            except subprocess.CalledProcessError as e:
+                print(f"Error running command: git branch -d {branch}")
+                print(f"Error: {e.stderr}")
                 print(f"✗ Failed to delete local branch '{branch}'")
-        
+
         # Delete remote branches marked for deletion
         for branch in remote_branches_to_delete:
             if delete_remote_branch(f"origin/{branch}"):
                 print(f"✓ Deleted remote branch 'origin/{branch}'")
             else:
                 print(f"✗ Failed to delete remote branch 'origin/{branch}'")
-        
+
         # Rename remote branches
         for old_name, new_name in remote_branches_to_rename:
             # First delete the old branch
@@ -237,13 +259,13 @@ def main():
                 # In a real scenario, you'd need to check if the local branch exists
             else:
                 print(f"✗ Failed to delete remote branch 'origin/{old_name}'")
-    
+
     print("\n=== Summary ===")
     print(f"Local branches to rename: {len(branches_to_rename)}")
     print(f"Local branches to delete: {len(branches_to_delete)}")
     print(f"Remote branches to rename: {len(remote_branches_to_rename)}")
     print(f"Remote branches to delete: {len(remote_branches_to_delete)}")
-    
+
     if dry_run:
         print("\nTo execute these changes, run: python branch_rename_migration.py")
 
