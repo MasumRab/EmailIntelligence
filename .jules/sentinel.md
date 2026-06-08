@@ -1,0 +1,6 @@
+# Sentinel Security Journal
+
+## 2024-03-XX: Rate Limiter Memory Exhaustion Vulnerability (DoS)
+- **Vulnerability Discovered:** The API rate limiter in `src/utils/rate_limit.py` was vulnerable to Denial of Service (DoS) attacks via memory exhaustion. It used an unbounded `defaultdict(list)` to track rate limits by IP address (`client_ip`). An attacker who spoofs the `X-Forwarded-For` header or utilizes a large botnet could send requests from countless unique IP addresses, causing the `self.requests` dictionary to grow indefinitely and exhaust application memory.
+- **Learning:** Unbounded caching or state tracking mechanisms, especially those keyed by user-controlled input like IP addresses or request headers, pose significant memory leak risks in this codebase and must enforce strict limits.
+- **Prevention Note:** To prevent memory exhaustion and DoS, state tracking objects (like `RateLimiter`) must use bounded data structures. Specifically, use `collections.OrderedDict` to enforce a strict capacity limit (e.g., `max_clients = 10000`) and apply LRU (Least Recently Used) eviction for tracked items.
