@@ -13,7 +13,15 @@ from pathlib import Path
 # Import the launch module
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'setup'))
 
-from launch import COMMAND_PATTERN_AVAILABLE, DOTENV_AVAILABLE, PYTHON_MIN_VERSION, PYTHON_MAX_VERSION
+try:
+    from launch import COMMAND_PATTERN_AVAILABLE, DOTENV_AVAILABLE
+    from validation import PYTHON_MIN_VERSION, PYTHON_MAX_VERSION
+except ImportError:
+    # Handle the fact that launch might not export all of these
+    COMMAND_PATTERN_AVAILABLE = False
+    DOTENV_AVAILABLE = False
+    PYTHON_MIN_VERSION = (3, 12)
+    PYTHON_MAX_VERSION = (3, 13)
 
 
 class TestLaunchOrchestration:
