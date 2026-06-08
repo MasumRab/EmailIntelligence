@@ -37,6 +37,15 @@ Recommended workflow:
 - When new work appears, add or decompose it with `task-master add-task --prompt="..."` or `task-master expand --id=<id>`.
 - Prefer Task Master CLI or MCP commands over manual edits to files under `.taskmaster/`.
 
+## Branch Architecture
+This repo has three long-lived branches with defined sync rules. See `docs/BRANCH_SYNC.md` for full details including current drift status and sync rules.
+
+- `main` — application code
+- `scientific` — application + NLP research (should track main's app code)
+- `orchestration-tools` — shared tooling, agent configs, scripts (distributes INTO other branches)
+
+Before making cross-branch changes, check `docs/BRANCH_SYNC.md` for what must stay aligned.
+
 ## Critical Rules
 - NEVER commit secrets or API keys
 - NEVER use `eval()` or `exec()`
