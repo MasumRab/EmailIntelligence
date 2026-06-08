@@ -11,15 +11,15 @@ class TestGitHooks:
     """Test Git hook installation and functionality."""
 
     def test_hook_directory_exists(self):
-        """Test that .git/hooks directory exists."""
-        hooks_dir = Path(".git/hooks")
+        """Test that scripts/hooks directory exists."""
+        hooks_dir = Path("scripts/hooks")
         assert hooks_dir.exists()
         assert hooks_dir.is_dir()
 
     def test_required_hooks_exist(self):
-        """Test that required hooks are installed."""
+        """Test that required hooks are present in scripts/hooks."""
         required_hooks = ["pre-commit", "post-commit", "post-merge", "post-checkout", "post-push"]
-        hooks_dir = Path(".git/hooks")
+        hooks_dir = Path("scripts/hooks")
 
         for hook in required_hooks:
             hook_path = hooks_dir / hook
@@ -34,7 +34,7 @@ class TestGitHooks:
 
     def test_hooks_reference_install_script(self):
         """Test that hooks properly reference orchestration scripts."""
-        hooks_dir = Path(".git/hooks")
+        hooks_dir = Path("scripts/hooks")
 
         # Check post-merge hook has orchestration functionality
         post_merge_hook = hooks_dir / "post-merge"
