@@ -157,14 +157,14 @@ Integrate user input handlers (keyboard interrupts, CLI commands) to trigger pau
 
 Design a system to serialize and deserialize the orchestrator's state using file-based storage (JSON/YAML) to persist the `OrchestratorState` object. Implement load/save functions invoked during pauses, before critical steps, and upon startup for resuming.
 
-### 012.15. Document the Orchestration System for Maintenance
+### 012.14. Document the Orchestration System for Maintenance
 - **Status:** pending
 - **Dependencies:** 012.1
 - **Effort:** 3-4 hours
 
 Produce comprehensive documentation (`README.md` or similar) covering: high-level overview, command-line arguments, expected inputs/outputs, status message interpretation, manual intervention steps, and internal component explanations for future maintenance.
 
-### 012.16. Integrate Architectural Migration (Task 022) into Workflow
+### 012.15. Integrate Architectural Migration (Task 022) into Workflow
 - **Status:** pending
 - **Dependencies:** 012.7
 - **Effort:** 3-4 hours
@@ -207,7 +207,7 @@ Invoke Task 022's automated migration script after the backup step (012.7) and b
 5. Build priority assignment algorithms
 6. Develop the sequential execution control loop
 
-### Phase 3: Integration Pipeline (012.7, 012.8, 012.9, 012.10, 012.11, 012.16)
+### Phase 3: Integration Pipeline (012.7, 012.8, 012.9, 012.10, 012.11, 012.15)
 7. Integrate backup procedure (Task 006)
 8. Integrate architectural migration (Task 022)
 9. Integrate branch alignment logic (Tasks 009/010)
@@ -215,7 +215,7 @@ Invoke Task 022's automated migration script after the backup step (012.7) and b
 11. Integrate validation framework (Task 011)
 12. Integrate documentation generation (Task 008/015)
 
-### Phase 4: Resilience & Polish (012.12, 012.13, 012.15)
+### Phase 4: Resilience & Polish (012.12, 012.13, 012.14)
 13. Implement pause/resume/cancellation mechanisms
 14. Build state persistence and recovery
 15. Write comprehensive documentation
@@ -262,7 +262,7 @@ Execute the orchestration script on a controlled set of test branches, including
 ## Integration Checkpoint
 
 ### Criteria for Moving Forward
-- [ ] All 15 subtasks (012.1–012.13, 012.15, 012.16) completed
+- [ ] All 15 subtasks (012.1–012.15) completed
 - [ ] State machine handles all transitions without deadlocks
 - [ ] Full pipeline tested end-to-end with mock task tools
 - [ ] Pause/resume/cancel tested across all pipeline stages

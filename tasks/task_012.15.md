@@ -1,10 +1,10 @@
-# Task 012.15: Document the Orchestration System for Maintenance
+# Task 012.15: Integrate Architectural Migration (Task 022) into Workflow
 
 **Status:** pending
 **Priority:** high
 **Effort:** TBD
 **Complexity:** TBD
-**Dependencies:** 012.1, 012.013
+**Dependencies:** 012.7, 022
 
 ---
 
@@ -19,7 +19,7 @@
 ## Prerequisites & Dependencies
 
 ### Required Before Starting
-- [ ] 012.1, 012.013
+- [ ] 012.7, 022
 
 ### Blocks (What This Task Unblocks)
 - [ ] To be defined
@@ -34,7 +34,7 @@
 
 ### Task Interface
 - **ID**: 012.15
-- **Title**: Document the Orchestration System for Maintenance
+- **Title**: Integrate Architectural Migration (Task 022) into Workflow
 - **Status**: pending
 - **Priority**: high
 - **Effort**: TBD
@@ -48,17 +48,18 @@ Requirements to be specified
 Implementation guide to be defined
 
 
-### 012.15. Document the Orchestration System for Maintenance
+### 012.15. Integrate Architectural Migration (Task 022) into Workflow
 
-**Status:** pending  
-**Dependencies:** 012.1, 012.013  
+**Status:** pending
+**Dependencies:** 012.7, 022
 
-Create comprehensive documentation for the orchestrator, covering setup, usage instructions, workflow details, troubleshooting, and maintenance guidelines for developers.
+Implement the invocation of Task 022's automated migration script after the backup step (012.7) and before the alignment step (012.8).
 
 **Details:**
 
-Produce a markdown document (`README.md` or similar) that includes: a high-level overview, command-line arguments, expected inputs/outputs, how to interpret status messages, steps for manual intervention, and detailed explanations of internal components and their interactions for future maintenance.
-
+Call the migration tool to normalize the feature branch's directory structure (`backend` -> `src/backend`) and inject the factory pattern. Capture the migration status. If migration fails, halt the workflow or prompt the user, depending on severity. Ensure this step allows the subsequent alignment (Task 009/010) to work on a structurally compatible branch.
+- **Effort**: N/A
+- **Complexity**: N/A
 
 ## Configuration Parameters
 
@@ -74,11 +75,22 @@ Produce a markdown document (`README.md` or similar) that includes: a high-level
 
 ## Testing Strategy
 
-Test strategy to be defined
+### Unit Tests
+- [ ] Tests cover core functionality
+- [ ] Edge cases handled appropriately
+- [ ] Performance benchmarks met
+
+### Integration Tests
+- [ ] Integration with dependent components verified
+- [ ] End-to-end workflow tested
+- [ ] Error handling verified
+
+### Test Strategy Notes
+
 
 ## Common Gotchas & Solutions
 
-- [ ] No common gotchas identified
+- [ ] [Common issues and solutions to be documented]
 
 ## Integration Checkpoint
 
@@ -92,11 +104,17 @@ Test strategy to be defined
 ## Done Definition
 
 ### Completion Criteria
-- [ ] All success criteria met
-- [ ] Code reviewed and approved
-- [ ] Tests passing
-- [ ] Documentation updated
+- [ ] All success criteria checkboxes marked complete
+- [ ] Code quality standards met (PEP 8, documentation)
+- [ ] Performance targets achieved
+- [ ] All subtasks completed
+- [ ] Integration checkpoint criteria satisfied
 
 ## Next Steps
 
-- [ ] Next steps to be defined
+- [ ] No next steps specified
+- [ ] Additional steps to be defined
+
+
+<!-- EXTENDED_METADATA
+END_EXTENDED_METADATA -->

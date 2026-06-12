@@ -5,6 +5,8 @@
 > 2. **Standard Compliance:** All tasks MUST follow the 14-section standard defined in `TASK_STRUCTURE_STANDARD.md`.
 > 3. **Sync Protocol:** Always edit Markdown files first, then run `python taskmaster_cli.py parse-prd --input tasks/` to sync changes into `tasks.json`. The global `tm` commands consume this JSON.
 
+> **⚠️ READ BEFORE WORKING ON TASKS:** [`TASK_ANALYSIS_AND_GOTCHAS.md`](TASK_ANALYSIS_AND_GOTCHAS.md) — Known issues, data corruption, subtask-intent inversion, and remediation priorities. Several tasks have mislabeled parents, wrong cross-references, or content contamination.
+
 ## RTK (Token Optimization) Usage
 
 **See:** [`RTK_USAGE_GUIDE.md`](RTK_USAGE_GUIDE.md) for complete documentation.
