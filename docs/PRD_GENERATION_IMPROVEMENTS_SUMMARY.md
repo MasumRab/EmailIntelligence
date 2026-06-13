@@ -9,7 +9,7 @@
 
 The PRD generation process has been improved with better dependency mapping and standardized formatting.
 
-**⚠️ IMPORTANT:** Previous claims of "83.7% similarity" were based on PRD-to-task comparison, NOT actual roundtrip testing. Actual roundtrip fidelity measured on 2026-03-01 is **29.7%** (see `ROUNDTRIP_FIDELITY_TEST_RESULTS.md`).
+**⚠️ IMPORTANT:** Previous claims of "83.7% similarity" were based on PRD-to-task comparison, NOT actual roundtrip testing. Actual roundtrip fidelity measured on 2026-03-01 is **29.7%** (see `archive/documentation_cleanup/ROUNDTRIP_FIDELITY_TEST_RESULTS.md`).
 
 ---
 

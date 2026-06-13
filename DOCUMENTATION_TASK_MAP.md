@@ -139,9 +139,9 @@ Most `.taskmaster` docs are **process/meta** (about *how* tasks are authored, va
 
 | Document(s) | Purpose | Relevance |
 |-------------|---------|-----------|
-| [`generated_prd_all_tasks.md`](generated_prd_all_tasks.md) (374 KB), [`generated_prd_from_tasks.md`](generated_prd_from_tasks.md), [`test_generated_prd.md`](test_generated_prd.md), [`test_roundtrip_prd.md`](test_roundtrip_prd.md) | PRDs reverse-engineered from the 25 task files | Tasks→PRD output |
-| [`ROUNDTRIP_FIDELITY_TEST_RESULTS.md`](ROUNDTRIP_FIDELITY_TEST_RESULTS.md), [`docs/ROUND_TRIP_QUICK_REFERENCE.md`](docs/ROUND_TRIP_QUICK_REFERENCE.md), [`docs/ROUND_TRIP_SCRIPTS_SUMMARY.md`](docs/ROUND_TRIP_SCRIPTS_SUMMARY.md), [`docs/PERFECT_FIDELITY_PROCESS_DOCUMENTATION.md`](docs/PERFECT_FIDELITY_PROCESS_DOCUMENTATION.md) | Validate Tasks→PRD→Tasks fidelity | All tasks (QA) |
-| [`PRD_IMPROVEMENT_INVESTIGATION.md`](PRD_IMPROVEMENT_INVESTIGATION.md), [`TASK_PRD_DIFF_COMPARISON.md`](TASK_PRD_DIFF_COMPARISON.md), [`docs/PRD_GENERATION_IMPROVEMENTS_SUMMARY.md`](docs/PRD_GENERATION_IMPROVEMENTS_SUMMARY.md), [`docs/IMPROVEMENTS_TO_MAXIMIZE_PRD_ACCURACY.md`](docs/IMPROVEMENTS_TO_MAXIMIZE_PRD_ACCURACY.md), [`docs/FIRST_ORDER_PRD_IMPROVEMENTS_ANALYSIS.md`](docs/FIRST_ORDER_PRD_IMPROVEMENTS_ANALYSIS.md) | Iterative PRD-accuracy improvement work | All tasks (QA) |
+| [`generated_prd_all_tasks.md`](archive/documentation_cleanup/generated_prd_all_tasks.md) (374 KB), [`generated_prd_from_tasks.md`](archive/documentation_cleanup/generated_prd_from_tasks.md), [`test_generated_prd.md`](archive/documentation_cleanup/test_generated_prd.md), [`test_roundtrip_prd.md`](archive/documentation_cleanup/test_roundtrip_prd.md) | PRDs reverse-engineered from the 25 task files | Tasks→PRD output (archived) |
+| [`ROUNDTRIP_FIDELITY_TEST_RESULTS.md`](archive/documentation_cleanup/ROUNDTRIP_FIDELITY_TEST_RESULTS.md), [`docs/ROUND_TRIP_QUICK_REFERENCE.md`](docs/ROUND_TRIP_QUICK_REFERENCE.md), [`docs/ROUND_TRIP_SCRIPTS_SUMMARY.md`](docs/ROUND_TRIP_SCRIPTS_SUMMARY.md), [`docs/PERFECT_FIDELITY_PROCESS_DOCUMENTATION.md`](docs/PERFECT_FIDELITY_PROCESS_DOCUMENTATION.md) | Validate Tasks→PRD→Tasks fidelity | All tasks (QA) |
+| [`PRD_IMPROVEMENT_INVESTIGATION.md`](archive/documentation_cleanup/PRD_IMPROVEMENT_INVESTIGATION.md), [`TASK_PRD_DIFF_COMPARISON.md`](archive/documentation_cleanup/TASK_PRD_DIFF_COMPARISON.md), [`docs/PRD_GENERATION_IMPROVEMENTS_SUMMARY.md`](docs/PRD_GENERATION_IMPROVEMENTS_SUMMARY.md), [`docs/IMPROVEMENTS_TO_MAXIMIZE_PRD_ACCURACY.md`](docs/IMPROVEMENTS_TO_MAXIMIZE_PRD_ACCURACY.md), [`docs/FIRST_ORDER_PRD_IMPROVEMENTS_ANALYSIS.md`](docs/FIRST_ORDER_PRD_IMPROVEMENTS_ANALYSIS.md) | Iterative PRD-accuracy improvement work | All tasks (QA) |
 | [`archive/prd_iterations/`](archive/prd_iterations/) (22 files) | Historical PRD generation iterations | Archived QA |
 
 ### 3d. Data-integrity / contamination prevention → cross-cutting
@@ -166,10 +166,10 @@ Most `.taskmaster` docs are **process/meta** (about *how* tasks are authored, va
 
 | Document | Purpose |
 |----------|---------|
-| [`TASKMASTER_HANDOFF.md`](TASKMASTER_HANDOFF.md) | Session handoff context |
-| [`UNFINISHED_TASKS_CONSOLIDATED.md`](UNFINISHED_TASKS_CONSOLIDATED.md), [`COMBINED_UNFINISHED_WORK.md`](COMBINED_UNFINISHED_WORK.md), [`docs/UNFINISHED_SESSION_TODOS.md`](docs/UNFINISHED_SESSION_TODOS.md), [`tasks/UNIQUE_DELTAS_REPORT.md`](tasks/UNIQUE_DELTAS_REPORT.md) | Outstanding-work trackers |
+| [`TASKMASTER_HANDOFF.md`](archive/documentation_cleanup/TASKMASTER_HANDOFF.md) | Session handoff context (archived) |
+| [`UNFINISHED_TASKS_CONSOLIDATED.md`](archive/documentation_cleanup/UNFINISHED_TASKS_CONSOLIDATED.md), [`COMBINED_UNFINISHED_WORK.md`](archive/documentation_cleanup/COMBINED_UNFINISHED_WORK.md), [`docs/UNFINISHED_SESSION_TODOS.md`](docs/UNFINISHED_SESSION_TODOS.md), [`tasks/UNIQUE_DELTAS_REPORT.md`](tasks/UNIQUE_DELTAS_REPORT.md) | Outstanding-work trackers (archived) |
 | [`docs/PROJECT_STATUS_SUMMARY.md`](docs/PROJECT_STATUS_SUMMARY.md), [`docs/PROJECT_STATE_CHECKLIST_RECOVERED.md`](docs/PROJECT_STATE_CHECKLIST_RECOVERED.md) | Project status snapshots |
-| [`OPTION_C_VISUAL_MAP.md`](OPTION_C_VISUAL_MAP.md), [`RISK_MINIMIZATION_PLAN.md`](RISK_MINIMIZATION_PLAN.md) | Strategy options + risk plan |
+| [`OPTION_C_VISUAL_MAP.md`](archive/documentation_cleanup/OPTION_C_VISUAL_MAP.md), [`RISK_MINIMIZATION_PLAN.md`](archive/documentation_cleanup/RISK_MINIMIZATION_PLAN.md) | Strategy options + risk plan (archived) |
 | [`reports/COMPREHENSIVE_DOCUMENTATION_ANALYSIS.md`](reports/COMPREHENSIVE_DOCUMENTATION_ANALYSIS.md), [`reports/MISSING_DOCUMENTS_RECOVERY_REPORT.md`](reports/MISSING_DOCUMENTS_RECOVERY_REPORT.md), [`reports/git_history_analysis.md`](reports/git_history_analysis.md), [`reports/AMP_*`](reports/) | Documentation/git forensic analysis |
 
 ### 3g. MVP docs — SEPARATE project (do NOT mix)

@@ -9,7 +9,7 @@
 
 This document analyzes PRD generation improvements and compares different approaches.
 
-**⚠️ IMPORTANT:** Previous similarity claims (83.7%, 79.7%) were based on PRD-to-task comparison, NOT actual roundtrip testing. Actual roundtrip fidelity measured on 2026-03-01 is **~30%** (see `ROUNDTRIP_FIDELITY_TEST_RESULTS.md`).
+**⚠️ IMPORTANT:** Previous similarity claims (83.7%, 79.7%) were based on PRD-to-task comparison, NOT actual roundtrip testing. Actual roundtrip fidelity measured on 2026-03-01 is **~30%** (see `archive/documentation_cleanup/ROUNDTRIP_FIDELITY_TEST_RESULTS.md`).
 
 ---
 
@@ -206,7 +206,7 @@ effort_match = re.search(r'\*\*Estimated Effort\*\*:\s*(\d+-?\d*\s*hours)', sect
 | **Success Criteria** | 100% | **8%** | -92 pts ❌ |
 | **Purpose** | 100% | **0%** | -100 pts ❌ |
 
-**See:** `ROUNDTRIP_FIDELITY_TEST_RESULTS.md` for complete results
+**See:** `archive/documentation_cleanup/ROUNDTRIP_FIDELITY_TEST_RESULTS.md` for complete results
 
 ---
 

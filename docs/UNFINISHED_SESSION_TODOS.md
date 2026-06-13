@@ -29,7 +29,7 @@ This file consolidates unfinished tasks captured in Amp sessions marked as unfin
 - Resolve legacy dependencies in tasks 010/011 that still reference 075-078.
 - Resolve Option C +3 mapping for tasks 016/017/019 and address overlap between 023-025 vs 026-028.
 - Update OLD_TASK_NUMBERING_DEPRECATED.md to swap remaining 075.* references to 002.*.
-- Refresh OPTION_C_VISUAL_MAP.md to reflect current 001-028 and note drift.
+- Refresh `archive/documentation_cleanup/OPTION_C_VISUAL_MAP.md` to reflect current 001-028 and note drift.
 
 ### Consolidation Phases 3-7
 

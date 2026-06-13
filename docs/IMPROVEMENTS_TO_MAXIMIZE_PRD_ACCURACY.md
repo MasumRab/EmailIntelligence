@@ -9,7 +9,7 @@
 
 This document summarizes improvements made to enhance task specification structure for PRD generation. 
 
-**⚠️ IMPORTANT:** Previous claims of "100% fidelity" were based on incomplete testing (PRD comparison only, not full roundtrip). Actual roundtrip fidelity measured on 2026-03-01 is **~30%** (see `ROUNDTRIP_FIDELITY_TEST_RESULTS.md`).
+**⚠️ IMPORTANT:** Previous claims of "100% fidelity" were based on incomplete testing (PRD comparison only, not full roundtrip). Actual roundtrip fidelity measured on 2026-03-01 is **~30%** (see `archive/documentation_cleanup/ROUNDTRIP_FIDELITY_TEST_RESULTS.md`).
 
 ---
 
@@ -134,7 +134,7 @@ Created `roundtrip_fidelity_test.py` (2026-03-01) to:
 | **Success Criteria** | 100% | **8%** | ❌ Lost (table format) |
 | **Purpose** | 100% | **0%** | ❌ Lost (placeholder text) |
 
-**See:** `ROUNDTRIP_FIDELITY_TEST_RESULTS.md` for complete test results
+**See:** `archive/documentation_cleanup/ROUNDTRIP_FIDELITY_TEST_RESULTS.md` for complete test results
 
 ---
 
@@ -245,7 +245,7 @@ r'\*\*Estimated Effort\*\*:\s*(\d+-?\d*\s*hours)'
 - ✅ **29.7% overall fidelity measured**
 - ✅ Root causes identified (regex, placeholders, format)
 
-**See:** `ROUNDTRIP_FIDELITY_TEST_RESULTS.md` for complete methodology and results
+**See:** `archive/documentation_cleanup/ROUNDTRIP_FIDELITY_TEST_RESULTS.md` for complete methodology and results
 
 ---
 
