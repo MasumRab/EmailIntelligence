@@ -1,6 +1,6 @@
 # `.taskmaster/` Documentation ↔ Task Map
 
-**Generated:** 2026-06-11
+**Generated:** 2026-06-11 · **Last verified:** 2026-06-13
 **Scope:** Maps every documentation cluster in `.taskmaster/` to the task markdown files (`tasks/task_NNN.md`) it supports, and records the different approaches undertaken in this workspace.
 **Source of truth caveat:** This repository's *real* project is **Branch Alignment Tooling**, not EmailIntelligence (see [`PROJECT_IDENTITY.md`](PROJECT_IDENTITY.md)). All 25 canonical tasks are git/branch alignment tasks.
 
@@ -10,13 +10,13 @@
 
 | Metric | Count | Notes |
 |--------|-------|-------|
-| Total `.md` files under `.taskmaster/` | **613** | Heavily sprawling; mostly process/meta docs |
+| Total `.md` files under `.taskmaster/` | **615** | Heavily sprawling; mostly process/meta docs |
 | Canonical main tasks (`tasks/task_NNN.md`) | **25** (001–025) | + `task_002-clustering.md` companion guide |
 | Subtask files (`tasks/task_NNN.M.md`) | **180** | |
 | Active docs in `docs/` | **95** | Mix of current + stale |
 | Guidance docs (`guidance/`) | **28** | Architecture/implementation guidance |
 | Reports (`reports/`) | **10** | Analysis snapshots |
-| Archived docs (`archive/`) | **170** | Historical; **do not treat as canonical** |
+| Archived docs (`archive/`) | **184** | Historical; **do not treat as canonical** (+13 root files moved to `archive/documentation_cleanup/` on 2026-06-13) |
 
 **Overall health:** ⚠️ **Cluttered and partially stale.**
 - `tasks/` markdown is **canonical**; `tasks.json` is intentionally empty/absent (used only for round-trip fidelity tests).
@@ -280,7 +280,7 @@ The Jan 6 cleanup docs deprecated **Gen 1** and declared **Gen 2** "current" —
 | Points to `NEW_TASK_PLAN_CONSOLIDATION_STRATEGY.md`, `CONSOLIDATION_IMPLEMENTATION_CHECKLIST.md`, `TASK_NUMBERING_DEPRECATION_PLAN.md` | [`docs/CURRENT_DOCUMENTATION_MAP.md`](docs/CURRENT_DOCUMENTATION_MAP.md) | None exist |
 | Header "12 active files" vs body "9 tasks" (self-contradiction) | [`OLD_TASK_NUMBERING_DEPRECATED.md`](OLD_TASK_NUMBERING_DEPRECATED.md) | Neither; 25 tasks |
 | Hard-coded path `/home/masum/github/PR/.taskmaster/tasks/` | [`OLD_TASK_NUMBERING_DEPRECATED.md`](OLD_TASK_NUMBERING_DEPRECATED.md) | Repo is `…/remote/EmailIntelligence/` |
-| "Documentation Status: Clean and current ✅" | [`docs/DOCUMENTATION_CLEANUP_COMPLETE.md`](docs/DOCUMENTATION_CLEANUP_COMPLETE.md), [`docs/CURRENT_DOCUMENTATION_MAP.md`](docs/CURRENT_DOCUMENTATION_MAP.md) | 613 md files; sprawl returned post-Jan-6 |
+| "Documentation Status: Clean and current ✅" | [`docs/DOCUMENTATION_CLEANUP_COMPLETE.md`](docs/DOCUMENTATION_CLEANUP_COMPLETE.md), [`docs/CURRENT_DOCUMENTATION_MAP.md`](docs/CURRENT_DOCUMENTATION_MAP.md) | 615 md files; sprawl returned post-Jan-6 |
 | "Phase 3" framing as the live phase | ~35 active docs (see grep list) incl. [`docs/PROJECT_STATUS_SUMMARY.md`](docs/PROJECT_STATUS_SUMMARY.md), [`docs/MIGRATION_STATUS_ANALYSIS.md`](docs/MIGRATION_STATUS_ANALYSIS.md), [`guidance/task_master_formatted_tasks.md`](guidance/task_master_formatted_tasks.md) | No phase model in canonical task set |
 | "Task 013 — Conflict detection/resolution" | [`docs/CLI_TOOLS_INVENTORY.md`](docs/CLI_TOOLS_INVENTORY.md) | 013 = *Branch Backup & Safety*; 014 = conflict detection (off-by-one label drift) |
 
@@ -360,6 +360,47 @@ LAYER 4 (capstone):    012⭐ (← 007, 008, 009, 010, 011)
 
 ---
 
+## 5d. Pre-merge vs Post-merge & Post-MVP Disposition — DECISION RECORD
+
+> **Status: decision record only (2026-06-13).** This section records the *intended* dispositions that the structure-first remediation (§5c "How to fix") should execute. **No canonical `task_NNN.md` dependency fields have been changed by this record.** Applying it is a separate, backup-gated work session (run `python scripts/task_metadata_manager.py backup --all` first).
+
+### Change-pipeline tiers (priority order, by blast radius)
+
+| Tier | Scope | Mutates flow? | Status |
+|------|-------|---------------|--------|
+| **0** | Doc-hygiene: count/date fixes in this map | No | ✅ this commit |
+| **1** | This decision record (§5d) | No | ✅ this commit |
+| **2** | Canonical `task_*.md` remediation (§5c steps) | **Yes** | ⛔ deferred — backup-gated |
+| **3** | `parse-prd` sync + supersede stale maps | regenerates `tasks.json` | ⛔ after Tier 2 |
+
+### Tasks mislabeled "tail" that hold pre-merge gate logic → integrate into the pre-merge workflow (Tier 2, step 2c)
+
+Canonical runtime flow: *identify 007 → backup 006 → align 009/010 → error-check 005 → validate 011 → document*. These three tasks each declare **"Blocks: Task 010"** in their own files — evidence they were meant to run *before* the merge, not as a post-merge tail:
+
+| Task | Pre-merge piece | Target slot |
+|------|-----------------|-------------|
+| **016 Rollback & Recovery** | verified restore-point + rollback capability before align runs | merge into **backup stage (006)** |
+| **017 Validation Integration** | orchestrates error-detection + pre-merge + comprehensive validation *during* alignment | fold into **validate stage (003→008→011)** |
+| **018 E2E Testing** | test *execution* must pass before merge lands | new **pre-merge test gate**; keep reporting post-merge |
+
+Resulting pre-merge chain: **007 → 006+016 → 009/010 → 005 → 011+017 → 018(test) → 020(changelog)**, orchestrated by 012.
+
+### Post-MVP / post-merge disposition for 019–025 (Tier 2, step 2d — collapse the fake tail)
+
+| Task | Disposition | Rationale |
+|------|-------------|-----------|
+| **019 Deployment & Release** | post-merge; deflate from `High` | only relevant once a shippable artifact exists |
+| **020 Documentation & Knowledge** | **split**: changelog/PR-summary → pre-merge; KB/training → post-merge | runtime flow's "document" step is pre-merge |
+| **021 Maintenance & Monitoring** | **split**: health/diagnostic probe → optional pre-merge; scheduling/alerting → post-merge | readiness check vs ongoing ops |
+| **022 Improvements & Enhancements** | post-merge **except** `012.15` `backend→src/backend` migration (a real core dependency) | keep migration; deflate framework bloat |
+| **023 Optimization & Perf Tuning** | defer | premature optimization of an unbuilt pipeline |
+| **024 Future Dev & Roadmap** | **park** | meta-planning; not merge-completion |
+| **025 Scaling & Advanced Features** | **park** | large-repo/parallel/enterprise = post-production scale |
+
+**Cleanup also required:** 024 "Blocks 026" and 025 "Blocks 026/027" are **dangling** — tasks 026–028 were deleted as duplicates (commit `7eaccfdd`). Drop these block-references during step 2d. Several tail tasks (023/024/025) also have malformed Success-Criteria blocks (prerequisites spliced into the checklist) to repair when deflating.
+
+---
+
 ## 6. Scope Note
 
-`.taskmaster/` contains **613 markdown files**. This map enumerates the **active** root, `docs/`, `guidance/`, `reports/`, and `tasks/` documentation individually, and summarises the **170 archived** files by initiative (Section 4) rather than line-by-line, since they are explicitly historical (`archive/README.md`) and not canonical.
+`.taskmaster/` contains **615 markdown files**. This map enumerates the **active** root, `docs/`, `guidance/`, `reports/`, and `tasks/` documentation individually, and summarises the **184 archived** files by initiative (Section 4) rather than line-by-line, since they are explicitly historical (`archive/README.md`) and not canonical.
