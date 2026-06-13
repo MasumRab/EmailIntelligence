@@ -137,7 +137,7 @@ All follow: "Implement comprehensive [X] framework" (20–48 hours each). Subtas
 | 016 | Rollback and recovery | Rollback mechanisms | Yes | Well-aligned |
 | 017 | Validation integration framework | Integration layer connecting validation | Partial | Overlaps with 011; subtasks are generic |
 | 018 | E2E testing and reporting | Test framework + scenarios | Yes | Well-aligned |
-| 019–025 | Infrastructure frameworks | Generic design/implement/test/doc | No | Parents over-specified; subtasks trivial |
+| 019–025 | Infrastructure frameworks | Generic design/implement/test/doc | No | Parents over-specified; subtasks trivial. **Exception: 022 has a real migration step (012.15) that is a core dependency, not a tail framework** |
 
 ---
 
@@ -150,9 +150,8 @@ All follow: "Implement comprehensive [X] framework" (20–48 hours each). Subtas
 - Task 015 subtasks reference phantom "27.x" dependencies (from prior system)
 
 ### Source of Truth
-- `.taskmaster/tasks/tasks.json` is canonical state
+- **Markdown files (`task_001-025.md`) are the SOLE source of truth** — tasks.json was deleted 2026-06-08 (commit `c7bc3895`)
 - Manage `.taskmaster/config.json` via `task-master models`, not by hand-editing
-- Task markdown files are derived from JSON state
 - **CRITICAL FIDELITY RULE:** Always edit Markdown files first, then run `python taskmaster_cli.py parse-prd --input tasks/` to sync. DO NOT manually edit `tasks.json`.
 
 ### Project Identity
