@@ -4,7 +4,7 @@
 **Priority:** high
 **Effort:** 3-4 hours
 **Complexity:** 5/10
-**Dependencies:** 009.1
+**Dependencies:** 008.1
 
 ---
 
@@ -105,11 +105,11 @@ jobs:
 
 ## Next Steps
 
-After completion, proceed to **Task 009.5**: Develop E2E Smoke Tests
+After completion, proceed to **Task 008.5**: Develop E2E Smoke Tests
 **Priority:** high
 **Effort:** 3-4 hours
 **Complexity:** 5/10
-**Dependencies:** 009.1
+**Dependencies:** 008.1
 **Created:** 2026-01-06
 **Parent:** Task 009: Create Comprehensive Merge Validation Framework
 

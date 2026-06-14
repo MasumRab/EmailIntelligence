@@ -4,7 +4,7 @@
 **Priority:** high
 **Effort:** 4-5 hours
 **Complexity:** 6/10
-**Dependencies:** 009.1
+**Dependencies:** 008.1
 
 ---
 
@@ -115,11 +115,11 @@ db_query_max_ms = 50
 
 ## Next Steps
 
-After completion, proceed to **Task 009.7**: Integrate Security Scans
+After completion, proceed to **Task 008.7**: Integrate Security Scans
 **Priority:** high
 **Effort:** 4-5 hours
 **Complexity:** 6/10
-**Dependencies:** 009.1
+**Dependencies:** 008.1
 **Created:** 2026-01-06
 **Parent:** Task 009: Create Comprehensive Merge Validation Framework
 

@@ -151,7 +151,7 @@ jobs:
 
 ## Next Steps
 
-After completion, proceed to **Task 009.3**: Implement Architectural Enforcement
+After completion, proceed to **Task 008.3**: Implement Architectural Enforcement
 **Priority:** high
 **Effort:** 2-3 hours
 **Complexity:** 4/10

@@ -53,7 +53,7 @@ Task 012 is complete when:
 
 ### Required Before Starting
 - [ ] Task 007: Feature Branch Identification & Categorization
-- [ ] Task 008: Documentation Generation
+- [ ] Task 008: Comprehensive Merge Validation Framework
 - [ ] Task 009: Core Branch Alignment Logic
 - [ ] Task 010: Complex Branch Alignment Logic
 - [ ] Task 011: Validation Framework

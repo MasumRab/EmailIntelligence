@@ -4,7 +4,7 @@
 **Priority:** high
 **Effort:** 2-3 hours
 **Complexity:** 4/10
-**Dependencies:** 009.3, 009.4, 009.6, 009.7
+**Dependencies:** 008.3, 008.4, 008.6, 008.7
 
 ---
 
@@ -121,11 +121,11 @@ if __name__ == "__main__":
 
 ## Next Steps
 
-After completion, proceed to **Task 009.9**: Configure Branch Protection Rules
+After completion, proceed to **Task 008.9**: Configure Branch Protection Rules
 **Priority:** high
 **Effort:** 2-3 hours
 **Complexity:** 4/10
-**Dependencies:** 009.3, 009.4, 009.6, 009.7
+**Dependencies:** 008.3, 008.4, 008.6, 008.7
 **Created:** 2026-01-06
 **Parent:** Task 009: Create Comprehensive Merge Validation Framework
 

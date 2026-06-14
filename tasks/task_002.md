@@ -2,8 +2,8 @@
 
 **Status:** in_progress
 **Priority:** high
-**Effort:** 212-288 hours
-**Complexity:** 9/10
+**Effort:** 40-50 hours
+**Complexity:** 6/10
 **Dependencies:** Task 001 (can run parallel)
 
 ---
@@ -72,8 +72,8 @@ Task 002 is complete when:
 - **Title**: 
 - **Status**: in_progress
 **Priority:** high
-**Effort:** 212-288 hours
-**Complexity:** 9/10
+**Effort:** 40-50 hours
+**Complexity:** 6/10
 **Dependencies:** Task 001 (can run parallel)
 **Initiative:** 3 (Advanced Analysis & Clustering)
 
@@ -96,8 +96,8 @@ Implementation guide to be defined
 
 ## Performance Targets
 
-- **Effort Range**: 212-288 hours
-- **Complexity Level**: 9/10
+- **Effort Range**: 40-50 hours
+- **Complexity Level**: 6/10
 
 ---
 

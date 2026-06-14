@@ -4,7 +4,7 @@
 **Priority:** high
 **Effort:** 4-5 hours
 **Complexity:** 6/10
-**Dependencies:** 009.1
+**Dependencies:** 008.1
 
 ---
 
@@ -119,11 +119,11 @@ def test_database_connection():
 
 ## Next Steps
 
-After completion, proceed to **Task 009.6**: Implement Performance Benchmarking
+After completion, proceed to **Task 008.6**: Implement Performance Benchmarking
 **Priority:** high
 **Effort:** 4-5 hours
 **Complexity:** 6/10
-**Dependencies:** 009.1
+**Dependencies:** 008.1
 **Created:** 2026-01-06
 **Parent:** Task 009: Create Comprehensive Merge Validation Framework
 

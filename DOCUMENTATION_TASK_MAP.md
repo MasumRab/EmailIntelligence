@@ -401,6 +401,36 @@ Resulting pre-merge chain: **007 → 006+016 → 009/010 → 005 → 011+017 →
 
 ---
 
+## 5e. Remaining Work (investigation status)
+
+**Investigated & folded into this map:** `TASK_ANALYSIS_AND_GOTCHAS.md`, `PROJECT_IDENTITY.md`, `README.md`, `AGENTS.md`/`tasks/AGENTS.md`, `OLD_TASK_NUMBERING_DEPRECATED.md`, `docs/CURRENT_DOCUMENTATION_MAP.md`, `docs/ORACLE_RECOMMENDATION_TODO.md`, `docs/branch_alignment_workflow.md`, `docs/CLI_TOOLS_INVENTORY.md`, `.iflow/TRIAGE_REPORT.md`, the two `research/` intent notes, `RISK_MINIMIZATION_PLAN.md`, actual `Dependencies` of tasks 009–012, WIP `task_012.{md,14,15}`.
+
+**Sweep COMPLETE (2026-06-12)** — the remaining recent docs were scanned for task-dependency/structure claims. **No new corrections to the 001–012 core graph.** Results:
+
+| Doc / group | Result of sweep |
+|-------------|-----------------|
+| `.iflow/PHASE_1_SCRIPT_REFERENCE_AUDIT.md`, `TRIAGE_HANDOFF_PROMPT.md` | Script-ref / handoff content only; no task-graph claims (covered by `TRIAGE_REPORT.md`) |
+| `.iflow/understand/enhanced_architecture.md` | **Corroborates** 4-layer depth + "no circular dependencies"; uses Gen-2 numbering (Task 079 = orchestrator = current 012) |
+| `.qwen/PROJECT_SUMMARY.md` | **Corroborates** layered model in Gen-2 numbering: "Tasks 74–83 … Task 79 as central orchestrator" |
+| `docs/three_branch_architectural_comparison.md`, `scientific_branch_conflict_resolution_plan.md` | Branch/code architecture only; no task-graph claims (one *code-level* circular-import warning, not a task dep) |
+| `docs/task_004_tuned_recommendations.md` | Scope refinement only — expand 004's branch list beyond main/scientific/orchestration-tools |
+| `reports/ck_similarity_analysis.md` | **Minor finding:** `task_021.md` has duplicated config blocks (lines 513≈3009, 897≈3393) — intra-file corruption in a tail task (supports the 023/024/025 malformed-block note in §5d) |
+| `reports/task75_techspec_verification.md`, `cli_tooling_requirements_review.md` | No task-graph claims |
+| `scripts/*.py` (Jun 8) | Code, not docs — out of doc-map scope |
+
+**Out of scope (not under `.taskmaster/`):** `AGENT_FILES_REVIEW_RECOMMENDATIONS.md`, `RTK_SUBAGENT_INTEGRATION_DESIGN.md` live at repo root.
+
+**Open remediation actions (for the task files, not yet done):**
+1. Reconnect 002 clustering subsystem to the core (002→001/007).
+2. Decide fate of the 013–025 tail (collapse duplicates 013≈006, 014/016/017 vs core; deflate effort).
+3. Fix label drift: `task_012.md` "Task 008: Documentation Generation" → Merge Validation Framework.
+4. Resolve Task 015 identity (validation vs orchestration vs docs/changelog).
+5. Fix subtask numbering (008 `9.x`→`8.x`; strip 015 `27.x`).
+6. Fix 8 scripts + 15+ docs still referencing `new_task_plan/` (per triage report).
+7. Finish the uncommitted `task_012.14/.15` stubs (currently `TBD`).
+
+---
+
 ## 6. Scope Note
 
 `.taskmaster/` contains **615 markdown files**. This map enumerates the **active** root, `docs/`, `guidance/`, `reports/`, and `tasks/` documentation individually, and summarises the **184 archived** files by initiative (Section 4) rather than line-by-line, since they are explicitly historical (`archive/README.md`) and not canonical.

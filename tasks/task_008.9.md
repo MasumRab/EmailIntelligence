@@ -18,7 +18,7 @@ Configure branch protection to require validation checks.
 - [ ] Validation checks required
 - [ ] PR reviews required
 - [ ] Force push disabled
-- [ ] 009.1-009.9 complete
+- [ ] 008.1-008.9 complete
 - [ ] All validation layers working
 - [ ] CI pipeline configured
 - [ ] Reports generated
@@ -97,7 +97,7 @@ gh api repos/{owner}/{repo}/protection -X PUT \
 ## Integration Checkpoint
 
 **Task 009 Core Complete When:**
-- [ ] 009.1-009.9 complete
+- [ ] 008.1-008.9 complete
 - [ ] All validation layers working
 - [ ] CI pipeline configured
 - [ ] Branch protection enabled

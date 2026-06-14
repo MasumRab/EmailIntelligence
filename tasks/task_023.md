@@ -2,8 +2,8 @@
 
 **Status:** Ready for Implementation
 **Priority:** High
-**Effort:** 16-32 hours
-**Complexity:** 8/10
+**Effort:** 2-3 hours
+**Complexity:** 3/10
 **Dependencies:** 022, 010
 
 ---

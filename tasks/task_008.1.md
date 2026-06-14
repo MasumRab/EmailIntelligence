@@ -88,43 +88,43 @@ Additional validation framework components.
 
 The following components complete the validation framework:
 
-### 009.10: Static Analysis for src/backend
+### 008.10: Static Analysis for src/backend
 - Configure import-linter for module boundaries
 - Custom rules for architectural compliance
 
-### 009.11: Functional Test Execution in CI
+### 008.11: Functional Test Execution in CI
 - Pytest configuration for CI
 - Coverage reporting integration
 
-### 009.12: E2E Smoke Tests Integration
+### 008.12: E2E Smoke Tests Integration
 - Docker Compose setup for testing
 - Container health checks
 
-### 009.13: Performance Baselines
+### 008.13: Performance Baselines
 - Establish response time baselines
 - Throughput benchmarks
 
-### 009.013: Security Validation Integration
+### 008.14: Security Validation Integration
 - Dependency vulnerability scanning
 - SAST tool integration
 
-### 009.15: Architectural Enforcement for Module Boundaries
+### 008.15: Architectural Enforcement for Module Boundaries
 - Import rules enforcement
 - Dependency graph validation
 
-### 009.16: Functional Correctness Checks
+### 008.16: Functional Correctness Checks
 - Unit test execution
 - Integration test execution
 
-### 009.016: Performance Benchmarking
+### 008.18: Performance Benchmarking
 - Endpoint performance tests
 - Resource utilization benchmarks
 
-### 009.017: Security Scanning
+### 008.17: Security Scanning
 - Dependency audit
 - Code security analysis
 
-### 009.003: GitHub Actions Workflow Design
+### 008.19: GitHub Actions Workflow Design
 - Job dependencies
 - Conditional execution
 - Result aggregation
