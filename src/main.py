@@ -1,23 +1,22 @@
-import configparser
+import configparser  # noqa: E402
 configparser.SafeConfigParser = configparser.ConfigParser
 
-import argparse
-import logging
+import argparse  # noqa: E402
+import logging  # noqa: E402
 
-import gradio as gr
-import uvicorn
-import psutil
-import platform
-from datetime import datetime
-import requests
-from fastapi import FastAPI, HTTPException, Request
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse, RedirectResponse
-from pydantic import ValidationError
-from .core.module_manager import ModuleManager
-from .core.middleware import create_security_middleware, create_security_headers_middleware
-from .core.audit_logger import audit_logger, AuditEventType, AuditSeverity
-from .core.performance_monitor import performance_monitor
+import gradio as gr  # noqa: E402
+import uvicorn  # noqa: E402
+import psutil  # noqa: E402
+import platform  # noqa: E402
+from datetime import datetime  # noqa: E402
+import requests  # noqa: E402
+from fastapi import FastAPI, HTTPException, Request  # noqa: E402
+from fastapi.middleware.cors import CORSMiddleware  # noqa: E402
+from fastapi.responses import JSONResponse, RedirectResponse  # noqa: E402
+from pydantic import ValidationError  # noqa: E402
+from .core.module_manager import ModuleManager  # noqa: E402
+from .core.audit_logger import audit_logger, AuditEventType, AuditSeverity  # noqa: E402
+from .core.performance_monitor import performance_monitor  # noqa: E402
 
 # Configure logging
 logging.basicConfig(
@@ -583,8 +582,9 @@ def create_app():
     )
 
     # Add comprehensive security middleware
-    app.add_middleware(create_security_middleware(app))
-    app.add_middleware(create_security_headers_middleware(app))
+    from src.core.middleware import SecurityMiddleware, SecurityHeadersMiddleware
+    app.add_middleware(SecurityMiddleware)
+    app.add_middleware(SecurityHeadersMiddleware)
 
     # Add security headers middleware (additional layer)
     @app.middleware("http")
