@@ -10,7 +10,8 @@
     "lint:fix": "eslint . --ext ts,tsx --fix",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "echo \"No tests configured\""
   },
   "dependencies": {
     "@radix-ui/react-accordion": "^1.2.4",
