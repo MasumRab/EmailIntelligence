@@ -10,7 +10,7 @@
 
 ## Overview/Purpose
 
-Coordinate with Task 013 (Conflict Detection and Resolution) when the rebase operation encounters conflicts. This subtask delegates the complex process of conflict handling to a specialized module, ensuring robust and guided resolution within the `Core Multistage Primary-to-Feature Branch Alignment` (Task 009) orchestration.
+Coordinate with Task 014 (Conflict Detection and Resolution) when the rebase operation encounters conflicts. This subtask delegates the complex process of conflict handling to a specialized module, ensuring robust and guided resolution within the `Core Multistage Primary-to-Feature Branch Alignment` (Task 009) orchestration.
 
 **Scope:** Conflict resolution coordination only (delegates actual conflict handling).
 **Blocks:** 009.8 (Coordinate Post-Rebase Validation)
@@ -23,8 +23,8 @@ Task 009.7 is complete when:
 
 ### Core Functionality
 - [ ] Python function/method can identify when conflicts are present after a rebase.
-- [ ] Successfully delegates conflict resolution to Task 013's specialized module.
-- [ ] Interprets the result from Task 013 (e.g., conflicts resolved, aborted, manual intervention needed).
+- [ ] Successfully delegates conflict resolution to Task 014's specialized module.
+- [ ] Interprets the result from Task 014 (e.g., conflicts resolved, aborted, manual intervention needed).
 - [ ] Returns a structured result indicating the outcome of the conflict resolution attempt.
 
 ### Quality Assurance
@@ -33,7 +33,7 @@ Task 009.7 is complete when:
 - [ ] Code quality: PEP 8 compliant, comprehensive docstrings.
 
 ### Integration Readiness
-- [ ] Input (repository state, conflicted files) is compatible with Task 013's module.
+- [ ] Input (repository state, conflicted files) is compatible with Task 014's module.
 - [ ] Output (resolution status) is compatible with Task 009's overall orchestration flow.
 - [ ] Error handling integrates with Task 009's overall error reporting.
 
@@ -43,7 +43,7 @@ Task 009.7 is complete when:
 
 ### Required Before Starting
 - [ ] Task 009.6 (Coordinate Core Rebase Initiation with Specialized Tasks) complete – to provide the initial rebase result and indication of conflicts.
-- [ ] Task 013 (Conflict Detection and Resolution) module available and functional.
+- [ ] Task 014 (Conflict Detection and Resolution) module available and functional.
 - [ ] Access to a Git repository with feature branches designed to produce conflicts for testing.
 
 ### Blocks (What This Task Unblocks)
@@ -51,7 +51,7 @@ Task 009.7 is complete when:
 
 ### External Dependencies
 - Python 3.8+
-- Task 013's `ConflictDetectionResolver` module.
+- Task 014 ConflictDetectionResolver` module.
 
 ---
 
@@ -60,22 +60,22 @@ Task 009.7 is complete when:
 ### 009.7.1: Design Conflict Coordination Function
 **Effort:** 1 hour | **Depends on:** None
 
-Define the function signature, inputs (repo path, feature branch, primary target, rebase result), and expected outputs (structured resolution result). Outline the interface with Task 013.
+Define the function signature, inputs (repo path, feature branch, primary target, rebase result), and expected outputs (structured resolution result). Outline the interface with Task 014.
 
 ### 009.7.2: Detect Conflicts After Rebase
 **Effort:** 1 hour | **Depends on:** 009.7.1
 
 Implement logic to check the repository status (`git status` or `repo.index.unmerged_blobs()`) to confirm conflicts are truly present after rebase.
 
-### 009.7.3: Delegate to Task 013 for Resolution
+### 009.7.3: Delegate to Task 014 for Resolution
 **Effort:** 2 hours | **Depends on:** 009.7.2
 
-Call Task 013's `ConflictDetectionResolver.resolve_conflicts()` function, passing necessary context (repo path, conflicted files).
+Call Task 014 ConflictDetectionResolver.resolve_conflicts()` function, passing necessary context (repo path, conflicted files).
 
 ### 009.7.4: Interpret Resolution Outcome
 **Effort:** 0.5 hours | **Depends on:** 009.7.3
 
-Process the structured result returned by Task 013, translating it into a format suitable for Task 009's orchestration flow.
+Process the structured result returned by Task 014, translating it into a format suitable for Task 009's orchestration flow.
 
 ---
 
@@ -85,7 +85,7 @@ Process the structured result returned by Task 013, translating it into a format
 
 ```python
 from typing import NamedTuple
-# Assuming Task 013 provides a similar result structure
+# Assuming Task 014 provides a similar result structure
 class ConflictResolutionOutcome(NamedTuple):
     status: str # "resolved", "aborted", "manual_required"
     conflicts_resolved_count: int = 0
@@ -97,7 +97,7 @@ def coordinate_conflict_resolution(
     primary_target: str
 ) -> ConflictResolutionOutcome:
     """
-    Coordinates conflict detection and resolution with Task 013.
+    Coordinates conflict detection and resolution with Task 014.
 
     Args:
         repo_path: Path to the local Git repository.
@@ -118,11 +118,11 @@ def coordinate_conflict_resolution(
 
 ## Implementation Guide
 
-### Step 1: Initialize Task 013 Resolver (Mock for now)
+### Step 1: Initialize Task 014 Resolver (Mock for now)
 ```python
 from git import Repo
 from typing import NamedTuple
-# Placeholder for Task 013's resolver
+# Placeholder for Task 014's resolver
 class MockConflictDetectionResolver:
     def __init__(self, repo_path: str):
         self.repo = Repo(repo_path)
@@ -138,12 +138,12 @@ class MockConflictDetectionResolver:
             # Simulate a successful continue if there were conflicts
             if conflicted_files:
                 self.repo.git.rebase('--continue')
-            return ConflictResolutionOutcome(status="resolved", conflicts_resolved_count=len(conflicted_files), message="Conflicts resolved via Task 013")
+            return ConflictResolutionOutcome(status="resolved", conflicts_resolved_count=len(conflicted_files), message="Conflicts resolved via Task 014")
         except Exception as e:
             return ConflictResolutionOutcome(status="aborted", conflicts_resolved_count=0, message=f"Simulated conflict resolution failed: {e}")
 
 # In coordinate_conflict_resolution function:
-# conflict_resolver = Task013ConflictDetectionResolver(repo_path) # Actual Task 013
+# conflict_resolver = Task014ConflictDetectionResolver(repo_path) # Actual Task 014
 conflict_resolver = MockConflictDetectionResolver(repo_path) # Use mock for now
 ```
 
@@ -168,8 +168,8 @@ def coordinate_conflict_resolution(
     if not conflicted_files:
         return ConflictResolutionOutcome(status="no_conflicts", conflicts_resolved_count=0, message="No conflicts detected")
 
-    # Delegate to Task 013 (or mock)
-    # The actual Task 013 module would be imported and instantiated here
+    # Delegate to Task 014 (or mock)
+    # The actual Task 014 module would be imported and instantiated here
     conflict_resolver = MockConflictDetectionResolver(repo_path) 
     resolution_outcome = conflict_resolver.resolve_conflicts(feature_branch, conflicted_files)
     
@@ -195,8 +195,8 @@ None specific to this subtask; inherited from Task 009 orchestration.
 
 ### Unit Tests
 *   Test when no conflicts are present (should return "no_conflicts").
-*   Test when conflicts are present and `Task 013` (mocked) successfully resolves them.
-*   Test when conflicts are present and `Task 013` (mocked) indicates an abortion or manual intervention.
+*   Test when conflicts are present and `Task 014` (mocked) successfully resolves them.
+*   Test when conflicts are present and `Task 014` (mocked) indicates an abortion or manual intervention.
 
 ---
 
@@ -204,8 +204,8 @@ None specific to this subtask; inherited from Task 009 orchestration.
 
 *   **Gotcha:** Incorrectly assuming a `rebase_in_progress` means conflicts.
     *   **Solution:** Always check for actual unmerged files using `git status` or `repo.index.unmerged_blobs()`.
-*   **Gotcha:** Tight coupling with Task 013's internal implementation details.
-    *   **Solution:** Define a clear, stable interface (API) for Task 013's conflict resolution module and delegate via that interface.
+*   **Gotcha:** Tight coupling with Task 014's internal implementation details.
+    *   **Solution:** Define a clear, stable interface (API) for Task 014's conflict resolution module and delegate via that interface.
 
 ---
 
@@ -213,7 +213,7 @@ None specific to this subtask; inherited from Task 009 orchestration.
 
 *   All sub-subtasks complete.
 *   Unit tests pass.
-*   Function correctly identifies conflicts and delegates to Task 013.
+*   Function correctly identifies conflicts and delegates to Task 014.
 
 ---
 

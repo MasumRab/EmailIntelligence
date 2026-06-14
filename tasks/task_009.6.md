@@ -35,7 +35,7 @@ Task 009.6 is complete when:
 
 ### Integration Readiness
 - [ ] Output (structured rebase result) is compatible with Task 009.7 for conflict detection.
-- [ ] Integrates with Task 013 (Conflict Detection and Resolution) for advanced strategies (though not implemented directly here).
+- [ ] Integrates with Task 014 (Conflict Detection and Resolution) for advanced strategies (though not implemented directly here).
 - [ ] Error handling integrates with Task 009's overall error reporting.
 
 ---
