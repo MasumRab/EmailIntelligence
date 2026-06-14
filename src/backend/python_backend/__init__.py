@@ -37,6 +37,8 @@ from .models import (
 
 __version__ = "2.0.0"
 
+from .database import get_db
+
 __all__ = [
     "DatabaseManager",
     "EmailCreate",
