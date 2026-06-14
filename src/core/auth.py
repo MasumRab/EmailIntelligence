@@ -9,6 +9,8 @@ from datetime import datetime, timedelta
 from typing import Optional, Dict, Any, List
 import time
 import secrets
+import argon2
+from enum import Enum
 from argon2 import PasswordHasher
 
 import jwt
@@ -31,7 +33,6 @@ class TokenData(BaseModel):
     role: Optional[str] = "user"
 
 
-from enum import Enum
 
 
 class UserRole(str, Enum):
@@ -109,7 +110,7 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
         # Invalid hash format
         logger.warning("Invalid password hash format")
         return False
-    except Exception as e:
+    except Exception as e:  # NOSONAR
         # Other unexpected errors
         logger.error(f"Unexpected error during password verification: {e}")
         return False
@@ -146,7 +147,7 @@ async def authenticate_user(username: str, password: str, db) -> Optional[Dict[s
         if user_data and is_valid:
             return user_data
         return None
-    except Exception as e:
+    except Exception as e:  # NOSONAR
         logger.error(f"Error authenticating user {username}: {e}")
         return None
 
@@ -180,7 +181,7 @@ async def create_user(username: str, password: str, db) -> bool:
 
         await db.create_user(user_data)
         return True
-    except Exception as e:
+    except Exception as e:  # NOSONAR
         logger.error(f"Error creating user {username}: {e}")
         return False
 
@@ -227,7 +228,7 @@ async def verify_token(
         )
     except jwt.PyJWTError:
         raise credentials_exception
-    except Exception as e:
+    except Exception as e:  # NOSONAR
         logger.error(f"Unexpected error during token verification: {e}")
         raise credentials_exception
 

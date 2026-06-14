@@ -100,6 +100,14 @@ with gr.Blocks(title="Email Intelligence", theme=gr.themes.Soft()) as iface:
                     keywords_output = gr.HighlightedText(label="Keywords")
                     analysis_output = gr.JSON(label="Full Analysis (JSON)")
 
+        with gr.TabItem("Visualization"):
+            gr.Markdown("### Data Visualization")
+            sentiment_chart = gr.Plot(label="Sentiment Gauge")
+            topic_chart = gr.Plot(label="Topic Pie Chart")
+            gr.Markdown(
+                "The charts above will automatically update after you analyze an email in the 'Single Email Analysis' tab."
+            )
+
             def update_outputs(subject, content):
                 result = analyze_email_interface(subject, content)
                 if "error" in result:
@@ -146,14 +154,6 @@ with gr.Blocks(title="Email Intelligence", theme=gr.themes.Soft()) as iface:
                     sentiment_chart,
                     topic_chart,
                 ],
-            )
-
-        with gr.TabItem("Visualization"):
-            gr.Markdown("### Data Visualization")
-            sentiment_chart = gr.Plot(label="Sentiment Gauge")
-            topic_chart = gr.Plot(label="Topic Pie Chart")
-            gr.Markdown(
-                "The charts above will automatically update after you analyze an email in the 'Single Email Analysis' tab."
             )
 
         with gr.TabItem("Scientific Analysis"):
