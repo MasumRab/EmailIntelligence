@@ -56,6 +56,15 @@ interface AIAnalysisPanelProps {
 }
 
 /**
+ * A React component that provides a panel for AI analysis of an email.
+ *
+ * This component allows users to trigger an AI analysis, view the results,
+ * apply the suggested categorization, and provide feedback on the analysis.
+ *
+ * @param {AIAnalysisPanelProps} props - The props for the component.
+ * @returns {JSX.Element} The rendered AI analysis panel.
+ */
+/**
  * Returns the appropriate color classes based on the sentiment.
  * @param {string} sentiment - The sentiment string.
  * @returns {string} The Tailwind CSS color classes.
@@ -93,15 +102,6 @@ const getConfidenceColor = (confidence: number) => {
   return 'text-red-600';
 };
 
-/**
- * A React component that provides a panel for AI analysis of an email.
- *
- * This component allows users to trigger an AI analysis, view the results,
- * apply the suggested categorization, and provide feedback on the analysis.
- *
- * @param {AIAnalysisPanelProps} props - The props for the component.
- * @returns {JSX.Element} The rendered AI analysis panel.
- */
 export function AIAnalysisPanel({ email, onCategoryUpdate }: AIAnalysisPanelProps) {
   const [analysis, setAnalysis] = useState<AIAnalysis | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -229,6 +229,7 @@ export function AIAnalysisPanel({ email, onCategoryUpdate }: AIAnalysisPanelProp
       });
     }
   };
+
 
   return (
     <Card className="w-full">

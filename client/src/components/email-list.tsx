@@ -22,6 +22,16 @@ interface EmailListProps {
 }
 
 /**
+ * Renders a list of emails with sender details, subject, preview, and associated badges.
+ *
+ * This component handles the display of emails, providing visual feedback for loading
+ * states and a message for when no emails are available. Each email is interactive,
+ * triggering a callback on selection.
+ *
+ * @param {EmailListProps} props - The props for the component.
+ * @returns {JSX.Element} The rendered list of emails, or a loading/empty state.
+ */
+/**
  * Generates initials from a given name.
  * @param {string} name - The full name of the sender.
  * @returns {string} The initials of the sender.
@@ -49,16 +59,6 @@ const getCategoryBadgeColor = (categoryName?: string) => {
   }
 };
 
-/**
- * Renders a list of emails with sender details, subject, preview, and associated badges.
- *
- * This component handles the display of emails, providing visual feedback for loading
- * states and a message for when no emails are available. Each email is interactive,
- * triggering a callback on selection.
- *
- * @param {EmailListProps} props - The props for the component.
- * @returns {JSX.Element} The rendered list of emails, or a loading/empty state.
- */
 export function EmailList({ emails, loading, onEmailSelect }: EmailListProps) {
   if (loading) {
     return (
@@ -86,6 +86,7 @@ export function EmailList({ emails, loading, onEmailSelect }: EmailListProps) {
       </div>
     );
   }
+
 
   /**
    * Handles the click event on an email item.
