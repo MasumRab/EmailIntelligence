@@ -1,8 +1,4 @@
-"""
-Database management for the Email Intelligence Platform.
-JSON file storage implementation with in-memory caching and indexing.
-"""
-
+from .data.data_source import DataSource
 import asyncio
 import gzip
 import itertools
@@ -12,19 +8,20 @@ import os
 from datetime import datetime, timezone
 from functools import partial
 from typing import Any, Dict, List, Literal, Optional
+from .performance_monitor import log_performance
+from .enhanced_caching import EnhancedCachingManager
+from .constants import DEFAULT_CATEGORY_COLOR
+from .security import validate_path_safety
+from .enhanced_error_reporting import log_error, ErrorSeverity, ErrorCategory, create_error_context
+
+"""
+Database management for the Email Intelligence Platform.
+JSON file storage implementation with in-memory caching and indexing.
+"""
+
 
 # NOTE: These dependencies will be moved to the core framework as well.
 # For now, we are assuming they will be available in the new location.
-from .performance_monitor import log_performance
-from .enhanced_caching import EnhancedCachingManager
-from .enhanced_error_reporting import (
-    log_error,
-    ErrorSeverity,
-    ErrorCategory,
-    create_error_context
-)
-from .constants import DEFAULT_CATEGORY_COLOR
-from .security import validate_path_safety
 
 logger = logging.getLogger(__name__)
 
@@ -101,7 +98,6 @@ class DatabaseConfig:
 
 
 # Import DataSource locally to avoid circular imports
-from .data.data_source import DataSource
 
 class DatabaseManager(DataSource):
     """Optimized async database manager with in-memory caching, write-behind,
