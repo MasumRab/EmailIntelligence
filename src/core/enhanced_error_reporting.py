@@ -218,6 +218,18 @@ def create_error_context(
     return context
 
 
+def log_error(
+    error: Union[Exception, str],
+    severity: ErrorSeverity = ErrorSeverity.ERROR,
+    category: ErrorCategory = ErrorCategory.UNKNOWN,
+    context: Optional[ErrorContext] = None,
+    details: Optional[Dict[str, Any]] = None
+) -> str:
+    """Log an error using the global reporter instance."""
+    return enhanced_error_reporter.log_error(
+        error, severity, category, context, details
+    )
+
 def get_error_statistics() -> Dict[str, Any]:
     """Get current error statistics."""
     return enhanced_error_reporter.get_error_stats()
