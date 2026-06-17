@@ -67,7 +67,7 @@ def test_workflow_validation():
     invalid_workflow = Workflow("invalid_workflow", {"A": node_a, "B": node_b}, invalid_connections)
 
     is_valid, errors = invalid_workflow.validate()
-    assert not is_valid, f"Workflow should be invalid, but validation passed"
+    assert not is_valid, "Workflow should be invalid, but validation passed"
     assert len(errors) > 0, "Should have validation errors"
 
 

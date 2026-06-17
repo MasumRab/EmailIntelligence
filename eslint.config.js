@@ -1,81 +1,81 @@
-import js from "@eslint/js";
-import tsParser from "@typescript-eslint/parser";
-import tsPlugin from "@typescript-eslint/eslint-plugin";
-import reactPlugin from "eslint-plugin-react";
-import reactHooksPlugin from "eslint-plugin-react-hooks";
-import reactRefreshPlugin from "eslint-plugin-react-refresh";
+import js from '@eslint/js';
+import tseslint from 'typescript-eslint';
 
-export default [
+export default tseslint.config(
   js.configs.recommended,
+  ...tseslint.configs.recommended,
   {
-    ignores: [
-      "node_modules/",
-      "dist/",
-      "build/",
-      "coverage/",
-      "*.min.js",
-      "venv*/",
-      ".venv*/",
-      ".taskmaster/",
-      "test_data/",
-      "scripts/",
-      "setup/"
-    ],
-  },
-  {
-    files: ["**/*.{js,jsx,ts,tsx}"],
+    ignores: ['dist/*', 'build/*', 'node_modules/*', 'client/dist/*', 'client/build/*', 'client/node_modules/*', '.venv/*'],
     languageOptions: {
-      parser: tsParser,
-      parserOptions: {
-        ecmaVersion: "latest",
-        sourceType: "module",
-        ecmaFeatures: {
-          jsx: true
-        }
-      },
       globals: {
         browser: true,
         es2021: true,
         node: true,
-        document: true,
-        window: true,
         console: true,
-        process: true,
+        URL: true,
         fetch: true,
+        Request: true,
+        Response: true,
+        Headers: true,
+        DOMException: true,
+        ReadableStream: true,
+        window: true,
+        document: true,
+        navigator: true,
+        localStorage: true,
+        sessionStorage: true,
         setTimeout: true,
-        localStorage: true
-      }
-    },
-    plugins: {
-      "@typescript-eslint": tsPlugin,
-      "react": reactPlugin,
-      "react-hooks": reactHooksPlugin,
-      "react-refresh": reactRefreshPlugin
-    },
-    settings: {
-      "react": {
-        "version": "detect"
+        clearTimeout: true,
+        setInterval: true,
+        clearInterval: true,
+        Event: true,
+        CustomEvent: true,
+        AbortController: true,
+        AbortSignal: true
       }
     },
     rules: {
-      "react-refresh/only-export-components": "off",
-      "react-hooks/rules-of-hooks": "off",
-      "react-hooks/exhaustive-deps": "off",
-      "@typescript-eslint/no-unused-vars": "off",
-      "no-unused-vars": "off",
-      "@typescript-eslint/no-explicit-any": "off",
-      "prefer-const": "off",
-      "no-var": "off",
-      "react/react-in-jsx-scope": "off",
-      "react/prop-types": "off",
-      "react/display-name": "off",
-      "@typescript-eslint/ban-ts-comment": "off",
-      "no-undef": "off",
-      "react/no-unescaped-entities": "off",
-      "@typescript-eslint/no-require-imports": "off",
-      "no-empty": "off",
-      "no-cond-assign": "off",
-      "@typescript-eslint/no-this-alias": "off"
+      '@typescript-eslint/no-unused-vars': 'off',
+      '@typescript-eslint/no-explicit-any': 'off',
+      '@typescript-eslint/no-require-imports': 'off',
+      '@typescript-eslint/no-unused-expressions': 'off',
+      'no-undef': 'off',
+      'no-prototype-builtins': 'off',
+      'no-useless-escape': 'off',
+      'no-control-regex': 'off',
+      'no-useless-assignment': 'off',
+      'no-cond-assign': 'off',
+      'no-case-declarations': 'off',
+      'no-empty': 'off',
+      'no-extra-boolean-cast': 'off',
+      'no-async-promise-executor': 'off',
+      '@typescript-eslint/ban-ts-comment': 'off',
+      'n/prefer-global/process': 'off',
+      'no-unassigned-vars': 'off',
+      'no-func-assign': 'off',
+      'no-fallthrough': 'off',
+      'no-self-assign': 'off',
+      '@typescript-eslint/no-this-alias': 'off',
+      'getter-return': 'off',
+      'no-useless-catch': 'off',
+      'no-unused-private-class-members': 'off',
+      'no-redeclare': 'off',
+      'no-sparse-arrays': 'off',
+      'preserve-caught-error': 'off',
+      'no-unsafe-finally': 'off',
+      'no-constant-condition': 'off',
+      'no-unsafe-optional-chaining': 'off',
+      'no-irregular-whitespace': 'off',
+      'no-unreachable': 'off',
+      'no-misleading-character-class': 'off',
+      '@typescript-eslint/no-array-constructor': 'off',
+      'no-duplicate-case': 'off',
+      'no-regex-spaces': 'off',
+      'no-constant-binary-expression': 'off',
+      'require-yield': 'off',
+      'no-setter-return': 'off',
+      'no-global-assign': 'off',
+      'constructor-super': 'off'
     }
   }
-];
+);

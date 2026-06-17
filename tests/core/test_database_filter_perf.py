@@ -1,5 +1,4 @@
 import pytest
-import asyncio
 from unittest.mock import MagicMock
 from src.core.database import DatabaseManager, DatabaseConfig, FIELD_ID, FIELD_CATEGORY_ID, FIELD_IS_UNREAD
 
