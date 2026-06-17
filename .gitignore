@@ -86,7 +86,6 @@ config/llm_guidelines.local.json
 
 # Python cache
 __pycache__/
-**/__pycache__/
 
 # Miscellaneous
 performance_metrics_log.jsonl
@@ -107,27 +106,3 @@ CONFIG_ANALYSIS.md
 MERGIFY_BRANCH_ANALYSIS_FINAL.md
 PR_480_RESOLUTION.md
 taskmaster-worktree-config.yml
-
-# Jules AI session/activity cache artifacts
-# These are CLI dumps from `jules remote sessions` / `jules remote activities`
-# which can be hundreds of MB. They should not be committed to git.
-# Summaries may be committed instead (see jules/docs/guides/session_summary_standard.md)
-activities_*.json
-current_sessions.json
-full_history.json
-jules_*.json
-nudge_check.json
-status_check.json
-status_update.json
-session_file_map.txt
-session_report_data.json
-pr_sessions_list.json
-pr_stats.json
-session_*.txt
-diagnosis_message.txt
-
-# Allow tracking of .github/scripts/ (currently blocked by .* pattern)
-!.github/scripts/
-
-# Jules AI scratch/tooling area (not application code)
-jules-scratch/
