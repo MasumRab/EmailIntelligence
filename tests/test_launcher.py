@@ -1,5 +1,3 @@
-import argparse
-import subprocess
 import sys
 from pathlib import Path
 from unittest.mock import MagicMock, patch
@@ -16,7 +14,6 @@ from setup.launch import (
     check_python_version,
     create_venv,
     download_nltk_data,
-    main,
     process_manager,
     setup_dependencies,
     start_backend,
@@ -100,7 +97,7 @@ class TestVirtualEnvironment:
         # Mock exists to return True initially, then False after rmtree
         mock_exists.side_effect = [True, False]
         venv_path = ROOT_DIR / "venv"
-        with patch("launch.logger") as mock_logger:
+        with patch("launch.logger"):
             create_venv(venv_path, recreate=True)
             mock_rmtree.assert_called_once_with(venv_path)
             mock_venv_create.assert_called_once_with(venv_path, with_pip=True)

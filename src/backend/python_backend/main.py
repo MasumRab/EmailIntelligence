@@ -29,12 +29,10 @@ from src.core.auth import authenticate_user
 
 from ..plugins.plugin_manager import plugin_manager
 from . import (
-    action_routes,
     ai_routes,
     category_routes,
     dashboard_routes,
     email_routes,
-    filter_routes,
     gmail_routes,
     model_routes,
     performance_routes,
@@ -43,13 +41,16 @@ from . import (
 )
 from .ai_engine import AdvancedAIEngine
 from .auth import create_access_token
-from .database import db_manager
 from .exceptions import AppException, BaseAppException
+from .database import get_db
+db_manager = None
 
 # Import new components
-from .model_manager import model_manager
-from .performance_monitor import performance_monitor
-from .settings import settings
+from .model_manager import ModelManager  # noqa: E402
+from .performance_monitor import performance_monitor  # noqa: E402
+
+model_manager = ModelManager()
+from .settings import settings  # noqa: E402
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -92,7 +93,7 @@ class ErrorHandlingMiddleware(BaseHTTPMiddleware):
                 elif isinstance(exc, ValidationError):
                     status_code = 422
                 else:
-                    status_code = 500 # Default to 500 for unhandled exceptions
+                    status_code = 500  # Default to 500 for unhandled exceptions
 
             # Format error response consistently
             if isinstance(exc, (AppException, BaseAppException)):
@@ -248,12 +249,14 @@ if os.getenv("NODE_ENV") in ["production", "staging"]:
 gmail_service = GmailAIService()  # Used by gmail_routes
 filter_manager = SmartFilterManager()  # Used by filter_routes
 ai_engine = AdvancedAIEngine(model_manager)  # Used by email_routes, action_routes
-performance_monitor = performance_monitor  # Used by all routes via @performance_monitor.track
+performance_monitor = (
+    performance_monitor  # Used by all routes via @performance_monitor.track
+)
 
-from .routes.v1.category_routes import router as category_router_v1
+from .routes.v1.category_routes import router as category_router_v1  # noqa: E402
 
 # Include versioned API routers
-from .routes.v1.email_routes import router as email_router_v1
+from .routes.v1.email_routes import router as email_router_v1  # noqa: E402
 
 # Mount versioned APIs
 app.include_router(email_router_v1, prefix="/api/v1", tags=["emails-v1"])
@@ -263,38 +266,40 @@ app.include_router(category_router_v1, prefix="/api/v1", tags=["categories-v1"])
 app.include_router(email_routes.router)
 app.include_router(category_routes.router)
 app.include_router(gmail_routes.router)
-app.include_router(filter_routes.router)
 app.include_router(training_routes.router)
 app.include_router(workflow_routes.router)
 app.include_router(model_routes.router)
 app.include_router(performance_routes.router)
-app.include_router(action_routes.router)
 app.include_router(dashboard_routes.router)
 app.include_router(ai_routes.router)
 
 # Include enhanced feature routers
-from .enhanced_routes import router as enhanced_router
+from .enhanced_routes import router as enhanced_router  # noqa: E402
 
 app.include_router(enhanced_router, prefix="/api/enhanced", tags=["enhanced"])
 
 # Include workflow routes (legacy and node-based)
-from .workflow_routes import router as workflow_router
+from .workflow_routes import router as workflow_router  # noqa: E402
 
 app.include_router(workflow_router, prefix="", tags=["workflows"])
 
 # Include advanced workflow routes (will use node-based system)
-from .advanced_workflow_routes import router as advanced_workflow_router
+from .advanced_workflow_routes import router as advanced_workflow_router  # noqa: E402
 
-app.include_router(advanced_workflow_router, prefix="/api/workflows", tags=["advanced-workflows"])
+app.include_router(
+    advanced_workflow_router, prefix="/api/workflows", tags=["advanced-workflows"]
+)
 
 # Include node-based workflow routes
-from .node_workflow_routes import router as node_workflow_router
+from .node_workflow_routes import router as node_workflow_router  # noqa: E402
 
 app.include_router(node_workflow_router, prefix="/api/nodes", tags=["node-workflows"])
 
 # Initialize workflow manager instance (using the node-based workflow manager)
 try:
-    from src.backend.node_engine.workflow_manager import workflow_manager as node_workflow_manager
+    from src.backend.node_engine.workflow_manager import (
+        workflow_manager as node_workflow_manager,
+    )
 
     workflow_manager_instance = node_workflow_manager
 except ImportError:
@@ -329,7 +334,9 @@ async def login(username: str, password: str):
         # Use a default if settings are not available
         access_token_expires = timedelta(minutes=30)
 
-    access_token = create_access_token(data={"sub": username}, expires_delta=access_token_expires)
+    access_token = create_access_token(
+        data={"sub": username}, expires_delta=access_token_expires
+    )
     return {"access_token": access_token, "token_type": "bearer"}
 
 
@@ -346,7 +353,8 @@ async def health_check(request: Request):
             "version": settings.app_version,
             "app_name": settings.app_name,
         }
-    except (ValueError, RuntimeError, OSError) as e:  # Specific exceptions for health check
+    except Exception as e:  # pylint: disable=broad-except
+        # Specific exceptions for health check
         logger.error(  # Simple log for health check itself
             json.dumps(
                 {
@@ -372,7 +380,10 @@ async def health_check(request: Request):
 async def get_error_stats():
     """Get error statistics for monitoring."""
     with error_lock:
-        return {"error_counts": dict(error_counts), "total_errors": sum(error_counts.values())}
+        return {
+            "error_counts": dict(error_counts),
+            "total_errors": sum(error_counts.values()),
+        }
 
 
 if __name__ == "__main__":
@@ -383,4 +394,6 @@ env = os.getenv("NODE_ENV", "development")
 host = os.getenv("HOST", "127.0.0.1" if env == "development" else "0.0.0.0")
 reload = env == "development"
 # Use string app path to support reload
+import uvicorn  # noqa: E402
+
 uvicorn.run("main:app", host=host, port=port, reload=reload, log_level="info")
