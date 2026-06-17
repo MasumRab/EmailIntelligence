@@ -1,9 +1,7 @@
 
 import pytest
-import asyncio
 from unittest.mock import MagicMock, AsyncMock
 from datetime import datetime, timezone
-import json
 
 from src.core.smart_filter_manager import SmartFilterManager, EmailFilter, _EmailContext
 

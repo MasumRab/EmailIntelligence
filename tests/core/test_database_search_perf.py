@@ -1,9 +1,8 @@
 import pytest
 import asyncio
-import os
 import json
 import gzip
-from unittest.mock import MagicMock, AsyncMock, patch
+from unittest.mock import MagicMock, patch
 from src.core.database import DatabaseManager, DatabaseConfig, FIELD_CONTENT, FIELD_ID
 
 @pytest.fixture
@@ -38,7 +37,7 @@ async def test_search_emails_uses_cache(db_manager):
     db_manager.caching_manager.get_email_content.return_value = cached_content
 
     # Mock disk path existence to ensure we rely on cache and not fall through
-    with patch("os.path.exists", return_value=True) as mock_exists:
+    with patch("os.path.exists", return_value=True):
         # Execute
         results = await db_manager.search_emails_with_limit("secret", limit=10)
 
