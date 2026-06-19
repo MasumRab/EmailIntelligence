@@ -54,14 +54,14 @@ Implementation guide to be defined
 **Depends on:** 025.4
 
 **Steps:**
-1. Create integration API for Task 026
+1. Create integration API for post-MVP future work
 2. Implement workflow hooks for scaling operations
 3. Add scaling state management
 4. Create status reporting for advanced features process
 5. Implement scaling result propagation to parent tasks
 
 **Success Criteria:**
-- [ ] Integration API for Task 026 implemented
+- [ ] Integration API for post-MVP future work implemented
 - [ ] Workflow hooks for scaling operations operational
 - [ ] Scaling state management functional
 - [ ] Status reporting for advanced features process operational

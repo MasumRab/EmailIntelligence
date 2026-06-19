@@ -237,7 +237,7 @@ class FutureDevelopmentRoadmap:
         "priority": "high",
         "estimated_completion": "2026-04-30",
         "resources_required": 3,
-        "dependencies": ["task-023"]
+        "dependencies": ["task_023"]
       }
     ],
     "milestones": [

@@ -195,7 +195,7 @@ The script should be configurable to define what constitutes a 'complex' branch 
 ### 010.29. Design specialized UI/CLI for complex branch operations
 - **Status:** pending
 - **Dependencies:** 010.28, 010.3, 010.27
-- Design and implement specialized CLI with enhanced visibility, interactive guidance, and feedback. Provide clear status updates, progress bars, and interactive prompts. Integrate with enhanced logging and error reporting (Task 027) for real-time, actionable feedback.
+- Design and implement specialized CLI with enhanced visibility, interactive guidance, and feedback. Provide clear status updates, progress bars, and interactive prompts. Integrate with enhanced logging and error reporting (post-MVP future work) for real-time, actionable feedback.
 
 ### 010.30. Document complex branch handling procedures and create training
 - **Status:** pending

@@ -51,79 +51,79 @@ building upon insights from past branch management efforts and the need for robu
 
 ## Sub-subtasks Breakdown
 
-### ### 8.1. Define Validation Scope and Tooling
+### 8.1. Define Validation Scope and Tooling
 - **Status**: pending
 - **Dependencies**: None
 
-### ### 8.2. Configure GitHub Actions Workflow and Triggers
+### 8.2. Configure GitHub Actions Workflow and Triggers
 - **Status**: pending
 - **Dependencies**: None
 
-### ### 8.3. Implement Architectural Enforcement Checks
+### 8.3. Implement Architectural Enforcement Checks
 - **Status**: pending
 - **Dependencies: 8.1
 
-### ### 8.4. Integrate Existing Unit and Integration Tests
+### 8.4. Integrate Existing Unit and Integration Tests
 - **Status**: pending
 - **Dependencies: 8.1
 
-### ### 8.5. Develop and Implement End-to-End Smoke Tests
+### 8.5. Develop and Implement End-to-End Smoke Tests
 - **Status**: pending
 - **Dependencies: 8.1
 
-### ### 8.6. Implement Performance Benchmarking for Critical Endpoints
+### 8.6. Implement Performance Benchmarking for Critical Endpoints
 - **Status**: pending
 - **Dependencies: 8.1
 
-### ### 8.7. Integrate Security Scans (SAST and Dependency)
+### 8.7. Integrate Security Scans (SAST and Dependency)
 - **Status**: pending
 - **Dependencies: 8.1
 
-### ### 8.8. Consolidate Validation Results and Reporting
+### 8.8. Consolidate Validation Results and Reporting
 - **Status**: pending
 - **Dependencies: 8.3, 8.4, 8.6, 8.7
 
-### ### 8.9. Configure GitHub Branch Protection Rules
+### 8.9. Configure GitHub Branch Protection Rules
 - **Status**: pending
 - **Dependencies**: None
 
-### ### 8.10. Implement Architectural Static Analysis for `src/backend`
+### 8.10. Implement Architectural Static Analysis for `src/backend`
 - **Status**: pending
 - **Dependencies**: None
 
-### ### 8.11. Integrate and Automate `src/backend` Functional Test Execution in CI
+### 8.11. Integrate and Automate `src/backend` Functional Test Execution in CI
 - **Status**: pending
 - **Dependencies**: None
 
-### ### 8.12. Develop and Integrate E2E Smoke Tests for FastAPI in CI
+### 8.12. Develop and Integrate E2E Smoke Tests for FastAPI in CI
 - **Status**: pending
 - **Dependencies**: None
 
-### ### 8.13. Set Up Performance Benchmarking for Critical FastAPI Endpoints
+### 8.13. Set Up Performance Benchmarking for Critical FastAPI Endpoints
 - **Status**: pending
 - **Dependencies**: None
 
-### ### 8.14. Integrate Security Validation (Dependency Scan & SAST) into CI
+### 8.14. Integrate Security Validation (Dependency Scan & SAST) into CI
 - **Status**: pending
 - **Dependencies**: None
 
-### ### 8.15. Implement Architectural Enforcement for Module Boundaries and Imports
+### 8.15. Implement Architectural Enforcement for Module Boundaries and Imports
 - **Status**: pending
 - **Dependencies**: None
 
-### ### 8.16. Integrate Functional Correctness Checks with Test Suite Execution
+### 8.16. Integrate Functional Correctness Checks with Test Suite Execution
 - **Status**: pending
 - **Dependencies**: None
 
-### ### 8.18. Develop Performance Benchmarking for Critical FastAPI Endpoints
+### 8.18. Develop Performance Benchmarking for Critical FastAPI Endpoints
 - **Status**: pending
 - **Dependencies**: None
 
-### ### 8.17. Implement Security Validation (Dependency Scanning & SAST)
+### 8.17. Implement Security Validation (Dependency Scanning & SAST)
 - **Status**: pending
 - **Dependencies**: None
 
-### ### 8.19. Design and Integrate Validation Framework into GitHub Actions Workflow
+### 8.19. Design and Integrate Validation Framework into GitHub Actions Workflow
 - **Status**: pending
 - **Dependencies**: None
 
