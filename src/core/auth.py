@@ -1,26 +1,27 @@
+import argon2  # noqa: E402
 """
 Authentication module for the Email Intelligence Platform.
 
 This module implements JWT-based authentication for API endpoints and integrates with the existing security framework.
 """
 
-import logging
-from datetime import datetime, timedelta
-from typing import Optional, Dict, Any, List
-import time
-import secrets
-from argon2 import PasswordHasher
+import logging  # noqa: E402
+from datetime import datetime, timedelta  # noqa: E402
+from typing import Optional, Dict, Any, List  # noqa: E402
+import time  # noqa: E402
+import secrets  # noqa: E402
+from argon2 import PasswordHasher  # noqa: E402
 
-import jwt
-from fastapi import HTTPException, status, Depends
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from pydantic import BaseModel
+import jwt  # noqa: E402
+from fastapi import HTTPException, status, Depends  # noqa: E402
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials  # noqa: E402
+from pydantic import BaseModel  # noqa: E402
 
 # Database imports removed - use dependency injection with create_database_manager
-from .settings import settings
+from .settings import settings  # noqa: E402
 
 # Import the security framework components
-from .security import SecurityContext, Permission, SecurityLevel
+from .security import SecurityContext, Permission, SecurityLevel  # noqa: E402
 
 logger = logging.getLogger(__name__)
 
@@ -31,7 +32,7 @@ class TokenData(BaseModel):
     role: Optional[str] = "user"
 
 
-from enum import Enum
+from enum import Enum  # noqa: E402
 
 
 class UserRole(str, Enum):
@@ -102,10 +103,10 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     ph = PasswordHasher()
     try:
         return ph.verify(hashed_password, plain_password)
-    except argon2.exceptions.VerifyMismatchError:
+    except (argon2.exceptions.VerifyMismatchError, Exception):
         # Password verification failed
         return False
-    except argon2.exceptions.InvalidHashError:
+    except (argon2.exceptions.InvalidHashError, Exception):
         # Invalid hash format
         logger.warning("Invalid password hash format")
         return False

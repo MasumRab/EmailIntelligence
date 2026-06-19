@@ -2,13 +2,12 @@ import json
 import logging
 from typing import List
 
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, HTTPException, Depends, Request
 
 from src.core.auth import get_current_active_user
 
 from .database import DatabaseManager, get_db
 from .dependencies import get_category_service
-from .exceptions import DatabaseError
 from .models import CategoryCreate, CategoryResponse
 from .performance_monitor import log_performance
 from .services.category_service import CategoryService
@@ -42,7 +41,7 @@ async def get_categories(
             pgcode=None,
         )
         logger.error(json.dumps(log_data))
-        raise DatabaseError(detail="Failed to create category.") from db_err
+        raise HTTPException(status_code=503, detail="Database service unavailable.")
 
 
 @router.post("/api/categories", response_model=CategoryResponse)
@@ -70,7 +69,10 @@ async def create_category(
     """
     try:
         new_category = await category_service.create_category(category)
-        return CategoryResponse(**new_category)
+        if isinstance(new_category, dict):
+            return CategoryResponse(**new_category)
+        else:
+            return new_category
     except Exception as db_err:
         log_data = create_log_data(
             message="Database operation failed while creating category",
@@ -80,4 +82,4 @@ async def create_category(
             pgcode=None,
         )
         logger.error(json.dumps(log_data))
-        raise DatabaseError(detail="Failed to create category.") from db_err
+        raise HTTPException(status_code=503, detail="Database service unavailable.")
