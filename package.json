@@ -50,11 +50,11 @@
     "cmdk": "^1.1.1",
     "date-fns": "^3.6.0",
     "dotenv": "^16.5.0",
-    "drizzle-orm": "^0.39.3",
+    "drizzle-orm": "^0.45.2",
     "drizzle-zod": "^0.7.0",
     "embla-carousel-react": "^8.6.0",
-    "express": "^4.21.2",
-    "express-session": "^1.18.1",
+    "express": "^4.22.2",
+    "express-session": "^1.18.2",
     "framer-motion": "^11.13.1",
     "input-otp": "^1.4.2",
     "lucide-react": "^0.453.0",
@@ -75,7 +75,7 @@
     "tw-animate-css": "^1.2.5",
     "vaul": "^1.1.2",
     "wouter": "^3.3.5",
-    "ws": "^8.18.0",
+    "ws": "^8.21.0",
     "zod": "^3.24.2",
     "zod-validation-error": "^3.4.0"
   },
@@ -96,14 +96,14 @@
     "@vitejs/plugin-react": "^4.5.2",
     "autoprefixer": "^10.4.20",
     "cross-env": "^7.0.3",
-    "drizzle-kit": "^1.0.0-beta.1-fd5d1e8",
+    "drizzle-kit": "^0.31.10",
     "esbuild": "^0.25.0",
-    "postcss": "^8.4.47",
+    "postcss": "^8.5.10",
     "tailwindcss": "^3.4.17",
     "tsx": "^4.19.1",
     "typescript": "^5.9.3",
-    "vite": "^6.3.5",
-    "vitest": "^3.2.4"
+    "vite": "^6.4.3",
+    "vitest": "^3.2.6"
   },
   "overrides": {
     "drizzle-kit": {
@@ -114,7 +114,19 @@
           "esbuild": "^0.25.5"
         }
       }
-    }
+    },
+    "@babel/core": "^7.29.1",
+    "brace-expansion": "^2.0.3",
+    "form-data": "^4.0.6",
+    "js-yaml": "^4.1.2",
+    "lodash": "^4.17.24",
+    "path-to-regexp": "^0.1.13",
+    "picomatch": "^4.0.4",
+    "qs": "^6.15.2",
+    "yaml": "^2.8.3",
+    "glob": "^10.5.0",
+    "minimatch": "^9.0.7",
+    "rollup": "^4.59.0"
   },
   "optionalDependencies": {
     "bufferutil": "^4.0.8"
