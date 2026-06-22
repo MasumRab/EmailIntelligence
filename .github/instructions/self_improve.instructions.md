@@ -31,16 +31,13 @@ applyTo: "**/*"
     - Implementation details have changed
 
 - **Example Pattern Recognition:**
-  ```typescript
+  ```python
   // If you see repeated patterns like:
-  const data = await prisma.user.findMany({
-    select: { id: true, email: true },
-    where: { status: 'ACTIVE' }
-  });
+  results = db.session.query(User).filter(User.status == "active").all()
   
-  // Consider adding to [prisma.instructions.md](.github/instructions/prisma.instructions.md):
+  // Consider adding to [dev_workflow.instructions.md](.github/instructions/dev_workflow.instructions.md):
   // - Standard select fields
-  // - Common where conditions
+  // - Common query helpers
   // - Performance optimization patterns
   ```
 

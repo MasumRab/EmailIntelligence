@@ -32,12 +32,11 @@ inclusion: always
 - **Example Pattern Recognition:**
   ```typescript
   // If you see repeated patterns like:
-  const data = await prisma.user.findMany({
-    select: { id: true, email: true },
-    where: { status: 'ACTIVE' }
-  });
+  results = db.session.query(User).filter(
+      User.status == 'active'
+  ).all()
   
-  // Consider adding to [prisma.md](.kiro/steering/prisma.md):
+  # Consider adding to [dev_workflow.md](.kiro/steering/dev_workflow.md):
   // - Standard select fields
   // - Common where conditions
   // - Performance optimization patterns

@@ -3,12 +3,12 @@
   "mcp": {
     "task-master-ai": {
       "type": "local",
+      "enabled": true,
       "command": [
         "npm",
         "exec",
         "task-master-ai"
       ],
-      "enabled": true,
       "environment": {
         "GOOGLE_API_KEY": "${GOOGLE_API_KEY}",
         "GEMINI_API_KEY": "${GEMINI_API_KEY}",

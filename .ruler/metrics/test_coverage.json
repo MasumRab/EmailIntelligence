@@ -1,0 +1,39 @@
+{
+  "timestamp": "2026-04-09T14:32:00Z",
+  "overall_pct": 82.3,
+  "trend": "↑ +2.1% from 2026-03-20",
+  "modules": {
+    "backend/api": {
+      "covered": 142,
+      "total": 158,
+      "pct": 89.9
+    },
+    "backend/core": {
+      "covered": 87,
+      "total": 92,
+      "pct": 94.6
+    },
+    "backend/models": {
+      "covered": 71,
+      "total": 78,
+      "pct": 91.0
+    },
+    "backend/services": {
+      "covered": 124,
+      "total": 142,
+      "pct": 87.3
+    },
+    "src/core": {
+      "covered": 45,
+      "total": 52,
+      "pct": 86.5
+    },
+    "modules": {
+      "covered": 31,
+      "total": 48,
+      "pct": 64.6
+    }
+  },
+  "target_pct": 85.0,
+  "status": "APPROACHING_TARGET"
+}

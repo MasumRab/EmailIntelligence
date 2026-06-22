@@ -109,10 +109,9 @@ git log --oneline -2
 git status
 # Should say: "Your branch is up to date with 'origin/orchestration-tools'"
 
-# Optional: Merge to main
-git checkout main
-git merge orchestration-tools
-git push origin main
+# ⚠️ DO NOT merge to main - orchestration-tools is isolated
+# Use distribution scripts instead:
+# ./scripts/distribute-orchestration-files.sh
 ```
 
 ---

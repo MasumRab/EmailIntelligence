@@ -15,8 +15,10 @@ class ProjectConfigLoader:
         self.config = config or get_current_config()
     def load_project_config(self) -> ProjectConfig:
         """Load project configuration from various sources.
+
         Returns:
             ProjectConfig instance with merged settings
+        """
         # For now, return a default configuration
         # In a real implementation, this would load from project files
         return ProjectConfig(

@@ -1,0 +1,56 @@
+# Start the agent-rules implementation handoff workflow.
+# Context-agnostic: works from any CWD on any branch.
+# Token-efficient: includes the AMP completion + efficiency preamble.
+
+description = "Start or resume the agent-rules handoff workflow (any branch, any CWD)"
+
+prompt = """
+{{PREAMBLE}}
+
+# === HANDOFF WORKFLOW START ===
+
+You are starting (or resuming) the agent-rules implementation handoff.
+
+Read the canonical preamble above. It governs completion semantics
+(persist until done, no early stops) and token efficiency (no whole-file
+reads, batched tool calls, summary outputs).
+
+## Setup (run once)
+
+  source docs/handoff/context-guard.sh
+
+This auto-detects PROJECT_ROOT, CURRENT_BRANCH, and configured agent
+tools without changing CWD.
+
+## Decision tree
+
+1. Read docs/handoff/README.md (phase table + execution order). DO NOT
+   re-read it later in this thread — cache the phase list mentally.
+2. State file path: docs/handoff/STATE_${CURRENT_BRANCH}.md
+   - If missing: cp STATE_TEMPLATE.md STATE_${CURRENT_BRANCH}.md
+3. Identify next unchecked phase from the state file.
+4. Open ONLY the relevant phase-NN-*.md (do not read sibling phases).
+5. Execute the next unchecked step. Update STATE after each step.
+6. Mode selection (per README):
+     Rush  -> phases 1-4   (mechanical edits)
+     Deep  -> phases 5-10  (judgment required)
+     Smart -> phase 11     (shell + token analysis)
+     Deep  -> phase 14     (.gitignore unification)
+7. orchestration-tools branch: also check phase-12 and phase-13.
+8. After each step: bash docs/handoff/context-agnostic-gates.sh
+
+## Constraints
+
+- Never cd; reference $PROJECT_ROOT.
+- Never commit secrets. Never run eval/exec.
+- Never push --force or use --no-verify.
+- Verify with: bash scripts/verify-agent-content.sh
+
+## Output discipline
+
+- First reply: numbered checklist of remaining phase steps.
+- Subsequent replies: ≤ 4 lines of prose + structured status table.
+- On completion: 3-line summary + acceptance-criteria checkbox list.
+
+{{args}}
+"""

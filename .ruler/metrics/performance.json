@@ -1,0 +1,62 @@
+{
+  "timestamp": "2026-04-09T15:00:00Z",
+  "api_endpoints": {
+    "POST /api/v1/emails": {
+      "method": "POST",
+      "avg_latency_ms": 145,
+      "p50_latency_ms": 128,
+      "p95_latency_ms": 234,
+      "p99_latency_ms": 512,
+      "throughput_rps": 42,
+      "error_rate_pct": 0.02,
+      "sla_latency_ms": 300,
+      "sla_status": "PASS"
+    },
+    "GET /api/v1/emails": {
+      "method": "GET",
+      "avg_latency_ms": 89,
+      "p50_latency_ms": 78,
+      "p95_latency_ms": 178,
+      "p99_latency_ms": 298,
+      "throughput_rps": 156,
+      "error_rate_pct": 0.01,
+      "sla_latency_ms": 200,
+      "sla_status": "PASS"
+    },
+    "GET /api/v1/emails/{id}": {
+      "method": "GET",
+      "avg_latency_ms": 112,
+      "p50_latency_ms": 98,
+      "p95_latency_ms": 195,
+      "p99_latency_ms": 356,
+      "throughput_rps": 89,
+      "error_rate_pct": 0.01,
+      "sla_latency_ms": 250,
+      "sla_status": "PASS"
+    }
+  },
+  "database": {
+    "avg_query_time_ms": 12,
+    "p95_query_time_ms": 34,
+    "connection_pool_utilization_pct": 34,
+    "slow_queries_24h": 2,
+    "deadlocks_24h": 0,
+    "status": "HEALTHY"
+  },
+  "infrastructure": {
+    "cpu_utilization_avg_pct": 28,
+    "memory_utilization_avg_pct": 42,
+    "disk_utilization_pct": 58,
+    "uptime_pct": 99.98,
+    "status": "HEALTHY"
+  },
+  "sla_compliance": {
+    "availability_target_pct": 99.9,
+    "availability_actual_pct": 99.98,
+    "latency_target_ms": 250,
+    "latency_actual_ms": 115,
+    "error_rate_target_pct": 0.1,
+    "error_rate_actual_pct": 0.013,
+    "overall_status": "EXCEEDS_TARGET"
+  }
+}
