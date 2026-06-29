@@ -6,7 +6,6 @@ This module provides advanced natural language processing capabilities with mult
 and validation for analyzing email content.
 """
 
-
 import argparse
 import json
 import logging
@@ -22,16 +21,12 @@ from backend.python_nlp.text_utils import clean_text
 
 from .analysis_components.importance_model import ImportanceModel
 
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(name)s - %(message)s"
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(name)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 # Try to import optional dependencies
 try:
-    import nltk
     from textblob import TextBlob
-    from transformers import AutoModelForSequenceClassification, AutoTokenizer
 
     HAS_NLTK = True
     HAS_SKLEARN_AND_JOBLIB = True
@@ -52,9 +47,7 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(
 logger = logging.getLogger(__name__)
 
 
-def clean_text(text: str) -> str:
-    """Basic text cleaning utility."""
-    return text.lower().strip()
+# clean_text is imported from backend.python_nlp.text_utils above
 
 
 # Define paths for pre-trained models
@@ -122,7 +115,8 @@ class NLPEngine:
     def __init__(self):
         """Initializes the NLP engine and loads all necessary models and resources."""
         model_dir = os.getenv(
-            "NLP_MODEL_DIR", os.path.join(os.path.dirname(__file__), "..", "..", "models")
+            "NLP_MODEL_DIR",
+            os.path.join(os.path.dirname(__file__), "..", "..", "models"),
         )
         self.sentiment_model_path = os.path.join(model_dir, "sentiment")
         self.topic_model_path = os.path.join(model_dir, "topic")
@@ -154,8 +148,7 @@ class NLPEngine:
         """Pre-compiles regex patterns for categorization."""
         logger.info("Compiling regex patterns for categorization...")
         self.compiled_patterns = {
-            category: [re.compile(p) for p in self.CATEGORY_PATTERNS[category]]
-            for category in self.CATEGORY_PATTERNS
+            category: [re.compile(p) for p in self.CATEGORY_PATTERNS[category]] for category in self.CATEGORY_PATTERNS
         }
         logger.info("Regex patterns compiled successfully.")
 
@@ -207,11 +200,7 @@ class NLPEngine:
             prediction = results[0]
             return {
                 "sentiment": prediction["label"],
-                "polarity": (
-                    prediction["score"]
-                    if prediction["label"] == "POSITIVE"
-                    else -prediction["score"]
-                ),
+                "polarity": (prediction["score"] if prediction["label"] == "POSITIVE" else -prediction["score"]),
                 "subjectivity": 0.5,
                 "confidence": prediction["score"],
                 "method_used": "model_sentiment",
@@ -269,7 +258,16 @@ class NLPEngine:
             "happy",
             "love",
         ]
-        negative_words = ["bad", "terrible", "problem", "issue", "error", "failed", "hate", "angry"]
+        negative_words = [
+            "bad",
+            "terrible",
+            "problem",
+            "issue",
+            "error",
+            "failed",
+            "hate",
+            "angry",
+        ]
 
         positive_count = sum(1 for word in positive_words if word in text_lower)
         negative_count = sum(1 for word in negative_words if word in text_lower)
@@ -413,8 +411,7 @@ class NLPEngine:
         topic_scores = {}
         text_lower = text.lower()
         topic_scores = {
-            topic: sum(1 for keyword in keywords if keyword in text_lower)
-            for topic, keywords in topics.items()
+            topic: sum(1 for keyword in keywords if keyword in text_lower) for topic, keywords in topics.items()
         }
         if any(topic_scores.values()):
             best_topic = max(topic_scores, key=topic_scores.get)
@@ -548,9 +545,7 @@ class NLPEngine:
         ):
             urgency_label = "critical"
             confidence = 0.9
-        elif re.search(
-            r"\b(soon|quickly|priority|important|deadline|time-sensitive)\b", text_lower
-        ):
+        elif re.search(r"\b(soon|quickly|priority|important|deadline|time-sensitive)\b", text_lower):
             urgency_label = "high"
             confidence = 0.8
         elif re.search(r"\b(when you can|next week|upcoming|planned|scheduled)\b", text_lower):
@@ -631,9 +626,7 @@ class NLPEngine:
 
         # Extract important single words (not in stopwords and longer than 3 chars)
         words = blob.words
-        important_words = [
-            word for word in words if len(word) > 3 and word.lower() not in self.stop_words
-        ]
+        important_words = [word for word in words if len(word) > 3 and word.lower() not in self.stop_words]
 
         # Add top 10 important words
         keywords.extend(important_words[:10])
@@ -669,9 +662,7 @@ class NLPEngine:
             return ["General"]
 
         # Sort categories by score (descending) and return top 3
-        sorted_categories = sorted(
-            category_scores.keys(), key=lambda cat: category_scores[cat], reverse=True
-        )
+        sorted_categories = sorted(category_scores.keys(), key=lambda cat: category_scores[cat], reverse=True)
         return sorted_categories[:3]
 
     def _calculate_confidence(self, analysis_results: List[Dict[str, Any]]) -> float:
@@ -733,23 +724,20 @@ class NLPEngine:
         # Add sentiment reasoning if significant
         if sentiment and sentiment.get("sentiment") != "neutral":
             parts.append(
-                f"Sentiment analysis detected {sentiment['sentiment']} sentiment"
-                f"{get_method_suffix(sentiment)}"
+                f"Sentiment analysis detected {sentiment['sentiment']} sentiment{get_method_suffix(sentiment)}"
             )
 
         # Add topic reasoning if significant
         if topic and topic.get("topic") != "General":
-            parts.append(f"Identified topic: {topic['topic']}" f"{get_method_suffix(topic)}")
+            parts.append(f"Identified topic: {topic['topic']}{get_method_suffix(topic)}")
 
         # Add intent reasoning if significant
         if intent and intent.get("intent") != "informational":
-            parts.append(f"Detected intent: {intent['intent']}" f"{get_method_suffix(intent)}")
+            parts.append(f"Detected intent: {intent['intent']}{get_method_suffix(intent)}")
 
         # Add urgency reasoning if significant
         if urgency and urgency.get("urgency") != "low":
-            parts.append(
-                f"Assessed urgency level: {urgency['urgency']}" f"{get_method_suffix(urgency)}"
-            )
+            parts.append(f"Assessed urgency level: {urgency['urgency']}{get_method_suffix(urgency)}")
 
         # Return default message if no significant insights
         if not parts:
@@ -783,9 +771,7 @@ class NLPEngine:
 
         # Suspicious patterns
         suspicious_patterns = [r"\b(confidential|private|secret|password|ssn|social security)\b"]
-        suspicious_score = sum(
-            len(re.findall(pattern, text_lower)) for pattern in suspicious_patterns
-        )
+        suspicious_score = sum(len(re.findall(pattern, text_lower)) for pattern in suspicious_patterns)
         if suspicious_score > 0:
             risk_flags.append("sensitive_data")
 
@@ -954,9 +940,7 @@ class NLPEngine:
         try:
             # If NLTK and models are not available, use simple fallback
             if not HAS_NLTK and not HAS_SKLEARN_AND_JOBLIB:  # or specific model checks
-                logger.warning(
-                    "NLTK and scikit-learn/joblib are unavailable. Using simple fallback analysis."
-                )
+                logger.warning("NLTK and scikit-learn/joblib are unavailable. Using simple fallback analysis.")
                 return self._get_simple_fallback_analysis(subject, content)
 
             # Combine subject and content for analysis
@@ -979,9 +963,7 @@ class NLPEngine:
             for name, func in analyses:
                 logger.info(f"Analyzing {name}...")
                 result = func(cleaned_text)
-                logger.info(
-                    f"{name.capitalize()} analysis completed. Method: {result.get('method_used', 'unknown')}"
-                )
+                logger.info(f"{name.capitalize()} analysis completed. Method: {result.get('method_used', 'unknown')}")
                 results[name] = result
 
             # This method is regex-based, no model to load for it currently per its implementation
@@ -1002,9 +984,7 @@ class NLPEngine:
             action_items = self._analyze_action_items(
                 full_text
             )  # Use full_text for action items for broader context before cleaning for other models
-            logger.info(
-                f"Action item analysis completed. Found {len(action_items)} potential actions."
-            )
+            logger.info(f"Action item analysis completed. Found {len(action_items)} potential actions.")
 
             logger.info("Building final analysis response...")
             response = self._build_final_analysis_response(
@@ -1053,14 +1033,10 @@ class NLPEngine:
             if r and "confidence" in r
         ]
         overall_confidence = (
-            self._calculate_confidence(analysis_results_for_confidence)
-            if analysis_results_for_confidence
-            else 0.5
+            self._calculate_confidence(analysis_results_for_confidence) if analysis_results_for_confidence else 0.5
         )
 
-        reasoning = self._generate_reasoning(
-            sentiment_analysis, topic_analysis, intent_analysis, urgency_analysis
-        )
+        reasoning = self._generate_reasoning(sentiment_analysis, topic_analysis, intent_analysis, urgency_analysis)
 
         validation_input = {
             "sentiment": sentiment_analysis,
@@ -1073,16 +1049,10 @@ class NLPEngine:
 
         # Determine default values for primary analysis fields
         final_topic = topic_analysis.get("topic", "General") if topic_analysis else "General"
-        final_sentiment = (
-            sentiment_analysis.get("sentiment", "neutral") if sentiment_analysis else "neutral"
-        )
-        final_intent = (
-            intent_analysis.get("intent", "informational") if intent_analysis else "informational"
-        )
+        final_sentiment = sentiment_analysis.get("sentiment", "neutral") if sentiment_analysis else "neutral"
+        final_intent = intent_analysis.get("intent", "informational") if intent_analysis else "informational"
         final_urgency = urgency_analysis.get("urgency", "low") if urgency_analysis else "low"
-        final_is_important = (
-            importance_analysis.get("is_important", False) if importance_analysis else False
-        )
+        final_is_important = importance_analysis.get("is_important", False) if importance_analysis else False
 
         suggested_labels = self._suggest_labels(categories, final_urgency)
 
@@ -1119,9 +1089,7 @@ def main():
         format="%(asctime)s - %(levelname)s - %(name)s - %(message)s",
     )
 
-    parser = argparse.ArgumentParser(
-        description="Enhanced NLP Engine for Gmail AI Email Management"
-    )
+    parser = argparse.ArgumentParser(description="Enhanced NLP Engine for Gmail AI Email Management")
     parser.add_argument("--analyze-email", action="store_true", help="Perform email analysis.")
     parser.add_argument("--subject", type=str, default="", help="Subject of the email.")
     parser.add_argument("--content", type=str, default="", help="Content of the email.")
@@ -1220,9 +1188,7 @@ def _perform_email_analysis_cli(engine: NLPEngine, subject: str, content: str, o
         print(json.dumps(result, indent=2))  # Pretty print for text output
 
 
-def _handle_backward_compatible_cli_invocation(
-    engine: NLPEngine, args: argparse.Namespace, argv: List[str]
-) -> bool:
+def _handle_backward_compatible_cli_invocation(engine: NLPEngine, args: argparse.Namespace, argv: List[str]) -> bool:
     """
     Handles backward compatible CLI invocation using positional arguments.
     Returns True if invocation was handled, False otherwise.

@@ -33,9 +33,7 @@ class AnalyzeHistoryCommand(Command):
         Args:
             parser: ArgumentParser subparser for this command
         """
-        parser.add_argument(
-            "--branch", default="HEAD", help="Branch to analyze (default: HEAD)"
-        )
+        parser.add_argument("--branch", default="HEAD", help="Branch to analyze (default: HEAD)")
         parser.add_argument("--output", help="Output file for report")
 
     def get_dependencies(self) -> Dict[str, Any]:

@@ -33,12 +33,8 @@ class PlanRebaseCommand(Command):
         Args:
             parser: ArgumentParser subparser for this command
         """
-        parser.add_argument(
-            "--branch", default="HEAD", help="Branch to plan rebase for (default: HEAD)"
-        )
-        parser.add_argument(
-            "--output", required=True, help="Output file for rebase plan"
-        )
+        parser.add_argument("--branch", default="HEAD", help="Branch to plan rebase for (default: HEAD)")
+        parser.add_argument("--output", required=True, help="Output file for rebase plan")
 
     def get_dependencies(self) -> Dict[str, Any]:
         """

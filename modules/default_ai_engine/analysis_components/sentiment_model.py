@@ -64,11 +64,7 @@ class SentimentModel:
             prediction = self.model.predict([text])[0]
             probabilities = self.model.predict_proba([text])[0]
             confidence = float(max(probabilities))
-            polarity = (
-                confidence
-                if prediction == "positive"
-                else -confidence if prediction == "negative" else 0.0
-            )
+            polarity = confidence if prediction == "positive" else -confidence if prediction == "negative" else 0.0
             return {
                 "sentiment": str(prediction),
                 "polarity": polarity,

@@ -134,7 +134,12 @@ class GmailMetadataExtractor:
             "CATEGORY_UPDATES": "updates",
             "CATEGORY_FORUMS": "forums",
         }
-        self.priority_headers = ["X-Priority", "Priority", "Importance", "X-MSMail-Priority"]
+        self.priority_headers = [
+            "X-Priority",
+            "Priority",
+            "Importance",
+            "X-MSMail-Priority",
+        ]
         self.security_headers = [
             "Authentication-Results",
             "Received-SPF",
@@ -238,9 +243,7 @@ class GmailMetadataExtractor:
                 raw_email=gmail_message.get("raw"),
             )
         except Exception as e:
-            self.logger.error(
-                f"Error extracting metadata from message {gmail_message.get('id', 'unknown')}: {e}"
-            )
+            self.logger.error(f"Error extracting metadata from message {gmail_message.get('id', 'unknown')}: {e}")
             return self._create_minimal_metadata(gmail_message)
 
     def _extract_headers(self, headers_list: List[Dict[str, str]]) -> Dict[str, str]:
@@ -256,9 +259,7 @@ class GmailMetadataExtractor:
             mime_type = part.get("mimeType", "")
             if "data" in (body := part.get("body", {})):
                 try:
-                    decoded = base64.urlsafe_b64decode(body["data"] + "===").decode(
-                        "utf-8", errors="ignore"
-                    )
+                    decoded = base64.urlsafe_b64decode(body["data"] + "===").decode("utf-8", errors="ignore")
                     if mime_type == "text/plain":
                         body_plain.append(decoded)
                     elif mime_type == "text/html":
@@ -306,20 +307,19 @@ class GmailMetadataExtractor:
                 return category_mappings[label_id]
         return "primary" if "INBOX" in label_ids else None
 
-    def _extract_importance_markers(
-        self, headers: Dict[str, str], label_ids: List[str]
-    ) -> Dict[str, Any]:
+    def _extract_importance_markers(self, headers: Dict[str, str], label_ids: List[str]) -> Dict[str, Any]:
         """Extracts various importance and priority markers."""
-        markers = {"is_important": "IMPORTANT" in label_ids, "is_starred": "STARRED" in label_ids}
+        markers = {
+            "is_important": "IMPORTANT" in label_ids,
+            "is_starred": "STARRED" in label_ids,
+        }
         for header in self.priority_headers:
             if header in headers:
                 markers["priority_header"] = headers[header]
                 break
         return markers
 
-    def _extract_thread_info(
-        self, headers: Dict[str, str], gmail_message: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    def _extract_thread_info(self, headers: Dict[str, str], gmail_message: Dict[str, Any]) -> Dict[str, Any]:
         """Extracts conversation thread-related information."""
         return {
             "thread_id": gmail_message.get("threadId", ""),
@@ -332,9 +332,7 @@ class GmailMetadataExtractor:
         """Extracts a list of Message-IDs from the 'References' header."""
         return re.findall(r"<([^>]+)>", references_header) if references_header else []
 
-    def _extract_security_status(
-        self, headers: Dict[str, str]
-    ) -> tuple[Optional[str], Optional[str], Optional[str]]:
+    def _extract_security_status(self, headers: Dict[str, str]) -> tuple[Optional[str], Optional[str], Optional[str]]:
         """Extracts SPF, DKIM, and DMARC status from authentication headers."""
         auth_results = headers.get("Authentication-Results", "")
         spf = re.search(r"spf=(\w+)", auth_results, re.IGNORECASE)
@@ -391,11 +389,7 @@ class GmailMetadataExtractor:
 
     def _extract_email_addresses(self, addresses_header: str) -> List[str]:
         """Extracts multiple email addresses from a header string."""
-        return [
-            self._extract_email_address(addr.strip())
-            for addr in (addresses_header or "").split(",")
-            if addr
-        ]
+        return [self._extract_email_address(addr.strip()) for addr in (addresses_header or "").split(",") if addr]
 
     def _extract_custom_headers(self, headers: Dict[str, str]) -> Dict[str, str]:
         """Extracts custom headers (those starting with 'X-')."""

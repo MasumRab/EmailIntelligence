@@ -21,9 +21,9 @@ router = APIRouter()
 @router.get("/", response_model=List[EmailResponse])
 @log_performance
 async def get_emails(
-current_user: str = Depends(get_current_active_user),
-db: DataSource = Depends(get_data_source),
-category: str = Query(None),
+    current_user: str = Depends(get_current_active_user),
+    db: DataSource = Depends(get_data_source),
+    category: str = Query(None),
     search: str = Query(None),
 ):
     """
@@ -44,7 +44,11 @@ category: str = Query(None),
 
 @router.get("/{email_id}", response_model=EmailResponse)
 @log_performance
-async def get_email(email_id: int, current_user: str = Depends(get_current_active_user), db: DataSource = Depends(get_data_source)):
+async def get_email(
+    email_id: int,
+    current_user: str = Depends(get_current_active_user),
+    db: DataSource = Depends(get_data_source),
+):
     """
     Retrieve a single email by its ID.
     """
@@ -60,7 +64,11 @@ async def get_email(email_id: int, current_user: str = Depends(get_current_activ
 
 @router.post("/", response_model=EmailResponse)
 @log_performance
-async def create_email(email: EmailCreate, current_user: str = Depends(get_current_active_user), db: DataSource = Depends(get_data_source)):
+async def create_email(
+    email: EmailCreate,
+    current_user: str = Depends(get_current_active_user),
+    db: DataSource = Depends(get_data_source),
+):
     """
     Create a new email.
     """
@@ -76,7 +84,10 @@ async def create_email(email: EmailCreate, current_user: str = Depends(get_curre
 @router.put("/{email_id}", response_model=EmailResponse)
 @log_performance
 async def update_email(
-email_id: int, email_update: EmailUpdate, current_user: str = Depends(get_current_active_user), db: DataSource = Depends(get_data_source)
+    email_id: int,
+    email_update: EmailUpdate,
+    current_user: str = Depends(get_current_active_user),
+    db: DataSource = Depends(get_data_source),
 ):
     """
     Update an existing email.

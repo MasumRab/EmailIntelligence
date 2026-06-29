@@ -76,9 +76,7 @@ class ProfileStorage:
             logger.error(f"Invalid profile file {profile_file}: {e}")
             return None
 
-    def save_profile_to_file(
-        self, profile: ContextProfile, profile_file: Optional[Path] = None
-    ) -> bool:
+    def save_profile_to_file(self, profile: ContextProfile, profile_file: Optional[Path] = None) -> bool:
         """Save a context profile to a JSON file.
 
         Args:

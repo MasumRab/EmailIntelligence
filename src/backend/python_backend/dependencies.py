@@ -9,6 +9,7 @@ Manages service dependencies and provides them to route handlers
 import logging
 from typing import Optional
 from fastapi import Depends
+
 # Updated to use the new src architecture where available
 from backend.python_backend.services.email_service import EmailService
 from backend.python_backend.services.category_service import CategoryService
@@ -50,7 +51,13 @@ _gmail_service_instance: Optional["GmailAIService"] = None
 
 async def initialize_services():
     """Initialize all singleton services. This should be called on application startup."""
-    global _model_manager_instance, _ai_engine_instance, _filter_manager_instance, _workflow_engine_instance, _plugin_manager_instance, _gmail_service_instance
+    global \
+        _model_manager_instance, \
+        _ai_engine_instance, \
+        _filter_manager_instance, \
+        _workflow_engine_instance, \
+        _plugin_manager_instance, \
+        _gmail_service_instance
 
     db = await get_db()
 
@@ -69,7 +76,9 @@ async def initialize_services():
     if _workflow_engine_instance is None:
         _workflow_engine_instance = WorkflowEngine()
         await _workflow_engine_instance.discover_workflows(
-            ai_engine=_ai_engine_instance, filter_manager=_filter_manager_instance, db=db
+            ai_engine=_ai_engine_instance,
+            filter_manager=_filter_manager_instance,
+            db=db,
         )
 
     # Initialize Plugin Manager, which may need other managers
@@ -89,9 +98,7 @@ async def initialize_services():
     # Initialize services that depend on the core managers
     if _gmail_service_instance is None:
         if GmailAIService:
-            _gmail_service_instance = GmailAIService(
-                db_manager=db, advanced_ai_engine=_ai_engine_instance
-            )
+            _gmail_service_instance = GmailAIService(db_manager=db, advanced_ai_engine=_ai_engine_instance)
         else:
             logger.warning("GmailAIService not available, Gmail integration will be disabled.")
 

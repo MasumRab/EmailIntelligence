@@ -4,7 +4,6 @@ from typing import List, Optional
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
 
-from backend.node_engine.workflow_engine import WorkflowEngine
 from src.core.auth import get_current_active_user
 
 from .dependencies import get_email_service, get_workflow_engine
@@ -125,9 +124,7 @@ async def create_email(
             error_detail=str(e),
         )
         logger.error(json.dumps(log_data))
-        raise HTTPException(
-            status_code=500, detail="Failed to create email due to an unexpected error."
-        )
+        raise HTTPException(status_code=500, detail="Failed to create email due to an unexpected error.")
 
 
 @router.put("/api/emails/{email_id}", response_model=EmailResponse)  # Changed to EmailResponse

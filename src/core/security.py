@@ -62,9 +62,7 @@ class SecurityValidator:
     """Validates security requirements for operations"""
 
     @staticmethod
-    def validate_access(
-        context: SecurityContext, resource: str, permission: Permission
-    ) -> bool:
+    def validate_access(context: SecurityContext, resource: str, permission: Permission) -> bool:
         """
         Validate if a security context has permission to access a resource
         """
@@ -99,9 +97,7 @@ class SecurityValidator:
         return True
 
 
-def validate_path_safety(
-    path: Union[str, pathlib.Path], base_dir: Optional[Union[str, pathlib.Path]] = None
-) -> bool:
+def validate_path_safety(path: Union[str, pathlib.Path], base_dir: Optional[Union[str, pathlib.Path]] = None) -> bool:
     """
     Validate that a path is safe and doesn't contain directory traversal attempts.
 
@@ -114,26 +110,26 @@ def validate_path_safety(
     """
     if base_dir is None:
         # Without a base_dir, perform strict validation of the path structure
-        str_path = str(path).replace('\\', '/')
+        str_path = str(path).replace("\\", "/")
 
         # Check for dangerous characters (cross-platform)
         if re.search(r'[<>"|?*]', str_path):
             return False
 
         # Reject UNC-like paths (starting with //)
-        if str_path.startswith('//'):
-             return False
+        if str_path.startswith("//"):
+            return False
 
         # Split path into components to check for traversal and dot segments
-        parts = str_path.split('/')
+        parts = str_path.split("/")
 
         # Check for traversal components
-        if '..' in parts:
+        if ".." in parts:
             return False
 
         # Reject absolute paths containing '.' segments (e.g. /./etc/passwd)
         # This is often used for obfuscation.
-        if str_path.startswith('/') and '.' in parts:
+        if str_path.startswith("/") and "." in parts:
             return False
 
         return True
@@ -168,7 +164,6 @@ def sanitize_path(
     return (base_path / path).resolve()
 
 
-
 class DataSanitizer:
     """Sanitizes data to prevent injection and other security issues"""
 
@@ -183,9 +178,7 @@ class DataSanitizer:
         elif isinstance(data, dict):
             sanitized_dict = {}
             for key, value in data.items():
-                sanitized_dict[DataSanitizer.sanitize_input(key)] = (
-                    DataSanitizer.sanitize_input(value)
-                )
+                sanitized_dict[DataSanitizer.sanitize_input(key)] = DataSanitizer.sanitize_input(value)
             return sanitized_dict
         elif isinstance(data, list):
             return [DataSanitizer.sanitize_input(item) for item in data]
@@ -208,11 +201,11 @@ class DataSanitizer:
                 # 2. Value part: Matches either quoted string (simple) or unquoted characters until separator
                 pattern = (
                     rf'((?:["\']?[\w-]*{re.escape(key)}[\w-]*["\']?)\s*:\s*)'  # Capture group 1: Key + colon
-                    r'(?:'
-                    r'(?:"[^"]*")|'      # Double quoted value
-                    r"(?:'[^']*')|"      # Single quoted value
-                    r'[^,\s}]+'          # Unquoted value
-                    r')'
+                    r"(?:"
+                    r'(?:"[^"]*")|'  # Double quoted value
+                    r"(?:'[^']*')|"  # Single quoted value
+                    r"[^,\s}]+"  # Unquoted value
+                    r")"
                 )
 
                 data = re.sub(
@@ -226,10 +219,7 @@ class DataSanitizer:
             sanitized_dict = {}
             for key, value in data.items():
                 # Redact sensitive fields
-                if any(
-                    sensitive in key.lower()
-                    for sensitive in ["password", "token", "key", "secret"]
-                ):
+                if any(sensitive in key.lower() for sensitive in ["password", "token", "key", "secret"]):
                     sanitized_dict[key] = "[REDACTED]"
                 else:
                     sanitized_dict[key] = DataSanitizer.sanitize_output(value)
@@ -282,15 +272,11 @@ class AuditLogger:
             "node_type": node_type,
             "execution_id": str(uuid4()),
             "ip_address": context.ip_address,
-            "input_keys": list(inputs.keys())
-            if isinstance(inputs, dict)
-            else "unknown",
+            "input_keys": list(inputs.keys()) if isinstance(inputs, dict) else "unknown",
         }
         self.logger.info(f"EXECUTION: {json.dumps(log_entry)}")
 
-    def log_security_violation(
-        self, context: SecurityContext, violation_type: str, details: str
-    ):
+    def log_security_violation(self, context: SecurityContext, violation_type: str, details: str):
         """Log a security violation"""
         log_entry = {
             "timestamp": time.time(),
@@ -317,9 +303,7 @@ class ExecutionSandbox:
         # Log the execution attempt
         self.audit_logger.log_execution(
             context=self.context,
-            node_type=execute_func.__name__
-            if hasattr(execute_func, "__name__")
-            else "unknown",
+            node_type=execute_func.__name__ if hasattr(execute_func, "__name__") else "unknown",
             inputs=kwargs,
             outputs={},
         )
@@ -335,9 +319,7 @@ class ExecutionSandbox:
 
         # Sanitize inputs
         sanitized_args = [DataSanitizer.sanitize_input(arg) for arg in args]
-        sanitized_kwargs = {
-            k: DataSanitizer.sanitize_input(v) for k, v in kwargs.items()
-        }
+        sanitized_kwargs = {k: DataSanitizer.sanitize_input(v) for k, v in kwargs.items()}
 
         try:
             # Execute the function in a controlled environment
@@ -365,9 +347,7 @@ class SecurityManager:
         self.sanitizer = DataSanitizer()
         self.audit_logger = AuditLogger()
         self.active_sessions: Dict[str, SecurityContext] = {}
-        self.secret_key = secrets.token_urlsafe(
-            32
-        )  # In production, load from secure storage
+        self.secret_key = secrets.token_urlsafe(32)  # In production, load from secure storage
 
     def create_session(
         self,
@@ -414,9 +394,7 @@ class SecurityManager:
     def generate_signed_token(self, data: Dict[str, Any]) -> str:
         """Generate a signed token for secure data transmission"""
         json_data = json.dumps(data, sort_keys=True, separators=(",", ":"))
-        signature = hmac.new(
-            self.secret_key.encode(), json_data.encode(), hashlib.sha256
-        ).hexdigest()
+        signature = hmac.new(self.secret_key.encode(), json_data.encode(), hashlib.sha256).hexdigest()
         return f"{json_data}.{signature}"
 
     def verify_signed_token(self, token: str) -> Optional[Dict[str, Any]]:
@@ -426,9 +404,7 @@ class SecurityManager:
 
         try:
             json_part, signature_part = token.rsplit(".", 1)
-            expected_signature = hmac.new(
-                self.secret_key.encode(), json_part.encode(), hashlib.sha256
-            ).hexdigest()
+            expected_signature = hmac.new(self.secret_key.encode(), json_part.encode(), hashlib.sha256).hexdigest()
 
             if not hmac.compare_digest(expected_signature, signature_part):
                 return None
@@ -440,11 +416,7 @@ class SecurityManager:
     def cleanup_expired_sessions(self):
         """Remove expired sessions from memory"""
         current_time = time.time()
-        expired_tokens = [
-            token
-            for token, context in self.active_sessions.items()
-            if current_time > context.expires_at
-        ]
+        expired_tokens = [token for token, context in self.active_sessions.items() if current_time > context.expires_at]
 
         for token in expired_tokens:
             del self.active_sessions[token]
@@ -508,9 +480,7 @@ class PathValidator:
     """Secure path validation to prevent directory traversal attacks"""
 
     @staticmethod
-    def is_safe_path(
-        base_path: Union[str, Path], requested_path: Union[str, Path]
-    ) -> bool:
+    def is_safe_path(base_path: Union[str, Path], requested_path: Union[str, Path]) -> bool:
         """
         Check if a requested path is safe (doesn't escape the base directory)
 
@@ -532,9 +502,7 @@ class PathValidator:
             return False
 
     @staticmethod
-    def validate_and_resolve_db_path(
-        db_path: Union[str, Path], allowed_dir: Optional[Union[str, Path]] = None
-    ) -> Path:
+    def validate_and_resolve_db_path(db_path: Union[str, Path], allowed_dir: Optional[Union[str, Path]] = None) -> Path:
         """
         Validate and resolve a database path with security checks
 
@@ -571,9 +539,7 @@ class PathValidator:
         if allowed_dir:
             allowed_dir = Path(allowed_dir).resolve()
             if not resolved_path.is_relative_to(allowed_dir):
-                raise ValueError(
-                    f"Database path escapes allowed directory: {allowed_dir}"
-                )
+                raise ValueError(f"Database path escapes allowed directory: {allowed_dir}")
 
         # Additional security checks
         if any(part.startswith(".") for part in resolved_path.parts):
@@ -607,9 +573,7 @@ class PathValidator:
         return sanitized
 
 
-def secure_path_join(
-    base_dir: Union[str, pathlib.Path], *paths: Union[str, pathlib.Path]
-) -> Optional[pathlib.Path]:
+def secure_path_join(base_dir: Union[str, pathlib.Path], *paths: Union[str, pathlib.Path]) -> Optional[pathlib.Path]:
     """
     Securely join paths, preventing directory traversal attacks.
 

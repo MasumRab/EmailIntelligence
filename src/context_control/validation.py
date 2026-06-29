@@ -49,9 +49,7 @@ class ContextValidator:
                 errors.append(f"Invalid file pattern: '{pattern}'")
 
         # Check for conflicting patterns
-        conflicts = self._find_conflicting_patterns(
-            profile.allowed_files, profile.blocked_files
-        )
+        conflicts = self._find_conflicting_patterns(profile.allowed_files, profile.blocked_files)
         if conflicts:
             errors.append(f"Conflicting file patterns: {conflicts}")
 
@@ -96,9 +94,7 @@ class ContextValidator:
             "generic",
         ]
         if config.project_type not in valid_types:
-            errors.append(
-                f"Invalid project type: '{config.project_type}'. Must be one of {valid_types}"
-            )
+            errors.append(f"Invalid project type: '{config.project_type}'. Must be one of {valid_types}")
 
         # Validate context length
         if config.max_context_length < 100:
@@ -110,9 +106,7 @@ class ContextValidator:
         if not config.preferred_models:
             warnings.append("No preferred models specified")
         else:
-            invalid_models = [
-                m for m in config.preferred_models if not self._is_valid_model_name(m)
-            ]
+            invalid_models = [m for m in config.preferred_models if not self._is_valid_model_name(m)]
             if invalid_models:
                 errors.append(f"Invalid model names: {invalid_models}")
 
@@ -120,13 +114,8 @@ class ContextValidator:
         if config.project_type == "data" and not config.enable_file_writing:
             warnings.append("Data projects typically need file writing enabled")
 
-        if (
-            config.project_type in ["python", "javascript"]
-            and not config.enable_code_execution
-        ):
-            warnings.append(
-                f"{config.project_type.capitalize()} projects typically need code execution enabled"
-            )
+        if config.project_type in ["python", "javascript"] and not config.enable_code_execution:
+            warnings.append(f"{config.project_type.capitalize()} projects typically need code execution enabled")
 
         return ContextValidationResult(
             is_valid=len(errors) == 0,
@@ -199,9 +188,7 @@ class ContextValidator:
             errors.append(f"Invalid environment type: '{context.environment_type}'")
 
         # Validate file permissions
-        conflicts = self._find_conflicting_patterns(
-            context.accessible_files, context.restricted_files
-        )
+        conflicts = self._find_conflicting_patterns(context.accessible_files, context.restricted_files)
         if conflicts:
             errors.append(f"Conflicting file permissions: {conflicts}")
 
@@ -237,16 +224,12 @@ class ContextValidator:
 
         # Check profile ID match
         if profile.id != context.profile_id:
-            errors.append(
-                f"Profile ID mismatch: profile='{profile.id}', context='{context.profile_id}'"
-            )
+            errors.append(f"Profile ID mismatch: profile='{profile.id}', context='{context.profile_id}'")
 
         # Check branch compatibility
         if context.branch_name:
             if not self._branch_matches_profile(context.branch_name, profile):
-                errors.append(
-                    f"Branch '{context.branch_name}' not compatible with profile '{profile.id}'"
-                )
+                errors.append(f"Branch '{context.branch_name}' not compatible with profile '{profile.id}'")
 
         # Check file permissions alignment
         profile_allowed = set(profile.allowed_files)
@@ -257,16 +240,12 @@ class ContextValidator:
         # Context should not allow more than profile allows
         extra_allowed = context_allowed - profile_allowed
         if extra_allowed:
-            errors.append(
-                f"Context allows files not permitted by profile: {extra_allowed}"
-            )
+            errors.append(f"Context allows files not permitted by profile: {extra_allowed}")
 
         # Context should not block less than profile blocks
         missing_blocks = profile_blocked - context_blocked
         if missing_blocks:
-            warnings.append(
-                f"Context does not block files blocked by profile: {missing_blocks}"
-            )
+            warnings.append(f"Context does not block files blocked by profile: {missing_blocks}")
 
         return ContextValidationResult(
             is_valid=len(errors) == 0,
@@ -304,9 +283,7 @@ class ContextValidator:
             return False
 
         # Allow glob patterns with common branch naming
-        allowed_chars = set(
-            "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789._-/*?"
-        )
+        allowed_chars = set("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789._-/*?")
         return all(c in allowed_chars for c in pattern)
 
     def _is_valid_file_pattern(self, pattern: str) -> bool:
@@ -322,14 +299,10 @@ class ContextValidator:
             return False
 
         # Allow common glob patterns
-        allowed_chars = set(
-            "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789._-/*?[]{}"
-        )
+        allowed_chars = set("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789._-/*?[]{}")
         return all(c in allowed_chars for c in pattern)
 
-    def _find_conflicting_patterns(
-        self, allowed: List[str], blocked: List[str]
-    ) -> List[str]:
+    def _find_conflicting_patterns(self, allowed: List[str], blocked: List[str]) -> List[str]:
         """Find patterns that appear in both allowed and blocked lists.
 
         Args:
@@ -363,9 +336,7 @@ class ContextValidator:
 
         return errors
 
-    def _branch_matches_profile(
-        self, branch_name: str, profile: ContextProfile
-    ) -> bool:
+    def _branch_matches_profile(self, branch_name: str, profile: ContextProfile) -> bool:
         """Check if a branch matches a profile's patterns.
 
         Args:

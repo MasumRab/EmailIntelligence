@@ -76,10 +76,7 @@ class EmailFilterNode(ProcessingNode):
             # Example: filter by subject contains
             if include and "subject_contains" in criteria:
                 subject_filter = criteria["subject_contains"]
-                if (
-                    subject_filter
-                    and subject_filter.lower() not in email.get("subject", "").lower()
-                ):
+                if subject_filter and subject_filter.lower() not in email.get("subject", "").lower():
                     include = False
 
             # Example: filter by minimum sentiment

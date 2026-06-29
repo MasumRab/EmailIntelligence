@@ -23,7 +23,7 @@ from .enhanced_error_reporting import (
     log_error,
     ErrorSeverity,
     ErrorCategory,
-    create_error_context
+    create_error_context,
 )
 
 logger = logging.getLogger(__name__)
@@ -104,6 +104,7 @@ class _EmailContext:
     Internal context helper to avoid redundant processing of email fields
     during filter application loop.
     """
+
     email: Dict[str, Any]
     sender_domain: str
     subject_lower: str
@@ -179,13 +180,13 @@ class SmartFilterManager:
                     error_context = create_error_context(
                         component="SmartFilterManager",
                         operation="_db_execute",
-                        additional_context={"query": query[:100], "attempt": attempt}
+                        additional_context={"query": query[:100], "attempt": attempt},
                     )
                     error_id = log_error(
                         e,
                         severity=ErrorSeverity.ERROR,
                         category=ErrorCategory.INTEGRATION,
-                        context=error_context
+                        context=error_context,
                     )
                     self.logger.error(
                         f"Database error after {retries} attempts: {e} with query: {query[:100]}. Error ID: {error_id}"
@@ -195,13 +196,13 @@ class SmartFilterManager:
                 error_context = create_error_context(
                     component="SmartFilterManager",
                     operation="_db_execute",
-                    additional_context={"query": query[:100]}
+                    additional_context={"query": query[:100]},
                 )
                 error_id = log_error(
                     e,
                     severity=ErrorSeverity.ERROR,
                     category=ErrorCategory.INTEGRATION,
-                    context=error_context
+                    context=error_context,
                 )
                 self.logger.error(f"Database error: {e} with query: {query[:100]}. Error ID: {error_id}")
                 raise
@@ -227,13 +228,17 @@ class SmartFilterManager:
                     error_context = create_error_context(
                         component="SmartFilterManager",
                         operation="_db_executemany",
-                        additional_context={"query": query[:100], "attempt": attempt, "batch_size": len(params_list)}
+                        additional_context={
+                            "query": query[:100],
+                            "attempt": attempt,
+                            "batch_size": len(params_list),
+                        },
                     )
                     error_id = log_error(
                         e,
                         severity=ErrorSeverity.ERROR,
                         category=ErrorCategory.INTEGRATION,
-                        context=error_context
+                        context=error_context,
                     )
                     self.logger.error(
                         f"Database error after {retries} attempts: {e} with query: {query[:100]}. Error ID: {error_id}"
@@ -243,13 +248,16 @@ class SmartFilterManager:
                 error_context = create_error_context(
                     component="SmartFilterManager",
                     operation="_db_executemany",
-                    additional_context={"query": query[:100], "batch_size": len(params_list)}
+                    additional_context={
+                        "query": query[:100],
+                        "batch_size": len(params_list),
+                    },
                 )
                 error_id = log_error(
                     e,
                     severity=ErrorSeverity.ERROR,
                     category=ErrorCategory.INTEGRATION,
-                    context=error_context
+                    context=error_context,
                 )
                 self.logger.error(f"Database error: {e} with query: {query[:100]}. Error ID: {error_id}")
                 raise
@@ -265,13 +273,13 @@ class SmartFilterManager:
             error_context = create_error_context(
                 component="SmartFilterManager",
                 operation="_db_fetchone",
-                additional_context={"query": query[:100]}
+                additional_context={"query": query[:100]},
             )
             error_id = log_error(
                 e,
                 severity=ErrorSeverity.ERROR,
                 category=ErrorCategory.INTEGRATION,
-                context=error_context
+                context=error_context,
             )
             self.logger.error(f"Database error on fetchone: {e}. Error ID: {error_id}")
             return None
@@ -287,13 +295,13 @@ class SmartFilterManager:
             error_context = create_error_context(
                 component="SmartFilterManager",
                 operation="_db_fetchall",
-                additional_context={"query": query[:100]}
+                additional_context={"query": query[:100]},
             )
             error_id = log_error(
                 e,
                 severity=ErrorSeverity.ERROR,
                 category=ErrorCategory.INTEGRATION,
-                context=error_context
+                context=error_context,
             )
             self.logger.error(f"Database error on fetchall: {e}. Error ID: {error_id}")
             return []
@@ -366,7 +374,11 @@ class SmartFilterManager:
 
     def _load_pruning_criteria(self) -> Dict[str, Any]:
         """Loads the criteria used for pruning ineffective filters."""
-        return {"effectiveness_threshold": 0.3, "usage_threshold": 10, "age_threshold_days": 90}
+        return {
+            "effectiveness_threshold": 0.3,
+            "usage_threshold": 10,
+            "age_threshold_days": 90,
+        }
 
     @log_performance(operation="create_intelligent_filters")
     async def create_intelligent_filters(self, email_samples: List[Dict[str, Any]]) -> List[EmailFilter]:
@@ -413,7 +425,11 @@ class SmartFilterManager:
 
     def _analyze_email_patterns(self, email_samples: List[Dict[str, Any]]) -> Dict[str, Any]:
         """Aggregates patterns found across a list of email samples."""
-        aggregated = {"sender_domains": Counter(), "subject_keywords": Counter(), "content_keywords": Counter()}
+        aggregated = {
+            "sender_domains": Counter(),
+            "subject_keywords": Counter(),
+            "content_keywords": Counter(),
+        }
         for email in email_samples:
             patterns = self._extract_patterns_from_single_email(email)
             if "sender_domain" in patterns:
@@ -607,7 +623,9 @@ class SmartFilterManager:
 
         return "keep"
 
-    async def _apply_filter_to_email(self, filter_obj: EmailFilter, context: Union[Dict[str, Any], '_EmailContext']) -> bool:
+    async def _apply_filter_to_email(
+        self, filter_obj: EmailFilter, context: Union[Dict[str, Any], "_EmailContext"]
+    ) -> bool:
         """
         Applies a single filter's criteria to an email.
 
@@ -625,7 +643,7 @@ class SmartFilterManager:
                 sender_domain=self._extract_domain(sender_email),
                 subject_lower=context.get("subject", "").lower(),
                 content_lower=context.get("content", context.get("body", "")).lower(),
-                sender_lower=sender_email.lower()
+                sender_lower=sender_email.lower(),
             )
         else:
             ctx = context
@@ -655,9 +673,7 @@ class SmartFilterManager:
 
     async def _save_filter_async(self, filter_obj: EmailFilter):
         """Saves a filter to the database asynchronously."""
-        query = (
-            "INSERT OR REPLACE INTO email_filters VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
-        )
+        query = "INSERT OR REPLACE INTO email_filters VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
         params = (
             filter_obj.filter_id,
             filter_obj.name,
@@ -690,9 +706,7 @@ class SmartFilterManager:
         if cached_result is not None:
             return cached_result
 
-        rows = self._db_fetchall(
-            "SELECT * FROM email_filters WHERE is_active = 1 ORDER BY priority DESC"
-        )
+        rows = self._db_fetchall("SELECT * FROM email_filters WHERE is_active = 1 ORDER BY priority DESC")
         filters = [
             EmailFilter(
                 filter_id=row["filter_id"],
@@ -740,7 +754,7 @@ class SmartFilterManager:
             sender_domain=self._extract_domain(sender_email),
             subject_lower=email_data.get("subject", "").lower(),
             content_lower=email_data.get("content", email_data.get("body", "")).lower(),
-            sender_lower=sender_email.lower()
+            sender_lower=sender_email.lower(),
         )
 
         # Get active filters sorted by priority
@@ -753,11 +767,13 @@ class SmartFilterManager:
                 if await self._apply_filter_to_email(filter_obj, email_context):
                     matched_filters.append(filter_obj)
                     # Record that this filter matched
-                    summary["filters_matched"].append({
-                        "filter_id": filter_obj.filter_id,
-                        "name": filter_obj.name,
-                        "priority": filter_obj.priority
-                    })
+                    summary["filters_matched"].append(
+                        {
+                            "filter_id": filter_obj.filter_id,
+                            "name": filter_obj.name,
+                            "priority": filter_obj.priority,
+                        }
+                    )
 
                     # Execute actions
                     for action_key, action_value in filter_obj.actions.items():
@@ -775,15 +791,20 @@ class SmartFilterManager:
                 error_context = create_error_context(
                     component="SmartFilterManager",
                     operation="apply_filters_to_email",
-                    additional_context={"filter_id": filter_obj.filter_id, "email_id": email_data.get("id")}
+                    additional_context={
+                        "filter_id": filter_obj.filter_id,
+                        "email_id": email_data.get("id"),
+                    },
                 )
                 error_id = log_error(
                     e,
                     severity=ErrorSeverity.WARNING,
                     category=ErrorCategory.INTEGRATION,
-                    context=error_context
+                    context=error_context,
                 )
-                self.logger.warning(f"Error applying filter {filter_obj.filter_id} to email {email_data.get('id')}: {e}. Error ID: {error_id}")
+                self.logger.warning(
+                    f"Error applying filter {filter_obj.filter_id} to email {email_data.get('id')}: {e}. Error ID: {error_id}"
+                )
 
         # Batch update usage statistics for all matched filters
         if matched_filters:
@@ -862,9 +883,7 @@ class SmartFilterManager:
         if cached_result is not None:
             return cached_result
 
-        row = self._db_fetchone(
-            "SELECT * FROM email_filters WHERE filter_id = ?", (filter_id,)
-        )
+        row = self._db_fetchone("SELECT * FROM email_filters WHERE filter_id = ?", (filter_id,))
 
         if not row:
             return None
@@ -954,7 +973,7 @@ class SmartFilterManager:
         # This looks for filters that have actions related to the category
         rows = self._db_fetchall(
             "SELECT * FROM email_filters WHERE actions LIKE ? AND is_active = 1",
-            (f'%{category}%',)
+            (f"%{category}%",),
         )
 
         filters = [

@@ -58,9 +58,7 @@ class PluginManager:
 
     def __init__(self, plugins_dir: Path = None, marketplace_url: str = None):
         self.plugins_dir = plugins_dir or Path("plugins")
-        self.marketplace_url = (
-            marketplace_url or "https://api.emailintelligence.plugins/marketplace"
-        )
+        self.marketplace_url = marketplace_url or "https://api.emailintelligence.plugins/marketplace"
         self.registry = PluginRegistry(plugins_dir)
         self._marketplace_cache: Dict[str, PluginMarketplaceEntry] = {}
         self._marketplace_cache_time: float = 0
@@ -145,9 +143,7 @@ class PluginManager:
             logger.error(f"Failed to uninstall plugin {plugin_id}: {e}")
             return False
 
-    async def load_plugin(
-        self, plugin_id: str, config: Dict[str, Any] = None
-    ) -> Optional[PluginInstance]:
+    async def load_plugin(self, plugin_id: str, config: Dict[str, Any] = None) -> Optional[PluginInstance]:
         """Load a plugin into memory."""
         return await self.registry.load_plugin(plugin_id, config)
 
@@ -186,9 +182,7 @@ class PluginManager:
                 return True
 
             # Install update
-            logger.info(
-                f"Updating plugin {plugin_id} from {current_version} to {latest_info.version}"
-            )
+            logger.info(f"Updating plugin {plugin_id} from {current_version} to {latest_info.version}")
             await self.uninstall_plugin(plugin_id)
             return await self.install_plugin(plugin_id, latest_info.version)
 
@@ -379,7 +373,7 @@ class PluginManager:
         try:
             # Enforce URL scheme validation (SSRF protection)
             parsed_url = urlparse(url)
-            if parsed_url.scheme not in ('http', 'https'):
+            if parsed_url.scheme not in ("http", "https"):
                 raise SecurityError(f"Invalid URL scheme: {parsed_url.scheme}. Only http and https are allowed.")
 
             # Use asynchronous client with timeout (DoS protection)
@@ -449,7 +443,10 @@ class PluginManager:
         dangerous_methods = ["__del__", "system", "exec", "eval", "__import__"]
 
         if method_name in dangerous_methods:
-            if security_level in [PluginSecurityLevel.SANDBOXED, PluginSecurityLevel.STANDARD]:
+            if security_level in [
+                PluginSecurityLevel.SANDBOXED,
+                PluginSecurityLevel.STANDARD,
+            ]:
                 return False
 
         return True

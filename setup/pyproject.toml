@@ -139,6 +139,31 @@ include-package-data = false
 [tool.setuptools.packages.find]
 where = ["src"]
 
+[tool.ruff]
+target-version = "py312"
+line-length = 120
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "E501"]
+ignore = [
+    "E402",   # Module level import not at top - many intentional for circular import avoidance
+    "F401",   # Unused imports - many are in try/except for optional dependency checking
+    "E501",   # Line too long - many long strings/regex patterns
+    "I001",   # Import block unsorted - too many to fix in one shot, needs careful review
+    "W291",   # Trailing whitespace - minor style issue
+]
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["F401"]
+
+[tool.ruff.format]
+docstring-code-format = true
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests", "src", "modules"]
+addopts = "-v --tb=short"
+
 [[tool.uv.index]]
 name = "pytorch-cpu"
 url = "https://download.pytorch.org/whl/cpu"

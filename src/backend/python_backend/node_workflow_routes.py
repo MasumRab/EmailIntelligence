@@ -24,7 +24,9 @@ from backend.node_engine.email_nodes import (
 # Import the new node-based workflow components
 from backend.node_engine.node_base import Workflow as NodeWorkflow
 from backend.node_engine.workflow_engine import workflow_engine as node_workflow_engine
-from backend.node_engine.workflow_manager import workflow_manager as node_workflow_manager
+from backend.node_engine.workflow_manager import (
+    workflow_manager as node_workflow_manager,
+)
 
 
 router = APIRouter()
@@ -34,9 +36,7 @@ class NodeWorkflowCreateRequest(BaseModel):
     name: str
     description: str = ""
     nodes: List[Dict[str, Any]] = []
-    connections: List[Dict[str, str]] = (
-        []
-    )  # Format: {source_node_id, source_port, target_node_id, target_port}
+    connections: List[Dict[str, str]] = []  # Format: {source_node_id, source_port, target_node_id, target_port}
 
 
 class NodeWorkflowResponse(BaseModel):
@@ -183,9 +183,7 @@ async def update_node_workflow(workflow_id: str, request: NodeWorkflowCreateRequ
     try:
         # For now, we'll create a new workflow and save it with the same ID
         # In a production system, we might want a more nuanced update approach
-        updated_workflow = NodeWorkflow(
-            workflow_id=workflow_id, name=request.name, description=request.description
-        )
+        updated_workflow = NodeWorkflow(workflow_id=workflow_id, name=request.name, description=request.description)
 
         # Create nodes from the request data
         for node_data in request.nodes:
@@ -374,6 +372,9 @@ async def get_active_executions():
                 }
             )
 
-        return {"active_executions": active_executions, "total_active": len(active_executions)}
+        return {
+            "active_executions": active_executions,
+            "total_active": len(active_executions),
+        }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to get active executions: {str(e)}")

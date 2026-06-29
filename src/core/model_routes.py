@@ -177,7 +177,8 @@ async def reload_model(model_id: str, manager: DynamicModelManager = Depends(get
 
 @router.post("/register")
 async def register_model(
-    registration: ModelRegistration, manager: DynamicModelManager = Depends(get_model_manager)
+    registration: ModelRegistration,
+    manager: DynamicModelManager = Depends(get_model_manager),
 ):
     """Register a new model."""
     try:
@@ -210,9 +211,7 @@ async def register_model(
 
 
 @router.delete("/{model_id}")
-async def unregister_model(
-    model_id: str, manager: DynamicModelManager = Depends(get_model_manager)
-):
+async def unregister_model(model_id: str, manager: DynamicModelManager = Depends(get_model_manager)):
     """Unregister a model."""
     try:
         success = await manager.unregister_model(model_id)
@@ -227,9 +226,7 @@ async def unregister_model(
 
 
 @router.get("/{model_id}/performance", response_model=ModelPerformance)
-async def get_model_performance(
-    model_id: str, manager: DynamicModelManager = Depends(get_model_manager)
-):
+async def get_model_performance(model_id: str, manager: DynamicModelManager = Depends(get_model_manager)):
     """Get performance metrics for a model."""
     try:
         metrics = await manager.get_model_performance(model_id)
@@ -288,15 +285,15 @@ async def get_system_metrics(manager: DynamicModelManager = Depends(get_model_ma
 
 @router.post("/{model_id}/config")
 async def update_model_config(
-    model_id: str, config_updates: dict, manager: DynamicModelManager = Depends(get_model_manager)
+    model_id: str,
+    config_updates: dict,
+    manager: DynamicModelManager = Depends(get_model_manager),
 ):
     """Update configuration for a model."""
     try:
         success = await manager.update_model_config(model_id, config_updates)
         if not success:
-            raise HTTPException(
-                status_code=400, detail=f"Failed to update config for model {model_id}"
-            )
+            raise HTTPException(status_code=400, detail=f"Failed to update config for model {model_id}")
         return {"message": f"Configuration updated for model {model_id}"}
     except HTTPException:
         raise
@@ -307,7 +304,9 @@ async def update_model_config(
 
 @router.post("/{model_id}/version/{version}")
 async def create_model_version(
-    model_id: str, version: str, manager: DynamicModelManager = Depends(get_model_manager)
+    model_id: str,
+    version: str,
+    manager: DynamicModelManager = Depends(get_model_manager),
 ):
     """Create a new version of a model."""
     # This would require the actual model object to be passed
@@ -317,14 +316,17 @@ async def create_model_version(
 
 @router.post("/{model_id}/rollback/{version}")
 async def rollback_model_version(
-    model_id: str, version: str, manager: DynamicModelManager = Depends(get_model_manager)
+    model_id: str,
+    version: str,
+    manager: DynamicModelManager = Depends(get_model_manager),
 ):
     """Rollback a model to a specific version."""
     try:
         success = await manager.rollback_model(model_id, version)
         if not success:
             raise HTTPException(
-                status_code=400, detail=f"Failed to rollback model {model_id} to version {version}"
+                status_code=400,
+                detail=f"Failed to rollback model {model_id} to version {version}",
             )
         return {"message": f"Model {model_id} rolled back to version {version}"}
     except HTTPException:
@@ -336,7 +338,9 @@ async def rollback_model_version(
 
 # Specialized endpoints for AI engine integration
 @router.get("/available", response_model=List[dict])
-async def get_available_models(manager: DynamicModelManager = Depends(get_model_manager)):
+async def get_available_models(
+    manager: DynamicModelManager = Depends(get_model_manager),
+):
     """Get list of available models for AI engine integration."""
     try:
         models = await manager.get_available_models()
@@ -347,7 +351,9 @@ async def get_available_models(manager: DynamicModelManager = Depends(get_model_
 
 
 @router.get("/sentiment/model")
-async def get_sentiment_model(manager: DynamicModelManager = Depends(get_model_manager)):
+async def get_sentiment_model(
+    manager: DynamicModelManager = Depends(get_model_manager),
+):
     """Get the best available sentiment analysis model."""
     try:
         model = await manager.get_sentiment_model()

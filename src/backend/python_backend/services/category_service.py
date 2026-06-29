@@ -29,7 +29,9 @@ class CategoryService(BaseService):
             db = await self.get_db()
             categories = await db.get_all_categories()
             return BaseResponse(
-                success=True, message="Categories retrieved successfully", data=categories
+                success=True,
+                message="Categories retrieved successfully",
+                data=categories,
             )
         except Exception as e:
             return await self.handle_error(e, "get_all_categories")
@@ -41,7 +43,9 @@ class CategoryService(BaseService):
             created_category = await db.create_category(category_data)
             if created_category:
                 return BaseResponse(
-                    success=True, message="Category created successfully", data=created_category
+                    success=True,
+                    message="Category created successfully",
+                    data=created_category,
                 )
             else:
                 return BaseResponse(
@@ -59,7 +63,9 @@ class CategoryService(BaseService):
             updated_category = await db.update_category(category_id, update_data)
             if updated_category:
                 return BaseResponse(
-                    success=True, message="Category updated successfully", data=updated_category
+                    success=True,
+                    message="Category updated successfully",
+                    data=updated_category,
                 )
             else:
                 return BaseResponse(
@@ -76,9 +82,7 @@ class CategoryService(BaseService):
             db = await self.get_db()
             deleted = await db.delete_category(category_id)
             if deleted:
-                return BaseResponse(
-                    success=True, message="Category deleted successfully"
-                )
+                return BaseResponse(success=True, message="Category deleted successfully")
             else:
                 return BaseResponse(
                     success=False,

@@ -65,9 +65,7 @@ class CategoryDataManager:
 
         category_name_lower = category_data.get(FIELD_NAME, "").lower()
         if category_name_lower in self.categories_by_name:
-            logger.warning(
-                f"Category with name '{category_data.get(FIELD_NAME)}' already exists. Returning existing."
-            )
+            logger.warning(f"Category with name '{category_data.get(FIELD_NAME)}' already exists. Returning existing.")
             return self.categories_by_name[category_name_lower]
 
         new_id = self._generate_id(self.categories_data)
@@ -85,9 +83,7 @@ class CategoryDataManager:
         await self._save_data(DATA_TYPE_CATEGORIES)
         return category_record
 
-    async def _update_category_count(
-        self, category_id: int, increment: bool = False, decrement: bool = False
-    ) -> None:
+    async def _update_category_count(self, category_id: int, increment: bool = False, decrement: bool = False) -> None:
         """Incrementally update category email count in the cache."""
         logger = logging.getLogger(__name__)
 

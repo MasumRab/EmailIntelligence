@@ -200,9 +200,7 @@ class WorkflowManager:
             node_config = node_data.get("config", {})
 
             # Create node instance based on type
-            node = self._create_node_from_type(
-                node_type, node_config, node_id, node_data.get("name")
-            )
+            node = self._create_node_from_type(node_type, node_config, node_id, node_data.get("name"))
             workflow.add_node(node)
 
         # Create connections
@@ -217,9 +215,7 @@ class WorkflowManager:
 
         return workflow
 
-    def _create_node_from_type(
-        self, node_type: str, config: Dict[str, Any], node_id: str, name: str = None
-    ):
+    def _create_node_from_type(self, node_type: str, config: Dict[str, Any], node_id: str, name: str = None):
         """Create a node instance from its type string."""
         node_classes = {
             "EmailSourceNode": EmailSourceNode,

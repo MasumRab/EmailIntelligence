@@ -211,22 +211,14 @@ def setup_modular_cli(parser):
         Tuple of (modular_subparsers, legacy_parser)
     """
     # Add command mode selection
-    mode_subparsers = parser.add_subparsers(
-        dest="command_mode", help="Command mode: legacy or modular"
-    )
+    mode_subparsers = parser.add_subparsers(dest="command_mode", help="Command mode: legacy or modular")
 
     # Legacy mode (existing commands)
-    legacy_parser = mode_subparsers.add_parser(
-        "legacy", help="Use legacy command system"
-    )
+    legacy_parser = mode_subparsers.add_parser("legacy", help="Use legacy command system")
 
     # Modular mode
-    modular_parser = mode_subparsers.add_parser(
-        "modular", help="Use new modular command system"
-    )
-    modular_subparsers = modular_parser.add_subparsers(
-        dest="modular_command", help="Modular command to execute"
-    )
+    modular_parser = mode_subparsers.add_parser("modular", help="Use new modular command system")
+    modular_subparsers = modular_parser.add_subparsers(dest="modular_command", help="Modular command to execute")
 
     # Add modular command arguments
     add_modular_arguments(modular_subparsers)

@@ -260,21 +260,19 @@ class DataCollectionStrategy:
             "has_numbers": bool(re.search(r"\d+", combined_text)),
             "has_email": bool(
                 re.search(
-                    self.preprocessing_rules["email_patterns"]["email_addresses"], combined_text
+                    self.preprocessing_rules["email_patterns"]["email_addresses"],
+                    combined_text,
                 )
             ),
             "has_phone": bool(
                 re.search(
-                    self.preprocessing_rules["email_patterns"]["phone_numbers"], combined_text
+                    self.preprocessing_rules["email_patterns"]["phone_numbers"],
+                    combined_text,
                 )
             ),
-            "has_url": bool(
-                re.search(self.preprocessing_rules["email_patterns"]["urls"], combined_text)
-            ),
+            "has_url": bool(re.search(self.preprocessing_rules["email_patterns"]["urls"], combined_text)),
             "urgency_keywords": self._count_pattern_matches(combined_text, "urgency_signals"),
-            "sentiment_keywords": self._count_pattern_matches(
-                combined_text, "sentiment_indicators"
-            ),
+            "sentiment_keywords": self._count_pattern_matches(combined_text, "sentiment_indicators"),
             "intent_keywords": self._count_pattern_matches(combined_text, "intent_patterns"),
         }
         return features
@@ -311,24 +309,14 @@ class DataCollectionStrategy:
         """
         if external_analysis_results:
             self.logger.info(f"Using external analysis results for email ID: {email.id}")
-            topic = external_analysis_results.get(
-                "topic", self._predict_topic(email.content, is_fallback=True)
-            )
+            topic = external_analysis_results.get("topic", self._predict_topic(email.content, is_fallback=True))
             sentiment = external_analysis_results.get(
                 "sentiment", self._predict_sentiment(email.content, is_fallback=True)
             )
-            intent = external_analysis_results.get(
-                "intent", self._predict_intent(email.content, is_fallback=True)
-            )
-            urgency = external_analysis_results.get(
-                "urgency", self._predict_urgency(email.content, is_fallback=True)
-            )
-            keywords = external_analysis_results.get(
-                "keywords", self._extract_keywords(email.content)
-            )
-            entities = external_analysis_results.get(
-                "entities", self._extract_entities(email.content)
-            )
+            intent = external_analysis_results.get("intent", self._predict_intent(email.content, is_fallback=True))
+            urgency = external_analysis_results.get("urgency", self._predict_urgency(email.content, is_fallback=True))
+            keywords = external_analysis_results.get("keywords", self._extract_keywords(email.content))
+            entities = external_analysis_results.get("entities", self._extract_entities(email.content))
             confidence = external_analysis_results.get("confidence", 0.9)
             annotator_id_suffix = "_external"
         else:
@@ -375,20 +363,16 @@ class DataCollectionStrategy:
         for sentiment, keywords in self.annotation_guidelines["sentiment_indicators"].items():
             score = sum(1 for keyword in keywords if keyword in text_lower)
             sentiment_scores[sentiment] = score
-        if sentiment_scores.get("positive", 0) > 0 and sentiment_scores[
-            "positive"
-        ] == sentiment_scores.get("negative", 0):
+        if sentiment_scores.get("positive", 0) > 0 and sentiment_scores["positive"] == sentiment_scores.get(
+            "negative", 0
+        ):
             result = "positive"
-        elif sentiment_scores.get("negative", 0) > 0 and sentiment_scores[
-            "negative"
-        ] == sentiment_scores.get("positive", 0):
+        elif sentiment_scores.get("negative", 0) > 0 and sentiment_scores["negative"] == sentiment_scores.get(
+            "positive", 0
+        ):
             result = "negative"
         else:
-            result = (
-                max(sentiment_scores, key=sentiment_scores.get)
-                if any(sentiment_scores.values())
-                else "neutral"
-            )
+            result = max(sentiment_scores, key=sentiment_scores.get) if any(sentiment_scores.values()) else "neutral"
         self.logger.debug(f"{prefix}Predicted sentiment: {result}")
         return result
 
@@ -401,11 +385,7 @@ class DataCollectionStrategy:
         for intent, patterns in self.annotation_guidelines["intent_patterns"].items():
             score = sum(1 for pattern in patterns if pattern in text_lower)
             intent_scores[intent] = score
-        result = (
-            max(intent_scores, key=intent_scores.get)
-            if any(intent_scores.values())
-            else "information"
-        )
+        result = max(intent_scores, key=intent_scores.get) if any(intent_scores.values()) else "information"
         self.logger.debug(f"{prefix}Predicted intent: {result}")
         return result
 
@@ -418,9 +398,7 @@ class DataCollectionStrategy:
         for urgency, signals in self.annotation_guidelines["urgency_signals"].items():
             score = sum(1 for signal in signals if signal in text_lower)
             urgency_scores[urgency] = score
-        result = (
-            max(urgency_scores, key=urgency_scores.get) if any(urgency_scores.values()) else "low"
-        )
+        result = max(urgency_scores, key=urgency_scores.get) if any(urgency_scores.values()) else "low"
         self.logger.debug(f"{prefix}Predicted urgency: {result}")
         return result
 
@@ -482,7 +460,10 @@ class DataCollectionStrategy:
         if not samples:
             self.logger.warning("No email samples provided for dataset creation")
             return {
-                "metadata": {"creation_date": datetime.now().isoformat(), "sample_count": 0},
+                "metadata": {
+                    "creation_date": datetime.now().isoformat(),
+                    "sample_count": 0,
+                },
                 "samples": [],
                 "statistics": {},
             }
@@ -502,9 +483,7 @@ class DataCollectionStrategy:
         for sample in samples:
             processed_sample = self.preprocess_email(sample)
             annotation = self.annotate_email(processed_sample)
-            dataset["samples"].append(
-                {"sample": processed_sample.to_dict(), "annotation": asdict(annotation)}
-            )
+            dataset["samples"].append({"sample": processed_sample.to_dict(), "annotation": asdict(annotation)})
 
         return dataset
 

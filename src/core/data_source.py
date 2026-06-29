@@ -11,9 +11,7 @@ class DataSource(ABC):
         pass
 
     @abstractmethod
-    async def get_email_by_id(
-        self, email_id: int, include_content: bool = True
-    ) -> Optional[Dict[str, Any]]:
+    async def get_email_by_id(self, email_id: int, include_content: bool = True) -> Optional[Dict[str, Any]]:
         """Retrieves an email by its ID."""
         pass
 
@@ -46,9 +44,7 @@ class DataSource(ABC):
         pass
 
     @abstractmethod
-    async def get_email_by_message_id(
-        self, message_id: str, include_content: bool = True
-    ) -> Optional[Dict[str, Any]]:
+    async def get_email_by_message_id(self, message_id: str, include_content: bool = True) -> Optional[Dict[str, Any]]:
         """Retrieves an email by its message ID."""
         pass
 
@@ -58,9 +54,7 @@ class DataSource(ABC):
         pass
 
     @abstractmethod
-    async def get_emails_by_category(
-        self, category_id: int, limit: int = 50, offset: int = 0
-    ) -> List[Dict[str, Any]]:
+    async def get_emails_by_category(self, category_id: int, limit: int = 50, offset: int = 0) -> List[Dict[str, Any]]:
         """Retrieves emails by category."""
         pass
 
@@ -70,9 +64,7 @@ class DataSource(ABC):
         pass
 
     @abstractmethod
-    async def update_email(
-        self, email_id: int, update_data: Dict[str, Any]
-    ) -> Optional[Dict[str, Any]]:
+    async def update_email(self, email_id: int, update_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """Updates an email by its internal ID."""
         pass
 

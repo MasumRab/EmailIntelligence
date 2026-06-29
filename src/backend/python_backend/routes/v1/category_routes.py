@@ -23,9 +23,7 @@ router = APIRouter(prefix="/v1")
 
 @router.get("/categories", response_model=List[CategoryResponse])
 @log_performance(operation="get_categories_v1")
-async def get_categories_v1(
-    request: Request, category_service: CategoryService = Depends(get_category_service)
-):
+async def get_categories_v1(request: Request, category_service: CategoryService = Depends(get_category_service)):
     """
     Retrieves a list of all categories.
 

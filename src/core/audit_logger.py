@@ -120,9 +120,7 @@ class AuditLogger:
         self._stop_event = threading.Event()
 
         # Start background processing thread
-        self._processing_thread = threading.Thread(
-            target=self._process_events, daemon=True, name="AuditLogger"
-        )
+        self._processing_thread = threading.Thread(target=self._process_events, daemon=True, name="AuditLogger")
         self._processing_thread.start()
 
         # Register cleanup

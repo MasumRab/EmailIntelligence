@@ -27,15 +27,11 @@ def analyze_email_interface(subject, content):
         return {"error": "Subject and content cannot both be empty."}
 
     try:
-        response = requests.post(
-            f"{BASE_URL}/api/ai/analyze", json={"subject": subject, "content": content}
-        )
+        response = requests.post(f"{BASE_URL}/api/ai/analyze", json={"subject": subject, "content": content})
         if response.status_code == 200:
             return response.json()
         else:
-            return {
-                "error": f"Failed to analyze email. Status code: {response.status_code}, Response: {response.text}"
-            }
+            return {"error": f"Failed to analyze email. Status code: {response.status_code}, Response: {response.text}"}
     except Exception as e:
         return {"error": f"An exception occurred: {str(e)}"}
 
@@ -79,17 +75,28 @@ with gr.Blocks(title="Email Intelligence", theme=gr.themes.Soft()) as iface:
         with gr.TabItem("📥 Inbox"):
             gr.Markdown("## Inbox")
             email_df = gr.DataFrame(
-                headers=["ID", "Subject", "From", "Date"], interactive=True, label="Emails"
+                headers=["ID", "Subject", "From", "Date"],
+                interactive=True,
+                label="Emails",
+            )
+
+        # Define chart components before referencing them in callbacks
+        with gr.TabItem("Visualization"):
+            gr.Markdown("### Data Visualization")
+            sentiment_chart = gr.Plot(label="Sentiment Gauge")
+            topic_chart = gr.Plot(label="Topic Pie Chart")
+            gr.Markdown(
+                "The charts above will automatically update after you analyze an email in the 'Single Email Analysis' tab."
             )
 
         with gr.TabItem("Single Email Analysis"):
             with gr.Row():
                 with gr.Column(scale=2):
-                    email_subject = gr.Textbox(
-                        label="Email Subject", placeholder="Enter email subject..."
-                    )
+                    email_subject = gr.Textbox(label="Email Subject", placeholder="Enter email subject...")
                     email_content = gr.Textbox(
-                        label="Email Content", lines=10, placeholder="Enter email content..."
+                        label="Email Content",
+                        lines=10,
+                        placeholder="Enter email content...",
                     )
                     analyze_button = gr.Button("Analyze Email", variant="primary")
                 with gr.Column(scale=1):
@@ -148,14 +155,6 @@ with gr.Blocks(title="Email Intelligence", theme=gr.themes.Soft()) as iface:
                 ],
             )
 
-        with gr.TabItem("Visualization"):
-            gr.Markdown("### Data Visualization")
-            sentiment_chart = gr.Plot(label="Sentiment Gauge")
-            topic_chart = gr.Plot(label="Topic Pie Chart")
-            gr.Markdown(
-                "The charts above will automatically update after you analyze an email in the 'Single Email Analysis' tab."
-            )
-
         with gr.TabItem("Scientific Analysis"):
             gr.Markdown("### Advanced Data Analysis")
             data_input = gr.Textbox(
@@ -171,18 +170,12 @@ with gr.Blocks(title="Email Intelligence", theme=gr.themes.Soft()) as iface:
                 try:
                     emails = json.loads(data_str)  # Switched to safe parsing
                     if not isinstance(emails, list):
-                        return pd.DataFrame(), {
-                            "error": "Input must be a JSON array of email objects"
-                        }
+                        return pd.DataFrame(), {"error": "Input must be a JSON array of email objects"}
                     if len(emails) > 100:
                         return pd.DataFrame(), {"error": "Too many emails, maximum 100 allowed"}
                     results = []
                     for email in emails:
-                        if (
-                            not isinstance(email, dict)
-                            or "subject" not in email
-                            or "content" not in email
-                        ):
+                        if not isinstance(email, dict) or "subject" not in email or "content" not in email:
                             continue  # Skip invalid entries
                         subject = str(email["subject"])[:1000]  # Limit subject length
                         content = str(email["content"])[:10000]  # Limit content length
@@ -200,15 +193,15 @@ with gr.Blocks(title="Email Intelligence", theme=gr.themes.Soft()) as iface:
                     return pd.DataFrame(), {"error": str(e)}
 
             analyze_data_button.click(
-                fn=analyze_batch, inputs=data_input, outputs=[batch_output, stats_output]
+                fn=analyze_batch,
+                inputs=data_input,
+                outputs=[batch_output, stats_output],
             )
 
         with gr.TabItem("Jupyter Notebook"):
             gr.Markdown("### Interactive Jupyter Analysis")
             gr.Markdown("For advanced scientific analysis, launch Jupyter Notebook.")
-            gr.Markdown(
-                "Run: `jupyter notebook backend/python_backend/notebooks/email_analysis.ipynb`"
-            )
+            gr.Markdown("Run: `jupyter notebook backend/python_backend/notebooks/email_analysis.ipynb`")
             launch_jupyter_button = gr.Button("Launch Jupyter (External)")
             launch_jupyter_button.click(
                 fn=lambda: "Jupyter launched externally. Check terminal.",

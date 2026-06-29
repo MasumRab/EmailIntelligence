@@ -156,7 +156,7 @@ class DynamicModelManager:
                 path=base_metadata.path / version,
                 framework=base_metadata.framework,
                 dependencies=base_metadata.dependencies.copy(),
-                config=base_metadata.config.copy()
+                config=base_metadata.config.copy(),
             )
 
             # Save the model object
@@ -198,7 +198,7 @@ class DynamicModelManager:
                 "type": model["type"],
                 "name": model["name"],
                 "loaded": model["loaded"],
-                "health_status": model["health_status"]
+                "health_status": model["health_status"],
             }
             for model in models
         ]
@@ -251,6 +251,7 @@ class DynamicModelManager:
 
             if metadata.framework == "sklearn":
                 import joblib
+
                 model_file = model_dir / f"{metadata.model_id}.pkl"
                 joblib.dump(model_object, model_file)
                 metadata.size_bytes = model_file.stat().st_size
@@ -319,7 +320,7 @@ class DynamicModelManager:
             "memory_usage": sum(inst.memory_usage for inst in self.registry._loaded_models.values()),
             "gpu_memory_usage": sum(inst.gpu_memory_usage for inst in self.registry._loaded_models.values()),
             "health_checks_enabled": self._health_monitor_task is not None,
-            "memory_optimization_enabled": self._memory_optimizer_task is not None
+            "memory_optimization_enabled": self._memory_optimizer_task is not None,
         }
 
     async def reload_model(self, model_id: str) -> bool:
@@ -368,7 +369,7 @@ class DynamicModelManager:
             "models_by_type": self._count_models_by_type(models),
             "models_by_framework": self._count_models_by_framework(models),
             "average_load_time": self._calculate_average_load_time(models),
-            "health_summary": self._get_health_summary(models)
+            "health_summary": self._get_health_summary(models),
         }
 
     def _count_models_by_type(self, models: List[Dict[str, Any]]) -> Dict[str, int]:

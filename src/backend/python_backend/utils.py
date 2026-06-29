@@ -11,9 +11,7 @@ from typing import Any, List
 logger = logging.getLogger(__name__)
 
 
-async def handle_pydantic_validation(
-    items: List[Any], model_class: Any, operation_name: str
-) -> List[Any]:
+async def handle_pydantic_validation(items: List[Any], model_class: Any, operation_name: str) -> List[Any]:
     """
     Utility function to handle Pydantic model validation for lists of items.
 
@@ -28,17 +26,13 @@ async def handle_pydantic_validation(
     try:
         return [model_class(**item) for item in items]
     except Exception as e_outer:
-        logger.error(
-            f"Outer exception during {operation_name} Pydantic validation: {type(e_outer)} - {repr(e_outer)}"
-        )
+        logger.error(f"Outer exception during {operation_name} Pydantic validation: {type(e_outer)} - {repr(e_outer)}")
         if hasattr(e_outer, "errors"):  # For pydantic.ValidationError
             logger.error(f"Pydantic errors: {e_outer.errors()}")
         raise  # Re-raise for FastAPI to handle
 
 
-def create_log_data(
-    message: str, request_url: str, error_type: str, error_detail: str, **kwargs
-) -> dict:
+def create_log_data(message: str, request_url: str, error_type: str, error_detail: str, **kwargs) -> dict:
     """
     Utility function to create standardized log data across the application.
 

@@ -43,9 +43,7 @@ class WorkflowMigrationService:
             "file_based_workflow": self._migrate_file_based_workflow,
         }
 
-    def migrate_legacy_workflow(
-        self, workflow_config: Dict[str, Any], workflow_name: str = None
-    ) -> NodeWorkflow:
+    def migrate_legacy_workflow(self, workflow_config: Dict[str, Any], workflow_name: str = None) -> NodeWorkflow:
         """
         Migrate a legacy workflow configuration to a node-based workflow.
 
@@ -68,9 +66,7 @@ class WorkflowMigrationService:
             logger.error(f"Failed to migrate workflow: {e}")
             raise WorkflowMigrationError(f"Migration failed: {str(e)}")
 
-    def _migrate_file_based_workflow(
-        self, config: Dict[str, Any], workflow_name: str = None
-    ) -> NodeWorkflow:
+    def _migrate_file_based_workflow(self, config: Dict[str, Any], workflow_name: str = None) -> NodeWorkflow:
         """
         Migrate a file-based legacy workflow to node-based format.
 
@@ -84,7 +80,9 @@ class WorkflowMigrationService:
 
         # Create the new node-based workflow
         node_workflow = NodeWorkflow(
-            workflow_id=config.get("workflow_id"), name=workflow_name, description=description
+            workflow_id=config.get("workflow_id"),
+            name=workflow_name,
+            description=description,
         )
 
         # Create the standard email processing pipeline
@@ -113,7 +111,8 @@ class WorkflowMigrationService:
 
         # 4. Filter Node (basic implementation)
         filter_node = FilterNode(
-            name="Filter (Migrated)", node_id="filter_" + workflow_name.lower().replace(" ", "_")
+            name="Filter (Migrated)",
+            node_id="filter_" + workflow_name.lower().replace(" ", "_"),
         )
         node_workflow.add_node(filter_node)
 
@@ -178,9 +177,7 @@ class WorkflowMigrationService:
 
         return node_workflow
 
-    def _migrate_default_workflow(
-        self, config: Dict[str, Any], workflow_name: str = None
-    ) -> NodeWorkflow:
+    def _migrate_default_workflow(self, config: Dict[str, Any], workflow_name: str = None) -> NodeWorkflow:
         """
         Migrate a default legacy workflow to node-based format.
         This is a specialized case for the default workflow.
@@ -269,9 +266,7 @@ class WorkflowMigrationManager:
         """
         legacy_dir = Path(legacy_workflows_dir)
         if not legacy_dir.exists():
-            raise WorkflowMigrationError(
-                f"Legacy workflows directory does not exist: {legacy_workflows_dir}"
-            )
+            raise WorkflowMigrationError(f"Legacy workflows directory does not exist: {legacy_workflows_dir}")
 
         summary = {
             "successful_migrations": 0,
@@ -324,8 +319,7 @@ class WorkflowMigrationManager:
                 "filter": "FilterNode",
                 "action": "ActionNode",
             },
-            "connection_pattern": ("Linear pipeline: source -> preprocessing -> "
-                                   "ai_analysis -> filter -> action"),
+            "connection_pattern": ("Linear pipeline: source -> preprocessing -> ai_analysis -> filter -> action"),
         }
 
         return plan
@@ -336,9 +330,7 @@ migration_manager = WorkflowMigrationManager()
 
 
 # Convenience functions for direct usage
-def migrate_legacy_workflow(
-    legacy_config: Dict[str, Any], workflow_name: str = None
-) -> NodeWorkflow:
+def migrate_legacy_workflow(legacy_config: Dict[str, Any], workflow_name: str = None) -> NodeWorkflow:
     """Migrate a legacy workflow configuration to node-based format."""
     return migration_manager.migration_service.migrate_legacy_workflow(legacy_config, workflow_name)
 

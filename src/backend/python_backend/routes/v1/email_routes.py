@@ -65,7 +65,9 @@ async def get_emails_v1(
 @router.get("/emails/{email_id}", response_model=EmailResponse)
 @log_performance(operation="get_email_v1")
 async def get_email_v1(
-    request: Request, email_id: int, email_service: EmailService = Depends(get_email_service)
+    request: Request,
+    email_id: int,
+    email_service: EmailService = Depends(get_email_service),
 ):
     """
     Retrieves a specific email by its unique ID.

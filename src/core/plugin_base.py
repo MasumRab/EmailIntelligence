@@ -116,9 +116,7 @@ class HookSystem:
         self._hooks: Dict[str, List[Dict[str, Any]]] = {}
         self._lock = asyncio.Lock()
 
-    async def register_hook(
-        self, hook_name: str, callback: Callable, plugin_id: str, priority: int = 100
-    ) -> str:
+    async def register_hook(self, hook_name: str, callback: Callable, plugin_id: str, priority: int = 100) -> str:
         """Register a callback for a hook."""
         async with self._lock:
             if hook_name not in self._hooks:
@@ -127,7 +125,12 @@ class HookSystem:
             hook_id = f"{plugin_id}_{hook_name}_{hash(callback)}"
 
             self._hooks[hook_name].append(
-                {"id": hook_id, "callback": callback, "plugin_id": plugin_id, "priority": priority}
+                {
+                    "id": hook_id,
+                    "callback": callback,
+                    "plugin_id": plugin_id,
+                    "priority": priority,
+                }
             )
 
             # Sort by priority (lower number = higher priority)
@@ -166,9 +169,7 @@ class HookSystem:
 
     def get_registered_hooks(self) -> Dict[str, List[str]]:
         """Get list of registered hooks by name."""
-        return {
-            hook_name: [hook["id"] for hook in hooks] for hook_name, hooks in self._hooks.items()
-        }
+        return {hook_name: [hook["id"] for hook in hooks] for hook_name, hooks in self._hooks.items()}
 
 
 class SecuritySandbox:
@@ -202,7 +203,10 @@ class SecuritySandbox:
         return "*" in allowed or module_name in allowed or module_name.startswith("src.")
 
     def execute_in_sandbox(
-        self, code: str, security_level: PluginSecurityLevel, globals_dict: Dict[str, Any] = None
+        self,
+        code: str,
+        security_level: PluginSecurityLevel,
+        globals_dict: Dict[str, Any] = None,
     ) -> Any:
         """Execute code in a sandboxed environment."""
         # Create restricted globals
@@ -240,10 +244,10 @@ class SecuritySandbox:
         from RestrictedPython.PrintCollector import PrintCollector
 
         globals_dict.update(safe_globals)
-        globals_dict['_print_'] = PrintCollector
+        globals_dict["_print_"] = PrintCollector
 
         try:
-            byte_code = compile_restricted(code, '<string>', 'exec')
+            byte_code = compile_restricted(code, "<string>", "exec")
             exec(byte_code, globals_dict)  # nosec
         except Exception as e:
             logger.error(f"Sandbox execution failed: {e}")
@@ -316,9 +320,7 @@ class PluginRegistry:
             logger.error(f"Failed to register plugin {metadata.plugin_id}: {e}")
             return False
 
-    async def load_plugin(
-        self, plugin_id: str, config: Dict[str, Any] = None
-    ) -> Optional[PluginInstance]:
+    async def load_plugin(self, plugin_id: str, config: Dict[str, Any] = None) -> Optional[PluginInstance]:
         """Load and initialize a plugin."""
         if plugin_id not in self._registry:
             logger.error(f"Plugin {plugin_id} not found in registry")
@@ -342,11 +344,7 @@ class PluginRegistry:
             if not plugin_class:
                 # Try to find any class that implements PluginInterface
                 for name, obj in plugin_module.__dict__.items():
-                    if (
-                        inspect.isclass(obj)
-                        and issubclass(obj, PluginInterface)
-                        and obj != PluginInterface
-                    ):
+                    if inspect.isclass(obj) and issubclass(obj, PluginInterface) and obj != PluginInterface:
                         plugin_class = obj
                         break
 
@@ -456,9 +454,7 @@ class PluginRegistry:
 
         return plugins
 
-    async def _load_plugin_module(
-        self, plugin_dir: Path, metadata: PluginMetadata
-    ) -> Optional[Any]:
+    async def _load_plugin_module(self, plugin_dir: Path, metadata: PluginMetadata) -> Optional[Any]:
         """Load a plugin module from disk."""
         main_file = plugin_dir / "__init__.py"
         if not main_file.exists():
@@ -469,9 +465,7 @@ class PluginRegistry:
             return None
 
         try:
-            spec = importlib.util.spec_from_file_location(
-                f"plugins.{metadata.plugin_id}", main_file
-            )
+            spec = importlib.util.spec_from_file_location(f"plugins.{metadata.plugin_id}", main_file)
 
             if spec and spec.loader:
                 module = importlib.util.module_from_spec(spec)
@@ -491,9 +485,7 @@ class PluginRegistry:
 
             # Check if all required permissions are appropriate for security level
             if security_level == PluginSecurityLevel.SANDBOXED and required_permissions:
-                logger.warning(
-                    f"Sandboxed plugin {metadata.plugin_id} requested permissions: {required_permissions}"
-                )
+                logger.warning(f"Sandboxed plugin {metadata.plugin_id} requested permissions: {required_permissions}")
                 return False
 
             return True

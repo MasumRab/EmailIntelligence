@@ -111,9 +111,7 @@ class AdvancedAIEngine:
             topic_model_name = models_to_use.get("topic")
 
             if not sentiment_model_name or not topic_model_name:
-                raise ValueError(
-                    "Workflow configuration must specify 'sentiment' and 'topic' models."
-                )
+                raise ValueError("Workflow configuration must specify 'sentiment' and 'topic' models.")
 
             sentiment_model = self.model_manager.get_model(sentiment_model_name)
             topic_model = self.model_manager.get_model(topic_model_name)
@@ -129,18 +127,11 @@ class AdvancedAIEngine:
                 "sentiment": sentiment_result.get("sentiment", "neutral"),
                 "intent": "informational",  # Placeholder
                 "urgency": "low",  # Placeholder
-                "confidence": (
-                    sentiment_result.get("confidence", 0.5) + topic_result.get("confidence", 0.5)
-                )
-                / 2,
-                "categories": [
-                    topic_result.get("topic", "unknown")
-                ],  # Use topic as category for now
+                "confidence": (sentiment_result.get("confidence", 0.5) + topic_result.get("confidence", 0.5)) / 2,
+                "categories": [topic_result.get("topic", "unknown")],  # Use topic as category for now
                 "keywords": [],  # Placeholder
                 "reasoning": f"Sentiment model: {sentiment_model_name} ({sentiment_result.get('method_used')}), Topic model: {topic_model_name} ({topic_result.get('method_used')})",
-                "suggested_labels": [
-                    topic_result.get("topic", "unknown").lower().replace(" ", "_")
-                ],
+                "suggested_labels": [topic_result.get("topic", "unknown").lower().replace(" ", "_")],
                 "risk_flags": [],
             }
 

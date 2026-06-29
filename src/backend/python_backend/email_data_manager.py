@@ -54,9 +54,7 @@ class EmailDataManager:
         # Ensure directories exist
         if not os.path.exists(self.email_content_dir):
             os.makedirs(self.email_content_dir)
-            logging.getLogger(__name__).info(
-                f"Created email content directory: {self.email_content_dir}"
-            )
+            logging.getLogger(__name__).info(f"Created email content directory: {self.email_content_dir}")
 
     def _get_email_content_path(self, email_id: int) -> str:
         """Returns the path for an individual email's content file."""
@@ -86,9 +84,7 @@ class EmailDataManager:
         logger.info("Building email indexes...")
         self.emails_by_id = {email[FIELD_ID]: email for email in self.emails_data}
         self.emails_by_message_id = {
-            email[FIELD_MESSAGE_ID]: email
-            for email in self.emails_data
-            if FIELD_MESSAGE_ID in email
+            email[FIELD_MESSAGE_ID]: email for email in self.emails_data if FIELD_MESSAGE_ID in email
         }
         logger.info("Email indexes built successfully.")
 
@@ -103,9 +99,7 @@ class EmailDataManager:
         new_id = self._generate_id(self.emails_data)
         now = datetime.now(timezone.utc).isoformat()
 
-        analysis_metadata = email_data.get(
-            FIELD_ANALYSIS_METADATA, email_data.get("analysisMetadata", {})
-        )
+        analysis_metadata = email_data.get(FIELD_ANALYSIS_METADATA, email_data.get("analysisMetadata", {}))
         if isinstance(analysis_metadata, str):
             try:
                 analysis_metadata = json.loads(analysis_metadata)
@@ -123,11 +117,7 @@ class EmailDataManager:
             }
         )
 
-        heavy_data = {
-            field: full_email_record.pop(field)
-            for field in HEAVY_EMAIL_FIELDS
-            if field in full_email_record
-        }
+        heavy_data = {field: full_email_record.pop(field) for field in HEAVY_EMAIL_FIELDS if field in full_email_record}
         light_email_record = full_email_record
 
         self.emails_data.append(light_email_record)
@@ -147,9 +137,7 @@ class EmailDataManager:
         # since categories are managed separately
         return light_email_record
 
-    async def get_email_by_id(
-        self, email_id: int, include_content: bool = True
-    ) -> Optional[Dict[str, Any]]:
+    async def get_email_by_id(self, email_id: int, include_content: bool = True) -> Optional[Dict[str, Any]]:
         """Get email by ID using in-memory index, with option to load heavy content."""
         email_light = self.emails_by_id.get(email_id)
         if not email_light:
@@ -173,14 +161,14 @@ class EmailDataManager:
             logger = logging.getLogger(__name__)
             logger.warning("Sorting emails failed due to incomparable types.")
             sorted_emails = sorted(
-                self.emails_data, key=lambda e: e.get(FIELD_CREATED_AT, ""), reverse=True
+                self.emails_data,
+                key=lambda e: e.get(FIELD_CREATED_AT, ""),
+                reverse=True,
             )
         paginated_emails = sorted_emails[offset : offset + limit]
         return paginated_emails
 
-    async def get_email_by_message_id(
-        self, message_id: str, include_content: bool = True
-    ) -> Optional[Dict[str, Any]]:
+    async def get_email_by_message_id(self, message_id: str, include_content: bool = True) -> Optional[Dict[str, Any]]:
         """Get email by messageId using in-memory index, with option to load heavy content."""
         if not message_id:
             return None
@@ -206,9 +194,7 @@ class EmailDataManager:
         filtered_emails = []
         logger = logging.getLogger(__name__)
 
-        logger.info(
-            f"Starting email search for term: '{search_term_lower}'. This may be slow if searching content."
-        )
+        logger.info(f"Starting email search for term: '{search_term_lower}'. This may be slow if searching content.")
         for email_light in self.emails_data:
             found_in_light = (
                 search_term_lower in email_light.get(FIELD_SUBJECT, "").lower()
@@ -237,9 +223,7 @@ class EmailDataManager:
             )
         except TypeError:
             logger.warning("Sorting search results failed. Using created_at.")
-            sorted_emails = sorted(
-                filtered_emails, key=lambda e: e.get(FIELD_CREATED_AT, ""), reverse=True
-            )
+            sorted_emails = sorted(filtered_emails, key=lambda e: e.get(FIELD_CREATED_AT, ""), reverse=True)
         paginated_emails = sorted_emails[:limit]
         return paginated_emails
 

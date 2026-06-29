@@ -118,9 +118,7 @@ class ModelRegistry:
                             logger.warning(f"Failed to load metadata for {model_id}: {e}")
                     else:
                         # Try to auto-discover model files
-                        model_files = list(model_dir.glob("*.pkl")) + list(
-                            model_dir.glob("*.joblib")
-                        )
+                        model_files = list(model_dir.glob("*.pkl")) + list(model_dir.glob("*.joblib"))
                         if model_files:
                             # Create basic metadata for discovered models
                             metadata = ModelMetadata(
@@ -342,7 +340,12 @@ class ModelRegistry:
 
     async def validate_model(self, model_id: str) -> Dict[str, Any]:
         """Perform comprehensive validation on a model."""
-        validation_results = {"model_id": model_id, "valid": False, "checks": {}, "issues": []}
+        validation_results = {
+            "model_id": model_id,
+            "valid": False,
+            "checks": {},
+            "issues": [],
+        }
 
         if model_id not in self._registry:
             validation_results["issues"].append("Model not registered")
@@ -372,9 +375,7 @@ class ModelRegistry:
         validation_results["checks"]["performance"] = await self._test_model_performance(model_id)
 
         # Calculate overall validity
-        checks_passed = sum(
-            1 for check in validation_results["checks"].values() if check.get("passed", False)
-        )
+        checks_passed = sum(1 for check in validation_results["checks"].values() if check.get("passed", False))
         total_checks = len(validation_results["checks"])
         validation_results["valid"] = checks_passed == total_checks
         validation_results["score"] = checks_passed / total_checks if total_checks > 0 else 0
@@ -418,8 +419,7 @@ class ModelRegistry:
 
                 # Unload if not used in last hour and memory usage is high
                 if (
-                    time_since_access > 3600
-                    and memory_usage > self._auto_unload_threshold_mb * 1024 * 1024  # 1 hour
+                    time_since_access > 3600 and memory_usage > self._auto_unload_threshold_mb * 1024 * 1024  # 1 hour
                 ):
                     models_to_unload.append(model_id)
 
@@ -484,8 +484,16 @@ class ModelRegistry:
 
             model_path = metadata.path
             if model_path.exists():
-                model = await asyncio.to_thread(AutoModelForSequenceClassification.from_pretrained, str(model_path), local_files_only=True)
-                tokenizer = await asyncio.to_thread(AutoTokenizer.from_pretrained, str(model_path), local_files_only=True)
+                model = await asyncio.to_thread(
+                    AutoModelForSequenceClassification.from_pretrained,
+                    str(model_path),
+                    local_files_only=True,
+                )
+                tokenizer = await asyncio.to_thread(
+                    AutoTokenizer.from_pretrained,
+                    str(model_path),
+                    local_files_only=True,
+                )
                 return {"model": model, "tokenizer": tokenizer}
             else:
                 logger.error(f"Transformers model path not found: {model_path}")
@@ -668,9 +676,7 @@ class ModelRegistry:
 
                     # Calculate average
                     load_times = metadata.performance_metrics["load_times"]
-                    metadata.performance_metrics["avg_load_time"] = sum(load_times) / len(
-                        load_times
-                    )
+                    metadata.performance_metrics["avg_load_time"] = sum(load_times) / len(load_times)
 
                 return {"passed": True, "load_time": load_time}
             else:
@@ -707,9 +713,7 @@ class ModelRegistry:
 
             # Calculate average
             inference_times = metadata.performance_metrics["inference_times"]
-            metadata.performance_metrics["avg_inference_time"] = sum(inference_times) / len(
-                inference_times
-            )
+            metadata.performance_metrics["avg_inference_time"] = sum(inference_times) / len(inference_times)
 
             return {"passed": True, "inference_time": inference_time}
 
