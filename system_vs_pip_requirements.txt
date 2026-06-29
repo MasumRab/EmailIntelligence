@@ -67,7 +67,7 @@ google-auth-oauthlib>=1.2.2        # OAuth support
 
 # Security & Advanced
 RestrictedPython>=8.0  # Restricted Python execution
-pydantic-settings>=2.0.0 # Pydantic settings
+pydantic-settings>=2.14.2 # Pydantic settings
 aiosqlite>=0.19.0      # Async SQLite
 
 # =============================================================================
