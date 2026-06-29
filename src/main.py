@@ -1,23 +1,24 @@
-import configparser
-configparser.SafeConfigParser = configparser.ConfigParser
-
 import argparse
+import configparser
 import logging
-
-import gradio as gr
-import uvicorn
-import psutil
 import platform
 from datetime import datetime
+
+import gradio as gr
+import psutil
 import requests
+import uvicorn
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, RedirectResponse
 from pydantic import ValidationError
+
+from .core.audit_logger import AuditEventType, AuditSeverity, audit_logger
+from .core.middleware import create_security_headers_middleware, create_security_middleware
 from .core.module_manager import ModuleManager
-from .core.middleware import create_security_middleware, create_security_headers_middleware
-from .core.audit_logger import audit_logger, AuditEventType, AuditSeverity
 from .core.performance_monitor import performance_monitor
+
+configparser.SafeConfigParser = configparser.ConfigParser
 
 # Configure logging
 logging.basicConfig(

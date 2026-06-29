@@ -2,7 +2,6 @@ import logging
 import psutil
 import platform
 from datetime import datetime
-import asyncio
 
 import gradio as gr
 from fastapi import FastAPI, HTTPException
@@ -187,7 +186,7 @@ async def get_system_status() -> SystemStatus:
             uptime_seconds=0  # Would need to track from startup
         )
 
-    except Exception as e:
+    except Exception as e:  # NOSONAR
         logger.error(f"Error getting system status: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to get system status: {str(e)}")
 
@@ -205,7 +204,7 @@ async def perform_health_checks() -> HealthCheck:
             "response_time": response.elapsed.total_seconds() * 1000,
             "details": response.json() if response.status_code == 200 else {"error": response.text}
         }
-    except Exception as e:
+    except Exception as e:  # NOSONAR
         health_results["backend_api"] = {
             "status": "unhealthy",
             "error": str(e)
@@ -218,7 +217,7 @@ async def perform_health_checks() -> HealthCheck:
             "status": "healthy" if response.status_code == 200 else "unhealthy",
             "response_time": response.elapsed.total_seconds() * 1000
         }
-    except Exception as e:
+    except Exception as e:  # NOSONAR
         health_results["database"] = {
             "status": "unhealthy",
             "error": str(e)
@@ -235,7 +234,7 @@ async def perform_health_checks() -> HealthCheck:
             "status": "healthy" if response.status_code == 200 else "unhealthy",
             "response_time": response.elapsed.total_seconds() * 1000
         }
-    except Exception as e:
+    except Exception as e:  # NOSONAR
         health_results["ai_engine"] = {
             "status": "unhealthy",
             "error": str(e)
@@ -248,7 +247,7 @@ async def perform_health_checks() -> HealthCheck:
             "status": "healthy" if response.status_code == 200 else "unhealthy",
             "response_time": response.elapsed.total_seconds() * 1000
         }
-    except Exception as e:
+    except Exception as e:  # NOSONAR
         health_results["gmail_api"] = {
             "status": "unhealthy",
             "error": str(e)

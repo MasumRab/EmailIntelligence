@@ -865,6 +865,7 @@ dependencies = [
     { name = "python-multipart" },
     { name = "pyyaml" },
     { name = "qrcode" },
+    { name = "requests" },
     { name = "restrictedpython" },
     { name = "uvicorn", extra = ["standard"] },
 ]
@@ -1009,6 +1010,7 @@ requires-dist = [
     { name = "pyyaml", specifier = ">=6.0" },
     { name = "qrcode", specifier = ">=7.0" },
     { name = "redis", marker = "extra == 'db'", specifier = ">=5.0.0" },
+    { name = "requests" },
     { name = "restrictedpython", specifier = ">=8.0" },
     { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.9.0" },
     { name = "scikit-learn", marker = "extra == 'ml'", specifier = ">=1.7.0" },

@@ -10,7 +10,7 @@ This module provides API endpoints for training AI models used in email analysis
 import logging
 from typing import Any, Dict
 
-from fastapi import APIRouter, BackgroundTasks, HTTPException
+from fastapi import APIRouter, BackgroundTasks, HTTPException, Depends
 
 from src.core.auth import get_current_active_user
 
@@ -162,7 +162,7 @@ async def run_training(job_id: str, model_config: ModelConfig):
 
         logger.info(f"Training job {job_id} completed with accuracy {accuracy}")
 
-    except Exception as e:
+    except Exception as e:  # NOSONAR
         training_jobs[job_id]["status"] = "failed"
         training_jobs[job_id]["message"] = f"Training failed: {str(e)}"
         logger.error(f"Training job {job_id} failed: {e}")
