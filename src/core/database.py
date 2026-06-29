@@ -196,7 +196,7 @@ class DatabaseManager(DataSource):
             return full_email
 
         content_path = self._get_email_content_path(email_id)
-        if os.path.exists(content_path):
+        if email_id in self._content_available_index:
             try:
                 with gzip.open(content_path, "rt", encoding="utf-8") as f:
                     heavy_data = await asyncio.to_thread(json.load, f)
@@ -204,6 +204,9 @@ class DatabaseManager(DataSource):
                     
                     # Cache the content
                     self.caching_manager.put_email_content(email_id, heavy_data)
+            except FileNotFoundError:
+                # EAFP pattern: if file doesn't exist, remove from index
+                self._content_available_index.discard(email_id)
             except (IOError, json.JSONDecodeError) as e:
                 error_context = create_error_context(
                     component="DatabaseManager",
@@ -813,20 +816,17 @@ class DatabaseManager(DataSource):
             # This is a significant optimization when many emails don't have content loaded
             if email_id in self._content_available_index:
                 content_path = self._get_email_content_path(email_id)
-                # Double check existence just in case (race condition or manual deletion),
-                # but we trust the index for the negative case (if NOT in index, definitely no content)
-                if os.path.exists(content_path):
-                    try:
-                        # Offload synchronous file I/O to a thread to prevent blocking the event loop
-                        heavy_data = await asyncio.to_thread(self._read_content_sync, content_path)
-                        content = heavy_data.get(FIELD_CONTENT, "")
-                        if isinstance(content, str) and search_term_lower in content.lower():
-                            filtered_emails.append(email_light)
-                    except (IOError, json.JSONDecodeError) as e:
-                        logger.error(f"Could not search content for email {email_id}: {e}")
-                else:
+                try:
+                    # Offload synchronous file I/O to a thread to prevent blocking the event loop
+                    heavy_data = await asyncio.to_thread(self._read_content_sync, content_path)
+                    content = heavy_data.get(FIELD_CONTENT, "")
+                    if isinstance(content, str) and search_term_lower in content.lower():
+                        filtered_emails.append(email_light)
+                except FileNotFoundError:
                     # Index out of sync, remove it
                     self._content_available_index.discard(email_id)
+                except (IOError, json.JSONDecodeError) as e:
+                    logger.error(f"Could not search content for email {email_id}: {e}")
 
         # Results are already sorted because we iterated source_emails (which is sorted)
         results = [self._add_category_details(email) for email in filtered_emails]
