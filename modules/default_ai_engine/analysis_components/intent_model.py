@@ -84,10 +84,7 @@ class IntentModel:
             "confirmation": r"\b(confirm|confirmation|verify|check|acknowledge)\b",
         }
         text_lower = text.lower()
-        intent_scores = {
-            intent: len(re.findall(pattern, text_lower))
-            for intent, pattern in intent_patterns.items()
-        }
+        intent_scores = {intent: len(re.findall(pattern, text_lower)) for intent, pattern in intent_patterns.items()}
 
         if any(intent_scores.values()):
             best_intent = max(intent_scores, key=intent_scores.get)

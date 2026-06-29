@@ -14,7 +14,9 @@ from pydantic import BaseModel, Field
 # Import node-based workflow components
 from backend.node_engine.node_base import Workflow as NodeWorkflow
 from backend.node_engine.workflow_engine import WorkflowEngine
-from backend.node_engine.workflow_manager import workflow_manager as node_workflow_manager
+from backend.node_engine.workflow_manager import (
+    workflow_manager as node_workflow_manager,
+)
 from src.core.auth import get_current_active_user
 
 from .dependencies import get_workflow_engine
@@ -45,19 +47,13 @@ def get_workflow_type(workflow_name: str) -> str:
 class WorkflowCreate(BaseModel):
     name: str = Field(..., description="The unique name for the workflow.")
     description: str = ""
-    workflow_type: str = Field(
-        default="legacy", description="Type of workflow: 'legacy' or 'node_based'"
-    )
+    workflow_type: str = Field(default="legacy", description="Type of workflow: 'legacy' or 'node_based'")
     models: Dict[str, str] = Field(
         default={},
         description="A dictionary mapping model types to model names for legacy workflows.",
     )
-    nodes: List[Dict[str, Any]] = Field(
-        default=[], description="List of nodes for node-based workflows."
-    )
-    connections: List[Dict[str, str]] = Field(
-        default=[], description="List of connections for node-based workflows."
-    )
+    nodes: List[Dict[str, Any]] = Field(default=[], description="List of nodes for node-based workflows.")
+    connections: List[Dict[str, str]] = Field(default=[], description="List of connections for node-based workflows.")
 
 
 @router.get("/api/workflows", response_model=List[dict])
@@ -71,15 +67,11 @@ async def list_workflows(
     """
     try:
         # Get legacy workflows
-        legacy_workflows = (
-            workflow_engine.list_workflows() if hasattr(workflow_engine, "list_workflows") else []
-        )
+        legacy_workflows = workflow_engine.list_workflows() if hasattr(workflow_engine, "list_workflows") else []
 
         # Get node-based workflows
         node_workflows = (
-            node_workflow_manager.list_workflows()
-            if hasattr(node_workflow_manager, "list_workflows")
-            else []
+            node_workflow_manager.list_workflows() if hasattr(node_workflow_manager, "list_workflows") else []
         )
 
         # Combine and deduplicate
@@ -167,16 +159,15 @@ async def create_workflow(
 
         else:
             # Handle legacy workflow creation (original behavior)
-            await workflow_engine.create_and_register_workflow_from_config(
-                workflow_data.model_dump()
-            )
+            await workflow_engine.create_and_register_workflow_from_config(workflow_data.model_dump())
             return {"message": f"Legacy workflow '{workflow_data.name}' created successfully."}
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         logger.error(f"Failed to create workflow: {e}", exc_info=True)
         raise HTTPException(
-            status_code=500, detail="An unexpected error occurred while creating the workflow."
+            status_code=500,
+            detail="An unexpected error occurred while creating the workflow.",
         )
 
 
@@ -202,9 +193,7 @@ async def get_active_workflow(
     # as legacy workflows, so we don't track that here
 
     if not result["active_legacy_workflow"]:
-        result["message"] = (
-            "No active legacy workflow set. Node-based workflows are executed on-demand."
-        )
+        result["message"] = "No active legacy workflow set. Node-based workflows are executed on-demand."
         return result
 
     return result
@@ -256,7 +245,8 @@ async def get_workflow(
             node_workflow = node_workflow_manager.load_workflow(workflow_name)
             if not node_workflow:
                 raise HTTPException(
-                    status_code=404, detail=f"Node-based workflow '{workflow_name}' not found"
+                    status_code=404,
+                    detail=f"Node-based workflow '{workflow_name}' not found",
                 )
 
             # Convert to appropriate response format
@@ -297,7 +287,8 @@ async def get_workflow(
             legacy_workflows = workflow_engine.list_workflows()
             if workflow_name not in legacy_workflows:
                 raise HTTPException(
-                    status_code=404, detail=f"Legacy workflow '{workflow_name}' not found"
+                    status_code=404,
+                    detail=f"Legacy workflow '{workflow_name}' not found",
                 )
 
             # Check if this is the active workflow
@@ -314,7 +305,8 @@ async def get_workflow(
     except Exception as e:
         logger.error(f"Failed to get workflow '{workflow_name}': {e}", exc_info=True)
         raise HTTPException(
-            status_code=500, detail="An unexpected error occurred while retrieving the workflow."
+            status_code=500,
+            detail="An unexpected error occurred while retrieving the workflow.",
         )
 
 
@@ -333,7 +325,8 @@ async def delete_workflow(
             success = node_workflow_manager.delete_workflow(workflow_name)
             if not success:
                 raise HTTPException(
-                    status_code=404, detail=f"Node-based workflow '{workflow_name}' not found"
+                    status_code=404,
+                    detail=f"Node-based workflow '{workflow_name}' not found",
                 )
 
             return {"message": f"Node-based workflow '{workflow_name}' deleted successfully."}
@@ -344,7 +337,8 @@ async def delete_workflow(
             legacy_workflows = workflow_engine.list_workflows()
             if workflow_name not in legacy_workflows:
                 raise HTTPException(
-                    status_code=404, detail=f"Legacy workflow '{workflow_name}' not found"
+                    status_code=404,
+                    detail=f"Legacy workflow '{workflow_name}' not found",
                 )
 
             # Note: Legacy system may not support direct deletion of individual workflows
@@ -357,5 +351,6 @@ async def delete_workflow(
     except Exception as e:
         logger.error(f"Failed to delete workflow '{workflow_name}': {e}", exc_info=True)
         raise HTTPException(
-            status_code=500, detail="An unexpected error occurred while deleting the workflow."
+            status_code=500,
+            detail="An unexpected error occurred while deleting the workflow.",
         )

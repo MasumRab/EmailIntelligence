@@ -5,6 +5,7 @@ This module provides a system for discovering, loading, and managing
 external plugins.
 """
 
+import importlib.util
 import logging
 import os
 from typing import List
@@ -28,9 +29,7 @@ class PluginManager:
         """
         logger.info(f"Discovering plugins in '{self.plugin_folder}'...")
         if not os.path.exists(self.plugin_folder):
-            logger.warning(
-                f"Plugin folder '{self.plugin_folder}' not found. Skipping plugin loading."
-            )
+            logger.warning(f"Plugin folder '{self.plugin_folder}' not found. Skipping plugin loading.")
             return
 
         for item in os.listdir(self.plugin_folder):

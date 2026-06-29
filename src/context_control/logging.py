@@ -31,9 +31,7 @@ def setup_logging(
 
     # Default format
     if format_string is None:
-        format_string = (
-            "%(asctime)s - %(name)s - %(levelname)s - " "[%(context_id)s] %(message)s"
-        )
+        format_string = "%(asctime)s - %(name)s - %(levelname)s - [%(context_id)s] %(message)s"
 
     formatter = logging.Formatter(format_string)
 
@@ -84,9 +82,7 @@ class ContextAdapter(logging.LoggerAdapter):
         return msg, kwargs
 
 
-def get_context_logger(
-    context_id: Optional[str] = None, name: str = "context_control"
-) -> ContextAdapter:
+def get_context_logger(context_id: Optional[str] = None, name: str = "context_control") -> ContextAdapter:
     """Get a context-aware logger that includes context_id in all log messages.
 
     Args:

@@ -37,16 +37,16 @@ except ImportError:
 @dataclass
 class ResourceLimits:
     """Defines resource limits for workflow execution."""
+
     max_api_calls: int = 1000
     max_execution_time: int = 300  # seconds
     max_memory_mb: int = 512
     max_concurrent_nodes: int = 10
 
 
-
-
 class SanitizationLevel(Enum):
     """Security levels for input sanitization policies."""
+
     STRICT = "strict"
     STANDARD = "standard"
     PERMISSIVE = "permissive"
@@ -55,6 +55,7 @@ class SanitizationLevel(Enum):
 @dataclass
 class SanitizationPolicy:
     """Defines rules for input sanitization."""
+
     level: SanitizationLevel
     allowed_tags: List[str]
     allowed_attributes: Dict[str, List[str]]
@@ -67,28 +68,70 @@ SANITIZATION_POLICIES = {
         level=SanitizationLevel.STRICT,
         allowed_tags=[],  # No tags allowed, plain text only
         allowed_attributes={},
-        strip=True
+        strip=True,
     ),
     SanitizationLevel.STANDARD: SanitizationPolicy(
         level=SanitizationLevel.STANDARD,
         allowed_tags=[
-            "p", "br", "strong", "em", "u", "ol", "ul", "li",
-            "h1", "h2", "h3", "h4", "h5", "h6", "blockquote", "code", "pre"
+            "p",
+            "br",
+            "strong",
+            "em",
+            "u",
+            "ol",
+            "ul",
+            "li",
+            "h1",
+            "h2",
+            "h3",
+            "h4",
+            "h5",
+            "h6",
+            "blockquote",
+            "code",
+            "pre",
         ],
         allowed_attributes={
             "a": ["href", "title"],
             "img": ["src", "alt", "title", "width", "height"],
             "*": ["class", "id"],
         },
-        strip=True
+        strip=True,
     ),
     SanitizationLevel.PERMISSIVE: SanitizationPolicy(
         level=SanitizationLevel.PERMISSIVE,
         allowed_tags=[
-            "p", "br", "strong", "em", "u", "ol", "ul", "li",
-            "h1", "h2", "h3", "h4", "h5", "h6", "blockquote", "code", "pre",
-            "div", "span", "table", "thead", "tbody", "tr", "th", "td",
-            "img", "a", "hr", "sub", "sup", "iframe"
+            "p",
+            "br",
+            "strong",
+            "em",
+            "u",
+            "ol",
+            "ul",
+            "li",
+            "h1",
+            "h2",
+            "h3",
+            "h4",
+            "h5",
+            "h6",
+            "blockquote",
+            "code",
+            "pre",
+            "div",
+            "span",
+            "table",
+            "thead",
+            "tbody",
+            "tr",
+            "th",
+            "td",
+            "img",
+            "a",
+            "hr",
+            "sub",
+            "sup",
+            "iframe",
         ],
         allowed_attributes={
             "a": ["href", "title", "target", "rel"],
@@ -96,7 +139,7 @@ SANITIZATION_POLICIES = {
             "iframe": ["src", "width", "height", "frameborder", "allowfullscreen"],
             "*": ["class", "id", "style"],
         },
-        strip=True
+        strip=True,
     ),
 }
 
@@ -155,9 +198,7 @@ class SecurityManager:
             return True
 
         # Specific resource-based permissions
-        if (
-            hasattr(resource, "__tablename__") and resource.__tablename__ == "workflows"
-        ):  # Assuming SQLAlchemy model
+        if hasattr(resource, "__tablename__") and resource.__tablename__ == "workflows":  # Assuming SQLAlchemy model
             # For workflow execution
             if action == "execute":
                 # Only allow execution of workflows marked as 'safe' for non-admins
@@ -273,17 +314,13 @@ class InputSanitizer:
                 value,
                 tags=policy.allowed_tags,
                 attributes=policy.allowed_attributes,
-                strip=policy.strip
+                strip=policy.strip,
             )
         else:
             # Fallback to basic implementation if bleach is not available
             # Remove potentially dangerous characters/patterns
-            sanitized = value.replace("<script", "&lt;script").replace(
-                "javascript:", "javascript&#58;"
-            )
-            sanitized = sanitized.replace("onerror", "onerror&#58;").replace(
-                "onload", "onload&#58;"
-            )
+            sanitized = value.replace("<script", "&lt;script").replace("javascript:", "javascript&#58;")
+            sanitized = sanitized.replace("onerror", "onerror&#58;").replace("onload", "onload&#58;")
 
             sanitized = sanitized.replace("<iframe", "&lt;iframe").replace("<object", "&lt;object")
             sanitized = sanitized.replace("<embed", "&lt;embed").replace("<form", "&lt;form")
@@ -313,9 +350,7 @@ class InputSanitizer:
 
         # Pattern: [text](scheme:content)
         # This regex is non-exhaustive but catches common patterns
-        link_pattern = re.compile(
-            r"\[([^\]]+)\]\s*\((javascript|vbscript|data):([^\)]+)\)", re.IGNORECASE
-        )
+        link_pattern = re.compile(r"\[([^\]]+)\]\s*\((javascript|vbscript|data):([^\)]+)\)", re.IGNORECASE)
         sanitized = link_pattern.sub(replace_unsafe_link, sanitized)
 
         return sanitized
@@ -366,9 +401,7 @@ class InputSanitizer:
             # Schema validation if requested and lxml is available
             if schema_path:
                 if LxmlEtree is None:
-                    logging.getLogger(__name__).warning(
-                        "XML schema validation requested but lxml is not installed"
-                    )
+                    logging.getLogger(__name__).warning("XML schema validation requested but lxml is not installed")
                 else:
                     if not os.path.exists(schema_path):
                         raise ValueError(f"Schema file not found: {schema_path}")
@@ -460,8 +493,7 @@ class ExecutionSandbox:
             if port_name in inputs:
                 if not isinstance(inputs[port_name], expected_type):
                     self.logger.error(
-                        f"Input validation failed: {port_name} expected "
-                        f"{expected_type}, got {type(inputs[port_name])}"
+                        f"Input validation failed: {port_name} expected {expected_type}, got {type(inputs[port_name])}"
                     )
                     return False
         return True
@@ -493,13 +525,15 @@ class AuditLogger:
 
     def log_workflow_end(self, workflow_id: str, status: str, duration: float, user_id: str = None):
         """Log workflow execution end."""
-        self.logger.info(
-            f"WORKFLOW_END: id={workflow_id}, status={status}, "
-            f"duration={duration}s, user={user_id}"
-        )
+        self.logger.info(f"WORKFLOW_END: id={workflow_id}, status={status}, duration={duration}s, user={user_id}")
 
     def log_node_execution(
-        self, workflow_id: str, node_id: str, node_name: str, status: str, duration: float
+        self,
+        workflow_id: str,
+        node_id: str,
+        node_name: str,
+        status: str,
+        duration: float,
     ):
         """Log node execution."""
         self.logger.info(

@@ -81,9 +81,7 @@ class PromptEngineer:
         filled = self.fill(**kwargs)
         return f"Executing prompt: {filled}"
 
-    def create_email_categorization_prompt(
-        self, subject: str, content: str, categories: List[str]
-    ) -> str:
+    def create_email_categorization_prompt(self, subject: str, content: str, categories: List[str]) -> str:
         """
         Create a prompt for email categorization based on available categories.
 

@@ -142,13 +142,16 @@ class NodeSecurityValidator:
             for from_import, import_stmt in imports:
                 module_name = from_import or import_stmt
                 if module_name and module_name not in allowed_modules:
-                    violations.append(
-                        f"Module '{module_name}' not allowed at {security_level.value} security level"
-                    )
+                    violations.append(f"Module '{module_name}' not allowed at {security_level.value} security level")
 
         # Check for network operations (warnings for untrusted/limited)
         if security_level in [SecurityLevel.UNTRUSTED, SecurityLevel.LIMITED]:
-            network_patterns = [r"\brequests\b", r"\burllib\b", r"\bhttp\b", r"\bsocket\b"]
+            network_patterns = [
+                r"\brequests\b",
+                r"\burllib\b",
+                r"\bhttp\b",
+                r"\bsocket\b",
+            ]
             for pattern in network_patterns:
                 if re.search(pattern, code):
                     warnings.append(f"Network operation detected: {pattern}")
@@ -215,9 +218,7 @@ class NodeSecurityValidator:
             max_size = 100 * 1024 * 1024  # 100MB
 
         if "max_size" in config and config["max_size"] > max_size:
-            violations.append(
-                f"Size limit {config['max_size']} exceeds maximum for {security_level.value} level"
-            )
+            violations.append(f"Size limit {config['max_size']} exceeds maximum for {security_level.value} level")
 
         return ValidationResult(
             is_valid=len(violations) == 0,
@@ -233,7 +234,10 @@ class WorkflowSecurityValidator:
     """
 
     def validate_workflow_execution(
-        self, workflow_config: Dict[str, Any], user_id: str, security_level: SecurityLevel
+        self,
+        workflow_config: Dict[str, Any],
+        user_id: str,
+        security_level: SecurityLevel,
     ) -> ValidationResult:
         """
         Validate workflow execution for security compliance.

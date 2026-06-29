@@ -133,9 +133,7 @@ class WorkflowEngine:
 
         logger.info(f"Workflows discovered. Active workflow: '{self.active_workflow.name}'")
 
-    async def create_and_register_workflow_from_config(
-        self, config: Dict[str, Any], from_file: bool = False
-    ):
+    async def create_and_register_workflow_from_config(self, config: Dict[str, Any], from_file: bool = False):
         """Creates, saves, and registers a new workflow from a config dictionary."""
         workflow_name = config.get("name")
         if not workflow_name:
@@ -201,7 +199,10 @@ class DefaultWorkflow(BaseWorkflow):
     async def execute(self, email_data: Dict[str, Any]) -> Dict[str, Any]:
         logger.info(f"Executing default workflow for email: {email_data.get('subject')}")
         ai_analysis = await self._ai_engine.analyze_email(
-            email_data["subject"], email_data["content"], models_to_use=self.models, db=self._db
+            email_data["subject"],
+            email_data["content"],
+            models_to_use=self.models,
+            db=self._db,
         )
         filter_results = await self._filter_manager.apply_filters_to_email_data(email_data)
         processed_data = email_data.copy()
@@ -238,11 +239,12 @@ class FileBasedWorkflow(BaseWorkflow):
         return self._name
 
     async def execute(self, email_data: Dict[str, Any]) -> Dict[str, Any]:
-        logger.info(
-            f"Executing file-based workflow '{self.name}' for email: {email_data.get('subject')}"
-        )
+        logger.info(f"Executing file-based workflow '{self.name}' for email: {email_data.get('subject')}")
         ai_analysis = await self._ai_engine.analyze_email(
-            email_data["subject"], email_data["content"], models_to_use=self.models, db=self._db
+            email_data["subject"],
+            email_data["content"],
+            models_to_use=self.models,
+            db=self._db,
         )
         filter_results = await self._filter_manager.apply_filters_to_email_data(email_data)
         processed_data = email_data.copy()

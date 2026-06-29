@@ -21,7 +21,9 @@ from backend.node_engine.node_base import (
     SecurityContext,
     Workflow,
 )
-from backend.node_engine.security_manager import SecurityManager  # Import the SecurityManager class
+from backend.node_engine.security_manager import (
+    SecurityManager,
+)  # Import the SecurityManager class
 from backend.node_engine.security_manager import (
     ExecutionSandbox,
     InputSanitizer,
@@ -45,9 +47,7 @@ class WorkflowEngine:
         self.active_executions: Dict[str, ExecutionContext] = {}
         self.node_registry: Dict[str, type] = {}
         # Initialize with a default SecurityManager if not provided, for flexibility
-        self.security_manager = (
-            security_manager if security_manager else SecurityManager(user_roles={})
-        )
+        self.security_manager = security_manager if security_manager else SecurityManager(user_roles={})
 
     def register_node_type(self, node_class: type):
         """Register a node type for workflow composition."""
@@ -59,7 +59,10 @@ class WorkflowEngine:
         return list(self.node_registry.keys())
 
     async def execute_workflow(
-        self, workflow: Workflow, initial_inputs: Dict[str, Any] = None, user_id: str = None
+        self,
+        workflow: Workflow,
+        initial_inputs: Dict[str, Any] = None,
+        user_id: str = None,
     ) -> ExecutionContext:
         """
         Execute a workflow with the given initial inputs.
@@ -81,9 +84,7 @@ class WorkflowEngine:
             def __init__(self, user_id: str):
                 self.id = user_id
 
-        mock_user = (
-            MockUser(user_id) if user_id else MockUser("anonymous")
-        )  # Use 'anonymous' for unauthenticated
+        mock_user = MockUser(user_id) if user_id else MockUser("anonymous")  # Use 'anonymous' for unauthenticated
 
         if not self.security_manager.has_permission(mock_user, "execute", workflow):
             error_msg = f"User {user_id or 'anonymous'} does not have permission to execute workflow {workflow.name} (ID: {workflow.workflow_id})."
@@ -111,13 +112,9 @@ class WorkflowEngine:
             initial_inputs = InputSanitizer._sanitize_dict(initial_inputs or {})
 
         # Acquire resources for the workflow
-        resources_acquired = await resource_manager.acquire_resources(
-            execution_id, ResourceLimits()
-        )
+        resources_acquired = await resource_manager.acquire_resources(execution_id, ResourceLimits())
         if not resources_acquired:
-            raise WorkflowExecutionException(
-                f"Unable to acquire resources for workflow {execution_id}"
-            )
+            raise WorkflowExecutionException(f"Unable to acquire resources for workflow {execution_id}")
 
         # Create execution context with security context
         context = ExecutionContext(security_context=security_context)
@@ -152,9 +149,7 @@ class WorkflowEngine:
 
                 # Validate node execution based on security policies
                 node_type = node.__class__.__name__
-                if not self.security_manager.validate_node_execution(
-                    node_type, getattr(node, "config", {})
-                ):
+                if not self.security_manager.validate_node_execution(node_type, getattr(node, "config", {})):
                     error_msg = f"Security validation failed for node {node_id} ({node_type})"
                     context.add_error(node_id, error_msg)
                     audit_logger.log_security_event(
@@ -182,16 +177,14 @@ class WorkflowEngine:
                 self.logger.debug(f"Executing node {node_id} ({node.name})")
                 try:
                     # Check API call limits
-                    if not self.security_manager.check_api_call_limit(
-                        workflow.workflow_id, node_id
-                    ):
-                        raise WorkflowExecutionException(
-                            f"API call limit exceeded for node {node_id}"
-                        )
+                    if not self.security_manager.check_api_call_limit(workflow.workflow_id, node_id):
+                        raise WorkflowExecutionException(f"API call limit exceeded for node {node_id}")
 
                     node_start_time = time.time()
                     result = await sandbox.execute_with_timeout(
-                        node.execute, 30, context  # 30 second timeout per node
+                        node.execute,
+                        30,
+                        context,  # 30 second timeout per node
                     )
                     node_execution_duration = time.time() - node_start_time
 
@@ -199,29 +192,35 @@ class WorkflowEngine:
                     context.execution_path.append(node_id)
 
                     # Update performance metrics
-                    context.metadata["performance"]["node_execution_times"][
-                        node_id
-                    ] = node_execution_duration
+                    context.metadata["performance"]["node_execution_times"][node_id] = node_execution_duration
                     context.metadata["performance"]["nodes_executed"] += 1
 
-                    self.logger.debug(
-                        f"Node {node_id} executed successfully in {node_execution_duration:.3f}s"
-                    )
+                    self.logger.debug(f"Node {node_id} executed successfully in {node_execution_duration:.3f}s")
 
                     # Log node execution with enhanced performance data
                     audit_logger.log_node_execution(
-                        workflow.workflow_id, node_id, node.name, "success", node_execution_duration
+                        workflow.workflow_id,
+                        node_id,
+                        node.name,
+                        "success",
+                        node_execution_duration,
                     )
                 except Exception as e:
                     error_msg = f"Node {node_id} execution failed: {str(e)}"
                     context.add_error(
-                        node_id, error_msg, {"exception": str(e), "type": type(e).__name__}
+                        node_id,
+                        error_msg,
+                        {"exception": str(e), "type": type(e).__name__},
                     )
                     self.logger.error(error_msg, exc_info=True)
 
                     # Log failed node execution
                     audit_logger.log_node_execution(
-                        workflow.workflow_id, node_id, node.name, "failed", -1  # Indicate error
+                        workflow.workflow_id,
+                        node_id,
+                        node.name,
+                        "failed",
+                        -1,  # Indicate error
                     )
 
                     raise WorkflowExecutionException(error_msg) from e
@@ -244,9 +243,7 @@ class WorkflowEngine:
             end_time = datetime.now()
             context.metadata["end_time"] = end_time
             if "start_time" in context.metadata:
-                context.metadata["execution_duration"] = (
-                    end_time - context.metadata["start_time"]
-                ).total_seconds()
+                context.metadata["execution_duration"] = (end_time - context.metadata["start_time"]).total_seconds()
             context.metadata["status"] = "failed"
             context.metadata["error"] = str(e)
 
@@ -270,7 +267,10 @@ class WorkflowEngine:
         return context
 
     async def _set_initial_inputs(
-        self, workflow: Workflow, context: ExecutionContext, initial_inputs: Dict[str, Any]
+        self,
+        workflow: Workflow,
+        context: ExecutionContext,
+        initial_inputs: Dict[str, Any],
     ):
         """Set initial input values to appropriate source nodes."""
         # For now, set all initial inputs as shared state
@@ -289,9 +289,7 @@ class WorkflowEngine:
             source_output = context.get_node_output(conn.source_node_id, conn.source_port)
             if source_output is not None:
                 # Validate type compatibility between source output and target input
-                target_port = next(
-                    (p for p in node.input_ports if p.name == conn.target_port), None
-                )
+                target_port = next((p for p in node.input_ports if p.name == conn.target_port), None)
                 if target_port:
                     # Get the source node to check output port type
                     source_node = workflow.nodes.get(conn.source_node_id)
@@ -302,9 +300,7 @@ class WorkflowEngine:
                         )
                         if source_port:
                             # Validate type compatibility
-                            if not self._validate_type_compatibility(
-                                source_port.data_type, target_port.data_type
-                            ):
+                            if not self._validate_type_compatibility(source_port.data_type, target_port.data_type):
                                 error_msg = (
                                     f"Type mismatch in connection: {source_node.__class__.__name__}."
                                     f"{conn.source_port} ({source_port.data_type.value}) -> "
@@ -336,9 +332,7 @@ class WorkflowEngine:
     # - Support common conversions (string to json, list to single item, etc.)
     # - Add transformation cost/priority system
 
-    def _validate_type_compatibility(
-        self, source_type: "DataType", target_type: "DataType"
-    ) -> bool:
+    def _validate_type_compatibility(self, source_type: "DataType", target_type: "DataType") -> bool:
         """Validate if source and target types are compatible."""
         # Handle GenericType comparisons
         if isinstance(source_type, GenericType) or isinstance(target_type, GenericType):
@@ -381,23 +375,21 @@ class WorkflowEngine:
                 return False
 
             # Recursively check parameters
-            for src_param, tgt_param in zip(
-                source_type.type_parameters, target_type.type_parameters
-            ):
+            for src_param, tgt_param in zip(source_type.type_parameters, target_type.type_parameters):
                 if not self._validate_type_compatibility(src_param, tgt_param):
                     return False
             return True
 
         # Handle backward compatibility: EMAIL_LIST is equivalent to List[Email]
         if source_type == DataType.EMAIL_LIST:
-             if isinstance(target_type, GenericType) and target_type.base_type == DataType.LIST:
-                 if len(target_type.type_parameters) > 0 and target_type.type_parameters[0] == DataType.EMAIL:
-                     return True
+            if isinstance(target_type, GenericType) and target_type.base_type == DataType.LIST:
+                if len(target_type.type_parameters) > 0 and target_type.type_parameters[0] == DataType.EMAIL:
+                    return True
 
         if target_type == DataType.EMAIL_LIST:
-             if isinstance(source_type, GenericType) and source_type.base_type == DataType.LIST:
-                 if len(source_type.type_parameters) > 0 and source_type.type_parameters[0] == DataType.EMAIL:
-                     return True
+            if isinstance(source_type, GenericType) and source_type.base_type == DataType.LIST:
+                if len(source_type.type_parameters) > 0 and source_type.type_parameters[0] == DataType.EMAIL:
+                    return True
 
         # Direct match check (though should be handled by earlier checks if not generic)
         if source_type == target_type:
@@ -470,6 +462,4 @@ class WorkflowEngine:
 
 
 # Global workflow engine instance
-workflow_engine = WorkflowEngine(
-    SecurityManager(user_roles={})
-)  # Instantiate with a default SecurityManager
+workflow_engine = WorkflowEngine(SecurityManager(user_roles={}))  # Instantiate with a default SecurityManager

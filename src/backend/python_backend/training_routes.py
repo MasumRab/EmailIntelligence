@@ -10,7 +10,7 @@ This module provides API endpoints for training AI models used in email analysis
 import logging
 from typing import Any, Dict
 
-from fastapi import APIRouter, BackgroundTasks, HTTPException
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 
 from src.core.auth import get_current_active_user
 
@@ -117,9 +117,7 @@ async def run_training(job_id: str, model_config: ModelConfig):
         df = pd.DataFrame(sample_data, columns=["text", "sentiment"])
 
         # Split data
-        X_train, X_test, y_train, y_test = train_test_split(
-            df["text"], df["sentiment"], test_size=0.2, random_state=42
-        )
+        X_train, X_test, y_train, y_test = train_test_split(df["text"], df["sentiment"], test_size=0.2, random_state=42)
 
         training_jobs[job_id]["progress"] = 0.3
         training_jobs[job_id]["message"] = "Vectorizing text..."
@@ -154,9 +152,7 @@ async def run_training(job_id: str, model_config: ModelConfig):
         joblib.dump((model, vectorizer), model_path)
 
         training_jobs[job_id]["status"] = "completed"
-        training_jobs[job_id][
-            "message"
-        ] = f"Training completed successfully. Accuracy: {accuracy:.2f}"
+        training_jobs[job_id]["message"] = f"Training completed successfully. Accuracy: {accuracy:.2f}"
         training_jobs[job_id]["accuracy"] = accuracy
         training_jobs[job_id]["model_path"] = model_path
 

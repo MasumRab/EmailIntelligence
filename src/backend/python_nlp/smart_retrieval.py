@@ -61,7 +61,7 @@ class SmartRetrievalManager:
             cursor = conn.cursor()
 
             # Create sync_checkpoints table if it doesn't exist
-            cursor.execute('''
+            cursor.execute("""
                 CREATE TABLE IF NOT EXISTS sync_checkpoints (
                     strategy_name TEXT PRIMARY KEY,
                     last_sync_date TEXT,
@@ -70,7 +70,7 @@ class SmartRetrievalManager:
                     next_page_token TEXT,
                     errors_count INTEGER DEFAULT 0
                 )
-            ''')
+            """)
 
             conn.commit()
             self.logger.info("Checkpoint database initialized successfully.")
@@ -80,7 +80,8 @@ class SmartRetrievalManager:
         finally:
             if conn:
                 conn.close()
-#
+
+    #
     def _store_credentials(self, creds: Credentials):
         try:
             with open(TOKEN_JSON_PATH, "w") as token_file:
@@ -88,7 +89,8 @@ class SmartRetrievalManager:
             self.logger.info("Credentials stored successfully.")
         except Exception as e:
             self.logger.error(
-                f"An unexpected error occurred during the OAuth flow: {e}", exc_info=True
+                f"An unexpected error occurred during the OAuth flow: {e}",
+                exc_info=True,
             )
             return None
 
@@ -97,9 +99,7 @@ class SmartRetrievalManager:
         # Implementation would go here
         return []
 
-    def get_incremental_query(
-        self, strategy: RetrievalStrategy, checkpoint: Optional[SyncCheckpoint] = None
-    ) -> str:
+    def get_incremental_query(self, strategy: RetrievalStrategy, checkpoint: Optional[SyncCheckpoint] = None) -> str:
         """
         Generate incremental query for a strategy.
 
@@ -114,7 +114,7 @@ class SmartRetrievalManager:
         if checkpoint and checkpoint.last_sync_date:
             # Gmail API uses 'after:' filter for date-based queries
             # Convert to YYYY/MM/DD format expected by Gmail
-            date_filter = checkpoint.last_sync_date.strftime('%Y/%m/%d')
+            date_filter = checkpoint.last_sync_date.strftime("%Y/%m/%d")
             if base_query:
                 return f"{base_query} after:{date_filter}"
             else:
@@ -151,18 +151,21 @@ class SmartRetrievalManager:
             last_sync_str = checkpoint.last_sync_date.isoformat() if checkpoint.last_sync_date else None
 
             # Use INSERT OR REPLACE to handle both new and existing checkpoints
-            cursor.execute('''
+            cursor.execute(
+                """
             INSERT OR REPLACE INTO sync_checkpoints
             (strategy_name, last_sync_date, last_history_id, processed_count, next_page_token, errors_count)
             VALUES (?, ?, ?, ?, ?, ?)
-            ''', (
-            checkpoint.strategy_name,
-            last_sync_str,
-            checkpoint.last_history_id,
-            checkpoint.processed_count,
-            checkpoint.next_page_token,
-            checkpoint.errors_count
-            ))
+            """,
+                (
+                    checkpoint.strategy_name,
+                    last_sync_str,
+                    checkpoint.last_history_id,
+                    checkpoint.processed_count,
+                    checkpoint.next_page_token,
+                    checkpoint.errors_count,
+                ),
+            )
 
             conn.commit()
             self.logger.info(f"Checkpoint saved for strategy: {checkpoint.strategy_name}")
@@ -173,6 +176,8 @@ class SmartRetrievalManager:
         finally:
             if conn:
                 conn.close()
+
+
 #
 #
 # async def main_cli():

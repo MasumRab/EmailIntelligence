@@ -154,9 +154,7 @@ class SmartFilterManager:
                     time.sleep(0.1 * (attempt + 1))  # Exponential backoff
                     continue
                 else:
-                    self.logger.error(
-                        f"Database error after {retries} attempts: {e} with query: {query[:100]}"
-                    )
+                    self.logger.error(f"Database error after {retries} attempts: {e} with query: {query[:100]}")
                     raise
             except sqlite3.Error as e:
                 self.logger.error(f"Database error: {e} with query: {query[:100]}")
@@ -235,7 +233,11 @@ class SmartFilterManager:
 
     def _load_pruning_criteria(self) -> Dict[str, Any]:
         """Loads the criteria used for pruning ineffective filters."""
-        return {"effectiveness_threshold": 0.3, "usage_threshold": 10, "age_threshold_days": 90}
+        return {
+            "effectiveness_threshold": 0.3,
+            "usage_threshold": 10,
+            "age_threshold_days": 90,
+        }
 
     def create_intelligent_filters(self, email_samples: List[Dict[str, Any]]) -> List[EmailFilter]:
         """
@@ -380,8 +382,7 @@ class SmartFilterManager:
         """Applies a single filter's criteria to an email."""
         criteria = filter_obj.criteria
         if "from_patterns" in criteria and not any(
-            re.search(p, email.get("senderEmail", ""), re.IGNORECASE)
-            for p in criteria["from_patterns"]
+            re.search(p, email.get("senderEmail", ""), re.IGNORECASE) for p in criteria["from_patterns"]
         ):
             return False
         if "subject_keywords" in criteria and not any(
@@ -392,9 +393,7 @@ class SmartFilterManager:
 
     def _save_filter(self, filter_obj: EmailFilter):
         """Saves a filter to the database."""
-        query = (
-            "INSERT OR REPLACE INTO email_filters VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
-        )
+        query = "INSERT OR REPLACE INTO email_filters VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
         params = (
             filter_obj.filter_id,
             filter_obj.name,
@@ -414,9 +413,7 @@ class SmartFilterManager:
 
     def get_active_filters_sorted(self) -> List[EmailFilter]:
         """Loads all active filters from the database, sorted by priority."""
-        rows = self._db_fetchall(
-            "SELECT * FROM email_filters WHERE is_active = 1 ORDER BY priority DESC"
-        )
+        rows = self._db_fetchall("SELECT * FROM email_filters WHERE is_active = 1 ORDER BY priority DESC")
         return [
             EmailFilter(
                 row["filter_id"],
@@ -459,9 +456,7 @@ def main():
     filters = manager.create_intelligent_filters(sample_emails)
     print(f"Created {len(filters)} filters.")
     if filters:
-        print(
-            f"Applied filters to sample email: {manager.apply_filters_to_email_data(sample_emails[0])}"
-        )
+        print(f"Applied filters to sample email: {manager.apply_filters_to_email_data(sample_emails[0])}")
 
 
 if __name__ == "__main__":

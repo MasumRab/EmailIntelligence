@@ -81,16 +81,12 @@ class ContextIsolator:
 
             conflicts = accessible_set & restricted_set
             if conflicts:
-                logger.error(
-                    f"Context integrity violation: conflicting permissions for {conflicts}"
-                )
+                logger.error(f"Context integrity violation: conflicting permissions for {conflicts}")
                 return False
 
             # Check that context has proper boundaries
             if not self.context.accessible_files and not self.context.restricted_files:
-                logger.warning(
-                    "Context has no file access boundaries - potential security risk"
-                )
+                logger.warning("Context has no file access boundaries - potential security risk")
                 # This is a warning, not an error, as some contexts might be unrestricted
 
             return True
@@ -237,8 +233,7 @@ class IsolationManager:
                 overlap = set(ctx1.accessible_files) & set(ctx2.accessible_files)
                 if overlap:
                     violations.append(
-                        f"Overlapping file access between agents '{ctx1.agent_id}' "
-                        f"and '{ctx2.agent_id}': {overlap}"
+                        f"Overlapping file access between agents '{ctx1.agent_id}' and '{ctx2.agent_id}': {overlap}"
                     )
 
         return violations
@@ -263,9 +258,7 @@ class IsolationManager:
         for context in contexts:
             isolator = self.get_isolator(context)
             if not isolator.validate_context_integrity():
-                logger.error(
-                    f"Context integrity violation for agent '{context.agent_id}'"
-                )
+                logger.error(f"Context integrity violation for agent '{context.agent_id}'")
                 return False
 
         return True

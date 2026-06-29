@@ -82,8 +82,7 @@ class TopicModel:
         }
         text_lower = text.lower()
         topic_scores = {
-            topic: sum(1 for keyword in keywords if keyword in text_lower)
-            for topic, keywords in topics.items()
+            topic: sum(1 for keyword in keywords if keyword in text_lower) for topic, keywords in topics.items()
         }
 
         if any(topic_scores.values()):
@@ -95,7 +94,11 @@ class TopicModel:
                 "method_used": "fallback_keyword_topic",
             }
         else:
-            return {"topic": "General", "confidence": 0.5, "method_used": "fallback_keyword_topic"}
+            return {
+                "topic": "General",
+                "confidence": 0.5,
+                "method_used": "fallback_keyword_topic",
+            }
 
     def analyze(self, text: str) -> Dict[str, Any]:
         """

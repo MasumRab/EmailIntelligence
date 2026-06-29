@@ -50,9 +50,7 @@ class MFAService:
             Base64 encoded QR code image
         """
         try:
-            totp_uri = pyotp.totp.TOTP(secret).provisioning_uri(
-                name=username, issuer_name=self.issuer_name
-            )
+            totp_uri = pyotp.totp.TOTP(secret).provisioning_uri(name=username, issuer_name=self.issuer_name)
 
             qr = qrcode.QRCode(version=1, box_size=10, border=5)
             qr.add_data(totp_uri)
@@ -105,9 +103,7 @@ class MFAService:
             codes.append(code)
         return codes
 
-    def verify_backup_code(
-        self, backup_codes: List[str], code: str
-    ) -> Tuple[bool, Optional[List[str]]]:
+    def verify_backup_code(self, backup_codes: List[str], code: str) -> Tuple[bool, Optional[List[str]]]:
         """
         Verify a backup code and return updated list without the used code.
 

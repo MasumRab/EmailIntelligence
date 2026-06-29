@@ -25,16 +25,19 @@ class ContextController:
         """
         self.config = config or get_current_config()
         # Ensure global config is set for components that need it
-        if config and not hasattr(get_current_config, '_config') or get_current_config.__globals__.get('_config') is None:
+        if (
+            config
+            and not hasattr(get_current_config, "_config")
+            or get_current_config.__globals__.get("_config") is None
+        ):
             from .config import init_config
-            init_config(override_config=self.config.dict() if hasattr(self.config, 'dict') else None)
+
+            init_config(override_config=self.config.dict() if hasattr(self.config, "dict") else None)
         self.storage = ProfileStorage(self.config)
         self._context_cache: Dict[str, AgentContext] = {}
         logger.info("Context controller initialized")
 
-    def get_context_for_branch(
-        self, branch_name: Optional[str] = None, agent_id: str = "default"
-    ) -> AgentContext:
+    def get_context_for_branch(self, branch_name: Optional[str] = None, agent_id: str = "default") -> AgentContext:
         # Ensure branch_name is a string
         if branch_name is None:
             branch_name = detect_branch()
@@ -76,6 +79,7 @@ class ContextController:
         else:
             # Create a project loader with our config
             from .project import ProjectConfigLoader
+
             loader = ProjectConfigLoader(self.config)
             project_config = loader.load_project_config()
 

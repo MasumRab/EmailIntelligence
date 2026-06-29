@@ -9,7 +9,10 @@ from googleapiclient.errors import HttpError as GoogleApiHttpError
 from ..python_nlp.gmail_service import GmailAIService
 from .dependencies import get_gmail_service
 from .exceptions import GmailServiceError
-from .models import GmailSyncRequest, SmartRetrievalRequest  # Changed from .main to .models
+from .models import (
+    GmailSyncRequest,
+    SmartRetrievalRequest,
+)  # Changed from .main to .models
 from .performance_monitor import log_performance
 
 logger = logging.getLogger(__name__)
@@ -60,9 +63,7 @@ async def sync_gmail(
                         "batch_id", f"batch_{int(datetime.now().timestamp())}"
                     ),
                     "queryFilter": request_model.queryFilter,
-                    "timestamp": nlp_result.get("batch_info", {}).get(
-                        "timestamp", datetime.now().isoformat()
-                    ),
+                    "timestamp": nlp_result.get("batch_info", {}).get("timestamp", datetime.now().isoformat()),
                 },
                 "statistics": nlp_result.get("statistics", {}),
                 "error": None,
@@ -200,9 +201,7 @@ async def smart_retrieval(
 
 @router.get("/api/gmail/strategies")
 @log_performance(operation="get_retrieval_strategies")
-async def get_retrieval_strategies(
-    request: Request, gmail_service: GmailAIService = Depends(get_gmail_service)
-):
+async def get_retrieval_strategies(request: Request, gmail_service: GmailAIService = Depends(get_gmail_service)):
     """Get available Gmail retrieval strategies"""
     try:
         strategies = await gmail_service.get_retrieval_strategies()
@@ -220,9 +219,7 @@ async def get_retrieval_strategies(
 
 @router.get("/api/gmail/performance")
 @log_performance(operation="get_gmail_performance")
-async def get_gmail_performance(
-    request: Request, gmail_service: GmailAIService = Depends(get_gmail_service)
-):
+async def get_gmail_performance(request: Request, gmail_service: GmailAIService = Depends(get_gmail_service)):
     """Get Gmail API performance metrics"""
     try:
         metrics = await gmail_service.get_performance_metrics()

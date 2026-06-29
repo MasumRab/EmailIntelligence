@@ -44,9 +44,7 @@ def detect_branch(repo_path: Optional[Path] = None) -> str:
     except git.GitCommandError as e:
         raise EnvironmentDetectionError(f"Git command failed: {e}", context_id=None)
     except Exception as e:
-        raise EnvironmentDetectionError(
-            f"Unexpected error during branch detection: {e}", context_id=None
-        )
+        raise EnvironmentDetectionError(f"Unexpected error during branch detection: {e}", context_id=None)
 
 
 def get_current_branch(repo_path: Optional[Path] = None) -> Optional[str]:

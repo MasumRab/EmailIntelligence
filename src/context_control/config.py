@@ -24,25 +24,15 @@ class ContextControlConfig(BaseModel):
     log_file: Optional[Path] = Field(default=None, description="Optional log file path")
 
     # Git configuration
-    git_repo_path: Path = Field(
-        default=Path("."), description="Path to the Git repository"
-    )
+    git_repo_path: Path = Field(default=Path("."), description="Path to the Git repository")
 
     # Security configuration
-    enable_isolation: bool = Field(
-        default=True, description="Enable context isolation mechanisms"
-    )
-    strict_validation: bool = Field(
-        default=True, description="Enable strict context validation"
-    )
+    enable_isolation: bool = Field(default=True, description="Enable context isolation mechanisms")
+    strict_validation: bool = Field(default=True, description="Enable strict context validation")
 
     # Performance configuration
-    cache_enabled: bool = Field(
-        default=True, description="Enable caching for performance"
-    )
-    cache_ttl_seconds: int = Field(
-        default=300, description="Cache time-to-live in seconds"
-    )
+    cache_enabled: bool = Field(default=True, description="Enable caching for performance")
+    cache_ttl_seconds: int = Field(default=300, description="Cache time-to-live in seconds")
 
     @validator("log_level")
     def validate_log_level(cls, v):

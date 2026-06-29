@@ -55,7 +55,8 @@ class SecurityMiddleware:
         # Rate limiting check
         if self.enable_rate_limiting:
             allowed, headers = await api_rate_limiter.check_rate_limit(
-                request.url.path, client_ip  # Use IP as client key, could be enhanced with user_id
+                request.url.path,
+                client_ip,  # Use IP as client key, could be enhanced with user_id
             )
 
             if not allowed:
@@ -166,9 +167,7 @@ class SecurityMiddleware:
                 # Verify the proxy is trusted
                 try:
                     proxy_ip = ipaddress.ip_address(request.client.host)
-                    if any(
-                        proxy_ip in ipaddress.ip_network(proxy) for proxy in self.trusted_proxies
-                    ):
+                    if any(proxy_ip in ipaddress.ip_network(proxy) for proxy in self.trusted_proxies):
                         return real_ip
                 except (ValueError, ipaddress.AddressValueError):
                     pass

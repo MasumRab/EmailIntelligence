@@ -4,7 +4,12 @@ Strategy selection module.
 
 from typing import Dict, Any
 
-from ..core.conflict_models import Conflict, AnalysisResult, ResolutionStrategy, RiskLevel
+from ..core.conflict_models import (
+    Conflict,
+    AnalysisResult,
+    ResolutionStrategy,
+    RiskLevel,
+)
 from ..utils.logger import get_logger
 
 logger = get_logger(__name__)
@@ -28,16 +33,13 @@ class StrategySelector:
 
         # 1. Critical/High Risk -> Manual
         if analysis.risk_level in [RiskLevel.CRITICAL, RiskLevel.HIGH]:
-            return self._create_manual_strategy(
-                conflict, "High risk conflict requires manual resolution."
-            )
+            return self._create_manual_strategy(conflict, "High risk conflict requires manual resolution.")
 
         # 2. Constitutional Violations -> Manual (or specific fix)
         if analysis.constitutional_violations:
             return self._create_manual_strategy(
                 conflict,
-                f"Constitutional violations detected: "
-                f"{', '.join(analysis.constitutional_violations)}",
+                f"Constitutional violations detected: {', '.join(analysis.constitutional_violations)}",
             )
 
         # 3. Auto-resolvable -> Automated Strategy
@@ -95,9 +97,7 @@ class StrategySelector:
                 )
 
         # Default -> Manual
-        return self._create_manual_strategy(
-            conflict, "Complex conflict requires manual resolution."
-        )
+        return self._create_manual_strategy(conflict, "Complex conflict requires manual resolution.")
 
     def _create_manual_strategy(self, conflict: Conflict, reason: str) -> ResolutionStrategy:
         return ResolutionStrategy(

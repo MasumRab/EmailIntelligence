@@ -51,20 +51,13 @@ class GenericType:
         self.type_parameters = type_parameters
 
     def __repr__(self):
-        params = [
-            p.value if isinstance(p, DataType) else str(p) for p in self.type_parameters
-        ]
+        params = [p.value if isinstance(p, DataType) else str(p) for p in self.type_parameters]
         return f"{self.base_type.value}[{', '.join(params)}]"
 
     def __eq__(self, other):
         if not isinstance(other, GenericType):
             return False
-        return (
-            self.base_type == other.base_type
-            and self.type_parameters == other.type_parameters
-        )
-
-
+        return self.base_type == other.base_type and self.type_parameters == other.type_parameters
 
 
 class SecurityContext:
@@ -106,7 +99,11 @@ class Connection:
     """Represents a connection between two nodes."""
 
     def __init__(
-        self, source_node_id: str, source_port: str, target_node_id: str, target_port: str
+        self,
+        source_node_id: str,
+        source_port: str,
+        target_node_id: str,
+        target_port: str,
     ):
         self.source_node_id = source_node_id
         self.source_port = source_port
@@ -114,10 +111,7 @@ class Connection:
         self.target_port = target_port
 
     def __repr__(self):
-        return (
-            f"Connection({self.source_node_id}.{self.source_port} -> "
-            f"{self.target_node_id}.{self.target_port})"
-        )
+        return f"Connection({self.source_node_id}.{self.source_port} -> {self.target_node_id}.{self.target_port})"
 
 
 class ExecutionContext:
@@ -156,7 +150,12 @@ class ExecutionContext:
 class BaseNode(ABC):
     """Abstract base class for all nodes in the workflow system."""
 
-    def __init__(self, node_id: Optional[str] = None, name: Optional[str] = None, description: str = ""):
+    def __init__(
+        self,
+        node_id: Optional[str] = None,
+        name: Optional[str] = None,
+        description: str = "",
+    ):
         self.node_id = node_id or str(uuid.uuid4())
         self.name = name or self.__class__.__name__
         self.description = description
@@ -264,9 +263,7 @@ class Workflow:
             del self.nodes[node_id]
             # Remove any connections to/from this node
             self.connections = [
-                conn
-                for conn in self.connections
-                if conn.source_node_id != node_id and conn.target_node_id != node_id
+                conn for conn in self.connections if conn.source_node_id != node_id and conn.target_node_id != node_id
             ]
 
     def add_connection(self, connection: Connection):
@@ -283,27 +280,17 @@ class Workflow:
 
         source_port_exists = any(p.name == connection.source_port for p in source_node.output_ports)
         if not source_port_exists:
-            raise ValueError(
-                f"Source port {connection.source_port} does not exist on node "
-                f"{connection.source_node_id}"
-            )
+            raise ValueError(f"Source port {connection.source_port} does not exist on node {connection.source_node_id}")
 
         target_port_exists = any(p.name == connection.target_port for p in target_node.input_ports)
         if not target_port_exists:
-            raise ValueError(
-                f"Target port {connection.target_port} does not exist on node "
-                f"{connection.target_node_id}"
-            )
+            raise ValueError(f"Target port {connection.target_port} does not exist on node {connection.target_node_id}")
 
         self.connections.append(connection)
 
     def get_connections_for_node(self, node_id: str) -> List[Connection]:
         """Get all connections involving a specific node."""
-        return [
-            conn
-            for conn in self.connections
-            if conn.source_node_id == node_id or conn.target_node_id == node_id
-        ]
+        return [conn for conn in self.connections if conn.source_node_id == node_id or conn.target_node_id == node_id]
 
     def get_upstream_nodes(self, node_id: str) -> List[str]:
         """Get all nodes that provide input to the specified node."""
@@ -381,7 +368,4 @@ class Workflow:
         return result
 
     def __repr__(self):
-        return (
-            f"Workflow(name={self.name}, nodes={len(self.nodes)}"
-            f", connections={len(self.connections)})"
-        )
+        return f"Workflow(name={self.name}, nodes={len(self.nodes)}, connections={len(self.connections)})"

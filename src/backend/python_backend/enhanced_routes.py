@@ -124,7 +124,11 @@ async def get_workflow(workflow_id: str):
 @router.post("/workflows")
 async def create_workflow(request: WorkflowCreateRequest):
     """Create a new workflow."""
-    from backend.node_engine.email_nodes import AIAnalysisNode, EmailSourceNode, PreprocessingNode
+    from backend.node_engine.email_nodes import (
+        AIAnalysisNode,
+        EmailSourceNode,
+        PreprocessingNode,
+    )
     from backend.node_engine.node_base import Workflow
 
     workflow = Workflow(name=request.name, description=request.description)
@@ -166,7 +170,10 @@ async def get_performance_metrics(minutes: int = 5, source_filter: str = None):
     metrics = performance_monitor.get_recent_metrics(minutes, source_filter)
     return [
         PerformanceMetricResponse(
-            timestamp=metric.timestamp, value=metric.value, unit=metric.unit, source=metric.source
+            timestamp=metric.timestamp,
+            value=metric.value,
+            unit=metric.unit,
+            source=metric.source,
         )
         for metric in metrics
     ]
