@@ -20,6 +20,7 @@ import logging
 import os
 import subprocess
 import sys
+import shlex
 from pathlib import Path
 
 # Configure logging
@@ -37,8 +38,8 @@ def run_command(command, cwd=None):
     logger.info(f"Running command: {command}")
     try:
         result = subprocess.run(
-            command,
-            shell=True,
+            shlex.split(command),
+            shell=False,
             check=True,
             text=True,
             capture_output=True,
