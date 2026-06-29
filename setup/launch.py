@@ -8,7 +8,6 @@ application.
 """
 
 import argparse
-import atexit
 import logging
 import os
 import platform
@@ -16,7 +15,6 @@ import shutil
 import subprocess
 import sys
 import time
-import venv
 from pathlib import Path
 from typing import List
 
@@ -34,14 +32,12 @@ sys.path.insert(0, str(ROOT_DIR))
 
 # Import utilities from the setup package
 from setup.utils import (
-    ProcessManager,
     process_manager,
     get_conda_env_info,
     is_conda_available,
     activate_conda_env,
 )
 from setup.environment import (
-    is_wsl,
     setup_wsl_environment as env_setup_wsl,
     check_wsl_requirements,
     get_python_executable,
@@ -49,8 +45,6 @@ from setup.environment import (
 )
 from setup.validation import (
     check_python_version as val_check_python_version,
-    check_for_merge_conflicts,
-    check_required_components,
     validate_environment,
     validate_port,
     validate_host,
@@ -83,12 +77,6 @@ def setup_wsl_environment():
 def check_python_version():
     """Check if the current Python version is compatible."""
     val_check_python_version()
-
-
-# --- Environment Validation ---
-def check_required_components() -> bool:
-    """Check for required components and configurations."""
-    return check_required_components()
 
 
 # --- Helper Functions ---

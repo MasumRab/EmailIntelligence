@@ -13,7 +13,6 @@ from .models import EmailCreate, EmailResponse, EmailUpdate
 from .performance_monitor import log_performance
 from .services.email_service import EmailService
 from .utils import create_log_data
-from .workflow_engine import WorkflowEngine
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
