@@ -1,5 +1,10 @@
 # ⚠️ CRITICAL: Project Identity & Task System - READ FIRST
 
+> ## 🔴 CANONICAL BRANCH RULES — READ FIRST
+> Branch workflow for `main` / `scientific` / `orchestration-tools` is governed by **[`BRANCH_MANAGEMENT_MODEL.md`](BRANCH_MANAGEMENT_MODEL.md)**.
+> Branches are **intentionally divergent** (two products + shared tooling substrate + shared task ledger). **Do NOT** converge them and **do NOT** do wholesale `main ↔ scientific` merges. Use the curated transfer patterns in that file.
+> If your memory/agent file says "never merge" or "converge into main", **both are inaccurate** — see §7 of that document to correct your stored understanding.
+
 ## 🔴 PROJECT IDENTITY: Branch Alignment Tooling
 
 **This project is for Git branch clustering, merge automation, and validation.**
@@ -18,23 +23,22 @@
 
 **As of January 6, 2026, the old task numbering system is no longer in use.**
 
-### ✅ Current Active Tasks (Phase 3):
-- **task_007.md** - Branch Alignment Strategy Framework
-- **task_075.1.md through task_075.5.md** - Alignment Analyzers
-- **task_079.md** - Orchestration Framework
-- **task_080.md** - Validation Integration
-- **task_083.md** - E2E Testing & Reporting
+### ✅ Current Active Tasks:
+- **task_001.md through task_025.md** - Canonical Branch Alignment Tooling tasks
+- **task_001.1.md-style subtask files** - Canonical subtask markdown
+- **tasks/mvp/** - Separate EmailIntelligence MVP task set; do not mix with branch-alignment tasks
 
 ### ❌ DO NOT USE:
 - task-001 through task-020 (old system, removed)
+- task_075.*, task_079, task_080, task_083 (superseded interim numbering)
 - new_task_plan/task_files/ (deprecated folder)
 - OLD task structure format
 
 ### Reference Documents:
-- **Current Status:** PROJECT_STATE_PHASE_3_READY.md
+- **Current Status:** DOCUMENTATION_TASK_MAP.md and TASK_ANALYSIS_AND_GOTCHAS.md
 - **Why Changed:** OLD_TASK_NUMBERING_DEPRECATED.md
-- **Quick Ref:** TASK_ID_MIGRATION_QUICK_REFERENCE.md
-- **Full Details:** TASK_NUMBERING_DEPRECATION_PLAN.md
+- **Task flow:** TASK_FLOW_VISUALIZATION.md
+- **Full Details:** REMEDIATION_PLAN.md
 
 ---
 

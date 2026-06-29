@@ -1,5 +1,10 @@
 # Taskmaster - AI-Powered Task Management System
 
+> ## 🔴 CANONICAL BRANCH RULES — READ FIRST
+> Branch workflow for `main` / `scientific` / `orchestration-tools` is governed by **[`BRANCH_MANAGEMENT_MODEL.md`](BRANCH_MANAGEMENT_MODEL.md)**.
+> Branches are **intentionally divergent** (two products + shared tooling substrate + shared task ledger). **Do NOT** converge them and **do NOT** do wholesale `main ↔ scientific` merges. Use the curated transfer patterns in that file.
+> If your memory/agent file says "never merge" or "converge into main", **both are inaccurate** — see §7 of that document to correct your stored understanding.
+
 ## Project Overview
 
 Taskmaster is an AI-powered task management system designed for specification-driven development workflows. It provides automated task generation, analysis, and tracking with deep integration into Git workflows and AI assistants.
@@ -230,23 +235,17 @@ All tasks follow a **14-section standard format** (see [TASK_STRUCTURE_STANDARD.
 ## Current Active Tasks (Phase 3)
 
 **⚠️ Old task numbering (task-001 through task-020) is DEPRECATED.**
+**⚠️ Interim task IDs such as 075.x, 079, 080, and 083 are also superseded.**
 
 ### Active Tasks:
 
 | Task ID | Title | Status |
 |---------|-------|--------|
-| `001` | Align and Architecturally Integrate Feature Branches | Ready |
-| `002` | Analysis Stage (Clustering Pipeline) | Pending |
-| `003` | Clustering Stage | Pending |
-| `004` | Integration Stage | Pending |
-| `005` | Branch Clustering System | In Progress |
-| `007` | Branch Alignment Strategy Framework | Ready |
-| `075.1-5` | Alignment Analyzers | Ready |
-| `079` | Orchestration Framework | Ready |
-| `080` | Validation Integration | Ready |
-| `083` | E2E Testing & Reporting | Ready |
+| `task_001.md`–`task_025.md` | Canonical Branch Alignment Tooling main tasks | Active |
+| `task_001.1.md`-style files | Canonical subtask markdown | Active |
+| `tasks/mvp/` | Separate EmailIntelligence MVP task set | Isolated |
 
-**See:** [PROJECT_STATE_PHASE_3_READY.md](PROJECT_STATE_PHASE_3_READY.md) for full status.
+**See:** [DOCUMENTATION_TASK_MAP.md](DOCUMENTATION_TASK_MAP.md), [TASK_ANALYSIS_AND_GOTCHAS.md](TASK_ANALYSIS_AND_GOTCHAS.md), and [REMEDIATION_PLAN.md](REMEDIATION_PLAN.md) for current status.
 
 ---
 
@@ -427,7 +426,7 @@ These commands make AI calls and may take up to a minute:
 | [CLAUDE.md](CLAUDE.md) | Auto-loaded agent context | AI agents |
 | [AGENT.md](AGENT.md) | Agent integration guide | All agents |
 | [PROJECT_IDENTITY.md](PROJECT_IDENTITY.md) | **CRITICAL:** Project scope & identity | Everyone |
-| [PROJECT_STATE_PHASE_3_READY.md](PROJECT_STATE_PHASE_3_READY.md) | Current phase status | Everyone |
+| [DOCUMENTATION_TASK_MAP.md](DOCUMENTATION_TASK_MAP.md) | Current task/documentation map | Everyone |
 | [TASK_STRUCTURE_STANDARD.md](TASK_STRUCTURE_STANDARD.md) | Task format standard | Developers |
 | [CURRENT_DOCUMENTATION_MAP.md](CURRENT_DOCUMENTATION_MAP.md) | Documentation navigation | Everyone |
 
@@ -527,4 +526,4 @@ git commit -m "feat: implement clustering (task 002.1)"
 
 **Last Updated:** February 19, 2026
 **Project Status:** Phase 3 - Specifications Complete, Implementation Ready
-**Active Tasks:** 9 tasks (007, 075.1-5, 079-083)
+**Active Tasks:** 25 canonical main tasks (`task_001.md`–`task_025.md`) plus canonical subtask markdown files
