@@ -157,4 +157,29 @@ The following documents likely still encode Model A (rigid isolation) or Model B
 
 ---
 
+## 9. Antipatterns & Gotchas (STOP signs for agents)
+
+**Before ANY cross-branch git operation, answer these three questions. If you cannot, STOP and ask a human:**
+1. Which branch **charter** (§2) am I acting under, and is this change in-charter?
+2. Which **transfer pattern** (T1–T5, §4) am I using? "A plain merge" is not one of them.
+3. Am I about to **flatten the intentional divergence** between `main` and `scientific`? If yes → STOP (§5).
+
+| ❌ Antipattern (do NOT) | Why it's harmful | ✅ Correct action |
+|------------------------|------------------|-------------------|
+| `git merge scientific` into `main` (or the reverse) | Flattens the two products into one; destroys the design. This is the #1 mistake uninformed agents make. | **T1/T2** — cherry-pick the *specific* capability/fix. |
+| Merge/rebase `orchestration-tools` into a product branch as app code | It's the shared **tooling substrate**, not a product. | **T3** — run the sync/distribution scripts. |
+| "Reconcile", "converge", "unify", or "align the branches" by merging | There is **no convergence target**; divergence is intentional (Model B is dead). | Re-read §1–§2. If a feature must move, use T1–T3. |
+| Edit task `*.md` files directly on `main`/`scientific` | The ledger is the `taskmaster` submodule; per-branch edits cause ledger divergence. | Edit inside `.taskmaster` (taskmaster branch), commit there, then **T4** bump the pointer. |
+| Commit `.taskmaster` content changes from a superproject checkout without committing **inside** the submodule first | Creates dangling/detached submodule commits the pointer can't reach. | `cd .taskmaster` → commit → push `taskmaster` → then `git add .taskmaster` in the superproject. |
+| Let submodule pointers drift across branches by accident | Branches silently see different task state. | Every pointer move is a **deliberate T4 bump**; keep `main`/`scientific`/`orchestration-tools` aligned unless intentionally staged. |
+| Copy files branch-to-branch by hand | Bypasses review and the sync machinery; invites contamination. | Use the sanctioned channel (cherry-pick for capabilities, sync scripts for tooling). |
+| Bulk "accept theirs/ours" to clear conflicts in a whole-branch merge | **Real data loss has happened** — 8 functions lost in `src/main.py`, 3 in `src/core/auth.py`, 302 lines in `src/core/workflow_engine.py` on `scientific` (see `TASK_ANALYSIS_AND_GOTCHAS.md`). | Resolve per-file with intent; never bulk-resolve a divergence merge. |
+| Do experimental AI/DB work on `main`, or final UX polish on `scientific` | Violates branch charters; pollutes the stable product / constrains R&D. | Match the work to the charter (§2); promote when ready (T1). |
+| `git push --force` / rebase a shared branch (`main`, `scientific`, `orchestration-tools`, `taskmaster`) | Rewrites shared history; breaks every other clone and the submodule pointers. | Never force-push shared branches. Add commits forward. |
+| Add `.taskmaster` to a sync/distribution script's payload | The substrate distribution would clobber the ledger submodule. | Keep `.taskmaster` on the scripts' **exclude** list (§2.1 rule 2). |
+
+**Memory-correction reminder:** if your stored agent instructions contradict any row above (especially "never merge anything" or "converge into main"), they are stale — see §7.
+
+---
+
 *Single source of truth for branch workflow. If another document disagrees with this one about how `main`, `scientific`, and `orchestration-tools` relate, **this document wins** until it is itself revised.*

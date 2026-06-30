@@ -199,10 +199,12 @@ Tasks 003, 008, 011, 017 form a progressive layering, not duplication:
 - Fix: Place ALL `!` exceptions AFTER the Ruler-generated section (after `# END Ruler Generated Files`)
 - Tracked files ignore gitignore rules entirely — use `git rm --cached <file>` first
 
-### Branch Isolation Policy
-- **NO MERGES between main, scientific, orchestration-tools**
-- Distribution scripts: `scripts/distribute-orchestration-files.sh`
-- Branch-specific directories: `docs/handoff/` exists ONLY on `orchestration-tools` branch
+### Branch Management — see canonical model
+> **AUTHORITATIVE:** [`BRANCH_MANAGEMENT_MODEL.md`](BRANCH_MANAGEMENT_MODEL.md). Read it before any cross-branch operation; §9 is the antipattern/STOP-sign list.
+- `main` & `scientific` are **two intentionally divergent products**; `orchestration-tools` is the **shared tooling substrate**; `.taskmaster` (taskmaster branch) is the **shared ledger**.
+- The old flat rule "**NO MERGES between main, scientific, orchestration-tools**" is **superseded**: interaction is allowed via the sanctioned transfer patterns (cherry-pick capabilities, sync tooling, bump submodule pointer). Only **wholesale product-branch merges** are forbidden (Model §5). Do NOT "converge" the branches.
+- Distribution scripts: `scripts/distribute-orchestration-files.sh` (and the `sync_*`/`*_sync*` family).
+- Branch-specific directories: `docs/handoff/` exists ONLY on `orchestration-tools` branch.
 
 ---
 
