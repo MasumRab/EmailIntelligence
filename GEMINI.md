@@ -1,5 +1,10 @@
 # Gemini CLI-Specific Instructions
 
+> ## 🔴 CANONICAL BRANCH RULES — READ FIRST
+> Branch workflow for `main` / `scientific` / `orchestration-tools` is governed by **[`.taskmaster/BRANCH_MANAGEMENT_MODEL.md`](.taskmaster/BRANCH_MANAGEMENT_MODEL.md)**.
+> Branches are **intentionally divergent** (two products + shared tooling substrate + shared task ledger). **Do NOT** converge them and **do NOT** do wholesale `main ↔ scientific` merges. Use the curated transfer patterns in that file.
+> If your memory/agent file says "never merge" or "converge into main", **both are inaccurate** — see §7 of that document to correct your stored understanding.
+
 > **Note:** This file works alongside `AGENTS.md` (generic AI agent instructions). AGENTS.md contains the shared Task Master workflow and project baseline. This file keeps Gemini-specific runtime and workflow guidance at the project root as a reviewed Tier 2 context file.
 
 ## Runtime on This Branch
