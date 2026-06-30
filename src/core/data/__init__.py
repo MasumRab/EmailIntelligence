@@ -9,7 +9,6 @@ for managing different data sources.
 from .data_source import DataSource
 from .database_source import DatabaseDataSource as DatabaseSource
 from .repository import EmailRepository as Repository
-from ..notmuch_data_source import NotmuchDataSource  # Import from parent directory
 from .factory import DataSourceFactory
 
 __all__ = [
@@ -19,6 +18,13 @@ __all__ = [
     "Repository",
     "DataSourceFactory",
 ]
+
+# Optional import for NotmuchDataSource to avoid circular imports
+try:
+    from ..notmuch_data_source import NotmuchDataSource
+    __all__.append("NotmuchDataSource")
+except ImportError:
+    pass
 
 """
 Data package for the Email Intelligence Platform.
