@@ -10,7 +10,7 @@ pull_request_rules:
           👋 @{{author}} your PR is conflicting and needs to be updated to be
           merged.
           {% if author == "jules" or "jules" in assignees %}
-          
+
           **Note for @jules:** This PR requires conflict resolution. Consider rebasing on latest main or using interactive merge.
           {% endif %}
 
@@ -24,12 +24,12 @@ pull_request_rules:
       comment:
         message: >
           ⚠️ **@jules** - This PR has merge conflicts that need resolution:
-          
+
           **Quick Fix Options:**
           1. **Rebase on main:** `git fetch origin && git rebase origin/main`
           2. **Merge main:** `git fetch origin && git merge origin/main`
           3. **Use GitHub UI:** Click "Resolve conflicts" button on this PR
-          
+
           After resolving: `git push --force-with-lease` (if rebased) or `git push` (if merged)
 
   - name: Auto-merge Dependabot PRs (no approval required)
@@ -42,10 +42,9 @@ pull_request_rules:
     actions:
       merge:
         method: merge
-        commit_message_template: |
-          {{ title }} (#{{ number }})
-          {{ body }}
-
+        commit_message_format:
+          title: pr-title
+          body: pr-body
   - name: Auto-merge with label (no approval required)
     description: Automatically merge PRs with 'automerge' label when CI passes
     conditions:
@@ -92,3 +91,5 @@ pull_request_rules:
       label:
         remove:
           - conflict
+merge_protections_settings:
+  reporting_method: check-runs
