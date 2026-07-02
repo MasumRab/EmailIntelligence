@@ -42,7 +42,8 @@ from setup.services import (
 from setup.environment import (
     handle_setup, prepare_environment, setup_wsl_environment, check_wsl_requirements
 )
-from setup.utils import print_system_info, process_manager
+from setup.utils import print_system_info
+from setup.utils import process_manager_instance as process_manager
 
 # Import test stages
 from setup.test_stages import test_stages
@@ -52,7 +53,8 @@ try:
     from src.core.commands.command_factory import get_command_factory
     from src.core.container import get_container, initialize_all_services
 except ImportError as e:
-    logging.warning(f"Could not import core modules: {e}. Some features may be unavailable.")
+    if not os.environ.get("PYTEST_CURRENT_TEST"):
+        logging.warning(f"Could not import core modules: {e}. Some features may be unavailable.")
     get_command_factory = None
     get_container = None
     initialize_all_services = None
