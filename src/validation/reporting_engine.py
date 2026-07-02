@@ -361,7 +361,8 @@ class ValidationReportingEngine:
     ) -> str:
         """Generate report file in specified format"""
 
-        filename = f"{report_id}.{output_format}"
+        sanitized_report_id = os.path.basename(str(report_id))
+        filename = f"{sanitized_report_id}.{output_format}"
         filepath = os.path.join(self.output_directory, filename)
 
         if output_format == "json":
@@ -929,7 +930,8 @@ class ValidationReportingEngine:
     ) -> str:
         """Generate comparative report file"""
 
-        filename = f"{report_id}.{output_format}"
+        sanitized_report_id = os.path.basename(str(report_id))
+        filename = f"{sanitized_report_id}.{output_format}"
         filepath = os.path.join(self.output_directory, filename)
 
         if output_format == "json":
