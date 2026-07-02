@@ -36,7 +36,7 @@ class ProcessManager:
 
 
 # Global process manager instance
-process_manager = ProcessManager()
+process_manager_instance = ProcessManager()
 
 
 def get_python_executable():
