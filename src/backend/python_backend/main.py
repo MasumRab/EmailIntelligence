@@ -43,7 +43,7 @@ from . import (
 )
 from .ai_engine import AdvancedAIEngine
 from .auth import create_access_token
-from .database import db_manager
+from .database import db_manager, get_db
 from .exceptions import AppException, BaseAppException
 
 # Import new components

@@ -295,14 +295,14 @@ class AgentPerformanceDashboard:
             print("No system metrics available")
             return
 
-        print(f"\nSystem Performance Dashboard")
+        print("\nSystem Performance Dashboard")
         print("=" * 30)
         print(f"System CPU: {summary['average_system_cpu']:.1f}%")
         print(f"System Memory: {summary['average_system_memory']:.1f}%")
 
     def display_all_agents(self):
         """Display status for all agents."""
-        print(f"\nAll Agents Performance Dashboard")
+        print("\nAll Agents Performance Dashboard")
         print("=" * 40)
 
         agent_metrics = self.monitor.get_all_agent_metrics()

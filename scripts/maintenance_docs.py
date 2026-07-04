@@ -372,7 +372,7 @@ class DocsMaintenance:
         try:
             with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
                 first_lines = f.read(500).lower()
-        except:
+        except Exception:
             first_lines = ""
 
         # Check if it's a task file (contains task metadata)

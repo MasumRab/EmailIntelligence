@@ -2,7 +2,6 @@ import logging
 import psutil
 import platform
 from datetime import datetime
-import asyncio
 
 import gradio as gr
 from fastapi import FastAPI, HTTPException

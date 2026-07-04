@@ -352,7 +352,7 @@ class TaskCompletionDashboard:
 
         if 'duration_statistics' in report and report['duration_statistics']:
             stats = report['duration_statistics']
-            print(f"\nDuration Statistics:")
+            print("\nDuration Statistics:")
             print(f"  Mean: {stats['mean']:.2f}s")
             print(f"  Median: {stats['median']:.2f}s")
             print(f"  Std Dev: {stats['stdev']:.2f}s")
@@ -361,7 +361,7 @@ class TaskCompletionDashboard:
         """Display overall system performance."""
         report = self.tracker.get_system_performance_report()
 
-        print(f"\nSystem Performance Report")
+        print("\nSystem Performance Report")
         print("=" * 30)
         print(f"Time Window: {report['time_window_hours']} hours")
         print(f"Overall Completion Rate: {report['overall_completion_rate']:.1f}%")
