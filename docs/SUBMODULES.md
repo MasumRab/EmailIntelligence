@@ -8,8 +8,9 @@ This repository uses one git submodule:
 
 > **Note:** the submodule points to the **same repository** as the parent, just
 > on a different branch (`taskmaster`). This keeps Task Master AI task data
-> versioned independently while living in one repo. The parent branches
-> (`main`, `scientific`, `orchestration-tools`) all pin the same submodule commit.
+> versioned independently while living in one repo. The target policy is for the
+> parent branches (`main`, `scientific`, `orchestration-tools`) to pin the same
+> approved submodule commit after branch-sync updates are applied.
 
 ## Cloning
 
@@ -38,6 +39,25 @@ git submodule update --remote .taskmaster
 > rely on `git submodule update --remote`, which uses the `branch` declared in
 > `.gitmodules` (`taskmaster`).
 
+## Branch pin policy
+
+The `taskmaster` branch is maintained as the source for `.taskmaster` content;
+parent branches consume it by pinning a gitlink commit. Do not merge the
+`taskmaster` branch into `main`, `scientific`, or `orchestration-tools` as a
+normal branch. Update the submodule, review the `.taskmaster` diff, then commit
+only the parent gitlink bump on each consuming branch.
+
+Current known state after the June 2026 remediation work:
+
+| Parent branch | `.taskmaster` pin |
+| ------------- | ----------------- |
+| `main` | `a81f3119` |
+| `scientific` | `9eaea69f` |
+| `orchestration-tools` | `9eaea69f` |
+
+The target policy remains aligned pins across active parent branches, but that
+alignment must be performed explicitly with parent-branch gitlink updates.
+
 ## URL override (SSH / private / cloud sandboxes)
 
 `.gitmodules` uses an HTTPS URL. To use SSH or a different URL without editing
@@ -58,8 +78,10 @@ read scope for the repository and the `taskmaster` branch.
 
 ## CI
 
-All CI workflows check out submodules via `submodules: recursive` on
-`actions/checkout`, so `.taskmaster` is available to every CI job.
+Shared CI workflows should check out submodules via `submodules: recursive` on
+`actions/checkout` whenever the job needs `.taskmaster`. Branch-specific
+workflows may differ, but missing submodule checkout must be intentional and
+documented.
 
 ## Cloud sandboxes (Jules, Qwen-code, Codespaces, Gitpod, etc.)
 
