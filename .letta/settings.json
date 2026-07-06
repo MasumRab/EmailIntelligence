@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(echo:*)",
+      "Bash(# Check if there's a local backend config or model config\nfind /home/masum/.letta/ -name \"lc-local-backend*\" -o -name \"local-backend*\" -o -name \"providers*\" 2>/dev/null | head -20; echo \"---\"; cat /home/masum/.letta/providers.json 2>/dev/null || echo \"No providers.json\"; echo \"---\"; ls /home/masum/.letta/*.json 2>/dev/null)",
+      "Bash(# Now let's look at the loader.js to understand the skill search paths\ncat /home/masum/.local/share/mise/installs/npm-agent-skills-cli/1.1.9/lib/node_modules/agent-skills-cli/dist/core/loader.js 2>/dev/null | head -80)"
+    ]
+  }
+}
