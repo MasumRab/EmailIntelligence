@@ -10,6 +10,8 @@ from typing import Optional, Dict, Any, List
 import time
 import secrets
 from argon2 import PasswordHasher
+import argon2
+import argon2.exceptions
 
 import jwt
 from fastapi import HTTPException, status, Depends
@@ -102,10 +104,10 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     ph = PasswordHasher()
     try:
         return ph.verify(hashed_password, plain_password)
-    except Exception: # argon2.exceptions.VerifyMismatchError
+    except argon2.exceptions.VerifyMismatchError:
         # Password verification failed
         return False
-    except Exception: # argon2.exceptions.InvalidHashError
+    except argon2.exceptions.InvalidHashError:
         # Invalid hash format
         logger.warning("Invalid password hash format")
         return False

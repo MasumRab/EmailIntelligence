@@ -147,11 +147,23 @@ export function EmailList({ emails, loading, onEmailSelect }: EmailListProps) {
                       {email.categoryData.name}
                     </Badge>
                   )}
-                  {(Array.isArray(email.labels) ? email.labels : typeof email.labels === "string" ? JSON.parse(email.labels) : []).map((label: string, index: number) => (
-                    <Badge key={index} variant="outline" className="text-xs">
-                      {label}
-                    </Badge>
-                  ))}
+                  {(() => {
+                    let parsedLabels: string[] = [];
+                    if (Array.isArray(email.labels)) {
+                      parsedLabels = email.labels;
+                    } else if (typeof email.labels === "string") {
+                      try {
+                        parsedLabels = JSON.parse(email.labels);
+                      } catch (e) {
+                        parsedLabels = [];
+                      }
+                    }
+                    return parsedLabels.map((label: string, index: number) => (
+                      <Badge key={index} variant="outline" className="text-xs">
+                        {label}
+                      </Badge>
+                    ));
+                  })()}
                   {email.confidence && (
                     <span className="text-xs text-gray-500 flex items-center">
                       <Brain className="h-3 w-3 mr-1" />

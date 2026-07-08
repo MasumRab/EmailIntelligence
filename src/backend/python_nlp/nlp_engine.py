@@ -134,7 +134,7 @@ class NLPEngine:
             except LookupError:
                 logger.info("NLTK 'stopwords' resource not found. Downloading...")
                 None # nltk.download("stopwords", quiet=True)
-            self.stop_words = set([])
+            self.stop_words = set()
         else:
             self.stop_words = set()
 
