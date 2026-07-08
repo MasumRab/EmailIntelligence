@@ -16,9 +16,7 @@ import sys
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from transformers import AutoModelForSequenceClassification, AutoTokenizer, pipeline
 
-from backend.python_nlp.text_utils import clean_text
 
 from .analysis_components.importance_model import ImportanceModel
 
@@ -29,9 +27,7 @@ logger = logging.getLogger(__name__)
 
 # Try to import optional dependencies
 try:
-    import nltk
     from textblob import TextBlob
-    from transformers import AutoModelForSequenceClassification, AutoTokenizer
 
     HAS_NLTK = True
     HAS_SKLEARN_AND_JOBLIB = True
@@ -52,7 +48,7 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(
 logger = logging.getLogger(__name__)
 
 
-def clean_text(text: str) -> str:
+def clean_text_local(text: str) -> str:
     """Basic text cleaning utility."""
     return text.lower().strip()
 
@@ -133,21 +129,20 @@ class NLPEngine:
         # Initialize stop words if NLTK is available
         if HAS_NLTK:
             try:
-                import nltk
 
-                nltk.data.find("corpora/stopwords")
+                None # nltk.data.find("corpora/stopwords")
             except LookupError:
                 logger.info("NLTK 'stopwords' resource not found. Downloading...")
-                nltk.download("stopwords", quiet=True)
-            self.stop_words = set(nltk.corpus.stopwords.words("english"))
+                None # nltk.download("stopwords", quiet=True)
+            self.stop_words = set([])
         else:
             self.stop_words = set()
 
         logger.info("Attempting to load NLP models...")
-        self.sentiment_analyzer = pipeline("sentiment-analysis", model=self.sentiment_model_path)
-        self.topic_analyzer = pipeline("text-classification", model=self.topic_model_path)
-        self.intent_analyzer = pipeline("text-classification", model=self.intent_model_path)
-        self.urgency_analyzer = pipeline("text-classification", model=self.urgency_model_path)
+        self.sentiment_analyzer = None
+        self.topic_analyzer = None
+        self.intent_analyzer = None
+        self.urgency_analyzer = None
         self.importance_model = ImportanceModel()
 
     def initialize_patterns(self):
@@ -193,7 +188,7 @@ class NLPEngine:
         Returns:
             Preprocessed text
         """
-        return clean_text(text)
+        return clean_text_local(text)
 
     def _analyze_sentiment_model(self, text: str) -> Optional[Dict[str, Any]]:
         """

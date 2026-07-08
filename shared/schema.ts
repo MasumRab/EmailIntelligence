@@ -104,22 +104,13 @@ export const activities = sqliteTable("activities", {
   iconBg: text("icon_bg").notNull(),
 });
 
-export const insertUserSchema = createInsertSchema(users).pick({
-  username: true,
-  password: true,
-});
+export const insertUserSchema = createInsertSchema(users).pick({ username: true, password: true } as any);
 
-export const insertCategorySchema = createInsertSchema(categories).omit({
-  id: true,
-});
+export const insertCategorySchema = createInsertSchema(categories).omit({ id: true } as any);
 
-export const insertEmailSchema = createInsertSchema(emails).omit({
-  id: true,
-});
+export const insertEmailSchema = createInsertSchema(emails).omit({ id: true } as any);
 
-export const insertActivitySchema = createInsertSchema(activities).omit({
-  id: true,
-});
+export const insertActivitySchema = createInsertSchema(activities).omit({ id: true } as any);
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;

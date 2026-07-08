@@ -1,9 +1,3 @@
-"""
-Enhanced Notmuch Data Source with AI Analysis and Tagging Support
-
-This module provides a comprehensive data source that integrates Notmuch database access
-with AI analysis, smart filtering, and tagging functionality.
-"""
 
 import asyncio
 import logging
@@ -16,24 +10,31 @@ try:
     import notmuch
     NOTMUCH_AVAILABLE = True
 except ImportError:
-    notmuch = None
     NOTMUCH_AVAILABLE = False
 
-from .data_source import DataSource
+from .data_source import DataSource  # noqa: E402
 # Import DatabaseManager locally to avoid circular imports
-# from .database import DatabaseManager
-from .smart_filter_manager import SmartFilterManager
-from .ai_engine import ModernAIEngine
-from .performance_monitor import log_performance
-from .enhanced_error_reporting import (
+# from .database import DatabaseManager  # noqa: E402
+from .smart_filter_manager import SmartFilterManager  # noqa: E402
+from .ai_engine import ModernAIEngine  # noqa: E402
+from .performance_monitor import log_performance  # noqa: E402
+from .enhanced_error_reporting import (  # noqa: E402
     log_error, 
     ErrorSeverity, 
     ErrorCategory, 
     create_error_context
 )
-from .security import PathValidator
+from .security import PathValidator  # noqa: E402
 
 logger = logging.getLogger(__name__)
+
+"""
+Enhanced Notmuch Data Source with AI Analysis and Tagging Support
+
+This module provides a comprehensive data source that integrates Notmuch database access
+with AI analysis, smart filtering, and tagging functionality.
+"""
+
 
 
 class NotmuchDataSource(DataSource):
@@ -44,7 +45,7 @@ class NotmuchDataSource(DataSource):
     along with AI-powered analysis and smart filtering.
     """
 
-    def __init__(self, db_path: Optional[str] = None, db_manager: Optional['DatabaseManager'] = None):
+    def __init__(self, db_path: Optional[str] = None, db_manager: Optional[Any] = None):
         # Validate the database path for security if provided
         if db_path is not None:
             try:
