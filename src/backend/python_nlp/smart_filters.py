@@ -121,6 +121,10 @@ class SmartFilterManager:
         if self.db_path == ":memory:":
             self.conn = sqlite3.connect(":memory:")
             self.conn.row_factory = sqlite3.Row
+        else:
+            # Ensure the directory for the database exists
+            os.makedirs(os.path.dirname(self.db_path), exist_ok=True)
+
         self._init_filter_db()
         self.filter_templates = self._load_filter_templates()
         self.pruning_criteria = self._load_pruning_criteria()
