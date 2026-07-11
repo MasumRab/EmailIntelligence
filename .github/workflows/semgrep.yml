@@ -1,0 +1,39 @@
+name: Semgrep Security Scan
+
+on:
+  push:
+    branches: [main, scientific, orchestration-tools]
+  pull_request:
+    branches: [main, scientific, orchestration-tools]
+  schedule:
+    - cron: '0 0 * * 1'
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  semgrep:
+    name: Semgrep Scan
+    runs-on: ubuntu-latest
+    container:
+      image: returntocorp/semgrep:latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Run Semgrep
+        run: |
+          semgrep scan \
+            --config p/security-audit \
+            --config p/owasp-top-ten \
+            --config p/python \
+            --config p/bash \
+            --sarif --output semgrep.sarif \
+            src/ modules/ setup/ scripts/ || true
+
+      - name: Upload SARIF to GitHub Security
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: semgrep.sarif
+        if: always()
