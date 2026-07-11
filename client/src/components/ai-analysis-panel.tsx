@@ -56,44 +56,6 @@ interface AIAnalysisPanelProps {
 }
 
 /**
- * Returns the appropriate color classes based on the sentiment.
- * @param {string} sentiment - The sentiment string.
- * @returns {string} The Tailwind CSS color classes.
- */
-const getSentimentColor = (sentiment: string) => {
-  switch (sentiment) {
-    case 'positive': return 'text-green-600 bg-green-50';
-    case 'negative': return 'text-red-600 bg-red-50';
-    default: return 'text-gray-600 bg-gray-50';
-  }
-};
-
-/**
- * Returns the appropriate color classes based on the urgency level.
- * @param {string} urgency - The urgency string.
- * @returns {string} The Tailwind CSS color classes.
- */
-const getUrgencyColor = (urgency: string) => {
-  switch (urgency) {
-    case 'critical': return 'text-red-600 bg-red-50';
-    case 'high': return 'text-orange-600 bg-orange-50';
-    case 'medium': return 'text-yellow-600 bg-yellow-50';
-    default: return 'text-gray-600 bg-gray-50';
-  }
-};
-
-/**
- * Returns the appropriate color class based on the confidence score.
- * @param {number} confidence - The confidence score (0-1).
- * @returns {string} The Tailwind CSS color class.
- */
-const getConfidenceColor = (confidence: number) => {
-  if (confidence > 0.8) return 'text-green-600';
-  if (confidence > 0.6) return 'text-yellow-600';
-  return 'text-red-600';
-};
-
-/**
  * A React component that provides a panel for AI analysis of an email.
  *
  * This component allows users to trigger an AI analysis, view the results,
@@ -228,6 +190,44 @@ export function AIAnalysisPanel({ email, onCategoryUpdate }: AIAnalysisPanelProp
         variant: "destructive",
       });
     }
+  };
+
+  /**
+   * Returns the appropriate color classes based on the sentiment.
+   * @param {string} sentiment - The sentiment string.
+   * @returns {string} The Tailwind CSS color classes.
+   */
+  const getSentimentColor = (sentiment: string) => {
+    switch (sentiment) {
+      case 'positive': return 'text-green-600 bg-green-50';
+      case 'negative': return 'text-red-600 bg-red-50';
+      default: return 'text-gray-600 bg-gray-50';
+    }
+  };
+
+  /**
+   * Returns the appropriate color classes based on the urgency level.
+   * @param {string} urgency - The urgency string.
+   * @returns {string} The Tailwind CSS color classes.
+   */
+  const getUrgencyColor = (urgency: string) => {
+    switch (urgency) {
+      case 'critical': return 'text-red-600 bg-red-50';
+      case 'high': return 'text-orange-600 bg-orange-50';
+      case 'medium': return 'text-yellow-600 bg-yellow-50';
+      default: return 'text-gray-600 bg-gray-50';
+    }
+  };
+
+  /**
+   * Returns the appropriate color class based on the confidence score.
+   * @param {number} confidence - The confidence score (0-1).
+   * @returns {string} The Tailwind CSS color class.
+   */
+  const getConfidenceColor = (confidence: number) => {
+    if (confidence > 0.8) return 'text-green-600';
+    if (confidence > 0.6) return 'text-yellow-600';
+    return 'text-red-600';
   };
 
   return (

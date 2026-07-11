@@ -1,3 +1,0 @@
-## 2026-06-15 - React Component Micro-optimizations Context
-**Learning:** Moving pure function helpers (like simple color-switchers) outside React component bodies prevents function re-allocation on every render. However, for tiny string-returning switch statements, this is technically a micro-optimization with negligible performance impact. Real measurable impact comes from things like `React.memo`, virtualizing large lists, or debouncing input.
-**Action:** When extracting functions to the top level, prioritize functions that contain complex logic or allocate significant memory. For simple switch statements, the readability vs performance tradeoff is minimal.

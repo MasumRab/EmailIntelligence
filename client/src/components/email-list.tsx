@@ -22,34 +22,6 @@ interface EmailListProps {
 }
 
 /**
- * Generates initials from a given name.
- * @param {string} name - The full name of the sender.
- * @returns {string} The initials of the sender.
- */
-const getInitials = (name: string) => {
-  return name.split(' ').map(n => n[0]).join('').toUpperCase();
-};
-
-/**
- * Determines the badge color based on the category name.
- * @param {string} [categoryName] - The name of the category.
- * @returns {string} The Tailwind CSS classes for the badge color.
- */
-const getCategoryBadgeColor = (categoryName?: string) => {
-  if (!categoryName) return "bg-gray-100 text-gray-800";
-
-  switch (categoryName.toLowerCase()) {
-    case "work & business": return "bg-green-100 text-green-800";
-    case "personal & family": return "bg-blue-100 text-blue-800";
-    case "finance & banking": return "bg-yellow-100 text-yellow-800";
-    case "promotions & marketing": return "bg-red-100 text-red-800";
-    case "travel": return "bg-purple-100 text-purple-800";
-    case "healthcare": return "bg-cyan-100 text-cyan-800";
-    default: return "bg-gray-100 text-gray-800";
-  }
-};
-
-/**
  * Renders a list of emails with sender details, subject, preview, and associated badges.
  *
  * This component handles the display of emails, providing visual feedback for loading
@@ -86,6 +58,34 @@ export function EmailList({ emails, loading, onEmailSelect }: EmailListProps) {
       </div>
     );
   }
+
+  /**
+   * Generates initials from a given name.
+   * @param {string} name - The full name of the sender.
+   * @returns {string} The initials of the sender.
+   */
+  const getInitials = (name: string) => {
+    return name.split(' ').map(n => n[0]).join('').toUpperCase();
+  };
+
+  /**
+   * Determines the badge color based on the category name.
+   * @param {string} [categoryName] - The name of the category.
+   * @returns {string} The Tailwind CSS classes for the badge color.
+   */
+  const getCategoryBadgeColor = (categoryName?: string) => {
+    if (!categoryName) return "bg-gray-100 text-gray-800";
+
+    switch (categoryName.toLowerCase()) {
+      case "work & business": return "bg-green-100 text-green-800";
+      case "personal & family": return "bg-blue-100 text-blue-800";
+      case "finance & banking": return "bg-yellow-100 text-yellow-800";
+      case "promotions & marketing": return "bg-red-100 text-red-800";
+      case "travel": return "bg-purple-100 text-purple-800";
+      case "healthcare": return "bg-cyan-100 text-cyan-800";
+      default: return "bg-gray-100 text-gray-800";
+    }
+  };
 
   /**
    * Handles the click event on an email item.
