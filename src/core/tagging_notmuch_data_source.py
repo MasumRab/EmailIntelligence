@@ -9,7 +9,7 @@ The file is kept for backward compatibility but is now deprecated.
 """
 
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Optional
 
 from .notmuch_data_source import NotmuchDataSource
 
