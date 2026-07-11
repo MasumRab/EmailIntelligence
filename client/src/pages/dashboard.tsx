@@ -83,10 +83,10 @@ export default function Dashboard() {
   };
 
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
-  const [activeFilters, setActiveFilters] = useState<any>(null);
+  //const [activeFilters, setActiveFilters] = useState<any>(null);
 
   const handleApplyFilters = (filters: any) => {
-    setActiveFilters(filters);
+    //setActiveFilters(filters);
     // In a real implementation, you would apply these filters to your email query
     console.log("Applying filters:", filters);
     setShowAdvancedFilters(false); // Close the filter panel after applying
