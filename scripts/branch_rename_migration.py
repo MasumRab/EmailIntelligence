@@ -22,7 +22,7 @@ def get_local_branches():
         )
         output = result.stdout.strip()
     except subprocess.CalledProcessError as e:
-        print(f"Error running command: git branch")
+        print("Error running command: git branch")
         print(f"Error: {e.stderr}")
         output = None
 
@@ -45,7 +45,7 @@ def get_remote_branches():
         )
         output = result.stdout.strip()
     except subprocess.CalledProcessError as e:
-        print(f"Error running command: git branch -r")
+        print("Error running command: git branch -r")
         print(f"Error: {e.stderr}")
         output = None
 
