@@ -53,7 +53,6 @@ try:
     from src.core.container import get_container, initialize_all_services
     COMMAND_PATTERN_AVAILABLE = True
 except ImportError as e:
-    # Use debug instead of warning to avoid failing tests that expect no warnings
     logging.debug(f"Could not import core modules: {e}. Some features may be unavailable.")
     get_command_factory = None
     get_container = None
