@@ -243,7 +243,7 @@ def start_backend(host: str, port: int, debug: bool = False):
     if debug:
         cmd.append("--reload")
     logger.info(f"Starting backend on {host}:{port}")
-    process = subprocess.Popen(cmd, cwd=ROOT_DIR)
+    process = subprocess.Popen(cmd, cwd=ROOT_DIR, shell=False)
     process_manager.add_process(process)
 
 
@@ -256,7 +256,7 @@ def start_node_service(service_path: Path, service_name: str, port: int, api_url
     env = os.environ.copy()
     env["PORT"] = str(port)
     env["VITE_API_URL"] = api_url
-    process = subprocess.Popen(["npm", "start"], cwd=service_path, env=env)
+    process = subprocess.Popen(["npm", "start"], cwd=service_path, env=env, shell=False)
     process_manager.add_process(process)
 
 
@@ -271,7 +271,7 @@ def start_gradio_ui(host, port, share, debug):
         cmd.append("--debug")
     env = os.environ.copy()
     env["PYTHONPATH"] = str(ROOT_DIR)
-    process = subprocess.Popen(cmd, cwd=ROOT_DIR, env=env)
+    process = subprocess.Popen(cmd, cwd=ROOT_DIR, env=env, shell=False)
     process_manager.add_process(process)
 
 

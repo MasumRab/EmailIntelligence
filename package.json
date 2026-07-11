@@ -54,8 +54,6 @@
     "cmdk": "^1.1.1",
     "date-fns": "^3.6.0",
     "dotenv": "^16.5.0",
-    "drizzle-orm": "^0.39.3",
-    "drizzle-zod": "^0.7.0",
     "embla-carousel-react": "^8.6.0",
     "express": "^4.22.1",
     "express-session": "^1.18.1",
@@ -81,7 +79,6 @@
     "vite-tsconfig-paths": "^6.1.1",
     "wouter": "^3.3.5",
     "ws": "^8.18.0",
-    "zod": "^3.24.2",
     "zod-validation-error": "^3.4.0"
   },
   "devDependencies": {
@@ -105,6 +102,8 @@
     "autoprefixer": "^10.4.20",
     "cross-env": "^7.0.3",
     "drizzle-kit": "^1.0.0-beta.1-fd5d1e8",
+    "drizzle-orm": "^0.45.2",
+    "drizzle-zod": "^0.8.3",
     "esbuild": "^0.25.0",
     "eslint": "^9.0.0",
     "eslint-plugin-react": "^7.37.0",
@@ -118,7 +117,8 @@
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.59.3",
     "vite": "^6.4.1",
-    "vitest": "^3.2.4"
+    "vitest": "^3.2.4",
+    "zod": "^4.4.3"
   },
   "overrides": {
     "drizzle-kit": {
