@@ -75,7 +75,7 @@ export function EmailList({ emails, loading, onEmailSelect }: EmailListProps) {
    */
   const getCategoryBadgeColor = (categoryName?: string) => {
     if (!categoryName) return "bg-gray-100 text-gray-800";
-    
+
     switch (categoryName.toLowerCase()) {
       case "work & business": return "bg-green-100 text-green-800";
       case "personal & family": return "bg-blue-100 text-blue-800";

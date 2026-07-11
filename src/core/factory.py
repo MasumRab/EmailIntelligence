@@ -1,7 +1,6 @@
 import os
 
 from .data_source import DataSource
-from .database import DatabaseManager, create_database_manager, DatabaseConfig
 from .ai_engine import ModernAIEngine
 from .data.repository import DatabaseEmailRepository, CachingEmailRepository, EmailRepository
 from .caching import init_cache_manager, CacheConfig, CacheBackend
@@ -31,6 +30,7 @@ class DataSourceFactory:
         Returns:
             A DataSource instance
         """
+        from .database import create_database_manager, DatabaseConfig
         if source_type == "database":
             config = DatabaseConfig()
             return await create_database_manager(config)
@@ -59,6 +59,7 @@ async def get_data_source() -> DataSource:
             _data_source_instance = NotmuchDataSource()
         else:
             # Create DatabaseManager with proper configuration
+            from .database import create_database_manager, DatabaseConfig
             config = DatabaseConfig()
             _data_source_instance = await create_database_manager(config)
     return _data_source_instance
