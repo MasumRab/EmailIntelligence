@@ -36,9 +36,7 @@ pull_request_rules:
     description: Automatically merge Dependabot PRs when CI passes. No human approval required for dependency updates.
     conditions:
       - author=dependabot[bot]
-      - or:
-          - check-success=test
-          - check-success=lint-only
+      - check-success=test
       - -conflict
       - -draft
     actions:
