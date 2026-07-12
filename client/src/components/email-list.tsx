@@ -147,11 +147,11 @@ export function EmailList({ emails, loading, onEmailSelect }: EmailListProps) {
                       {email.categoryData.name}
                     </Badge>
                   )}
-                  {typeof email.labels === "string" ? JSON.parse(email.labels).map((label: string, index: number) => (
+                  {email.labels?.map((label: string, index: number) => (
                     <Badge key={index} variant="outline" className="text-xs">
                       {label}
                     </Badge>
-                  )) : null}
+                  ))}
                   {email.confidence && (
                     <span className="text-xs text-gray-500 flex items-center">
                       <Brain className="h-3 w-3 mr-1" />
