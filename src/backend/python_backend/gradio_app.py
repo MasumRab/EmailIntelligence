@@ -134,6 +134,18 @@ with gr.Blocks(title="Email Intelligence", theme=gr.themes.Soft()) as iface:
                     topic_chart_fig,
                 )
 
+            analyze_button.click(
+                fn=update_outputs,
+                inputs=[email_subject, email_content],
+                outputs=[
+                    topic_output,
+                    sentiment_output,
+                    reasoning_output,
+                    keywords_output,
+                    analysis_output,
+
+                ],
+            )
 
         with gr.TabItem("Visualization"):
             gr.Markdown("### Data Visualization")
@@ -203,20 +215,6 @@ with gr.Blocks(title="Email Intelligence", theme=gr.themes.Soft()) as iface:
                 outputs=gr.Textbox(label="Status"),
             )
 
-
-            analyze_button.click(
-                fn=update_outputs,
-                inputs=[email_subject, email_content],
-                outputs=[
-                    topic_output,
-                    sentiment_output,
-                    reasoning_output,
-                    keywords_output,
-                    analysis_output,
-                    sentiment_chart,
-                    topic_chart,
-                ],
-            )
 
 # To launch this app, you can run this file directly.
 if __name__ == "__main__":
