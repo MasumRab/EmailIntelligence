@@ -83,7 +83,7 @@ export default function Dashboard() {
   };
 
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
-  const [activeFilters, setActiveFilters] = useState<any>(null);
+  const [, setActiveFilters] = useState<any>(null);
 
   const handleApplyFilters = (filters: any) => {
     setActiveFilters(filters);
