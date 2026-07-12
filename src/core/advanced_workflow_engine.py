@@ -28,7 +28,7 @@ logger = logging.getLogger(__name__)
 
 # Import security features if available
 try:
-    from .security import DataSanitizer, SecurityContext
+    from .security import DataSanitizer, Permission, SecurityContext, SecurityLevel, SecurityManager
 
     security_available = True
 except ImportError:
