@@ -46,8 +46,8 @@ from .database import get_db
 db_manager = None
 
 # Import new components
-from .model_manager import ModelManager  # noqa: E402
-from .performance_monitor import performance_monitor  # noqa: E402
+from .model_manager import ModelManager  # noqa: E402  # noqa: E402
+from .performance_monitor import performance_monitor  # noqa: E402  # noqa: E402
 
 model_manager = ModelManager()
 from .settings import settings  # noqa: E402

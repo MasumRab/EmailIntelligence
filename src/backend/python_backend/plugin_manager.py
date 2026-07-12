@@ -1,3 +1,7 @@
+import logging
+import os
+from typing import List
+import importlib.util
 """
 Plugin Manager for the Email Intelligence Platform
 
@@ -5,9 +9,6 @@ This module provides a system for discovering, loading, and managing
 external plugins.
 """
 
-import logging
-import os
-from typing import List
 
 logger = logging.getLogger(__name__)
 
