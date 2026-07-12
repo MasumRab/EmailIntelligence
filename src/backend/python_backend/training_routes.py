@@ -10,7 +10,7 @@ This module provides API endpoints for training AI models used in email analysis
 import logging
 from typing import Any, Dict
 
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
+from fastapi import APIRouter, BackgroundTasks, HTTPException
 
 from src.core.auth import get_current_active_user
 
@@ -18,7 +18,7 @@ from ..python_nlp.ai_training import ModelConfig
 from .performance_monitor import log_performance
 
 logger = logging.getLogger(__name__)
-router = APIRouter(dependencies=[Depends(get_current_active_user)])
+router = APIRouter()
 
 # In-memory storage for training jobs (in production, use database)
 training_jobs: Dict[str, Dict[str, Any]] = {}
@@ -29,13 +29,14 @@ training_jobs: Dict[str, Dict[str, Any]] = {}
 async def start_training(
     model_config: ModelConfig,
     background_tasks: BackgroundTasks,
+    current_user: str = Depends(get_current_active_user),
 ):
     """
     Start training a model with the given configuration.
 
     Args:
         model_config: Configuration for the model to train
-
+        current_user: The authenticated user making the request
         background_tasks: FastAPI background tasks
 
     Returns:
@@ -62,13 +63,13 @@ async def start_training(
 
 @router.get("/api/training/status/{job_id}")
 @log_performance(operation="get_training_status")
-async def get_training_status(job_id: str):
+async def get_training_status(job_id: str, current_user: str = Depends(get_current_active_user)):
     """
     Get the status of a training job.
 
     Args:
         job_id: The ID of the training job
-
+        current_user: The authenticated user making the request
 
     Returns:
         Dict with job status information
@@ -153,9 +154,9 @@ async def run_training(job_id: str, model_config: ModelConfig):
         joblib.dump((model, vectorizer), model_path)
 
         training_jobs[job_id]["status"] = "completed"
-        training_jobs[job_id]["message"] = (
-            f"Training completed successfully. Accuracy: {accuracy:.2f}"
-        )
+        training_jobs[job_id][
+            "message"
+        ] = f"Training completed successfully. Accuracy: {accuracy:.2f}"
         training_jobs[job_id]["accuracy"] = accuracy
         training_jobs[job_id]["model_path"] = model_path
 
@@ -164,4 +165,4 @@ async def run_training(job_id: str, model_config: ModelConfig):
     except Exception as e:
         training_jobs[job_id]["status"] = "failed"
         training_jobs[job_id]["message"] = f"Training failed: {str(e)}"
-        logger.exception(f"Training job {job_id} failed: {e}")
+        logger.error(f"Training job {job_id} failed: {e}")

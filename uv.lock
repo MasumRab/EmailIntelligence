@@ -821,6 +821,7 @@ dependencies = [
     { name = "itsdangerous" },
     { name = "jinja2" },
     { name = "markupsafe" },
+    { name = "mistune" },
     { name = "networkx" },
     { name = "orjson" },
     { name = "pillow" },
@@ -927,11 +928,6 @@ viz = [
     { name = "seaborn" },
 ]
 
-[package.dev-dependencies]
-dev = [
-    { name = "mistune" },
-]
-
 [package.metadata]
 requires-dist = [
     { name = "accelerate", marker = "extra == 'ml'", specifier = ">=1.7.0" },
@@ -958,6 +954,7 @@ requires-dist = [
     { name = "jupyter", marker = "extra == 'dev'", specifier = ">=1.0.0" },
     { name = "markupsafe", specifier = "<3.0.0" },
     { name = "matplotlib", marker = "extra == 'viz'", specifier = ">=3.8.0" },
+    { name = "mistune", specifier = ">=3.2.0" },
     { name = "mypy", marker = "extra == 'dev'", specifier = ">=1.16.0" },
     { name = "networkx", specifier = ">=3.2.1" },
     { name = "nltk", marker = "extra == 'ml'", specifier = ">=3.9.1" },
@@ -998,9 +995,6 @@ requires-dist = [
     { name = "uvicorn", extras = ["standard"], specifier = ">=0.34.3" },
 ]
 provides-extras = ["ml", "data", "viz", "db", "google", "dev", "minimal", "full"]
-
-[package.metadata.requires-dev]
-dev = [{ name = "mistune", specifier = ">=3.2.0" }]
 
 [[package]]
 name = "executing"
