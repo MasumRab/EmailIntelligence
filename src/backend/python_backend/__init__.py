@@ -14,12 +14,12 @@ warnings.warn(
     stacklevel=2,
 )
 
-from backend.python_nlp.gmail_service import GmailAIService  # noqa: E402
-from backend.python_nlp.smart_filters import EmailFilter, SmartFilterManager  # noqa: E402
+from backend.python_nlp.gmail_service import GmailAIService  # noqa: E402  # noqa: E402
+from backend.python_nlp.smart_filters import EmailFilter, SmartFilterManager  # noqa: E402  # noqa: E402
 
-from .ai_engine import AdvancedAIEngine, AIAnalysisResult  # noqa: E402
-from .database import DatabaseManager, get_db  # noqa: E402, F401
-from .models import (  # noqa: E402
+from .ai_engine import AdvancedAIEngine, AIAnalysisResult  # noqa: E402  # noqa: E402
+from .database import DatabaseManager, get_db  # noqa: E402, F401  # noqa: E402, F401
+from .models import (  # noqa: E402  # noqa: E402
     ActivityCreate,
     ActivityResponse,
     AIAnalysisResponse,

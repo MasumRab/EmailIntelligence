@@ -7,6 +7,7 @@ Implements token bucket algorithm for API endpoint rate limiting with Redis back
 import asyncio
 import logging
 import time
+from collections import OrderedDict
 from dataclasses import dataclass
 from typing import Dict, Tuple
 
@@ -37,10 +38,11 @@ class RateLimiter:
     Uses in-memory storage by default. Can be extended to use Redis for distributed rate limiting.
     """
 
-    def __init__(self, config: RateLimitConfig):
+    def __init__(self, config: RateLimitConfig, max_clients: int = 10000):
         self.config = config
-        self._limits: Dict[str, RateLimitState] = {}
+        self._limits: OrderedDict[str, RateLimitState] = OrderedDict()
         self._lock = asyncio.Lock()
+        self._max_clients = max_clients
 
     async def is_allowed(self, key: str) -> Tuple[bool, Dict[str, int]]:
         """
@@ -57,9 +59,15 @@ class RateLimiter:
             state = self._limits.get(key)
 
             if state is None:
+                # Evict oldest entry if at capacity
+                if len(self._limits) >= self._max_clients:
+                    self._limits.popitem(last=False)
                 # First request for this key
                 state = RateLimitState(tokens=self.config.burst_limit, last_refill=now)
                 self._limits[key] = state
+            else:
+                # Move to end to mark as recently used
+                self._limits.move_to_end(key)
 
             # Refill tokens based on time passed
             time_passed = now - state.last_refill
