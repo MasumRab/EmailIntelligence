@@ -1,8 +1,8 @@
-import {  useState } from "react";
-import {  Button } from "@components/ui/button";
-import {  Input } from "@components/ui/input";
-import {  Label } from "@components/ui/label";
-import {  Checkbox } from "@components/ui/checkbox";
+import { useState } from "react";
+import { Button } from "@components/ui/button";
+import { Input } from "@components/ui/input";
+import { Label } from "@components/ui/label";
+import { Checkbox } from "@components/ui/checkbox";
 import {
   Select,
   SelectContent,
@@ -10,10 +10,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@components/ui/select";
-import {  Card, CardContent, CardHeader, CardTitle } from "@components/ui/card";
-//import { Badge } from "@components/ui/badge";
-//import { Calendar } from "@components/ui/calendar";
-import {  Plus, Trash2, Filter } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@components/ui/card";
+import { Badge } from "@components/ui/badge";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@components/ui/popover";
+import { Calendar } from "@components/ui/calendar";
+import { CalendarIcon, Plus, Trash2, Filter } from "lucide-react";
 import type { Category } from "@shared/schema";
 
 interface AdvancedFilterPanelProps {
