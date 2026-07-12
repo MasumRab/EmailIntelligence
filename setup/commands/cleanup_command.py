@@ -5,6 +5,7 @@ Handles manual cleanup of resources and processes.
 """
 
 import logging
+from argparse import Namespace  # noqa: F401
 
 from .command_interface import Command
 
