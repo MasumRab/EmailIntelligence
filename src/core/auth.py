@@ -13,6 +13,7 @@ import hashlib
 import secrets
 from argon2 import PasswordHasher
 import jwt
+import logging
 from fastapi import HTTPException, status, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel
