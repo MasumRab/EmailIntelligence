@@ -13,7 +13,7 @@ headers = {
 url = "https://api.github.com/graphql"
 
 def run_cmd(cmd):
-    result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
+    result = subprocess.run(cmd, shell=False, capture_output=True, text=True)
     return result.stdout.strip()
 
 print("Fetching commented PRs...")
