@@ -1,4 +1,4 @@
-# Task 008.2: Untitled Task
+# Task 008.2: Configure GitHub Actions Workflow and Triggers
 
 **Status:** pending
 **Priority:** high
@@ -37,7 +37,7 @@ Set up GitHub Actions workflow to trigger validation on PRs.
 
 ### Task Interface
 - **ID**: 008.2
-- **Title**: Untitled Task
+- **Title**: Configure GitHub Actions Workflow and Triggers
 - **Status**: pending
 - **Priority**: high
 - **Effort**: 2-3 hours
@@ -157,7 +157,7 @@ After completion, proceed to **Task 008.3**: Implement Architectural Enforcement
 **Complexity:** 4/10
 **Dependencies:** None
 **Created:** 2026-01-06
-**Parent:** Task 009: Create Comprehensive Merge Validation Framework
+**Parent:** Task 008: Create Comprehensive Merge Validation Framework
 
 ---
 

@@ -32,98 +32,43 @@ Create a comprehensive validation framework to ensure all architectural updates 
 ### Required Before Starting
 - [ ] None
 
-**Priority:** high
-
-**Description:** Create a comprehensive validation framework to ensure all architectural updates have been properly implemented before merging scientific branch to main. This framework will leverage research-backed CI/CD practices to validate consistency, functionality, performance, and security across all components, specifically tailored for our Python/FastAPI application. This task is directly linked to the backlog item: `backlog/tasks/alignment/create-merge-validation-framework.md`.
-
-**Details:**
-
-This framework will integrate into the GitHub Actions CI/CD pipeline, triggered on pull requests to the `main` branch from `scientific`. It will encompass several layers of automated checks, including:
-1.  **Architectural Enforcement**: Static analysis to ensure `src/backend` adheres to defined module boundaries and import rules.
-2.  **Functional Correctness**: Execution of full unit/integration test suites for `src/backend` and end-to-end smoke tests against a deployed instance of the FastAPI application.
-3.  **Performance Benchmarking**: Automated checks for performance regressions on critical FastAPI endpoints.
-4.  **Security Validation**: Dependency vulnerability scanning and Static Application Security Testing (SAST) for the Python/FastAPI codebase.
-The ultimate goal is to automatically block merges if any of these validation layers fail, ensuring a robust and secure `main` branch. The framework will be configured to analyze the `src/backend` directory primarily.
-
-building upon insights from past branch management efforts and the need for robust pre-merge checks.
-
 ---
 
 ## Sub-subtasks Breakdown
 
-### 8.1. Define Validation Scope and Tooling
+### 008.1. Define Validation Scope and Tooling
 - **Status**: pending
 - **Dependencies**: None
 
-### 8.2. Configure GitHub Actions Workflow and Triggers
+### 008.2. Configure GitHub Actions Workflow and Triggers
 - **Status**: pending
 - **Dependencies**: None
 
-### 8.3. Implement Architectural Enforcement Checks
+### 008.3. Implement Architectural Enforcement Checks
 - **Status**: pending
-- **Dependencies: 8.1
+- **Dependencies**: 008.1
 
-### 8.4. Integrate Existing Unit and Integration Tests
+### 008.4. Integrate Existing Unit and Integration Tests
 - **Status**: pending
-- **Dependencies: 8.1
+- **Dependencies**: 008.1
 
-### 8.5. Develop and Implement End-to-End Smoke Tests
+### 008.5. Develop and Implement End-to-End Smoke Tests
 - **Status**: pending
-- **Dependencies: 8.1
+- **Dependencies**: 008.1
 
-### 8.6. Implement Performance Benchmarking for Critical Endpoints
+### 008.6. Implement Performance Benchmarking for Critical Endpoints
 - **Status**: pending
-- **Dependencies: 8.1
+- **Dependencies**: 008.1
 
-### 8.7. Integrate Security Scans (SAST and Dependency)
+### 008.7. Integrate Security Scans (SAST and Dependency)
 - **Status**: pending
-- **Dependencies: 8.1
+- **Dependencies**: 008.1
 
-### 8.8. Consolidate Validation Results and Reporting
+### 008.8. Consolidate Validation Results and Reporting
 - **Status**: pending
-- **Dependencies: 8.3, 8.4, 8.6, 8.7
+- **Dependencies**: 008.3, 008.4, 008.6, 008.7
 
-### 8.9. Configure GitHub Branch Protection Rules
-- **Status**: pending
-- **Dependencies**: None
-
-### 8.10. Implement Architectural Static Analysis for `src/backend`
-- **Status**: pending
-- **Dependencies**: None
-
-### 8.11. Integrate and Automate `src/backend` Functional Test Execution in CI
-- **Status**: pending
-- **Dependencies**: None
-
-### 8.12. Develop and Integrate E2E Smoke Tests for FastAPI in CI
-- **Status**: pending
-- **Dependencies**: None
-
-### 8.13. Set Up Performance Benchmarking for Critical FastAPI Endpoints
-- **Status**: pending
-- **Dependencies**: None
-
-### 8.14. Integrate Security Validation (Dependency Scan & SAST) into CI
-- **Status**: pending
-- **Dependencies**: None
-
-### 8.15. Implement Architectural Enforcement for Module Boundaries and Imports
-- **Status**: pending
-- **Dependencies**: None
-
-### 8.16. Integrate Functional Correctness Checks with Test Suite Execution
-- **Status**: pending
-- **Dependencies**: None
-
-### 8.18. Develop Performance Benchmarking for Critical FastAPI Endpoints
-- **Status**: pending
-- **Dependencies**: None
-
-### 8.17. Implement Security Validation (Dependency Scanning & SAST)
-- **Status**: pending
-- **Dependencies**: None
-
-### 8.19. Design and Integrate Validation Framework into GitHub Actions Workflow
+### 008.9. Configure GitHub Branch Protection Rules
 - **Status**: pending
 - **Dependencies**: None
 
@@ -140,19 +85,6 @@ building upon insights from past branch management efforts and the need for robu
 **Dependencies:** None
 
 **Priority:** high
-
-**Description:** Create a comprehensive validation framework to ensure all architectural updates have been properly implemented before merging scientific branch to main. This framework will leverage research-backed CI/CD practices to validate consistency, functionality, performance, and security across all components, specifically tailored for our Python/FastAPI application. This task is directly linked to the backlog item: `backlog/tasks/alignment/create-merge-validation-framework.md`.
-
-**Details:**
-
-This framework will integrate into the GitHub Actions CI/CD pipeline, triggered on pull requests to the `main` branch from `scientific`. It will encompass several layers of automated checks, including:
-1.  **Architectural Enforcement**: Static analysis to ensure `src/backend` adheres to defined module boundaries and import rules.
-2.  **Functional Correctness**: Execution of full unit/integration test suites for `src/backend` and end-to-end smoke tests against a deployed instance of the FastAPI application.
-3.  **Performance Benchmarking**: Automated checks for performance regressions on critical FastAPI endpoints.
-4.  **Security Validation**: Dependency vulnerability scanning and Static Application Security Testing (SAST) for the Python/FastAPI codebase.
-The ultimate goal is to automatically block merges if any of these validation layers fail, ensuring a robust and secure `main` branch. The framework will be configured to analyze the `src/backend` directory primarily.
-
-building upon insights from past branch management efforts and the need for robust pre-merge checks.
 
 ---
 

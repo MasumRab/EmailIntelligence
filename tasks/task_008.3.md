@@ -1,4 +1,4 @@
-# Task 008.3: Untitled Task
+# Task 008.3: Implement Architectural Enforcement Checks
 
 **Status:** pending
 **Priority:** high
@@ -37,7 +37,7 @@ Integrate static analysis tools to enforce architectural rules.
 
 ### Task Interface
 - **ID**: 008.3
-- **Title**: Untitled Task
+- **Title**: Implement Architectural Enforcement Checks
 - **Status**: pending
 - **Priority**: high
 - **Effort**: 4-5 hours
@@ -246,7 +246,7 @@ After completion, proceed to **Task 008.4**: Integrate Unit and Integration Test
 **Complexity:** 6/10
 **Dependencies:** 008.1
 **Created:** 2026-01-06
-**Parent:** Task 009: Create Comprehensive Merge Validation Framework
+**Parent:** Task 008: Create Comprehensive Merge Validation Framework
 
 ---
 

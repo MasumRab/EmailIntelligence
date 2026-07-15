@@ -1,4 +1,4 @@
-# Task 008.7: Untitled Task
+# Task 008.7: Integrate Security Scans (SAST and Dependency)
 
 **Status:** pending
 **Priority:** high
@@ -37,7 +37,7 @@ Add security scanning to CI pipeline.
 
 ### Task Interface
 - **ID**: 008.7
-- **Title**: Untitled Task
+- **Title**: Integrate Security Scans (SAST and Dependency)
 - **Status**: pending
 - **Priority**: high
 - **Effort**: 3-4 hours
@@ -111,7 +111,7 @@ After completion, proceed to **Task 008.8**: Consolidate Validation Results
 **Complexity:** 5/10
 **Dependencies:** 008.1
 **Created:** 2026-01-06
-**Parent:** Task 009: Create Comprehensive Merge Validation Framework
+**Parent:** Task 008: Create Comprehensive Merge Validation Framework
 
 ---
 

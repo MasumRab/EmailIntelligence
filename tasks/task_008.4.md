@@ -1,4 +1,4 @@
-# Task 008.4: Untitled Task
+# Task 008.4: Integrate Existing Unit and Integration Tests
 
 **Status:** pending
 **Priority:** high
@@ -37,7 +37,7 @@ Configure CI to execute full test suite and block on failures.
 
 ### Task Interface
 - **ID**: 008.4
-- **Title**: Untitled Task
+- **Title**: Integrate Existing Unit and Integration Tests
 - **Status**: pending
 - **Priority**: high
 - **Effort**: 3-4 hours
@@ -111,7 +111,7 @@ After completion, proceed to **Task 008.5**: Develop E2E Smoke Tests
 **Complexity:** 5/10
 **Dependencies:** 008.1
 **Created:** 2026-01-06
-**Parent:** Task 009: Create Comprehensive Merge Validation Framework
+**Parent:** Task 008: Create Comprehensive Merge Validation Framework
 
 ---
 

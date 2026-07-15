@@ -1,4 +1,4 @@
-# Task 008.1: Untitled Task
+# Task 008.1: Define Validation Scope and Tooling
 
 **Status:** pending
 **Priority:** high
@@ -37,7 +37,7 @@ Define validation layers and select appropriate tools for the merge validation f
 
 ### Task Interface
 - **ID**: 008.1
-- **Title**: Untitled Task
+- **Title**: Define Validation Scope and Tooling
 - **Status**: pending
 - **Priority**: high
 - **Effort**: 3-4 hours
@@ -78,59 +78,6 @@ Implementation guide to be defined
 
 ---
 
-## Purpose
-
-Additional validation framework components.
-
----
-
-## Details
-
-The following components complete the validation framework:
-
-### 008.10: Static Analysis for src/backend
-- Configure import-linter for module boundaries
-- Custom rules for architectural compliance
-
-### 008.11: Functional Test Execution in CI
-- Pytest configuration for CI
-- Coverage reporting integration
-
-### 008.12: E2E Smoke Tests Integration
-- Docker Compose setup for testing
-- Container health checks
-
-### 008.13: Performance Baselines
-- Establish response time baselines
-- Throughput benchmarks
-
-### 008.14: Security Validation Integration
-- Dependency vulnerability scanning
-- SAST tool integration
-
-### 008.15: Architectural Enforcement for Module Boundaries
-- Import rules enforcement
-- Dependency graph validation
-
-### 008.16: Functional Correctness Checks
-- Unit test execution
-- Integration test execution
-
-### 008.18: Performance Benchmarking
-- Endpoint performance tests
-- Resource utilization benchmarks
-
-### 008.17: Security Scanning
-- Dependency audit
-- Code security analysis
-
-### 008.19: GitHub Actions Workflow Design
-- Job dependencies
-- Conditional execution
-- Result aggregation
-
----
-
 ## Implementation Summary
 
 Each component follows the pattern:
@@ -151,8 +98,8 @@ Each component follows the pattern:
 
 ## Integration Checkpoint
 
-**Task 009 Fully Complete When:**
-- [ ] All 23 subtasks complete
+**Task 008 Fully Complete When:**
+- [ ] All 9 subtasks complete
 - [ ] Full validation framework operational
 - [ ] All checks blocking merges
 - [ ] Documentation complete
@@ -161,7 +108,7 @@ Each component follows the pattern:
 **Complexity:** 4-6/10
 **Dependencies:** Varies
 **Created:** 2026-01-06
-**Parent:** Task 009: Create Comprehensive Merge Validation Framework
+**Parent:** Task 008: Create Comprehensive Merge Validation Framework
 
 ---
 

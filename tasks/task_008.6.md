@@ -1,4 +1,4 @@
-# Task 008.6: Untitled Task
+# Task 008.6: Implement Performance Benchmarking for Critical Endpoints
 
 **Status:** pending
 **Priority:** high
@@ -37,7 +37,7 @@ Set up performance benchmarking to detect regressions.
 
 ### Task Interface
 - **ID**: 008.6
-- **Title**: Untitled Task
+- **Title**: Implement Performance Benchmarking for Critical Endpoints
 - **Status**: pending
 - **Priority**: high
 - **Effort**: 4-5 hours
@@ -121,7 +121,7 @@ After completion, proceed to **Task 008.7**: Integrate Security Scans
 **Complexity:** 6/10
 **Dependencies:** 008.1
 **Created:** 2026-01-06
-**Parent:** Task 009: Create Comprehensive Merge Validation Framework
+**Parent:** Task 008: Create Comprehensive Merge Validation Framework
 
 ---
 

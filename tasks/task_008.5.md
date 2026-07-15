@@ -1,4 +1,4 @@
-# Task 008.5: Untitled Task
+# Task 008.5: Develop and Implement End-to-End Smoke Tests
 
 **Status:** pending
 **Priority:** high
@@ -37,7 +37,7 @@ Create smoke tests that verify core application functionality.
 
 ### Task Interface
 - **ID**: 008.5
-- **Title**: Untitled Task
+- **Title**: Develop and Implement End-to-End Smoke Tests
 - **Status**: pending
 - **Priority**: high
 - **Effort**: 4-5 hours
@@ -125,7 +125,7 @@ After completion, proceed to **Task 008.6**: Implement Performance Benchmarking
 **Complexity:** 6/10
 **Dependencies:** 008.1
 **Created:** 2026-01-06
-**Parent:** Task 009: Create Comprehensive Merge Validation Framework
+**Parent:** Task 008: Create Comprehensive Merge Validation Framework
 
 ---
 
