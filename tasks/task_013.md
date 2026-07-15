@@ -11,7 +11,7 @@
 
 ## Overview/Purpose
 
-Implement comprehensive branch backup and safety mechanisms for Git branch alignment operations. This task provides the foundational safety infrastructure that ensures branch alignment operations can be safely executed with reliable backup and recovery capabilities.
+Implement comprehensive branch backup and safety mechanisms for Git branch alignment operations. This task provides the foundational safety infrastructure that ensures branch alignment operations can be safely executed with reliable backup and recovery capabilities. This is the **comprehensive safety framework** that builds on Task 006's basic backup/restore mechanism, adding safety checks, verification, cleanup, and management systems.
 
 **Scope:** Branch backup and safety mechanisms only
 **Blocks:** Task 010 (Core alignment logic), Task 016 (Rollback and recovery)

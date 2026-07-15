@@ -11,7 +11,7 @@
 
 ## Overview/Purpose
 
-Develop and integrate procedures for creating temporary local backups of feature and primary branches before any significant alignment operations, and a mechanism to restore these backups if issues arise.
+Develop and integrate basic procedures for creating temporary local backups of feature and primary branches before any significant alignment operations, and a mechanism to restore these backups if issues arise. This is the **foundational backup mechanism** — Task 013 ("Branch Backup and Safety") builds on this to provide the comprehensive safety framework.
 
 ---
 
