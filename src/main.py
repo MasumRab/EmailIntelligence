@@ -18,6 +18,7 @@ import os
 
 # Import the actual backend implementation from the local branch
 from src.backend.python_backend.main import app as local_backend_app
+from src.core.middleware import SecurityHeadersMiddleware
 
 # Import context control from remote branch architecture
 try:
@@ -111,6 +112,9 @@ def create_app() -> FastAPI:
     # Use the actual backend app from local implementation
     app = local_backend_app
     
+    # Add security headers middleware
+    app.add_middleware(SecurityHeadersMiddleware)
+
     # Add context control middleware if available (from remote branch pattern)
     if CONTEXT_CONTROL_AVAILABLE:
         app.add_middleware(ContextControlMiddleware)
@@ -128,12 +132,13 @@ def create_app() -> FastAPI:
             "http://127.0.0.1:8000",
         ]
 
+    # Harden CORS configuration to restrict overly permissive methods and headers
     app.add_middleware(
         CORSMiddleware,
         allow_origins=origins_list,  # Restrict allowed origins to prevent CSRF
         allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
+        allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+        allow_headers=["Content-Type", "Authorization", "Accept", "X-Requested-With"],
     )
     
     # Add a health check endpoint that's common in both architectures
