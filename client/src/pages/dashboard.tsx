@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
+import { useDebounce } from "@/hooks/use-debounce";
 import { Search, FolderSync, Filter } from "lucide-react";
 import { useState } from "react";
 import type { Category, EmailWithCategory } from "@shared/schema";
@@ -28,6 +29,7 @@ import type { Category, EmailWithCategory } from "@shared/schema";
  */
 export default function Dashboard() {
   const [searchQuery, setSearchQuery] = useState("");
+  const debouncedSearchQuery = useDebounce(searchQuery, 300);
   const [syncLoading, setSyncLoading] = useState(false);
   const [selectedEmail, setSelectedEmail] = useState<EmailWithCategory | null>(null);
   const { toast } = useToast();
@@ -37,7 +39,7 @@ export default function Dashboard() {
   });
 
   const { data: emails = [], isLoading: emailsLoading, refetch: refetchEmails } = useQuery<EmailWithCategory[]>({
-    queryKey: ["/api/emails", searchQuery ? { search: searchQuery } : {}],
+    queryKey: ["/api/emails", debouncedSearchQuery ? { search: debouncedSearchQuery } : {}],
   });
 
   /**
