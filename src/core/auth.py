@@ -5,6 +5,8 @@ This module implements JWT-based authentication for API endpoints using the new
 core architecture and database management system.
 """
 
+import logging
+
 from datetime import datetime, timedelta
 from typing import Optional
 

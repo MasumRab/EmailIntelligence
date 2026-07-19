@@ -18,11 +18,12 @@ from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, Set
 from pathlib import Path
 
-from .database import DATA_DIR
+import os
+DATA_DIR = os.environ.get("DATA_DIR", "data")
 from .performance_monitor import log_performance
 from .enhanced_caching import EnhancedCachingManager
 from .enhanced_error_reporting import (
-    log_error,
+    enhanced_error_reporter,
     ErrorSeverity,
     ErrorCategory,
     create_error_context
@@ -172,7 +173,7 @@ class SmartFilterManager:
                         operation="_db_execute",
                         additional_context={"query": query[:100], "attempt": attempt}
                     )
-                    error_id = log_error(
+                    error_id = enhanced_error_reporter.log_error(
                         e,
                         severity=ErrorSeverity.ERROR,
                         category=ErrorCategory.INTEGRATION,
@@ -188,7 +189,7 @@ class SmartFilterManager:
                     operation="_db_execute",
                     additional_context={"query": query[:100]}
                 )
-                error_id = log_error(
+                error_id = enhanced_error_reporter.log_error(
                     e,
                     severity=ErrorSeverity.ERROR,
                     category=ErrorCategory.INTEGRATION,
@@ -210,7 +211,7 @@ class SmartFilterManager:
                 operation="_db_fetchone",
                 additional_context={"query": query[:100]}
             )
-            error_id = log_error(
+            error_id = enhanced_error_reporter.log_error(
                 e,
                 severity=ErrorSeverity.ERROR,
                 category=ErrorCategory.INTEGRATION,
@@ -232,7 +233,7 @@ class SmartFilterManager:
                 operation="_db_fetchall",
                 additional_context={"query": query[:100]}
             )
-            error_id = log_error(
+            error_id = enhanced_error_reporter.log_error(
                 e,
                 severity=ErrorSeverity.ERROR,
                 category=ErrorCategory.INTEGRATION,
@@ -694,7 +695,7 @@ class SmartFilterManager:
                     operation="apply_filters_to_email",
                     additional_context={"filter_id": filter_obj.filter_id, "email_id": email_data.get("id")}
                 )
-                error_id = log_error(
+                error_id = enhanced_error_reporter.log_error(
                     e,
                     severity=ErrorSeverity.WARNING,
                     category=ErrorCategory.INTEGRATION,
