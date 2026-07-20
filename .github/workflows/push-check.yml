@@ -7,8 +7,6 @@ on:
   push:
     branches:
       - main
-      - scientific
-      - orchestration-tools
     paths-ignore:
       - '**.md'
       - '**.txt'

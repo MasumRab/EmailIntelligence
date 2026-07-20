@@ -2,13 +2,13 @@ name: CI
 
 on:
   push:
-    branches: [main, scientific, orchestration-tools]
+    branches: [main, scientific]
     paths-ignore:
       - '**.md'
       - 'docs/**'
       - '**.mdx'
   pull_request:
-    branches: [main, scientific, orchestration-tools]
+    branches: [main, scientific]
     paths-ignore:
       - '**.md'
       - 'docs/**'
