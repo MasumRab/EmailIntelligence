@@ -132,8 +132,8 @@ def create_app() -> FastAPI:
         CORSMiddleware,
         allow_origins=origins_list,  # Restrict allowed origins to prevent CSRF
         allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
+        allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+        allow_headers=["Content-Type", "Authorization", "Accept", "X-Context-ID"],
     )
     
     # Add a health check endpoint that's common in both architectures
