@@ -2,3 +2,6 @@
 	path = .taskmaster
 	url = https://github.com/MasumRab/EmailIntelligence.git
 	branch = taskmaster
+[submodule ".agents/skills/autofix"]
+	path = .agents/skills/autofix
+	url = https://github.com/MasumRab/EmailIntelligence.git
