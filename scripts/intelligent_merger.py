@@ -15,16 +15,14 @@ from pathlib import Path
 from typing import List, Tuple
 
 
-def run_command(cmd: str) -> str:
-    """Run shell command and return output"""
-    result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
-    return result.stdout
-
-
 def get_file_content(file_path: str, ref: str = "HEAD") -> str:
     """Get file content at specific ref"""
     try:
-        return run_command(f"git show {ref}:{file_path}")
+        result = subprocess.run(
+            ["git", "show", f"{ref}:{file_path}"],
+            shell=False, capture_output=True, text=True, check=True
+        )
+        return result.stdout
     except Exception as e:
         print(f"Error getting {file_path} at {ref}: {e}")
         return ""
@@ -33,7 +31,11 @@ def get_file_content(file_path: str, ref: str = "HEAD") -> str:
 def get_changed_lines(file_path: str, base_ref: str, target_ref: str) -> List[int]:
     """Get line numbers changed between base and target"""
     try:
-        diff = run_command(f"git diff {base_ref}..{target_ref} -- {file_path}")
+        result = subprocess.run(
+            ["git", "diff", f"{base_ref}..{target_ref}", "--", file_path],
+            shell=False, capture_output=True, text=True, check=True
+        )
+        diff = result.stdout
         changed_lines = set()
 
         for line in diff.split("\n"):
@@ -74,7 +76,14 @@ def intelligent_merge(
     """
 
     # Get the merge base
-    base_ref = run_command(f"git merge-base {local_ref} {remote_ref}").strip()
+    try:
+        result = subprocess.run(
+            ["git", "merge-base", local_ref, remote_ref],
+            shell=False, capture_output=True, text=True, check=True
+        )
+        base_ref = result.stdout.strip()
+    except subprocess.CalledProcessError:
+        base_ref = ""
 
     if not base_ref:
         print("❌ Error: Could not find merge base")
@@ -120,7 +129,7 @@ def intelligent_merge(
             # Both changed - conflict!
             merged_lines.append(f"<<<<<<< LOCAL ({local_ref})")
             merged_lines.append(local_line)
-            merged_lines.append(f"=======")
+            merged_lines.append("=======")
             merged_lines.append(remote_line)
             merged_lines.append(f">>>>>>> REMOTE ({remote_ref})")
             conflict_count += 1
@@ -193,7 +202,7 @@ def main():
     else:
         print(f"⚠️ {conflict_count} conflicts found - manual resolution required")
         print(f"   1. Review {output_file}")
-        print(f"   2. Resolve conflicts (remove <<<<<<< ======= >>>>>>> markers)")
+        print("   2. Resolve conflicts (remove <<<<<<< ======= >>>>>>> markers)")
         print(f"   3. Replace original: mv {output_file} {file_path}")
         print(f"   4. git add {file_path}")
 
