@@ -128,11 +128,11 @@
     "qs": "^6.15.2",
     "yaml": "^2.8.3",
     "drizzle-kit": {
-      "esbuild": "^0.25.5",
+      "esbuild": "^0.25.12",
       "@esbuild-kit/esm-loader": {
-        "esbuild": "^0.25.5",
+        "esbuild": "^0.25.12",
         "@esbuild-kit/core-utils": {
-          "esbuild": "^0.25.5"
+          "esbuild": "^0.25.12"
         }
       }
     }
