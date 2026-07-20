@@ -1,85 +1,68 @@
-name: Jules PR Force Review
+name: Jules PR Review
 
-# Same reviewer logic as jules-pr-review but manually triggered via label.
-# Unlike the auto-reviewer, this one does NOT skip Jules-created PRs —
-# if someone applies jules-force-review, they want a review regardless.
+# Custom reviewer: replaces community action with file-list-first diff strategy
+# to avoid 80KB truncation. Reads existing PR comments for context. Sets
+# jules/review commit status based on parsed verdict (block → failure).
+#
+# Output format expected from Jules:
+#   ## Summary
+#   ## Strengths
+#   ## Findings
+#     ### [BLOCKING] - path:line — desc
+#     ### [WARN] - path:line — desc
+#     ### [NIT] - path:line — desc
+#   ## Verdict
+#   VERDICT: approve | comment | block
+#
+# To skip review on this PR, add the label "jules-override".
 
 on:
   pull_request:
-    types: [labeled]
-  issue_comment:
-    types: [created]
+    types: [opened, synchronize, reopened, ready_for_review]
 
 concurrency:
-  group: jules-force-review-${{ github.event.pull_request.number }}
-  cancel-in-progress: false
+  group: jules-review-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
 
 jobs:
   review:
-    if: >
-      github.event.label.name == 'jules-force-review' ||
-      (github.event_name == 'issue_comment' &&
-       startsWith(github.event.comment.body, '/jules-force-review'))
+    if: ${{ !startsWith(github.event.pull_request.head.ref, 'jules-') }}
     runs-on: ubuntu-latest
-    timeout-minutes: 30
     permissions:
       pull-requests: write
       contents: read
       statuses: write
     steps:
-      - name: Consume label — prevent duplicate sessions
-        if: github.event_name == 'pull_request'
-        uses: actions/github-script@v7
-        with:
-          script: |
-            await github.rest.issues.removeLabel({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: context.payload.pull_request.number,
-              name: 'jules-force-review',
-            }).catch(() => core.info('Label already consumed'));
-
-      - name: Parse slash command context
-        if: github.event_name == 'issue_comment'
-        id: parse
-        shell: bash
-        run: |
-          CUSTOM=$(echo "${{ github.event.comment.body }}" | sed 's|^/jules-force-review ||')
-          echo "custom_instructions=$CUSTOM" >> "$GITHUB_OUTPUT"
-
-      - name: Fork check
-        id: fork-check
-        shell: bash
-        env:
-          HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
-          BASE_REPO: ${{ github.event.pull_request.base.repo.full_name }}
-        run: |
-          if [ "$HEAD_REPO" != "$BASE_REPO" ]; then
-            echo "skip=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "skip=false" >> "$GITHUB_OUTPUT"
-          fi
-
       - uses: actions/checkout@v4
-        if: steps.fork-check.outputs.skip != 'true'
         with:
           fetch-depth: 0
 
       - name: Prepare review prompt
         id: prepare
-        env:
-          CUSTOM_INSTRUCTIONS: ${{ steps.parse.outputs.custom_instructions }}
         uses: actions/github-script@v7
         with:
           script: |
-            if ('${{ steps.fork-check.outputs.skip }}' === 'true') {
+            const pr = context.payload.pull_request;
+            const baseRef = pr.base.ref;
+            const headSha = pr.head.sha;
+            const isFork = pr.head.repo.full_name !== pr.base.repo.full_name;
+
+            // Skip forks — no secret access
+            if (isFork) {
               core.setOutput('skip', 'true');
               return;
             }
 
-            const pr = context.payload.pull_request;
-            const baseRef = pr.base.ref;
-            const headSha = pr.head.sha;
+            // Check bypass label
+            const { data: labels } = await github.rest.issues.listLabelsOnIssue({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: pr.number,
+            });
+            if (labels.some(l => l.name === 'jules-override')) {
+              core.setOutput('skip', 'true');
+              return;
+            }
 
             const files = await github.paginate(github.rest.pulls.listFiles, {
               owner: context.repo.owner,
@@ -92,6 +75,7 @@ jobs:
               additions: f.additions, deletions: f.deletions,
             }));
 
+            // Fetch existing comments
             const { data: reviewComments } = await github.rest.pulls.listReviewComments({
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -99,13 +83,13 @@ jobs:
               per_page: 20,
               direction: 'desc',
             });
-            const allIssueComments = await github.paginate(github.rest.issues.listComments, {
+            const { data: issueComments } = await github.rest.issues.listComments({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: pr.number,
-              per_page: 100,
+              per_page: 20,
+              direction: 'desc',
             });
-            const issueComments = allIssueComments.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
             const skipMarkers = ['<!-- jules-pr-reviewer -->', '<!-- jules-auto-fix -->', '<!-- jules-resolve -->', '<!-- jules-walkthrough -->'];
             const priorFeedback = issueComments
@@ -122,7 +106,7 @@ jobs:
               .map(c => `- ${c.path}:${c.line} — ${c.body.slice(0, 300)}`)
               .join('\n');
 
-            // Load repo-specific instructions if present
+             // Load repo-specific instructions if present
             const fs = require('fs');
             let reviewRules = '';
             for (const path of ['.jules/INSTRUCTIONS.md', '.github/jules-review-rules.md']) {
@@ -133,6 +117,20 @@ jobs:
                 }
               } catch (e) { /* file is optional */ }
             }
+
+            // Check for existing walkthrough/summary from any tool
+            const walkthroughMarkers = [
+              '<!-- jules-walkthrough -->',
+              '<!-- walkthrough_start -->',
+              '<!-- This is an auto-generated comment: summarize by',
+              'sourcery-ai',
+              '## Review Guide',
+            ];
+            const hasWalkthrough = issueComments.some(c =>
+              walkthroughMarkers.some(m => c.body?.includes(m))
+            ) || reviewComments.some(c =>
+              walkthroughMarkers.some(m => c.body?.includes(m))
+            );
 
             // Linked issue analysis
             let linkedIssue = '';
@@ -148,10 +146,8 @@ jobs:
               } catch (e) { /* issue may be private or deleted */ }
             }
 
-            const customInstr = process.env.CUSTOM_INSTRUCTIONS || '';
             const prompt = [
-              ...(customInstr ? [`## User instructions`, customInstr, ``] : []),
-              `## Code Review Request (Force Review)`,
+              `## Code Review Request`,
               ``,
               `Repository: ${context.repo.owner}/${context.repo.repo}`,
               `Title: ${pr.title}`,
@@ -164,8 +160,8 @@ jobs:
               JSON.stringify(fileSummary, null, 2),
               ...(priorFeedback ? [``, `## Existing PR comments`, priorFeedback] : []),
               ...(priorReviews ? [``, `## Existing review comments`, priorReviews] : []),
-               ...(reviewRules ? [``, `## Repository-specific instructions`, reviewRules] : []),
-               ...(linkedIssue ? [``, linkedIssue] : []),
+              ...(reviewRules ? [``, `## Repository-specific review rules`, reviewRules] : []),
+              ...(linkedIssue ? [``, linkedIssue] : []),
               ``,
               `## Your task`,
               `This is a read-only code review. Do NOT create any pull requests or modify code.`,
@@ -180,6 +176,21 @@ jobs:
               `   - JavaScript: \`eslint .\` (eslint is pre-installed)`,
               `   - Include any security findings classified by severity`,
               `7. Examine logic, edge cases, and consistency`,
+              ...(hasWalkthrough ? [] : [
+                ``,
+                `## Bonus: PR Walkthrough`,
+                `No walkthrough exists for this PR. After completing the review above,`,
+                `add a walkthrough section after the REVIEW block. Include:`,
+                `1. **Narrative summary** — what changed and why (2-3 paragraphs)`,
+                `2. **Key architectural decisions** — why this approach was chosen`,
+                `3. **Diagrams** — \`\`\`mermaid blocks where applicable`,
+                `4. **Thematic groupings** — group changed files by area`,
+                `Separate the walkthrough from the review with:`,
+                `<!-- walkthrough_start -->`,
+                `## Walkthrough`,
+                `(walkthrough content here)`,
+                `<!-- walkthrough_end -->`,
+              ]),
               ``,
               `## Output format`,
               `Produce the review EXACTLY in this structure. Keep every element shown below`,
@@ -196,8 +207,7 @@ jobs:
               'If no issues found, write: "No significant findings."',
               '',
               '### 🔴 Critical - <path/file.ext:line> — <description>',
-              '<1-2 sentences. MUST fix before merge — production failure, security breach, data corruption.>',
-              'If a code change is suggested:',
+              '<MUST fix before merge — production failure, security breach, data corruption. If suggestion:>',
               '````',
               '```suggestion',
               '<replacement code>',
@@ -205,13 +215,12 @@ jobs:
               '````',
               '<details>',
               '<summary>🤖 AI reasoning</summary>',
-              '',
               '<brief explanation of the logic that produced this finding>',
               '</details>',
               '<!-- FINDING severity="critical" file="src/auth.py" line="42" reason="security" -->',
               '',
               '### 🟠 High - <path/file.ext:line> — <description>',
-              '<should fix before merge — significant problems, bugs, performance degradation. If suggestion:>',
+              '<should fix — significant problems, bugs, performance degradation. If suggestion:>',
               '````',
               '```suggestion',
               '<code>',
@@ -229,7 +238,7 @@ jobs:
               '<!-- FINDING severity="low" file="..." line="..." -->',
               '',
               '## Truncation',
-              'If nearing timeout or output exceeds length limits, truncate findings gracefully.',
+              'If nearing timeout or output exceeds length limits, truncate gracefully.',
               'Summarize remaining issues. Set verdict block if critical remain, comment if minor.',
               'Add: <!-- meta-prompt: truncated due to limits -->',
               '',
@@ -262,14 +271,14 @@ jobs:
               },
             };
 
-            fs.writeFileSync('/tmp/jules-force-review-payload.json', JSON.stringify(payload));
+            fs.writeFileSync('/tmp/jules-review-payload.json', JSON.stringify(payload));
             core.setOutput('head_sha', headSha);
-            core.info(`Force-review payload written for PR #${pr.number}`);
+            core.info(`Payload written for PR #${pr.number}`);
 
-      - name: Skip (fork)
+      - name: Skip (fork or bypass label)
         if: steps.prepare.outputs.skip == 'true'
         shell: bash
-        run: echo "Skipped — fork PR (no secret access)"
+        run: echo "Skipped — fork PR or jules-override label present"
 
       - name: Create Jules session
         if: steps.prepare.outputs.skip != 'true'
@@ -279,11 +288,10 @@ jobs:
           JULES_API_KEY: ${{ secrets.JULES_API_KEY }}
         run: |
           set +e
-          RESPONSE=$(curl -sS --fail-with-body --connect-timeout 10 --max-time 60 \
-            -X POST "https://jules.googleapis.com/v1alpha/sessions" \
+          RESPONSE=$(curl -sS --fail-with-body -X POST "https://jules.googleapis.com/v1alpha/sessions" \
             -H "Content-Type: application/json" \
             -H "X-Goog-Api-Key: ${JULES_API_KEY}" \
-            -d @/tmp/jules-force-review-payload.json)
+            -d @/tmp/jules-review-payload.json)
           CURL_EXIT=$?
           set -e
 
@@ -321,7 +329,7 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.payload.pull_request.number,
-              body: '⚠️ **Jules session cap reached (15/day).**\n\nForce-review cannot run today. Re-apply the `jules-force-review` label tomorrow to retry.\n\n<!-- jules-quota-exhausted -->',
+              body: '⚠️ **Jules session cap reached (15/day).**\n\nNo review was created for this PR. Re-open or sync the PR tomorrow to trigger auto-review again.\n\n<!-- jules-quota-exhausted -->',
             });
 
       - name: Poll for completion
@@ -348,7 +356,7 @@ jobs:
               ACTS=$(curl -sS --fail-with-body --connect-timeout 10 --max-time 60 \
                 "https://jules.googleapis.com/v1alpha/${SESSION_RESOURCE}/activities?pageSize=100" \
                 -H "X-Goog-Api-Key: ${JULES_API_KEY}")
-              echo "$ACTS" | jq -r '[(.activities // [])[] | select(.agentMessaged.agentMessage != null)][-1].agentMessaged.agentMessage // "Review unavailable"' > /tmp/jules-force-review-output.txt
+              echo "$ACTS" | jq -r '[(.activities // [])[] | select(.agentMessaged.agentMessage != null)][-1].agentMessaged.agentMessage // "Review unavailable"' > /tmp/jules-review-output.txt
               echo "Session finished ($STATE)"
               exit 0
             fi
@@ -356,20 +364,35 @@ jobs:
           done
 
           echo "session_state=TIMEOUT" >> "$GITHUB_OUTPUT"
-          echo "Force-review timed out." > /tmp/jules-force-review-output.txt
+          echo "Review timed out after $((MAX_ATTEMPTS * 15)) seconds." > /tmp/jules-review-output.txt
 
       - name: Post review and set commit status
-        if: always() && steps.prepare.conclusion == 'success' && steps.create.outputs.quota_exhausted != 'true'
+        if: steps.prepare.outputs.skip != 'true' && steps.create.outputs.quota_exhausted != 'true'
         uses: actions/github-script@v7
         with:
           script: |
             const fs = require('fs');
-            const reviewText = fs.readFileSync('/tmp/jules-force-review-output.txt', 'utf8');
+            const reviewText = fs.readFileSync('/tmp/jules-review-output.txt', 'utf8');
             const prNumber = context.payload.pull_request.number;
             const headSha = '${{ steps.prepare.outputs.head_sha }}';
             const sessionState = '${{ steps.poll.outputs.session_state }}';
 
-            const verdictMatch = reviewText.match(/\[VERDICT\]:\s*(approve|comment|block)|<!--\s*verdict:\s*(approve|comment|block)\s*-->/i);
+            // Split walkthrough from review before parsing
+            const wtStart = '<!-- walkthrough_start -->';
+            const wtEnd = '<!-- walkthrough_end -->';
+            const reviewTextParts = reviewText.split(wtStart);
+            const mainReview = reviewTextParts[0].trim();
+            let walkthroughText = '';
+            if (reviewTextParts.length > 1) {
+              const afterStart = reviewTextParts[1];
+              const endIdx = afterStart.indexOf(wtEnd);
+              walkthroughText = endIdx !== -1
+                ? afterStart.slice(0, endIdx).trim()
+                : afterStart.trim();
+            }
+
+            // Parse verdict from structured output (review portion only)
+            const verdictMatch = mainReview.match(/\[VERDICT\]:\s*(approve|comment|block)|<!--\s*verdict:\s*(approve|comment|block)\s*-->/i);
             const verdict = verdictMatch ? (verdictMatch[1] || verdictMatch[2]).toLowerCase() : null;
 
             // Determine commit status — fail closed
@@ -392,6 +415,7 @@ jobs:
               statusDesc = 'Review timed out';
             }
 
+            // Set jules/review commit status
             try {
               await github.rest.repos.createCommitStatus({
                 owner: context.repo.owner,
@@ -410,18 +434,17 @@ jobs:
             const comments = [];
             let findingMatch;
             const seen = new Set();
-            while ((findingMatch = findingRegex.exec(reviewText)) !== null) {
+            while ((findingMatch = findingRegex.exec(mainReview)) !== null) {
               const [, severity, file, line, reason] = findingMatch;
               const key = `${file}:${line}`;
               if (seen.has(key)) continue;
               seen.add(key);
 
-              const severityEmoji = severity === 'critical' ? '🔴' : severity === 'high' ? '🟠' : severity === 'medium' ? '🟡' : '🟢';
-              const heading = `### ${severityEmoji} ${severity.charAt(0).toUpperCase() + severity.slice(1)} - ${file}:${line}`;
-              const startIdx = reviewText.indexOf(heading);
-              const endIdx = reviewText.indexOf('<!-- FINDING', startIdx + 1);
+              const heading = `### ${severity === 'critical' ? '🔴' : severity === 'high' ? '🟠' : severity === 'medium' ? '🟡' : '🟢'} ${severity.charAt(0).toUpperCase() + severity.slice(1)} - ${file}:${line}`;
+              const startIdx = mainReview.indexOf(heading);
+              const endIdx = mainReview.indexOf('<!-- FINDING', startIdx + 1);
               const findingBody = startIdx !== -1
-                ? reviewText.slice(startIdx, endIdx !== -1 ? endIdx : undefined).trim()
+                ? mainReview.slice(startIdx, endIdx !== -1 ? endIdx : undefined).trim()
                 : '';
 
               comments.push({
@@ -431,7 +454,8 @@ jobs:
               });
             }
 
-            const body = `<!-- jules-pr-reviewer -->\n\n${reviewText}`;
+            // Post PR review (review portion only) with per-line comments
+            const body = `<!-- jules-pr-reviewer -->\n\n${mainReview}`;
 
             try {
               const reviewParams = {
@@ -448,7 +472,7 @@ jobs:
               await github.rest.pulls.createReview(reviewParams);
               core.info(`Review posted with ${comments.length} per-line comments`);
             } catch (e) {
-              core.warning(`PR review failed, falling back to issue comment: ${e.message}`);
+              core.warning(`PR review failed, falling back to batch comment: ${e.message}`);
               await github.rest.issues.createComment({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
@@ -457,14 +481,17 @@ jobs:
               });
             }
 
-      - name: Remove jules-force-review label
-        if: always()
-        uses: actions/github-script@v7
-        with:
-          script: |
-            await github.rest.issues.removeLabel({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: context.payload.pull_request.number,
-              name: 'jules-force-review',
-            }).catch(() => core.warning('Label already removed'));
+            // Post walkthrough as separate issue comment if generated
+            if (walkthroughText) {
+              try {
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: prNumber,
+                  body: `<!-- jules-walkthrough -->\n\n${walkthroughText}`,
+                });
+                core.info('Walkthrough posted as issue comment');
+              } catch (e) {
+                core.warning(`Failed to post walkthrough: ${e.message}`);
+              }
+            }
