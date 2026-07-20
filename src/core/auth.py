@@ -10,6 +10,7 @@ from typing import Optional, Dict, Any, List
 import time
 import secrets
 from argon2 import PasswordHasher
+import argon2.exceptions
 
 import jwt
 from fastapi import HTTPException, status, Depends

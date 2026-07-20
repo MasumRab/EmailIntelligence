@@ -111,7 +111,7 @@ def commit_sync_changes(branch: str) -> bool:
 
     # Commit
     result = subprocess.run([
-        'git', 'commit', '-m', f'Sync scripts from master branch\n\nAutomated script synchronization'
+        'git', 'commit', '-m', 'Sync scripts from master branch\n\nAutomated script synchronization'
     ], capture_output=True, text=True)
 
     if result.returncode != 0:

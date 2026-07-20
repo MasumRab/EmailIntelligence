@@ -318,6 +318,7 @@ def create_advanced_workflow_ui():
 
 
 # Initialize the workflow system when this module is loaded
+from src.core.advanced_workflow_engine import initialize_workflow_system
 initialize_workflow_system()
 
 if __name__ == "__main__":

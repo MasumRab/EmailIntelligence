@@ -603,7 +603,7 @@ class TemplateDashboard:
         print(f"Complexity Score: {complexity.get('complexity_score', 0)}")
         print(f"Max Dependency Depth: {complexity.get('max_dependency_depth', 0)}")
 
-        print(f"\nSections:")
+        print("\nSections:")
         for i, section in enumerate(template.sections, 1):
             print(f"  {i}. {section.title} ({section.section_type})")
             print(f"     ID: {section.section_id}")
@@ -631,7 +631,7 @@ class TemplateDashboard:
 
         # Show generation plan
         plan = self.template_manager.get_parallel_generation_plan(document_id)
-        print(f"\nParallel Generation Plan:")
+        print("\nParallel Generation Plan:")
         for i, wave in enumerate(plan, 1):
             print(f"  Wave {i}: {', '.join(wave)}")
 

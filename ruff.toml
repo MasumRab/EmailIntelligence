@@ -1,0 +1,37 @@
+# Ruff configuration for EmailIntelligence
+# https://docs.astral.sh/ruff/configuration/
+
+# Target Python 3.11+
+target-version = "py311"
+
+line-length = 120
+
+[lint]
+# Use default ruff rules (E4, E7, E9, F) without whitespace rules
+# E402 - Module-level imports not at top of file: used for circular import avoidance
+#         and for conditional module initialization across the codebase
+ignore = ["E402"]
+
+[lint.per-file-ignores]
+# F401 in __init__.py files: re-exports are intentional
+"__init__.py" = ["F401"]
+
+# F401 in try/except blocks for availability checking
+# These imports set module-level flags even if the imported names aren't directly used
+"src/backend/python_nlp/nlp_engine.py" = ["F401"]
+"src/backend/extensions/example/example.py" = ["F401"]
+"src/backend/python_backend/__init__.py" = ["F401"]
+"src/backend/python_backend/advanced_workflow_routes.py" = ["F401"]
+"src/backend/python_backend/workflow_editor_ui.py" = ["F401"]
+"src/core/advanced_workflow_engine.py" = ["F401"]
+
+# Legacy code with intentional redefinitions (duplicate classes in old vs new monitors)
+"src/core/performance_monitor.py" = ["F811"]
+
+# Gradio Blocks forward-references components defined later in the same Blocks scope
+"src/backend/python_backend/gradio_app.py" = ["F821"]
+
+"tests/**/*.py" = ["F401", "E722", "F841"]
+"scripts/**/*.py" = ["F401", "F841"]
+"update-ci-actions.py" = ["F401"]
+"validate_dependencies.py" = ["F401"]
