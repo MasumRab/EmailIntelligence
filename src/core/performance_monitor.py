@@ -358,6 +358,7 @@ class OptimizedPerformanceMonitor:
             return decorator(func)
         else:
             # Used as @time_function("name") or with time_function("name"):
+            outer_self = self
             class TimerContext:
                 def __enter__(self):
                     self.start_time = time.perf_counter()
@@ -365,7 +366,7 @@ class OptimizedPerformanceMonitor:
 
                 def __exit__(self, exc_type, exc_val, exc_tb):
                     duration = (time.perf_counter() - self.start_time) * 1000
-                    self.record_metric(
+                    outer_self.record_metric(
                         name=name, value=duration, unit="ms", tags=tags, sample_rate=sample_rate
                     )
 
@@ -457,7 +458,11 @@ class OptimizedPerformanceMonitor:
 
     def shutdown(self):
         """Shutdown the performance monitor gracefully."""
-        logger.info("Shutting down OptimizedPerformanceMonitor")
+        try:
+            logger.info("Shutting down OptimizedPerformanceMonitor")
+        except ValueError:
+            # Handle cases where logger I/O is closed
+            pass
 
         self._stop_event.set()
 
@@ -466,7 +471,10 @@ class OptimizedPerformanceMonitor:
             self._aggregate_metrics()
             self._flush_to_disk()
         except Exception as e:
-            logger.error(f"Error in final metrics flush: {e}")
+            try:
+                logger.error(f"Error in final metrics flush: {e}")
+            except ValueError:
+                pass
 
         if self._processing_thread.is_alive():
             self._processing_thread.join(timeout=5.0)
