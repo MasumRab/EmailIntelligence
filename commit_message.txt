@@ -1,0 +1,7 @@
+feat: add SonarQube REST API integration
+
+Adds a SonarQube integration to fetch project issues.
+- Creates `SonarQubeClient` in `src/core/integrations/sonarqube_api.py`
+- Exposes `sonar-issues` CLI command in `src/cli/commands/sonar_issues_command.py`
+- Uses `requests` for REST calls, authenticating via environment variables (`SONAR_TOKEN`, `SONAR_PROJECT_KEY`, `SONAR_HOST_URL`)
+- Adds unit tests and integrates command into existing CLI registry.

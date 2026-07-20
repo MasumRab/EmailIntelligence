@@ -23,6 +23,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 
 from src.backend.python_nlp.gmail_service import GmailAIService
 
+from .database import get_db
 # Removed: from .smart_filters import EmailFilter (as per instruction)
 from src.backend.python_nlp.smart_filters import SmartFilterManager
 from src.core.auth import authenticate_user
@@ -41,6 +42,12 @@ from . import (
     training_routes,
     workflow_routes,
 )
+from .routes.v1.category_routes import router as category_router_v1
+from .routes.v1.email_routes import router as email_router_v1
+from .enhanced_routes import router as enhanced_router
+from .workflow_routes import router as workflow_router
+from .advanced_workflow_routes import router as advanced_workflow_router
+from .node_workflow_routes import router as node_workflow_router
 from .ai_engine import AdvancedAIEngine
 from .auth import create_access_token
 from .database import db_manager
@@ -250,11 +257,6 @@ filter_manager = SmartFilterManager()  # Used by filter_routes
 ai_engine = AdvancedAIEngine(model_manager)  # Used by email_routes, action_routes
 performance_monitor = performance_monitor  # Used by all routes via @performance_monitor.track
 
-from .routes.v1.category_routes import router as category_router_v1
-
-# Include versioned API routers
-from .routes.v1.email_routes import router as email_router_v1
-
 # Mount versioned APIs
 app.include_router(email_router_v1, prefix="/api/v1", tags=["emails-v1"])
 app.include_router(category_router_v1, prefix="/api/v1", tags=["categories-v1"])
@@ -273,22 +275,18 @@ app.include_router(dashboard_routes.router)
 app.include_router(ai_routes.router)
 
 # Include enhanced feature routers
-from .enhanced_routes import router as enhanced_router
 
 app.include_router(enhanced_router, prefix="/api/enhanced", tags=["enhanced"])
 
 # Include workflow routes (legacy and node-based)
-from .workflow_routes import router as workflow_router
 
 app.include_router(workflow_router, prefix="", tags=["workflows"])
 
 # Include advanced workflow routes (will use node-based system)
-from .advanced_workflow_routes import router as advanced_workflow_router
 
 app.include_router(advanced_workflow_router, prefix="/api/workflows", tags=["advanced-workflows"])
 
 # Include node-based workflow routes
-from .node_workflow_routes import router as node_workflow_router
 
 app.include_router(node_workflow_router, prefix="/api/nodes", tags=["node-workflows"])
 
