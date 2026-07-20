@@ -10,6 +10,8 @@ from typing import Optional, Dict, Any, List
 import time
 import secrets
 from argon2 import PasswordHasher
+import argon2
+import argon2.exceptions
 
 import jwt
 from fastapi import HTTPException, status, Depends
@@ -31,7 +33,7 @@ class TokenData(BaseModel):
     role: Optional[str] = "user"
 
 
-from enum import Enum
+from enum import Enum  # noqa: E402
 
 
 class UserRole(str, Enum):
