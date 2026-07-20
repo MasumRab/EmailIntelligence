@@ -8,6 +8,7 @@ Following the new architectural patterns with service layer and API versioning
 
 from typing import List
 import logging
+from src.core.auth import get_current_active_user
 from fastapi import APIRouter, Depends, Request
 
 from src.core.models import CategoryResponse, CategoryCreate
@@ -18,7 +19,7 @@ from src.core.performance_monitor import log_performance
 logger = logging.getLogger(__name__)
 
 # Create router with API version prefix
-router = APIRouter(prefix="/v1")
+router = APIRouter(prefix="/v1", dependencies=[Depends(get_current_active_user)])
 
 
 @router.get("/categories", response_model=List[CategoryResponse])

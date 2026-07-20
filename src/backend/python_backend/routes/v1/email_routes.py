@@ -8,6 +8,7 @@ Following the new architectural patterns with service layer and API versioning
 
 from typing import Optional
 import logging
+from src.core.auth import get_current_active_user
 from fastapi import APIRouter, BackgroundTasks, Depends, Request
 
 from src.core.models import EmailResponse, EmailCreate, EmailUpdate
@@ -19,7 +20,7 @@ from src.core.performance_monitor import log_performance
 logger = logging.getLogger(__name__)
 
 # Create router with API version prefix
-router = APIRouter(prefix="/v1")
+router = APIRouter(prefix="/v1", dependencies=[Depends(get_current_active_user)])
 
 
 @router.get("/emails", response_model=EmailResponse)
