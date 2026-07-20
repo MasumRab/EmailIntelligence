@@ -302,3 +302,6 @@ taskmaster-worktree-config.yml
 =*
 # Added by code-review-graph
 .code-review-graph/
+merge_tree_*.md
+/tmp/*.json
+/tmp/*.jsonl
