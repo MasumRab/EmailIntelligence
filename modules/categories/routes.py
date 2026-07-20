@@ -6,7 +6,6 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 # Updated imports to use the new core framework components
 from src.core.data.factory import get_data_source
 from src.core.data.data_source import DataSource
-from src.core.factory import get_data_source
 from src.core.models import CategoryCreate, CategoryResponse
 from src.core.performance_monitor import log_performance
 from src.core.auth import get_current_active_user

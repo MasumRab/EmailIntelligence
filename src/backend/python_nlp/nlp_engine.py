@@ -52,11 +52,6 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(
 logger = logging.getLogger(__name__)
 
 
-def clean_text(text: str) -> str:
-    """Basic text cleaning utility."""
-    return text.lower().strip()
-
-
 # Define paths for pre-trained models
 # MODEL_DIR = os.getenv("NLP_MODEL_DIR", os.path.dirname(__file__)) # Moved to __init__
 # SENTIMENT_MODEL_PATH = os.path.join(MODEL_DIR, "sentiment_model.pkl")
