@@ -33,9 +33,7 @@ class CommandRegistry:
         self._agent_assignments: Dict[str, str] = {}
         self._command_metadata: Dict[str, Dict] = {}
 
-    def register_command(
-        self, command_class: Type[Command], agent: str = "system"
-    ) -> None:
+    def register_command(self, command_class: Type[Command], agent: str = "system") -> None:
         """
         Register a command class with the registry.
 
@@ -100,11 +98,7 @@ class CommandRegistry:
         Returns:
             List of command names
         """
-        return [
-            cmd
-            for cmd, cmd_agent in self._agent_assignments.items()
-            if cmd_agent == agent
-        ]
+        return [cmd for cmd, cmd_agent in self._agent_assignments.items() if cmd_agent == agent]
 
     def get_all_commands(self) -> Dict[str, Dict]:
         """
@@ -151,8 +145,5 @@ class CommandRegistry:
             "total_commands": len(self._command_metadata),
             "agents": list(agent_counts.keys()),
             "agent_counts": agent_counts,
-            "commands_by_agent": {
-                agent: self.get_commands_by_agent(agent)
-                for agent in agent_counts.keys()
-            },
+            "commands_by_agent": {agent: self.get_commands_by_agent(agent) for agent in agent_counts.keys()},
         }

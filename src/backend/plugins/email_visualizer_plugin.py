@@ -54,9 +54,7 @@ class EmailVisualizerPlugin(UIComponentPlugin):
         # Return some sample input widgets
         return [
             gr.Textbox(label="Custom Email Filter Pattern"),
-            gr.CheckboxGroup(
-                ["Include Read", "Include Deleted", "Include Drafts"], label="Options"
-            ),
+            gr.CheckboxGroup(["Include Read", "Include Deleted", "Include Drafts"], label="Options"),
         ]
 
     def get_visualization_components(self) -> List[gr.components.Component]:

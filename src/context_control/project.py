@@ -24,9 +24,7 @@ class ProjectConfigLoader:
         self.config = config or get_current_config()
         self._cache: Dict[str, ProjectConfig] = {}
 
-    def load_project_config(
-        self, project_path: Optional[Path] = None
-    ) -> Optional[ProjectConfig]:
+    def load_project_config(self, project_path: Optional[Path] = None) -> Optional[ProjectConfig]:
         """Load project configuration from the given path.
 
         Args:
@@ -86,9 +84,7 @@ class ProjectConfigLoader:
 
         return None
 
-    def _load_from_config_directory(
-        self, project_path: Path
-    ) -> Optional[ProjectConfig]:
+    def _load_from_config_directory(self, project_path: Path) -> Optional[ProjectConfig]:
         """Load config from a configuration directory.
 
         Args:
@@ -118,9 +114,7 @@ class ProjectConfigLoader:
             logger.error(f"Invalid project config file {config_file}: {e}")
             return None
 
-    def save_project_config(
-        self, config: ProjectConfig, project_path: Optional[Path] = None
-    ) -> bool:
+    def save_project_config(self, config: ProjectConfig, project_path: Optional[Path] = None) -> bool:
         """Save project configuration to file.
 
         Args:
@@ -192,9 +186,7 @@ class ProjectConfigLoader:
 
         return best_type
 
-    def create_default_config(
-        self, project_path: Optional[Path] = None
-    ) -> ProjectConfig:
+    def create_default_config(self, project_path: Optional[Path] = None) -> ProjectConfig:
         """Create a default project configuration.
 
         Args:

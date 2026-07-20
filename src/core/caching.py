@@ -138,7 +138,11 @@ class MemoryCacheBackend(CacheBackendInterface):
             # Move to end if it exists
             self._cache.move_to_end(key)
 
-        self._cache[key] = {"value": value, "expires_at": expires_at, "created_at": time.time()}
+        self._cache[key] = {
+            "value": value,
+            "expires_at": expires_at,
+            "created_at": time.time(),
+        }
 
         # Enforce max items limit (LRU eviction)
         while len(self._cache) > self.config.max_memory_items:
@@ -285,7 +289,11 @@ class CacheManager:
         return await self.backend.get(key)
 
     async def set(
-        self, key: str, value: Any, ttl: Optional[int] = None, tags: Optional[List[str]] = None
+        self,
+        key: str,
+        value: Any,
+        ttl: Optional[int] = None,
+        tags: Optional[List[str]] = None,
     ) -> bool:
         """Set value in cache with optional tags"""
         success = await self.backend.set(key, value, ttl)

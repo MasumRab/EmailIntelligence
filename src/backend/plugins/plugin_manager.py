@@ -51,9 +51,7 @@ class PluginManager:
                                 # Create an instance and register it
                                 plugin_instance = obj()
                                 self._processing_nodes[plugin_instance.name] = plugin_instance
-                                logger.info(
-                                    f"Loaded processing node plugin: {plugin_instance.name}"
-                                )
+                                logger.info(f"Loaded processing node plugin: {plugin_instance.name}")
                             elif issubclass(obj, UIComponentPlugin):
                                 # Create an instance and register it
                                 plugin_instance = obj()
@@ -156,9 +154,7 @@ class PluginManager:
             except Exception as e:
                 logger.error(f"Error initializing processing node {name}: {str(e)}")
 
-        logger.info(
-            f"Initialization completed: {success_count}/{total_count} plugins initialized successfully"
-        )
+        logger.info(f"Initialization completed: {success_count}/{total_count} plugins initialized successfully")
         return success_count == total_count
 
 

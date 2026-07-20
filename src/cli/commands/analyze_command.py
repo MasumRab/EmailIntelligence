@@ -104,9 +104,7 @@ class AnalyzeCommand(Command):
             # Get current branch if head_branch not specified
             if not head_branch:
                 try:
-                    stdout, stderr, rc = await self._repo_ops.run_command(
-                        ["rev-parse", "--abbrev-ref", "HEAD"]
-                    )
+                    stdout, stderr, rc = await self._repo_ops.run_command(["rev-parse", "--abbrev-ref", "HEAD"])
                     if rc == 0:
                         head_branch = stdout.strip()
                     else:
@@ -123,13 +121,9 @@ class AnalyzeCommand(Command):
                 ("head", head_branch),
             ]:
                 try:
-                    stdout, stderr, rc = await self._repo_ops.run_command(
-                        ["rev-parse", "--verify", branch_var]
-                    )
+                    stdout, stderr, rc = await self._repo_ops.run_command(["rev-parse", "--verify", branch_var])
                     if rc != 0:
-                        print(
-                            f"Error: {branch_name.title()} branch '{branch_var}' not found"
-                        )
+                        print(f"Error: {branch_name.title()} branch '{branch_var}' not found")
                         print(f"Git error: {stderr}")
                         return 1
                 except Exception as e:
@@ -141,9 +135,7 @@ class AnalyzeCommand(Command):
 
             # Detect conflicts
             try:
-                conflicts = await self._detector.detect_conflicts_between_branches(
-                    head_branch, base_branch
-                )
+                conflicts = await self._detector.detect_conflicts_between_branches(head_branch, base_branch)
             except Exception as e:
                 print(f"Error detecting conflicts: {e}")
                 return 1
@@ -164,9 +156,7 @@ class AnalyzeCommand(Command):
                     )
 
                     # Generate resolution strategy
-                    strategy = await self._strategy_gen.generate_resolution_strategy(
-                        [conflict]
-                    )
+                    strategy = await self._strategy_gen.generate_resolution_strategy([conflict])
 
                     # Print conflict info
                     print(
@@ -174,18 +164,12 @@ class AnalyzeCommand(Command):
                         f"Risk={conflict.severity.value}, "
                         f"Score={getattr(analysis, 'compliance_score', 'N/A'):.2f}"
                     )
-                    print(
-                        f"  Strategy: {getattr(strategy, 'strategy_type', 'unknown')}"
-                    )
+                    print(f"  Strategy: {getattr(strategy, 'strategy_type', 'unknown')}")
 
                     # Show first few steps if available
                     steps = getattr(strategy, "steps", [])
                     for step in steps[:3]:  # Limit to first 3 steps
-                        desc = (
-                            step.get("description", "Step")
-                            if isinstance(step, dict)
-                            else str(step)
-                        )
+                        desc = step.get("description", "Step") if isinstance(step, dict) else str(step)
                         print(f"    - {desc}")
 
                 except Exception as e:

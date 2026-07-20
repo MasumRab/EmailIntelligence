@@ -86,7 +86,11 @@ class RetrievalMonitor:
         self.log_interval_seconds = LOG_INTERVAL_SECONDS
         self.retrieval_log_file = RETRIEVAL_LOG_FILE
         self.strategy_performance = defaultdict(dict)
-        self.quota_tracker = {"daily_used": 0, "hourly_used": 0, "last_reset": datetime.now()}
+        self.quota_tracker = {
+            "daily_used": 0,
+            "hourly_used": 0,
+            "last_reset": datetime.now(),
+        }
         self.optimization_history = []
         self.performance_trends = defaultdict(list)
         asyncio.create_task(self._periodic_logger_task())
@@ -143,13 +147,14 @@ class RetrievalMonitor:
 
     def _update_performance_trends(self, metrics: RetrievalMetrics):
         """Updates the historical data for performance trend analysis."""
-        trend_data = {"timestamp": metrics.timestamp, "efficiency": metrics.api_efficiency}
+        trend_data = {
+            "timestamp": metrics.timestamp,
+            "efficiency": metrics.api_efficiency,
+        }
         trends = self.performance_trends[metrics.strategy_name]
         trends.append(trend_data)
         cutoff = datetime.now() - timedelta(hours=24)
-        self.performance_trends[metrics.strategy_name] = [
-            t for t in trends if t["timestamp"] > cutoff
-        ]
+        self.performance_trends[metrics.strategy_name] = [t for t in trends if t["timestamp"] > cutoff]
 
     def get_real_time_dashboard(self) -> Dict[str, Any]:
         """
@@ -180,7 +185,12 @@ class RetrievalMonitor:
     def _get_quota_status(self) -> Dict[str, Any]:
         """Returns the current status of API quota usage."""
         daily_limit = 1_000_000_000
-        return {"daily_usage": {"used": self.quota_tracker["daily_used"], "limit": daily_limit}}
+        return {
+            "daily_usage": {
+                "used": self.quota_tracker["daily_used"],
+                "limit": daily_limit,
+            }
+        }
 
     def _get_strategy_performance_summary(self) -> List[Dict[str, Any]]:
         """Returns a performance summary for each retrieval strategy."""
@@ -200,13 +210,13 @@ class RetrievalMonitor:
         """Returns a list of currently active performance alerts."""
         alerts = []
         for name, metrics_list in self.metrics_buffer.items():
-            if (
-                metrics_list
-                and (latest := metrics_list[-1]).api_efficiency
-                < self.alert_thresholds.min_efficiency
-            ):
+            if metrics_list and (latest := metrics_list[-1]).api_efficiency < self.alert_thresholds.min_efficiency:
                 alerts.append(
-                    {"type": "low_efficiency", "strategy": name, "value": latest.api_efficiency}
+                    {
+                        "type": "low_efficiency",
+                        "strategy": name,
+                        "value": latest.api_efficiency,
+                    }
                 )
         return alerts
 
@@ -216,8 +226,7 @@ class RetrievalMonitor:
         for name, metrics_list in self.metrics_buffer.items():
             if (
                 metrics_list
-                and statistics.mean(m.api_efficiency for m in metrics_list)
-                < self.alert_thresholds.min_efficiency
+                and statistics.mean(m.api_efficiency for m in metrics_list) < self.alert_thresholds.min_efficiency
             ):
                 recommendations.append(
                     {

@@ -191,7 +191,7 @@ logger = logging.getLogger(__name__)
 
 
 @dataclass
-class PerformanceMetric:
+class OptimizedPerformanceMetric:
     """Represents a performance metric with minimal overhead."""
 
     name: str
@@ -245,14 +245,16 @@ class OptimizedPerformanceMonitor:
         self.log_file.parent.mkdir(parents=True, exist_ok=True)
 
         # Metrics storage
-        self._metrics_buffer: deque[PerformanceMetric] = deque(maxlen=max_metrics_buffer)
+        self._metrics_buffer: deque[OptimizedPerformanceMetric] = deque(maxlen=max_metrics_buffer)
         self._aggregated_metrics: Dict[str, AggregatedMetric] = {}
 
         # Threading and async
         self._buffer_lock = threading.Lock()
         self._stop_event = threading.Event()
         self._processing_thread = threading.Thread(
-            target=self._process_metrics_background, daemon=True, name="PerformanceMonitor"
+            target=self._process_metrics_background,
+            daemon=True,
+            name="PerformanceMonitor",
         )
 
         # Start background processing
@@ -268,11 +270,7 @@ class OptimizedPerformanceMonitor:
         # Extract fields from log_entry to map to record_metric
         operation = log_entry.get("operation", "unknown_operation")
         duration_ms = log_entry.get("duration_seconds", 0) * 1000
-        self.record_metric(
-            name=operation,
-            value=duration_ms,
-            unit="ms"
-        )
+        self.record_metric(name=operation, value=duration_ms, unit="ms")
 
     def record_metric(
         self,
@@ -298,7 +296,7 @@ class OptimizedPerformanceMonitor:
         if sample_rate < 1.0 and random.random() > sample_rate:
             return
 
-        metric = PerformanceMetric(
+        metric = OptimizedPerformanceMetric(
             name=name,
             value=value,
             unit=unit,
@@ -311,20 +309,7 @@ class OptimizedPerformanceMonitor:
         with self._buffer_lock:
             self._metrics_buffer.append(metric)
 
-    def log_performance(self, log_entry: Dict[str, Any]) -> None:
-        """Compatibility method for legacy log_performance decorator."""
-        operation = log_entry.get("operation", "unknown")
-        duration = log_entry.get("duration_seconds", 0) * 1000  # Convert to ms
-        self.record_metric(
-            name=f"operation_duration_{operation}",
-            value=duration,
-            unit="ms",
-            tags={"operation": operation},
-        )
-
-    def time_function(
-        self, name: str, tags: Optional[Dict[str, str]] = None, sample_rate: float = 1.0
-    ):
+    def time_function(self, name: str, tags: Optional[Dict[str, str]] = None, sample_rate: float = 1.0):
         """
         Decorator/context manager to time function execution.
 
@@ -346,7 +331,11 @@ class OptimizedPerformanceMonitor:
                 finally:
                     duration = (time.perf_counter() - start_time) * 1000  # Convert to milliseconds
                     self.record_metric(
-                        name=name, value=duration, unit="ms", tags=tags, sample_rate=sample_rate
+                        name=name,
+                        value=duration,
+                        unit="ms",
+                        tags=tags,
+                        sample_rate=sample_rate,
                     )
 
             return wrapper
@@ -359,14 +348,18 @@ class OptimizedPerformanceMonitor:
         else:
             # Used as @time_function("name") or with time_function("name"):
             class TimerContext:
-                def __enter__(self):
-                    self.start_time = time.perf_counter()
-                    return self
+                def __enter__(self_inner):
+                    self_inner.start_time = time.perf_counter()
+                    return self_inner
 
-                def __exit__(self, exc_type, exc_val, exc_tb):
-                    duration = (time.perf_counter() - self.start_time) * 1000
+                def __exit__(self_inner, exc_type, exc_val, exc_tb):
+                    duration = (time.perf_counter() - self_inner.start_time) * 1000
                     self.record_metric(
-                        name=name, value=duration, unit="ms", tags=tags, sample_rate=sample_rate
+                        name=name,
+                        value=duration,
+                        unit="ms",
+                        tags=tags,
+                        sample_rate=sample_rate,
                     )
 
             return TimerContext()
@@ -379,11 +372,7 @@ class OptimizedPerformanceMonitor:
             name: Specific metric name, or None for all metrics
         """
         if name:
-            return (
-                {name: self._aggregated_metrics.get(name)}
-                if name in self._aggregated_metrics
-                else {}
-            )
+            return {name: self._aggregated_metrics.get(name)} if name in self._aggregated_metrics else {}
         return self._aggregated_metrics.copy()
 
     def get_recent_metrics(self, name: str, limit: int = 100) -> List[PerformanceMetric]:

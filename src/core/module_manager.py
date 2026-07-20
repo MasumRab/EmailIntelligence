@@ -49,9 +49,7 @@ class ModuleManager:
                     module.register(self.app, self.gradio_app)
                     logger.info(f"Successfully loaded and registered module: {module_name}")
                 else:
-                    logger.warning(
-                        f"Module '{module_name}' has an '__init__.py' but no 'register' function."
-                    )
+                    logger.warning(f"Module '{module_name}' has an '__init__.py' but no 'register' function.")
             else:
                 logger.error(f"Could not create module spec for {module_name}")
 

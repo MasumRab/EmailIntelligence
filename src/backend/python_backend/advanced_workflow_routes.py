@@ -6,7 +6,6 @@ API routes for advanced workflow features: node-based workflows, advanced proces
 and enterprise workflow management
 """
 
-
 # Define a simple execution result class for compatibility
 from typing import Any, Dict, List, Optional
 
@@ -16,7 +15,6 @@ from pydantic import BaseModel
 # Use the new node-based workflow system instead of non-existent src.core module
 from backend.node_engine.node_base import Workflow as AdvancedWorkflow
 from backend.node_engine.workflow_manager import workflow_manager
-
 
 
 class WorkflowExecutionResult:
@@ -173,9 +171,7 @@ async def update_advanced_workflow(workflow_id: str, request: AdvancedWorkflowCr
         raise HTTPException(status_code=404, detail="Workflow not found")
 
     # For update, we'll create a new workflow with the same ID
-    updated_workflow = AdvancedWorkflow(
-        workflow_id=workflow_id, name=request.name, description=request.description
-    )
+    updated_workflow = AdvancedWorkflow(workflow_id=workflow_id, name=request.name, description=request.description)
 
     # Add nodes (implementation similar to create)
     for node_data in request.nodes:
@@ -215,7 +211,9 @@ async def execute_advanced_workflow(
 ):
     """Execute an advanced workflow with provided inputs."""
     # Use the new node engine's workflow execution system
-    from backend.node_engine.workflow_engine import workflow_engine as node_workflow_engine
+    from backend.node_engine.workflow_engine import (
+        workflow_engine as node_workflow_engine,
+    )
 
     try:
         # Load the workflow to execute
@@ -224,9 +222,7 @@ async def execute_advanced_workflow(
             raise HTTPException(status_code=404, detail="Workflow not found")
 
         # Execute the workflow using the node engine
-        execution_context = await node_workflow_engine.execute_workflow(
-            workflow, initial_inputs=request.initial_inputs
-        )
+        execution_context = await node_workflow_engine.execute_workflow(workflow, initial_inputs=request.initial_inputs)
 
         # Create a result compatible with the expected response format
         result = WorkflowExecutionResult(
@@ -273,7 +269,9 @@ async def get_node_schema(node_type: str):
 async def get_execution_status():
     """Get status of running workflows."""
     # Use the new node engine's execution tracking
-    from backend.node_engine.workflow_engine import workflow_engine as node_workflow_engine
+    from backend.node_engine.workflow_engine import (
+        workflow_engine as node_workflow_engine,
+    )
 
     running_workflows = []
     for exec_id, context in node_workflow_engine.active_executions.items():
@@ -286,14 +284,19 @@ async def get_execution_status():
             }
         )
 
-    return {"running_workflows": running_workflows, "total_running": len(running_workflows)}
+    return {
+        "running_workflows": running_workflows,
+        "total_running": len(running_workflows),
+    }
 
 
 @router.post("/advanced/execution/cancel/{workflow_id}")
 async def cancel_workflow_execution(workflow_id: str):
     """Cancel a running workflow execution."""
     # Use the new node engine's execution cancellation
-    from backend.node_engine.workflow_engine import workflow_engine as node_workflow_engine
+    from backend.node_engine.workflow_engine import (
+        workflow_engine as node_workflow_engine,
+    )
 
     # Check if the workflow_id corresponds to an active execution
     if workflow_id in node_workflow_engine.active_executions:

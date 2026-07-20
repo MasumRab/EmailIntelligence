@@ -56,9 +56,7 @@ class PerformanceMonitor:
 
         # Monitor system resources
         self._system_monitoring = True
-        self._monitoring_thread = threading.Thread(
-            target=self._monitor_system_resources, daemon=True
-        )
+        self._monitoring_thread = threading.Thread(target=self._monitor_system_resources, daemon=True)
         self._monitoring_thread.start()
 
     def _monitor_system_resources(self):
@@ -71,7 +69,10 @@ class PerformanceMonitor:
                 cpu_percent = psutil.cpu_percent(interval=1)
                 self._metrics.append(
                     PerformanceMetric(
-                        timestamp=timestamp, value=cpu_percent, unit="%", source="cpu_usage"
+                        timestamp=timestamp,
+                        value=cpu_percent,
+                        unit="%",
+                        source="cpu_usage",
                     )
                 )
 
@@ -79,7 +80,10 @@ class PerformanceMonitor:
                 memory = psutil.virtual_memory()
                 self._metrics.append(
                     PerformanceMetric(
-                        timestamp=timestamp, value=memory.percent, unit="%", source="memory_usage"
+                        timestamp=timestamp,
+                        value=memory.percent,
+                        unit="%",
+                        source="memory_usage",
                     )
                 )
 
@@ -88,7 +92,10 @@ class PerformanceMonitor:
                 disk_percent = (disk.used / disk.total) * 100
                 self._metrics.append(
                     PerformanceMetric(
-                        timestamp=timestamp, value=disk_percent, unit="%", source="disk_usage"
+                        timestamp=timestamp,
+                        value=disk_percent,
+                        unit="%",
+                        source="disk_usage",
                     )
                 )
 
@@ -201,8 +208,7 @@ class PerformanceMonitor:
             filtered_metrics = [
                 metric
                 for metric in self._metrics
-                if metric.timestamp >= cutoff_time
-                and (source_filter is None or source_filter in metric.source)
+                if metric.timestamp >= cutoff_time and (source_filter is None or source_filter in metric.source)
             ]
             return sorted(filtered_metrics, key=lambda m: m.timestamp)
 
@@ -214,9 +220,7 @@ class PerformanceMonitor:
 
             cutoff_time = time.time() - (minutes * 60)
             filtered_metrics = [
-                metric
-                for metric in self._model_performance[model_name]
-                if metric.timestamp >= cutoff_time
+                metric for metric in self._model_performance[model_name] if metric.timestamp >= cutoff_time
             ]
             return sorted(filtered_metrics, key=lambda m: m.timestamp)
 

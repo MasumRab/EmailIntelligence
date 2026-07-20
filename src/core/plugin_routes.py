@@ -184,9 +184,7 @@ async def install_plugin(
 ):
     """Install a plugin from the marketplace."""
     try:
-        background_tasks.add_task(
-            manager.install_plugin, installation.plugin_id, installation.version
-        )
+        background_tasks.add_task(manager.install_plugin, installation.plugin_id, installation.version)
         version_msg = f" version {installation.version}" if installation.version else ""
         return {
             "message": f"Installing plugin {installation.plugin_id}{version_msg}",
@@ -264,7 +262,9 @@ async def get_marketplace_plugins(
 
 
 @router.get("/status", response_model=SystemStatus)
-async def get_plugin_system_status(manager: PluginManager = Depends(get_plugin_manager)):
+async def get_plugin_system_status(
+    manager: PluginManager = Depends(get_plugin_manager),
+):
     """Get comprehensive plugin system status."""
     try:
         return SystemStatus(**manager.get_system_status())
@@ -313,7 +313,9 @@ async def get_registered_hooks(manager: PluginManager = Depends(get_plugin_manag
 
 @router.post("/hooks/trigger")
 async def trigger_hook(
-    hook_name: str, data: dict = None, manager: PluginManager = Depends(get_plugin_manager)
+    hook_name: str,
+    data: dict = None,
+    manager: PluginManager = Depends(get_plugin_manager),
 ):
     """Trigger a hook manually (for testing/debugging)."""
     try:
@@ -323,7 +325,11 @@ async def trigger_hook(
         hook_system = manager.get_hook_system()
         results = await hook_system.trigger_hook(hook_name, **data)
 
-        return {"hook_name": hook_name, "results_count": len(results), "results": results}
+        return {
+            "hook_name": hook_name,
+            "results_count": len(results),
+            "results": results,
+        }
 
     except Exception as e:
         logger.error(f"Error triggering hook {hook_name}: {e}")
@@ -334,9 +340,7 @@ async def trigger_hook(
 @router.get("/security/check")
 async def check_security_sandbox(
     module_name: str = Query(..., description="Module name to check"),
-    security_level: PluginSecurityLevel = Query(
-        PluginSecurityLevel.STANDARD, description="Security level"
-    ),
+    security_level: PluginSecurityLevel = Query(PluginSecurityLevel.STANDARD, description="Security level"),
     manager: PluginManager = Depends(get_plugin_manager),
 ):
     """Check if a module import is allowed for a security level."""
@@ -344,7 +348,11 @@ async def check_security_sandbox(
         sandbox = manager.get_security_sandbox()
         allowed = sandbox.validate_import(module_name, security_level)
 
-        return {"module": module_name, "security_level": security_level.value, "allowed": allowed}
+        return {
+            "module": module_name,
+            "security_level": security_level.value,
+            "allowed": allowed,
+        }
 
     except Exception as e:
         logger.error(f"Error checking security sandbox: {e}")

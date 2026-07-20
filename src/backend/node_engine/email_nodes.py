@@ -30,18 +30,16 @@ class NLPEngine:
         sentiment = (
             "positive"
             if any(w in text for w in ["good", "great", "excellent", "thank"])
-            else "negative" if any(w in text for w in ["bad", "terrible", "problem"]) else "neutral"
+            else "negative"
+            if any(w in text for w in ["bad", "terrible", "problem"])
+            else "neutral"
         )
 
         # Simple topic analysis
         topic = (
             "work_business"
             if any(w in text for w in ["meeting", "project", "work"])
-            else (
-                "personal"
-                if any(w in text for w in ["family", "friend", "personal"])
-                else "general"
-            )
+            else ("personal" if any(w in text for w in ["family", "friend", "personal"]) else "general")
         )
 
         # Return a basic analysis structure
@@ -103,7 +101,10 @@ class EmailSourceNode(BaseNode):
         self.input_ports = []
         self.output_ports = [
             NodePort(
-                "emails", DataType.EMAIL_LIST, required=True, description="List of retrieved emails"
+                "emails",
+                DataType.EMAIL_LIST,
+                required=True,
+                description="List of retrieved emails",
             ),
             NodePort(
                 "status",
@@ -185,7 +186,10 @@ class PreprocessingNode(BaseNode):
                 description="List of preprocessed emails",
             ),
             NodePort(
-                "stats", DataType.JSON, required=True, description="Statistics about preprocessing"
+                "stats",
+                DataType.JSON,
+                required=True,
+                description="Statistics about preprocessing",
             ),
         ]
 
@@ -283,7 +287,10 @@ class AIAnalysisNode(BaseNode):
                 description="AI analysis results for each email",
             ),
             NodePort(
-                "summary", DataType.JSON, required=True, description="Summary of the analysis"
+                "summary",
+                DataType.JSON,
+                required=True,
+                description="Summary of the analysis",
             ),
         ]
 
@@ -295,7 +302,10 @@ class AIAnalysisNode(BaseNode):
             if not input_emails:
                 return {
                     "analysis_results": [],
-                    "summary": {"analyzed_count": 0, "timestamp": datetime.now().isoformat()},
+                    "summary": {
+                        "analyzed_count": 0,
+                        "timestamp": datetime.now().isoformat(),
+                    },
                 }
 
             results = []
@@ -308,7 +318,10 @@ class AIAnalysisNode(BaseNode):
                 analysis = self.nlp_engine.analyze_email(subject, content)
                 results.append({"email_id": email.get("id"), "analysis": analysis})
 
-            summary = {"analyzed_count": len(results), "timestamp": datetime.now().isoformat()}
+            summary = {
+                "analyzed_count": len(results),
+                "timestamp": datetime.now().isoformat(),
+            }
 
             return {"analysis_results": results, "summary": summary}
         except Exception as e:
@@ -333,7 +346,10 @@ class FilterNode(BaseNode):
         self.config = config or {}
         self.input_ports = [
             NodePort(
-                "emails", DataType.EMAIL_LIST, required=True, description="List of emails to filter"
+                "emails",
+                DataType.EMAIL_LIST,
+                required=True,
+                description="List of emails to filter",
             ),
             NodePort(
                 "criteria",
@@ -355,7 +371,12 @@ class FilterNode(BaseNode):
                 required=True,
                 description="Emails that didn't match criteria",
             ),
-            NodePort("stats", DataType.JSON, required=True, description="Filtering statistics"),
+            NodePort(
+                "stats",
+                DataType.JSON,
+                required=True,
+                description="Filtering statistics",
+            ),
         ]
 
     async def execute(self, context: ExecutionContext) -> Dict[str, Any]:
@@ -577,7 +598,10 @@ class ActionNode(BaseNode):
                 description="List of emails to act upon",
             ),
             NodePort(
-                "actions", DataType.JSON, required=True, description="Actions to perform on emails"
+                "actions",
+                DataType.JSON,
+                required=True,
+                description="Actions to perform on emails",
             ),
         ]
         self.output_ports = [
@@ -588,7 +612,10 @@ class ActionNode(BaseNode):
                 description="Results of the actions performed",
             ),
             NodePort(
-                "status", DataType.JSON, required=True, description="Status of action execution"
+                "status",
+                DataType.JSON,
+                required=True,
+                description="Status of action execution",
             ),
         ]
 
@@ -633,9 +660,7 @@ class ActionNode(BaseNode):
                 },
             }
 
-    async def _execute_actions_on_email(
-        self, email: Dict[str, Any], actions: List[Dict[str, Any]]
-    ) -> Dict[str, Any]:
+    async def _execute_actions_on_email(self, email: Dict[str, Any], actions: List[Dict[str, Any]]) -> Dict[str, Any]:
         """Execute actions on a single email."""
         # Simulate action execution
         # In a real implementation, this would interact with email APIs

@@ -29,9 +29,7 @@ class EmailService(BaseService):
             db = await self.get_db()
             email = await db.get_email_by_id(email_id)
             if email:
-                return BaseResponse(
-                    success=True, message="Email retrieved successfully", data=email
-                )
+                return BaseResponse(success=True, message="Email retrieved successfully", data=email)
             else:
                 return BaseResponse(
                     success=False,
@@ -47,9 +45,7 @@ class EmailService(BaseService):
             db = await self.get_db()
             email = await db.get_email_by_message_id(message_id)
             if email:
-                return BaseResponse(
-                    success=True, message="Email retrieved successfully", data=email
-                )
+                return BaseResponse(success=True, message="Email retrieved successfully", data=email)
             else:
                 return BaseResponse(
                     success=False,
@@ -69,9 +65,7 @@ class EmailService(BaseService):
         """Get all emails with optional filtering and pagination"""
         try:
             db = await self.get_db()
-            emails = await db.get_emails(
-                limit=limit, offset=offset, category_id=category_id, is_unread=is_unread
-            )
+            emails = await db.get_emails(limit=limit, offset=offset, category_id=category_id, is_unread=is_unread)
             return BaseResponse(success=True, message="Emails retrieved successfully", data=emails)
         except Exception as e:
             return await self.handle_error(e, "get_all_emails")
@@ -83,11 +77,15 @@ class EmailService(BaseService):
             created_email = await db.create_email(email_data)
             if created_email:
                 return BaseResponse(
-                    success=True, message="Email created successfully", data=created_email
+                    success=True,
+                    message="Email created successfully",
+                    data=created_email,
                 )
             else:
                 return BaseResponse(
-                    success=False, message="Failed to create email", error="Email creation failed"
+                    success=False,
+                    message="Failed to create email",
+                    error="Email creation failed",
                 )
         except Exception as e:
             return await self.handle_error(e, "create_email")
@@ -99,7 +97,9 @@ class EmailService(BaseService):
             updated_email = await db.update_email(email_id, update_data)
             if updated_email:
                 return BaseResponse(
-                    success=True, message="Email updated successfully", data=updated_email
+                    success=True,
+                    message="Email updated successfully",
+                    data=updated_email,
                 )
             else:
                 return BaseResponse(
@@ -110,16 +110,16 @@ class EmailService(BaseService):
         except Exception as e:
             return await self.handle_error(e, "update_email")
 
-    async def update_email_by_message_id(
-        self, message_id: str, update_data: Dict[str, Any]
-    ) -> BaseResponse:
+    async def update_email_by_message_id(self, message_id: str, update_data: Dict[str, Any]) -> BaseResponse:
         """Update an email by its message ID"""
         try:
             db = await self.get_db()
             updated_email = await db.update_email_by_message_id(message_id, update_data)
             if updated_email:
                 return BaseResponse(
-                    success=True, message="Email updated successfully", data=updated_email
+                    success=True,
+                    message="Email updated successfully",
+                    data=updated_email,
                 )
             else:
                 return BaseResponse(

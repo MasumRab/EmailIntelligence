@@ -70,11 +70,7 @@ class EmailCreate(EmailBase):
     @validator("preview", always=True)
     def set_preview(cls, v, values):
         if not v and "content" in values:
-            return (
-                values["content"][:200] + "..."
-                if len(values["content"]) > 200
-                else values["content"]
-            )
+            return values["content"][:200] + "..." if len(values["content"]) > 200 else values["content"]
         return v
 
 

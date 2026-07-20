@@ -21,7 +21,5 @@ class AIEngineProtocol(ABC):
     """Protocol/Interface for AI engine operations to avoid circular import"""
 
     @abstractmethod
-    async def analyze_email(
-        self, subject: str, content: str, db: Optional[DatabaseProtocol] = None
-    ) -> Any:
+    async def analyze_email(self, subject: str, content: str, db: Optional[DatabaseProtocol] = None) -> Any:
         pass

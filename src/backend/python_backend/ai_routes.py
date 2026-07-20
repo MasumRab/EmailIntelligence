@@ -31,7 +31,10 @@ async def analyze_email(
     try:
         default_models = {"sentiment": "sentiment-default", "topic": "topic-default"}
         analysis_result = await ai_engine.analyze_email(
-            subject=request.subject, content=request.content, models_to_use=default_models, db=db
+            subject=request.subject,
+            content=request.content,
+            models_to_use=default_models,
+            db=db,
         )
         return analysis_result.to_dict()
     except Exception as e:
@@ -54,7 +57,10 @@ async def categorize_email(
 
     if request.autoAnalyze:
         try:
-            default_models = {"sentiment": "sentiment-default", "topic": "topic-default"}
+            default_models = {
+                "sentiment": "sentiment-default",
+                "topic": "topic-default",
+            }
             analysis_result = await ai_engine.analyze_email(
                 subject=email["subject"],
                 content=email["content"],
@@ -82,9 +88,7 @@ async def categorize_email(
                 return AICategorizeResponse(
                     success=False,
                     message="AI analysis did not result in a category.",
-                    analysis=(
-                        AIAnalysisResponse(**analysis_result.to_dict()) if analysis_result else None
-                    ),
+                    analysis=(AIAnalysisResponse(**analysis_result.to_dict()) if analysis_result else None),
                 )
         except Exception as e:
             logger.error(f"Error in AI categorization: {e}", exc_info=True)
@@ -92,7 +96,8 @@ async def categorize_email(
     else:
         if request.categoryId is None:
             raise HTTPException(
-                status_code=400, detail="categoryId is required for manual categorization"
+                status_code=400,
+                detail="categoryId is required for manual categorization",
             )
 
         update_data = {"categoryId": request.categoryId}
@@ -137,9 +142,7 @@ async def validate_analysis(
                     break
 
             if category_id:
-                await db.update_email(
-                    request.emailId, {"categoryId": category_id, "confidence": 100}
-                )
+                await db.update_email(request.emailId, {"categoryId": category_id, "confidence": 100})
                 logger.info(
                     f"Email {request.emailId} category updated to {request.correctCategory} (ID: {category_id}) based on user feedback."
                 )
@@ -150,7 +153,8 @@ async def validate_analysis(
 
         except Exception as e:
             logger.error(
-                f"Error updating email category based on validation feedback: {e}", exc_info=True
+                f"Error updating email category based on validation feedback: {e}",
+                exc_info=True,
             )
             raise HTTPException(status_code=500, detail="Failed to update email category.")
 

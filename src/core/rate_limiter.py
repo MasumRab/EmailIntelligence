@@ -63,9 +63,7 @@ class RateLimiter:
 
             # Refill tokens based on time passed
             time_passed = now - state.last_refill
-            refill_amount = time_passed * (
-                self.config.requests_per_minute / self.config.window_seconds
-            )
+            refill_amount = time_passed * (self.config.requests_per_minute / self.config.window_seconds)
             state.tokens = min(self.config.burst_limit, state.tokens + refill_amount)
             state.last_refill = now
 
@@ -138,12 +136,6 @@ class APIRateLimiter:
 api_rate_limiter = APIRateLimiter()
 
 # Pre-configure some common endpoints
-api_rate_limiter.add_endpoint_limit(
-    "/api/emails", RateLimitConfig(requests_per_minute=120, burst_limit=20)
-)
-api_rate_limiter.add_endpoint_limit(
-    "/api/workflows", RateLimitConfig(requests_per_minute=30, burst_limit=5)
-)
-api_rate_limiter.add_endpoint_limit(
-    "/api/models", RateLimitConfig(requests_per_minute=20, burst_limit=3)
-)
+api_rate_limiter.add_endpoint_limit("/api/emails", RateLimitConfig(requests_per_minute=120, burst_limit=20))
+api_rate_limiter.add_endpoint_limit("/api/workflows", RateLimitConfig(requests_per_minute=30, burst_limit=5))
+api_rate_limiter.add_endpoint_limit("/api/models", RateLimitConfig(requests_per_minute=20, burst_limit=3))

@@ -11,7 +11,16 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
 
-from src.core.auth import authenticate_user, create_access_token, create_user, get_current_active_user, hash_password, TokenData, require_role, UserRole
+from src.core.auth import (
+    authenticate_user,
+    create_access_token,
+    create_user,
+    get_current_active_user,
+    hash_password,
+    TokenData,
+    require_role,
+    UserRole,
+)
 from src.core.factory import get_data_source
 from src.core.data_source import DataSource
 from src.core.mfa import get_mfa_service
@@ -24,6 +33,7 @@ router = APIRouter()
 class UserLogin(BaseModel):
     username: str
     password: str
+    mfa_token: Optional[str] = None
 
 
 class UserCreate(BaseModel):
@@ -31,12 +41,6 @@ class UserCreate(BaseModel):
     password: str
     role: Optional[str] = "user"
     permissions: Optional[List[str]] = []
-
-
-class UserLogin(BaseModel):
-    username: str
-    password: str
-    mfa_token: Optional[str] = None
 
 
 class EnableMFARequest(BaseModel):
@@ -93,9 +97,7 @@ async def login(user_credentials: UserLogin, db: DataSource = Depends(get_data_s
         # If TOTP failed, try backup codes
         if not token_verified:
             backup_codes = user.get("mfa_backup_codes", [])
-            is_backup_code, updated_codes = mfa_service.verify_backup_code(
-                backup_codes, user_credentials.mfa_token
-            )
+            is_backup_code, updated_codes = mfa_service.verify_backup_code(backup_codes, user_credentials.mfa_token)
 
             if is_backup_code:
                 # Update the user's backup codes to remove the used one
@@ -116,23 +118,24 @@ async def login(user_credentials: UserLogin, db: DataSource = Depends(get_data_s
 
     access_token_expires = timedelta(minutes=settings.access_token_expire_minutes)
     access_token = create_access_token(
-        data={"sub": user_credentials.username, "role": user.get("role", "user")}, expires_delta=access_token_expires
+        data={"sub": user_credentials.username, "role": user.get("role", "user")},
+        expires_delta=access_token_expires,
     )
 
     return {"access_token": access_token, "token_type": "bearer"}
 
 
 @router.post("/mfa/setup", response_model=MFASetupResponse)
-async def setup_mfa(current_user: TokenData = Depends(get_current_active_user), db: DataSource = Depends(get_data_source)):
+async def setup_mfa(
+    current_user: TokenData = Depends(get_current_active_user),
+    db: DataSource = Depends(get_data_source),
+):
     """Setup MFA for the current user"""
 
     # Get the user from database
     user = await db.get_user_by_username(current_user.username)
     if not user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
 
     mfa_service = get_mfa_service()
 
@@ -160,34 +163,27 @@ async def setup_mfa(current_user: TokenData = Depends(get_current_active_user), 
         db.users_data[user_index]["mfa_backup_codes"] = backup_codes
         await db._save_data("users")
 
-    return MFASetupResponse(
-        secret=secret,
-        qr_code=qr_code,
-        backup_codes=backup_codes
-    )
+    return MFASetupResponse(secret=secret, qr_code=qr_code, backup_codes=backup_codes)
 
 
 @router.post("/mfa/enable")
 async def enable_mfa(
     mfa_request: EnableMFARequest,
     current_user: TokenData = Depends(get_current_active_user),
-    db: DataSource = Depends(get_data_source)
+    db: DataSource = Depends(get_data_source),
 ):
     """Enable MFA after user has verified the setup"""
 
     # Get the user from database
     user = await db.get_user_by_username(current_user.username)
     if not user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
 
     # Check if MFA is already enabled
     if user.get("mfa_enabled", False):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="MFA is already enabled for this user"
+            detail="MFA is already enabled for this user",
         )
 
     # Verify the token provided by user against their stored secret
@@ -197,13 +193,13 @@ async def enable_mfa(
     if not secret:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="MFA not properly set up for this user"
+            detail="MFA not properly set up for this user",
         )
 
     if not mfa_service.verify_token(secret, mfa_request.token):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid MFA token. Please try again."
+            detail="Invalid MFA token. Please try again.",
         )
 
     # Find and update the user record to enable MFA
@@ -219,17 +215,14 @@ async def enable_mfa(
 @router.post("/mfa/disable")
 async def disable_mfa(
     current_user: TokenData = Depends(get_current_active_user),
-    db: DataSource = Depends(get_data_source)
+    db: DataSource = Depends(get_data_source),
 ):
     """Disable MFA for the current user"""
 
     # Get the user from database
     user = await db.get_user_by_username(current_user.username)
     if not user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
 
     # Find and update the user record to disable MFA
     for i, u in enumerate(db.users_data):
@@ -253,7 +246,7 @@ async def register(user_data: UserCreate, db: DataSource = Depends(get_data_sour
         "permissions": user_data.permissions,
         "mfa_enabled": False,
         "mfa_secret": None,
-        "mfa_backup_codes": []
+        "mfa_backup_codes": [],
     }
     success = await create_user(user_data.username, user_data.password, db)
 
@@ -265,19 +258,24 @@ async def register(user_data: UserCreate, db: DataSource = Depends(get_data_sour
 
     access_token_expires = timedelta(minutes=settings.access_token_expire_minutes)
     access_token = create_access_token(
-        data={"sub": user_data.username, "role": user_data.role}, expires_delta=access_token_expires
+        data={"sub": user_data.username, "role": user_data.role},
+        expires_delta=access_token_expires,
     )
 
     return {"access_token": access_token, "token_type": "bearer"}
 
 
 @router.get("/me")
-async def get_current_user_info(current_user: TokenData = Depends(get_current_active_user)):
+async def get_current_user_info(
+    current_user: TokenData = Depends(get_current_active_user),
+):
     """Get information about the current authenticated user"""
     return {"username": current_user.username, "role": current_user.role}
 
 
 @router.get("/admin-only")
-async def admin_only_endpoint(current_user: TokenData = Depends(require_role(UserRole.ADMIN))):
+async def admin_only_endpoint(
+    current_user: TokenData = Depends(require_role(UserRole.ADMIN)),
+):
     """Protected endpoint that only admins can access"""
     return {"message": "Hello admin!", "user": current_user.username}

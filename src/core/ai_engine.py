@@ -50,7 +50,10 @@ class BaseAIEngine(ABC):
 
     @abstractmethod
     async def analyze_email(
-        self, subject: str, content: str, categories: Optional[List[Dict[str, Any]]] = None
+        self,
+        subject: str,
+        content: str,
+        categories: Optional[List[Dict[str, Any]]] = None,
     ) -> AIAnalysisResult:
         """
         Analyzes the content of an email to extract insights.
@@ -91,8 +94,6 @@ class BaseAIEngine(ABC):
         pass
 
 
-
-
 class ModernAIEngine(BaseAIEngine):
     """
     Modern AI Engine implementation with advanced features.
@@ -127,9 +128,7 @@ class ModernAIEngine(BaseAIEngine):
             # Injected model manager might fail to initialize
             self._model_manager = None
             self._initialized = True
-            logger.warning(
-                "ModernAIEngine initialized without a functional model manager"
-            )
+            logger.warning("ModernAIEngine initialized without a functional model manager")
 
     async def health_check(self) -> Dict[str, Any]:
         """Perform a comprehensive health check of the AI engine."""
@@ -178,9 +177,7 @@ class ModernAIEngine(BaseAIEngine):
             health_status["issues"].append(f"Analysis engine error: {e}")
 
         # Overall status
-        component_statuses = [
-            comp.get("status", "unknown") for comp in health_status["components"].values()
-        ]
+        component_statuses = [comp.get("status", "unknown") for comp in health_status["components"].values()]
         if "unhealthy" in component_statuses:
             health_status["status"] = "unhealthy"
         elif not self._initialized:
@@ -191,7 +188,10 @@ class ModernAIEngine(BaseAIEngine):
         return health_status
 
     async def analyze_email(
-        self, subject: str, content: str, categories: Optional[List[Dict[str, Any]]] = None
+        self,
+        subject: str,
+        content: str,
+        categories: Optional[List[Dict[str, Any]]] = None,
     ) -> AIAnalysisResult:
         """Analyze an email using modern AI techniques."""
         if not self._initialized:
@@ -213,15 +213,11 @@ class ModernAIEngine(BaseAIEngine):
                 "topic": topics[0] if topics else "general",
                 "intent": intent.get("type", "unknown") if intent else "unknown",
                 "urgency": urgency.get("level", "low") if urgency else "low",
-                "confidence": self._calculate_overall_confidence(
-                    sentiment, topics, intent, urgency
-                ),
+                "confidence": self._calculate_overall_confidence(sentiment, topics, intent, urgency),
                 "categories": topics if topics else [],
                 "keywords": self._extract_keywords(full_text),
                 "reasoning": "Analysis performed using ModernAIEngine with integrated model management",
-                "suggested_labels": self._generate_suggested_labels(
-                    sentiment, topics, intent, urgency
-                ),
+                "suggested_labels": self._generate_suggested_labels(sentiment, topics, intent, urgency),
                 "risk_flags": self._assess_risks(sentiment, urgency),
             }
 
@@ -295,8 +291,24 @@ class ModernAIEngine(BaseAIEngine):
 
     async def _simple_sentiment_analysis(self, text: str) -> Dict[str, Any]:
         """Simple keyword-based sentiment analysis."""
-        positive_words = ["good", "great", "excellent", "happy", "love", "like", "thank"]
-        negative_words = ["bad", "terrible", "hate", "dislike", "sorry", "problem", "issue"]
+        positive_words = [
+            "good",
+            "great",
+            "excellent",
+            "happy",
+            "love",
+            "like",
+            "thank",
+        ]
+        negative_words = [
+            "bad",
+            "terrible",
+            "hate",
+            "dislike",
+            "sorry",
+            "problem",
+            "issue",
+        ]
 
         text_lower = text.lower()
         positive_count = sum(1 for word in positive_words if word in text_lower)
@@ -350,7 +362,14 @@ class ModernAIEngine(BaseAIEngine):
     async def _simple_urgency_analysis(self, text: str) -> Dict[str, Any]:
         """Simple urgency analysis."""
         text_lower = text.lower()
-        urgency_indicators = ["urgent", "asap", "emergency", "immediately", "deadline", "critical"]
+        urgency_indicators = [
+            "urgent",
+            "asap",
+            "emergency",
+            "immediately",
+            "deadline",
+            "critical",
+        ]
 
         has_urgency = any(indicator in text_lower for indicator in urgency_indicators)
 

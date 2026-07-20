@@ -42,7 +42,11 @@ class Workflow:
         self.updated_at = datetime.now().isoformat()
 
     def add_connection(
-        self, source_node_id: str, source_output: str, target_node_id: str, target_input: str
+        self,
+        source_node_id: str,
+        source_output: str,
+        target_node_id: str,
+        target_input: str,
     ) -> None:
         """Add a connection between nodes"""
         connection = {

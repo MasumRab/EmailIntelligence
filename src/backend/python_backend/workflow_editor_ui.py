@@ -64,9 +64,7 @@ def create_workflow_editor_ui():
                     save_workflow_btn = gr.Button("💾 Save Workflow", variant="secondary")
                     load_workflow_btn = gr.Button("📂 Load Workflow", variant="secondary")
 
-                workflow_list = gr.Dropdown(
-                    choices=workflow_manager.list_workflows(), label="Saved Workflows"
-                )
+                workflow_list = gr.Dropdown(choices=workflow_manager.list_workflows(), label="Saved Workflows")
 
                 with gr.Row():
                     gr.Button("➕ Create New", variant="secondary")
@@ -196,9 +194,15 @@ def create_workflow_editor_ui():
                         workflow_manager.list_workflows(),
                     )
                 else:
-                    return "❌ Failed to save workflow", workflow_manager.list_workflows()
+                    return (
+                        "❌ Failed to save workflow",
+                        workflow_manager.list_workflows(),
+                    )
             except Exception as e:
-                return f"❌ Error saving workflow: {str(e)}", workflow_manager.list_workflows()
+                return (
+                    f"❌ Error saving workflow: {str(e)}",
+                    workflow_manager.list_workflows(),
+                )
 
         def load_selected_workflow(workflow_filename: str):
             try:
@@ -265,9 +269,7 @@ def create_workflow_editor_ui():
             ],
         )
 
-        execute_btn.click(
-            fn=execute_current_workflow, inputs=workflow_json, outputs=execution_result
-        )
+        execute_btn.click(fn=execute_current_workflow, inputs=workflow_json, outputs=execution_result)
 
     return workflow_editor
 
@@ -280,8 +282,7 @@ def create_advanced_workflow_ui():
     with gr.Blocks(title="Email Intelligence - Advanced Workflows") as advanced_ui:
         gr.Markdown("# 🚀 Email Intelligence Platform - Advanced Workflows")
         gr.Markdown(
-            "Node-based workflow system inspired by ComfyUI, with enterprise-grade "
-            "security and scalability features."
+            "Node-based workflow system inspired by ComfyUI, with enterprise-grade security and scalability features."
         )
 
         with gr.Tabs():
@@ -316,6 +317,8 @@ def create_advanced_workflow_ui():
 
     return advanced_ui
 
+
+from src.core.advanced_workflow_engine import initialize_workflow_system
 
 # Initialize the workflow system when this module is loaded
 initialize_workflow_system()

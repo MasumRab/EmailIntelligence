@@ -28,7 +28,13 @@ logger = logging.getLogger(__name__)
 
 # Import security features if available
 try:
-    from .security import DataSanitizer, Permission, SecurityContext, SecurityLevel, SecurityManager
+    from .security import (
+        DataSanitizer,
+        Permission,
+        SecurityContext,
+        SecurityLevel,
+        SecurityManager,
+    )
 
     security_available = True
 except ImportError:
@@ -110,7 +116,6 @@ class BaseNode(ABC):
 
         # If security is available, validate and sanitize inputs
         if security_available and self._security_context:
-
             # Validate access and sanitize inputs
             sanitized_inputs = DataSanitizer.sanitize_input(inputs)
         else:
@@ -222,7 +227,11 @@ class Workflow:
         return node_id
 
     def add_connection(
-        self, source_node_id: str, source_output: str, target_node_id: str, target_input: str
+        self,
+        source_node_id: str,
+        source_output: str,
+        target_node_id: str,
+        target_input: str,
     ):
         """Add a connection between nodes"""
         connection = {
@@ -286,7 +295,10 @@ class Workflow:
                 if output_key not in outputs:
                     outputs[output_key] = []
                 outputs[output_key].append(
-                    {"target_node_id": conn["target_node_id"], "target_input": conn["target_input"]}
+                    {
+                        "target_node_id": conn["target_node_id"],
+                        "target_input": conn["target_input"],
+                    }
                 )
         return outputs
 
@@ -309,7 +321,8 @@ class Workflow:
     def from_dict(cls, data: Dict[str, Any]) -> "Workflow":
         """Create workflow from dictionary"""
         workflow = cls(
-            name=data.get("name", "Unnamed Workflow"), description=data.get("description", "")
+            name=data.get("name", "Unnamed Workflow"),
+            description=data.get("description", ""),
         )
         workflow.workflow_id = data.get("workflow_id", str(uuid4()))
         workflow.version = data.get("version", "1.0.0")
@@ -410,7 +423,10 @@ class WorkflowRunner:
 
                 # Execute the node
                 result = await self._execute_node(
-                    workflow=workflow, node_data=node_data, inputs=node_inputs, context=context
+                    workflow=workflow,
+                    node_data=node_data,
+                    inputs=node_inputs,
+                    context=context,
                 )
 
                 # Store the result
@@ -471,9 +487,7 @@ class WorkflowRunner:
         result = await node.execute(inputs)
         return result
 
-    def _build_node_inputs(
-        self, workflow: Workflow, node_id: str, context: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    def _build_node_inputs(self, workflow: Workflow, node_id: str, context: Dict[str, Any]) -> Dict[str, Any]:
         """Build inputs for a node based on connections and initial inputs"""
         inputs = {}
 
@@ -490,9 +504,7 @@ class WorkflowRunner:
                 if source_output in source_outputs:
                     inputs[input_name] = source_outputs[source_output]
                 else:
-                    raise ValueError(
-                        f"Source node {source_node_id} did not produce output {source_output}"
-                    )
+                    raise ValueError(f"Source node {source_node_id} did not produce output {source_output}")
             else:
                 # This shouldn't happen in a properly connected workflow
                 raise ValueError(f"Source node {source_node_id} has not been executed")
@@ -584,9 +596,7 @@ class WorkflowManager:
                 # This will raise ValueError if fullpath is not inside workflows_dir_resolved
                 fullpath.relative_to(workflows_dir_resolved)
             except ValueError:
-                logger.error(
-                    f"Access to file outside workflow directory is not allowed: {fullpath}"
-                )
+                logger.error(f"Access to file outside workflow directory is not allowed: {fullpath}")
                 return None
 
             if not fullpath.is_file():
@@ -684,7 +694,12 @@ class NLPProcessorNode(BaseNode):
             description="Performs NLP analysis on email content",
             version="1.0.0",
             input_types={"content": str, "subject": str},
-            output_types={"analysis": dict, "sentiment": str, "topic": str, "keywords": list},
+            output_types={
+                "analysis": dict,
+                "sentiment": str,
+                "topic": str,
+                "keywords": list,
+            },
         )
 
     async def process(self, inputs: Dict[str, Any]) -> Dict[str, Any]:
@@ -694,15 +709,13 @@ class NLPProcessorNode(BaseNode):
 
         # Mock analysis results
         analysis = {
-            "sentiment": (
-                "positive" if "good" in content.lower() or "great" in content.lower() else "neutral"
-            ),
-            "topic": (
-                "business"
-                if "meeting" in content.lower() or "work" in content.lower()
-                else "personal"
-            ),
-            "keywords": ["email", "content", "analysis"],  # Extract keywords from content
+            "sentiment": ("positive" if "good" in content.lower() or "great" in content.lower() else "neutral"),
+            "topic": ("business" if "meeting" in content.lower() or "work" in content.lower() else "personal"),
+            "keywords": [
+                "email",
+                "content",
+                "analysis",
+            ],  # Extract keywords from content
         }
 
         return {

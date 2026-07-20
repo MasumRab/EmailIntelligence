@@ -489,9 +489,7 @@ class MultiPhaseStrategyGenerator:
 
         return strategies
 
-    def _select_strategy_types(
-        self, conflict_data, context: Dict[str, Any], risk_tolerance: str
-    ) -> List[StrategyType]:
+    def _select_strategy_types(self, conflict_data, context: Dict[str, Any], risk_tolerance: str) -> List[StrategyType]:
         """Select appropriate strategy types based on context"""
 
         selected_types = []
@@ -551,27 +549,19 @@ class MultiPhaseStrategyGenerator:
             estimated_time = int(base_time * time_multiplier)
 
             # Generate enhancement preservation
-            enhancement_preservation = self._generate_enhancement_preservation(
-                conflict_data, context, strategy_type
-            )
+            enhancement_preservation = self._generate_enhancement_preservation(conflict_data, context, strategy_type)
 
             # Generate risk factors
-            risk_factors = self._generate_risk_factors(
-                conflict_data, context, strategy_type, risk_tolerance
-            )
+            risk_factors = self._generate_risk_factors(conflict_data, context, strategy_type, risk_tolerance)
 
             # Generate execution phases
-            execution_phases = self._generate_execution_phases(
-                conflict_data, context, strategy_type
-            )
+            execution_phases = self._generate_execution_phases(conflict_data, context, strategy_type)
 
             # Calculate overall risk level
             risk_level = self._calculate_risk_level(risk_factors)
 
             # Generate steps
-            steps = self._generate_strategy_steps(
-                conflict_data, context, strategy_type, execution_phases
-            )
+            steps = self._generate_strategy_steps(conflict_data, context, strategy_type, execution_phases)
 
             # Create multi-phase strategy
             strategy = MultiPhaseStrategy(
@@ -583,16 +573,11 @@ class MultiPhaseStrategyGenerator:
                 steps=steps,
                 pros=self._generate_pros(strategy_type, enhancement_preservation),
                 cons=self._generate_cons(strategy_type, risk_factors),
-                confidence=self._calculate_strategy_confidence(
-                    strategy_type, risk_factors, context
-                ),
+                confidence=self._calculate_strategy_confidence(strategy_type, risk_factors, context),
                 estimated_time=estimated_time,
                 risk_level=risk_level,
-                resource_requirements=self._generate_resource_requirements(
-                    strategy_type, execution_phases
-                ),
-                requires_approval=strategy_type
-                in [StrategyType.SAFE_MODE, StrategyType.ARCHITECTURAL_REFACTORING],
+                resource_requirements=self._generate_resource_requirements(strategy_type, execution_phases),
+                requires_approval=strategy_type in [StrategyType.SAFE_MODE, StrategyType.ARCHITECTURAL_REFACTORING],
                 success_criteria=self._generate_success_criteria(strategy_type),
                 rollback_strategy=self._generate_rollback_strategy(strategy_type),
                 validation_approach=f"Multi-phase validation for {strategy_type.value}",
@@ -632,9 +617,7 @@ class MultiPhaseStrategyGenerator:
                     preservation_priority=self._determine_preservation_priority(feature, context),
                     preservation_method=self._select_preservation_method(feature, strategy_type),
                     estimated_impact=self._estimate_preservation_impact(feature, conflict_data),
-                    technical_complexity=self._assess_preservation_complexity(
-                        feature, conflict_data
-                    ),
+                    technical_complexity=self._assess_preservation_complexity(feature, conflict_data),
                     rollback_available=True,
                     validation_required=True,
                     # Default score, would be calculated in real implementation
@@ -674,22 +657,16 @@ class MultiPhaseStrategyGenerator:
         for category, templates in self.risk_templates.items():
             for template in templates:
                 # Calculate probability and impact based on context
-                probability = self._calculate_risk_probability(
-                    template, conflict_data, context, strategy_type
-                )
+                probability = self._calculate_risk_probability(template, conflict_data, context, strategy_type)
 
-                impact = self._calculate_risk_impact(
-                    template, conflict_data, context, strategy_type
-                )
+                impact = self._calculate_risk_impact(template, conflict_data, context, strategy_type)
 
                 # Skip risks with very low probability
                 if probability < 0.1:
                     continue
 
                 # Generate mitigation strategy
-                mitigation = self._generate_mitigation_strategy(
-                    template, strategy_type, risk_tolerance
-                )
+                mitigation = self._generate_mitigation_strategy(template, strategy_type, risk_tolerance)
 
                 # Calculate residual risk
                 residual_risk = probability * impact * 0.5  # Assume 50% reduction from mitigation
@@ -723,9 +700,7 @@ class MultiPhaseStrategyGenerator:
 
         for template_checkpoint in base_template:
             # Adapt checkpoint based on context
-            adapted_checkpoint = self._adapt_checkpoint(
-                template_checkpoint, conflict_data, context, strategy_type
-            )
+            adapted_checkpoint = self._adapt_checkpoint(template_checkpoint, conflict_data, context, strategy_type)
             execution_phases.append(adapted_checkpoint)
 
         # Add validation phase if not present
@@ -816,9 +791,7 @@ class MultiPhaseStrategyGenerator:
         # Calculate hybrid metrics
         avg_confidence = sum(s.confidence for s in strategies) / len(strategies)
         max_time = max(s.estimated_time for s in strategies)
-        avg_risk_level = sum(self._risk_level_to_numeric(s.risk_level) for s in strategies) / len(
-            strategies
-        )
+        avg_risk_level = sum(self._risk_level_to_numeric(s.risk_level) for s in strategies) / len(strategies)
 
         hybrid_strategy = MultiPhaseStrategy(
             id=hybrid_id,
@@ -898,9 +871,7 @@ class MultiPhaseStrategyGenerator:
             return RiskLevel.LOW
 
         # Calculate weighted risk score
-        total_weighted_risk = sum(
-            rf.probability * rf.impact * rf.residual_risk for rf in risk_factors
-        )
+        total_weighted_risk = sum(rf.probability * rf.impact * rf.residual_risk for rf in risk_factors)
 
         avg_risk = total_weighted_risk / len(risk_factors)
 
@@ -933,9 +904,7 @@ class MultiPhaseStrategyGenerator:
             return RiskLevel.LOW
 
     # Helper methods for strategy generation (simplified implementations)
-    def _generate_pros(
-        self, strategy_type: StrategyType, preservation: List[EnhancementPreservation]
-    ) -> List[str]:
+    def _generate_pros(self, strategy_type: StrategyType, preservation: List[EnhancementPreservation]) -> List[str]:
         """Generate strategy pros"""
         pros = [f"Provides {strategy_type.value.replace('_', ' ')} approach"]
 
@@ -1000,9 +969,7 @@ class MultiPhaseStrategyGenerator:
 
     def _generate_rollback_strategy(self, strategy_type: StrategyType) -> str:
         """Generate rollback strategy description"""
-        return (
-            f"Rollback strategy for {strategy_type.value} approach with checkpoint-based recovery"
-        )
+        return f"Rollback strategy for {strategy_type.value} approach with checkpoint-based recovery"
 
     def _generate_resource_requirements(
         self, strategy_type: StrategyType, phases: List[ExecutionCheckpoint]
@@ -1094,9 +1061,7 @@ class MultiPhaseStrategyGenerator:
 
         return steps
 
-    def _merge_execution_phases(
-        self, phase_lists: List[List[ExecutionCheckpoint]]
-    ) -> List[ExecutionCheckpoint]:
+    def _merge_execution_phases(self, phase_lists: List[List[ExecutionCheckpoint]]) -> List[ExecutionCheckpoint]:
         """Merge execution phases from multiple strategies"""
         # Simplified merge - in reality would be more sophisticated
         all_phases = []
