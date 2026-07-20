@@ -243,7 +243,7 @@ class DatabaseManager:
         """
         if not row:
             return row
-        for field in row:
+        for field in fields:
             if field in row and isinstance(row[field], str):
                 try:
                     row[field] = json.loads(row[field])
@@ -251,7 +251,7 @@ class DatabaseManager:
                     logger.warning(
                         f"Failed to parse JSON for field {field} in row {row.get(FIELD_ID)}"
                     )
-                    if field in (FIELD_ANALYSIS_METADATA, "metadata"):
+                    if field in (FIELD_ANALYSIS_METADATA, "metadata", "filterResults"):
                         row[field] = {}
                     else:
                         row[field] = []
@@ -692,6 +692,9 @@ class DatabaseManager:
 # This is initialized via FastAPI startup event
 _db_manager_instance = None
 
+# A singleton for imports assuming a single database manager exists initially (used by main)
+db_manager = DatabaseManager()
+_db_manager_instance = db_manager
 
 async def get_db() -> DatabaseManager:
     """
