@@ -1,9 +1,7 @@
 import os
 
 from .data_source import DataSource
-from typing import TYPE_CHECKING
-if TYPE_CHECKING:
-    from .database import DatabaseConfig
+from .database import DatabaseManager, create_database_manager, DatabaseConfig
 from .ai_engine import ModernAIEngine
 from .data.repository import DatabaseEmailRepository, CachingEmailRepository, EmailRepository
 from .caching import init_cache_manager, CacheConfig, CacheBackend
@@ -34,14 +32,12 @@ class DataSourceFactory:
             A DataSource instance
         """
         if source_type == "database":
-            from .database import DatabaseConfig, create_database_manager
             config = DatabaseConfig()
             return await create_database_manager(config)
         elif source_type == "notmuch" and NOTMUCH_AVAILABLE:
             return NotmuchDataSource()
         else:
             # Default to database
-            from .database import DatabaseConfig, create_database_manager
             config = DatabaseConfig()
             return await create_database_manager(config)
 
@@ -63,7 +59,6 @@ async def get_data_source() -> DataSource:
             _data_source_instance = NotmuchDataSource()
         else:
             # Create DatabaseManager with proper configuration
-            from .database import DatabaseConfig, create_database_manager
             config = DatabaseConfig()
             _data_source_instance = await create_database_manager(config)
     return _data_source_instance
@@ -89,3 +84,4 @@ async def get_email_repository() -> EmailRepository:
         base_repository = DatabaseEmailRepository(data_source)
         _email_repository_instance = CachingEmailRepository(base_repository)
     return _email_repository_instance
+def get_ai_engine(*args, **kwargs): pass

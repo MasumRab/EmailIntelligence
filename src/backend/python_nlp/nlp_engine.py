@@ -19,13 +19,23 @@ from typing import Any, Dict, List, Optional
 
 from transformers import AutoModelForSequenceClassification, AutoTokenizer, pipeline
 
-from backend.python_nlp.text_utils import clean_text
+from src.backend.python_nlp.text_utils import clean_text
 
-from .analysis_components.importance_model import ImportanceModel
-from .analysis_components.intent_model import IntentModel
-from .analysis_components.sentiment_model import SentimentModel
-from .analysis_components.topic_model import TopicModel
-from .analysis_components.urgency_model import UrgencyModel
+try:
+    from .analysis_components.sentiment_model import LocalSentimentModel as SentimentModel
+    from .analysis_components.importance_model import ImportanceModel
+    from .analysis_components.intent_model import IntentModel
+    from .analysis_components.topic_model import TopicModel
+    from .analysis_components.urgency_model import UrgencyModel
+except ImportError:
+    pass
+
+
+
+
+
+
+
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(name)s - %(message)s"

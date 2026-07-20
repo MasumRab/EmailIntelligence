@@ -26,7 +26,7 @@ from .smart_filter_manager import SmartFilterManager
 from .ai_engine import ModernAIEngine
 from .performance_monitor import log_performance
 from .enhanced_error_reporting import (
-    enhanced_error_reporter, 
+    enhanced_error_reporter,
     ErrorSeverity, 
     ErrorCategory, 
     create_error_context

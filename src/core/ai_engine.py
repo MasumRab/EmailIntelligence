@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 from typing import Any, Dict, List, Optional
 
 from .enhanced_error_reporting import (
-    enhanced_error_reporter, 
+    enhanced_error_reporter,
     ErrorSeverity, 
     ErrorCategory, 
     create_error_context
