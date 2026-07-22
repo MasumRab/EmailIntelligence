@@ -1,0 +1,10 @@
+--- src/backend/python_backend/plugin_manager.py
++++ src/backend/python_backend/plugin_manager.py
+@@ -3,6 +3,7 @@
+ import inspect
+ import logging
+ import os
++import importlib.util
+ from typing import Any, Callable, Dict, List, Optional
+
+ logger = logging.getLogger(__name__)

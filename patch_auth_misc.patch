@@ -1,0 +1,11 @@
+--- src/core/auth.py
++++ src/core/auth.py
+@@ -10,6 +10,8 @@
+ import time
+ import secrets
+ from argon2 import PasswordHasher
++import argon2  # noqa: E402
++from enum import Enum  # noqa: E402
+
+ import jwt
+ from fastapi import HTTPException, status, Depends

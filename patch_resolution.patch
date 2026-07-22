@@ -1,0 +1,22 @@
+--- src/resolution/__init__.py
++++ src/resolution/__init__.py
+@@ -21,7 +21,7 @@
+     "AutoResolver",
+ ]
+
+-from enum import Enum
++from enum import Enum  # noqa: E402
+
+ class ComplianceLevel(Enum):
+     STRICT = "strict"
+--- src/resolution/auto_resolver.py
++++ src/resolution/auto_resolver.py
+@@ -198,7 +198,7 @@
+                     is_resolved = True
+                     break
+                 resolution_details["resolution_attempts"] += 1
+-            except:
++            except Exception:
+                 continue  # Try next pattern
+
+         if is_resolved:
