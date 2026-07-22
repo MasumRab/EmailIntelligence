@@ -29,7 +29,7 @@ from src.core.auth import authenticate_user
 
 from ..plugins.plugin_manager import plugin_manager
 from . import (
-    action_routes,
+    routes.v1.action_routes as action_routes,
     ai_routes,
     category_routes,
     dashboard_routes,
@@ -247,7 +247,7 @@ if os.getenv("NODE_ENV") in ["production", "staging"]:
 # or kept here if they are used by multiple route files or for general app setup.
 gmail_service = GmailAIService()  # Used by gmail_routes
 filter_manager = SmartFilterManager()  # Used by filter_routes
-ai_engine = AdvancedAIEngine(model_manager)  # Used by email_routes, action_routes
+ai_engine = AdvancedAIEngine(model_manager)  # Used by email_routes, routes.v1.action_routes as action_routes
 performance_monitor = performance_monitor  # Used by all routes via @performance_monitor.track
 
 from .routes.v1.category_routes import router as category_router_v1
@@ -268,7 +268,7 @@ app.include_router(training_routes.router)
 app.include_router(workflow_routes.router)
 app.include_router(model_routes.router)
 app.include_router(performance_routes.router)
-app.include_router(action_routes.router)
+app.include_router(routes.v1.action_routes as action_routes.router)
 app.include_router(dashboard_routes.router)
 app.include_router(ai_routes.router)
 
