@@ -9,3 +9,8 @@
 **Vulnerability:** Used `shell=True` in `subprocess.run` inside `scripts/branch_rename_migration.py`, `deployment/setup_env.py`, and `deployment/migrate.py`, which is a command injection risk when passing unsanitized variables.
 **Learning:** Python scripts often use `subprocess.run(..., shell=True)` for convenience, but `shlex.split()` with `shell=False` is the secure way to execute commands. Note that converting to `shell=False` requires ensuring that commands relying on shell features (like pipes or chained commands) do not break.
 **Prevention:** Always use `shlex.split()` and `shell=False` when wrapping command strings for `subprocess.run` as long as shell features are not needed.
+
+## 2026-07-22 - Information Exposure Through Query Strings
+**Vulnerability:** The `/token` login endpoint accepted username and password as query parameters instead of a JSON request body, exposing credentials in URLs and access logs (CWE-598).
+**Learning:** FastAPI defaults to query parameters for primitive types without explicit `Body()` or Pydantic models. This is a common pattern in the framework that requires specific schema definition to be secure.
+**Prevention:** Always use Pydantic models (`BaseModel`) or `OAuth2PasswordRequestForm` for sensitive POST endpoints in FastAPI to enforce secure request bodies.
