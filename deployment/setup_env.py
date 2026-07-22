@@ -15,6 +15,7 @@ import os
 import shutil
 import subprocess
 import sys
+import shlex
 from pathlib import Path
 
 # Configure logging
@@ -31,9 +32,10 @@ def run_command(command, cwd=None):
     """Run a shell command and log the output."""
     logger.info(f"Running command: {command}")
     try:
+        args = shlex.split(command)
         result = subprocess.run(
-            command,
-            shell=True,
+            args,
+            shell=False,
             check=True,
             text=True,
             capture_output=True,
@@ -84,7 +86,7 @@ def setup_database():
         return False
 
     # Create the database if it doesn't exist
-    run_command("createdb -U postgres emailintelligence || true")
+    run_command("createdb -U postgres emailintelligence")
 
     # Apply migrations
     return run_command("python deployment/migrate.py apply")
