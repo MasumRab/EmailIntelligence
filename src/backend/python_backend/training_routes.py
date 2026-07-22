@@ -10,7 +10,7 @@ This module provides API endpoints for training AI models used in email analysis
 import logging
 from typing import Any, Dict
 
-from fastapi import APIRouter, BackgroundTasks, HTTPException
+from fastapi import APIRouter, BackgroundTasks, HTTPException, Depends
 
 from src.core.auth import get_current_active_user
 
@@ -24,12 +24,11 @@ router = APIRouter()
 training_jobs: Dict[str, Dict[str, Any]] = {}
 
 
-@router.post("/api/training/start")
+@router.post("/api/training/start", dependencies=[Depends(get_current_active_user)])
 @log_performance(operation="start_training")
 async def start_training(
     model_config: ModelConfig,
     background_tasks: BackgroundTasks,
-    current_user: str = Depends(get_current_active_user),
 ):
     """
     Start training a model with the given configuration.
@@ -61,9 +60,9 @@ async def start_training(
     return {"job_id": job_id, "status": "running"}
 
 
-@router.get("/api/training/status/{job_id}")
+@router.get("/api/training/status/{job_id}", dependencies=[Depends(get_current_active_user)])
 @log_performance(operation="get_training_status")
-async def get_training_status(job_id: str, current_user: str = Depends(get_current_active_user)):
+async def get_training_status(job_id: str):
     """
     Get the status of a training job.
 
