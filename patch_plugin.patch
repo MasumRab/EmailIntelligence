@@ -1,0 +1,12 @@
+--- src/backend/python_backend/plugin_manager.py
++++ src/backend/python_backend/plugin_manager.py
+@@ -5,8 +5,9 @@
+ external plugins.
+ """
+
+ import logging
+ import os
++import importlib.util
+ from typing import List
+
+ logger = logging.getLogger(__name__)

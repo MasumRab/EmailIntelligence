@@ -12,13 +12,14 @@ import os
 import threading
 import time
 import uuid
+from typing import Optional
 from collections import defaultdict
 from datetime import datetime, timedelta
 
 from fastapi import FastAPI, HTTPException, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from pydantic import ValidationError
+from pydantic import ValidationError, BaseModel
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from src.backend.python_nlp.gmail_service import GmailAIService
@@ -43,7 +44,7 @@ from . import (
 )
 from .ai_engine import AdvancedAIEngine
 from .auth import create_access_token
-from .database import db_manager
+from .database import db_manager, get_db
 from .exceptions import AppException, BaseAppException
 
 # Import new components
@@ -250,10 +251,10 @@ filter_manager = SmartFilterManager()  # Used by filter_routes
 ai_engine = AdvancedAIEngine(model_manager)  # Used by email_routes, action_routes
 performance_monitor = performance_monitor  # Used by all routes via @performance_monitor.track
 
-from .routes.v1.category_routes import router as category_router_v1
+from .routes.v1.category_routes import router as category_router_v1  # noqa: E402
 
 # Include versioned API routers
-from .routes.v1.email_routes import router as email_router_v1
+from .routes.v1.email_routes import router as email_router_v1  # noqa: E402
 
 # Mount versioned APIs
 app.include_router(email_router_v1, prefix="/api/v1", tags=["emails-v1"])
@@ -273,22 +274,22 @@ app.include_router(dashboard_routes.router)
 app.include_router(ai_routes.router)
 
 # Include enhanced feature routers
-from .enhanced_routes import router as enhanced_router
+from .enhanced_routes import router as enhanced_router  # noqa: E402
 
 app.include_router(enhanced_router, prefix="/api/enhanced", tags=["enhanced"])
 
 # Include workflow routes (legacy and node-based)
-from .workflow_routes import router as workflow_router
+from .workflow_routes import router as workflow_router  # noqa: E402
 
 app.include_router(workflow_router, prefix="", tags=["workflows"])
 
 # Include advanced workflow routes (will use node-based system)
-from .advanced_workflow_routes import router as advanced_workflow_router
+from .advanced_workflow_routes import router as advanced_workflow_router  # noqa: E402
 
 app.include_router(advanced_workflow_router, prefix="/api/workflows", tags=["advanced-workflows"])
 
 # Include node-based workflow routes
-from .node_workflow_routes import router as node_workflow_router
+from .node_workflow_routes import router as node_workflow_router  # noqa: E402
 
 app.include_router(node_workflow_router, prefix="/api/nodes", tags=["node-workflows"])
 
@@ -305,13 +306,18 @@ except ImportError:
 # Ensure route files import them from .models
 
 
+class LoginRequest(BaseModel):
+    username: str
+    password: str
+    mfa_token: Optional[str] = None
+
 # Authentication endpoints
 @app.post("/token")
-async def login(username: str, password: str):
+async def login(request: LoginRequest):
     """Login endpoint to get access token"""
     # Use the new authentication system
     db = await get_db()
-    user = await authenticate_user(username, password, db)
+    user = await authenticate_user(request.username, request.password, db)
 
     if not user:
         raise HTTPException(
@@ -329,7 +335,7 @@ async def login(username: str, password: str):
         # Use a default if settings are not available
         access_token_expires = timedelta(minutes=30)
 
-    access_token = create_access_token(data={"sub": username}, expires_delta=access_token_expires)
+    access_token = create_access_token(data={"sub": request.username}, expires_delta=access_token_expires)
     return {"access_token": access_token, "token_type": "bearer"}
 
 

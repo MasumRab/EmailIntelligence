@@ -1,0 +1,28 @@
+--- src/core/performance_monitor.py
++++ src/core/performance_monitor.py
+@@ -190,14 +190,14 @@
+ logger = logging.getLogger(__name__)
+
+
+-@dataclass
+-class PerformanceMetric:
+-    """Represents a performance metric with minimal overhead."""
+-
+-    name: str
+-    value: Union[int, float]
+-    unit: str
+-    timestamp: float
+-    tags: Dict[str, str]
+-    sample_rate: float = 1.0  # 1.0 = 100% sampling, 0.1 = 10% sampling
+-
++# @dataclass
++# class PerformanceMetric:
++#     """Represents a performance metric with minimal overhead."""
++#
++#     name: str
++#     value: Union[int, float]
++#     unit: str
++#     timestamp: float
++#     tags: Dict[str, str]
++#     sample_rate: float = 1.0  # 1.0 = 100% sampling, 0.1 = 10% sampling
++#

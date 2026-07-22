@@ -1,0 +1,36 @@
+--- src/backend/python_backend/__init__.py
++++ src/backend/python_backend/__init__.py
+@@ -19,16 +19,16 @@
+
+ from .ai_engine import AdvancedAIEngine, AIAnalysisResult  # noqa: E402
+ from .database import DatabaseManager, get_db  # noqa: E402, F401
+-from .models import (
+-    ActivityCreate,
+-    ActivityResponse,
+-    AIAnalysisResponse,
+-    CategoryCreate,
+-    CategoryResponse,
+-    DashboardStats,
+-    EmailCreate,
+-    EmailResponse,
+-    EmailUpdate,
+-    FilterRequest,
+-    GmailSyncRequest,
+-    GmailSyncResponse,
+-    SmartRetrievalRequest,
+-)
++from .models import (  # noqa: E402
++    ActivityCreate,
++    ActivityResponse,
++    AIAnalysisResponse,
++    CategoryCreate,
++    CategoryResponse,
++    DashboardStats,
++    EmailCreate,
++    EmailResponse,
++    EmailUpdate,
++    FilterRequest,
++    GmailSyncRequest,
++    GmailSyncResponse,
++    SmartRetrievalRequest,
++)

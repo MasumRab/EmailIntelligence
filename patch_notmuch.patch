@@ -1,0 +1,13 @@
+--- src/core/notmuch_data_source.py
++++ src/core/notmuch_data_source.py
+@@ -10,6 +10,10 @@
+ from typing import Any, Dict, List, Optional
+ from datetime import datetime
+ import email
++from typing import TYPE_CHECKING
++
++if TYPE_CHECKING:
++    from .database import DatabaseManager
+
+ # Import notmuch only when needed to allow import in environments without it
+ try:
