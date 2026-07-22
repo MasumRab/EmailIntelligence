@@ -31,6 +31,7 @@ async def start_training(
     background_tasks: BackgroundTasks,
     current_user: str = Depends(get_current_active_user),
 ):
+    _ = current_user  # Use parameter to satisfy linters
     """
     Start training a model with the given configuration.
 
@@ -64,6 +65,7 @@ async def start_training(
 @router.get("/api/training/status/{job_id}")
 @log_performance(operation="get_training_status")
 async def get_training_status(job_id: str, current_user: str = Depends(get_current_active_user)):
+    _ = current_user  # Use parameter to satisfy linters
     """
     Get the status of a training job.
 
