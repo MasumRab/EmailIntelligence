@@ -4,6 +4,8 @@
 **Supersedes:** the rigid "no-merge isolation" rules (Model A) **and** the "three-branch convergence" plan (Model B).
 **Lives in `.taskmaster/`** so it is shared identically across `main`, `scientific`, and `orchestration-tools` via the `taskmaster` submodule.
 
+> **⚠️ ABSOLUTE PROHIBITION: `main` and `scientific` MUST NEVER be merged into each other.** They are intentionally divergent product branches — each contains independent work that must stay separate. No exceptions. Use sanctioned transfer patterns (T1–T5) only.
+
 > **READ THIS BEFORE ANY CROSS-BRANCH OPERATION.** If you are a CLI agent (Claude, Gemini, Qwen, iFlow, Crush, LLXPRT, Codex, OpenCode, Jules, etc.) and your memory or agent file says "never merge branches" **or** "converge scientific + orchestration-tools into main," **both are wrong.** Replace that belief with the model below. See [§7 Correcting Stored Agent Understanding](#7-correcting-stored-agent-understanding).
 
 ---
