@@ -42,7 +42,7 @@ from setup.services import (
 from setup.environment import (
     handle_setup, prepare_environment, setup_wsl_environment, check_wsl_requirements
 )
-from setup.utils import print_system_info, process_manager
+from setup.utils import print_system_info, process_manager, get_python_executable
 
 # Import test stages
 from setup.test_stages import test_stages
@@ -51,11 +51,15 @@ from setup.test_stages import test_stages
 try:
     from src.core.commands.command_factory import get_command_factory
     from src.core.container import get_container, initialize_all_services
+    COMMAND_PATTERN_AVAILABLE = True
 except ImportError as e:
-    logging.warning(f"Could not import core modules: {e}. Some features may be unavailable.")
+    import os
+    if "PYTEST_CURRENT_TEST" not in os.environ and "pytest" not in sys.modules:
+        logging.warning(f"Could not import core modules: {e}. Some features may be unavailable.")
     get_command_factory = None
     get_container = None
     initialize_all_services = None
+    COMMAND_PATTERN_AVAILABLE = False
 
 try:
     from dotenv import load_dotenv
