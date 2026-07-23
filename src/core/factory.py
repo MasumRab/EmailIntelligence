@@ -84,3 +84,4 @@ async def get_email_repository() -> EmailRepository:
         base_repository = DatabaseEmailRepository(data_source)
         _email_repository_instance = CachingEmailRepository(base_repository)
     return _email_repository_instance
+def get_ai_engine(*args, **kwargs): pass

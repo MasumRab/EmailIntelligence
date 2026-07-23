@@ -1,7 +1,9 @@
-from typing import List, Dict, Any
+from typing import List, Dict, Any, TYPE_CHECKING
 from .data_source import DataSource
-from ..database import DatabaseManager, create_database_manager, DatabaseConfig
-from ..factory import get_data_source
+
+if TYPE_CHECKING:
+    from ..database import DatabaseManager, DatabaseConfig
+
 from ..data_source import DataSource as DataSourceProtocol
 
 class DatabaseDataSource(DataSource):
@@ -9,13 +11,13 @@ class DatabaseDataSource(DataSource):
     A data source for emails that uses the database.
     """
 
-    def __init__(self, db_manager: DatabaseManager):
+    def __init__(self, db_manager: 'DatabaseManager'):
         self.db = db_manager
 
     @classmethod
     async def create(cls):
         # Import locally to avoid circular imports
-        from ..database import get_db
+        from ..database import get_db, DatabaseConfig, create_database_manager
         db_manager = await get_db()
 
         config = DatabaseConfig()
@@ -100,6 +102,7 @@ async def get_database_data_source() -> DatabaseDataSource:
 
     # Use the factory approach instead of the old singleton
     from ..factory import get_data_source
+    from ..database import DatabaseConfig, create_database_manager
     data_source = await get_data_source()
     # If it's already a DatabaseDataSource, return it
     if isinstance(data_source, DatabaseDataSource):

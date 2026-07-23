@@ -11,8 +11,7 @@ import pytest
 
 from setup.launch import ROOT_DIR, main, start_gradio_ui
 
-from launch import (
-    PYTHON_MAX_VERSION,
+from setup.launch import (
     PYTHON_MIN_VERSION,
     ROOT_DIR,
     check_python_version,
