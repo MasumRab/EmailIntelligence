@@ -23,9 +23,6 @@ def get_file_content(file_path: str, ref: str = "HEAD") -> str:
             shell=False, check=True, capture_output=True, text=True
         )
         return result.stdout
-    except subprocess.CalledProcessError as e:
-        print(f"Error getting {file_path} at {ref}: {e}")
-        return ""
     except Exception as e:  # pylint: disable=broad-except
         print(f"Error getting {file_path} at {ref}: {e}")
         return ""
