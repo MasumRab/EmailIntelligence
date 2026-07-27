@@ -10,17 +10,17 @@ Also includes the optimized version features:
 - Configurable sampling rates
 """
 
-import asyncio
-import json
-import logging
-import threading
-import time
-from dataclasses import dataclass
-from datetime import datetime, timezone
-from functools import wraps
-from typing import Any, Callable, Dict, List, Optional
+import asyncio  # noqa: E402
+import json  # noqa: E402
+import logging  # noqa: E402
+import threading  # noqa: E402
+import time  # noqa: E402
+from dataclasses import dataclass  # noqa: E402
+from datetime import datetime, timezone  # noqa: E402
+from functools import wraps  # noqa: E402
+from typing import Any, Callable, Dict, List, Optional  # noqa: E402, F401
 
-import psutil
+import psutil  # noqa: E402
 
 logger = logging.getLogger(__name__)
 
@@ -179,29 +179,18 @@ def _create_decorator(func, op_name):
         return sync_wrapper
 
 
-import atexit
+import atexit  # noqa: E402
 
 # Enhanced performance monitoring system with additional features
-from collections import defaultdict, deque
-from dataclasses import asdict, dataclass
-from pathlib import Path
-from typing import Any, Dict, Optional, Union
+from collections import defaultdict, deque  # noqa: E402
+from dataclasses import asdict, dataclass  # noqa: E402
+from pathlib import Path  # noqa: E402
+from typing import Any, Dict, Optional, Union  # noqa: E402, F401
 
 logger = logging.getLogger(__name__)
 
 
 @dataclass
-class PerformanceMetric:
-    """Represents a performance metric with minimal overhead."""
-
-    name: str
-    value: Union[int, float]
-    unit: str
-    timestamp: float
-    tags: Dict[str, str]
-    sample_rate: float = 1.0  # 1.0 = 100% sampling, 0.1 = 10% sampling
-
-
 @dataclass
 class AggregatedMetric:
     """Aggregated performance statistics."""
@@ -262,65 +251,6 @@ class OptimizedPerformanceMonitor:
         atexit.register(self.shutdown)
 
         logger.info("OptimizedPerformanceMonitor initialized")
-
-    def log_performance(self, log_entry: Dict[str, Any]) -> None:
-        """Compatibility method for legacy log_performance decorator."""
-        # Extract fields from log_entry to map to record_metric
-        operation = log_entry.get("operation", "unknown_operation")
-        duration_ms = log_entry.get("duration_seconds", 0) * 1000
-        self.record_metric(
-            name=operation,
-            value=duration_ms,
-            unit="ms"
-        )
-
-    def record_metric(
-        self,
-        name: str,
-        value: Union[int, float],
-        unit: str = "ms",
-        tags: Optional[Dict[str, str]] = None,
-        sample_rate: float = 1.0,
-    ):
-        """
-        Record a performance metric with optional sampling.
-
-        Args:
-            name: Metric name (e.g., "api_response_time")
-            value: Metric value
-            unit: Unit of measurement
-            tags: Additional tags for categorization
-            sample_rate: Sampling rate (0.0-1.0)
-        """
-        import random
-
-        # Apply sampling
-        if sample_rate < 1.0 and random.random() > sample_rate:
-            return
-
-        metric = PerformanceMetric(
-            name=name,
-            value=value,
-            unit=unit,
-            timestamp=time.time(),
-            tags=tags or {},
-            sample_rate=sample_rate,
-        )
-
-        # Add to buffer (thread-safe)
-        with self._buffer_lock:
-            self._metrics_buffer.append(metric)
-
-    def log_performance(self, log_entry: Dict[str, Any]) -> None:
-        """Compatibility method for legacy log_performance decorator."""
-        operation = log_entry.get("operation", "unknown")
-        duration = log_entry.get("duration_seconds", 0) * 1000  # Convert to ms
-        self.record_metric(
-            name=f"operation_duration_{operation}",
-            value=duration,
-            unit="ms",
-            tags={"operation": operation},
-        )
 
     def time_function(
         self, name: str, tags: Optional[Dict[str, str]] = None, sample_rate: float = 1.0

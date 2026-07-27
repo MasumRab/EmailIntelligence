@@ -16,9 +16,9 @@ import sys
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from transformers import AutoModelForSequenceClassification, AutoTokenizer, pipeline
+from transformers import AutoModelForSequenceClassification, AutoTokenizer, pipeline  # noqa: F401
 
-from backend.python_nlp.text_utils import clean_text
+from backend.python_nlp.text_utils import clean_text  # noqa: F811
 
 from .analysis_components.importance_model import ImportanceModel
 
@@ -29,9 +29,9 @@ logger = logging.getLogger(__name__)
 
 # Try to import optional dependencies
 try:
-    import nltk
+    import nltk  # noqa: F401
     from textblob import TextBlob
-    from transformers import AutoModelForSequenceClassification, AutoTokenizer
+    from transformers import AutoModelForSequenceClassification, AutoTokenizer, pipeline  # noqa: F401
 
     HAS_NLTK = True
     HAS_SKLEARN_AND_JOBLIB = True
@@ -52,9 +52,7 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(
 logger = logging.getLogger(__name__)
 
 
-def clean_text(text: str) -> str:
-    """Basic text cleaning utility."""
-    return text.lower().strip()
+
 
 
 # Define paths for pre-trained models
@@ -133,7 +131,7 @@ class NLPEngine:
         # Initialize stop words if NLTK is available
         if HAS_NLTK:
             try:
-                import nltk
+                import nltk  # noqa: F401
 
                 nltk.data.find("corpora/stopwords")
             except LookupError:

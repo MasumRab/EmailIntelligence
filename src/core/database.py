@@ -3,28 +3,28 @@ Database management for the Email Intelligence Platform.
 JSON file storage implementation with in-memory caching and indexing.
 """
 
-import asyncio
-import gzip
-import itertools
-import json
-import logging
-import os
-from datetime import datetime, timezone
-from functools import partial
-from typing import Any, Dict, List, Literal, Optional
+import asyncio  # noqa: E402
+import gzip  # noqa: E402
+import itertools  # noqa: E402
+import json  # noqa: E402
+import logging  # noqa: E402
+import os  # noqa: E402
+from datetime import datetime, timezone  # noqa: E402
+from functools import partial  # noqa: E402
+from typing import Any, Dict, List, Literal, Optional  # noqa: E402
 
 # NOTE: These dependencies will be moved to the core framework as well.
 # For now, we are assuming they will be available in the new location.
-from .performance_monitor import log_performance
-from .enhanced_caching import EnhancedCachingManager
+from .performance_monitor import log_performance  # noqa: E402
+from .enhanced_caching import EnhancedCachingManager  # noqa: E402
 from .enhanced_error_reporting import (
     log_error,
     ErrorSeverity,
     ErrorCategory,
     create_error_context
 )
-from .constants import DEFAULT_CATEGORY_COLOR
-from .security import validate_path_safety
+from .constants import DEFAULT_CATEGORY_COLOR  # noqa: E402
+from .security import validate_path_safety  # noqa: E402
 
 logger = logging.getLogger(__name__)
 
@@ -101,7 +101,7 @@ class DatabaseConfig:
 
 
 # Import DataSource locally to avoid circular imports
-from .data.data_source import DataSource
+from .data.data_source import DataSource  # noqa: E402
 
 class DatabaseManager(DataSource):
     """Optimized async database manager with in-memory caching, write-behind,
@@ -984,7 +984,7 @@ async def get_db() -> DatabaseManager:
     This function maintains the old singleton pattern for code that hasn't
     been migrated to proper dependency injection yet.
     """
-    import warnings
+    import warnings  # noqa: E402
     warnings.warn(
         "get_db() is deprecated. Use create_database_manager() with DatabaseConfig instead.",
         DeprecationWarning,

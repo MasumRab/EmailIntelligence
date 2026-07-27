@@ -82,6 +82,8 @@ with gr.Blocks(title="Email Intelligence", theme=gr.themes.Soft()) as iface:
                 headers=["ID", "Subject", "From", "Date"], interactive=True, label="Emails"
             )
 
+        sentiment_chart = None
+        topic_chart = None
         with gr.TabItem("Single Email Analysis"):
             with gr.Row():
                 with gr.Column(scale=2):
@@ -150,8 +152,8 @@ with gr.Blocks(title="Email Intelligence", theme=gr.themes.Soft()) as iface:
 
         with gr.TabItem("Visualization"):
             gr.Markdown("### Data Visualization")
-            sentiment_chart = gr.Plot(label="Sentiment Gauge")
-            topic_chart = gr.Plot(label="Topic Pie Chart")
+            sentiment_chart = gr.Plot(label="Sentiment Gauge")  # noqa: F841
+            topic_chart = gr.Plot(label="Topic Pie Chart")  # noqa: F841
             gr.Markdown(
                 "The charts above will automatically update after you analyze an email in the 'Single Email Analysis' tab."
             )
