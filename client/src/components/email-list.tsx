@@ -2,7 +2,7 @@
  * @file This file contains the EmailList component, which is responsible for
  *       rendering a list of emails, including their loading and empty states.
  */
-import { memo } from "react";
+import React from "react";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
@@ -32,7 +32,7 @@ interface EmailListProps {
  * @param {EmailListProps} props - The props for the component.
  * @returns {JSX.Element} The rendered list of emails, or a loading/empty state.
  */
-export const EmailList = memo(function EmailList({ emails, loading, onEmailSelect }: EmailListProps) {
+export const EmailList = React.memo(function EmailList({ emails, loading, onEmailSelect }: EmailListProps) {
   if (loading) {
     return (
       <div className="divide-y divide-gray-200">
