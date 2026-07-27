@@ -82,11 +82,6 @@ jobs:
         env:
           BASE_REF: ${{ github.event.pull_request.base.ref }}
         run: |
-          if ! git rev-parse -q --verify "refs/remotes/origin/$BASE_REF" >/dev/null 2>&1; then
-            echo "::error::Base ref 'origin/$BASE_REF' not found after fetch"
-            echo "has_conflicts=error" >> "$GITHUB_OUTPUT"
-            exit 1
-          fi
           if git merge-tree --write-tree HEAD "origin/$BASE_REF"; then
             echo "has_conflicts=false" >> "$GITHUB_OUTPUT"
           else
@@ -198,11 +193,6 @@ jobs:
           git reset --hard "origin/$HEAD_REF"
           git fetch origin "$BASE_REF"
 
-          if ! git rev-parse -q --verify "refs/remotes/origin/$BASE_REF" >/dev/null 2>&1; then
-            echo "::error::Base ref 'origin/$BASE_REF' not found after re-fetch"
-            echo "has_conflicts=error" >> "$GITHUB_OUTPUT"
-            exit 1
-          fi
           if git merge-tree --write-tree HEAD "origin/$BASE_REF"; then
             echo "has_conflicts=false" >> "$GITHUB_OUTPUT"
           else
