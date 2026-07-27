@@ -14,7 +14,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { useDebounce } from "@/hooks/use-debounce";
 import { Search, FolderSync, Filter } from "lucide-react";
-import { useState } from "react";
+import React, { useState } from "react";
+
 import type { Category, EmailWithCategory } from "@shared/schema";
 
 /**
