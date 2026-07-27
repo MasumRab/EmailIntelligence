@@ -104,6 +104,7 @@
     "autoprefixer": "^10.4.20",
     "cross-env": "^7.0.3",
     "drizzle-kit": "^0.31.10",
+    "esbuild": "^0.25.12",
     "eslint": "^9.0.0",
     "eslint-plugin-react": "^7.37.0",
     "eslint-plugin-react-hooks": "^5.0.0",
@@ -114,8 +115,7 @@
     "tsx": "^4.22.4",
     "typescript": "^5.9.3",
     "vite": "^6.4.3",
-    "vitest": "^3.2.6",
-    "esbuild": "^0.25.12"
+    "vitest": "^3.2.6"
   },
   "overrides": {
     "@babel/core": "^7.29.1",
@@ -135,7 +135,8 @@
           "esbuild": "^0.25.12"
         }
       }
-    }
+    },
+    "esbuild": "^0.25.12"
   },
   "optionalDependencies": {
     "bufferutil": "^4.0.8"
