@@ -7,9 +7,8 @@ Implements token bucket algorithm for API endpoint rate limiting with Redis back
 import asyncio
 import logging
 import time
-from collections import defaultdict
 from dataclasses import dataclass
-from typing import Dict, Optional, Tuple
+from typing import Dict, Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -95,7 +94,9 @@ class RateLimiter:
         # Calculate current tokens (refill if needed)
         now = time.time()
         time_passed = now - state.last_refill
-        refill_amount = time_passed * (self.config.requests_per_minute / self.config.window_seconds)
+        refill_amount = time_passed * (
+            self.config.requests_per_minute / self.config.window_seconds
+        )
         current_tokens = min(self.config.burst_limit, state.tokens + refill_amount)
 
         return max(0, int(current_tokens))
@@ -120,7 +121,9 @@ class APIRateLimiter:
             self._limiters[endpoint] = RateLimiter(self._default_config)
         return self._limiters[endpoint]
 
-    async def check_rate_limit(self, endpoint: str, client_key: str) -> Tuple[bool, Dict[str, int]]:
+    async def check_rate_limit(
+        self, endpoint: str, client_key: str
+    ) -> Tuple[bool, Dict[str, int]]:
         """
         Check rate limit for an endpoint and client.
 

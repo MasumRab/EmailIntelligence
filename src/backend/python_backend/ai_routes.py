@@ -25,7 +25,7 @@ async def analyze_email(
     request: AIAnalysisRequest,
     ai_engine: AdvancedAIEngine = Depends(get_ai_engine),
     db: DatabaseManager = Depends(get_db),
-    current_user = Depends(get_current_active_user),
+    current_user=Depends(get_current_active_user),
 ):
     """
     Analyzes email content and returns AI-driven insights.
@@ -34,7 +34,10 @@ async def analyze_email(
     try:
         default_models = {"sentiment": "sentiment-default", "topic": "topic-default"}
         analysis_result = await ai_engine.analyze_email(
-            subject=request.subject, content=request.content, models_to_use=default_models, db=db
+            subject=request.subject,
+            content=request.content,
+            models_to_use=default_models,
+            db=db,
         )
         return analysis_result.to_dict()
     except Exception as e:
@@ -47,7 +50,7 @@ async def categorize_email(
     request: AICategorizeRequest,
     db: DatabaseManager = Depends(get_db),
     ai_engine: AdvancedAIEngine = Depends(get_ai_engine),
-    current_user = Depends(get_current_active_user),
+    current_user=Depends(get_current_active_user),
 ):
     """
     Categorizes an email, either automatically using AI or manually.
@@ -59,7 +62,10 @@ async def categorize_email(
 
     if request.autoAnalyze:
         try:
-            default_models = {"sentiment": "sentiment-default", "topic": "topic-default"}
+            default_models = {
+                "sentiment": "sentiment-default",
+                "topic": "topic-default",
+            }
             analysis_result = await ai_engine.analyze_email(
                 subject=email["subject"],
                 content=email["content"],
@@ -88,16 +94,21 @@ async def categorize_email(
                     success=False,
                     message="AI analysis did not result in a category.",
                     analysis=(
-                        AIAnalysisResponse(**analysis_result.to_dict()) if analysis_result else None
+                        AIAnalysisResponse(**analysis_result.to_dict())
+                        if analysis_result
+                        else None
                     ),
                 )
         except Exception as e:
             logger.error(f"Error in AI categorization: {e}", exc_info=True)
-            raise HTTPException(status_code=500, detail="Failed to categorize email with AI.")
+            raise HTTPException(
+                status_code=500, detail="Failed to categorize email with AI."
+            )
     else:
         if request.categoryId is None:
             raise HTTPException(
-                status_code=400, detail="categoryId is required for manual categorization"
+                status_code=400,
+                detail="categoryId is required for manual categorization",
             )
 
         update_data = {"categoryId": request.categoryId}
@@ -117,13 +128,15 @@ async def categorize_email(
 async def validate_analysis(
     request: AIValidateRequest,
     db: DatabaseManager = Depends(get_db),
-    current_user = Depends(get_current_active_user),
+    current_user=Depends(get_current_active_user),
 ):
     """
     Validates AI analysis based on user feedback.
     Requires authentication.
     """
-    logger.info(f"Received validation feedback for email {request.emailId}: {request.userFeedback}")
+    logger.info(
+        f"Received validation feedback for email {request.emailId}: {request.userFeedback}"
+    )
 
     if request.userFeedback == "incorrect" and request.correctCategory:
         email = await db.get_email_by_id(request.emailId)
@@ -157,9 +170,12 @@ async def validate_analysis(
 
         except Exception as e:
             logger.error(
-                f"Error updating email category based on validation feedback: {e}", exc_info=True
+                f"Error updating email category based on validation feedback: {e}",
+                exc_info=True,
             )
-            raise HTTPException(status_code=500, detail="Failed to update email category.")
+            raise HTTPException(
+                status_code=500, detail="Failed to update email category."
+            )
 
     # In a real application, this feedback would be stored and used for model retraining
     return AIValidateResponse(success=True, message="Feedback recorded successfully")

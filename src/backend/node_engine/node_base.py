@@ -22,6 +22,7 @@ except ImportError:
     NETWORKX_AVAILABLE = False
     nx = None
 
+
 class DataType(Enum):
     """Enum for supported data types in node connections."""
 
@@ -56,7 +57,11 @@ class NodePort:
     """Defines an input or output port for a node."""
 
     def __init__(
-        self, name: str, data_type: DataType, required: bool = True, description: str = ""
+        self,
+        name: str,
+        data_type: DataType,
+        required: bool = True,
+        description: str = "",
     ):
         self.name = name
         self.data_type = data_type
@@ -71,7 +76,11 @@ class Connection:
     """Represents a connection between two nodes."""
 
     def __init__(
-        self, source_node_id: str, source_port: str, target_node_id: str, target_port: str
+        self,
+        source_node_id: str,
+        source_port: str,
+        target_node_id: str,
+        target_port: str,
     ):
         self.source_node_id = source_node_id
         self.source_port = source_port
@@ -128,7 +137,9 @@ class BaseNode(ABC):
         self.output_ports: List[NodePort] = []
         self.inputs: Dict[str, Any] = {}
         self.outputs: Dict[str, Any] = {}
-        self.logger = logging.getLogger(f"{self.__class__.__module__}.{self.__class__.__name__}")
+        self.logger = logging.getLogger(
+            f"{self.__class__.__module__}.{self.__class__.__name__}"
+        )
         self._parent_workflow_id: Optional[str] = None
 
     @abstractmethod
@@ -215,7 +226,9 @@ class Workflow:
         self.description = description
         self.nodes: Dict[str, BaseNode] = {}
         self.connections: List[Connection] = []
-        self.logger = logging.getLogger(f"{self.__class__.__module__}.{self.__class__.__name__}")
+        self.logger = logging.getLogger(
+            f"{self.__class__.__module__}.{self.__class__.__name__}"
+        )
 
     def add_node(self, node: BaseNode):
         """Add a node to the workflow."""
@@ -237,22 +250,30 @@ class Workflow:
         """Add a connection between nodes."""
         # Validate that the nodes exist in the workflow
         if connection.source_node_id not in self.nodes:
-            raise ValueError(f"Source node {connection.source_node_id} does not exist in workflow")
+            raise ValueError(
+                f"Source node {connection.source_node_id} does not exist in workflow"
+            )
         if connection.target_node_id not in self.nodes:
-            raise ValueError(f"Target node {connection.target_node_id} does not exist in workflow")
+            raise ValueError(
+                f"Target node {connection.target_node_id} does not exist in workflow"
+            )
 
         # Validate the ports exist on the respective nodes
         source_node = self.nodes[connection.source_node_id]
         target_node = self.nodes[connection.target_node_id]
 
-        source_port_exists = any(p.name == connection.source_port for p in source_node.output_ports)
+        source_port_exists = any(
+            p.name == connection.source_port for p in source_node.output_ports
+        )
         if not source_port_exists:
             raise ValueError(
                 f"Source port {connection.source_port} does not exist on node "
                 f"{connection.source_node_id}"
             )
 
-        target_port_exists = any(p.name == connection.target_port for p in target_node.input_ports)
+        target_port_exists = any(
+            p.name == connection.target_port for p in target_node.input_ports
+        )
         if not target_port_exists:
             raise ValueError(
                 f"Target port {connection.target_port} does not exist on node "

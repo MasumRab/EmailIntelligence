@@ -7,7 +7,7 @@ including creation, listing, intelligent generation, and pruning.
 
 import json
 import logging
-from typing import Any, Dict, List
+from typing import Any, Dict
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 
@@ -25,8 +25,7 @@ router = APIRouter(prefix="/api/filters", tags=["Filter Management"])
 @router.get("/", response_model=Dict[str, Any])
 @log_performance
 async def get_filters(
-    request: Request,
-    current_user: str = Depends(get_current_active_user)
+    request: Request, current_user: str = Depends(get_current_active_user)
 ):
     """Get all active email filters
     Requires authentication."""
@@ -50,7 +49,7 @@ async def get_filters(
 async def create_filter(
     request: Request,
     filter_request_model: FilterRequest,
-    current_user: str = Depends(get_current_active_user)
+    current_user: str = Depends(get_current_active_user),
 ):
     """Create new email filter
     Requires authentication."""
@@ -79,8 +78,7 @@ async def create_filter(
 @router.post("/generate-intelligent", response_model=Dict[str, Any])
 @log_performance
 async def generate_intelligent_filters(
-    request: Request,
-    current_user: str = Depends(get_current_active_user)
+    request: Request, current_user: str = Depends(get_current_active_user)
 ):
     """Generate intelligent filters based on email patterns.
     Requires authentication."""
@@ -103,8 +101,7 @@ async def generate_intelligent_filters(
 @router.post("/prune", response_model=Dict[str, Any])
 @log_performance
 async def prune_filters(
-    request: Request,
-    current_user: str = Depends(get_current_active_user)
+    request: Request, current_user: str = Depends(get_current_active_user)
 ):
     """Prune ineffective filters
     Requires authentication."""

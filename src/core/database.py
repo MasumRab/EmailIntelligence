@@ -10,17 +10,14 @@ import logging
 import os
 import shutil
 from datetime import datetime, timezone
-from functools import partial
-from typing import Any, Dict, List, Literal, Optional
-import hashlib
+from typing import Any, Dict, List, Optional
 
 # NOTE: These dependencies will be moved to the core framework as well.
 # For now, we are assuming they will be available in the new location.
-from .performance_monitor import log_performance
 from .constants import DEFAULT_CATEGORY_COLOR, DEFAULT_CATEGORIES
 from .data.data_source import DataSource
 
-from .security import validate_path_safety, sanitize_path
+from .security import validate_path_safety
 
 logger = logging.getLogger(__name__)
 
@@ -55,7 +52,7 @@ CURRENT_SCHEMA_VERSION = "1.0"
 # - Modify file path construction to use config.data_dir
 # - Add validation to ensure directory exists or can be created
 
-from .security import validate_path_safety, sanitize_path
+from .security import validate_path_safety
 
 
 class DatabaseConfig:
@@ -77,18 +74,28 @@ class DatabaseConfig:
             raise ValueError(f"Unsafe data directory path: {self.data_dir}")
 
         self.emails_file = emails_file or os.path.join(self.data_dir, "emails.json.gz")
-        self.categories_file = categories_file or os.path.join(self.data_dir, "categories.json.gz")
+        self.categories_file = categories_file or os.path.join(
+            self.data_dir, "categories.json.gz"
+        )
         self.users_file = users_file or os.path.join(self.data_dir, "users.json.gz")
-        self.email_content_dir = email_content_dir or os.path.join(self.data_dir, "email_content")
+        self.email_content_dir = email_content_dir or os.path.join(
+            self.data_dir, "email_content"
+        )
 
         # Validate all file paths
-        for path_attr in ["emails_file", "categories_file", "users_file", "email_content_dir"]:
+        for path_attr in [
+            "emails_file",
+            "categories_file",
+            "users_file",
+            "email_content_dir",
+        ]:
             path_value = getattr(self, path_attr)
             if not validate_path_safety(path_value, self.data_dir):
                 raise ValueError(f"Unsafe {path_attr} path: {path_value}")
 
         # Ensure directories exist
         os.makedirs(self.email_content_dir, exist_ok=True)
+
 
 # COMPLETED: Refactored global state management to use dependency injection
 # - Created DatabaseConfig class to hold configuration
@@ -209,7 +216,7 @@ class DatabaseManager(DataSource):
         # Load emails
         if os.path.exists(self.emails_file):
             try:
-                with gzip.open(self.emails_file, 'rt', encoding='utf-8') as f:
+                with gzip.open(self.emails_file, "rt", encoding="utf-8") as f:
                     self.emails_data = json.load(f)
                 self._build_emails_indexes()
             except Exception as e:
@@ -219,7 +226,7 @@ class DatabaseManager(DataSource):
         # Load categories
         if os.path.exists(self.categories_file):
             try:
-                with gzip.open(self.categories_file, 'rt', encoding='utf-8') as f:
+                with gzip.open(self.categories_file, "rt", encoding="utf-8") as f:
                     self.categories_data = json.load(f)
                 self._build_categories_indexes()
             except Exception as e:
@@ -230,7 +237,7 @@ class DatabaseManager(DataSource):
         # Load users
         if os.path.exists(self.users_file):
             try:
-                with gzip.open(self.users_file, 'rt', encoding='utf-8') as f:
+                with gzip.open(self.users_file, "rt", encoding="utf-8") as f:
                     self.users_data = json.load(f)
             except Exception as e:
                 logger.error(f"Error loading users: {e}")
@@ -240,12 +247,12 @@ class DatabaseManager(DataSource):
         """Build in-memory indexes for emails."""
         self.emails_by_id.clear()
         self.emails_by_message_id.clear()
-        
+
         for email in self.emails_data:
             email_id = email.get(FIELD_ID)
             if email_id is not None:
                 self.emails_by_id[email_id] = email
-            
+
             message_id = email.get(FIELD_MESSAGE_ID)
             if message_id:
                 self.emails_by_message_id[message_id] = email
@@ -255,12 +262,12 @@ class DatabaseManager(DataSource):
         self.categories_by_id.clear()
         self.categories_by_name.clear()
         self.category_counts.clear()
-        
+
         for category in self.categories_data:
             cat_id = category.get(FIELD_ID)
             if cat_id is not None:
                 self.categories_by_id[cat_id] = category
-            
+
             name = category.get(FIELD_NAME)
             if name:
                 self.categories_by_name[name.lower()] = category
@@ -281,11 +288,14 @@ class DatabaseManager(DataSource):
 
         # Create backup of the current file
         if os.path.exists(file_path):
-            backup_path = os.path.join(self.backup_dir, f"{data_type}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json.gz")
+            backup_path = os.path.join(
+                self.backup_dir,
+                f"{data_type}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json.gz",
+            )
             shutil.copy2(file_path, backup_path)
 
         # Write data to file
-        with gzip.open(file_path, 'wt', encoding='utf-8') as f:
+        with gzip.open(file_path, "wt", encoding="utf-8") as f:
             json.dump(data, f, ensure_ascii=False, indent=2)
 
         # Mark as saved
@@ -301,58 +311,68 @@ class DatabaseManager(DataSource):
         await self._ensure_initialized()
         return self.emails_by_id.get(email_id)
 
-    async def get_email_by_message_id(self, message_id: str) -> Optional[Dict[str, Any]]:
+    async def get_email_by_message_id(
+        self, message_id: str
+    ) -> Optional[Dict[str, Any]]:
         """Get email by message ID from memory."""
         await self._ensure_initialized()
         return self.emails_by_message_id.get(message_id)
 
-    async def create_email(self, email_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    async def create_email(
+        self, email_data: Dict[str, Any]
+    ) -> Optional[Dict[str, Any]]:
         """Create a new email record."""
         await self._ensure_initialized()
-        
+
         # Generate a unique ID
-        new_id = max([email.get(FIELD_ID, 0) for email in self.emails_data], default=0) + 1
+        new_id = (
+            max([email.get(FIELD_ID, 0) for email in self.emails_data], default=0) + 1
+        )
         email_data[FIELD_ID] = new_id
-        
+
         # Set creation timestamp
         email_data[FIELD_CREATED_AT] = datetime.now(timezone.utc).isoformat()
         email_data[FIELD_UPDATED_AT] = datetime.now(timezone.utc).isoformat()
-        
+
         # Add to data store
         self.emails_data.append(email_data)
         self.emails_by_id[new_id] = email_data
         message_id = email_data.get(FIELD_MESSAGE_ID)
         if message_id:
             self.emails_by_message_id[message_id] = email_data
-        
+
         # Update category counts if applicable
         category_id = email_data.get(FIELD_CATEGORY_ID)
         if category_id:
-            self.category_counts[category_id] = self.category_counts.get(category_id, 0) + 1
-        
+            self.category_counts[category_id] = (
+                self.category_counts.get(category_id, 0) + 1
+            )
+
         # Mark as dirty to be saved later
         self._dirty_data.add(DATA_TYPE_EMAILS)
-        
+
         return email_data
 
-    async def update_email(self, email_id: int, update_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    async def update_email(
+        self, email_id: int, update_data: Dict[str, Any]
+    ) -> Optional[Dict[str, Any]]:
         """Update an existing email record."""
         await self._ensure_initialized()
-        
+
         email = await self.get_email_by_id(email_id)
         if not email:
             return None
-        
+
         # Update fields
         for key, value in update_data.items():
             email[key] = value
-        
+
         # Set update timestamp
         email[FIELD_UPDATED_AT] = datetime.now(timezone.utc).isoformat()
-        
+
         # Mark as dirty to be saved later
         self._dirty_data.add(DATA_TYPE_EMAILS)
-        
+
         return email
 
     async def get_all_categories(self) -> List[Dict[str, Any]]:
@@ -370,28 +390,32 @@ class DatabaseManager(DataSource):
         await self._ensure_initialized()
         return self.categories_by_name.get(name.lower())
 
-    async def create_category(self, category_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    async def create_category(
+        self, category_data: Dict[str, Any]
+    ) -> Optional[Dict[str, Any]]:
         """Create a new category."""
         await self._ensure_initialized()
-        
+
         # Generate a unique ID
-        new_id = max([cat.get(FIELD_ID, 0) for cat in self.categories_data], default=0) + 1
+        new_id = (
+            max([cat.get(FIELD_ID, 0) for cat in self.categories_data], default=0) + 1
+        )
         category_data[FIELD_ID] = new_id
-        
+
         # Set creation timestamp
         category_data[FIELD_CREATED_AT] = datetime.now(timezone.utc).isoformat()
         category_data[FIELD_UPDATED_AT] = datetime.now(timezone.utc).isoformat()
-        
+
         # Add to data store
         self.categories_data.append(category_data)
         self.categories_by_id[new_id] = category_data
         name = category_data.get(FIELD_NAME)
         if name:
             self.categories_by_name[name.lower()] = category_data
-        
+
         # Mark as dirty to be saved later
         self._dirty_data.add(DATA_TYPE_CATEGORIES)
-        
+
         return category_data
 
     async def get_user_by_username(self, username: str) -> Optional[Dict[str, Any]]:
@@ -405,14 +429,15 @@ class DatabaseManager(DataSource):
     async def create_user(self, username: str, password: str) -> bool:
         """Create a new user."""
         await self._ensure_initialized()
-        
+
         # Check if user already exists
         if await self.get_user_by_username(username):
             return False
-        
+
         from .auth import hash_password
+
         hashed_password = hash_password(password)
-        
+
         user_data = {
             "id": len(self.users_data) + 1,
             "username": username,
@@ -421,12 +446,12 @@ class DatabaseManager(DataSource):
             "permissions": [],
             "mfa_enabled": False,
             "mfa_secret": None,
-            "mfa_backup_codes": []
+            "mfa_backup_codes": [],
         }
-        
+
         self.users_data.append(user_data)
         self._dirty_data.add(DATA_TYPE_USERS)
-        
+
         return True
 
     async def _initialize_default_categories(self):
@@ -438,12 +463,14 @@ class DatabaseManager(DataSource):
             # Add default categories
             for cat_name in DEFAULT_CATEGORIES:
                 if not await self.get_category_by_name(cat_name):
-                    await self.create_category({
-                        "name": cat_name,
-                        "description": f"Default {cat_name} category",
-                        "color": DEFAULT_CATEGORY_COLOR
-                    })
-        
+                    await self.create_category(
+                        {
+                            "name": cat_name,
+                            "description": f"Default {cat_name} category",
+                            "color": DEFAULT_CATEGORY_COLOR,
+                        }
+                    )
+
         self._default_categories_initialized = True
 
     async def _ensure_initialized(self):
@@ -452,7 +479,9 @@ class DatabaseManager(DataSource):
             await self.initialize()
 
     # Methods for email tagging functionality
-    async def add_tags_to_email(self, email_id: int, tags: List[str]) -> Optional[Dict[str, Any]]:
+    async def add_tags_to_email(
+        self, email_id: int, tags: List[str]
+    ) -> Optional[Dict[str, Any]]:
         """Add tags to an email."""
         await self._ensure_initialized()
         email = await self.get_email_by_id(email_id)
@@ -484,15 +513,19 @@ class DatabaseManager(DataSource):
 
         # Get basic counts
         total_emails = len(self.emails_data)
-        auto_labeled = sum(1 for email in self.emails_data if email.get(self.FIELD_CATEGORY_ID))
+        auto_labeled = sum(
+            1 for email in self.emails_data if email.get(self.FIELD_CATEGORY_ID)
+        )
         categories_count = len(self.categories_data)
-        unread_count = sum(1 for email in self.emails_data if not email.get('is_read', False))
+        unread_count = sum(
+            1 for email in self.emails_data if not email.get("is_read", False)
+        )
 
         # Calculate weekly growth (simplified - in production this would be more sophisticated)
         # For now, return placeholder values
         weekly_growth = {
             "emails": total_emails,  # This should be emails added in the last week
-            "percentage": 0.0  # This should be week-over-week growth percentage
+            "percentage": 0.0,  # This should be week-over-week growth percentage
         }
 
         return {
@@ -500,7 +533,7 @@ class DatabaseManager(DataSource):
             "auto_labeled": auto_labeled,
             "categories_count": categories_count,
             "unread_count": unread_count,
-            "weekly_growth": weekly_growth
+            "weekly_growth": weekly_growth,
         }
 
     async def get_category_breakdown(self, limit: int = 10) -> Dict[str, int]:
@@ -510,15 +543,17 @@ class DatabaseManager(DataSource):
         # Count emails by category
         category_counts = {}
         for email in self.emails_data:
-            category = email.get('category', 'Uncategorized')
+            category = email.get("category", "Uncategorized")
             category_counts[category] = category_counts.get(category, 0) + 1
 
         # Sort by count descending and apply limit
-        sorted_categories = sorted(category_counts.items(), key=lambda x: x[1], reverse=True)
+        sorted_categories = sorted(
+            category_counts.items(), key=lambda x: x[1], reverse=True
+        )
         return dict(sorted_categories[:limit])
 
 
-# Factory functions and configuration management 
+# Factory functions and configuration management
 async def create_database_manager(config: DatabaseConfig) -> DatabaseManager:
     """
     Factory function to create and initialize a DatabaseManager instance.
@@ -539,18 +574,19 @@ async def get_db() -> DatabaseManager:
     """
     Provides a default singleton instance for backward compatibility.
     For new implementations, consider using create_database_manager with explicit configuration.
-    
+
     WARNING: This function uses a global singleton pattern which is deprecated.
     Please migrate to using DatabaseConfig and create_database_manager for new code.
     """
     import warnings
+
     warnings.warn(
         "get_db() uses a global singleton pattern which is deprecated. "
         "Please migrate to using DatabaseConfig and create_database_manager for new code.",
         DeprecationWarning,
-        stacklevel=2
+        stacklevel=2,
     )
-    
+
     global _db_manager_instance
     if _db_manager_instance is None:
         async with _db_init_lock:

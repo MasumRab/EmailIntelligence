@@ -14,7 +14,7 @@ from backend.node_engine.workflow_manager import workflow_manager
 
 from ..plugins.plugin_manager import plugin_manager
 from .model_manager import model_manager
-from .performance_monitor import PerformanceMetric, performance_monitor
+from .performance_monitor import performance_monitor
 
 router = APIRouter()
 
@@ -53,7 +53,9 @@ async def load_model(model_name: str):
     """Load a specific model into memory."""
     success = model_manager.load_model(model_name)
     if not success:
-        raise HTTPException(status_code=400, detail=f"Failed to load model {model_name}")
+        raise HTTPException(
+            status_code=400, detail=f"Failed to load model {model_name}"
+        )
     return {"message": f"Model {model_name} loaded successfully"}
 
 
@@ -62,7 +64,9 @@ async def unload_model(model_name: str):
     """Unload a specific model from memory."""
     success = model_manager.unload_model(model_name)
     if not success:
-        raise HTTPException(status_code=400, detail=f"Failed to unload model {model_name}")
+        raise HTTPException(
+            status_code=400, detail=f"Failed to unload model {model_name}"
+        )
     return {"message": f"Model {model_name} unloaded successfully"}
 
 
@@ -124,7 +128,11 @@ async def get_workflow(workflow_id: str):
 @router.post("/workflows")
 async def create_workflow(request: WorkflowCreateRequest):
     """Create a new workflow."""
-    from backend.node_engine.email_nodes import AIAnalysisNode, EmailSourceNode, PreprocessingNode
+    from backend.node_engine.email_nodes import (
+        AIAnalysisNode,
+        EmailSourceNode,
+        PreprocessingNode,
+    )
     from backend.node_engine.node_base import Workflow
 
     workflow = Workflow(name=request.name, description=request.description)
@@ -141,7 +149,9 @@ async def create_workflow(request: WorkflowCreateRequest):
     from backend.node_engine.node_base import Connection
 
     workflow.add_connection(Connection("input_1", "emails", "processor_1", "emails"))
-    workflow.add_connection(Connection("processor_1", "processed_emails", "output_1", "emails"))
+    workflow.add_connection(
+        Connection("processor_1", "processed_emails", "output_1", "emails")
+    )
 
     file_path = workflow_manager.save_workflow(workflow)
 
@@ -166,7 +176,10 @@ async def get_performance_metrics(minutes: int = 5, source_filter: str = None):
     metrics = performance_monitor.get_recent_metrics(minutes, source_filter)
     return [
         PerformanceMetricResponse(
-            timestamp=metric.timestamp, value=metric.value, unit=metric.unit, source=metric.source
+            timestamp=metric.timestamp,
+            value=metric.value,
+            unit=metric.unit,
+            source=metric.source,
         )
         for metric in metrics
     ]

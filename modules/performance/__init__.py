@@ -21,6 +21,8 @@ def register(app: FastAPI, gradio_app: gr.Blocks):
     logger.info("Registering performance monitoring module.")
 
     # Add API routes
-    app.include_router(performance_router, prefix="/api/performance", tags=["Performance"])
+    app.include_router(
+        performance_router, prefix="/api/performance", tags=["Performance"]
+    )
 
     logger.info("Performance monitoring module registered successfully.")

@@ -17,7 +17,6 @@ from backend.node_engine.email_nodes import (
     FilterNode,
     PreprocessingNode,
 )
-from backend.node_engine.node_base import DataType, NodePort
 
 
 class NodeLibrary:
@@ -236,7 +235,11 @@ class NodeLibrary:
         return result
 
     def create_node(
-        self, node_type: str, config: Dict[str, Any] = None, node_id: str = None, name: str = None
+        self,
+        node_type: str,
+        config: Dict[str, Any] = None,
+        node_id: str = None,
+        name: str = None,
     ):
         """Create an instance of a node."""
         if node_type not in self._nodes:
@@ -259,5 +262,3 @@ def get_available_node_types() -> List[str]:
 def get_node_info(node_type: str) -> Dict[str, Any]:
     """Get detailed information about a specific node type."""
     return node_library.get_node_info(node_type)
-
-

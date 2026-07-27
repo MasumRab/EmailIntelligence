@@ -5,14 +5,15 @@ It will be removed in a future release.
 Test for the updated InputSanitizer with proper HTML sanitization.
 """
 
-import os
 import sys
 from pathlib import Path
 
 # Add the project root to the path so we can import backend modules
 # Use __file__ to determine the script's location and calculate the project root dynamically
 script_dir = Path(__file__).resolve().parent
-project_root = script_dir.parent.parent  # Go up to main project directory from backend/node_engine/
+project_root = (
+    script_dir.parent.parent
+)  # Go up to main project directory from backend/node_engine/
 sys.path.insert(0, str(project_root))
 
 
@@ -45,11 +46,15 @@ def test_input_sanitizer():
         print(f"Test 3 - Safe: {'onclick' not in result3}\n")
 
         # Test 4: Safe HTML that should be preserved
-        test_input4 = "<p>This is a <strong>safe</strong> paragraph with <em>formatting</em>.</p>"
+        test_input4 = (
+            "<p>This is a <strong>safe</strong> paragraph with <em>formatting</em>.</p>"
+        )
         result4 = InputSanitizer.sanitize_string(test_input4)
         print(f"Test 4 - Input: {test_input4}")
         print(f"Test 4 - Output: {result4}")
-        print(f"Test 4 - Safe HTML preserved: {len(result4) > 10 and '<p>' in result4}\n")
+        print(
+            f"Test 4 - Safe HTML preserved: {len(result4) > 10 and '<p>' in result4}\n"
+        )
 
         # Test 5: Dangerous iframe tag
         test_input5 = "<iframe src=\"javascript:alert('XSS')\"></iframe>"

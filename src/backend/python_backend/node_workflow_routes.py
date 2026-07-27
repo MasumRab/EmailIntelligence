@@ -10,7 +10,7 @@ that were implemented in the new node engine architecture.
 
 from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
 from backend.node_engine.email_nodes import (
@@ -23,14 +23,11 @@ from backend.node_engine.email_nodes import (
 
 # Import the new node-based workflow components
 from backend.node_engine.node_base import Workflow as NodeWorkflow
-from backend.node_engine.workflow_engine import WorkflowEngine  # Node engine
 from backend.node_engine.workflow_engine import workflow_engine as node_workflow_engine
-from backend.node_engine.workflow_manager import workflow_manager as node_workflow_manager
+from backend.node_engine.workflow_manager import (
+    workflow_manager as node_workflow_manager,
+)
 
-from ..python_nlp.smart_filters import SmartFilterManager
-from .ai_engine import AdvancedAIEngine
-from .dependencies import get_db
-from .model_manager import model_manager
 
 router = APIRouter()
 
@@ -39,9 +36,9 @@ class NodeWorkflowCreateRequest(BaseModel):
     name: str
     description: str = ""
     nodes: List[Dict[str, Any]] = []
-    connections: List[Dict[str, str]] = (
-        []
-    )  # Format: {source_node_id, source_port, target_node_id, target_port}
+    connections: List[
+        Dict[str, str]
+    ] = []  # Format: {source_node_id, source_port, target_node_id, target_port}
 
 
 class NodeWorkflowResponse(BaseModel):
@@ -84,17 +81,25 @@ async def create_node_workflow(request: NodeWorkflowCreateRequest):
 
             # Create the appropriate node based on type
             if node_type == "EmailSourceNode":
-                node = EmailSourceNode(config=node_config, node_id=node_id, name=node_name)
+                node = EmailSourceNode(
+                    config=node_config, node_id=node_id, name=node_name
+                )
             elif node_type == "PreprocessingNode":
-                node = PreprocessingNode(config=node_config, node_id=node_id, name=node_name)
+                node = PreprocessingNode(
+                    config=node_config, node_id=node_id, name=node_name
+                )
             elif node_type == "AIAnalysisNode":
-                node = AIAnalysisNode(config=node_config, node_id=node_id, name=node_name)
+                node = AIAnalysisNode(
+                    config=node_config, node_id=node_id, name=node_name
+                )
             elif node_type == "FilterNode":
                 node = FilterNode(config=node_config, node_id=node_id, name=node_name)
             elif node_type == "ActionNode":
                 node = ActionNode(config=node_config, node_id=node_id, name=node_name)
             else:
-                raise HTTPException(status_code=400, detail=f"Unknown node type: {node_type}")
+                raise HTTPException(
+                    status_code=400, detail=f"Unknown node type: {node_type}"
+                )
 
             # Add the node to the workflow
             workflow.add_node(node)
@@ -124,7 +129,9 @@ async def create_node_workflow(request: NodeWorkflowCreateRequest):
             updated_at="",  # Placeholder - would need actual timestamp from workflow
         )
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to create node workflow: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Failed to create node workflow: {str(e)}"
+        )
 
 
 @router.get("/api/nodes/workflows", response_model=List[str])
@@ -134,7 +141,9 @@ async def list_node_workflows():
         workflows = node_workflow_manager.list_workflows()
         return [wf["id"] for wf in workflows]
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to list workflows: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Failed to list workflows: {str(e)}"
+        )
 
 
 @router.get("/api/nodes/workflows/{workflow_id}", response_model=NodeWorkflowResponse)
@@ -201,17 +210,25 @@ async def update_node_workflow(workflow_id: str, request: NodeWorkflowCreateRequ
 
             # Create the appropriate node based on type
             if node_type == "EmailSourceNode":
-                node = EmailSourceNode(config=node_config, node_id=node_id, name=node_name)
+                node = EmailSourceNode(
+                    config=node_config, node_id=node_id, name=node_name
+                )
             elif node_type == "PreprocessingNode":
-                node = PreprocessingNode(config=node_config, node_id=node_id, name=node_name)
+                node = PreprocessingNode(
+                    config=node_config, node_id=node_id, name=node_name
+                )
             elif node_type == "AIAnalysisNode":
-                node = AIAnalysisNode(config=node_config, node_id=node_id, name=node_name)
+                node = AIAnalysisNode(
+                    config=node_config, node_id=node_id, name=node_name
+                )
             elif node_type == "FilterNode":
                 node = FilterNode(config=node_config, node_id=node_id, name=node_name)
             elif node_type == "ActionNode":
                 node = ActionNode(config=node_config, node_id=node_id, name=node_name)
             else:
-                raise HTTPException(status_code=400, detail=f"Unknown node type: {node_type}")
+                raise HTTPException(
+                    status_code=400, detail=f"Unknown node type: {node_type}"
+                )
 
             updated_workflow.add_node(node)
 
@@ -240,7 +257,9 @@ async def update_node_workflow(workflow_id: str, request: NodeWorkflowCreateRequ
             updated_at="",  # Placeholder
         )
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to update workflow: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Failed to update workflow: {str(e)}"
+        )
 
 
 @router.delete("/api/nodes/workflows/{workflow_id}")
@@ -253,10 +272,14 @@ async def delete_node_workflow(workflow_id: str):
 
         return {"message": f"Workflow {workflow_id} deleted successfully"}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to delete workflow: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Failed to delete workflow: {str(e)}"
+        )
 
 
-@router.post("/api/nodes/workflows/{workflow_id}/execute", response_model=ExecuteWorkflowResponse)
+@router.post(
+    "/api/nodes/workflows/{workflow_id}/execute", response_model=ExecuteWorkflowResponse
+)
 async def execute_node_workflow(workflow_id: str, request: ExecuteWorkflowRequest):
     """Execute a node-based workflow with provided inputs."""
     try:
@@ -279,7 +302,9 @@ async def execute_node_workflow(workflow_id: str, request: ExecuteWorkflowReques
             outputs=execution_context.node_outputs,
         )
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to execute workflow: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Failed to execute workflow: {str(e)}"
+        )
 
 
 # Node Management Routes
@@ -289,7 +314,9 @@ async def get_available_node_types():
     try:
         return node_workflow_engine.get_registered_node_types()
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to get node types: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Failed to get node types: {str(e)}"
+        )
 
 
 @router.get("/api/nodes/types/{node_type}/info")
@@ -308,11 +335,15 @@ async def get_node_info(node_type: str):
         elif node_type == "ActionNode":
             node = ActionNode()
         else:
-            raise HTTPException(status_code=404, detail=f"Node type {node_type} not found")
+            raise HTTPException(
+                status_code=404, detail=f"Node type {node_type} not found"
+            )
 
         return node.get_node_info()
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to get node info: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Failed to get node info: {str(e)}"
+        )
 
 
 # Node Library Routes
@@ -324,7 +355,9 @@ async def get_node_types():
 
         return get_available_node_types()
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to get node types: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Failed to get node types: {str(e)}"
+        )
 
 
 @router.get("/api/nodes/library/types/{node_type}", response_model=Dict[str, Any])
@@ -337,10 +370,14 @@ async def get_node_type_info(node_type: str):
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to get node info: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Failed to get node info: {str(e)}"
+        )
 
 
-@router.get("/api/nodes/library/categories", response_model=Dict[str, List[Dict[str, Any]]])
+@router.get(
+    "/api/nodes/library/categories", response_model=Dict[str, List[Dict[str, Any]]]
+)
 async def get_nodes_by_category():
     """Get all nodes grouped by category."""
     try:
@@ -348,7 +385,9 @@ async def get_nodes_by_category():
 
         return get_nodes_by_category()
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to get nodes by category: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Failed to get nodes by category: {str(e)}"
+        )
 
 
 @router.get("/api/nodes/library/all", response_model=List[Dict[str, Any]])
@@ -359,7 +398,9 @@ async def get_all_nodes_info():
 
         return get_all_node_info()
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to get all nodes info: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Failed to get all nodes info: {str(e)}"
+        )
 
 
 # Execution Management Routes
@@ -379,6 +420,11 @@ async def get_active_executions():
                 }
             )
 
-        return {"active_executions": active_executions, "total_active": len(active_executions)}
+        return {
+            "active_executions": active_executions,
+            "total_active": len(active_executions),
+        }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to get active executions: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Failed to get active executions: {str(e)}"
+        )

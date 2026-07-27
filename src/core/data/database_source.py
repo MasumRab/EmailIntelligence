@@ -1,32 +1,37 @@
-from typing import List, Dict, Any
+from typing import List, Dict, Any, TYPE_CHECKING
 from .data_source import DataSource
-from ..database import DatabaseManager, create_database_manager, DatabaseConfig
-from ..factory import get_data_source
-from ..data_source import DataSource as DataSourceProtocol
+
+if TYPE_CHECKING:
+    pass
+
 
 class DatabaseDataSource(DataSource):
-    """
-    A data source for emails that uses the database.
-    """
-
-    def __init__(self, db_manager: DatabaseManager):
+    def __init__(self, db_manager):
         self.db = db_manager
 
     @classmethod
     async def create(cls):
-        # Import locally to avoid circular imports
-        from ..database import get_db
-        db_manager = await get_db()
+        from .. import database as _db
 
-        config = DatabaseConfig()
-        db_manager = await create_database_manager(config)
+        db_manager = await _db.get_db()
+
+        config = _db.DatabaseConfig()
+        db_manager = await _db.create_database_manager(config)
         return cls(db_manager)
 
-    async def get_emails(self, limit: int = 100, offset: int = 0, category_id: int = None, is_unread: bool = None) -> List[Dict[str, Any]]:
+    async def get_emails(
+        self,
+        limit: int = 100,
+        offset: int = 0,
+        category_id: int = None,
+        is_unread: bool = None,
+    ) -> List[Dict[str, Any]]:
         """
         Fetches a list of emails from the database.
         """
-        return await self.db.get_emails(limit=limit, offset=offset, category_id=category_id, is_unread=is_unread)
+        return await self.db.get_emails(
+            limit=limit, offset=offset, category_id=category_id, is_unread=is_unread
+        )
 
     async def create_email(self, email_data: Dict[str, Any]) -> Dict[str, Any]:
         """
@@ -34,7 +39,9 @@ class DatabaseDataSource(DataSource):
         """
         return await self.db.create_email(email_data)
 
-    async def update_email(self, email_id: Any, email_data: Dict[str, Any]) -> Dict[str, Any]:
+    async def update_email(
+        self, email_id: Any, email_data: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """
         Updates an existing email in the database.
         """
@@ -92,23 +99,20 @@ class DatabaseDataSource(DataSource):
         """
         return await self.db.create_category(category_data)
 
-async def get_database_data_source() -> DatabaseDataSource:
-    """
-    Provides a singleton instance of the DatabaseDataSource.
-    """
+
+async def get_database_data_source():
+    from ..database import DatabaseConfig, create_database_manager
+
     return await DatabaseDataSource.create()
 
-    # Use the factory approach instead of the old singleton
     from ..factory import get_data_source
+
     data_source = await get_data_source()
-    # If it's already a DatabaseDataSource, return it
     if isinstance(data_source, DatabaseDataSource):
         return data_source
-    # Otherwise, create a new DatabaseDataSource with the DatabaseManager
-    elif hasattr(data_source, '_db'):  # DatabaseManager instance
+    elif hasattr(data_source, "_db"):
         return DatabaseDataSource(data_source)
     else:
-        # Create a new DatabaseDataSource with proper configuration
         config = DatabaseConfig()
         db_manager = await create_database_manager(config)
         return DatabaseDataSource(db_manager)

@@ -6,16 +6,12 @@ using Gradio. It includes tabs for dashboard, inbox, email analysis, and visuali
 """
 
 import json
-from typing import Any, Dict, List
 
 import gradio as gr
-import matplotlib.pyplot as plt
-import numpy as np
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 import requests
-import seaborn as sns
 
 from backend.python_nlp.nlp_engine import NLPEngine
 
@@ -69,7 +65,9 @@ def generate_topic_pie(categories):
     """Generate a pie chart for categories."""
     if not categories:
         categories = ["General"]
-    fig = px.pie(values=[1] * len(categories), names=categories, title="Topic Categories")
+    fig = px.pie(
+        values=[1] * len(categories), names=categories, title="Topic Categories"
+    )
     return fig
 
 
@@ -85,7 +83,9 @@ with gr.Blocks(title="Email Intelligence", theme=gr.themes.Soft()) as iface:
         with gr.TabItem("📥 Inbox"):
             gr.Markdown("## Inbox")
             email_df = gr.DataFrame(
-                headers=["ID", "Subject", "From", "Date"], interactive=True, label="Emails"
+                headers=["ID", "Subject", "From", "Date"],
+                interactive=True,
+                label="Emails",
             )
 
         with gr.TabItem("Single Email Analysis"):
@@ -95,7 +95,9 @@ with gr.Blocks(title="Email Intelligence", theme=gr.themes.Soft()) as iface:
                         label="Email Subject", placeholder="Enter email subject..."
                     )
                     email_content = gr.Textbox(
-                        label="Email Content", lines=10, placeholder="Enter email content..."
+                        label="Email Content",
+                        lines=10,
+                        placeholder="Enter email content...",
                     )
                     analyze_button = gr.Button("Analyze Email", variant="primary")
                 with gr.Column(scale=1):
@@ -181,7 +183,9 @@ with gr.Blocks(title="Email Intelligence", theme=gr.themes.Soft()) as iface:
                             "error": "Input must be a JSON array of email objects"
                         }
                     if len(emails) > 100:
-                        return pd.DataFrame(), {"error": "Too many emails, maximum 100 allowed"}
+                        return pd.DataFrame(), {
+                            "error": "Too many emails, maximum 100 allowed"
+                        }
                     results = []
                     for email in emails:
                         if (
@@ -196,7 +200,9 @@ with gr.Blocks(title="Email Intelligence", theme=gr.themes.Soft()) as iface:
                             result = nlp_engine.analyze_email(subject, content)
                             results.append(result)
                         except Exception as e:
-                            results.append({"error": f"Failed to analyze email: {str(e)}"})
+                            results.append(
+                                {"error": f"Failed to analyze email: {str(e)}"}
+                            )
                     df = pd.DataFrame(results)
                     stats = df.describe(include="all").to_dict()
                     return df, stats
@@ -206,7 +212,9 @@ with gr.Blocks(title="Email Intelligence", theme=gr.themes.Soft()) as iface:
                     return pd.DataFrame(), {"error": str(e)}
 
             analyze_data_button.click(
-                fn=analyze_batch, inputs=data_input, outputs=[batch_output, stats_output]
+                fn=analyze_batch,
+                inputs=data_input,
+                outputs=[batch_output, stats_output],
             )
 
         with gr.TabItem("Jupyter Notebook"):

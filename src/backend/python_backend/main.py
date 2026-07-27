@@ -15,11 +15,9 @@ import uuid
 from collections import defaultdict
 from datetime import datetime, timedelta
 
-from fastapi import Depends, FastAPI, HTTPException, Request, status
+from fastapi import FastAPI, HTTPException, Request, status
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, JSONResponse
-from fastapi.security import HTTPBearer
-from fastapi.staticfiles import StaticFiles
+from fastapi.responses import JSONResponse
 from pydantic import ValidationError
 from starlette.middleware.base import BaseHTTPMiddleware
 
@@ -44,7 +42,7 @@ from . import (
     workflow_routes,
 )
 from .ai_engine import AdvancedAIEngine
-from .auth import TokenData, create_access_token, get_current_user
+from .auth import create_access_token
 from .database import db_manager
 from .exceptions import AppException, BaseAppException
 
@@ -88,7 +86,9 @@ class ErrorHandlingMiddleware(BaseHTTPMiddleware):
                 # Alert if error rate is high (simple threshold)
                 total_errors = sum(error_counts.values())
                 if total_errors > 10:  # Simple threshold
-                    logger.warning(f"High error rate detected: {total_errors} errors in session")
+                    logger.warning(
+                        f"High error rate detected: {total_errors} errors in session"
+                    )
 
             # Format error response consistently
             if isinstance(exc, AppException):
@@ -212,7 +212,9 @@ if os.getenv("NODE_ENV") in ["production", "staging"]:
 gmail_service = GmailAIService()  # Used by gmail_routes
 filter_manager = SmartFilterManager()  # Used by filter_routes
 ai_engine = AdvancedAIEngine(model_manager)  # Used by email_routes, action_routes
-performance_monitor = performance_monitor  # Used by all routes via @performance_monitor.track
+performance_monitor = (
+    performance_monitor  # Used by all routes via @performance_monitor.track
+)
 
 from .routes.v1.category_routes import router as category_router_v1
 
@@ -250,7 +252,9 @@ app.include_router(workflow_router, prefix="", tags=["workflows"])
 # Include advanced workflow routes (will use node-based system)
 from .advanced_workflow_routes import router as advanced_workflow_router
 
-app.include_router(advanced_workflow_router, prefix="/api/workflows", tags=["advanced-workflows"])
+app.include_router(
+    advanced_workflow_router, prefix="/api/workflows", tags=["advanced-workflows"]
+)
 
 # Include node-based workflow routes
 from .node_workflow_routes import router as node_workflow_router
@@ -259,7 +263,9 @@ app.include_router(node_workflow_router, prefix="/api/nodes", tags=["node-workfl
 
 # Initialize workflow manager instance (using the node-based workflow manager)
 try:
-    from backend.node_engine.workflow_manager import workflow_manager as node_workflow_manager
+    from backend.node_engine.workflow_manager import (
+        workflow_manager as node_workflow_manager,
+    )
 
     workflow_manager_instance = node_workflow_manager
 except ImportError:
@@ -294,7 +300,9 @@ async def login(username: str, password: str):
         # Use a default if settings are not available
         access_token_expires = timedelta(minutes=30)
 
-    access_token = create_access_token(data={"sub": username}, expires_delta=access_token_expires)
+    access_token = create_access_token(
+        data={"sub": username}, expires_delta=access_token_expires
+    )
     return {"access_token": access_token, "token_type": "bearer"}
 
 
@@ -311,7 +319,11 @@ async def health_check(request: Request):
             "version": settings.app_version,
             "app_name": settings.app_name,
         }
-    except (ValueError, RuntimeError, OSError) as e:  # Specific exceptions for health check
+    except (
+        ValueError,
+        RuntimeError,
+        OSError,
+    ) as e:  # Specific exceptions for health check
         logger.error(  # Simple log for health check itself
             json.dumps(
                 {
@@ -337,7 +349,10 @@ async def health_check(request: Request):
 async def get_error_stats():
     """Get error statistics for monitoring."""
     with error_lock:
-        return {"error_counts": dict(error_counts), "total_errors": sum(error_counts.values())}
+        return {
+            "error_counts": dict(error_counts),
+            "total_errors": sum(error_counts.values()),
+        }
 
 
 if __name__ == "__main__":

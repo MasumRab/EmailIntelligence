@@ -8,15 +8,10 @@ from backend.node_engine.workflow_engine import WorkflowEngine
 from src.core.auth import get_current_active_user
 from src.core.data.repository import EmailRepository, get_email_repository
 
-from ..python_nlp.smart_filters import SmartFilterManager  # Corrected import
-from .ai_engine import AdvancedAIEngine
-from .database import DatabaseManager, get_db
-from .dependencies import get_ai_engine, get_email_service, get_filter_manager, get_workflow_engine
-from .exceptions import AIAnalysisError, DatabaseError, EmailNotFoundException
+from .dependencies import get_workflow_engine
 from .models import EmailCreate, EmailResponse, EmailUpdate
 from .performance_monitor import log_performance
-from .services.email_service import EmailService
-from .utils import create_log_data, handle_pydantic_validation
+from .utils import create_log_data
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -53,9 +48,13 @@ async def get_emails(
         if search:
             emails = await email_repo.search_emails(search)
             if category_id is not None:
-                emails = [email for email in emails if email.get("category_id") == category_id]
+                emails = [
+                    email for email in emails if email.get("category_id") == category_id
+                ]
         else:
-            emails = await email_repo.get_emails(category_id=category_id, is_unread=is_unread)
+            emails = await email_repo.get_emails(
+                category_id=category_id, is_unread=is_unread
+            )
 
         try:
             return [EmailResponse(**email) for email in emails]
@@ -134,7 +133,9 @@ async def create_email(
         try:
             return EmailResponse(**created_email_dict)
         except Exception as e_outer:
-            logger.error(f"Validation error for created email: {e_outer}", exc_info=True)
+            logger.error(
+                f"Validation error for created email: {e_outer}", exc_info=True
+            )
             raise HTTPException(status_code=500, detail="Data validation error")
     except Exception as e:
         log_data = create_log_data(
@@ -183,7 +184,10 @@ async def update_email(
         try:
             return EmailResponse(**updated_email_dict)
         except Exception as e_outer:
-            logger.error(f"Validation error for updated email {email_id}: {e_outer}", exc_info=True)
+            logger.error(
+                f"Validation error for updated email {email_id}: {e_outer}",
+                exc_info=True,
+            )
             raise HTTPException(status_code=500, detail="Data validation error")
     except HTTPException:
         raise
@@ -195,4 +199,6 @@ async def update_email(
             "error_detail": str(e),
         }
         logger.error(json.dumps(log_data))
-        raise HTTPException(status_code=500, detail="Failed to update email due to an unexpected error.")
+        raise HTTPException(
+            status_code=500, detail="Failed to update email due to an unexpected error."
+        )

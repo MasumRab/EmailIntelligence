@@ -18,6 +18,7 @@ import threading
 @dataclass
 class CLIState:
     """Represents the current CLI execution state."""
+
     session_id: str
     command_chain: List[str]
     working_directory: str
@@ -32,7 +33,7 @@ class CLIState:
 class CLIStateManager:
     """
     Manages CLI tool state across multiple invocations.
-    
+
     Features:
     - Session persistence
     - Command chaining
@@ -48,7 +49,7 @@ class CLIStateManager:
         self.state_dir = Path(state_dir or self.STATE_DIR)
         self._current_state: Optional[CLIState] = None
         self._lock = threading.Lock()
-        
+
         if self.persist:
             self.state_dir.mkdir(parents=True, exist_ok=True)
             self._cleanup_old_sessions()
@@ -56,11 +57,12 @@ class CLIStateManager:
     def _cleanup_old_sessions(self) -> None:
         """Remove old session files to prevent disk buildup."""
         import glob
+
         session_files = glob.glob(str(self.state_dir / "*.json"))
         if len(session_files) > self.MAX_SESSIONS:
             # Keep the most recent sessions
             session_files.sort()
-            for old_file in session_files[:-self.MAX_SESSIONS]:
+            for old_file in session_files[: -self.MAX_SESSIONS]:
                 try:
                     os.remove(old_file)
                 except OSError:
@@ -69,11 +71,11 @@ class CLIStateManager:
     def start_session(self, command_chain: List[str], **metadata) -> CLIState:
         """
         Start a new CLI session.
-        
+
         Args:
             command_chain: List of commands to execute
             **metadata: Additional metadata to store
-            
+
         Returns:
             CLIState object for this session
         """
@@ -87,23 +89,24 @@ class CLIStateManager:
                 end_time=None,
                 status="running",
                 results={},
-                metadata=metadata
+                metadata=metadata,
             )
-            
+
             if self.persist:
                 self._save_state()
-            
+
             return self._current_state
 
     def _get_current_branch(self) -> Optional[str]:
         """Get current Git branch."""
         try:
             import subprocess
+
             result = subprocess.run(
                 ["git", "branch", "--show-current"],
                 capture_output=True,
                 text=True,
-                check=False
+                check=False,
             )
             return result.stdout.strip() or None
         except Exception:
@@ -137,24 +140,24 @@ class CLIStateManager:
     def end_session(self, status: str = "completed") -> Optional[str]:
         """
         End the current session.
-        
+
         Args:
             status: Final status (completed, failed, etc.)
-            
+
         Returns:
             Session ID if persisted
         """
         with self._lock:
             if not self._current_state:
                 return None
-            
+
             self._current_state.status = status
             self._current_state.end_time = datetime.now().isoformat()
             session_id = self._current_state.session_id
-            
+
             if self.persist:
                 self._save_state()
-            
+
             self._current_state = None
             return session_id
 
@@ -162,16 +165,16 @@ class CLIStateManager:
         """Save current state to file."""
         if not self._current_state:
             return
-        
+
         state_file = self.state_dir / f"{self._current_state.session_id}.json"
-        with open(state_file, 'w') as f:
+        with open(state_file, "w") as f:
             json.dump(asdict(self._current_state), f, indent=2, default=str)
 
     def load_session(self, session_id: str) -> Optional[CLIState]:
         """Load a previous session by ID."""
         state_file = self.state_dir / f"{session_id}.json"
         if state_file.exists():
-            with open(state_file, 'r') as f:
+            with open(state_file, "r") as f:
                 data = json.load(f)
                 state = CLIState(**data)
                 self._current_state = state
@@ -182,12 +185,10 @@ class CLIStateManager:
         """List recent session IDs."""
         if not self.persist:
             return []
-        
+
         import glob
-        session_files = sorted(
-            glob.glob(str(self.state_dir / "*.json")),
-            reverse=True
-        )
+
+        session_files = sorted(glob.glob(str(self.state_dir / "*.json")), reverse=True)
         return [Path(f).stem for f in session_files[:limit]]
 
     def get_current_state(self) -> Optional[CLIState]:
@@ -208,10 +209,10 @@ _lock = threading.Lock()
 def get_state_manager(persist: bool = True) -> CLIStateManager:
     """
     Get the global state manager instance.
-    
+
     Args:
         persist: Whether to persist state to disk
-        
+
     Returns:
         CLIStateManager instance
     """
@@ -231,15 +232,15 @@ def reset_state_manager() -> None:
 
 if __name__ == "__main__":
     import argparse
-    
+
     parser = argparse.ArgumentParser(description="CLI State Manager")
     parser.add_argument("--list", action="store_true", help="List recent sessions")
     parser.add_argument("--load", help="Load session by ID")
-    
+
     args = parser.parse_args()
-    
+
     manager = get_state_manager()
-    
+
     if args.list:
         sessions = manager.list_sessions()
         print("Recent Sessions:")

@@ -6,7 +6,6 @@ including metrics, system stats, and error rates.
 """
 
 import logging
-from typing import Dict, List
 
 from fastapi import APIRouter, HTTPException
 
@@ -27,8 +26,8 @@ async def get_performance_metrics(minutes: int = 5, source_filter: str = None):
             {
                 "timestamp": metric.timestamp,
                 "value": metric.value,
-                "unit": getattr(metric, 'unit', ''),
-                "source": getattr(metric, 'source', '')
+                "unit": getattr(metric, "unit", ""),
+                "source": getattr(metric, "source", ""),
             }
             for metric in metrics
         ]

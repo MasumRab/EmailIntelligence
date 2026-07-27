@@ -6,17 +6,18 @@ to enable intelligent email filtering within workflows.
 """
 
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict
 import time
 
 from .advanced_workflow_engine import BaseNode, NodeMetadata
-from .smart_filter_manager import get_smart_filter_manager, EmailFilter
+from .smart_filter_manager import get_smart_filter_manager
 
 logger = logging.getLogger(__name__)
 
 
 class SmartFilterInputNode(BaseNode):
     """Node that provides email data as input to smart filtering workflows."""
+
 
 class SmartFilterProcessingNode(BaseNode):
     """Node that applies smart filters to email data."""
@@ -103,7 +104,9 @@ class SmartFilterCreationNode(BaseNode):
         email_samples = inputs.get("email_samples", [])
         if email_samples:
             # Create intelligent filters from email samples
-            created_filters = await filter_manager.create_intelligent_filters(email_samples)
+            created_filters = await filter_manager.create_intelligent_filters(
+                email_samples
+            )
             return {
                 "created_filters": [f.__dict__ for f in created_filters],
                 "new_filter": created_filters[0].__dict__ if created_filters else {},
@@ -234,7 +237,9 @@ class SmartFilterManagementNode(BaseNode):
                     "filter": {},
                     "management_result": {
                         "status": "success" if result else "error",
-                        "message": f"Deleted filter {filter_id}" if result else f"Failed to delete filter {filter_id}",
+                        "message": f"Deleted filter {filter_id}"
+                        if result
+                        else f"Failed to delete filter {filter_id}",
                     },
                     "filters_list": [],
                 }
@@ -247,7 +252,9 @@ class SmartFilterManagementNode(BaseNode):
                     "filter": {},
                     "management_result": {
                         "status": "success" if result else "error",
-                        "message": f"{'Enabled' if is_active else 'Disabled'} filter {filter_id}" if result else f"Failed to {action} filter {filter_id}",
+                        "message": f"{'Enabled' if is_active else 'Disabled'} filter {filter_id}"
+                        if result
+                        else f"Failed to {action} filter {filter_id}",
                     },
                     "filters_list": [],
                 }
@@ -302,16 +309,22 @@ class SmartFilterManagementNode(BaseNode):
 # Example workflow demonstrating smart filter integration
 def create_smart_filter_workflow_example():
     """Create an example workflow that demonstrates smart filter integration."""
-    from .advanced_workflow_engine import Workflow, WorkflowManager, initialize_workflow_system
+    from .advanced_workflow_engine import initialize_workflow_system
 
     # Initialize the workflow system
     workflow_manager = initialize_workflow_system()
 
     # Register smart filter node types
     workflow_manager.register_node_type("smart_filter_input", SmartFilterInputNode)
-    workflow_manager.register_node_type("smart_filter_processing", SmartFilterProcessingNode)
-    workflow_manager.register_node_type("smart_filter_creation", SmartFilterCreationNode)
-    workflow_manager.register_node_type("smart_filter_management", SmartFilterManagementNode)
+    workflow_manager.register_node_type(
+        "smart_filter_processing", SmartFilterProcessingNode
+    )
+    workflow_manager.register_node_type(
+        "smart_filter_creation", SmartFilterCreationNode
+    )
+    workflow_manager.register_node_type(
+        "smart_filter_management", SmartFilterManagementNode
+    )
 
     # Create a workflow
     workflow = workflow_manager.create_workflow(
@@ -387,6 +400,12 @@ def create_smart_filter_workflow_example():
 def register_smart_filter_nodes(workflow_manager):
     """Register smart filter node types with the workflow manager."""
     workflow_manager.register_node_type("smart_filter_input", SmartFilterInputNode)
-    workflow_manager.register_node_type("smart_filter_processing", SmartFilterProcessingNode)
-    workflow_manager.register_node_type("smart_filter_creation", SmartFilterCreationNode)
-    workflow_manager.register_node_type("smart_filter_management", SmartFilterManagementNode)
+    workflow_manager.register_node_type(
+        "smart_filter_processing", SmartFilterProcessingNode
+    )
+    workflow_manager.register_node_type(
+        "smart_filter_creation", SmartFilterCreationNode
+    )
+    workflow_manager.register_node_type(
+        "smart_filter_management", SmartFilterManagementNode
+    )

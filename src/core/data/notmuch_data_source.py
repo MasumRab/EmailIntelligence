@@ -8,7 +8,13 @@ class NotmuchDataSource(DataSource):
     A mock data source for notmuch.
     """
 
-    async def get_emails(self, limit: int = 100, offset: int = 0, category_id: int = None, is_unread: bool = None) -> List[Dict[str, Any]]:
+    async def get_emails(
+        self,
+        limit: int = 100,
+        offset: int = 0,
+        category_id: int = None,
+        is_unread: bool = None,
+    ) -> List[Dict[str, Any]]:
         """
         Fetches a list of emails from notmuch.
         """
@@ -20,7 +26,9 @@ class NotmuchDataSource(DataSource):
         """
         return {"id": 2, "subject": "New Email in notmuch"}
 
-    async def update_email(self, email_id: Any, email_data: Dict[str, Any]) -> Dict[str, Any]:
+    async def update_email(
+        self, email_id: Any, email_data: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """
         Updates an existing email in notmuch.
         """
@@ -60,4 +68,8 @@ class NotmuchDataSource(DataSource):
         """
         Creates a new category in notmuch.
         """
-        return {"id": 2, "name": category_data.get("name", "New Category"), "color": category_data.get("color", "#000000")}
+        return {
+            "id": 2,
+            "name": category_data.get("name", "New Category"),
+            "color": category_data.get("color", "#000000"),
+        }

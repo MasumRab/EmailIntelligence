@@ -81,7 +81,12 @@ async def test_run_training():
             patch("joblib.dump"),
         ):
             # Configure mocks
-            mock_split.return_value = (["text1", "text2"], ["text3"], ["pos", "neg"], ["neu"])
+            mock_split.return_value = (
+                ["text1", "text2"],
+                ["text3"],
+                ["pos", "neg"],
+                ["neu"],
+            )
             mock_vec_instance = MagicMock()
             mock_vec_instance.fit_transform.return_value = [[1, 0], [0, 1]]
             mock_vec_instance.transform.return_value = [[1, 0]]
@@ -100,7 +105,6 @@ async def test_run_training():
         patch("sklearn.metrics.accuracy_score") as mock_accuracy,
         patch("joblib.dump"),
     ):
-
         # Setup mock return values
         mock_df.return_value = pd.DataFrame(
             {

@@ -20,14 +20,18 @@ def register(app: FastAPI, gradio_app):
     try:
         # Add the API routes to the main FastAPI app
         # Routes include authentication dependencies (get_current_active_user)
-        app.include_router(dashboard_router, prefix="/api/dashboard", tags=["Dashboard"])
+        app.include_router(
+            dashboard_router, prefix="/api/dashboard", tags=["Dashboard"]
+        )
 
         # Add the dashboard UI component to the main Gradio app
         with gradio_app:
             with gr.TabItem("📈 Dashboard"):
                 create_dashboard_ui()
 
-        logger.info("Dashboard module registered successfully with authentication enabled.")
+        logger.info(
+            "Dashboard module registered successfully with authentication enabled."
+        )
 
     except Exception as e:
         logger.error(f"Failed to register dashboard module: {e}", exc_info=True)

@@ -8,22 +8,18 @@ core architecture and database management system.
 from datetime import datetime, timedelta
 from typing import Optional
 
-from typing import Optional, Dict, Any, List
-import hashlib
+from typing import Optional, Dict, Any
 import secrets
 from argon2 import PasswordHasher
 import jwt
 from fastapi import HTTPException, status, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel
-import hashlib
 import secrets
 
-from .database import get_db, DatabaseManager
-from .security import DataSanitizer
+from .database import get_db
 
 from .database import get_db
-from .settings import settings
 
 # Import the security framework components
 from .security import SecurityContext, Permission, SecurityLevel
@@ -38,40 +34,33 @@ class TokenData(BaseModel):
 class AuthManager:
     """
     Authentication manager for the Email Intelligence Platform.
-    
+
     This class handles user authentication, token management, and authorization.
     """
-    
+
     def __init__(self):
         self.db_manager = None
-        
+
     async def initialize(self):
         """Initialize the AuthManager with database connection."""
         from .database import get_db
+
         self.db_manager = await get_db()
-        
+
     async def authenticate_user(self, username: str, password: str) -> Optional[dict]:
         """Authenticate a user with username and password."""
         if not self.db_manager:
             await self.initialize()
-            
+
         # In a real implementation, this would check against the database
         # For now, we'll return a mock user
-        return {
-            "id": 1,
-            "username": username,
-            "email": f"{username}@example.com"
-        }
-        
+        return {"id": 1, "username": username, "email": f"{username}@example.com"}
+
     async def get_current_user(self, token: str) -> Optional[dict]:
         """Get the current user from a JWT token."""
         # In a real implementation, this would decode the token and get user from database
         # For now, we'll return a mock user
-        return {
-            "id": 1,
-            "username": "testuser",
-            "email": "testuser@example.com"
-        }
+        return {"id": 1, "username": "testuser", "email": "testuser@example.com"}
 
 
 # Initialize security scheme
@@ -83,12 +72,14 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     # Try to get the settings if possible
     try:
         from ..backend.python_backend.settings import settings
+
         secret_key = settings.secret_key
         algorithm = settings.algorithm
         expire_minutes = settings.access_token_expire_minutes
     except ImportError:
         # Fallback to core settings
         from .settings import settings
+
         secret_key = settings.secret_key
         algorithm = settings.algorithm
         expire_minutes = settings.access_token_expire_minutes
@@ -136,22 +127,26 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
         return False
 
 
-async def authenticate_user(username: str, password: str, db) -> Optional[Dict[str, Any]]:
+async def authenticate_user(
+    username: str, password: str, db
+) -> Optional[Dict[str, Any]]:
     """
     Authenticate a user by username and password.
-    
+
     Args:
         username: Username to authenticate
         password: Password to verify
         db: Database connection
-        
+
     Returns:
         User data if authentication is successful, None otherwise
     """
     try:
         # Try to get user from database
         user_data = await db.get_user_by_username(username)
-        if user_data and verify_password(password, user_data.get("hashed_password", "")):
+        if user_data and verify_password(
+            password, user_data.get("hashed_password", "")
+        ):
             return user_data
         return None
     except Exception as e:
@@ -162,12 +157,12 @@ async def authenticate_user(username: str, password: str, db) -> Optional[Dict[s
 async def create_user(username: str, password: str, db) -> bool:
     """
     Create a new user in the database.
-    
+
     Args:
         username: Username for the new user
         password: Password for the new user
         db: Database connection
-        
+
     Returns:
         True if user was created successfully, False if user already exists or on error
     """
@@ -176,16 +171,13 @@ async def create_user(username: str, password: str, db) -> bool:
         existing_user = await db.get_user_by_username(username)
         if existing_user:
             return False
-            
+
         # Hash the password
         hashed_password = hash_password(password)
-        
+
         # Create user in database
-        user_data = {
-            "username": username,
-            "hashed_password": hashed_password
-        }
-        
+        user_data = {"username": username, "hashed_password": hashed_password}
+
         await db.create_user(user_data)
         return True
     except Exception as e:
@@ -194,22 +186,24 @@ async def create_user(username: str, password: str, db) -> bool:
 
 
 async def verify_token(
-    credentials: HTTPAuthorizationCredentials = Depends(security)
+    credentials: HTTPAuthorizationCredentials = Depends(security),
 ) -> TokenData:
     """
     Verify the JWT token from the Authorization header.
-    
+
     This function checks if the provided token is valid and returns the token data.
     If the token is invalid or expired, it raises an HTTPException.
     """
     # Try to get the settings if possible
     try:
         from ..backend.python_backend.settings import settings
+
         secret_key = settings.secret_key
         algorithm = settings.algorithm
     except ImportError:
         # Fallback to core settings
         from .settings import settings
+
         secret_key = settings.secret_key
         algorithm = settings.algorithm
 
@@ -220,9 +214,7 @@ async def verify_token(
     )
     try:
         payload = jwt.decode(
-            credentials.credentials, 
-            secret_key,
-            algorithms=[algorithm]
+            credentials.credentials, secret_key, algorithms=[algorithm]
         )
         username: str = payload.get("sub")
         if username is None:
@@ -232,14 +224,14 @@ async def verify_token(
         raise credentials_exception
     except Exception:
         raise credentials_exception
-    
+
     return token_data
 
 
 async def get_current_user(token_data: TokenData = Depends(verify_token)) -> str:
     """
     Get the current authenticated user from the token.
-    
+
     This function can be used as a dependency to protect endpoints.
     """
     return token_data.username
@@ -251,7 +243,7 @@ async def get_current_active_user(current_user: str = Depends(get_current_user))
     """
     db = await get_db()
     users = db.users_data
-    
+
     for user in users:
         if user.get("username") == current_user and user.get("is_active", True):
             return current_user
@@ -262,7 +254,7 @@ async def get_current_active_user(current_user: str = Depends(get_current_user))
 def create_authentication_middleware():
     """
     Create and return an authentication middleware.
-    
+
     This is a placeholder function that could be expanded to implement
     custom authentication middleware if needed.
     """
@@ -274,31 +266,32 @@ def create_authentication_middleware():
         if token_data.role not in [role.value for role in required_roles]:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail=f"Access denied. One of {[role.value for role in required_roles]} roles required."
+                detail=f"Access denied. One of {[role.value for role in required_roles]} roles required.",
             )
         return token_data
+
     return role_checker
 
 
 def create_security_context_for_user(username: str) -> SecurityContext:
     """
     Create a security context for an authenticated user.
-    
+
     This integrates with the existing security framework.
-    
+
     Args:
         username: Username of the authenticated user
-        
+
     Returns:
         SecurityContext for the user
     """
     # In a production system, you would fetch user permissions from the database
     # For now, we'll give standard permissions
     permissions = [Permission.READ, Permission.WRITE]
-    
+
     # Create a session token (in a real system, this would be linked to the JWT)
     session_token = secrets.token_urlsafe(32)
-    
+
     context = SecurityContext(
         user_id=username,
         permissions=permissions,
@@ -306,5 +299,5 @@ def create_security_context_for_user(username: str) -> SecurityContext:
         session_id=session_token,
         allowed_resources=["*"],  # All resources allowed for now
     )
-    
+
     return context

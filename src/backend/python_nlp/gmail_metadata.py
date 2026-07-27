@@ -11,7 +11,6 @@ import json
 import logging
 import re
 from dataclasses import dataclass
-from datetime import datetime
 from typing import Any, Dict, List, Optional
 
 
@@ -135,7 +134,12 @@ class GmailMetadataExtractor:
             "CATEGORY_UPDATES": "updates",
             "CATEGORY_FORUMS": "forums",
         }
-        self.priority_headers = ["X-Priority", "Priority", "Importance", "X-MSMail-Priority"]
+        self.priority_headers = [
+            "X-Priority",
+            "Priority",
+            "Importance",
+            "X-MSMail-Priority",
+        ]
         self.security_headers = [
             "Authentication-Results",
             "Received-SPF",
@@ -163,7 +167,9 @@ class GmailMetadataExtractor:
             history_id = gmail_message.get("historyId", "")
             internal_date = gmail_message.get("internalDate", "")
             label_ids = gmail_message.get("labelIds", [])
-            labels = [self.system_labels.get(label_id, label_id) for label_id in label_ids]
+            labels = [
+                self.system_labels.get(label_id, label_id) for label_id in label_ids
+            ]
             is_unread = "UNREAD" in label_ids
             is_starred = "STARRED" in label_ids
             is_important = "IMPORTANT" in label_ids
@@ -180,7 +186,9 @@ class GmailMetadataExtractor:
             has_attachments = len(attachments) > 0
             importance_markers = self._extract_importance_markers(headers, label_ids)
             thread_info = self._extract_thread_info(headers, gmail_message)
-            spf_status, dkim_status, dmarc_status = self._extract_security_status(headers)
+            spf_status, dkim_status, dmarc_status = self._extract_security_status(
+                headers
+            )
             encryption_info = self._extract_encryption_info(headers)
             priority = self._extract_priority(headers)
             mailing_list = self._extract_mailing_list_info(headers)
@@ -311,7 +319,10 @@ class GmailMetadataExtractor:
         self, headers: Dict[str, str], label_ids: List[str]
     ) -> Dict[str, Any]:
         """Extracts various importance and priority markers."""
-        markers = {"is_important": "IMPORTANT" in label_ids, "is_starred": "STARRED" in label_ids}
+        markers = {
+            "is_important": "IMPORTANT" in label_ids,
+            "is_starred": "STARRED" in label_ids,
+        }
         for header in self.priority_headers:
             if header in headers:
                 markers["priority_header"] = headers[header]
@@ -401,7 +412,9 @@ class GmailMetadataExtractor:
     def _extract_custom_headers(self, headers: Dict[str, str]) -> Dict[str, str]:
         """Extracts custom headers (those starting with 'X-')."""
         standard = {"From", "To", "Cc", "Bcc", "Subject", "Date", "Message-ID"}
-        return {k: v for k, v in headers.items() if k not in standard and k.startswith("X-")}
+        return {
+            k: v for k, v in headers.items() if k not in standard and k.startswith("X-")
+        }
 
     def _create_minimal_metadata(self, gmail_message: Dict[str, Any]) -> GmailMessage:
         """Creates a minimally populated GmailMessage object for error cases."""
@@ -450,7 +463,9 @@ class GmailMetadataExtractor:
             raw_email=None,
         )
 
-    def extract_batch_metadata(self, gmail_messages: List[Dict[str, Any]]) -> List[GmailMessage]:
+    def extract_batch_metadata(
+        self, gmail_messages: List[Dict[str, Any]]
+    ) -> List[GmailMessage]:
         """
         Extracts metadata from a batch of Gmail message objects.
 
@@ -500,7 +515,9 @@ def main():
                 {"name": "From", "value": "John Doe <john@example.com>"},
                 {"name": "Subject", "value": "Important Project Update"},
             ],
-            "body": {"data": base64.urlsafe_b64encode(b"This is the email content.").decode()},
+            "body": {
+                "data": base64.urlsafe_b64encode(b"This is the email content.").decode()
+            },
         },
     }
     metadata = extractor.extract_complete_metadata(sample_message)
