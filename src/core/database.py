@@ -478,6 +478,42 @@ class DatabaseManager(DataSource):
         updated_email = await self.update_email(email_id, {"tags": updated_tags})
         return updated_email is not None
 
+
+    async def get_emails(self, limit: int = 100, offset: int = 0, category_id: int = None, is_unread: bool = None) -> List[Dict[str, Any]]:
+        """Fetches a list of emails."""
+        await self._ensure_initialized()
+
+        filtered_emails = self.emails_data
+
+        if category_id is not None:
+            filtered_emails = [e for e in filtered_emails if e.get("category_id") == category_id]
+
+        if is_unread is not None:
+            filtered_emails = [e for e in filtered_emails if not e.get("is_read", False) == is_unread]
+
+        return filtered_emails[offset:offset+limit]
+
+    async def search_emails(self, query: str) -> List[Dict[str, Any]]:
+        """Searches for emails matching a query."""
+        await self._ensure_initialized()
+        query = query.lower()
+        return [
+            e for e in self.emails_data
+            if query in e.get("subject", "").lower() or query in e.get("content", "").lower()
+        ]
+
+    async def add_tags(self, email_id: Any, tags: List[str]) -> bool:
+        """Adds tags to an email."""
+        result = await self.add_tags_to_email(email_id, tags)
+        return result is not None
+
+    async def remove_tags(self, email_id: Any, tags: List[str]) -> bool:
+        """Removes tags from an email."""
+        return await self.remove_tags_from_email(email_id, tags)
+
+    async def shutdown(self) -> None:
+        pass
+
     async def get_dashboard_aggregates(self) -> Dict[str, Any]:
         """Retrieves aggregated dashboard statistics for efficient server-side calculations."""
         await self._ensure_initialized()
