@@ -8,7 +8,6 @@ application.
 """
 
 import argparse
-import atexit
 import logging
 import os
 import platform
@@ -16,7 +15,6 @@ import shutil
 import subprocess
 import sys
 import time
-import venv
 from pathlib import Path
 from typing import List
 
@@ -33,29 +31,25 @@ ROOT_DIR = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT_DIR))
 
 # Import utilities from the setup package
-from setup.utils import (
-    ProcessManager,
-    process_manager,
-    get_conda_env_info,
-    is_conda_available,
-    activate_conda_env,
+from setup.utils import (  # noqa: E402
+    process_manager,  # noqa: E402
+    get_conda_env_info,  # noqa: E402
+    is_conda_available,  # noqa: E402
+    activate_conda_env,  # noqa: E402
 )
-from setup.environment import (
-    is_wsl,
-    setup_wsl_environment as env_setup_wsl,
-    check_wsl_requirements,
-    get_python_executable,
-    get_venv_executable,
+from setup.environment import (  # noqa: E402
+    setup_wsl_environment as env_setup_wsl,  # noqa: E402
+    check_wsl_requirements,  # noqa: E402
+    get_python_executable,  # noqa: E402
+    get_venv_executable,  # noqa: E402
 )
-from setup.validation import (
-    check_python_version as val_check_python_version,
-    check_for_merge_conflicts,
-    check_required_components,
-    validate_environment,
-    validate_port,
-    validate_host,
+from setup.validation import (  # noqa: E402
+    check_python_version as val_check_python_version,  # noqa: E402
+    validate_environment,  # noqa: E402
+    validate_port,  # noqa: E402
+    validate_host,  # noqa: E402
 )
-from setup.test_stages import test_stages
+from setup.test_stages import test_stages  # noqa: E402
 
 # Try to import dotenv
 try:
@@ -86,9 +80,6 @@ def check_python_version():
 
 
 # --- Environment Validation ---
-def check_required_components() -> bool:
-    """Check for required components and configurations."""
-    return check_required_components()
 
 
 # --- Helper Functions ---
@@ -117,31 +108,31 @@ def run_command(cmd: List[str], description: str, **kwargs) -> bool:
 # --- Setup Functions ---
 def create_venv(venv_path: Path, recreate: bool = False):
     """Create a virtual environment."""
-    from setup.environment import create_venv as env_create_venv
+    from setup.environment import create_venv as env_create_venv  # noqa: E402
     env_create_venv(venv_path, recreate)
 
 
 def install_package_manager(venv_path: Path, manager: str):
     """Install a package manager in the venv."""
-    from setup.environment import install_package_manager as env_install_pm
+    from setup.environment import install_package_manager as env_install_pm  # noqa: E402
     env_install_pm(venv_path, manager)
 
 
 def setup_dependencies(venv_path: Path, use_poetry: bool = False):
     """Set up dependencies using the package manager."""
-    from setup.environment import setup_dependencies as env_setup_deps
+    from setup.environment import setup_dependencies as env_setup_deps  # noqa: E402
     env_setup_deps(venv_path, use_poetry)
 
 
 def install_notmuch_matching_system():
     """Install notmuch matching system version."""
-    from setup.environment import install_notmuch_matching_system as env_install_notmuch
+    from setup.environment import install_notmuch_matching_system as env_install_notmuch  # noqa: E402
     env_install_notmuch()
 
 
 def download_nltk_data(venv_path=None):
     """Download NLTK data required by the application."""
-    from setup.environment import download_nltk_data as env_download_nltk
+    from setup.environment import download_nltk_data as env_download_nltk  # noqa: E402
     env_download_nltk(venv_path)
 
 

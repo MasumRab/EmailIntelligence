@@ -12,7 +12,7 @@ import re
 import subprocess
 import sys
 from pathlib import Path
-from typing import Dict, Optional
+from typing import Dict
 
 from setup.project_config import get_project_config
 from setup.utils import process_manager
@@ -398,7 +398,6 @@ def start_services(args) -> bool:
     if not args.api_only:
         # Start frontend if configured and available
         if available_services.get("frontend", False):
-            frontend_config = config.get_service_config("frontend")
             frontend_path = config.get_service_path("frontend")
             if not start_node_service(
                 frontend_path,
