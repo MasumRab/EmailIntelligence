@@ -1,12 +1,3 @@
-#!/usr/bin/env python3
-"""
-EmailIntelligence Unified Launcher
-
-This module provides a unified entry point for setting up the development
-environment, running tests, and launching services for the EmailIntelligence
-application.
-"""
-
 import argparse
 import logging
 import os
@@ -17,20 +8,6 @@ import sys
 import time
 from pathlib import Path
 from typing import List
-
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-)
-logger = logging.getLogger("launcher")
-
-# Global paths
-ROOT_DIR = Path(__file__).resolve().parent.parent
-
-# Add project root to sys.path for module imports
-sys.path.insert(0, str(ROOT_DIR))
-
-# Import utilities from the setup package
 from setup.utils import (
     process_manager,
     get_conda_env_info,
@@ -50,6 +27,29 @@ from setup.validation import (
     validate_host,
 )
 from setup.test_stages import test_stages
+#!/usr/bin/env python3
+"""
+EmailIntelligence Unified Launcher
+
+This module provides a unified entry point for setting up the development
+environment, running tests, and launching services for the EmailIntelligence
+application.
+"""
+
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+)
+logger = logging.getLogger("launcher")
+
+# Global paths
+ROOT_DIR = Path(__file__).resolve().parent.parent
+
+# Add project root to sys.path for module imports
+sys.path.insert(0, str(ROOT_DIR))
+
+# Import utilities from the setup package
 
 # Try to import dotenv
 try:

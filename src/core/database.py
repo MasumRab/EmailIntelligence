@@ -25,6 +25,7 @@ from .enhanced_error_reporting import (
 )
 from .constants import DEFAULT_CATEGORY_COLOR
 from .security import validate_path_safety
+from .data.data_source import DataSource
 
 logger = logging.getLogger(__name__)
 
@@ -101,7 +102,6 @@ class DatabaseConfig:
 
 
 # Import DataSource locally to avoid circular imports
-from .data.data_source import DataSource
 
 class DatabaseManager(DataSource):
     """Optimized async database manager with in-memory caching, write-behind,

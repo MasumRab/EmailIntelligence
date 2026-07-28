@@ -1,3 +1,9 @@
+import json
+import gradio as gr
+from backend.node_engine.node_base import Workflow
+from backend.node_engine.workflow_manager import get_workflow_manager
+from backend.plugins.plugin_manager import plugin_manager
+from src.core.advanced_workflow_engine import initialize_workflow_system
 """
 DEPRECATED: This module is part of the deprecated `backend` package.
 It will be removed in a future release.
@@ -8,13 +14,8 @@ Implements a Gradio-based node editor interface for creating and managing
 node-based workflows, inspired by ComfyUI's interface design.
 """
 
-import json
 
-import gradio as gr
 
-from backend.node_engine.node_base import Workflow
-from backend.node_engine.workflow_manager import get_workflow_manager
-from backend.plugins.plugin_manager import plugin_manager
 
 # Try to import security manager if available
 try:
@@ -318,7 +319,6 @@ def create_advanced_workflow_ui():
 
 
 # Initialize the workflow system when this module is loaded
-from src.core.advanced_workflow_engine import initialize_workflow_system
 initialize_workflow_system()
 
 if __name__ == "__main__":

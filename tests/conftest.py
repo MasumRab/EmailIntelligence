@@ -1,5 +1,11 @@
 import os
 import sys
+import subprocess
+from unittest.mock import AsyncMock
+import pytest
+from fastapi import FastAPI
+from fastapi.testclient import TestClient
+from src.core.factory import get_data_source
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
@@ -13,12 +19,7 @@ def _setup_test_env_early():
 
 _setup_test_env_early()
 
-import subprocess
-from unittest.mock import AsyncMock
 
-import pytest
-from fastapi import FastAPI
-from fastapi.testclient import TestClient
 
 
 # Create a minimal test app without gradio dependencies
@@ -64,7 +65,6 @@ def setup_test_environment():
 
 
 # from src.core.database import get_db  # FIXME: get_db function doesn't exist
-from src.core.factory import get_data_source
 
 # Use the test app instead of the main app
 # Use the create_test_app function defined above

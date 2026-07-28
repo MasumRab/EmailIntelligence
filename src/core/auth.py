@@ -1,9 +1,3 @@
-"""
-Authentication module for the Email Intelligence Platform.
-
-This module implements JWT-based authentication for API endpoints and integrates with the existing security framework.
-"""
-
 import logging
 from datetime import datetime, timedelta
 from typing import Optional, Dict, Any, List
@@ -11,17 +5,24 @@ import time
 import secrets
 from argon2 import PasswordHasher
 import argon2.exceptions
-
 import jwt
 from fastapi import HTTPException, status, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel
+from .settings import settings
+from .security import SecurityContext, Permission, SecurityLevel
+from enum import Enum
+"""
+Authentication module for the Email Intelligence Platform.
+
+This module implements JWT-based authentication for API endpoints and integrates with the existing security framework.
+"""
+
+
 
 # Database imports removed - use dependency injection with create_database_manager
-from .settings import settings
 
 # Import the security framework components
-from .security import SecurityContext, Permission, SecurityLevel
 
 logger = logging.getLogger(__name__)
 
@@ -32,7 +33,6 @@ class TokenData(BaseModel):
     role: Optional[str] = "user"
 
 
-from enum import Enum
 
 
 class UserRole(str, Enum):

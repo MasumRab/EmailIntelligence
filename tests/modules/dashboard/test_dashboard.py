@@ -6,6 +6,9 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import json
 import sys
 import os
+from modules.dashboard.routes import router as dashboard_router
+from modules.dashboard.models import ConsolidatedDashboardStats
+from src.core.auth import get_current_active_user
 
 # Environment variables are now set automatically by conftest.py setup_test_session fixture
 # The SECRET_KEY is generated randomly for each test session for security
@@ -14,8 +17,6 @@ import os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', '..'))
 
 # Import routes directly to avoid gradio dependency
-from modules.dashboard.routes import router as dashboard_router
-from modules.dashboard.models import ConsolidatedDashboardStats
 
 # Mock data
 mock_emails = [
@@ -58,7 +59,6 @@ app = FastAPI()
 app.include_router(dashboard_router, prefix="/api/dashboard", tags=["Dashboard"])
 app.dependency_overrides[get_email_repository] = override_get_email_repository
 # Mock authentication for testing
-from src.core.auth import get_current_active_user
 app.dependency_overrides[get_current_active_user] = mock_get_current_user
 client = TestClient(app)
 

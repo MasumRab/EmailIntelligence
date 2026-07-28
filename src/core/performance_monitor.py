@@ -1,3 +1,18 @@
+import asyncio
+import json
+import logging
+import threading
+import time
+from dataclasses import dataclass
+from datetime import datetime, timezone
+from functools import wraps
+from typing import Any, Callable, Dict, List, Optional
+import psutil
+import atexit
+from collections import defaultdict, deque
+from dataclasses import asdict, dataclass
+from pathlib import Path
+from typing import Any, Dict, Optional, Union
 """
 Performance Monitoring for Email Intelligence Platform
 
@@ -10,17 +25,7 @@ Also includes the optimized version features:
 - Configurable sampling rates
 """
 
-import asyncio
-import json
-import logging
-import threading
-import time
-from dataclasses import dataclass
-from datetime import datetime, timezone
-from functools import wraps
-from typing import Any, Callable, Dict, List, Optional
 
-import psutil
 
 logger = logging.getLogger(__name__)
 
@@ -179,13 +184,8 @@ def _create_decorator(func, op_name):
         return sync_wrapper
 
 
-import atexit
 
 # Enhanced performance monitoring system with additional features
-from collections import defaultdict, deque
-from dataclasses import asdict, dataclass
-from pathlib import Path
-from typing import Any, Dict, Optional, Union
 
 logger = logging.getLogger(__name__)
 
