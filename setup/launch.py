@@ -31,26 +31,26 @@ ROOT_DIR = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT_DIR))
 
 # Import utilities from the setup package
-from setup.utils import (
+from setup.utils import (  # noqa: E402
     process_manager,
     get_conda_env_info,
     is_conda_available,
     activate_conda_env,
 )
-from setup.environment import (
+from setup.environment import (  # noqa: E402
     setup_wsl_environment as env_setup_wsl,
     check_wsl_requirements,
     get_python_executable,
     get_venv_executable,
 )
-from setup.validation import (
+from setup.validation import (  # noqa: E402
     check_python_version as val_check_python_version,
     check_required_components,
     validate_environment,
     validate_port,
     validate_host,
 )
-from setup.test_stages import test_stages
+from setup.test_stages import test_stages  # noqa: E402
 
 # Try to import dotenv
 try:
