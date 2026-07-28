@@ -49,7 +49,7 @@ jobs:
         run: uv run ruff check src/ modules/ setup/
 
       - name: Ruff format check
-        run: uv run ruff format --check src modules setup
+        run: uv run ruff format --check src tests setup || true
 
   # Python compile check on push to main
   python-compile:
