@@ -2,13 +2,13 @@ name: CI
 
 on:
   push:
-    branches: [main, scientific]
+    branches: [main, scientific, orchestration-tools]
     paths-ignore:
       - '**.md'
       - 'docs/**'
       - '**.mdx'
   pull_request:
-    branches: [main, scientific]
+    branches: [main, scientific, orchestration-tools]
     paths-ignore:
       - '**.md'
       - 'docs/**'
@@ -25,14 +25,14 @@ jobs:
       !contains(github.event.pull_request.labels.*.name, 'ci:skip-tests')
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v4
         with:
           submodules: recursive
-      - uses: actions/setup-python@v6
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
           cache: 'pip'
-      - uses: astral-sh/setup-uv@v7
+      - uses: astral-sh/setup-uv@v5
         with:
           enable-cache: true
       - name: Install dependencies
@@ -55,18 +55,19 @@ jobs:
     if: |
       !contains(github.event.head_commit.message, '[skip ci]') &&
       !contains(github.event.head_commit.message, '[ci:tests-only]') &&
-      !contains(github.event.pull_request.labels.*.name, 'ci:skip-lint')
+      !contains(github.event.pull_request.labels.*.name, 'ci:skip-lint') &&
+      github.actor != 'dependabot[bot]'
     runs-on: ubuntu-latest
     continue-on-error: true
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v4
         with:
           submodules: recursive
-      - uses: actions/setup-python@v6
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
           cache: 'pip'
-      - uses: astral-sh/setup-uv@v7
+      - uses: astral-sh/setup-uv@v5
         with:
           enable-cache: true
       - name: Install dependencies
