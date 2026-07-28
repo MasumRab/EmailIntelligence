@@ -86,7 +86,7 @@ def install_nodejs_dependencies(directory: str, update: bool = False) -> bool:
             logger.error(f"Failed to install Node.js dependencies in {directory}: {result.stderr}")
             return False
     except Exception as e:
-        logger.error(f"Error installing Node.js dependencies: {e}")
+        logger.exception("Error installing Node.js dependencies")
         return False
 
 
@@ -116,7 +116,7 @@ def start_client():
         from setup.utils import process_manager
         process_manager.add_process(process)
     except Exception as e:
-        logger.error(f"Failed to start client: {e}")
+        logger.exception("Failed to start client")
 
 
 def start_server_ts():
@@ -145,7 +145,7 @@ def start_server_ts():
         from setup.utils import process_manager
         process_manager.add_process(process)
     except Exception as e:
-        logger.error(f"Failed to start TypeScript backend: {e}")
+        logger.exception("Failed to start TypeScript backend")
 
 
 def get_python_executable() -> str:
@@ -221,7 +221,7 @@ def start_node_service(service_path: Path, service_name: str, port: int, api_url
         else:
             logger.error(f"No package.json found for {service_name}")
     except Exception as e:
-        logger.error(f"Failed to start {service_name}: {e}")
+        logger.exception(f"Failed to start {service_name}")
 
 
 def setup_node_dependencies(service_path: Path, service_name: str):
@@ -250,7 +250,7 @@ def setup_node_dependencies(service_path: Path, service_name: str):
             else:
                 logger.error(f"Failed to install dependencies for {service_name}: {result.stderr}")
         except Exception as e:
-            logger.error(f"Error installing dependencies for {service_name}: {e}")
+            logger.exception(f"Error installing dependencies for {service_name}")
 
 
 def start_gradio_ui(host, port, share, debug):
@@ -284,7 +284,7 @@ def start_gradio_ui(host, port, share, debug):
         from setup.utils import process_manager
         process_manager.add_process(process)
     except Exception as e:
-        logger.error(f"Failed to start Gradio UI: {e}")
+        logger.exception("Failed to start Gradio UI")
 
 
 def validate_services() -> Dict[str, bool]:
