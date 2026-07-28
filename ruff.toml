@@ -10,7 +10,7 @@ line-length = 120
 # Use default ruff rules (E4, E7, E9, F) without whitespace rules
 # E402 - Module-level imports not at top of file: used for circular import avoidance
 #         and for conditional module initialization across the codebase
-ignore = ["E402"]
+ignore = []
 
 [lint.per-file-ignores]
 # F401 in __init__.py files: re-exports are intentional
