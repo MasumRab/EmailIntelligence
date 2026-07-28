@@ -86,8 +86,8 @@ class ContextControlMiddleware(BaseHTTPMiddleware):
         if hasattr(request.state, 'context_id'):
             try:
                 response.headers["X-Context-ID"] = request.state.context_id
-            except Exception:
-                pass  # Do not fail request if header injection fails
+            except Exception as e:
+                logging.debug(f"Failed to inject context ID header: {e}")
             
         # Add timing information
         process_time = time.time() - start_time
@@ -159,8 +159,8 @@ def create_app() -> FastAPI:
                     "isolator": ContextIsolator is not None,
                     "config": ContextControlConfig is not None
                 }
-            except Exception:
-                pass
+            except Exception as e:
+                logging.debug(f"Failed to fetch context controller health: {e}")
         
         return health_status
     
@@ -198,7 +198,7 @@ if __name__ == "__main__":
     app = create_app()
     uvicorn.run(
         app, 
-        host="0.0.0.0", 
+        host=os.environ.get("HOST", "127.0.0.1"),
         port=int(os.environ.get("PORT", 8000)),
         log_level="info"
     )
