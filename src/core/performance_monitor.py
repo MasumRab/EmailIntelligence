@@ -18,7 +18,7 @@ import time  # noqa: E402
 from dataclasses import dataclass  # noqa: E402
 from datetime import datetime, timezone  # noqa: E402
 from functools import wraps  # noqa: E402
-from typing import Any, Callable, Dict, List, Optional, Union  # noqa: E402, F401
+from typing import Any, Callable, Dict, List, Optional  # noqa: E402, F401
 
 import psutil  # noqa: E402
 
@@ -31,12 +31,10 @@ LOG_FILE = "performance_metrics_log.jsonl"
 class PerformanceMetric:
     """Represents a single performance metric"""
 
-    name: str
-    value: Union[int, float]
-    unit: str
     timestamp: float
-    tags: Dict[str, str]
-    sample_rate: float = 1.0
+    value: float
+    unit: str
+    source: str
 
 
 @dataclass
@@ -68,34 +66,6 @@ class PerformanceMonitor:
                 pass
         except Exception as e:
             logger.warning(f"Failed to create performance log file: {e}")
-
-
-    def record_metric(
-        self,
-        name: str,
-        value: Union[int, float],
-        unit: str = "ms",
-        tags: Optional[Dict[str, str]] = None,
-        sample_rate: float = 1.0,
-    ):
-        import random
-
-        # Apply sampling
-        if sample_rate < 1.0 and random.random() > sample_rate:
-            return
-
-        metric = PerformanceMetric(
-            name=name,
-            value=value,
-            unit=unit,
-            timestamp=time.time(),
-            tags=tags or {},
-            sample_rate=sample_rate,
-        )
-
-        # Add to buffer (thread-safe)
-        with self._buffer_lock:
-            self._metrics_buffer.append(metric)
 
     def log_performance(self, log_entry: Dict[str, Any]) -> None:
         """Log a performance entry to the log file"""
@@ -282,45 +252,6 @@ class OptimizedPerformanceMonitor:
 
         logger.info("OptimizedPerformanceMonitor initialized")
 
-    def record_metric(
-        self,
-        name: str,
-        value: Union[int, float],
-        unit: str = "ms",
-        tags: Optional[Dict[str, str]] = None,
-        sample_rate: float = 1.0,
-    ):
-        import random
-
-        # Apply sampling
-        if sample_rate < 1.0 and random.random() > sample_rate:
-            return
-
-        metric = PerformanceMetric(
-            name=name,
-            value=value,
-            unit=unit,
-            timestamp=time.time(),
-            tags=tags or {},
-            sample_rate=sample_rate,
-        )
-
-        # Add to buffer (thread-safe)
-        with self._buffer_lock:
-            self._metrics_buffer.append(metric)
-
-    def log_performance(self, log_entry: Dict[str, Any]) -> None:
-        """Compatibility method for legacy log_performance decorator."""
-        operation = log_entry.get("operation", "unknown")
-        duration = log_entry.get("duration_seconds", 0) * 1000  # Convert to ms
-        self.record_metric(
-            name=f"operation_duration_{operation}",
-            value=duration,
-            unit="ms",
-            tags={"operation": operation},
-        )
-
-
     def time_function(
         self, name: str, tags: Optional[Dict[str, str]] = None, sample_rate: float = 1.0
     ):
@@ -357,21 +288,18 @@ class OptimizedPerformanceMonitor:
             return decorator(func)
         else:
             # Used as @time_function("name") or with time_function("name"):
-            outer_self = self
             class TimerContext:
-                def __init__(self, parent):
-                    self.parent = parent
                 def __enter__(self):
                     self.start_time = time.perf_counter()
                     return self
 
                 def __exit__(self, exc_type, exc_val, exc_tb):
                     duration = (time.perf_counter() - self.start_time) * 1000
-                    self.parent.record_metric(
+                    self.record_metric(
                         name=name, value=duration, unit="ms", tags=tags, sample_rate=sample_rate
                     )
 
-            return TimerContext(outer_self)
+            return TimerContext()
 
     def get_aggregated_metrics(self, name: Optional[str] = None) -> Dict[str, AggregatedMetric]:
         """
