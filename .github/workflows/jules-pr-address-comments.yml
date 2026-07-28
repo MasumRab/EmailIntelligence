@@ -1,9 +1,16 @@
 name: Jules Address Review Comments
 
-# Auto-triggered on new review comments. Checks if the PR has an existing
-# Jules session (author is jules or head ref starts with jules-), then
-# posts @jules on each unresolved review thread to address them.
-# No new Jules session is created — @jules uses the existing one.
+# Auto-triggered on new review comments. Checks if the PR has prior Jules
+# activity (markers in issue comments OR PR review bodies), then posts a
+# single @jules PR comment summarising all unresolved review threads with
+# prior Jules session context.
+#
+# The @jules mention is posted as a PR comment (issue comment), NOT as a
+# review thread reply, because the Jules GitHub App's server-side @jules
+# feature processes issue_comment events — review thread replies
+# (pull_request_review_comment) are not seen by the Jules App.
+# Posting as a PR comment also avoids a self-triggering loop (review
+# comment replies fire new pull_request_review_comment events).
 
 on:
   pull_request_review_comment:
@@ -15,7 +22,7 @@ concurrency:
 
 jobs:
   address:
-    if: github.event.comment.user.login != 'jules' && (startsWith(github.event.pull_request.head.ref, 'jules-') || github.event.pull_request.user.login == 'jules')
+    if: github.event.comment.user.login != 'google-labs-jules[bot]'
     runs-on: ubuntu-latest
     permissions:
       pull-requests: write

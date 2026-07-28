@@ -9,7 +9,7 @@ pull_request_rules:
         message: >
           👋 @{{author}} your PR is conflicting and needs to be updated to be
           merged.
-          {% if author == "jules" or "jules" in assignees %}
+          {% if author == "google-labs-jules[bot]" or "google-labs-jules[bot]" in assignees %}
           
           **Note for @jules:** This PR requires conflict resolution. Consider rebasing on latest main or using interactive merge.
           {% endif %}
@@ -19,7 +19,7 @@ pull_request_rules:
     conditions:
       - conflict
       - -closed
-      - author=jules
+      - author=google-labs-jules[bot]
     actions:
       comment:
         message: >
