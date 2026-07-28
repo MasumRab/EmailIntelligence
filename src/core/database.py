@@ -1,4 +1,8 @@
-from .data.data_source import DataSource
+"""
+Database management for the Email Intelligence Platform.
+JSON file storage implementation with in-memory caching and indexing.
+"""
+
 import asyncio
 import gzip
 import itertools
@@ -8,20 +12,19 @@ import os
 from datetime import datetime, timezone
 from functools import partial
 from typing import Any, Dict, List, Literal, Optional
-from .performance_monitor import log_performance
-from .enhanced_caching import EnhancedCachingManager
-from .constants import DEFAULT_CATEGORY_COLOR
-from .security import validate_path_safety
-from .enhanced_error_reporting import log_error, ErrorSeverity, ErrorCategory, create_error_context
-
-"""
-Database management for the Email Intelligence Platform.
-JSON file storage implementation with in-memory caching and indexing.
-"""
-
 
 # NOTE: These dependencies will be moved to the core framework as well.
 # For now, we are assuming they will be available in the new location.
+from .performance_monitor import log_performance
+from .enhanced_caching import EnhancedCachingManager
+from .enhanced_error_reporting import (
+    log_error,
+    ErrorSeverity,
+    ErrorCategory,
+    create_error_context
+)
+from .constants import DEFAULT_CATEGORY_COLOR
+from .security import validate_path_safety
 
 logger = logging.getLogger(__name__)
 
@@ -32,8 +35,6 @@ EMAILS_FILE = os.path.join(DATA_DIR, "emails.json.gz")
 CATEGORIES_FILE = os.path.join(DATA_DIR, "categories.json.gz")
 USERS_FILE = os.path.join(DATA_DIR, "users.json.gz")
 
-# TODO(P1, 6h): Refactor global state management to use dependency injection
-# TODO(P2, 4h): Make data directory configurable via environment variables or settings
 
 # Data types
 DATA_TYPE_EMAILS = "emails"
@@ -98,6 +99,7 @@ class DatabaseConfig:
 
 
 # Import DataSource locally to avoid circular imports
+from .data.data_source import DataSource  # noqa: E402
 
 class DatabaseManager(DataSource):
     """Optimized async database manager with in-memory caching, write-behind,
@@ -362,7 +364,7 @@ class DatabaseManager(DataSource):
                 severity=ErrorSeverity.ERROR,
                 category=ErrorCategory.DATA,
                 context=error_context,
-                details={"error_type": type(e).__name__}
+                details={"error_type": type(e).__name__},
             )
             logger.error(f"Error saving data to {file_path}: {e}. Error ID: {error_id}")
 
@@ -574,7 +576,7 @@ class DatabaseManager(DataSource):
             return
         if increment:
             self.category_counts[category_id] += 1
-        if decrement:
+        elif decrement:
             self.category_counts[category_id] -= 1
         self._dirty_data.add(DATA_TYPE_CATEGORIES)
 
@@ -831,9 +833,6 @@ class DatabaseManager(DataSource):
         self.caching_manager.put_query_result(cache_key, results)
         return results
 
-    # TODO(P1, 6h): Optimize search performance to avoid disk I/O per STATIC_ANALYSIS_REPORT.md
-    # TODO(P2, 4h): Implement search indexing to improve query performance
-    # TODO(P3, 3h): Add support for search result caching
 
     async def _update_email_fields(
         self, email: Dict[str, Any], update_data: Dict[str, Any]
@@ -865,7 +864,6 @@ class DatabaseManager(DataSource):
 
             # Update content availability index
             self._content_available_index.add(email_id)
-
         except IOError as e:
             logger.error(f"Error saving heavy content for email {email_id}: {e}")
 
