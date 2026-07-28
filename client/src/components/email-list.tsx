@@ -148,11 +148,12 @@ export function EmailList({ emails, loading, onEmailSelect }: EmailListProps) {
                     </Badge>
                   )}
                   {(() => {
-                    const labels = typeof email.labels === "string"
-                      ? email.labels.split(",")
-                      : Array.isArray(email.labels)
-                        ? email.labels
-                        : [];
+                    let labels: string[] = [];
+                    if (typeof email.labels === "string") {
+                      labels = email.labels.split(",");
+                    } else if (Array.isArray(email.labels)) {
+                      labels = email.labels;
+                    }
                     return labels.map((label: string, index: number) => (
                     <Badge key={index} variant="outline" className="text-xs">
                       {label}
