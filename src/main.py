@@ -6,12 +6,11 @@ the remote branch's expectations while preserving all local branch functionality
 and integrating context control patterns from the remote branch.
 """
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request as StarletteRequest
 import logging
-from typing import Optional
 import time
 import hashlib
 import os
@@ -160,7 +159,7 @@ def create_app() -> FastAPI:
                     "isolator": ContextIsolator is not None,
                     "config": ContextControlConfig is not None
                 }
-            except:
+            except Exception:
                 pass
         
         return health_status
