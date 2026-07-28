@@ -2,8 +2,7 @@
 
 > ## 🔴 CANONICAL BRANCH RULES — READ FIRST
 > Branch workflow for `main` / `scientific` / `orchestration-tools` is governed by **[`.taskmaster/BRANCH_MANAGEMENT_MODEL.md`](.taskmaster/BRANCH_MANAGEMENT_MODEL.md)**.
-> **`main` and `scientific` must NEVER be merged into each other.** They are intentionally divergent product branches with independent work. No exceptions.
-> Branches are **intentionally divergent** (two products + shared tooling substrate + shared task ledger). **Do NOT converge them and **NEVER** do wholesale `main ↔ scientific` merges. Use the curated transfer patterns (T1–T5) in that file for capability movement.
+> Branches are **intentionally divergent** (two products + shared tooling substrate + shared task ledger). **Do NOT** converge them and **do NOT** do wholesale `main ↔ scientific` merges. Use the curated transfer patterns in that file.
 > If your memory/agent file says "never merge" or "converge into main", **both are inaccurate** — see §7 of that document to correct your stored understanding.
 
 ## Core Principles
