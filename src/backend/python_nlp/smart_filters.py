@@ -23,6 +23,9 @@ from src.core.security import PathValidator
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 DATA_DIR = os.path.join(PROJECT_ROOT, "data")
 DEFAULT_DB_PATH = os.path.join(DATA_DIR, "smart_filters.db")
+# Ensure data directory exists
+if not os.path.exists(DATA_DIR):
+    os.makedirs(DATA_DIR, exist_ok=True)
 
 
 @dataclass
@@ -115,7 +118,7 @@ class SmartFilterManager:
             db_path = os.path.join(DATA_DIR, filename)
 
         # Validate the final path
-        self.db_path = str(PathValidator.validate_database_path(db_path, DATA_DIR))
+        self.db_path = str(PathValidator.validate_and_resolve_db_path(db_path, DATA_DIR))
         self.logger = logging.getLogger(__name__)
         self.conn = None
         if self.db_path == ":memory:":
