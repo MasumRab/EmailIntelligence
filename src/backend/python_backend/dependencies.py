@@ -13,7 +13,7 @@ from fastapi import Depends
 # Updated to use the new src architecture where available
 from backend.python_backend.services.email_service import EmailService
 from backend.python_backend.services.category_service import CategoryService
-from src.core.database import get_db, DatabaseManager, DatabaseConfig
+from src.core.database import get_db, DatabaseManager
 from .model_manager import ModelManager
 from .ai_engine import AdvancedAIEngine
 from .smart_filters import SmartFilterManager
