@@ -55,8 +55,7 @@ async def initialize_services():
 
     # db = await get_db()  # Deprecated
 
-    db = DatabaseManager(DatabaseConfig())
-    await db.connect()
+    db = await get_db()
 
     # Initialize core managers first
     if _model_manager_instance is None:
@@ -188,6 +187,5 @@ async def get_category_service() -> "CategoryService":
 async def get_database():
     """Provides database instance (for existing code that uses direct database access)"""
 
-    db = DatabaseManager(DatabaseConfig())
-    await db.connect()
+    db = await get_db()
     return db

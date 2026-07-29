@@ -33,7 +33,6 @@ from . import (
     category_routes,
     dashboard_routes,
     email_routes,
-    filter_routes,
     gmail_routes,
     model_routes,
     performance_routes,
@@ -42,14 +41,17 @@ from . import (
 )
 from .ai_engine import AdvancedAIEngine
 from .auth import create_access_token
+from .database import get_db
 from .exceptions import AppException, BaseAppException
+# Import the database module to get the singleton
+from . import database
 
 # Import new components
 from .model_manager import ModelManager
 from .performance_monitor import performance_monitor
 
 model_manager = ModelManager()
-from .settings import settings
+from .settings import settings  # noqa: E402
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -170,12 +172,14 @@ async def startup_event():
     from .dependencies import initialize_services
 
     await initialize_services()
+    db_manager = await database.get_db()
     await db_manager.connect()
 
 
 @app.on_event("shutdown")
 async def shutdown_event():
     """Application shutdown: disconnect from the database."""
+    db_manager = await database.get_db()
     await db_manager.close()
 
 
@@ -252,10 +256,10 @@ performance_monitor = (
     performance_monitor  # Used by all routes via @performance_monitor.track
 )
 
-from .routes.v1.category_routes import router as category_router_v1
+from .routes.v1.category_routes import router as category_router_v1  # noqa: E402
 
 # Include versioned API routers
-from .routes.v1.email_routes import router as email_router_v1
+from .routes.v1.email_routes import router as email_router_v1  # noqa: E402
 
 # Mount versioned APIs
 app.include_router(email_router_v1, prefix="/api/v1", tags=["emails-v1"])
@@ -273,24 +277,24 @@ app.include_router(dashboard_routes.router)
 app.include_router(ai_routes.router)
 
 # Include enhanced feature routers
-from .enhanced_routes import router as enhanced_router
+from .enhanced_routes import router as enhanced_router  # noqa: E402
 
 app.include_router(enhanced_router, prefix="/api/enhanced", tags=["enhanced"])
 
 # Include workflow routes (legacy and node-based)
-from .workflow_routes import router as workflow_router
+from .workflow_routes import router as workflow_router  # noqa: E402
 
 app.include_router(workflow_router, prefix="", tags=["workflows"])
 
 # Include advanced workflow routes (will use node-based system)
-from .advanced_workflow_routes import router as advanced_workflow_router
+from .advanced_workflow_routes import router as advanced_workflow_router  # noqa: E402
 
 app.include_router(
     advanced_workflow_router, prefix="/api/workflows", tags=["advanced-workflows"]
 )
 
 # Include node-based workflow routes
-from .node_workflow_routes import router as node_workflow_router
+from .node_workflow_routes import router as node_workflow_router  # noqa: E402
 
 app.include_router(node_workflow_router, prefix="/api/nodes", tags=["node-workflows"])
 
@@ -326,7 +330,7 @@ async def login(username: str, password: str):
 
     # Try to get the settings if possible
     try:
-        from .settings import settings
+        from .settings import settings  # noqa: E402
 
         access_token_expires = timedelta(minutes=settings.access_token_expire_minutes)
     except ImportError:
@@ -386,13 +390,13 @@ async def get_error_stats():
 
 
 if __name__ == "__main__":
-    import uvicorn
+    import uvicorn  # noqa: E402
 
 port = int(os.getenv("PORT", 8000))
 env = os.getenv("NODE_ENV", "development")
 host = os.getenv("HOST", "127.0.0.1" if env == "development" else "0.0.0.0")
 reload = env == "development"
 # Use string app path to support reload
-import uvicorn
+import uvicorn  # noqa: E402
 
 uvicorn.run("main:app", host=host, port=port, reload=reload, log_level="info")
