@@ -1,28 +1,43 @@
-# TASKMASTER WORKTREE MIGRATION - QUARANTINED DOCS
+# TASKMASTER WORKTREE MIGRATION - COMPLETED
 
-**Date**: 2026-03-14
+**Date**: 2026-03-28
 **Branch**: 004-guided-workflow
-**Status**: IN PROGRESS - REVERSIBLE
+**Status**: ✅ COMPLETED
 
 ## Summary
 
-This document quarantines conflicting documentation about .taskmaster management.
-The current setup uses git submodules, but we're testing worktree approach.
+The `.taskmaster/` directory has been migrated from Git submodules back to Git worktrees. The worktree approach was chosen for better agent accessibility, simpler developer workflow, and natural branch isolation via pre-commit hooks.
 
 ## Superseded Documents
 
-The following documents describe the **submodule** approach and are now **superseded for this branch**:
+The following documents describe the **submodule** approach and are now **superseded**:
 
-| Document | Superseded By | Reason |
-|----------|---------------|--------|
-| `SUBMODULE_SETUP_SUMMARY.md` | This document | Migrating to worktree |
-| `SUBMODULE_CONFIGURATION.md` | This document | Migrating to worktree |
-| `FINAL_SETUP_STATUS.md` | This document | Setup changed |
-| `.gitmodules` entry | This document | Converting to worktree |
+| Document | Status | Reason |
+|----------|--------|--------|
+| `SUBMODULE_SETUP_SUMMARY.md` | Superseded | Reverted to worktree approach |
+| `.gitmodules` | Removed | No longer using submodules |
 
-## Reversibility
+## Current Setup
 
-To **REVERT** to submodule approach:
+```bash
+# Worktree is active at .taskmaster/
+git worktree list
+# Shows: .taskmaster -> taskmaster branch
+```
+
+## Migration Steps Completed
+
+- [x] Conflicting docs identified
+- [x] Migration doc created
+- [x] Submodule removed (`.gitmodules` deleted)
+- [x] Worktree added (`git worktree add .taskmaster origin/taskmaster`)
+- [x] Worktree verified working
+- [x] Documentation updated
+- [x] Pre-commit hooks verified for isolation
+
+## Rollback (if ever needed)
+
+To **revert** to submodule approach:
 ```bash
 # 1. Remove worktree
 git worktree remove .taskmaster
@@ -30,20 +45,11 @@ git worktree remove .taskmaster
 # 2. Re-add submodule
 git submodule add -b taskmaster https://github.com/MasumRab/EmailIntelligence.git .taskmaster
 
-# 3. Delete this document
-rm TASKMASTER_WORKTREE_MIGRATION.md
+# 3. Restore SUBMODULE_CONFIGURATION.md from git history
 ```
-
-## Current Status
-
-- [x] Conflicting docs identified
-- [x] Migration doc created
-- [x] Submodule removed
-- [x] Worktree added
-- [x] Worktree verified working
-- [ ] Rollback tested (if needed)
 
 ## References
 
-For worktree approach, see:
-- `TASKMASTER_BRANCH_CONVENTIONS.md` (contains worktree instructions)
+- `SUBMODULE_CONFIGURATION.md` — Now documents the worktree approach
+- `TASKMASTER_BRANCH_CONVENTIONS.md` — Worktree isolation rules
+- `TASKMASTER_ISOLATION_FIX.md` — Pre-commit hook enforcement details

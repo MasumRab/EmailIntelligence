@@ -32,18 +32,18 @@ fi
 
 ### Benefits
 
-✅ **Visible to agents**: `.taskmaster/` not in `.gitignore` or `.git/info/exclude`
-✅ **Automatic enforcement**: Hook prevents commits on all clones
+✅ **Visible to agents**: `.taskmaster/` is in `.gitignore` but agents can still read files on disk
+✅ **Defense in depth**: `.gitignore` prevents accidental staging + pre-commit hook catches force-adds
 ✅ **Propagates**: Via `scripts/install-hooks.sh` on setup
 ✅ **Clear error messages**: Tells users exactly what went wrong
-✅ **No accidental tracking**: Pre-commit hook blocks staging
+✅ **No accidental tracking**: `.gitignore` + pre-commit hook provide two layers of protection
 
 ### How It Works
 
-1. **Local development**: Agent can read/access `.taskmaster/` files freely
-2. **Staging files**: `git add .taskmaster/file.txt` succeeds (no gitignore filter)
-3. **Committing**: Pre-commit hook checks staged files
-4. **Hook blocks**: If `.taskmaster/` files staged, exits with error
+1. **Local development**: Agent can read/access `.taskmaster/` files freely (`.gitignore` only affects git, not disk)
+2. **Staging files**: `git add .taskmaster/file.txt` is blocked by `.gitignore`; `git add -f` bypasses it
+3. **Committing**: Pre-commit hook checks staged files as a safety net
+4. **Hook blocks**: If `.taskmaster/` files staged (via force-add), exits with error
 5. **User action**: Run `git restore --staged .taskmaster/` to unstage
 
 ### Setup & Propagation
@@ -59,17 +59,17 @@ fi
 ### Verification
 
 ```bash
-# Verify .taskmaster is accessible
+# Verify .taskmaster is accessible on disk
 ls -la .taskmaster/
 
-# Verify it's NOT in gitignore
-git check-ignore -v .taskmaster/  # Should return nothing
+# Verify it IS in gitignore (defense in depth)
+git check-ignore -v .taskmaster/  # Should show .gitignore rule
 
 # Verify hook is installed
-grep "TASKMASTER_FILES" .git/hooks/pre-commit
+grep "taskmaster" .git/hooks/pre-commit
 
-# Test the hook (should fail)
-git add .taskmaster/config.json
+# Test the hook (should fail — force-add bypasses .gitignore, hook catches it)
+git add -f .taskmaster/config.json
 git commit -m "test"  # ERROR: Task Master worktree files cannot be committed
 ```
 
@@ -82,8 +82,7 @@ git commit -m "test"  # ERROR: Task Master worktree files cannot be committed
 
 ### 2. .gitignore
 - ❌ Removed `!.taskmaster/**` whitelist
-- ❌ Removed `.taskmaster/` explicit ignore
-- ✅ Leaves `.taskmaster/` naturally untracked (visible to agents)
+- ✅ `.taskmaster/` is in `.gitignore` (prevents accidental staging; agents can still read on disk)
 
 ### 3. .git/info/exclude
 - Removed repo-specific rule (doesn't propagate)
@@ -106,16 +105,16 @@ a0400993 fix: correct .taskmaster worktree gitignore isolation
 ## Key Requirements for Future Commits
 
 ✅ Do:
-- Use pre-commit hooks to enforce branch isolation
-- Keep `.taskmaster/` visible to agents
+- Keep `.taskmaster/` in `.gitignore` (prevents accidental staging)
+- Use pre-commit hooks as a safety net for branch isolation
 - Document isolation approach
 - Test that hooks propagate to clones
 
 ❌ Don't:
-- Add `.taskmaster/**` to `.gitignore`
+- Remove `.taskmaster/` from `.gitignore`
+- Add `!.taskmaster/**` whitelist to `.gitignore`
 - Create `.taskmaster/.gitignore`
 - Use `.git/info/exclude` alone (not propagated)
-- Whitelist taskmaster files on orchestration-tools branch
 
 ## Testing
 

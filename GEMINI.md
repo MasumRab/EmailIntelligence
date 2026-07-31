@@ -329,7 +329,7 @@ This project uses a layered ignore strategy to maintain repository health while 
 
 - **Mandatory Configuration**: The `.gemini/settings.json` file MUST be configured with `"respectGitIgnore": false` to allow tool access to paths listed in `.gitignore`.
 - **Whitelisting**: Use `.geminiignore` to explicitly whitelist directories (e.g., `!.taskmaster/`, `!.context-control/`) that are ignored by Git but required for agentic workflows.
-- **Strict Prohibition**: NEVER remove `.taskmaster/`, `worktrees/`, or other orchestration directories from `.gitignore`. These are often Git worktrees and must remain untracked by the main branch.
+- **Strict Prohibition**: NEVER remove `.taskmaster/`, `worktrees/`, or other orchestration directories from `.gitignore`. `.taskmaster/` is a Git worktree and must remain untracked by non-taskmaster branches.
 - **Session Restart**: Changes to `.gemini/settings.json` or `.geminiignore` require a **session restart** to take effect. If immediate access is needed, use `run_shell_command` with `cat` or `grep` as a temporary bypass.
 
 ### Active Technologies

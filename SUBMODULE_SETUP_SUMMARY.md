@@ -1,6 +1,8 @@
 # Submodule Setup - Completion Summary
 
-## Status: ✅ COMPLETED
+> **⚠️ SUPERSEDED (March 2026)**: This document describes the December 2025 submodule migration which has been **reverted**. The project now uses **Git worktrees** for `.taskmaster/`. See `SUBMODULE_CONFIGURATION.md` and `TASKMASTER_WORKTREE_MIGRATION.md` for the current approach.
+
+## Status: ⚠️ SUPERSEDED (was: ✅ COMPLETED)
 
 Date: December 9, 2025
 

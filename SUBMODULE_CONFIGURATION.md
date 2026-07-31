@@ -1,159 +1,152 @@
-# Git Submodule Configuration
+# .taskmaster Worktree Configuration
 
 ## Overview
 
-This project uses Git submodules and branch-based directories to manage specialized development:
+This project uses **Git worktrees** for managing the `.taskmaster/` directory. The `taskmaster` branch is checked out as a worktree at `.taskmaster/` within the main repository working directory.
 
-1. **.taskmaster/** - Task Management and Orchestration (Git submodule, points to `taskmaster` branch)
-2. **orchestration-tools/** - Orchestration Tools and Utilities (Regular directory from `orchestration-tools` branch, not a submodule)
+**As of March 2026**, the setup has been migrated **back to Git worktrees** from the previous submodule approach (December 2025) because:
 
-## Submodule Details
+1. **Agent accessibility**: Worktrees are visible as regular directories; agents can read/access freely
+2. **Simpler workflow**: No need for `git submodule update --init --recursive` after cloning
+3. **Better isolation**: Pre-commit hooks enforce branch isolation without needing `.gitignore` tricks
+4. **Natural integration**: Worktrees are lightweight and don't require special git commands for daily work
 
-### .taskmaster (Task Master AI)
+## Current Configuration
+
+### .taskmaster (Git Worktree)
 
 - **Path**: `.taskmaster/`
-- **Remote URL**: https://github.com/MasumRab/EmailIntelligence.git
-- **Branch**: `taskmaster`
-- **Purpose**: Provides task management, orchestration, and AI agent integration
+- **Branch**: `taskmaster` (remote: `origin/taskmaster`)
+- **Repository**: Same repository (EmailIntelligence)
+- **Purpose**: Task management, orchestration, and AI agent integration
 - **Key Files**:
   - `AGENTS.md` - Agent integration guide
   - `CLAUDE.md` - Claude Code integration
   - `config.json` - Configuration file
   - `docs/` - Documentation
-  - `GEMINI.md`, `IFLOW.md`, `LLXPRT.md` - AI tool integrations
+  - `GEMINI.md`, `IFLOW.md` - AI tool integrations
 
-### orchestration-tools (NOT a Submodule)
+## Setup
 
-- **Path**: `orchestration-tools/`
-- **Type**: Regular directory (checked out from `orchestration-tools` branch)
-- **Branch**: `orchestration-tools`
-- **Purpose**: Provides orchestration capabilities and tools
-- **Note**: This is a regular directory, not a git submodule. It's a branch of the main repository that gets checked out in the working directory.
-- **Key Files**: Tool definitions, scripts, and orchestration utilities
-
-**Important**: The orchestration-tools directory is part of the main repository's branch structure, not a separate git submodule. To work with orchestration-tools changes, switch to the orchestration-tools branch.
-
-## Usage
-
-### Cloning with Submodules
+### Initial Worktree Creation
 
 ```bash
-# Clone the repository with all submodules
-git clone --recurse-submodules https://github.com/MasumRab/EmailIntelligence.git
-
-# Or if already cloned, initialize submodules
-git submodule update --init --recursive
+# From the main repository directory
+git worktree add .taskmaster origin/taskmaster
 ```
 
-### Updating Submodules
+### Verify Setup
 
 ```bash
-# Fetch latest changes for all submodules
-git submodule foreach git pull origin
+# List all worktrees
+git worktree list
 
-# Update a specific submodule to latest commit on its branch
-cd .taskmaster
-git pull origin taskmaster
-cd ..
+# Verify .taskmaster contents
+ls -la .taskmaster/
 
-cd orchestration-tools
-git pull origin orchestration-tools
-cd ..
+# Verify branch isolation
+cd .taskmaster && git log --oneline -5 && cd ..
 ```
 
-### Working on Submodule Changes
+### After Cloning (New Developer Setup)
 
 ```bash
-# Make changes in a submodule
+# Clone the repository
+git clone https://github.com/MasumRab/EmailIntelligence.git
+cd EmailIntelligence
+
+# Fetch all branches
+git fetch origin
+
+# Create the worktree
+git worktree add .taskmaster origin/taskmaster
+
+# Install hooks for isolation enforcement
+./scripts/install-hooks.sh
+```
+
+## Branch Isolation
+
+### How It Works
+
+The `.taskmaster/` directory is a Git worktree and must **never** be committed on non-taskmaster branches:
+
+1. **Pre-commit hook** blocks staging `.taskmaster/` files on other branches
+2. **`.gitignore`** includes `.taskmaster/` to prevent accidental tracking
+3. **Agents can read** `.taskmaster/` files freely (directory is visible on disk)
+
+### Pre-Commit Hook Protection
+
+```bash
+# In scripts/hooks/pre-commit
+TASKMASTER_FILES=$(git diff --cached --name-only | grep "^\.taskmaster/" || true)
+if [[ -n "$TASKMASTER_FILES" ]]; then
+    echo "ERROR: Task Master worktree files cannot be committed"
+    echo "Use 'git restore --staged .taskmaster/' to unstage"
+    exit 1
+fi
+```
+
+## Working with the Worktree
+
+### Making Changes to Task Master
+
+```bash
+# Enter the worktree
 cd .taskmaster
-git checkout -b feature/my-feature
-# ... make changes ...
+
+# Create a branch for changes
+git checkout -b feature/my-taskmaster-change
+
+# Make changes, commit, push
 git add .
 git commit -m "feat: description"
-git push origin feature/my-feature
-cd ..
+git push origin feature/my-taskmaster-change
 
-# Update the parent repository's reference
-git add .taskmaster
-git commit -m "chore: update taskmaster submodule reference"
-git push origin <your-branch>
+# Return to main repo
+cd ..
 ```
 
-### Checking Submodule Status
+### Updating to Latest
 
 ```bash
-# Show all submodules and their status
-git submodule status
+cd .taskmaster
+git fetch origin
+git checkout taskmaster
+git pull origin taskmaster
+cd ..
+```
 
-# Show detailed submodule information
-git config --file .gitmodules --list
+### Removing the Worktree
 
-# Check if submodules are at the correct commits
-git submodule status --recursive
+```bash
+git worktree remove .taskmaster
 ```
 
 ## Important Notes
 
-### Submodule Independence
+- `.taskmaster/` is listed in `.gitignore` — this is intentional (prevents tracking on non-taskmaster branches)
+- The pre-commit hook provides a second layer of protection
+- **DO NOT** remove `.taskmaster/` from `.gitignore`
+- **DO NOT** create a `.gitmodules` file — submodules are no longer used
+- Agents and tools can still access `.taskmaster/` files on disk despite `.gitignore`
 
-- Each submodule maintains its own git history
-- Changes in a submodule do NOT affect the parent repository unless explicitly committed
-- Submodules are pinned to specific commits; they don't automatically update
+## Migration History
 
-### Avoiding Common Issues
+| Date | Change | Reason |
+|------|--------|--------|
+| Pre-Dec 2025 | Git worktrees | Original approach |
+| Dec 2025 | Git submodules | CI/CD integration (SUBMODULE_SETUP_SUMMARY.md) |
+| Mar 2026 | Git worktrees (reverted) | Agent accessibility, simpler workflow |
 
-1. **Detached HEAD**: When checking out a submodule, you're on a detached HEAD (the pinned commit). To make changes, create a branch first: `git checkout -b my-branch`
+## Deprecated Files
 
-2. **Stale Submodules**: Run `git submodule update --init --recursive` after pulling changes to ensure submodules are at the correct commits
+The following files document the previous submodule approach and are retained for historical reference:
 
-3. **Protecting Key Files**: The following files in each submodule should NOT be deleted:
-   - `.taskmaster/AGENTS.md`
-   - `.taskmaster/CLAUDE.md`
-   - `.taskmaster/CRUSH.md`
-   - `.taskmaster/GEMINI.md`
-   - `.taskmaster/IFLOW.md`
-   - `.taskmaster/LLXPRT.md`
-   - `.taskmaster/config.json`
-   - `.taskmaster/docs/`
-
-### .gitignore Configuration
-
-Submodules are explicitly excluded from the `.gitignore` ignore-all rule (`.*`) with these exceptions:
-
-```gitignore
-!.gitmodules
-!.taskmaster
-!orchestration-tools
-```
-
-## Migration from Worktrees
-
-Previously, this project used Git worktrees:
-- `.taskmaster` was set up as a worktree
-- Various feature branches had their own worktrees
-
-**As of December 2025**, the setup has been migrated to use Git submodules instead of worktrees because:
-
-1. **Better integration**: Submodules are part of git's standard workflow
-2. **Cleaner history**: No worktree-specific branches cluttering the repository
-3. **Easier collaboration**: Submodules are recognized by all git tools
-4. **Simplified CI/CD**: Submodules integrate better with automation
-
-### What Changed
-
-- ✅ Removed: Git worktrees (`.taskmaster` as worktree, `taskmaster-worktree` setup)
-- ✅ Added: Git submodules (`.taskmaster/`, `orchestration-tools/`)
-- ✅ Updated: `.gitignore` to properly exclude/include submodules
-- ⏳ To be updated: Documentation references to worktrees
-
-### Cleanup
-
-Old worktree setup files have been retained for reference but are no longer used:
-- `scripts/sync_setup_worktrees.sh` - Deprecated (was for worktree sync)
-- `WORKTREE_SETUP_INTEGRATION_GUIDE.md` - Archived
-- `SUBTREE_TESTING_GUIDE.md` - Archived
+- `SUBMODULE_SETUP_SUMMARY.md` — Documents the Dec 2025 submodule migration (now superseded)
 
 ## References
 
-- [Git Submodules Documentation](https://git-scm.com/book/en/v2/Git-Tools-Submodules)
-- [Submodule Best Practices](https://github.blog/2016-02-01-working-with-submodules/)
+- [Git Worktrees Documentation](https://git-scm.com/docs/git-worktree)
+- `TASKMASTER_BRANCH_CONVENTIONS.md` — Complete isolation requirements
+- `TASKMASTER_ISOLATION_FIX.md` — Pre-commit hook approach details

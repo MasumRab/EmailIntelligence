@@ -194,7 +194,7 @@ orchestration-tools/
 ├── scripts/           # Orchestration scripts and utilities
 ├── setup/            # Environment setup and launchers
 ├── .claude/          # Claude Code integration
-├── .taskmaster/      # Task Master configuration
+├── .taskmaster/      # Task Master worktree (taskmaster branch)
 ├── .context-control/ # Branch-specific access control
 ├── docs/             # Orchestration documentation
 └── AGENTS.md         # Agent integration guidelines
