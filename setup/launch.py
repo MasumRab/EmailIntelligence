@@ -597,17 +597,293 @@ def print_system_info():
 
 
 def main():
-    """Main entry point for the launcher."""
+    """Main entry point with orchestration-tools command pattern + legacy fallback.
+
+    Combines main's stable legacy arg handling with scientific's command-pattern
+    dispatch (subcommands: setup, run, test, check). The 'check' subcommand and
+    pre-flight warnings are scientific-only features. Conda support and command
+    factory remain available via main's existing _handle_legacy_args.
+    """
+    # Pre-flight checks (scientific-specific)
+    _check_setup_warnings()
+
     parser = argparse.ArgumentParser(
-        description="EmailIntelligence Unified Launcher",
+        description="EmailIntelligence Unified Launcher (Orchestration Tools Edition)",
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
 
+    # Add subcommands (command pattern)
+    subparsers = parser.add_subparsers(dest="command", help="Available commands")
+
+    # Setup command
+    setup_parser = subparsers.add_parser("setup", help="Set up the development environment")
+    _add_common_args(setup_parser)
+
+    # Run command
+    run_parser = subparsers.add_parser("run", help="Run the EmailIntelligence application")
+    _add_common_args(run_parser)
+    run_parser.add_argument("--dev", action="store_true", help="Run in development mode.")
+
+    # Test command
+    test_parser = subparsers.add_parser("test", help="Run tests")
+    _add_common_args(test_parser)
+    test_parser.add_argument("--unit", action="store_true", help="Run unit tests.")
+    test_parser.add_argument("--integration", action="store_true", help="Run integration tests.")
+    test_parser.add_argument("--e2e", action="store_true", help="Run end-to-end tests.")
+    test_parser.add_argument("--performance", action="store_true", help="Run performance tests.")
+    test_parser.add_argument("--security", action="store_true", help="Run security tests.")
+    test_parser.add_argument("--coverage", action="store_true", help="Generate coverage report.")
+    test_parser.add_argument(
+        "--continue-on-error", action="store_true", help="Continue running tests even if some fail."
+    )
+
+    # Check command (orchestration-tools branch — scientific-only)
+    check_parser = subparsers.add_parser(
+        "check", help="Run checks for orchestration environment"
+    )
+    _add_common_args(check_parser)
+    check_parser.add_argument(
+        "--critical-files", action="store_true", help="Check for critical orchestration files"
+    )
+    check_parser.add_argument(
+        "--env", action="store_true", help="Check orchestration environment"
+    )
+
+    # Legacy arguments for backward compatibility
     _add_legacy_args(parser)
 
     args = parser.parse_args()
-    sys.exit(_handle_legacy_args(args))
 
+    # Handle command pattern vs legacy arguments
+    if args.command:
+        # Use command pattern
+        return _execute_command(args.command, args)
+    else:
+        # Handle legacy arguments
+        return _handle_legacy_args(args)
+
+
+def _execute_command(command_name: str, args) -> int:
+    """Execute a command using the command pattern (orchestration-tools edition).
+
+    Unlike the scientific branch, this does NOT depend on command factory or
+    container/DI modules. Non-check commands delegate to the shared _handle_legacy_args
+    for common preparation (WSL, conda, env loading, validation), which already
+    has comprehensive logic.
+    """
+    # Handle check command directly (scientific-only)
+    if command_name == "check":
+        return _execute_check_command(args)
+
+    # For setup/run/test commands, delegate to shared legacy handler
+    # by setting appropriate legacy flags based on the subcommand
+    if command_name == "setup":
+        args.setup = True
+    elif command_name == "run":
+        args.setup = False
+        # Keep stage as-is (default "dev") for run command
+    elif command_name == "test":
+        args.setup = False
+        args.stage = "test"
+    else:
+        logger.error(f"Unknown command: {command_name}")
+        return 1
+
+    return _handle_legacy_args(args)
+
+
+def _execute_check_command(args) -> int:
+    """Execute the check command for orchestration validation.
+
+    Scientific-only feature: validates critical files and orchestration
+    environment. Not available in main branch.
+    """
+    logger.info("Running orchestration checks...")
+
+    success = True
+
+    # Run critical files check if requested
+    if args.critical_files or (not args.env):
+        if not check_critical_files():
+            success = False
+
+    # Run environment validation if requested
+    if args.env:
+        if not validate_orchestration_environment():
+            success = False
+
+    # If no specific check was requested, run all checks
+    if not args.critical_files and not args.env:
+        if not validate_orchestration_environment():
+            success = False
+
+    if success:
+        logger.info("All orchestration checks passed!")
+        return 0
+    else:
+        logger.error("Orchestration checks failed!")
+        return 1
+
+
+def _check_setup_warnings():
+    """Check for common setup issues and warn users.
+
+    Scientific-only feature: pre-flight checks for Python environment.
+    Warns when using system Python or when venv exists but is not activated.
+    """
+    import sys as _sys
+    from pathlib import Path as _Path
+
+    # Check if using system Python
+    python_path = _Path(_sys.executable)
+    system_indicators = [
+        python_path == _Path("/usr/bin/python"),
+        python_path == _Path("/usr/bin/python3"),
+        str(python_path).startswith("/usr/"),
+        str(python_path).startswith("/usr/local/"),
+    ]
+
+    if any(system_indicators):
+        logger.warning("⚠️  You're using system Python. This may cause permission errors with pip.")
+        logger.info("💡  Run 'python launch.py setup' to create a virtual environment")
+        logger.info("   Then use: source venv/bin/activate")
+
+    # Check if venv exists but not activated
+    venv_path = ROOT_DIR / VENV_DIR / "bin" / "python"
+    if venv_path.exists() and python_path != venv_path:
+        logger.info("💡  Virtual environment exists. Activate it with: source venv/bin/activate")
+
+
+def validate_orchestration_environment() -> bool:
+    """Run comprehensive validation for the orchestration-tools branch.
+
+    Scientific-only feature: validates merge conflicts and critical files.
+    Not available in main branch.
+    """
+    logger.info("Running orchestration environment validation...")
+
+    # Check for merge conflicts first
+    if not check_for_merge_conflicts():
+        return False
+
+    # Check critical files
+    if not check_critical_files():
+        return False
+
+    logger.info("Orchestration environment validation passed.")
+    return True
+
+
+def check_critical_files() -> bool:
+    """Check for critical files that must exist in the orchestration-tools branch.
+
+    Scientific-only feature: validates that all orchestration-critical files,
+    directories, and documentation are present. Not available in main branch.
+    """
+    # Critical files that are essential for orchestration
+    critical_files = [
+        # Core orchestration scripts
+        "scripts/install-hooks.sh",
+        "scripts/cleanup_orchestration.sh",
+        "scripts/sync_setup_worktrees.sh",
+        "scripts/reverse_sync_orchestration.sh",
+
+        # Git hooks
+        "scripts/hooks/pre-commit",
+        "scripts/hooks/post-commit",
+        "scripts/hooks/post-commit-setup-sync",
+        "scripts/hooks/post-merge",
+        "scripts/hooks/post-checkout",
+        "scripts/hooks/post-push",
+
+        # Shared libraries
+        "scripts/lib/common.sh",
+        "scripts/lib/error_handling.sh",
+        "scripts/lib/git_utils.sh",
+        "scripts/lib/logging.sh",
+        "scripts/lib/validation.sh",
+
+        # Setup files
+        "setup/launch.py",
+        "setup/pyproject.toml",
+        "setup/requirements.txt",
+        "setup/requirements-dev.txt",
+        "setup/setup_environment_system.sh",
+        "setup/setup_environment_wsl.sh",
+        "setup/setup_python.sh",
+
+        # Configuration files
+        ".flake8",
+        ".pylintrc",
+        ".gitignore",
+        ".gitattributes",
+
+        # Root wrapper
+        "launch.py",
+
+        # Deployment files
+        "deployment/deploy.py",
+        "deployment/test_stages.py",
+        "deployment/docker-compose.yml",
+    ]
+
+    # Critical directories that must exist
+    critical_directories = [
+        "scripts/",
+        "scripts/hooks/",
+        "scripts/lib/",
+        "setup/",
+        "deployment/",
+        "docs/",
+    ]
+
+    # Orchestration documentation files
+    orchestration_docs = [
+        "docs/orchestration_summary.md",
+        "docs/orchestration_validation_tests.md",
+        "docs/orchestration_hook_management.md",
+        "docs/orchestration_branch_scope.md",
+        "docs/env_management.md",
+        "docs/git_workflow_plan.md",
+        "docs/current_orchestration_docs/",
+        "docs/guides/",
+    ]
+
+    missing_files = []
+    missing_dirs = []
+
+    # Check for missing critical files
+    for file_path in critical_files:
+        full_path = ROOT_DIR / file_path
+        if not full_path.exists():
+            missing_files.append(file_path)
+
+    # Check for missing critical directories
+    for dir_path in critical_directories:
+        full_path = ROOT_DIR / dir_path
+        if not full_path.exists():
+            missing_dirs.append(dir_path)
+
+    # Check for missing orchestration documentation
+    for doc_path in orchestration_docs:
+        full_path = ROOT_DIR / doc_path
+        if not full_path.exists():
+            missing_files.append(doc_path)
+
+    if missing_files or missing_dirs:
+        if missing_files:
+            logger.error("Missing critical files:")
+            for file_path in missing_files:
+                logger.error(f"  - {file_path}")
+        if missing_dirs:
+            logger.error("Missing critical directories:")
+            for dir_path in missing_dirs:
+                logger.error(f"  - {dir_path}")
+        logger.error("Please restore these critical files for proper orchestration functionality.")
+        return False
+
+    logger.info("All critical files are present.")
+    return True
 
 
 def _add_common_args(parser):
@@ -817,4 +1093,4 @@ def _handle_legacy_args(args) -> int:
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
