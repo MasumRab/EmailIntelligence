@@ -52,11 +52,11 @@ accelerate>=0.30.0    # Accelerate - distributed training
 sentencepiece>=0.2.0  # SentencePiece - text tokenization
 
 # NLP - Specialized packages
-nltk>=3.9.1           # NLTK - natural language processing
+nltk>=3.10.0           # NLTK - natural language processing
 textblob>=0.19.0      # TextBlob - text processing
 
 # Web/API - Newer versions or specialized
-gradio>=4.0.0         # Gradio - ML web interfaces
+gradio>=6.15.1         # Gradio - ML web interfaces
 pyngrok>=0.7.0        # Pyngrok - ngrok wrapper
 email-validator>=2.2.0 # Email-validator - email validation
 
