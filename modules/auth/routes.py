@@ -21,16 +21,11 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
-class UserLogin(BaseModel):
-    username: str
-    password: str
-
-
 class UserCreate(BaseModel):
     username: str
     password: str
     role: Optional[str] = "user"
-    permissions: Optional[List[str]] = []
+    permissions: Optional[List[str]] = None
 
 
 class UserLogin(BaseModel):
@@ -246,15 +241,6 @@ async def disable_mfa(
 @router.post("/register", response_model=Token)
 async def register(user_data: UserCreate, db: DataSource = Depends(get_data_source)):
     """Register a new user"""
-    {
-        "username": user_data.username,
-        "hashed_password": hash_password(user_data.password),
-        "role": user_data.role,
-        "permissions": user_data.permissions,
-        "mfa_enabled": False,
-        "mfa_secret": None,
-        "mfa_backup_codes": []
-    }
     success = await create_user(user_data.username, user_data.password, db)
 
     if not success:
@@ -265,7 +251,7 @@ async def register(user_data: UserCreate, db: DataSource = Depends(get_data_sour
 
     access_token_expires = timedelta(minutes=settings.access_token_expire_minutes)
     access_token = create_access_token(
-        data={"sub": user_data.username, "role": user_data.role}, expires_delta=access_token_expires
+        data={"sub": user_data.username, "role": UserRole.USER.value}, expires_delta=access_token_expires
     )
 
     return {"access_token": access_token, "token_type": "bearer"}
