@@ -1,0 +1,38 @@
+# === Model artifacts ===
+# Binary/large files, not lintable
+models/**/*.pkl
+models/**/*.safetensors
+models/**/vocab.txt
+models/**/vocab.json
+models/**/merges.txt
+models/**/tokenizer.json
+src/backend/python_nlp/*.pkl
+
+# === Compressed data ===
+data/*.gz
+src/backend/data/*.gz
+
+# === Lock / package files ===
+# Auto-generated, large, not worth linting
+**/package-lock.json
+**/uv.lock
+**/pnpm-lock.yaml
+**/yarn.lock
+
+# === Generated images ===
+generated-icon.png
+
+# === Generated reports ===
+comprehensive_analysis_report.md
+
+# === Archive docs ===
+# Historical, not actively maintained
+docs/archive/
+
+# === Backup files ===
+*.backup
+
+# === Session logs ===
+# Historical records, not maintained source
+SESSION_LOG.md
+backlog/sessions/*.md

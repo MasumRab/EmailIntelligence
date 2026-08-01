@@ -71,18 +71,11 @@ config/llm_guidelines.local.json
 .ruby-version
 .tool-versions
 
-# Ignore hidden files and directories, with exceptions
-.*
-!docs/.gitkeep
-!.semgrep/
-!.gitignore
-!.pre-commit-config.yaml
-!.prettierrc.json
-!.eslintrc.json
-!.github/
-!.github/workflows/
-!client/.eslintrc.json
-!/server/.eslintrc.json
+# Additional hidden files/directories to ignore explicitly
+# (replaces previous .* catch-all — no more whack-a-mole with !exceptions)
+.cline/
+.ruff_cache/
+.venv/
 
 # Python cache
 __pycache__/
@@ -125,9 +118,6 @@ pr_sessions_list.json
 pr_stats.json
 session_*.txt
 diagnosis_message.txt
-
-# Allow tracking of .github/scripts/ (currently blocked by .* pattern)
-!.github/scripts/
 
 # Jules AI scratch/tooling area (not application code)
 jules-scratch/
