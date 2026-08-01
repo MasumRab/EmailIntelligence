@@ -36,7 +36,7 @@ class SmartFilterProcessingNode(BaseNode):
             },
             output_types={
                 "filtered_email": dict,
-                "filters_matched": list,
+                "filters_matched": List[EmailFilter],
                 "actions_taken": list,
                 "categories": list,
                 "filtering_result": dict,
@@ -90,7 +90,7 @@ class SmartFilterCreationNode(BaseNode):
                 "priority": int,
             },
             output_types={
-                "created_filters": list,
+                "created_filters": List[EmailFilter],
                 "new_filter": dict,
                 "creation_result": dict,
             },
