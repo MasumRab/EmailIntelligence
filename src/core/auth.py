@@ -6,20 +6,20 @@ core architecture and database management system.
 """
 
 from datetime import datetime, timedelta
-from typing import Optional
+from typing import Any, Dict, List, Optional
 
-from typing import Optional, Dict, Any
-import secrets
+
 from argon2 import PasswordHasher
+import hashlib
 import jwt
+import secrets
 from fastapi import HTTPException, status, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel
-import secrets
 
-from .database import get_db
-
-from .database import get_db
+from .database import DatabaseManager, get_db
+from .security import DataSanitizer
+from .settings import settings
 
 # Import the security framework components
 from .security import SecurityContext, Permission, SecurityLevel
@@ -39,8 +39,7 @@ class AuthManager:
     """
 
     def __init__(self):
-        self.db_manager = None
-
+        self.db_manager: DatabaseManager | None = None
     async def initialize(self):
         """Initialize the AuthManager with database connection."""
         from .database import get_db
@@ -49,18 +48,32 @@ class AuthManager:
 
     async def authenticate_user(self, username: str, password: str) -> Optional[dict]:
         """Authenticate a user with username and password."""
+        # Sanitize input to prevent injection attacks
+        sanitized_username = DataSanitizer.sanitize_input(username)
+        
         if not self.db_manager:
             await self.initialize()
 
         # In a real implementation, this would check against the database
         # For now, we'll return a mock user
-        return {"id": 1, "username": username, "email": f"{username}@example.com"}
-
+        user_data = {
+            "id": 1,
+            "username": sanitized_username,
+            "email": f"{sanitized_username}@example.com"
+        }
+        # Sanitize output to redact sensitive fields
+        return DataSanitizer.sanitize_output(user_data)
     async def get_current_user(self, token: str) -> Optional[dict]:
         """Get the current user from a JWT token."""
         # In a real implementation, this would decode the token and get user from database
         # For now, we'll return a mock user
-        return {"id": 1, "username": "testuser", "email": "testuser@example.com"}
+        user_data = {
+            "id": 1,
+            "username": "testuser",
+            "email": "testuser@example.com"
+        }
+        # Sanitize output to redact sensitive fields
+        return DataSanitizer.sanitize_output(user_data)
 
 
 # Initialize security scheme
@@ -142,12 +155,14 @@ async def authenticate_user(
         User data if authentication is successful, None otherwise
     """
     try:
+        # Sanitize input to prevent injection attacks
+        sanitized_username = DataSanitizer.sanitize_input(username)
+        
         # Try to get user from database
-        user_data = await db.get_user_by_username(username)
-        if user_data and verify_password(
-            password, user_data.get("hashed_password", "")
-        ):
-            return user_data
+        user_data = await db.get_user_by_username(sanitized_username)
+        if user_data and verify_password(password, user_data.get("hashed_password", "")):
+            # Sanitize output to redact sensitive fields (e.g., hashed_password)
+            return DataSanitizer.sanitize_output(user_data)
         return None
     except Exception as e:
         logger.error(f"Error authenticating user {username}: {e}")
@@ -167,8 +182,11 @@ async def create_user(username: str, password: str, db) -> bool:
         True if user was created successfully, False if user already exists or on error
     """
     try:
+        # Sanitize input to prevent injection attacks
+        sanitized_username = DataSanitizer.sanitize_input(username)
+        
         # Check if user already exists
-        existing_user = await db.get_user_by_username(username)
+        existing_user = await db.get_user_by_username(sanitized_username)
         if existing_user:
             return False
 
@@ -176,8 +194,10 @@ async def create_user(username: str, password: str, db) -> bool:
         hashed_password = hash_password(password)
 
         # Create user in database
-        user_data = {"username": username, "hashed_password": hashed_password}
-
+        user_data = {
+            "username": sanitized_username,
+            "hashed_password": hashed_password
+        }
         await db.create_user(user_data)
         return True
     except Exception as e:
