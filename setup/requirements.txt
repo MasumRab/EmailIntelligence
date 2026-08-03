@@ -1,12 +1,6 @@
 # EmailIntelligence Python Requirements
-<<<<<<< HEAD
-<<<<<<< HEAD
-packaging>=23.0
-=======
+
 argon2-cffi==25.1.0
->>>>>>> scientific
-=======
->>>>>>> origin/main
 # Install in virtual environment only
 
 # Core web framework
@@ -55,3 +49,4 @@ aiosqlite>=0.19.0
 RestrictedPython>=8.0
 pyotp>=2.9.0
 qrcode>=7.4.2
+packaging>=23.0
