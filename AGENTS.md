@@ -5,6 +5,18 @@
 > Branches are **intentionally divergent** (two products + shared tooling substrate + shared task ledger). **Do NOT** converge them and **do NOT** do wholesale `main ↔ scientific` merges. Use the curated transfer patterns in that file.
 > If your memory/agent file says "never merge" or "converge into main", **both are inaccurate** — see §7 of that document to correct your stored understanding.
 
+## EmailIntelligence Documentation (Discovery)
+
+| Doc | Path |
+|-----|------|
+| Getting Started | [`docs/getting_started.md`](docs/getting_started.md) |
+| Architecture Decision Records | [`docs/adr/`](docs/adr/) |
+| AI Model Training Guide | [`docs/ai_model_training_guide.md`](docs/ai_model_training_guide.md) |
+| Testing Guide | [`docs/testing_guide.md`](docs/testing_guide.md) |
+| Branch Rules (canonical) | [`.taskmaster/BRANCH_MANAGEMENT_MODEL.md`](.taskmaster/BRANCH_MANAGEMENT_MODEL.md) |
+
+> To read the canonical branch rules locally: `git submodule update --init` — the `.taskmaster/` ledger is a **submodule** and is **gitignored** on product branches via `.gitignore`.
+
 ## Build/Lint/Test Commands
 ### Python Backend
 - **Test all**: `pytest`

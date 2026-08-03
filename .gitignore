@@ -90,5 +90,6 @@ isolated_ui.log
 =*
 
 worktrees/
+.taskmaster/
 # Jules session activity files (large)
 jules_sessions/*_activities.json

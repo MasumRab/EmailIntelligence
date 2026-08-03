@@ -7,6 +7,9 @@
 
 > **Note:** This file works alongside `AGENTS.md` (generic AI agent instructions). AGENTS.md contains the core Task Master commands and workflows for all AI agents. This file contains only Gemini CLI-specific features and integrations.
 
+> ### 📚 EmailIntelligence Documentation
+> See the [Getting Started](docs/getting_started.md), [Testing Guide](docs/testing_guide.md), and [Architecture Decision Records](docs/adr/) guides. Canonical branch rules: [`.taskmaster/BRANCH_MANAGEMENT_MODEL.md`](.taskmaster/BRANCH_MANAGEMENT_MODEL.md) (`git submodule update --init` to read locally; `.taskmaster/` is gitignored on product branches).
+
 ## MCP Configuration for Gemini CLI
 
 Configure Task Master MCP server in `~/.gemini/settings.json`:
