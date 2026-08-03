@@ -1,5 +1,26 @@
 # Task Master AI - Agent Integration Guide
 
+> ## 🔴 CANONICAL BRANCH RULES — READ FIRST
+> Branch workflow for `main` / `scientific` / `orchestration-tools` is governed by **[`.taskmaster/BRANCH_MANAGEMENT_MODEL.md`](.taskmaster/BRANCH_MANAGEMENT_MODEL.md)**.
+> Branches are **intentionally divergent** (stable product on `main`, experimental product on `scientific`, shared tooling **substrate** on `orchestration-tools`). **Do NOT** converge `main ↔ scientific` and **do NOT** merge this agent work onto `orchestration-tools-combined` (it is the deprecated merge artifact — see §7). Use the curated transfer patterns (T1/T2/T3/T4) in that file.
+> If your memory/agent file says "never merge" or "converge into main", **both are inaccurate** — see §7 of that document to correct your stored understanding.
+
+## EmailIntelligence Documentation (Discovery)
+
+| Doc | Path |
+|-----|------|
+| Getting Started | [`docs/getting_started.md`](docs/getting_started.md) |
+| Architecture Decision Records | [`docs/adr/`](docs/adr/) |
+| AI Model Training Guide | [`docs/ai_model_training_guide.md`](docs/ai_model_training_guide.md) |
+| Testing Guide | [`docs/testing_guide.md`](docs/testing_guide.md) |
+| Extension System | [`docs/extensions_guide.md`](docs/extensions_guide.md) |
+| Environment Management | [`docs/env_management.md`](docs/env_management.md) |
+| Launcher System | [`docs/launcher_guide.md`](docs/launcher_guide.md) |
+| Contributing | [`CONTRIBUTING.md`](CONTRIBUTING.md) |
+| Branch Rules (canonical) | [`.taskmaster/BRANCH_MANAGEMENT_MODEL.md`](.taskmaster/BRANCH_MANAGEMENT_MODEL.md) |
+
+> To read the canonical branch rules locally, run `git submodule update --init` — the `.taskmaster/` ledger is a **submodule** and is **gitignored** on product branches via `.gitignore`.
+
 ## Essential Commands
 
 ### Core Workflow Commands
