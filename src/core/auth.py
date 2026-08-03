@@ -25,6 +25,9 @@ from .security import SecurityContext, Permission, SecurityLevel
 
 logger = logging.getLogger(__name__)
 
+# Pre-calculated dummy hash to equalize timing during authentication
+# This is a valid Argon2 hash for the word "dummy_password"
+DUMMY_PASSWORD_HASH = "$argon2id$v=19$m=65536,t=3,p=4$DnF1/L/JzW/0QZ3r5Y/y0w$K7g/6Z5x4y3w2v1u0t9s8"
 
 class TokenData(BaseModel):
     """Data structure for JWT token payload"""
@@ -100,6 +103,7 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     Returns:
         True if passwords match, False otherwise
     """
+    import argon2.exceptions
     ph = PasswordHasher()
     try:
         return ph.verify(hashed_password, plain_password)
@@ -137,10 +141,7 @@ async def authenticate_user(username: str, password: str, db) -> Optional[Dict[s
         if user_data:
             stored_hash = user_data.get("hashed_password", "")
         else:
-            # This is a valid Argon2 hash for "dummy" to prevent early exit
-            # We calculate it once or use a fixed one. Using a fixed one is faster but consistent.
-            # Ideally this should be pre-calculated.
-            stored_hash = "$argon2id$v=19$m=65536,t=3,p=4$DnF1/L/JzW/0QZ3r5Y/y0w$K7g/6Z5x4y3w2v1u0t9s8"
+            stored_hash = DUMMY_PASSWORD_HASH
 
         is_valid = verify_password(password, stored_hash)
 
