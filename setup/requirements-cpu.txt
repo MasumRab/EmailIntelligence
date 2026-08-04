@@ -8,7 +8,7 @@
 # torchaudio>=2.4.0+cpu
 
 # CPU-optimized packages
-transformers>=4.40.0
+transformers>=5.5.0
 accelerate>=0.30.0
 
 # Additional CPU-specific optimizations can be added here
