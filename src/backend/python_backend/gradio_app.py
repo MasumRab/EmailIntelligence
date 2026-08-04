@@ -116,17 +116,22 @@ with gr.Blocks(title="Email Intelligence", theme=gr.themes.Soft()) as iface:
                 topic = result.get("topic", "N/A")
                 sentiment = result.get("sentiment", "N/A")
                 reasoning = result.get("reasoning", "N/A")
-                _categories = result.get("categories", [])
+                categories = result.get("categories", [])
 
                 keywords = result.get("keywords", [])
                 highlighted_keywords = [(k, result.get("topic")) for k in keywords]
+
+                sentiment_chart_fig = generate_sentiment_chart(sentiment)
+                topic_chart_fig = generate_topic_pie(categories)
 
                 return (
                     topic,
                     sentiment,
                     reasoning,
                     highlighted_keywords,
-                    result
+                    result,
+                    sentiment_chart_fig,
+                    topic_chart_fig,
                 )
 
             analyze_button.click(
@@ -138,10 +143,18 @@ with gr.Blocks(title="Email Intelligence", theme=gr.themes.Soft()) as iface:
                     reasoning_output,
                     keywords_output,
                     analysis_output,
+                    sentiment_chart,
+                    topic_chart,
                 ],
             )
 
-
+        with gr.TabItem("Visualization"):
+            gr.Markdown("### Data Visualization")
+            sentiment_chart = gr.Plot(label="Sentiment Gauge")
+            topic_chart = gr.Plot(label="Topic Pie Chart")
+            gr.Markdown(
+                "The charts above will automatically update after you analyze an email in the 'Single Email Analysis' tab."
+            )
 
         with gr.TabItem("Scientific Analysis"):
             gr.Markdown("### Advanced Data Analysis")

@@ -30,8 +30,6 @@ logger = logging.getLogger(__name__)
 
 # Define paths for data storage
 DEFAULT_DB_PATH = os.path.join(DATA_DIR, "smart_filters.db")
-if not os.path.exists(DATA_DIR):
-    os.makedirs(DATA_DIR, exist_ok=True)
 
 
 @dataclass
