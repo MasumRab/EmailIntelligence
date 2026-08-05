@@ -8,7 +8,7 @@ including LRU cache for frequently accessed data and query result caching.
 import logging
 import time
 from collections import OrderedDict
-from typing import Any, Dict, Optional, Tuple
+from typing import Any, Dict, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -18,7 +18,7 @@ class LRUCache:
 
     def __init__(self, capacity: int = 100):
         self.capacity = capacity
-        self.cache = OrderedDict()
+        self.cache: OrderedDict[str, Any] = OrderedDict()
         self.hits = 0
         self.misses = 0
 
@@ -73,7 +73,7 @@ class QueryResultCache:
     def __init__(self, ttl_seconds: int = 300, max_capacity: int = 1000):  # 5 minutes default
         self.ttl_seconds = ttl_seconds
         self.max_capacity = max_capacity
-        self.cache: OrderedDict = OrderedDict()  # (value, timestamp)
+        self.cache: OrderedDict[str, tuple[Any, float]] = OrderedDict()  # (value, timestamp)
         self.hits = 0
         self.misses = 0
 
