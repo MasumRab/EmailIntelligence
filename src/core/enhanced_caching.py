@@ -93,12 +93,16 @@ class QueryResultCache:
 
     def put(self, key: str, value: Any) -> None:
         """Put value in cache with current timestamp, evicting oldest if at capacity."""
-        if key not in self.cache and len(self.cache) >= self.max_capacity:
+        if self.max_capacity <= 0:
+            return
+
+        if key in self.cache:
+            self.cache.move_to_end(key)
+        elif len(self.cache) >= self.max_capacity:
             # Evict the oldest item (first item in the OrderedDict)
-            if self.cache:
-                self.cache.popitem(last=False)
+            self.cache.popitem(last=False)
+            
         self.cache[key] = (value, time.time())
-        self.cache.move_to_end(key)
 
     def invalidate(self, key: str) -> None:
         """Remove a specific key from cache."""
