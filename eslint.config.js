@@ -35,6 +35,13 @@ export default tseslint.config(
       }
     },
     rules: {
+    }
+  },
+  {
+    // Broad rules disabled globally (consider scoping these down later)
+    // Scoped to specific directories to prevent disabling rules globally
+    files: ["client/**/*.{js,ts,tsx}", "legacy/**/*.{js,ts,tsx}"],
+    rules: {
       '@typescript-eslint/no-unused-vars': 'off',
       '@typescript-eslint/no-explicit-any': 'off',
       '@typescript-eslint/no-require-imports': 'off',
