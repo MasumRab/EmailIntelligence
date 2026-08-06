@@ -7,9 +7,8 @@ Implements token bucket algorithm for API endpoint rate limiting with Redis back
 import asyncio
 import logging
 import time
-from collections import defaultdict
 from dataclasses import dataclass
-from typing import Dict, Optional, Tuple
+from typing import Dict, Tuple
 
 logger = logging.getLogger(__name__)
 
