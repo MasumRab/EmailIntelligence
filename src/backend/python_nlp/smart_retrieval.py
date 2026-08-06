@@ -57,6 +57,7 @@ class SmartRetrievalManager:
     def _init_checkpoint_db(self):
         """Initialize the checkpoint database and create tables if needed."""
         try:
+            os.makedirs(os.path.dirname(self.checkpoint_db_path), exist_ok=True)
             conn = sqlite3.connect(self.checkpoint_db_path)
             cursor = conn.cursor()
 
@@ -144,6 +145,7 @@ class SmartRetrievalManager:
     def _save_checkpoint(self, checkpoint: SyncCheckpoint):
         """Save a sync checkpoint to the database."""
         try:
+            os.makedirs(os.path.dirname(self.checkpoint_db_path), exist_ok=True)
             conn = sqlite3.connect(self.checkpoint_db_path)
             cursor = conn.cursor()
 
