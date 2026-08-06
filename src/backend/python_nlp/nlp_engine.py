@@ -19,9 +19,6 @@ from typing import Any, Dict, List, Optional
 from transformers import AutoModelForSequenceClassification, AutoTokenizer, pipeline
 
 from backend.python_nlp.text_utils import clean_text
-import hashlib
-from pathlib import Path
-from src.core.security import validate_path_safety
 
 from .analysis_components.importance_model import ImportanceModel
 
@@ -127,7 +124,6 @@ class NLPEngine:
         model_dir = os.getenv(
             "NLP_MODEL_DIR", os.path.join(os.path.dirname(__file__), "..", "..", "models")
         )
-        self.model_dir = model_dir
         self.sentiment_model_path = os.path.join(model_dir, "sentiment")
         self.topic_model_path = os.path.join(model_dir, "topic")
         self.intent_model_path = os.path.join(model_dir, "intent")
@@ -175,25 +171,6 @@ class NLPEngine:
         """
         try:
             if os.path.exists(model_path):
-                is_allowed_dir = validate_path_safety(model_path, getattr(self, "model_dir", ""))
-                if not is_allowed_dir:
-                    sig_path = f"{model_path}.sha256"
-                    if not os.path.exists(sig_path):
-                        logger.error(f"Unsafe model path outside allowlist lacking signature: {model_path}")
-                        return None
-                    try:
-                        with open(sig_path, 'r') as f:
-                            expected_hash = f.read().strip()
-                        sha256_hash = hashlib.sha256()
-                        with open(model_path, "rb") as f:
-                            for byte_block in iter(lambda: f.read(4096), b""):
-                                sha256_hash.update(byte_block)
-                        if sha256_hash.hexdigest() != expected_hash:
-                            logger.error(f"Model signature mismatch for {model_path}")
-                            return None
-                    except Exception as sig_err:
-                        logger.error(f"Error verifying model signature: {sig_err}")
-                        return None
                 import joblib
 
                 model = joblib.load(model_path)

@@ -9,8 +9,8 @@ from datetime import datetime, timedelta
 from typing import Optional, Dict, Any, List
 import time
 import secrets
-import argon2
 from argon2 import PasswordHasher
+import argon2
 
 import jwt
 from fastapi import HTTPException, status, Depends

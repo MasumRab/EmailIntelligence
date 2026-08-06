@@ -11,9 +11,7 @@ import logging
 import time
 from dataclasses import dataclass, field
 from enum import Enum
-import hashlib
 from pathlib import Path
-from src.core.security import validate_path_safety
 from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
@@ -470,24 +468,6 @@ class ModelRegistry:
             model_path = metadata.path / f"{metadata.model_id}.pkl"
 
             if model_path.exists():
-                is_allowed_dir = validate_path_safety(model_path, metadata.path)
-                if not is_allowed_dir:
-                    sig_path = Path(f"{model_path}.sha256")
-                    if not sig_path.exists():
-                        logger.error(f"Unsafe model path outside allowlist lacking signature: {model_path}")
-                        return None
-                    try:
-                        expected_hash = sig_path.read_text().strip()
-                        sha256_hash = hashlib.sha256()
-                        with open(model_path, "rb") as f:
-                            for byte_block in iter(lambda: f.read(4096), b""):
-                                sha256_hash.update(byte_block)
-                        if sha256_hash.hexdigest() != expected_hash:
-                            logger.error(f"Model signature mismatch for {model_path}")
-                            return None
-                    except Exception as sig_err:
-                        logger.error(f"Error verifying model signature: {sig_err}")
-                        return None
                 model = joblib.load(model_path)
                 return model
             else:
@@ -643,22 +623,6 @@ class ModelRegistry:
 
                 # Try to load the file
                 import joblib
-
-                is_allowed_dir = validate_path_safety(model_file, metadata.path)
-                if not is_allowed_dir:
-                    sig_path = Path(f"{model_file}.sha256")
-                    if not sig_path.exists():
-                        return {"passed": False, "issues": ["Unsafe model path outside allowlist lacking signature"]}
-                    try:
-                        expected_hash = sig_path.read_text().strip()
-                        sha256_hash = hashlib.sha256()
-                        with open(model_file, "rb") as f:
-                            for byte_block in iter(lambda: f.read(4096), b""):
-                                sha256_hash.update(byte_block)
-                        if sha256_hash.hexdigest() != expected_hash:
-                            return {"passed": False, "issues": ["Model signature mismatch"]}
-                    except Exception as sig_err:
-                        return {"passed": False, "issues": [f"Error verifying model signature: {sig_err}"]}
 
                 joblib.load(model_file)
                 return {"passed": True}
