@@ -1,29 +1,26 @@
-from enum import Enum
-import argon2
-import logging
-from datetime import datetime, timedelta, timezone
-from typing import Optional, Dict, Any, List
-import time
-import secrets
-import argon2
-from argon2 import PasswordHasher
-import jwt
-from fastapi import HTTPException, status, Depends
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from pydantic import BaseModel
-from .settings import settings
-from .security import SecurityContext, Permission, SecurityLevel
 """
 Authentication module for the Email Intelligence Platform.
 
 This module implements JWT-based authentication for API endpoints and integrates with the existing security framework.
 """
 
+import logging
+from datetime import datetime, timedelta
+from typing import Optional, Dict, Any, List
+import time
+import secrets
+from argon2 import PasswordHasher
 
+import jwt
+from fastapi import HTTPException, status, Depends
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from pydantic import BaseModel
 
 # Database imports removed - use dependency injection with create_database_manager
+from .settings import settings
 
 # Import the security framework components
+from .security import SecurityContext, Permission, SecurityLevel
 
 logger = logging.getLogger(__name__)
 
@@ -34,6 +31,7 @@ class TokenData(BaseModel):
     role: Optional[str] = "user"
 
 
+from enum import Enum
 
 
 class UserRole(str, Enum):
@@ -68,9 +66,9 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -
     """
     to_encode = data.copy()
     if expires_delta:
-        expire = datetime.now(timezone.utc) + expires_delta
+        expire = datetime.utcnow() + expires_delta
     else:
-        expire = datetime.now(timezone.utc) + timedelta(minutes=15)
+        expire = datetime.utcnow() + timedelta(minutes=15)
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, settings.secret_key, algorithm=settings.algorithm)
     return encoded_jwt
