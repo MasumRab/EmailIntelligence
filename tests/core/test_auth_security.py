@@ -1,6 +1,7 @@
 import pytest
 import time
-from unittest.mock import AsyncMock, patch
+import asyncio
+from unittest.mock import AsyncMock, MagicMock, patch
 from src.core.auth import authenticate_user, create_security_context_for_user
 from src.core.security import SecurityContext
 

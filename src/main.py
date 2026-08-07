@@ -1,6 +1,9 @@
 import configparser
+configparser.SafeConfigParser = configparser.ConfigParser
+
 import argparse
 import logging
+
 import gradio as gr
 import uvicorn
 import psutil
@@ -14,10 +17,6 @@ from pydantic import ValidationError
 from .core.module_manager import ModuleManager
 from .core.audit_logger import audit_logger, AuditEventType, AuditSeverity
 from .core.performance_monitor import performance_monitor
-
-configparser.SafeConfigParser = configparser.ConfigParser
-
-
 
 # Configure logging
 logging.basicConfig(

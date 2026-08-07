@@ -2,6 +2,7 @@
 Test suite for MFA implementation
 """
 
+import asyncio
 
 import pytest
 

@@ -1,19 +1,3 @@
-from typing import TYPE_CHECKING
-import asyncio
-import logging
-from typing import Any, Dict, List, Optional
-from datetime import datetime
-import email
-from .data_source import DataSource
-from .smart_filter_manager import SmartFilterManager
-from .ai_engine import ModernAIEngine
-from .performance_monitor import log_performance
-from .security import PathValidator
-from .enhanced_error_reporting import log_error, ErrorSeverity, ErrorCategory, create_error_context
-if TYPE_CHECKING:
-    from src.core.database import DatabaseManager
-
-
 """
 Enhanced Notmuch Data Source with AI Analysis and Tagging Support
 
@@ -21,6 +5,11 @@ This module provides a comprehensive data source that integrates Notmuch databas
 with AI analysis, smart filtering, and tagging functionality.
 """
 
+import asyncio
+import logging
+from typing import Any, Dict, List, Optional
+from datetime import datetime
+import email
 
 # Import notmuch only when needed to allow import in environments without it
 try:
@@ -30,8 +19,19 @@ except ImportError:
     notmuch = None
     NOTMUCH_AVAILABLE = False
 
+from .data_source import DataSource
 # Import DatabaseManager locally to avoid circular imports
 # from .database import DatabaseManager
+from .smart_filter_manager import SmartFilterManager
+from .ai_engine import ModernAIEngine
+from .performance_monitor import log_performance
+from .enhanced_error_reporting import (
+    log_error,
+    ErrorSeverity,
+    ErrorCategory,
+    create_error_context
+)
+from .security import PathValidator
 
 logger = logging.getLogger(__name__)
 
