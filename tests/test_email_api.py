@@ -1,3 +1,7 @@
+import pytest
+from unittest.mock import AsyncMock, patch
+from src.core.models import EmailCreate, EmailUpdate
+from src.core.ai_engine import AIAnalysisResult
 from datetime import datetime
 
 
