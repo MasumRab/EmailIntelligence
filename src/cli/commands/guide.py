@@ -32,7 +32,7 @@ class GuideCommand(Command):
 
     def add_arguments(self, parser: Any) -> None:
         """Add command-specific arguments."""
-        return
+        pass
 
     def get_dependencies(self) -> Dict[str, Any]:
         """Get required dependencies."""

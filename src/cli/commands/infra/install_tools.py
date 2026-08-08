@@ -52,7 +52,7 @@ class InstallToolsCommand(Command):
 
     def set_dependencies(self, deps: Dict[str, Any]) -> None:
         """Set dependencies for the command."""
-        return
+        pass
 
     async def execute(self, args: Namespace) -> int:
         """Execute the install-tools command."""

@@ -644,13 +644,6 @@ class EmailIntelligenceCLI:
                 from src.resolution import ConstitutionalValidationResult, ComplianceLevel
                 import libcst as cst
 
-                # Check for structural docstring compliance via libCST
-                class DocstringVisitor(cst.CSTVisitor):
-                    def __init__(self):
-                        self.has_docstrings = False
-                    def visit_Module(self, node: cst.Module) -> None:
-                        if node.get_docstring(): self.has_docstrings = True
-
                 # Heuristic mapping for standard text requirements
                 text = requirement_name.lower()
                 if 'must' in text or 'required' in text:
@@ -891,8 +884,7 @@ class EmailIntelligenceCLI:
             import libcst as cst
             try:
                 from src.cli.commands.task.engine.branch_clustering import hash_content
-                with open(file_name, 'r') as cf:
-                    code = cf.read()
+                code = self.fs_proxy.read_file(file_name)
 
                 # Parse with libcst to preserve exact formatting, comments, and spacing
                 tree = cst.parse_module(code)
@@ -959,9 +951,8 @@ class EmailIntelligenceCLI:
             from src.cli.commands.task.engine.branch_clustering import BranchAnalyzer
             analyzer = BranchAnalyzer()
             for conflict in metadata.get('conflicts', []):
-                if os.path.exists(conflict['file']):
-                    with open(conflict['file'], 'r') as f:
-                        content = f.read()
+                if self.fs_proxy.exists(conflict['file']):
+                    content = self.fs_proxy.read_file(conflict['file'])
                     analysis = analyzer.analyze_file(content)
 
                     # Exact extraction of functions, classes, and libCST docstrings/comments
