@@ -64,7 +64,7 @@ class GitConflictsCommand(Command):
         )
         parser.add_argument(
             "--format",
-            "-f",
+
             choices=["json", "yaml", "text"],
             default="json",
             help="Output format (default: json)",
