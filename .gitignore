@@ -147,3 +147,11 @@ reports/
 
 # Task data that should be generated
 task_data/
+
+# .taskmaster working directory — not part of canonical repo
+# (contains stale duplicates and agent runtime artifacts)
+.taskmaster/
+
+# Agent runtime artifacts (not part of canonical repo)
+.opencode/
+.trunk/
