@@ -33,7 +33,7 @@ class ValidateCommand(Command):
             parser: ArgumentParser subparser for this command
         """
         # No arguments required for basic validation
-        pass
+        return
 
     def get_dependencies(self) -> Dict[str, Any]:
         """
@@ -81,10 +81,10 @@ class ValidateCommand(Command):
                 print("No detailed validation results available.")
 
             # Summary
-            passed = 1 if getattr(result, "is_valid", False) else 0
+            returned = 1 if getattr(result, "is_valid", False) else 0
             failed = 0 if getattr(result, "is_valid", False) else 1
 
-            print(f"\nValidation complete: {passed} passed, {failed} failed")
+            print(f"\nValidation complete: {passed} returned, {failed} failed")
 
             # Return appropriate exit code
             return 0 if getattr(result, "is_valid", True) else 1

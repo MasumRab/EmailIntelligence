@@ -83,16 +83,43 @@ class ResolveCommand(Command):
                 resolver = AutoResolver()
 
                 # Build mock ConflictModel using the CLI inputs
-                # Build mock ConflictModel using the CLI inputs, parsing defaults safely
+                import subprocess
+
+                def get_blob(stage):
+                    try:
+                        res = subprocess.run(["git", "show", f":{stage}:{conflict_id}"], capture_output=True, text=True, check=True)
+                        return res.stdout
+                    except subprocess.CalledProcessError:
+                        return ""
+
+                def get_hash(stage):
+                    try:
+                        res = subprocess.run(["git", "ls-files", "-s", conflict_id], capture_output=True, text=True, check=True)
+                        for line in res.stdout.strip().split('\n'):
+                            parts = line.split()
+                            if len(parts) >= 3 and parts[2] == str(stage):
+                                return parts[1]
+                        return ""
+                    except subprocess.CalledProcessError:
+                        return ""
+
+                # Extract authentic conflict data from git index
+                base_content = get_blob(1)
+                ours_content = get_blob(2)
+                theirs_content = get_blob(3)
+                hash_ours = get_hash(2)
+                hash_theirs = get_hash(3)
+
                 conflict = ConflictModel(
                     path=conflict_id,
                     type=ConflictType.CONTENT,
-                    base_content="Mock base",
-                    ours_content="Mock ours",
-                    theirs_content="Mock theirs",
+                    base_content=base_content,
+                    ours_content=ours_content,
+                    theirs_content=theirs_content,
                     resolved_content=None,
-                    oid_ours="hash_ours",
-                    oid_theirs="hash_theirs"
+                    oid_ours=hash_ours,
+                    oid_theirs=hash_theirs,
+                    oid_base=get_hash(1)
                 )
 
                 # Attempt to map strategy string to Enum
