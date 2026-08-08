@@ -76,16 +76,11 @@ def create_default_dependencies() -> Dict[str, Any]:
     dependencies = {}
 
     # 1. Security Domain (Proxy Pattern)
-    try:
-        from ...core.security import SecurityValidator, SecureFileSystemProxy
+    from src.core.security import SecurityValidator, SecureFileSystemProxy
 
-        validator = SecurityValidator()
-        dependencies["security_validator"] = validator
-        dependencies["fs_proxy"] = SecureFileSystemProxy(validator)
-    except ImportError:
-        logger.warning("Security modules not available. Using fallback placeholders.")
-        dependencies["security_validator"] = None
-        dependencies["fs_proxy"] = None
+    validator = SecurityValidator()
+    dependencies["security_validator"] = validator
+    dependencies["fs_proxy"] = SecureFileSystemProxy(validator)
 
     # 2. Validation Domain - Simple in-memory validator for CLI
     class CLIValidator:
