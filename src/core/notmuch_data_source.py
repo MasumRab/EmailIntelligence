@@ -7,7 +7,7 @@ with AI analysis, smart filtering, and tagging functionality.
 
 import asyncio
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional  # noqa: F401
 from datetime import datetime
 import email
 

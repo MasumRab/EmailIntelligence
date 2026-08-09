@@ -29,7 +29,8 @@ training_jobs: Dict[str, Dict[str, Any]] = {}
 async def start_training(
     model_config: ModelConfig,
     background_tasks: BackgroundTasks,
-    current_user: str = Depends(get_current_active_user),
+    current_user: str = Depends(  # noqa: F821
+    get_current_active_user),
 ):
     """
     Start training a model with the given configuration.
@@ -63,7 +64,8 @@ async def start_training(
 
 @router.get("/api/training/status/{job_id}")
 @log_performance(operation="get_training_status")
-async def get_training_status(job_id: str, current_user: str = Depends(get_current_active_user)):
+async def get_training_status(job_id: str, current_user: str = Depends(  # noqa: F821
+    get_current_active_user)):
     """
     Get the status of a training job.
 
