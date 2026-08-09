@@ -67,35 +67,23 @@ class LogicDriftAnalyzerCommand(Command):
             return None
 
     def _extract_logical_dna(self, content: str) -> Dict[str, Dict]:
-        dna = {}
+        import tempfile
+        import os
+        from pathlib import Path
+        from src.cli.commands.analysis.compare import CompareCommand
+
+        # Reuse CompareCommand's exact DNA extractor to satisfy DRY principles
+        with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.py', encoding='utf-8') as tf:
+            tf.write(content)
+            temp_path = tf.name
+
         try:
-            import libcst as cst
-            tree = cst.parse_module(content)
+            cmd = CompareCommand()
+            dna = cmd._extract_logical_dna(Path(temp_path))
+        finally:
+            if os.path.exists(temp_path):
+                os.remove(temp_path)
 
-            class FunctionExtractor(cst.CSTVisitor):
-                def __init__(self):
-                    self.dna = {}
-                    self.module_code = content
-
-                def visit_FunctionDef(self, node: cst.FunctionDef) -> None:
-                    # Extract raw structural logic, ignoring comments natively
-                    logic_body = cst.Module([]).code_for_node(node)
-                    # Normalize by stripping visual layout gaps
-                    normalized = "".join(logic_body.split())
-                    sig = hashlib.sha256(normalized.encode()).hexdigest()[:12]
-
-                    self.dna[node.name.value] = {
-                        "sig": sig,
-                        "complexity": len(node.body.body),
-                        "body": normalized
-                    }
-
-            extractor = FunctionExtractor()
-            tree.visit(extractor)
-            dna = extractor.dna
-        except Exception as e:
-            import logging
-            logging.debug(f"DNA extraction error: {e}")
         return dna
 
     def _normalize_logic(self, source: str) -> str:
@@ -103,31 +91,12 @@ class LogicDriftAnalyzerCommand(Command):
         return "".join(lines)
 
     def _compare_dna(self, old_dna: Dict, new_dna: Dict) -> Dict:
-        matches = []
-        drifts = []
-        missing = []
-
-        for fn_name, old_data in old_dna.items():
-            if fn_name in new_dna:
-                new_data = new_dna[fn_name]
-                if old_data["sig"] == new_data["sig"]:
-                    matches.append(fn_name)
-                else:
-                    similarity = SequenceMatcher(None, old_data["body"], new_data["body"]).ratio()
-                    drifts.append({
-                        "name": fn_name,
-                        "similarity": similarity,
-                        "complexity_delta": new_data["complexity"] - old_data["complexity"]
-                    })
-            else:
-                missing.append(fn_name)
-
-        return {
-            "parity_score": len(matches) / len(old_dna) if old_dna else 1.0,
-            "matches": matches,
-            "drifts": drifts,
-            "missing": missing
-        }
+        from src.cli.commands.analysis.compare import CompareCommand
+        cmd = CompareCommand()
+        # Mock the wrapper dictionaries used by CompareCommand
+        old_wrapper = {"dna": old_dna, "patterns": {}, "file": "base"}
+        new_wrapper = {"dna": new_dna, "patterns": {}, "file": "head"}
+        return cmd._compare_dna(old_wrapper, new_wrapper)
 
     def _print_forensic_report(self, comp: Dict, threshold: float):
         print("Parity Score: {:.2f}%".format(comp['parity_score'] * 100))

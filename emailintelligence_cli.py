@@ -207,9 +207,11 @@ class EmailIntelligenceCLI:
 
     def setup_resolution(
         self, pr_number: int, source_branch: str, target_branch: str,
-        standards_files: List[str] = None, spec_files: List[str] = None,
-        dry_run: bool = False
+        *args, **kwargs
     ) -> Dict[str, Any]:
+        standards_files = kwargs.get('standards_files', None)
+        spec_files = kwargs.get('spec_files', None)
+        dry_run = kwargs.get('dry_run', False)
         """
         Setup resolution workspace for a specific PR
 
@@ -415,11 +417,10 @@ class EmailIntelligenceCLI:
         )
 
     async def _analyze_governance_async(
-        self,
-        pr_number: int,
-        standards_files: Optional[List[str]] = None,
-        interactive: bool = False,
+        self, pr_number: int, *args, **kwargs
     ) -> Dict[str, Any]:
+        standards_files = kwargs.get('standards_files', None)
+        interactive = kwargs.get('interactive', False)
         """Async implementation of governance analysis"""
 
         # Ensure engine is initialized
@@ -536,7 +537,7 @@ class EmailIntelligenceCLI:
         print(f"  Total recommendations: {total_recommendations}")
         print(f"  Average compliance: {avg_score:.1%}")
 
-    def _load_standardss(self, standards_files: List[str]) -> List[Dict[str, Any]]:
+    def _load_standards(self, standards_files: List[str]) -> List[Dict[str, Any]]:
         """Load standards files"""
         standardss = []
 
@@ -782,9 +783,11 @@ class EmailIntelligenceCLI:
                 print("Please enter 'c' to continue or 'q' to quit.")
 
     def develop_spec_kit_strategy(
-        self, pr_number: int, worktrees: bool = False,
-        alignment_rules: str = None, interactive: bool = False
+        self, pr_number: int, *args, **kwargs
     ) -> Dict[str, Any]:
+        worktrees = kwargs.get('worktrees', False)
+        alignment_rules = kwargs.get('alignment_rules', None)
+        interactive = kwargs.get('interactive', False)
         """
         Develop spec-kit based resolution strategy
 
