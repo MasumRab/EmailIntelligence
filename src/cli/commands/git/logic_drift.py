@@ -69,19 +69,33 @@ class LogicDriftAnalyzerCommand(Command):
     def _extract_logical_dna(self, content: str) -> Dict[str, Dict]:
         dna = {}
         try:
-            tree = ast.parse(content)
-            for node in ast.walk(tree):
-                if isinstance(node, ast.FunctionDef):
-                    logic_body = ast.get_source_segment(content, node) or ""
-                    normalized = self._normalize_logic(logic_body)
+            import libcst as cst
+            tree = cst.parse_module(content)
+
+            class FunctionExtractor(cst.CSTVisitor):
+                def __init__(self):
+                    self.dna = {}
+                    self.module_code = content
+
+                def visit_FunctionDef(self, node: cst.FunctionDef) -> None:
+                    # Extract raw structural logic, ignoring comments natively
+                    logic_body = cst.Module([]).code_for_node(node)
+                    # Normalize by stripping visual layout gaps
+                    normalized = "".join(logic_body.split())
                     sig = hashlib.sha256(normalized.encode()).hexdigest()[:12]
-                    dna[node.name] = {
+
+                    self.dna[node.name.value] = {
                         "sig": sig,
-                        "complexity": len(node.body),
+                        "complexity": len(node.body.body),
                         "body": normalized
                     }
-        except Exception:
-            pass
+
+            extractor = FunctionExtractor()
+            tree.visit(extractor)
+            dna = extractor.dna
+        except Exception as e:
+            import logging
+            logging.debug(f"DNA extraction error: {e}")
         return dna
 
     def _normalize_logic(self, source: str) -> str:

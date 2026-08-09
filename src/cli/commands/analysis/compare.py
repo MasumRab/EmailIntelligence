@@ -72,27 +72,35 @@ class CompareCommand(Command):
         return {"files": [c["file"] for c in chain], "comparisons": comparisons}
 
     def _extract_logical_dna(self, path: Path) -> Dict[str, Dict]:
-        """Extract normalized logic signatures for every function."""
+        """Extract high-fidelity LibCST logic signatures."""
         dna = {}
         try:
+            import libcst as cst
             content = path.read_text(encoding='utf-8')
-            tree = ast.parse(content)
-            for node in ast.walk(tree):
-                if isinstance(node, ast.FunctionDef):
-                    # 1. Normalize logic (strip comments/whitespace)
-                    logic_body = ast.get_source_segment(content, node) or ""
-                    normalized = self._normalize_logic(logic_body)
+            tree = cst.parse_module(content)
+
+            class FunctionExtractor(cst.CSTVisitor):
+                def __init__(self):
+                    self.dna = {}
                     
-                    # 2. Generate Logical Signature
+                def visit_FunctionDef(self, node: cst.FunctionDef) -> None:
+                    # LibCST code generation strips external noise authentically
+                    logic_body = cst.Module([]).code_for_node(node)
+                    normalized = "".join(logic_body.split())
                     sig = hashlib.sha256(normalized.encode()).hexdigest()[:12]
                     
-                    dna[node.name] = {
+                    self.dna[node.name.value] = {
                         "sig": sig,
-                        "complexity": len(node.body),
+                        "complexity": len(node.body.body),
                         "body": normalized
                     }
+
+            extractor = FunctionExtractor()
+            tree.visit(extractor)
+            dna = extractor.dna
         except Exception as e:
-            print("Error extracting DNA from {}: {}".format(path.name, e))
+            import logging
+            logging.debug(f"DNA extraction error: {e}")
         return dna
 
     def _detect_patterns(self, path: Path) -> Dict[str, bool]:

@@ -80,9 +80,9 @@ class ScientificSimilarityStrategy(SimilarityStrategy):
         if engine and hasattr(engine, "calculate_similarity"):
             try:
                 return float(engine.calculate_similarity(text1, text2))
-            except ImportError:
-                # Module not available - fall through to fallback
-                pass
+            except ImportError as e:
+                import logging
+                logging.debug(f"NLP engine unavailable: {e}")
             except Exception as e:
                 # Log but don't fail silently - fall through to fallback
                 import logging
