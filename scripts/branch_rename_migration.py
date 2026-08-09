@@ -17,7 +17,7 @@ import re
 def run_command(command):
     """Run a shell command and return the output."""
     try:
-        result = subprocess.run(command, shell=True, capture_output=True, text=True, check=True)
+        result = subprocess.run(command, shell=False, capture_output=True, text=True, check=True)
         return result.stdout.strip()
     except subprocess.CalledProcessError as e:
         print(f"Error running command: {command}")
