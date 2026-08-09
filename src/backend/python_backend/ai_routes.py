@@ -1,5 +1,6 @@
 import logging
 
+from src.core.auth import get_current_active_user
 from fastapi import APIRouter, Depends, HTTPException
 
 from .ai_engine import AdvancedAIEngine
@@ -16,7 +17,7 @@ from .models import (
 )
 
 logger = logging.getLogger(__name__)
-router = APIRouter()
+router = APIRouter(dependencies=[Depends(get_current_active_user)])
 
 
 @router.post("/api/ai/analyze", response_model=AIAnalysisResponse)
