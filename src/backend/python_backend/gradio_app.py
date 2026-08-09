@@ -143,8 +143,8 @@ with gr.Blocks(title="Email Intelligence", theme=gr.themes.Soft()) as iface:
                     reasoning_output,
                     keywords_output,
                     analysis_output,
-                    sentiment_chart_fig,
-                    topic_chart_fig,
+                    sentiment_chart,
+                    topic_chart,
                 ],
             )
 
