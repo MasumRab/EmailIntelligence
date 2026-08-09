@@ -1,7 +1,7 @@
 """
-Constitutional Engine
+Governance Engine
 
-Implements constitutional analysis for code compliance and standards.
+Implements governance analysis for code compliance and standards.
 """
 from typing import List, Dict, Any, Optional
 from dataclasses import dataclass
@@ -11,8 +11,8 @@ from pathlib import Path
 
 
 @dataclass
-class ConstitutionalRequirement:
-    """Represents a constitutional requirement"""
+class GovernanceRequirement:
+    """Represents a governance requirement"""
     id: str
     name: str
     description: str
@@ -32,8 +32,8 @@ class ComplianceLevel(Enum):
 
 
 @dataclass
-class ConstitutionalValidationResult:
-    """Result of constitutional validation"""
+class GovernanceValidationResult:
+    """Result of governance validation"""
     overall_score: float  # 0.0 to 1.0
     compliance_level: ComplianceLevel
     detailed_results: List['ComplianceResult']
@@ -47,7 +47,7 @@ class ConstitutionalValidationResult:
 
 @dataclass
 class ComplianceResult:
-    """Result of constitutional compliance check"""
+    """Result of governance compliance check"""
     requirement_id: str
     is_compliant: bool
     score: float  # 0.0 to 1.0
@@ -55,23 +55,23 @@ class ComplianceResult:
     suggestions: List[str]
 
 
-class ConstitutionalEngine:
-    """Engine for constitutional analysis and compliance checking"""
+class GovernanceEngine:
+    """Engine for governance analysis and compliance checking"""
     
-    def __init__(self, constitution_file: Optional[str] = None):
-        self.requirements: List[ConstitutionalRequirement] = []
-        self.load_constitution(constitution_file)
+    def __init__(self, standards_file: Optional[str] = None):
+        self.requirements: List[GovernanceRequirement] = []
+        self.load_standards(standards_file)
     
-    def load_constitution(self, constitution_file: Optional[str] = None):
-        """Load constitutional requirements from file or default set"""
-        if constitution_file and Path(constitution_file).exists():
-            self._load_from_file(constitution_file)
+    def load_standards(self, standards_file: Optional[str] = None):
+        """Load governance requirements from file or default set"""
+        if standards_file and Path(standards_file).exists():
+            self._load_from_file(standards_file)
         else:
-            self._load_default_constitution()
+            self._load_default_standards()
     
-    def _load_from_file(self, constitution_file: str):
-        """Load constitution from file"""
-        file_path = Path(constitution_file)
+    def _load_from_file(self, standards_file: str):
+        """Load standards from file"""
+        file_path = Path(standards_file)
         
         with open(file_path, 'r', encoding='utf-8') as f:
             if file_path.suffix.lower() in ['.yaml', '.yml']:
@@ -80,7 +80,7 @@ class ConstitutionalEngine:
                 data = json.load(f)
         
         for req_data in data.get('requirements', []):
-            req = ConstitutionalRequirement(
+            req = GovernanceRequirement(
                 id=req_data['id'],
                 name=req_data['name'],
                 description=req_data['description'],
@@ -90,10 +90,10 @@ class ConstitutionalEngine:
             )
             self.requirements.append(req)
     
-    def _load_default_constitution(self):
-        """Load default constitutional requirements"""
+    def _load_default_standards(self):
+        """Load default governance requirements"""
         default_requirements = [
-            ConstitutionalRequirement(
+            GovernanceRequirement(
                 id="security-001",
                 name="Input Validation",
                 description="All user inputs must be validated and sanitized",
@@ -101,7 +101,7 @@ class ConstitutionalEngine:
                 severity="must",
                 compliance_threshold=1.0
             ),
-            ConstitutionalRequirement(
+            GovernanceRequirement(
                 id="security-002",
                 name="Authentication Required",
                 description="Sensitive operations must require authentication",
@@ -109,7 +109,7 @@ class ConstitutionalEngine:
                 severity="must",
                 compliance_threshold=1.0
             ),
-            ConstitutionalRequirement(
+            GovernanceRequirement(
                 id="performance-001",
                 name="Response Time",
                 description="API responses should be under 2 seconds",
@@ -117,7 +117,7 @@ class ConstitutionalEngine:
                 severity="should",
                 compliance_threshold=0.9
             ),
-            ConstitutionalRequirement(
+            GovernanceRequirement(
                 id="architecture-001",
                 name="Separation of Concerns",
                 description="Components should follow single responsibility principle",
@@ -125,7 +125,7 @@ class ConstitutionalEngine:
                 severity="should",
                 compliance_threshold=0.8
             ),
-            ConstitutionalRequirement(
+            GovernanceRequirement(
                 id="testing-001",
                 name="Test Coverage",
                 description="Code should have at least 80% test coverage",
@@ -138,7 +138,7 @@ class ConstitutionalEngine:
         self.requirements = default_requirements
     
     def analyze_compliance(self, code: str, context: Dict[str, Any] = None) -> List[ComplianceResult]:
-        """Analyze code compliance against constitutional requirements"""
+        """Analyze code compliance against governance requirements"""
         results = []
         
         for requirement in self.requirements:
@@ -147,7 +147,7 @@ class ConstitutionalEngine:
         
         return results
     
-    def _check_requirement(self, code: str, requirement: ConstitutionalRequirement, 
+    def _check_requirement(self, code: str, requirement: GovernanceRequirement,
                           context: Dict[str, Any] = None) -> ComplianceResult:
         """Check compliance with a single requirement"""
         # This is a simplified implementation - in a real system, this would be more sophisticated
@@ -197,7 +197,7 @@ class ConstitutionalEngine:
         overall_score = sum(r.score for r in results) / total_count if total_count > 0 else 0.0
         
         report_lines = [
-            "# Constitutional Compliance Report",
+            "# Governance Compliance Report",
             "",
             f"## Summary",
             f"- Total Requirements: {total_count}",
@@ -222,7 +222,7 @@ class ConstitutionalEngine:
         return [r for r in results if not r.is_compliant]
 
     async def initialize(self):
-        """Initialize the constitutional engine (async for compatibility)"""
+        """Initialize the governance engine (async for compatibility)"""
         # In this implementation, initialization is synchronous
         # but we provide an async wrapper for compatibility
         pass
@@ -232,8 +232,8 @@ class ConstitutionalEngine:
         template_content: str,
         template_type: str,
         context: Dict[str, Any] = None
-    ) -> ConstitutionalValidationResult:
-        """Validate a specification template against constitutional requirements"""
+    ) -> GovernanceValidationResult:
+        """Validate a specification template against governance requirements"""
         # Perform analysis on the template content
         compliance_results = self.analyze_compliance(template_content, context)
 
@@ -263,7 +263,7 @@ class ConstitutionalEngine:
             if not result.is_compliant and result.suggestions:
                 recommendations.extend(result.suggestions)
 
-        return ConstitutionalValidationResult(
+        return GovernanceValidationResult(
             overall_score=overall_score,
             compliance_level=compliance_level,
             detailed_results=compliance_results,

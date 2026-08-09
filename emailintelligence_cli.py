@@ -3,7 +3,7 @@
 EmailIntelligence CLI - AI-powered git worktree-based conflict resolution tool
 
 Implements a structured workflow for intelligent branch merge conflict resolution
-using constitutional/specification-driven analysis and spec-kit strategies.
+using governance/specification-driven analysis and spec-kit strategies.
 """
 
 import argparse
@@ -21,8 +21,8 @@ from src.core.config import ConfigurationManager
 from src.core.security import SecurityValidator
 from src.core.git_operations import GitOperations
 
-# Constitutional Engine integration
-from src.resolution import ConstitutionalEngine
+# Governance Engine integration
+from src.resolution import GovernanceEngine
 
 # Git Operations integration
 from src.git.conflict_detector import GitConflictDetector
@@ -30,7 +30,7 @@ from src.core.conflict_models import Conflict, ConflictBlock, ConflictTypeExtend
 from src.analysis.conflict_analyzer import ConflictAnalyzer
 
 # Additional imports for interface-based architecture
-from src.analysis.constitutional.analyzer import ConstitutionalAnalyzer
+from src.analysis.governance.analyzer import GovernanceAnalyzer
 from src.resolution.auto_resolver import AutoResolver
 from src.resolution.semantic_merger import SemanticMerger
 from src.strategy.generator import StrategyGenerator
@@ -51,7 +51,7 @@ class EmailIntelligenceCLI:
         self.worktrees_dir = self.repo_root / ".git" / "worktrees"
         self.resolution_branches_dir = self.repo_root / "resolution-workspace"
         self.config_file = self.repo_root / ".emailintelligence" / "config.yaml"
-        self.constitutions_dir = self.repo_root / ".emailintelligence" / "constitutions"
+        self.standardss_dir = self.repo_root / ".emailintelligence" / "standardss"
         self.strategies_dir = self.repo_root / ".emailintelligence" / "strategies"
 
         # Initialize modular components
@@ -65,12 +65,12 @@ class EmailIntelligenceCLI:
         # Load configuration from config manager
         self.config = self.config_manager.config
 
-        # Initialize Constitutional Engine
-        self.constitutional_engine = ConstitutionalEngine(
-            constitution_file=self.config.get('constitutional_framework', {}).get('default_constitution_file')
+        # Initialize Governance Engine
+        self.governance_engine = GovernanceEngine(
+            standards_file=self.config.get('governance_framework', {}).get('default_standards_file')
         )
         # Lazy initialization flag
-        self._constitutional_engine_initialized = False
+        self._governance_engine_initialized = False
 
         # Initialize Git Conflict Detector
         self.conflict_detector = GitConflictDetector(self.repo_root)
@@ -79,7 +79,7 @@ class EmailIntelligenceCLI:
         self.conflict_analyzer = ConflictAnalyzer()
 
         # Initialize additional components for interface-based architecture
-        self.constitutional_analyzer = ConstitutionalAnalyzer()
+        self.governance_analyzer = GovernanceAnalyzer()
         self.auto_resolver = AutoResolver()
         self.semantic_merger = SemanticMerger()
         self.strategy_generator = StrategyGenerator()
@@ -89,11 +89,11 @@ class EmailIntelligenceCLI:
         # Initialize git repository check
         self._check_git_repository()
 
-    async def _ensure_constitutional_engine_initialized(self):
-        """Ensure the constitutional engine is initialized."""
-        if not self._constitutional_engine_initialized:
-            await self.constitutional_engine.initialize()
-            self._constitutional_engine_initialized = True
+    async def _ensure_governance_engine_initialized(self):
+        """Ensure the governance engine is initialized."""
+        if not self._governance_engine_initialized:
+            await self.governance_engine.initialize()
+            self._governance_engine_initialized = True
 
     def _conflict_to_template(self, conflict: Dict[str, Any], metadata: Dict[str, Any]) -> str:
         """Convert conflict data to specification template format"""
@@ -143,27 +143,27 @@ class EmailIntelligenceCLI:
         print(f"  Compliant files: {compliant_count}/{len(all_results)}")
         print(f"  Average compliance: {avg_score:.1%}")
 
-    def _save_constitutional_results(self, pr_number: int, results: List[Dict[str, Any]], 
+    def _save_governance_results(self, pr_number: int, results: List[Dict[str, Any]],
                                    metadata_file: Path):
-        """Save constitutional analysis results to metadata"""
+        """Save governance analysis results to metadata"""
         import json
         # Load existing metadata
         with open(metadata_file, 'r', encoding='utf-8') as f:
             metadata = json.load(f)
         
-        # Add constitutional results
-        constitutional_results = []
+        # Add governance results
+        governance_results = []
         for result in results:
-            constitutional_results.append({
+            governance_results.append({
                 'file': result['file'],
                 'overall_score': result['result'].overall_score,
                 'compliance_level': result['result'].compliance_level.value,
                 'summary': result['result'].summary
             })
         
-        metadata['constitutional_analysis'] = {
+        metadata['governance_analysis'] = {
             'timestamp': datetime.now().isoformat(),
-            'results': constitutional_results,
+            'results': governance_results,
             'overall_score': sum(r['result'].overall_score for r in results) / len(results) if results else 0.0
         }
         
@@ -177,7 +177,7 @@ class EmailIntelligenceCLI:
             self.worktrees_dir,
             self.resolution_branches_dir,
             self.config_file.parent,
-            self.constitutions_dir,
+            self.standardss_dir,
             self.strategies_dir
         ]
 
@@ -207,7 +207,7 @@ class EmailIntelligenceCLI:
 
     def setup_resolution(
         self, pr_number: int, source_branch: str, target_branch: str,
-        constitution_files: List[str] = None, spec_files: List[str] = None,
+        standards_files: List[str] = None, spec_files: List[str] = None,
         dry_run: bool = False
     ) -> Dict[str, Any]:
         """
@@ -217,7 +217,7 @@ class EmailIntelligenceCLI:
             pr_number: Pull request number
             source_branch: Source branch with conflicts
             target_branch: Target branch for merging
-            constitution_files: List of constitution YAML files
+            standards_files: List of standards YAML files
             spec_files: List of specification files
             dry_run: Preview setup without creating worktrees
         """
@@ -266,15 +266,15 @@ class EmailIntelligenceCLI:
             if not self.git_operations.create_worktree(worktree_b_path, target_branch):
                 self._error_exit(f"Failed to create worktree for target branch: {target_branch}")
 
-            # Step 3: Load constitutions and specifications
-            self._info("📋 Loading constitutions and specifications:")
-            constitutions = constitution_files or self.config.get(
-                'constitutional_framework', {}
-            ).get('default_constitutions', [])
+            # Step 3: Load standardss and specifications
+            self._info("📋 Loading standardss and specifications:")
+            standardss = standards_files or self.config.get(
+                'governance_framework', {}
+            ).get('default_standardss', [])
             specifications = spec_files or []
 
-            for constitution in constitutions:
-                self._info(f"   ├─ Constitution: {constitution}")
+            for standards in standardss:
+                self._info(f"   ├─ Standards: {standards}")
             for spec in specifications:
                 self._info(f"   └─ Specification: {spec}")
 
@@ -289,7 +289,7 @@ class EmailIntelligenceCLI:
                 'resolution_branch': resolution_branch,
                 'worktree_a_path': str(worktree_a_path),
                 'worktree_b_path': str(worktree_b_path),
-                'constitution_files': constitution_files or [],
+                'standards_files': standards_files or [],
                 'spec_files': spec_files or [],
                 'conflicts': conflicts,
                 'created_at': datetime.now().isoformat(),
@@ -305,7 +305,7 @@ class EmailIntelligenceCLI:
                 'success': True,
                 'message': 'Resolution workspace ready!',
                 'next_steps': [
-                    f"1. eai analyze-constitutional --pr {pr_number}",
+                    f"1. eai analyze-governance --pr {pr_number}",
                     f"2. eai develop-spec-kit-strategy --pr {pr_number}",
                     f"3. eai align-content --pr {pr_number}"
                 ],
@@ -396,34 +396,34 @@ class EmailIntelligenceCLI:
             # Fallback to the original method
             return self._detect_conflicts(worktree_a_path, worktree_b_path)
 
-    def analyze_constitutional(
-        self, pr_number: int, constitution_files: List[str] = None,
+    def analyze_governance(
+        self, pr_number: int, standards_files: List[str] = None,
         interactive: bool = False
     ) -> Dict[str, Any]:
         """
-        Analyze conflicts against loaded constitution
+        Analyze conflicts against loaded standards
 
         Args:
             pr_number: Pull request number
-            constitution_files: List of constitution files to analyze against
+            standards_files: List of standards files to analyze against
             interactive: Enable interactive analysis mode
         """
         # Call the async version using asyncio.run for compatibility
         import asyncio
         return asyncio.run(
-            self._analyze_constitutional_async(pr_number, constitution_files, interactive)
+            self._analyze_governance_async(pr_number, standards_files, interactive)
         )
 
-    async def _analyze_constitutional_async(
+    async def _analyze_governance_async(
         self,
         pr_number: int,
-        constitution_files: Optional[List[str]] = None,
+        standards_files: Optional[List[str]] = None,
         interactive: bool = False,
     ) -> Dict[str, Any]:
-        """Async implementation of constitutional analysis"""
+        """Async implementation of governance analysis"""
 
         # Ensure engine is initialized
-        await self._ensure_constitutional_engine_initialized()
+        await self._ensure_governance_engine_initialized()
 
         metadata_file = self.resolution_branches_dir / f"pr-{pr_number}" / "metadata.json"
 
@@ -450,9 +450,9 @@ class EmailIntelligenceCLI:
         print(f"CONSTITUTIONAL ANALYSIS - PR #{pr_number}")
         print(f"{'='*80}\n")
 
-        print(f"Analyzing {len(conflicts_data)} conflicts against constitutional rules...")
+        print(f"Analyzing {len(conflicts_data)} conflicts against governance rules...")
 
-        # Analyze each conflict using the new constitutional analyzer
+        # Analyze each conflict using the new governance analyzer
         all_results = []
         for i, conflict in enumerate(conflicts_data, 1):
             file_path = conflict.get("file", "unknown")
@@ -461,8 +461,8 @@ class EmailIntelligenceCLI:
             # Create specification template content from conflict
             template_content = self._conflict_to_template(conflict, metadata)
 
-            # Use the new constitutional analyzer
-            result = await self.constitutional_analyzer.analyze_constitutional_compliance(
+            # Use the new governance analyzer
+            result = await self.governance_analyzer.analyze_governance_compliance(
                 code=template_content,
                 context={
                     "pr_number": pr_number,
@@ -476,13 +476,13 @@ class EmailIntelligenceCLI:
             all_results.append({"file": file_path, "result": result})
 
             # Display result
-            self._display_constitutional_analysis_result(result, file_path)
+            self._display_governance_analysis_result(result, file_path)
 
         # Overall summary
-        self._display_constitutional_overall_summary(all_results)
+        self._display_governance_overall_summary(all_results)
 
         # Save results to metadata
-        self._save_constitutional_results(pr_number, all_results, metadata_file)
+        self._save_governance_results(pr_number, all_results, metadata_file)
 
         print(f"\n{'='*80}\n")
 
@@ -513,13 +513,13 @@ class EmailIntelligenceCLI:
             "recommendations": [r for r in all_results for r in r["result"].recommendations],
         }
 
-    def _display_constitutional_analysis_result(self, result, filename: str):
-        """Display constitutional analysis result for a file"""
+    def _display_governance_analysis_result(self, result, filename: str):
+        """Display governance analysis result for a file"""
         status_emoji = "✅" if result.compliance_score > 0.8 else "⚠️" if result.compliance_score > 0.5 else "❌"
         print(f"  {status_emoji} {filename}: {result.compliance_score:.1%} ({len(result.violations)} violations)")
 
-    def _display_constitutional_overall_summary(self, all_results: List[Dict[str, Any]]):
-        """Display overall constitutional analysis summary"""
+    def _display_governance_overall_summary(self, all_results: List[Dict[str, Any]]):
+        """Display overall governance analysis summary"""
         if not all_results:
             print("No results to display")
             return
@@ -530,63 +530,63 @@ class EmailIntelligenceCLI:
         total_violations = sum(len(r['result'].violations) for r in all_results)
         total_recommendations = sum(len(r['result'].recommendations) for r in all_results)
 
-        print(f"\nOverall Constitutional Analysis Summary:")
+        print(f"\nOverall Governance Analysis Summary:")
         print(f"  Files analyzed: {len(all_results)}")
         print(f"  Total violations: {total_violations}")
         print(f"  Total recommendations: {total_recommendations}")
         print(f"  Average compliance: {avg_score:.1%}")
 
-    def _load_constitutions(self, constitution_files: List[str]) -> List[Dict[str, Any]]:
-        """Load constitution files"""
-        constitutions = []
+    def _load_standardss(self, standards_files: List[str]) -> List[Dict[str, Any]]:
+        """Load standards files"""
+        standardss = []
 
-        for constitution_file in constitution_files:
-            constitution_path = Path(constitution_file)
+        for standards_file in standards_files:
+            standards_path = Path(standards_file)
 
-            # Try relative path first, then constitutions directory
-            if not constitution_path.exists():
-                constitution_path = self.constitutions_dir / constitution_file
+            # Try relative path first, then standardss directory
+            if not standards_path.exists():
+                standards_path = self.standardss_dir / standards_file
 
-            if not constitution_path.exists():
-                self._warn(f"Constitution file not found: {constitution_file}")
+            if not standards_path.exists():
+                self._warn(f"Standards file not found: {standards_file}")
                 continue
 
             try:
-                with open(constitution_path) as f:
-                    if yaml and constitution_path.suffix.lower() in ['.yaml', '.yml']:
-                        constitution = yaml.safe_load(f)
+                with open(standards_path) as f:
+                    if yaml and standards_path.suffix.lower() in ['.yaml', '.yml']:
+                        standards = yaml.safe_load(f)
                     else:
-                        constitution = json.load(f)
+                        standards = json.load(f)
 
-                    constitution['source_file'] = str(constitution_path)
-                    constitutions.append(constitution)
-                    self._info(f"✅ Loaded constitution: {constitution_path.name}")
+                    standards['source_file'] = str(standards_path)
+                    standardss.append(standards)
+                    self._info(f"✅ Loaded standards: {standards_path.name}")
 
             except Exception as e:
-                self._warn(f"Failed to load constitution {constitution_file}: {e}")
+                self._warn(f"Failed to load standards {standards_file}: {e}")
 
-        return constitutions
+        return standardss
 
-    def _perform_constitutional_analysis(
-        self, metadata: Dict[str, Any], constitutions: List[Dict[str, Any]]
+    def _perform_governance_analysis(
+        self, metadata: Dict[str, Any], standardss: List[Dict[str, Any]]
     ) -> Dict[str, Any]:
-        """Perform constitutional analysis on conflicts"""
+        """Perform governance analysis on conflicts"""
         conflicts = metadata.get('conflicts', [])
         analysis_results = {
-            'constitutions_analyzed': len(constitutions),
+            'standardss_analyzed': len(standardss),
             'conflicts_analyzed': len(conflicts),
             'overall_compliance': 0.0,
-            'constitutional_assessments': [],
+            'governance_assessments': [],
             'critical_issues': [],
             'recommendations': []
         }
 
         total_compliance = 0.0
-        constitution_count = len(constitutions)
+        standards_count = len(standardss)
 
-        for constitution in constitutions:
-            assessment = self._assess_constitutional_compliance(conflicts, constitution)
-            analysis_results['constitutional_assessments'].append(assessment)
+        for standards in standardss:
+            assessment = self._assess_governance_compliance(conflicts, standards)
+            analysis_results['governance_assessments'].append(assessment)
             total_compliance += assessment.get('compliance_score', 0.0)
 
             # Collect critical issues
@@ -598,28 +598,28 @@ class EmailIntelligenceCLI:
                 analysis_results['recommendations'].extend(assessment['recommendations'])
 
         # Calculate overall compliance
-        if constitution_count > 0:
-            analysis_results['overall_compliance'] = total_compliance / constitution_count
+        if standards_count > 0:
+            analysis_results['overall_compliance'] = total_compliance / standards_count
 
         # Generate general recommendations if none specific
         if not analysis_results['recommendations']:
             analysis_results['recommendations'] = [
-                "Review all detected conflicts for constitutional compliance",
-                "Consider updating constitutions to reflect current organizational standards",
+                "Review all detected conflicts for governance compliance",
+                "Consider updating standardss to reflect current organizational standards",
                 "Ensure proper error handling and input validation"
             ]
 
         return analysis_results
 
-    def _assess_constitutional_compliance(
-        self, conflicts: List[Dict[str, Any]], constitution: Dict[str, Any]
+    def _assess_governance_compliance(
+        self, conflicts: List[Dict[str, Any]], standards: Dict[str, Any]
     ) -> Dict[str, Any]:
-        """Assess compliance against a single constitution"""
-        constitution_name = constitution.get('name', 'Unknown Constitution')
-        requirements = constitution.get('requirements', [])
+        """Assess compliance against a single standards"""
+        standards_name = standards.get('name', 'Unknown Standards')
+        requirements = standards.get('requirements', [])
 
         assessment = {
-            'constitution_name': constitution_name,
+            'standards_name': standards_name,
             'requirements_count': len(requirements),
             'compliance_score': 0.0,
             'conformant_requirements': [],
@@ -641,7 +641,7 @@ class EmailIntelligenceCLI:
 
             # High-Fidelity LibCST Compliance validation
             try:
-                from src.resolution import ConstitutionalValidationResult, ComplianceLevel
+                from src.resolution import GovernanceValidationResult, ComplianceLevel
                 import libcst as cst
 
                 # Heuristic mapping for standard text requirements
@@ -702,22 +702,22 @@ class EmailIntelligenceCLI:
     ) -> str:
         """Generate human-readable analysis report"""
         report_lines = [
-            f"# Constitutional Analysis Report - PR #{pr_number}",
+            f"# Governance Analysis Report - PR #{pr_number}",
             "",
             "## Executive Summary",
             f"- **Branch**: {metadata['source_branch']}",
             f"- **Target**: {metadata['target_branch']}",
-            f"- **Constitutional Compliance**: {analysis_results['overall_compliance']:.1%}",
+            f"- **Governance Compliance**: {analysis_results['overall_compliance']:.1%}",
             f"- **Critical Issues**: {len(analysis_results.get('critical_issues', []))}",
             f"- **Recommendations**: {len(analysis_results.get('recommendations', []))}",
             "",
-            "## Constitutional Assessment",
+            "## Governance Assessment",
             ""
         ]
 
-        for assessment in analysis_results['constitutional_assessments']:
+        for assessment in analysis_results['governance_assessments']:
             report_lines.extend([
-                f"### {assessment['constitution_name']} Compliance",
+                f"### {assessment['standards_name']} Compliance",
                 "",
                 f"**Compliance Score**: {assessment['compliance_score']:.1%}",
                 ""
@@ -808,9 +808,9 @@ class EmailIntelligenceCLI:
         with open(metadata_file) as f:
             metadata = json.load(f)
 
-        if metadata.get('status') != 'constitution_analyzed':
-            self._warn("Constitutional analysis not yet completed. Running analysis first...")
-            self.analyze_constitutional(pr_number)
+        if metadata.get('status') != 'standards_analyzed':
+            self._warn("Governance analysis not yet completed. Running analysis first...")
+            self.analyze_governance(pr_number)
 
         self._info(f"🎯 Developing spec-kit resolution strategy for PR #{pr_number}...")
 
@@ -862,7 +862,7 @@ class EmailIntelligenceCLI:
             'phases': [],
             'estimated_time': '2-3 hours',
             'enhancement_preservation_rate': 0.0,
-            'constitutional_compliance_requirements': [],
+            'governance_compliance_requirements': [],
             'risk_assessment': {}
         }
 
@@ -929,7 +929,7 @@ class EmailIntelligenceCLI:
         phase_1['success_criteria'] = [
             f"Analyze {len(conflicts)} conflicting files",
             "Generate alignment recommendations for each conflict",
-            "Validate constitutional compliance"
+            "Validate governance compliance"
         ]
 
         strategy['phases'].append(phase_1)
@@ -1039,9 +1039,9 @@ class EmailIntelligenceCLI:
         preservation_rate = (source_features + target_features * 0.95) / total_features
         strategy['enhancement_preservation_rate'] = preservation_rate
 
-        # Add constitutional compliance requirements
-        strategy['constitutional_compliance_requirements'] = [
-            '95% constitutional compliance maintained',
+        # Add governance compliance requirements
+        strategy['governance_compliance_requirements'] = [
+            '95% governance compliance maintained',
             'All critical requirements must be CONFORMANT',
             'Security and performance standards preserved'
         ]
@@ -1122,11 +1122,11 @@ class EmailIntelligenceCLI:
             f"**Performance Risk**: {strategy['risk_assessment']['performance_risk']}",
             f"**Test Risk**: {strategy['risk_assessment']['test_risk']}",
             "",
-            "## Constitutional Compliance Requirements",
+            "## Governance Compliance Requirements",
             ""
         ])
 
-        for requirement in strategy['constitutional_compliance_requirements']:
+        for requirement in strategy['governance_compliance_requirements']:
             report_lines.append(f"- {requirement}")
 
         return "\n".join(report_lines)
@@ -1274,7 +1274,7 @@ class EmailIntelligenceCLI:
 
             self._info(f"   ✅ {step_name} - RESOLVED")
 
-            # Simulate constitutional validation
+            # Simulate governance validation
             if step.get('strategy'):
                 self._info(f"   🔍 Applying {step['strategy'].lower()} strategy...")
 
@@ -1409,9 +1409,9 @@ class EmailIntelligenceCLI:
         if level == 'quick':
             checks = ['syntax_check']
         elif level == 'comprehensive':
-            checks = ['syntax_check', 'unit_tests', 'constitutional_compliance']
+            checks = ['syntax_check', 'unit_tests', 'governance_compliance']
         else:  # standard
-            checks = ['syntax_check', 'constitutional_compliance']
+            checks = ['syntax_check', 'governance_compliance']
 
         # Real test suite parsing
         if test_suites:
@@ -1422,8 +1422,8 @@ class EmailIntelligenceCLI:
             self._info(f"🔍 Running {check.replace('_', ' ').title()}...")
 
             # Real test execution using os/subprocess
-            if check == 'constitutional_compliance':
-                result = self._validate_constitutional_compliance(metadata)
+            if check == 'governance_compliance':
+                result = self._validate_governance_compliance(metadata)
             elif check == 'syntax_check':
                 # Actually run compileall on the codebase
                 try:
@@ -1483,8 +1483,8 @@ class EmailIntelligenceCLI:
         validation_results['completed_at'] = datetime.now().isoformat()
         return validation_results
 
-    def _validate_constitutional_compliance(self, metadata: Dict[str, Any]) -> Dict[str, Any]:
-        """Validate constitutional compliance"""
+    def _validate_governance_compliance(self, metadata: Dict[str, Any]) -> Dict[str, Any]:
+        """Validate governance compliance"""
         analysis_results = metadata.get('analysis_results', {})
         compliance_score = analysis_results.get('overall_compliance', 0.0)
 
@@ -1492,25 +1492,25 @@ class EmailIntelligenceCLI:
             return {
                 'status': 'passed',
                 'score': 98,
-                'details': f'Constitutional compliance: {compliance_score:.1%} - EXCELLENT'
+                'details': f'Governance compliance: {compliance_score:.1%} - EXCELLENT'
             }
         elif compliance_score >= 0.8:
             return {
                 'status': 'passed',
                 'score': 85,
-                'details': f'Constitutional compliance: {compliance_score:.1%} - GOOD'
+                'details': f'Governance compliance: {compliance_score:.1%} - GOOD'
             }
         elif compliance_score >= 0.6:
             return {
                 'status': 'warning',
                 'score': 70,
-                'details': f'Constitutional compliance: {compliance_score:.1%} - NEEDS IMPROVEMENT'
+                'details': f'Governance compliance: {compliance_score:.1%} - NEEDS IMPROVEMENT'
             }
         else:
             return {
                 'status': 'failed',
                 'score': 45,
-                'details': f'Constitutional compliance: {compliance_score:.1%} - CRITICAL ISSUES'
+                'details': f'Governance compliance: {compliance_score:.1%} - CRITICAL ISSUES'
             }
 
     def _display_validation_results(self, results: Dict[str, Any]):
@@ -1659,8 +1659,8 @@ Examples:
   # Setup resolution workspace
   eai setup-resolution --pr 123 --source-branch feature/auth --target-branch main
 
-  # Analyze constitutional compliance
-  eai analyze-constitutional --pr 123 --constitution ./constitutions/auth.yaml
+  # Analyze governance compliance
+  eai analyze-governance --pr 123 --standards ./standardss/auth.yaml
 
   # Develop resolution strategy
   eai develop-spec-kit-strategy --pr 123 --worktrees --interactive
@@ -1680,14 +1680,14 @@ Examples:
     setup_parser.add_argument('--pr', type=int, required=True, help='Pull request number')
     setup_parser.add_argument('--source-branch', required=True, help='Source branch with conflicts')
     setup_parser.add_argument('--target-branch', required=True, help='Target branch for merging')
-    setup_parser.add_argument('--constitution', action='append', help='Constitution file(s)')
+    setup_parser.add_argument('--standards', action='append', help='Standards file(s)')
     setup_parser.add_argument('--spec', action='append', help='Specification file(s)')
     setup_parser.add_argument('--dry-run', action='store_true', help='Preview setup without creating worktrees')
 
-    # Analyze constitutional command
-    analyze_parser = subparsers.add_parser('analyze-constitutional', help='Analyze conflicts against constitution')
+    # Analyze governance command
+    analyze_parser = subparsers.add_parser('analyze-governance', help='Analyze conflicts against standards')
     analyze_parser.add_argument('--pr', type=int, required=True, help='Pull request number')
-    analyze_parser.add_argument('--constitution', action='append', help='Constitution file(s) to analyze against')
+    analyze_parser.add_argument('--standards', action='append', help='Standards file(s) to analyze against')
     analyze_parser.add_argument('--interactive', action='store_true', help='Enable interactive analysis mode')
 
     # Develop strategy command
@@ -1737,16 +1737,16 @@ Examples:
                 pr_number=args.pr,
                 source_branch=args.source_branch,
                 target_branch=args.target_branch,
-                constitution_files=args.constitution,
+                standards_files=args.standards,
                 spec_files=args.spec,
                 dry_run=args.dry_run
             )
             print(json.dumps(result, indent=2))
 
-        elif args.command == 'analyze-constitutional':
-            result = cli.analyze_constitutional(
+        elif args.command == 'analyze-governance':
+            result = cli.analyze_governance(
                 pr_number=args.pr,
-                constitution_files=args.constitution,
+                standards_files=args.standards,
                 interactive=args.interactive
             )
             print(json.dumps(result, indent=2))

@@ -1,5 +1,5 @@
 """
-Requirement checker module for constitutional analysis.
+Requirement checker module for governance analysis.
 
 Implements various checkers for different aspects of code quality.
 """

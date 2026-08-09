@@ -36,16 +36,16 @@ class IConflictDetector(ABC):
         """
 
 
-class IConstitutionalAnalyzer(ABC):
+class IGovernanceAnalyzer(ABC):
     """
-    Interface for constitutional analysis components.
-    Responsible for checking code against constitutional rules.
+    Interface for governance analysis components.
+    Responsible for checking code against governance rules.
     """
 
     @abstractmethod
-    async def analyze_constitutional_compliance(self, code: str, context: Dict[str, Any]) -> AnalysisResult:
+    async def analyze_governance_compliance(self, code: str, context: Dict[str, Any]) -> AnalysisResult:
         """
-        Analyze code for constitutional compliance.
+        Analyze code for governance compliance.
 
         Args:
             code: The code to analyze
