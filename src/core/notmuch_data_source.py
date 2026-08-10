@@ -9,7 +9,10 @@ import asyncio
 import email
 import logging
 from datetime import datetime
-from typing import Any, Optional
+from typing import Any, Optional, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .database import DatabaseManager
 
 # Import notmuch only when needed to allow import in environments without it
 try:
@@ -65,6 +68,8 @@ class NotmuchDataSource(DataSource):
 
         self.notmuch_db = None
         self._initialized = False
+        # Track background tasks to prevent garbage collection
+        self._background_tasks: set = set()
         # Initialize database manager for caching - accept injected or create default
         if db_manager is not None:
             self.db = db_manager
@@ -333,10 +338,12 @@ class NotmuchDataSource(DataSource):
         # If AI engine is available, perform analysis asynchronously
         if self.ai_engine:
             try:
-                # Schedule AI analysis as a background task
-                asyncio.create_task(
+                # Schedule AI analysis as a background task and track to prevent GC
+                task = asyncio.create_task(
                     self._analyze_and_tag_email_background(result["message_id"], email_data)
                 )
+                self._background_tasks.add(task)
+                task.add_done_callback(self._background_tasks.discard)
             except Exception as e:
                 logger.warning(f"Failed to schedule background AI analysis: {e}")
 
@@ -637,7 +644,9 @@ class NotmuchDataSource(DataSource):
             # Trigger re-analysis if AI engine is available
             if self.ai_engine:
                 try:
-                    asyncio.create_task(self._reanalyze_email(message_id))
+                    task = asyncio.create_task(self._reanalyze_email(message_id))
+                    self._background_tasks.add(task)
+                    task.add_done_callback(self._background_tasks.discard)
                 except Exception as e:
                     logger.warning(f"Failed to schedule re-analysis for email {message_id}: {e}")
 

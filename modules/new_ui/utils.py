@@ -166,12 +166,12 @@ def sanitize_html(html_content: str) -> str:
 
     # Remove script tags
     html_content = re.sub(
-        r"<script[^>]*>.*?</script>", "", html_content, flags=re.DOTALL | re.IGNORECASE
+        r"<script\b[^>]*>.*?</script\s*>", "", html_content, flags=re.DOTALL | re.IGNORECASE
     )
 
     # Remove style tags
     html_content = re.sub(
-        r"<style[^>]*>.*?</style>", "", html_content, flags=re.DOTALL | re.IGNORECASE
+        r"<style\b[^>]*>.*?</style\s*>", "", html_content, flags=re.DOTALL | re.IGNORECASE
     )
 
     # Remove event handlers

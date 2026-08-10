@@ -24,6 +24,7 @@ from .enhanced_error_reporting import (
 
 # NOTE: These dependencies will be moved to the core framework as well.
 # For now, we are assuming they will be available in the new location.
+from .data.data_source import DataSource
 from .performance_monitor import log_performance
 from .security import validate_path_safety
 
@@ -104,10 +105,6 @@ class DatabaseConfig:
 
         # Ensure directories exist
         os.makedirs(self.email_content_dir, exist_ok=True)
-
-
-# Import DataSource locally to avoid circular imports
-from .data.data_source import DataSource
 
 
 class DatabaseManager(DataSource):
