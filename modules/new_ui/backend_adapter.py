@@ -124,6 +124,18 @@ class BackendClient:
             safe_key = "".join(x for x in key if x.isalnum() or x in "_-")
             file_path = DATA_DIR / f"{safe_key}.json"
 
+            # Ensure the resolved path stays within the DATA_DIR to prevent path traversal
+            base_dir = DATA_DIR.resolve()
+            resolved_file_path = file_path.resolve()
+            if resolved_file_path != base_dir and base_dir not in resolved_file_path.parents:
+                logger.error(
+                    "Refusing to persist item %s: resolved path %s is outside of data directory %s",
+                    key,
+                    resolved_file_path,
+                    base_dir,
+                )
+                return False
+
             # Atomic write
             temp_path = file_path.with_suffix(".tmp")
             with open(temp_path, "w") as f:
