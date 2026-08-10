@@ -45,7 +45,7 @@ python3-pytest-asyncio # Pytest-asyncio - async testing
 
 # AI/ML - Not in Ubuntu repos or require specific versions
 torch>=2.4.0          # PyTorch - deep learning (CPU only)
-torchvision>=0.19.0   # Torchvision - computer vision
+torchvision>=0.28.0   # Torchvision - computer vision
 torchaudio>=2.4.0     # Torchaudio - audio processing
 transformers>=4.40.0  # Transformers - NLP models
 accelerate>=0.30.0    # Accelerate - distributed training
