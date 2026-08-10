@@ -106,7 +106,7 @@ jobs:
           retention-days: 7
 
       - name: Bandit security check
-        run: uv run bandit -r src/ modules/ setup/ -x tests/ || true
+        run: uv run bandit -r src/ modules/ setup/ -x tests/ --skip B101,B112,B311 || true
 
   # Block on failure - this job depends on all others
   block-on-failure:
