@@ -987,4 +987,3 @@ class SmartFilterManager:
         """Performs cleanup operations."""
         await self.close()
         # CacheManager doesn't have a close method and is global/shared
-

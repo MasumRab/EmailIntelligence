@@ -26,7 +26,6 @@ from setup.launch import (
 
 
 @patch("launch.logger")
-@pytest.mark.skip(reason='Flaky locally')
 def test_install_deps_npm_install_fails(mock_logger, mock_run, mock_which, mock_exists):
     """
     Verifies that install_nodejs_dependencies exits gracefully if 'npm install' fails.
