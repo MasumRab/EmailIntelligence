@@ -26,9 +26,9 @@ from .smart_filter_manager import SmartFilterManager
 from .ai_engine import ModernAIEngine
 from .performance_monitor import log_performance
 from .enhanced_error_reporting import (
-    log_error, 
-    ErrorSeverity, 
-    ErrorCategory, 
+    log_error,
+    ErrorSeverity,
+    ErrorCategory,
     create_error_context
 )
 from .security import PathValidator

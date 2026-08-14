@@ -19,6 +19,7 @@ from typing import Any, Dict, List, Optional
 from transformers import AutoModelForSequenceClassification, AutoTokenizer, pipeline
 
 from backend.python_nlp.text_utils import clean_text
+from core.security import verify_model_safety
 
 from .analysis_components.importance_model import ImportanceModel
 
@@ -159,7 +160,7 @@ class NLPEngine:
         }
         logger.info("Regex patterns compiled successfully.")
 
-    def _load_model(self, model_path: str):
+    def _load_model(self, model_path: str, expected_hash: Optional[str] = None):
         """
         Load a model from the specified path.
 
@@ -171,6 +172,9 @@ class NLPEngine:
         """
         try:
             if os.path.exists(model_path):
+                if not verify_model_safety(model_path, expected_hash):
+                    logger.error(f"Security: Model path or signature validation failed for {model_path}")
+                    return None
                 import joblib
 
                 model = joblib.load(model_path)

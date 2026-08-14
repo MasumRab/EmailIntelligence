@@ -23,11 +23,12 @@ jobs:
   python-lint:
     name: Python Lint Check
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
+          submodules: recursive
           fetch-depth: 0
 
       - name: Set up Python
@@ -54,11 +55,12 @@ jobs:
   python-compile:
     name: Python Compile Check
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
+          submodules: recursive
           fetch-depth: 0
 
       - name: Set up Python
