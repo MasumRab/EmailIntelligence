@@ -52,7 +52,6 @@ jobs:
         continue-on-error: true
       - name: Type checking
         run: uv run mypy src/ modules/ --show-error-codes --no-strict-optional
-        continue-on-error: true
 
   lint-only:
     if: |
