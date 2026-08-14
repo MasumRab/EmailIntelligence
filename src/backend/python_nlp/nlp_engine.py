@@ -16,7 +16,7 @@ import sys
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from transformers import AutoModelForSequenceClassification, AutoTokenizer, pipeline
+from transformers import pipeline
 
 from backend.python_nlp.text_utils import clean_text
 from core.security import verify_model_safety
@@ -30,7 +30,6 @@ logger = logging.getLogger(__name__)
 
 # Try to import optional dependencies
 try:
-    import nltk
     from textblob import TextBlob
 
     HAS_NLTK = True
