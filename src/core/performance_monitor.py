@@ -179,13 +179,13 @@ def _create_decorator(func, op_name):
         return sync_wrapper
 
 
-import atexit
+import atexit  # noqa: E402
 
 # Enhanced performance monitoring system with additional features
-from collections import defaultdict, deque
-from dataclasses import asdict, dataclass
-from pathlib import Path
-from typing import Any, Dict, Optional, Union
+from collections import defaultdict, deque  # noqa: E402
+from dataclasses import asdict, dataclass  # noqa: E402
+from pathlib import Path  # noqa: E402
+from typing import Any, Dict, Optional, Union  # noqa: E402
 
 logger = logging.getLogger(__name__)
 
