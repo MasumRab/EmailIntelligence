@@ -34,7 +34,6 @@ jobs:
             PENDING=$(jq '[.[] | select(.bucket == "pending")] | length' <<< "$CHECKS")
             BLOCKERS=$(jq '[.[] | select(.bucket == "failure" or .bucket == "cancelled")] | length' <<< "$CHECKS")
             echo "Total: $TOTAL, Pending: $PENDING, Blockers: $BLOCKERS"
-
             # If there are no required checks, proceed immediately according to merge policy
             if [ "$TOTAL" -eq 0 ]; then
               echo "No required checks found; proceeding with merge."
@@ -43,9 +42,11 @@ jobs:
 
             if [ "$PENDING" -eq 0 ]; then
               if [ "$BLOCKERS" -eq 0 ]; then
-                echo "All checks passed!" && exit 0
+                echo "All checks passed!"
+                exit 0
               fi
-              echo "Checks failed." && exit 1
+              echo "Checks failed."
+              exit 1
             fi
             sleep $INTERVAL
           done

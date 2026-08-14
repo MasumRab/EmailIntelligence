@@ -46,11 +46,24 @@ pull_request_rules:
         method: merge
 
   # Rule 2: Agent PRs (Jules/Sentinel/Bolt) — require human label
+  # NOTE: This rule is restricted to agent-authored PRs via `author` conditions.
   - name: Auto-merge agent PRs only when explicitly approved
     conditions:
+      # Auto-merge must be explicitly requested
       - label=auto-merge-approved
+
+      # Restrict to agent authors so human PRs don't bypass normal approval rules
+      - or:
+          - author=jules-bot
+          - author=sentinel-bot
+          - author=bolt-bot
+          - author=google-labs-jules[bot]
+
+      # CI must be green
       - check-success=test
       - check-success=sonarcloud
+
+      # Block if certain labels are present
       - -label=do-not-merge
       - -label=review-finding-open
     actions:
