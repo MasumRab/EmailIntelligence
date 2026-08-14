@@ -129,6 +129,11 @@ class SmartFilterManager:
         """Establishes and returns a database connection."""
         if self.conn:
             return self.conn
+        import os
+        try:
+            os.makedirs(os.path.dirname(self.db_path), exist_ok=True)
+        except Exception:
+            pass
         conn = sqlite3.connect(self.db_path)
         conn.row_factory = sqlite3.Row
         return conn
@@ -466,3 +471,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
