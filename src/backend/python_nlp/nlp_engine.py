@@ -32,7 +32,6 @@ logger = logging.getLogger(__name__)
 try:
     import nltk
     from textblob import TextBlob
-    from transformers import AutoModelForSequenceClassification, AutoTokenizer
 
     HAS_NLTK = True
     HAS_SKLEARN_AND_JOBLIB = True
@@ -51,11 +50,6 @@ except ImportError:
 # Configure logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
-
-
-def clean_text(text: str) -> str:
-    """Basic text cleaning utility."""
-    return text.lower().strip()
 
 
 # Define paths for pre-trained models
