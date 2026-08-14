@@ -11,9 +11,10 @@ Usage:
 
 import argparse
 import logging
+import os
+import shutil
 import subprocess
 import sys
-import shlex
 from pathlib import Path
 
 # Configure logging
@@ -26,18 +27,14 @@ logger = logging.getLogger("setup-env")
 PROJECT_ROOT = Path(__file__).parent.parent
 
 
-def run_command(command, cwd=None, check=True):
+def run_command(command, cwd=None):
     """Run a shell command and log the output."""
     logger.info(f"Running command: {command}")
     try:
-        if isinstance(command, str):
-            command_list = shlex.split(command)
-        else:
-            command_list = command
         result = subprocess.run(
-            command_list,
-            shell=False,
-            check=check,
+            command,
+            shell=True,
+            check=True,
             text=True,
             capture_output=True,
             cwd=cwd or str(PROJECT_ROOT),
@@ -87,10 +84,10 @@ def setup_database():
         return False
 
     # Create the database if it doesn't exist
-    run_command(["createdb", "-U", "postgres", "emailintelligence"], check=False)
+    run_command("createdb -U postgres emailintelligence || true")
 
     # Apply migrations
-    return run_command(["python", "deployment/migrate.py", "apply"])
+    return run_command("python deployment/migrate.py apply")
 
 
 def setup_environment_variables(force=False):

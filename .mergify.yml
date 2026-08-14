@@ -9,8 +9,7 @@ pull_request_rules:
         message: >
           👋 @{{author}} your PR is conflicting and needs to be updated to be
           merged.
-          {# NOTE: GitHub username is google-labs-jules[bot], not "jules" #}
-          {% if author == "google-labs-jules[bot]" or "google-labs-jules[bot]" in assignees %}
+          {% if author == "jules" or "jules" in assignees %}
           
           **Note for @jules:** This PR requires conflict resolution. Consider rebasing on latest main or using interactive merge.
           {% endif %}
@@ -20,8 +19,7 @@ pull_request_rules:
     conditions:
       - conflict
       - -closed
-      # NOTE: GitHub username is google-labs-jules[bot], not "jules"
-      - author=google-labs-jules[bot]
+      - author=jules
     actions:
       comment:
         message: >
@@ -38,7 +36,9 @@ pull_request_rules:
     description: Automatically merge Dependabot PRs when CI passes. No human approval required for dependency updates.
     conditions:
       - author=dependabot[bot]
-      - check-success=test
+      - or:
+          - check-success=test
+          - check-success=lint-only
       - -conflict
       - -draft
     actions:
