@@ -15,7 +15,6 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
 import libcst as cst
-from libcst import matchers as m
 
 from ..interface import Command
 

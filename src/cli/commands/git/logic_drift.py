@@ -51,7 +51,12 @@ class LogicDriftAnalyzerCommand(Command):
         base_dna = self._extract_logical_dna(base_content)
         head_dna = self._extract_logical_dna(head_content)
         
-        comp = self._compare_dna(base_dna, head_dna)
+        # Execute parameterized logic-drift strategy against base vs head DNA
+        from src.cli.commands.analysis.compare import CompareCommand
+        cmd = CompareCommand()
+        old_wrapper = {"dna": base_dna}
+        new_wrapper = {"dna": head_dna}
+        comp = cmd._compare_dna(old_wrapper, new_wrapper, strategy="logic-drift")
         
         if args.json:
             print(json.dumps(comp, indent=2))
@@ -90,13 +95,7 @@ class LogicDriftAnalyzerCommand(Command):
         lines = [line.strip() for line in source.splitlines() if line.strip() and not line.strip().startswith("#")]
         return "".join(lines)
 
-    def _compare_dna(self, old_dna: Dict, new_dna: Dict) -> Dict:
-        from src.cli.commands.analysis.compare import CompareCommand
-        cmd = CompareCommand()
-        # Mock the wrapper dictionaries used by CompareCommand
-        old_wrapper = {"dna": old_dna, "patterns": {}, "file": "base"}
-        new_wrapper = {"dna": new_dna, "patterns": {}, "file": "head"}
-        return cmd._compare_dna(old_wrapper, new_wrapper)
+
 
     def _print_forensic_report(self, comp: Dict, threshold: float):
         print("Parity Score: {:.2f}%".format(comp['parity_score'] * 100))

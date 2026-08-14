@@ -67,7 +67,15 @@ class CompareCommand(Command):
         
         comparisons = []
         for i in range(len(chain) - 1):
-            comparisons.append(self._compare_dna(chain[i], chain[i+1]))
+            # Pass wrapper dicts correctly
+            comparisons.append(self._compare_dna(chain[i], chain[i+1], strategy="logic-compare"))
+
+            # Need to maintain wrapper properties at output layer
+            comparisons[-1]["from"] = chain[i]["file"]
+            comparisons[-1]["to"] = chain[i+1]["file"]
+
+            missing_patterns = [p for p, val in chain[i]["patterns"].items() if val and not chain[i+1]["patterns"][p]]
+            comparisons[-1]["missing_patterns"] = missing_patterns
             
         return {"files": [c["file"] for c in chain], "comparisons": comparisons}
 
@@ -135,23 +143,31 @@ class CompareCommand(Command):
                  if line.strip() and not line.strip().startswith("#")]
         return "".join(lines)
 
-    def _compare_dna(self, old: Dict, new: Dict) -> Dict:
-        """Deep comparison of logical signatures and patterns."""
-        old_dna = old["dna"]
-        new_dna = new["dna"]
+    def _compare_dna(self, old: Dict, new: Dict, strategy: str = "logic-compare") -> Dict:
+        """Deep parameterizable comparison of logical signatures."""
+        old_dna = old.get("dna", {})
+        new_dna = new.get("dna", {})
         
         matches = []
         drifts = []
         missing = []
 
-        # Function-level comparison
         for fn_name, old_data in old_dna.items():
             if fn_name in new_dna:
                 new_data = new_dna[fn_name]
                 if old_data["sig"] == new_data["sig"]:
                     matches.append(fn_name)
                 else:
-                    similarity = SequenceMatcher(None, old_data["body"], new_data["body"]).ratio()
+                    # Strategy Parameterization
+                    if strategy == "logic-compare":
+                        similarity = 1.0 if old_data["body"] == new_data["body"] else 0.0
+                    elif strategy == "alignment":
+                        struct_sim = SequenceMatcher(None, old_data["sig"], new_data["sig"]).ratio()
+                        lexical_sim = SequenceMatcher(None, old_data["body"], new_data["body"]).ratio()
+                        similarity = (struct_sim * 0.4) + (lexical_sim * 0.6)
+                    else: # logic-drift
+                        similarity = SequenceMatcher(None, old_data["body"], new_data["body"]).ratio()
+
                     drifts.append({
                         "name": fn_name,
                         "similarity": similarity,
@@ -160,18 +176,21 @@ class CompareCommand(Command):
             else:
                 missing.append(fn_name)
 
-        # Pattern-level comparison
-        missing_patterns = [p for p, val in old["patterns"].items() if val and not new["patterns"][p]]
-
-        return {
-            "from": old["file"],
-            "to": new["file"],
+        ret = {
             "parity_score": len(matches) / len(old_dna) if old_dna else 1.0,
             "matches": matches,
             "drifts": drifts,
-            "missing": missing,
-            "missing_patterns": missing_patterns
+            "missing": missing
         }
+
+        if "file" in old and "file" in new:
+            ret["from"] = old["file"]
+            ret["to"] = new["file"]
+
+        if "patterns" in old and "patterns" in new:
+            ret["missing_patterns"] = [p for p, val in old["patterns"].items() if val and not new["patterns"][p]]
+
+        return ret
 
     def _print_forensic_report(self, results: Dict, threshold: float):
         for comp in results["comparisons"]:

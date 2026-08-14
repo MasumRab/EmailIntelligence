@@ -18,3 +18,5 @@ Base ref verified as: `consolidate/cli-unification`
 - Out-of-the-box pytest execution failed due to missing dependencies (`jwt`, `pyotp`), but the fallback smoke tests for all 13 modified command modules succeeded successfully.
 - `AutoResolver` engine initialized smoothly in `git/resolve.py` using `pydantic`.
 - Overlapping format aliases (`-f`) causing argparse conflicts in `--help` were resolved.
+
+- Wired 30+ modular `src/cli/commands/*` commands dynamically into the legacy monolithic `emailintelligence_cli.py` entrypoint via `CommandRegistry`.

@@ -126,6 +126,15 @@ class BranchAnalyzer:
                     def visit_Comment(self, node):
                         self.comments.append(node.value)
 
+                    def visit_SimpleString(self, node):
+                        self.comments.append(node.value)
+
+                    def visit_Module(self, node):
+                        if node.get_docstring(): self.comments.append(node.get_docstring())
+
+
+                        if node.get_docstring(): self.comments.append(node.get_docstring())
+
                 visitor = CommentVisitor()
                 cst_tree.visit(visitor)
                 result["comments"] = visitor.comments
