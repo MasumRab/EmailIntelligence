@@ -262,14 +262,6 @@ class PerformanceMonitor:
         """Stop the system resource monitoring"""
         self._system_monitoring = False
 
-    def log_performance(self, log_entry: Dict[str, Any]) -> None:
-        """Log a performance entry to file"""
-        try:
-            with open(LOG_FILE, "a", encoding="utf-8") as f:
-                f.write(json.dumps(log_entry) + "\n")
-        except Exception as e:
-            logger.error(f"Failed to write performance log: {e}")
-
 
 # Global performance monitor instance
 performance_monitor = PerformanceMonitor()
