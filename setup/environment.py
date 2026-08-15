@@ -94,7 +94,7 @@ def get_venv_executable(venv_path: Path, executable: str) -> Path:
 
 def run_command(cmd: List[str], description: str, **kwargs) -> bool:
     """Run a command with logging and error handling."""
-    logger.info(f"{description}: {' '.join(cmd)}")
+    logger.info(f"{description}: {' '.join(str(c) for c in cmd)}")
     try:
         result = subprocess.run(cmd, **kwargs)
         return result.returncode == 0
