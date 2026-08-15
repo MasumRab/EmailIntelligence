@@ -36,7 +36,7 @@ class ValidateCommand(Command):
             parser: ArgumentParser subparser for this command
         """
         # No arguments required for basic validation
-        pass
+        return None
 
     def get_dependencies(self) -> Dict[str, Any]:
         """

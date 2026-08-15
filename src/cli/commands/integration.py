@@ -87,7 +87,7 @@ def create_default_dependencies() -> Dict[str, Any]:
         """Simple validator for CLI validation command."""
 
         def __init__(self):
-            pass
+            return None
 
         async def validate(self, target):
             """Run validation on target."""
@@ -101,21 +101,12 @@ def create_default_dependencies() -> Dict[str, Any]:
     dependencies["validator"] = CLIValidator()
 
     # 3. NLP Domain (Strategy Pattern)
-    try:
-        from ..services.nlp import NLPService
-
-        dependencies["nlp"] = NLPService()
-    except ImportError:
-        logger.warning("NLP Service not available.")
-        dependencies["nlp"] = None
+    from src.cli.services.nlp import NLPService
+    dependencies["nlp"] = NLPService()
 
     # 4. Git Domain
-    try:
-        from ..git.worktree import WorktreeManager
-
-        dependencies["worktree_manager"] = WorktreeManager()
-    except ImportError:
-        dependencies["worktree_manager"] = None
+    from src.git.worktree import WorktreeManager
+    dependencies["worktree_manager"] = WorktreeManager()
 
     return dependencies
 

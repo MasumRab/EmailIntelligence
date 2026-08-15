@@ -242,8 +242,8 @@ class AnalyzeCommand(Command):
                             print(
                                 f"  [VIOLATION] Core file '{file_path.name}' imports higher layer: {module}"
                             )
-        except Exception:
-            pass
+        except Exception as e:
+            import logging; logging.debug(e)
 
     def _get_module_name(self, node: Any) -> str:
         if hasattr(node, "module") and node.module:

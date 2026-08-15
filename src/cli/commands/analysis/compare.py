@@ -133,8 +133,8 @@ class CompareCommand(Command):
             patterns['iteration_tracking'] = 'iteration_history' in content or 'best_results' in content
             patterns['dependency_validation'] = 'dep_id' in content and 'validate' in content
             patterns['self_healing'] = 'improvement' in content and 'threshold' in content
-        except Exception:
-            pass
+        except Exception as e:
+            import logging; logging.debug(e)
         return patterns
 
     def _normalize_logic(self, source: str) -> str:

@@ -113,7 +113,7 @@ class BranchAnalyzer:
                 ast.dump(tree, annotate_fields=False, include_attributes=False)
             )
         except SyntaxError:
-            pass
+            return None
 
         if HAVE_LIBCST:
             try:
