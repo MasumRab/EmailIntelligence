@@ -115,7 +115,7 @@ def is_wsl():
         with open("/proc/version", "r") as f:
             content = f.read().lower()
             return "microsoft" in content or "wsl" in content
-    except Exception:
+    except Exception:  # noqa: BLE001
         return False
 
 
@@ -148,7 +148,7 @@ def check_wsl_requirements():
 
     # Check if X11 server is accessible (optional check)
     try:
-        result = subprocess.run(["xset", "-q"], capture_output=True, timeout=2)
+        result = subprocess.run(["xset", "-q"], capture_output=True, timeout=2, check=False)
         if result.returncode != 0:
             logger.warning("X11 server not accessible - GUI applications may not work")
             logger.info("Install VcXsrv, MobaXterm, or similar X11 server on Windows")
@@ -206,7 +206,7 @@ def check_for_merge_conflicts() -> bool:
                                 f"Unresolved merge conflict detected in {file_path} with marker: {marker.strip()}"
                             )
                             conflicts_found = True
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.warning(f"Could not check {file_path} for conflicts: {e}")
 
     if conflicts_found:
@@ -247,7 +247,7 @@ def check_required_components() -> bool:
         try:
             models_dir.mkdir(parents=True, exist_ok=True)
             logger.info("AI models directory created successfully.")
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Failed to create models directory: {e}")
             issues.append("Failed to create models directory")
 
@@ -319,7 +319,7 @@ def get_conda_env_info():
     }
 
 
-def activate_conda_env(env_name: str = None) -> bool:
+def activate_conda_env(env_name: str | None = None) -> bool:
     """Activate a conda environment."""
     env_name = env_name or CONDA_ENV_NAME
 
@@ -661,7 +661,7 @@ except Exception as e:
 """
 
     logger.info("Downloading NLTK data...")
-    result = subprocess.run(
+    result = subprocess.run(  # noqa: PLW1510
         [python_exe, "-c", nltk_download_script],
         cwd=ROOT_DIR,
         capture_output=True,
@@ -687,7 +687,7 @@ except Exception as e:
 """
 
     logger.info("Downloading TextBlob corpora...")
-    result = subprocess.run(
+    result = subprocess.run(  # noqa: PLW1510
         [python_exe, "-c", textblob_download_script],
         cwd=ROOT_DIR,
         capture_output=True,
@@ -705,7 +705,7 @@ def check_uvicorn_installed() -> bool:
     """Check if uvicorn is installed."""
     python_exe = get_python_executable()
     try:
-        result = subprocess.run(
+        result = subprocess.run(  # noqa: PLW1510
             [python_exe, "-c", "import uvicorn"], capture_output=True, text=True
         )
         if result.returncode == 0:
