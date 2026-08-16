@@ -68,10 +68,13 @@ class ScientificSimilarityStrategy(SimilarityStrategy):
             return self._engine
         try:
             from src.backend.python_nlp.nlp_engine import NLPEngine
-
             self._engine = NLPEngine()
             return self._engine
         except ImportError:
+            return None
+        except Exception as e:
+            import logging
+            logging.debug(f"NLP engine unavailable due to backend error: {e}")
             return None
 
     def calculate(self, text1: str, text2: str) -> float:
