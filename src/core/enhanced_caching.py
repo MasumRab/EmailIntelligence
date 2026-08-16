@@ -18,7 +18,7 @@ class LRUCache:
 
     def __init__(self, capacity: int = 100):
         self.capacity = capacity
-        self.cache = OrderedDict()
+        self.cache: OrderedDict[str, Any] = OrderedDict()
         self.hits = 0
         self.misses = 0
 
@@ -68,28 +68,22 @@ class LRUCache:
 
 
 class QueryResultCache:
-    """Cache for query results with TTL (Time To Live) and LRU capacity support."""
+    """Cache for query results with TTL (Time To Live) support and LRU eviction."""
 
-    def __init__(
-        self, ttl_seconds: int = 300, capacity: int = 1000
-    ):  # 5 minutes default
-        if capacity <= 0:
-            raise ValueError("capacity must be greater than zero")
+    def __init__(self, ttl_seconds: int = 300, max_capacity: int = 1000):  # 5 minutes default
         self.ttl_seconds = ttl_seconds
-        self.capacity = capacity
-        # Use OrderedDict to implement LRU eviction for capacity limit
-        self.cache = OrderedDict()  # key -> (value, timestamp)
+        self.max_capacity = max_capacity
+        self.cache: OrderedDict[str, tuple[Any, float]] = OrderedDict()  # (value, timestamp)
         self.hits = 0
         self.misses = 0
 
     def get(self, key: str) -> Optional[Any]:
-        """Get value from cache if not expired, marking it as recently used."""
+        """Get value from cache if not expired."""
         if key in self.cache:
             value, timestamp = self.cache[key]
             if time.time() - timestamp < self.ttl_seconds:
-                # Move to end to mark as recently used
-                self.cache.move_to_end(key)
                 self.hits += 1
+                self.cache.move_to_end(key)
                 return value
             else:
                 # Expired, remove it
@@ -98,16 +92,15 @@ class QueryResultCache:
         return None
 
     def put(self, key: str, value: Any) -> None:
-        """Put value in cache with current timestamp, evicting oldest if necessary."""
+        """Put value in cache with current timestamp, evicting oldest if at capacity."""
+        if self.max_capacity <= 0:
+            return
+
         if key in self.cache:
-            # Update existing entry and move to end
             self.cache.move_to_end(key)
-        elif len(self.cache) >= self.capacity:
-            # First, try to clear expired entries
-            self.clear_expired()
-            # If still over capacity, remove least recently used item
-            if len(self.cache) >= self.capacity:
-                self.cache.popitem(last=False)
+        elif len(self.cache) >= self.max_capacity:
+            # Evict the oldest item (first item in the OrderedDict)
+            self.cache.popitem(last=False)
 
         self.cache[key] = (value, time.time())
 
