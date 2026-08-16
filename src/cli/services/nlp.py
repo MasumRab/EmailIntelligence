@@ -160,6 +160,71 @@ class NLPService:
 
         return score
 
+    async def calculate_with_feedback(
+        self,
+        text1: str,
+        text2: str,
+        threshold: float,
+        min_keyword_hits: int = 1,
+    ) -> Dict[str, Any]:
+        """
+        Compute similarity with a feedback loop on unsuccessful matches.
+
+        When the raw score falls at or below ``threshold``, the query is
+        refined: keywords are extracted from ``text2`` and the document
+        (``text1``) is scored on keyword presence. This turns a hard "out of
+        scope" verdict into a measurable, tunable decision and records the
+        miss for later adjustment.
+
+        Returns::
+
+            {
+                "score": float,            # best score achieved (0.0-1.0)
+                "refined": bool,           # True if the keyword retry improved the score
+                "keywords": List[str],     # keywords used for the retry
+                "keyword_hits": int,       # how many keywords matched in text1
+                "missed": bool,            # True if even the refeined score is below threshold
+            }
+        """
+        if not text1 or not text2:
+            return {"score": 0.0, "refined": False, "keywords": [], "keyword_hits": 0, "missed": True}
+
+        score = await self.calculate_similarity(text1, text2)
+        raw_score = score
+        keywords = await self.extract_keywords(text2)
+        hits = 0
+        refined = False
+
+        if score <= threshold:
+            tokens1 = set(re.findall(r"\w+", text1.lower()))
+            hits = sum(1 for kw in keywords if kw in tokens1)
+            if hits >= min_keyword_hits:
+                # Keyword overlap is evidence the document shares intent with
+                # the scope sentence even when lexical similarity is low.
+                inferred = max(score, min(1.0, 0.5 + 0.1 * hits))
+                refined = inferred > score
+                score = inferred
+                logger.info(
+                    "NLP similarity below threshold; keyword refinement raised score "
+                    "%.2f -> %.2f (hits=%d keywords=%s)",
+                    raw_score, score, hits, keywords,
+                )
+
+        missed = score <= threshold
+        if missed:
+            logger.warning(
+                "NLP semantic match missed: score=%.2f threshold=%.2f keywords=%s hits=%d",
+                score, threshold, keywords, hits,
+            )
+
+        return {
+            "score": score,
+            "refined": refined,
+            "keywords": keywords,
+            "keyword_hits": hits,
+            "missed": missed,
+        }
+
     async def extract_keywords(self, text: str, limit: int = 5) -> List[str]:
         """Independent keyword extraction using frequency analysis."""
         words = re.findall(r"\w+", text.lower())
@@ -186,10 +251,22 @@ class NLPService:
     async def find_matches(
         self, query: str, choices: List[str], cutoff: float = 0.6
     ) -> List[str]:
-        """FZF-style fuzzy matching."""
+        """FZF-style fuzzy matching with automatic cutoff relaxation.
+
+        If no match is found at the requested cutoff, the cutoff is lowered
+        (feedback loop) so a near-miss still surfaces instead of silently
+        returning nothing.
+        """
         if not choices:
             return []
-        return get_close_matches(query, choices, n=5, cutoff=cutoff)
+        matches = get_close_matches(query, choices, n=5, cutoff=cutoff)
+        if not matches and cutoff > 0.3:
+            logger.info(
+                "NLP find_matches returned nothing at cutoff=%.2f; retrying at 0.3",
+                cutoff,
+            )
+            matches = get_close_matches(query, choices, n=5, cutoff=0.3)
+        return matches
 
     def is_available(self) -> bool:
         return True

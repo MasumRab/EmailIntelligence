@@ -78,12 +78,22 @@ class GitDiscoverCommand(Command):
                     print("  - No significant script logic found.")
                     continue
 
-                # 3. Semantic Intent Analysis
-                similarity = await self._nlp.calculate_similarity(dna, self.CORE_SCOPE)
-                
+                # 3. Semantic Intent Analysis (with feedback loop)
+                result = await self._nlp.calculate_with_feedback(
+                    dna, self.CORE_SCOPE, args.threshold
+                )
+                similarity = result["score"]
+
                 status = "IN SCOPE" if similarity > args.threshold else "🚨 OUT OF SCOPE / EXTERNAL TOOL"
                 print(f"  - Semantic Affinity: {similarity:.2f} ({status})")
-                
+                if result["refined"]:
+                    print(
+                        f"    (refined via keywords {result['keywords'][:3]}"
+                        f" — {result['keyword_hits']} hit(s))"
+                    )
+                if result["missed"]:
+                    print(f"    (query miss logged: keywords={result['keywords'][:3]})")
+
                 if similarity <= args.threshold:
                     print(f"  - Found potential external toolset in {branch}")
                     # List top scripts found in this 'external' branch

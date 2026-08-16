@@ -64,6 +64,28 @@ class GitConflictDetector(IConflictDetector):
         else:
             return pr_id
 
+    async def detect_conflicts_between_branches(
+        self, head_branch: str, base_branch: str
+    ) -> List[Conflict]:
+        """
+        Detect conflicts between two arbitrary branches (async wrapper).
+
+        Used by the `analyze` command, which passes an explicit head branch
+        and base branch instead of a PR number.
+
+        Args:
+            head_branch: The branch whose changes are being merged.
+            base_branch: The branch the changes are merged into.
+
+        Returns:
+            List of detected conflicts.
+        """
+        try:
+            return self._detect_conflicts_with_merge_tree(head_branch, base_branch)
+        except Exception as e:
+            logger.error(f"Error detecting conflicts between branches: {e}")
+            return []
+
     def _detect_conflicts_with_merge_tree(self, source_branch: str, target_branch: str) -> List[Conflict]:
         """
         Use git merge-tree to detect conflicts between branches.
