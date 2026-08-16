@@ -124,7 +124,7 @@ class BackendClient:
             safe_key = "".join(x for x in key if x.isalnum() or x in "_-")
             resolved = (DATA_DIR / f"{safe_key}.json").resolve()
             if not resolved.is_relative_to(DATA_DIR.resolve()):
-                raise ValueError(f"Path traversal attempt blocked")
+                raise ValueError("Path traversal attempt blocked")
             file_path = resolved
 
             # Atomic write
