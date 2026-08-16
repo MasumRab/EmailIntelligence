@@ -162,7 +162,6 @@ def check_uvicorn_installed() -> bool:
     """Check if uvicorn is installed."""
     python_exe = get_python_executable()
     try:
-        result = subprocess.run([str(python_exe), "-c", "import uvicorn"], capture_output=True, text=True, shell=False)  # sourcery skip: command-injection  # sourcery skip: command-injection
         result = subprocess.run([str(python_exe), "-c", "import uvicorn"], capture_output=True, text=True, shell=False)  # sourcery skip: command-injection
         if result.returncode == 0:
             logger.info("uvicorn is available.")
