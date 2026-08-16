@@ -124,6 +124,10 @@ class BackendClient:
             safe_key = "".join(x for x in key if x.isalnum() or x in "_-")
             file_path = DATA_DIR / f"{safe_key}.json"
 
+            # Guard against path traversal
+            if not str(file_path.resolve()).startswith(str(DATA_DIR.resolve())):
+                raise ValueError(f"Path traversal attempt blocked: {file_path}")
+
             # Atomic write
             temp_path = file_path.with_suffix(".tmp")
             with open(temp_path, "w") as f:
@@ -145,6 +149,10 @@ class BackendClient:
             file_path = DATA_DIR / f"{safe_key}.json"
 
             if not file_path.exists():
+                return None
+
+            # Guard against path traversal
+            if not str(file_path.resolve()).startswith(str(DATA_DIR.resolve())):
                 return None
 
             with open(file_path, "r") as f:
