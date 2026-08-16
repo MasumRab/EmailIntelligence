@@ -14,8 +14,8 @@ from pydantic import ValidationError
 
 from .core.audit_logger import AuditEventType, AuditSeverity, audit_logger
 from .core.middleware import (
-    create_security_headers_middleware,
-    create_security_middleware,
+    SecurityHeadersMiddleware,
+    SecurityMiddleware,
 )
 from .core.module_manager import ModuleManager
 from .core.performance_monitor import performance_monitor
@@ -650,8 +650,8 @@ def create_app():
     )
 
     # Add comprehensive security middleware
-    app.add_middleware(create_security_middleware(app))
-    app.add_middleware(create_security_headers_middleware(app))
+    app.add_middleware(SecurityMiddleware)
+    app.add_middleware(SecurityHeadersMiddleware)
 
     # Add security headers middleware (additional layer)
     @app.middleware("http")
