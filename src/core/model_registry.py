@@ -14,6 +14,8 @@ from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
+from core.security import verify_model_safety
+
 logger = logging.getLogger(__name__)
 
 
@@ -508,6 +510,10 @@ class ModelRegistry:
             model_path = metadata.path / f"{metadata.model_id}.pkl"
 
             if model_path.exists():
+                if not verify_model_safety(model_path):
+                    logger.error(f"Model file failed safety verification: {model_path}")
+                    return None
+
                 model = joblib.load(model_path)
                 return model
             else:
@@ -664,6 +670,9 @@ class ModelRegistry:
                 model_file = metadata.path / f"{metadata.model_id}.pkl"
                 if not model_file.exists():
                     return {"passed": False, "issues": ["Model file not found"]}
+
+                if not verify_model_safety(model_file):
+                    return {"passed": False, "issues": ["Model failed safety verification"]}
 
                 # Try to load the file
                 import joblib
