@@ -152,10 +152,6 @@ class BackendClient:
             logger.error(f"Failed to persist item {key}: {e}")
             return False
 
-    def _is_valid_storage_key(self, key: str) -> bool:
-        """Validate storage key to prevent unsafe path usage."""
-        return bool(key) and re.fullmatch(r"[A-Za-z0-9_-]+", key) is not None
-
     def _is_valid_workflow_id(self, workflow_id: str) -> bool:
         """Validate workflow id from UI before using it in storage key construction."""
         return bool(workflow_id) and re.fullmatch(r"[A-Za-z0-9_-]+", workflow_id) is not None
