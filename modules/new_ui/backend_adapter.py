@@ -125,11 +125,7 @@ class BackendClient:
         Stored in modules/new_ui/data/{key}.json
         """
         try:
-            if not self._is_valid_storage_key(key):
-                logger.warning(f"Rejected invalid storage key: {key!r}")
-                return False
-
-            resolved = (DATA_DIR / f"{key}.json").resolve()
+            file_path = self._storage_path_for_key(key)
             if not resolved.is_relative_to(DATA_DIR.resolve()):
                 raise ValueError("Path traversal attempt blocked")
             file_path = resolved
@@ -151,25 +147,32 @@ class BackendClient:
         return bool(key) and re.fullmatch(r"[A-Za-z0-9_-]+", key) is not None
 
     def _is_valid_workflow_id(self, workflow_id: str) -> bool:
+    def _storage_path_for_key(self, key: str) -> Path:
+        """Build a validated, canonical storage path for a key."""
+        if not self._is_valid_storage_key(key):
+            raise ValueError(f"Invalid storage key: {key!r}")
+
+        base_dir = DATA_DIR.resolve()
+        resolved = (base_dir / f"{key}.json").resolve()
+        if not resolved.is_relative_to(base_dir):
+            raise ValueError("Path traversal attempt blocked")
+        return resolved
+
         """Validate workflow id from UI before using it in storage key construction."""
         return bool(workflow_id) and re.fullmatch(r"[A-Za-z0-9_-]+", workflow_id) is not None
 
     def retrieve_item(self, key: str) -> Optional[Dict[str, Any]]:
         """
-        Generic retrieval using local JSON files (Fallback).
-        """
-        try:
+            file_path = self._storage_path_for_key(key)
             if not self._is_valid_storage_key(key):
-                logger.warning(f"Rejected invalid storage key: {key!r}")
-                return None
-
-            resolved = (DATA_DIR / f"{key}.json").resolve()
-            if not resolved.is_relative_to(DATA_DIR.resolve()):
                 return None
             file_path = resolved
 
             if not file_path.exists():
                 return None
+        except ValueError as e:
+            logger.warning(f"Rejected invalid storage key: {key!r} ({e})")
+            return None
 
             with open(file_path, "r") as f:
                 return json.load(f)
