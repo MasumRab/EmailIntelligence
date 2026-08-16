@@ -148,7 +148,9 @@ def check_wsl_requirements():
 
     # Check if X11 server is accessible (optional check)
     try:
-        result = subprocess.run(["xset", "-q"], capture_output=True, timeout=2, check=False)
+        result = subprocess.run(
+            ["xset", "-q"], capture_output=True, timeout=2, check=False
+        )
         if result.returncode != 0:
             logger.warning("X11 server not accessible - GUI applications may not work")
             logger.info("Install VcXsrv, MobaXterm, or similar X11 server on Windows")

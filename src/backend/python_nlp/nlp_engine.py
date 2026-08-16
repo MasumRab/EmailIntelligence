@@ -84,40 +84,62 @@ class NLPEngine:
 
     CATEGORY_PATTERNS = {
         "Work & Business": [
-            r"\b(meeting|conference|project|deadline|client|presentation|report|proposal|budget|team|"
-            r"colleague|office|work|business|professional|corporate|company|organization)",
-            r"\b(employee|staff|manager|supervisor|director|executive|department|division|"
-            r"quarterly|annual|monthly|weekly|daily)\b",
+            (
+                r"\b(meeting|conference|project|deadline|client|presentation|report|proposal|budget|team|"
+                r"colleague|office|work|business|professional|corporate|company|organization)"
+            ),
+            (
+                r"\b(employee|staff|manager|supervisor|director|executive|department|division|"
+                r"quarterly|annual|monthly|weekly|daily)\b"
+            ),
         ],
         "Finance & Banking": [
-            r"\b(bank|payment|transaction|invoice|bill|statement|account|credit|debit|transfer|"
-            r"money|financial|insurance|investment|loan|mortgage)\b",
+            (
+                r"\b(bank|payment|transaction|invoice|bill|statement|account|credit|debit|transfer|"
+                r"money|financial|insurance|investment|loan|mortgage)\b"
+            ),
             r"\$[\d,]+|\b\d+\s?(dollars?|USD|EUR|GBP)\b",
             r"\b(tax|taxes|irs|refund|audit|accountant|bookkeeping|overdraft|bankruptcy)\b",
         ],
         "Healthcare": [
-            r"\b(doctor|medical|health|hospital|clinic|appointment|prescription|medicine|"
-            r"treatment|therapy|checkup|surgery|dental|pharmacy)\b",
-            r"\b(symptoms|diagnosis|patient|specialist|emergency|ambulance|insurance|"
-            r"medicare|medicaid|covid|coronavirus|vaccine)\b",
+            (
+                r"\b(doctor|medical|health|hospital|clinic|appointment|prescription|medicine|"
+                r"treatment|therapy|checkup|surgery|dental|pharmacy)\b"
+            ),
+            (
+                r"\b(symptoms|diagnosis|patient|specialist|emergency|ambulance|insurance|"
+                r"medicare|medicaid|covid|coronavirus|vaccine)\b"
+            ),
         ],
         "Personal & Family": [
-            r"\b(family|personal|friend|birthday|anniversary|vacation|holiday|weekend|"
-            r"dinner|lunch|home|house|kids|children)\b",
-            r"\b(mom|dad|mother|father|sister|brother|grandma|grandpa|wedding|"
-            r"graduation|baby|party|celebration)\b",
+            (
+                r"\b(family|personal|friend|birthday|anniversary|vacation|holiday|weekend|"
+                r"dinner|lunch|home|house|kids|children)\b"
+            ),
+            (
+                r"\b(mom|dad|mother|father|sister|brother|grandma|grandpa|wedding|"
+                r"graduation|baby|party|celebration)\b"
+            ),
         ],
         "Travel": [
-            r"\b(travel|flight|hotel|booking|reservation|trip|vacation|destination|"
-            r"airport|airline|passport|visa|itinerary)\b",
-            r"\b(departure|arrival|check-in|luggage|baggage|cruise|resort|tour|"
-            r"tickets|confirmation)\b",
+            (
+                r"\b(travel|flight|hotel|booking|reservation|trip|vacation|destination|"
+                r"airport|airline|passport|visa|itinerary)\b"
+            ),
+            (
+                r"\b(departure|arrival|check-in|luggage|baggage|cruise|resort|tour|"
+                r"tickets|confirmation)\b"
+            ),
         ],
         "Technology": [
-            r"\b(software|hardware|computer|laptop|mobile|app|application|website|"
-            r"internet|email|password|account|login)\b",
-            r"\b(server|database|API|code|programming|development|tech|technical|"
-            r"IT|support|troubleshoot|install)\b",
+            (
+                r"\b(software|hardware|computer|laptop|mobile|app|application|website|"
+                r"internet|email|password|account|login)\b"
+            ),
+            (
+                r"\b(server|database|API|code|programming|development|tech|technical|"
+                r"IT|support|troubleshoot|install)\b"
+            ),
         ],
     }
 

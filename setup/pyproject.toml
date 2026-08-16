@@ -162,7 +162,8 @@ ignore = [
     "RUF100",  # unused-noqa
     "UP007",  # non-pep604-annotation-union
     "SIM102",  # collapsible-if
-    "ISC004",  # implicit-string-concatenation
+    # "ISC004",  # implicit-string-concatenation - not supported in older ruff
+    "UP032",  # use f-string
     "SIM114",  # if-with-same-arms
     "SIM103",  # needless-bool
     "SIM118",  # in-dict-keys
