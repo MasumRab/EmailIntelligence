@@ -7,6 +7,7 @@ It handles dependency injection, fallback mechanisms, and error handling.
 
 import json
 import logging
+import re
 from typing import Dict, Any, Optional, List
 from pathlib import Path
 
@@ -139,13 +140,20 @@ class BackendClient:
             logger.error(f"Failed to persist item {key}: {e}")
             return False
 
+    def _is_valid_storage_key(self, key: str) -> bool:
+        """Validate storage key to prevent unsafe path usage."""
+        return bool(key) and re.fullmatch(r"[A-Za-z0-9_-]+", key) is not None
+
     def retrieve_item(self, key: str) -> Optional[Dict[str, Any]]:
         """
         Generic retrieval using local JSON files (Fallback).
         """
         try:
-            safe_key = "".join(x for x in key if x.isalnum() or x in "_-")
-            resolved = (DATA_DIR / f"{safe_key}.json").resolve()
+            if not self._is_valid_storage_key(key):
+                logger.warning(f"Rejected invalid storage key: {key!r}")
+                return None
+
+            resolved = (DATA_DIR / f"{key}.json").resolve()
             if not resolved.is_relative_to(DATA_DIR.resolve()):
                 return None
             file_path = resolved
