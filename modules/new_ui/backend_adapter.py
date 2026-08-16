@@ -119,16 +119,25 @@ class BackendClient:
             logger.error(f"Error getting metrics: {e}")
             return {"error": str(e)}
 
+    def _resolve_key_path(self, key: str) -> Optional[Path]:
+        """Resolve a key to a safe path within DATA_DIR. Returns None if invalid/traversal."""
+        if not key or not re.fullmatch(r"[A-Za-z0-9_-]+", key):
+            return None
+        resolved = (DATA_DIR / f"{key}.json").resolve()
+        if not resolved.is_relative_to(DATA_DIR.resolve()):
+            return None
+        return resolved
+
     def persist_item(self, key: str, data: Dict[str, Any]) -> bool:
         """
         Generic persistence using local JSON files (Fallback).
         Stored in modules/new_ui/data/{key}.json
         """
         try:
-            file_path = self._storage_path_for_key(key)
-            if not resolved.is_relative_to(DATA_DIR.resolve()):
-                raise ValueError("Path traversal attempt blocked")
-            file_path = resolved
+            file_path = self._resolve_key_path(key)
+            if file_path is None:
+                logger.warning(f"Invalid storage key: {key!r}")
+                return False
 
             # Atomic write
             temp_path = file_path.with_suffix(".tmp")
@@ -142,38 +151,16 @@ class BackendClient:
             logger.error(f"Failed to persist item {key}: {e}")
             return False
 
-    def _is_valid_storage_key(self, key: str) -> bool:
-        """Validate storage key to prevent unsafe path usage."""
-        return bool(key) and re.fullmatch(r"[A-Za-z0-9_-]+", key) is not None
-
     def _is_valid_workflow_id(self, workflow_id: str) -> bool:
-    def _storage_path_for_key(self, key: str) -> Path:
-        """Build a validated, canonical storage path for a key."""
-        if not self._is_valid_storage_key(key):
-            raise ValueError(f"Invalid storage key: {key!r}")
-
-        base_dir = DATA_DIR.resolve()
-        resolved = (base_dir / f"{key}.json").resolve()
-        if not resolved.is_relative_to(base_dir):
-            raise ValueError("Path traversal attempt blocked")
-        return resolved
-
         """Validate workflow id from UI before using it in storage key construction."""
         return bool(workflow_id) and re.fullmatch(r"[A-Za-z0-9_-]+", workflow_id) is not None
 
     def retrieve_item(self, key: str) -> Optional[Dict[str, Any]]:
-        """
-            file_path = self._storage_path_for_key(key)
-            if not self._is_valid_storage_key(key):
+        """Generic retrieval using local JSON files (Fallback)."""
+        try:
+            file_path = self._resolve_key_path(key)
+            if file_path is None or not file_path.exists():
                 return None
-            file_path = resolved
-
-            if not file_path.exists():
-                return None
-        except ValueError as e:
-            logger.warning(f"Rejected invalid storage key: {key!r} ({e})")
-            return None
-
             with open(file_path, "r") as f:
                 return json.load(f)
         except Exception as e:
