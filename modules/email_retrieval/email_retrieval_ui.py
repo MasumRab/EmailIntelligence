@@ -43,7 +43,16 @@ def load_filter(filter_name):
 
 
 def save_filter(
-    name, sender, to, subject, keywords, date_filter, start_date, end_date, category, has_attachment
+    name,
+    sender,
+    to,
+    subject,
+    keywords,
+    date_filter,
+    start_date,
+    end_date,
+    category,
+    has_attachment,
 ):
     if not name:
         return "Please enter a name for the filter."
@@ -76,7 +85,15 @@ def get_categories():
 
 
 def build_query(
-    sender, to, subject, keywords, date_filter, start_date, end_date, category, has_attachment
+    sender,
+    to,
+    subject,
+    keywords,
+    date_filter,
+    start_date,
+    end_date,
+    category,
+    has_attachment,
 ):
     query_parts = []
     if sender:
@@ -131,7 +148,15 @@ async def retrieve_emails_and_save(
     download_format,
 ):
     query_filter = build_query(
-        sender, to, subject, keywords, date_filter, start_date, end_date, category, has_attachment
+        sender,
+        to,
+        subject,
+        keywords,
+        date_filter,
+        start_date,
+        end_date,
+        category,
+        has_attachment,
     )
 
     response = requests.post(
@@ -189,12 +214,24 @@ def test_filter(
     has_attachment,
 ):
     query_filter = build_query(
-        sender, to, subject, keywords, date_filter, start_date, end_date, category, has_attachment
+        sender,
+        to,
+        subject,
+        keywords,
+        date_filter,
+        start_date,
+        end_date,
+        category,
+        has_attachment,
     )
 
     response = requests.post(
         "http://127.0.0.1:8000/api/gmail/sync",
-        json={"maxEmails": 0, "queryFilter": query_filter.strip(), "includeAIAnalysis": False},
+        json={
+            "maxEmails": 0,
+            "queryFilter": query_filter.strip(),
+            "includeAIAnalysis": False,
+        },
         timeout=30,
     )
 
@@ -214,7 +251,11 @@ with gr.Blocks() as email_retrieval_tab:
             password = gr.Textbox(label="Password", type="password")
             server = gr.Dropdown(
                 label="Email Server",
-                choices=["imap.gmail.com", "imap.mail.yahoo.com", "outlook.office365.com"],
+                choices=[
+                    "imap.gmail.com",
+                    "imap.mail.yahoo.com",
+                    "outlook.office365.com",
+                ],
             )
 
             gr.Markdown("## Saved Filters")
@@ -270,7 +311,11 @@ with gr.Blocks() as email_retrieval_tab:
             gr.Markdown("## Email Retrieval")
             with gr.Row():
                 max_emails_slider = gr.Slider(
-                    minimum=10, maximum=1000, step=10, label="Max Emails to Download", value=100
+                    minimum=10,
+                    maximum=1000,
+                    step=10,
+                    label="Max Emails to Download",
+                    value=100,
                 )
                 download_format_dropdown = gr.Dropdown(
                     label="Download Format", choices=["JSON", "CSV"], value="JSON"
@@ -300,7 +345,9 @@ with gr.Blocks() as email_retrieval_tab:
     def refresh_filters():
         return gr.update(choices=get_saved_filter_names())
 
-    refresh_filters_button.click(fn=refresh_filters, inputs=[], outputs=[saved_filters_dropdown])
+    refresh_filters_button.click(
+        fn=refresh_filters, inputs=[], outputs=[saved_filters_dropdown]
+    )
 
     save_button.click(
         fn=save_filter,

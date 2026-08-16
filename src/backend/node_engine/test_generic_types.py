@@ -2,6 +2,7 @@ import unittest
 from backend.node_engine.node_base import DataType, GenericType
 from backend.node_engine.workflow_engine import WorkflowEngine
 
+
 class TestGenericTypes(unittest.TestCase):
     def setUp(self):
         self.engine = WorkflowEngine()
@@ -17,7 +18,9 @@ class TestGenericTypes(unittest.TestCase):
         # Dict[String, Number]
         dict_str_num = GenericType(DataType.DICT, [DataType.STRING, DataType.NUMBER])
         self.assertEqual(dict_str_num.base_type, DataType.DICT)
-        self.assertEqual(dict_str_num.type_parameters, [DataType.STRING, DataType.NUMBER])
+        self.assertEqual(
+            dict_str_num.type_parameters, [DataType.STRING, DataType.NUMBER]
+        )
         self.assertEqual(str(dict_str_num), "dict[string, number]")
 
         # List[List[String]] (Nested)
@@ -62,12 +65,15 @@ class TestGenericTypes(unittest.TestCase):
 
         self.assertFalse(self.engine._validate_type_compatibility(target, source))
 
-
     def test_nested_compatibility(self):
         """Test nested generic types compatibility."""
         # List[List[Any]] vs List[List[String]]
-        target = GenericType(DataType.LIST, [GenericType(DataType.LIST, [DataType.ANY])])
-        source = GenericType(DataType.LIST, [GenericType(DataType.LIST, [DataType.STRING])])
+        target = GenericType(
+            DataType.LIST, [GenericType(DataType.LIST, [DataType.ANY])]
+        )
+        source = GenericType(
+            DataType.LIST, [GenericType(DataType.LIST, [DataType.STRING])]
+        )
         self.assertTrue(self.engine._validate_type_compatibility(source, target))
 
     def test_backward_compatibility(self):
@@ -94,5 +100,6 @@ class TestGenericTypes(unittest.TestCase):
         target = DataType.ANY
         self.assertTrue(self.engine._validate_type_compatibility(source, target))
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()
