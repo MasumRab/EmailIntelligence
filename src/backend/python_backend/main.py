@@ -183,7 +183,6 @@ async def shutdown_event():
 
 @app.exception_handler(AppException)
 async def app_exception_handler(request: Request, exc: AppException):
-
     return JSONResponse(
         status_code=exc.status_code,
         content=exc.detail,
@@ -192,7 +191,6 @@ async def app_exception_handler(request: Request, exc: AppException):
 
 @app.exception_handler(BaseAppException)
 async def base_app_exception_handler(request: Request, exc: BaseAppException):
-
     return JSONResponse(
         status_code=500,
         content={
