@@ -115,26 +115,26 @@ def validate_path_safety(
     """
     if base_dir is None:
         # Without a base_dir, perform strict validation of the path structure
-        str_path = str(path).replace('\\', '/')
+        str_path = str(path).replace("\\", "/")
 
         # Check for dangerous characters (cross-platform)
         if re.search(r'[<>"|?*]', str_path):
             return False
 
         # Reject UNC-like paths (starting with //)
-        if str_path.startswith('//'):
-             return False
+        if str_path.startswith("//"):
+            return False
 
         # Split path into components to check for traversal and dot segments
-        parts = str_path.split('/')
+        parts = str_path.split("/")
 
         # Check for traversal components
-        if '..' in parts:
+        if ".." in parts:
             return False
 
         # Reject absolute paths containing '.' segments (e.g. /./etc/passwd)
         # This is often used for obfuscation.
-        if str_path.startswith('/') and '.' in parts:
+        if str_path.startswith("/") and "." in parts:
             return False
 
         return True
@@ -167,7 +167,6 @@ def sanitize_path(
 
     base_path = (pathlib.Path(base_dir) if base_dir else pathlib.Path.cwd()).resolve()
     return (base_path / path).resolve()
-
 
 
 class DataSanitizer:
@@ -209,11 +208,11 @@ class DataSanitizer:
                 # 2. Value part: Matches either quoted string (simple) or unquoted characters until separator
                 pattern = (
                     rf'((?:["\']?[\w-]*{re.escape(key)}[\w-]*["\']?)\s*:\s*)'  # Capture group 1: Key + colon
-                    r'(?:'
-                    r'(?:"[^"]*")|'      # Double quoted value
-                    r"(?:'[^']*')|"      # Single quoted value
-                    r'[^,\s}]+'          # Unquoted value
-                    r')'
+                    r"(?:"
+                    r'(?:"[^"]*")|'  # Double quoted value
+                    r"(?:'[^']*')|"  # Single quoted value
+                    r"[^,\s}]+"  # Unquoted value
+                    r")"
                 )
 
                 data = re.sub(
@@ -640,8 +639,9 @@ def secure_path_join(
         return None
 
 
-
-def verify_model_safety(model_path: Union[str, pathlib.Path], expected_hash: Optional[str] = None) -> bool:
+def verify_model_safety(
+    model_path: Union[str, pathlib.Path], expected_hash: Optional[str] = None
+) -> bool:
     """
     Verify that a model file is safe to load using an allowlist or signature verification.
 
@@ -652,7 +652,7 @@ def verify_model_safety(model_path: Union[str, pathlib.Path], expected_hash: Opt
         path = pathlib.Path(model_path).resolve()
 
         # 1. Allowlist check
-        allowed_dir_names = ['models', 'artifacts', 'checkpoints']
+        allowed_dir_names = ["models", "artifacts", "checkpoints"]
 
         # We assume the app is run from a root directory or has a known base.
         # Let's derive a reasonable root base based on the current file or CWD
