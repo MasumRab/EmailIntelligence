@@ -708,3 +708,21 @@ def verify_model_safety(model_path: Union[str, pathlib.Path], expected_hash: Opt
     except Exception:
         return False
 
+
+
+def secure_load_joblib(model_path: Union[str, pathlib.Path], expected_hash: Optional[str] = None) -> Any:
+    """
+    Securely load a joblib model by first verifying its safety.
+    Returns the loaded model, or None if verification fails.
+    """
+    import joblib
+    path = pathlib.Path(model_path)
+    if not path.exists():
+        logger.warning(f"Model file not found at {path}.")
+        return None
+        
+    if not verify_model_safety(path, expected_hash):
+        logger.error(f"Model file failed safety verification at {path}.")
+        return None
+        
+    return joblib.load(path)
