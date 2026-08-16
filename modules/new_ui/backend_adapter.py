@@ -63,11 +63,14 @@ class BackendClient:
         Start a workflow.
         Payload expected to contain 'workflow_id' and 'email_data'.
         """
-        workflow_id = payload.get("workflow_id")
+        workflow_id = (payload.get("workflow_id") or "").strip()
         payload.get("email_data", {})
 
         if not workflow_id:
             return {"error": "No workflow_id provided"}
+        if not self._is_valid_workflow_id(workflow_id):
+            logger.warning(f"Rejected invalid workflow id: {workflow_id!r}")
+            return {"error": "Invalid workflow_id format"}
 
         # TODO: Load real workflow definition from registry or DB
         # For now, we construct a dummy workflow if not found, or try to load from a file
@@ -143,6 +146,10 @@ class BackendClient:
     def _is_valid_storage_key(self, key: str) -> bool:
         """Validate storage key to prevent unsafe path usage."""
         return bool(key) and re.fullmatch(r"[A-Za-z0-9_-]+", key) is not None
+
+    def _is_valid_workflow_id(self, workflow_id: str) -> bool:
+        """Validate workflow id from UI before using it in storage key construction."""
+        return bool(workflow_id) and re.fullmatch(r"[A-Za-z0-9_-]+", workflow_id) is not None
 
     def retrieve_item(self, key: str) -> Optional[Dict[str, Any]]:
         """
