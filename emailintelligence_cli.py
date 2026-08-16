@@ -1787,14 +1787,19 @@ Examples:
             print(json.dumps(result, indent=2))
 
         elif args.command == 'align-content':
-            result = cli.align_content(
-                pr_number=args.pr,
-                strategy_file=args.strategy,
-                dry_run=args.dry_run,
-                preview_changes=args.preview_changes,
-                interactive=args.interactive
-            )
-            print(json.dumps(result, indent=2))
+            # Delegate directly to modular CommandRegistry
+            try:
+                from src.cli.commands.integration import get_command_registry
+                registry = get_command_registry()
+                cmd = registry.get_command('git-align')
+                if cmd:
+                    import asyncio
+                    exit_code = asyncio.run(cmd.execute(args))
+                    sys.exit(exit_code)
+                else:
+                    cli._error_exit("Modular git-align command not found.")
+            except Exception as e:
+                cli._error_exit(f"Error executing modular command: {e}")
 
         elif args.command == 'validate-resolution':
             result = cli.validate_resolution(
@@ -1806,14 +1811,19 @@ Examples:
             print(json.dumps(result, indent=2))
 
         elif args.command == 'auto-resolve':
-            import asyncio
-            result = asyncio.run(
-                cli.auto_resolve_conflicts(
-                    pr_number=args.pr,
-                    strategy_file=args.strategy
-                )
-            )
-            print(json.dumps(result, indent=2))
+            # Delegate directly to modular CommandRegistry
+            try:
+                from src.cli.commands.integration import get_command_registry
+                registry = get_command_registry()
+                cmd = registry.get_command('git-auto-resolve')
+                if cmd:
+                    import asyncio
+                    exit_code = asyncio.run(cmd.execute(args))
+                    sys.exit(exit_code)
+                else:
+                    cli._error_exit("Modular git-auto-resolve command not found.")
+            except Exception as e:
+                cli._error_exit(f"Error executing modular command: {e}")
 
         elif args.command == 'version':
             print("EmailIntelligence CLI v1.0.0")
