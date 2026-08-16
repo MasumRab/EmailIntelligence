@@ -1,0 +1,5 @@
+### 2024-05-24: Insecure Deserialization in ML Model Loading
+
+*   **Vulnerability Discovered:** `joblib.load()` was being called directly on model paths in `src/backend/python_nlp/nlp_engine.py` and `src/core/model_registry.py` without verifying the path's safety. This allows insecure deserialization where a crafted `.pkl` file could execute arbitrary code when loaded.
+*   **Learning:** Python's `joblib.load()` and `pickle.load()` are inherently unsafe for untrusted files. Even with path traversal mitigations, if an attacker can write a file to an allowed directory (or if an admin inadvertently loads a malicious file), it leads to RCE. Strict allowlisting or cryptographically verifying signatures is required before deserialization.
+*   **Prevention Note:** Always enforce a hybrid model safety check (e.g., `core.security.verify_model_safety`) before using `joblib.load()`, `pickle.load()`, or similar deserialization tools. Ensure imports for these core security components are relative to the `src` directory root (e.g., `from core.security import ...`, not `from src.core.security import ...`) to prevent `ModuleNotFoundError`.
