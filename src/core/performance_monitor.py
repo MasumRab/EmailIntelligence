@@ -11,14 +11,18 @@ Also includes the optimized version features:
 """
 
 import asyncio
+import atexit
 import json
 import logging
 import threading
 import time
-from dataclasses import dataclass
-from datetime import datetime, timezone
+from collections import defaultdict, deque
+from collections.abc import Callable
+from dataclasses import asdict, dataclass
+from datetime import UTC, datetime
 from functools import wraps
-from typing import Any, Callable, Dict, List, Optional
+from pathlib import Path
+from typing import Any
 
 import psutil
 
@@ -42,20 +46,20 @@ class ProcessingEvent:
     """Represents a processing event in the system"""
 
     event_type: str  # 'model_load', 'model_unload', 'workflow_execute', etc.
-    model_name: Optional[str]
-    workflow_name: Optional[str]
+    model_name: str | None
+    workflow_name: str | None
     start_time: float
-    end_time: Optional[float]
+    end_time: float | None
     success: bool
-    details: Dict[str, Any]
+    details: dict[str, Any]
 
 
 class PerformanceMonitor:
     """Monitors and tracks performance metrics across the system"""
 
     def __init__(self):
-        self.metrics: List[PerformanceMetric] = []
-        self.processing_events: List[ProcessingEvent] = []
+        self.metrics: list[PerformanceMetric] = []
+        self.processing_events: list[ProcessingEvent] = []
         self.lock = threading.Lock()
         self._ensure_log_file_exists()
 
@@ -67,7 +71,7 @@ class PerformanceMonitor:
         except Exception as e:
             logger.warning(f"Failed to create performance log file: {e}")
 
-    def log_performance(self, log_entry: Dict[str, Any]) -> None:
+    def log_performance(self, log_entry: dict[str, Any]) -> None:
         """Log a performance entry to the log file"""
         try:
             with self.lock:
@@ -76,7 +80,7 @@ class PerformanceMonitor:
         except Exception as e:
             logger.warning(f"Failed to log performance: {e}")
 
-    def get_system_metrics(self) -> Dict[str, Any]:
+    def get_system_metrics(self) -> dict[str, Any]:
         """Get current system metrics"""
         try:
             cpu_percent = psutil.cpu_percent()
@@ -85,7 +89,7 @@ class PerformanceMonitor:
                 "cpu_percent": cpu_percent,
                 "memory_percent": memory.percent,
                 "memory_available": memory.available,
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
             }
         except Exception as e:
             logger.warning(f"Failed to get system metrics: {e}")
@@ -141,7 +145,7 @@ def _create_decorator(func, op_name):
             duration = end_time - start_time
 
             log_entry = {
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
                 "operation": op_name,
                 "duration_seconds": duration,
             }
@@ -164,7 +168,7 @@ def _create_decorator(func, op_name):
             duration = end_time - start_time
 
             log_entry = {
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
                 "operation": op_name,
                 "duration_seconds": duration,
             }
@@ -179,26 +183,18 @@ def _create_decorator(func, op_name):
         return sync_wrapper
 
 
-import atexit
-
 # Enhanced performance monitoring system with additional features
-from collections import defaultdict, deque
-from dataclasses import asdict, dataclass
-from pathlib import Path
-from typing import Any, Dict, Optional, Union
-
-logger = logging.getLogger(__name__)
 
 
 @dataclass
-class PerformanceMetric:
+class PerformanceMetricV2:
     """Represents a performance metric with minimal overhead."""
 
     name: str
-    value: Union[int, float]
+    value: int | float
     unit: str
     timestamp: float
-    tags: Dict[str, str]
+    tags: dict[str, str]
     sample_rate: float = 1.0  # 1.0 = 100% sampling, 0.1 = 10% sampling
 
 
@@ -215,7 +211,7 @@ class AggregatedMetric:
     p95: float
     p99: float
     timestamp: float
-    tags: Dict[str, str]
+    tags: dict[str, str]
 
 
 class OptimizedPerformanceMonitor:
@@ -246,13 +242,15 @@ class OptimizedPerformanceMonitor:
 
         # Metrics storage
         self._metrics_buffer: deque[PerformanceMetric] = deque(maxlen=max_metrics_buffer)
-        self._aggregated_metrics: Dict[str, AggregatedMetric] = {}
+        self._aggregated_metrics: dict[str, AggregatedMetric] = {}
 
         # Threading and async
         self._buffer_lock = threading.Lock()
         self._stop_event = threading.Event()
         self._processing_thread = threading.Thread(
-            target=self._process_metrics_background, daemon=True, name="PerformanceMonitor"
+            target=self._process_metrics_background,
+            daemon=True,
+            name="PerformanceMonitor",
         )
 
         # Start background processing
@@ -263,23 +261,12 @@ class OptimizedPerformanceMonitor:
 
         logger.info("OptimizedPerformanceMonitor initialized")
 
-    def log_performance(self, log_entry: Dict[str, Any]) -> None:
-        """Compatibility method for legacy log_performance decorator."""
-        # Extract fields from log_entry to map to record_metric
-        operation = log_entry.get("operation", "unknown_operation")
-        duration_ms = log_entry.get("duration_seconds", 0) * 1000
-        self.record_metric(
-            name=operation,
-            value=duration_ms,
-            unit="ms"
-        )
-
     def record_metric(
         self,
         name: str,
-        value: Union[int, float],
+        value: int | float,
         unit: str = "ms",
-        tags: Optional[Dict[str, str]] = None,
+        tags: dict[str, str] | None = None,
         sample_rate: float = 1.0,
     ):
         """
@@ -298,7 +285,7 @@ class OptimizedPerformanceMonitor:
         if sample_rate < 1.0 and random.random() > sample_rate:
             return
 
-        metric = PerformanceMetric(
+        metric = PerformanceMetricV2(
             name=name,
             value=value,
             unit=unit,
@@ -311,7 +298,7 @@ class OptimizedPerformanceMonitor:
         with self._buffer_lock:
             self._metrics_buffer.append(metric)
 
-    def log_performance(self, log_entry: Dict[str, Any]) -> None:
+    def log_performance(self, log_entry: dict[str, Any]) -> None:
         """Compatibility method for legacy log_performance decorator."""
         operation = log_entry.get("operation", "unknown")
         duration = log_entry.get("duration_seconds", 0) * 1000  # Convert to ms
@@ -323,7 +310,7 @@ class OptimizedPerformanceMonitor:
         )
 
     def time_function(
-        self, name: str, tags: Optional[Dict[str, str]] = None, sample_rate: float = 1.0
+        self, name: str, tags: dict[str, str] | None = None, sample_rate: float = 1.0
     ):
         """
         Decorator/context manager to time function execution.
@@ -346,7 +333,11 @@ class OptimizedPerformanceMonitor:
                 finally:
                     duration = (time.perf_counter() - start_time) * 1000  # Convert to milliseconds
                     self.record_metric(
-                        name=name, value=duration, unit="ms", tags=tags, sample_rate=sample_rate
+                        name=name,
+                        value=duration,
+                        unit="ms",
+                        tags=tags,
+                        sample_rate=sample_rate,
                     )
 
             return wrapper
@@ -358,6 +349,9 @@ class OptimizedPerformanceMonitor:
             return decorator(func)
         else:
             # Used as @time_function("name") or with time_function("name"):
+            # Capture reference to outer class instance
+            monitor_instance = self
+
             class TimerContext:
                 def __enter__(self):
                     self.start_time = time.perf_counter()
@@ -365,13 +359,17 @@ class OptimizedPerformanceMonitor:
 
                 def __exit__(self, exc_type, exc_val, exc_tb):
                     duration = (time.perf_counter() - self.start_time) * 1000
-                    self.record_metric(
-                        name=name, value=duration, unit="ms", tags=tags, sample_rate=sample_rate
+                    monitor_instance.record_metric(
+                        name=name,
+                        value=duration,
+                        unit="ms",
+                        tags=tags,
+                        sample_rate=sample_rate,
                     )
 
             return TimerContext()
 
-    def get_aggregated_metrics(self, name: Optional[str] = None) -> Dict[str, AggregatedMetric]:
+    def get_aggregated_metrics(self, name: str | None = None) -> dict[str, AggregatedMetric]:
         """
         Get current aggregated metrics.
 
@@ -386,7 +384,7 @@ class OptimizedPerformanceMonitor:
             )
         return self._aggregated_metrics.copy()
 
-    def get_recent_metrics(self, name: str, limit: int = 100) -> List[PerformanceMetric]:
+    def get_recent_metrics(self, name: str, limit: int = 100) -> list[PerformanceMetric]:
         """Get recent raw metrics for a specific name."""
         with self._buffer_lock:
             return [m for m in self._metrics_buffer if m.name == name][-limit:]
@@ -411,7 +409,7 @@ class OptimizedPerformanceMonitor:
         cutoff_time = current_time - self.aggregation_window
 
         # Collect metrics within window
-        metric_values: Dict[str, List[float]] = defaultdict(list)
+        metric_values: dict[str, list[float]] = defaultdict(list)
 
         with self._buffer_lock:
             for metric in self._metrics_buffer:

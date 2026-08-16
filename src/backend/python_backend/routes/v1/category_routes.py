@@ -6,13 +6,13 @@ Version 1 API routes for category operations
 Following the new architectural patterns with service layer and API versioning
 """
 
-from typing import List
 import logging
+
 from fastapi import APIRouter, Depends, Request
 
-from src.core.models import CategoryResponse, CategoryCreate
-from backend.python_backend.services.category_service import CategoryService
 from backend.python_backend.dependencies import get_category_service
+from backend.python_backend.services.category_service import CategoryService
+from src.core.models import CategoryCreate, CategoryResponse
 from src.core.performance_monitor import log_performance
 
 logger = logging.getLogger(__name__)
@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/v1")
 
 
-@router.get("/categories", response_model=List[CategoryResponse])
+@router.get("/categories", response_model=list[CategoryResponse])
 @log_performance(operation="get_categories_v1")
 async def get_categories_v1(
     request: Request, category_service: CategoryService = Depends(get_category_service)

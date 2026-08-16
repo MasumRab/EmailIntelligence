@@ -9,7 +9,7 @@ import logging
 import re
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from .audit_logger import AuditEventType, AuditSeverity, audit_logger
 
@@ -30,9 +30,9 @@ class ValidationResult:
     """Result of security validation."""
 
     is_valid: bool
-    violations: List[str]
-    warnings: List[str]
-    recommendations: List[str]
+    violations: list[str]
+    warnings: list[str]
+    recommendations: list[str]
 
 
 class NodeSecurityValidator:
@@ -108,7 +108,7 @@ class NodeSecurityValidator:
         code: str,
         security_level: SecurityLevel,
         node_name: str,
-        user_id: Optional[str] = None,
+        user_id: str | None = None,
     ) -> ValidationResult:
         """
         Validate node code for security violations.
@@ -148,7 +148,12 @@ class NodeSecurityValidator:
 
         # Check for network operations (warnings for untrusted/limited)
         if security_level in [SecurityLevel.UNTRUSTED, SecurityLevel.LIMITED]:
-            network_patterns = [r"\brequests\b", r"\burllib\b", r"\bhttp\b", r"\bsocket\b"]
+            network_patterns = [
+                r"\brequests\b",
+                r"\burllib\b",
+                r"\bhttp\b",
+                r"\bsocket\b",
+            ]
             for pattern in network_patterns:
                 if re.search(pattern, code):
                     warnings.append(f"Network operation detected: {pattern}")
@@ -185,7 +190,7 @@ class NodeSecurityValidator:
         return result
 
     def validate_node_config(
-        self, config: Dict[str, Any], security_level: SecurityLevel, node_name: str
+        self, config: dict[str, Any], security_level: SecurityLevel, node_name: str
     ) -> ValidationResult:
         """
         Validate node configuration for security issues.
@@ -233,7 +238,10 @@ class WorkflowSecurityValidator:
     """
 
     def validate_workflow_execution(
-        self, workflow_config: Dict[str, Any], user_id: str, security_level: SecurityLevel
+        self,
+        workflow_config: dict[str, Any],
+        user_id: str,
+        security_level: SecurityLevel,
     ) -> ValidationResult:
         """
         Validate workflow execution for security compliance.
@@ -273,7 +281,7 @@ class WorkflowSecurityValidator:
             recommendations=recommendations,
         )
 
-    def _has_cycles(self, edges: List[Dict[str, Any]]) -> bool:
+    def _has_cycles(self, edges: list[dict[str, Any]]) -> bool:
         """Simple cycle detection in workflow graph."""
         # Build adjacency list
         graph = {}

@@ -3,7 +3,7 @@ Urgency analysis model.
 """
 
 import logging
-from typing import Any, Dict
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -15,6 +15,6 @@ class UrgencyModel:
         logger.info("UrgencyModel instance created.")
         self.model = urgency_model
 
-    def analyze(self, text: str) -> Dict[str, Any]:
+    def analyze(self, text: str) -> dict[str, Any]:
         """Analyze urgency."""
         return {"urgency": "low", "confidence": 0.0}

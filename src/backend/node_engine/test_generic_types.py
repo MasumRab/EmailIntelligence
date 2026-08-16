@@ -1,6 +1,8 @@
 import unittest
+
 from backend.node_engine.node_base import DataType, GenericType
 from backend.node_engine.workflow_engine import WorkflowEngine
+
 
 class TestGenericTypes(unittest.TestCase):
     def setUp(self):
@@ -62,7 +64,6 @@ class TestGenericTypes(unittest.TestCase):
 
         self.assertFalse(self.engine._validate_type_compatibility(target, source))
 
-
     def test_nested_compatibility(self):
         """Test nested generic types compatibility."""
         # List[List[Any]] vs List[List[String]]
@@ -94,5 +95,6 @@ class TestGenericTypes(unittest.TestCase):
         target = DataType.ANY
         self.assertTrue(self.engine._validate_type_compatibility(source, target))
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

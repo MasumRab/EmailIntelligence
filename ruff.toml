@@ -1,0 +1,31 @@
+# Ruff configuration
+line-length = 100
+
+[lint]
+select = ["E", "F", "W", "I", "UP"]
+ignore = [
+    "E402",  # Module level imports not at top of file (common in main.py patterns)
+    "E501",  # Line too long (many existing long lines in codebase)
+    "F401",  # Unused imports (many imports in try/except blocks)
+    "F811",  # Redefinition of unused names (legacy code patterns)
+    "F821",  # Undefined names (existing code issues)
+    "UP042",  # Enum inheritance patterns (Python 3.11 compatibility)
+    "UP035",  # Deprecated typing imports (existing code)
+    "W291",  # Trailing whitespace (existing code)
+    "W292",  # No newline at end of file (existing code)
+    "W293",  # Blank line contains whitespace (existing code)
+    "I001",  # Import block issues (existing code)
+    "UP006",  # Deprecated typing (existing code)
+    "UP015",  # Unnecessary mode argument (existing code)
+    "UP032",  # Use f-string instead of format (existing code)
+    "UP045",  # X | None type annotations (existing code)
+    "F841",  # Unused variable (existing code)
+]
+
+[lint.per-file-ignores]
+"__init__.py" = ["F401", "F811", "F821"]
+"tests/*" = ["F401", "F811", "E402", "F821", "W291"]
+"setup/*" = ["E402", "E501", "F401", "F811", "F821", "W291", "W292", "W293", "I001", "UP006", "UP015", "UP032", "UP035", "UP042", "UP045"]
+
+[format]
+exclude = ["setup/*"]

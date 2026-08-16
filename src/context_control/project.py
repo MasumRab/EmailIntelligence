@@ -1,13 +1,11 @@
 """Project configuration management for Agent Context Control."""
 
-from pathlib import Path
-from typing import Optional, Dict
 import json
+from pathlib import Path
 
-from .models import ProjectConfig
-from .logging import get_context_logger
 from .config import get_current_config
-
+from .logging import get_context_logger
+from .models import ProjectConfig
 
 logger = get_context_logger()
 
@@ -22,11 +20,9 @@ class ProjectConfigLoader:
             config: Optional configuration override
         """
         self.config = config or get_current_config()
-        self._cache: Dict[str, ProjectConfig] = {}
+        self._cache: dict[str, ProjectConfig] = {}
 
-    def load_project_config(
-        self, project_path: Optional[Path] = None
-    ) -> Optional[ProjectConfig]:
+    def load_project_config(self, project_path: Path | None = None) -> ProjectConfig | None:
         """Load project configuration from the given path.
 
         Args:
@@ -57,7 +53,7 @@ class ProjectConfigLoader:
         logger.debug(f"No project configuration found for {project_path}")
         return None
 
-    def _load_from_project_file(self, project_path: Path) -> Optional[ProjectConfig]:
+    def _load_from_project_file(self, project_path: Path) -> ProjectConfig | None:
         """Load config from a project-specific file.
 
         Args:
@@ -75,7 +71,7 @@ class ProjectConfigLoader:
         for config_file in config_files:
             if config_file.exists():
                 try:
-                    with open(config_file, "r", encoding="utf-8") as f:
+                    with open(config_file, encoding="utf-8") as f:
                         data = json.load(f)
                     config = ProjectConfig(**data)
                     logger.info(f"Loaded project config from {config_file}")
@@ -86,9 +82,7 @@ class ProjectConfigLoader:
 
         return None
 
-    def _load_from_config_directory(
-        self, project_path: Path
-    ) -> Optional[ProjectConfig]:
+    def _load_from_config_directory(self, project_path: Path) -> ProjectConfig | None:
         """Load config from a configuration directory.
 
         Args:
@@ -109,7 +103,7 @@ class ProjectConfigLoader:
         # Use the first one found
         config_file = project_files[0]
         try:
-            with open(config_file, "r", encoding="utf-8") as f:
+            with open(config_file, encoding="utf-8") as f:
                 data = json.load(f)
             config = ProjectConfig(**data)
             logger.info(f"Loaded project config from {config_file}")
@@ -118,9 +112,7 @@ class ProjectConfigLoader:
             logger.error(f"Invalid project config file {config_file}: {e}")
             return None
 
-    def save_project_config(
-        self, config: ProjectConfig, project_path: Optional[Path] = None
-    ) -> bool:
+    def save_project_config(self, config: ProjectConfig, project_path: Path | None = None) -> bool:
         """Save project configuration to file.
 
         Args:
@@ -150,7 +142,7 @@ class ProjectConfigLoader:
             logger.error(f"Failed to save project config to {config_file}: {e}")
             return False
 
-    def detect_project_type(self, project_path: Optional[Path] = None) -> str:
+    def detect_project_type(self, project_path: Path | None = None) -> str:
         """Auto-detect project type based on files present.
 
         Args:
@@ -192,9 +184,7 @@ class ProjectConfigLoader:
 
         return best_type
 
-    def create_default_config(
-        self, project_path: Optional[Path] = None
-    ) -> ProjectConfig:
+    def create_default_config(self, project_path: Path | None = None) -> ProjectConfig:
         """Create a default project configuration.
 
         Args:
@@ -252,7 +242,7 @@ class ProjectConfigLoader:
 
 
 # Global instance
-_project_loader: Optional[ProjectConfigLoader] = None
+_project_loader: ProjectConfigLoader | None = None
 
 
 def get_project_loader() -> ProjectConfigLoader:
@@ -267,7 +257,7 @@ def get_project_loader() -> ProjectConfigLoader:
     return _project_loader
 
 
-def load_project_config(project_path: Optional[Path] = None) -> Optional[ProjectConfig]:
+def load_project_config(project_path: Path | None = None) -> ProjectConfig | None:
     """Load project configuration for the given path.
 
     Args:

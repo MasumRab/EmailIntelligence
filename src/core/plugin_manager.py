@@ -14,7 +14,7 @@ import time
 import zipfile
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Set
+from typing import Any
 from urllib.parse import urlparse
 
 import httpx
@@ -44,7 +44,7 @@ class PluginMarketplaceEntry:
     description: str
     download_url: str
     checksum: str
-    tags: List[str] = field(default_factory=list)
+    tags: list[str] = field(default_factory=list)
     rating: float = 0.0
     downloads: int = 0
     last_updated: float = field(default_factory=time.time)
@@ -62,10 +62,10 @@ class PluginManager:
             marketplace_url or "https://api.emailintelligence.plugins/marketplace"
         )
         self.registry = PluginRegistry(plugins_dir)
-        self._marketplace_cache: Dict[str, PluginMarketplaceEntry] = {}
+        self._marketplace_cache: dict[str, PluginMarketplaceEntry] = {}
         self._marketplace_cache_time: float = 0
         self._cache_ttl = 3600  # 1 hour
-        self._background_tasks: Set[asyncio.Task] = set()
+        self._background_tasks: set[asyncio.Task] = set()
 
         # Create plugins directory
         self.plugins_dir.mkdir(parents=True, exist_ok=True)
@@ -146,8 +146,8 @@ class PluginManager:
             return False
 
     async def load_plugin(
-        self, plugin_id: str, config: Dict[str, Any] = None
-    ) -> Optional[PluginInstance]:
+        self, plugin_id: str, config: dict[str, Any] = None
+    ) -> PluginInstance | None:
         """Load a plugin into memory."""
         return await self.registry.load_plugin(plugin_id, config)
 
@@ -163,11 +163,11 @@ class PluginManager:
         """Disable a plugin."""
         return await self.registry.disable_plugin(plugin_id)
 
-    def list_plugins(self) -> List[Dict[str, Any]]:
+    def list_plugins(self) -> list[dict[str, Any]]:
         """List all installed plugins."""
         return self.registry.list_plugins()
 
-    async def get_plugin_info(self, plugin_id: str) -> Optional[Dict[str, Any]]:
+    async def get_plugin_info(self, plugin_id: str) -> dict[str, Any] | None:
         """Get detailed information about a plugin."""
         plugins = self.list_plugins()
         return next((p for p in plugins if p["id"] == plugin_id), None)
@@ -196,7 +196,7 @@ class PluginManager:
             logger.error(f"Failed to update plugin {plugin_id}: {e}")
             return False
 
-    async def validate_plugin(self, plugin_id: str) -> Dict[str, Any]:
+    async def validate_plugin(self, plugin_id: str) -> dict[str, Any]:
         """Validate a plugin's integrity and security."""
         return await self.registry.validate_model(plugin_id)  # Reuse validation logic
 
@@ -208,7 +208,7 @@ class PluginManager:
         """Get the security sandbox."""
         return self.registry.get_security_sandbox()
 
-    async def get_marketplace_plugins(self, refresh: bool = False) -> List[Dict[str, Any]]:
+    async def get_marketplace_plugins(self, refresh: bool = False) -> list[dict[str, Any]]:
         """Get available plugins from the marketplace."""
         try:
             if refresh or self._should_refresh_marketplace_cache():
@@ -241,7 +241,7 @@ class PluginManager:
             logger.error(f"Failed to get marketplace plugins: {e}")
             return []
 
-    def get_system_status(self) -> Dict[str, Any]:
+    def get_system_status(self) -> dict[str, Any]:
         """Get comprehensive plugin system status."""
         plugins = self.list_plugins()
         loaded_plugins = [p for p in plugins if p.get("loaded", False)]
@@ -293,7 +293,7 @@ class PluginManager:
 
     async def _get_plugin_from_marketplace(
         self, plugin_id: str, version: str = None
-    ) -> Optional[PluginMarketplaceEntry]:
+    ) -> PluginMarketplaceEntry | None:
         """Get plugin information from marketplace."""
         try:
             if self._should_refresh_marketplace_cache():
@@ -338,7 +338,9 @@ class PluginManager:
                     # Secure extraction - validate all paths first
                     for member in zip_ref.infolist():
                         if not validate_path_safety(member.filename, extract_path):
-                            raise SecurityError(f"Malicious file path detected in plugin archive: {member.filename}")
+                            raise SecurityError(
+                                f"Malicious file path detected in plugin archive: {member.filename}"
+                            )
 
                     # Safe to extract
                     zip_ref.extractall(extract_path)
@@ -379,8 +381,10 @@ class PluginManager:
         try:
             # Enforce URL scheme validation (SSRF protection)
             parsed_url = urlparse(url)
-            if parsed_url.scheme not in ('http', 'https'):
-                raise SecurityError(f"Invalid URL scheme: {parsed_url.scheme}. Only http and https are allowed.")
+            if parsed_url.scheme not in ("http", "https"):
+                raise SecurityError(
+                    f"Invalid URL scheme: {parsed_url.scheme}. Only http and https are allowed."
+                )
 
             # Use asynchronous client with timeout (DoS protection)
             async with httpx.AsyncClient(timeout=30.0) as client:
@@ -449,7 +453,10 @@ class PluginManager:
         dangerous_methods = ["__del__", "system", "exec", "eval", "__import__"]
 
         if method_name in dangerous_methods:
-            if security_level in [PluginSecurityLevel.SANDBOXED, PluginSecurityLevel.STANDARD]:
+            if security_level in [
+                PluginSecurityLevel.SANDBOXED,
+                PluginSecurityLevel.STANDARD,
+            ]:
                 return False
 
         return True

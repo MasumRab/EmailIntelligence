@@ -7,7 +7,7 @@ Sample UI Component Plugin for Email Intelligence Platform
 Implements a sample UI component for the Gradio interface.
 """
 
-from typing import Any, List
+from typing import Any
 
 import gradio as gr
 
@@ -40,7 +40,7 @@ class EmailVisualizerPlugin(UIComponentPlugin):
         # For UI components, this might just return the data as is
         return data
 
-    def get_ui_components(self) -> List[gr.components.Component]:
+    def get_ui_components(self) -> list[gr.components.Component]:
         """Return Gradio UI components that this plugin provides."""
         # Return some sample UI components
         return [
@@ -49,7 +49,7 @@ class EmailVisualizerPlugin(UIComponentPlugin):
             gr.Dropdown(["All", "Important", "Unread", "Filtered"], label="Filter View"),
         ]
 
-    def get_input_widgets(self) -> List[gr.components.Component]:
+    def get_input_widgets(self) -> list[gr.components.Component]:
         """Return custom input widgets that this plugin provides."""
         # Return some sample input widgets
         return [
@@ -59,7 +59,7 @@ class EmailVisualizerPlugin(UIComponentPlugin):
             ),
         ]
 
-    def get_visualization_components(self) -> List[gr.components.Component]:
+    def get_visualization_components(self) -> list[gr.components.Component]:
         """Return visualization components for displaying results."""
         # Return some sample visualization components
         return [

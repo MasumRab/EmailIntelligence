@@ -18,7 +18,7 @@ from backend.plugins.plugin_manager import plugin_manager
 
 # Try to import security manager if available
 try:
-
+    from src.core.security import Permission, SecurityLevel, get_security_manager
 
     security_manager_available = True
 except ImportError:
@@ -196,9 +196,15 @@ def create_workflow_editor_ui():
                         workflow_manager.list_workflows(),
                     )
                 else:
-                    return "❌ Failed to save workflow", workflow_manager.list_workflows()
+                    return (
+                        "❌ Failed to save workflow",
+                        workflow_manager.list_workflows(),
+                    )
             except Exception as e:
-                return f"❌ Error saving workflow: {str(e)}", workflow_manager.list_workflows()
+                return (
+                    f"❌ Error saving workflow: {str(e)}",
+                    workflow_manager.list_workflows(),
+                )
 
         def load_selected_workflow(workflow_filename: str):
             try:
@@ -318,7 +324,7 @@ def create_advanced_workflow_ui():
 
 
 # Initialize the workflow system when this module is loaded
-
+initialize_workflow_system()
 
 if __name__ == "__main__":
     # For testing the workflow editor UI

@@ -5,7 +5,7 @@ It will be removed in a future release.
 API routes for enhanced features: model management, workflows, and performance monitoring
 """
 
-from typing import Any, Dict, List
+from typing import Any
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
@@ -26,11 +26,11 @@ class ModelInfoResponse(BaseModel):
     size_mb: float
     status: str
     load_time: float | None
-    performance_metrics: Dict[str, Any] | None
+    performance_metrics: dict[str, Any] | None
     last_used: float | None
 
 
-@router.get("/models", response_model=List[ModelInfoResponse])
+@router.get("/models", response_model=list[ModelInfoResponse])
 async def get_models():
     """Get information about all available models."""
     models = model_manager.get_all_models()
@@ -76,11 +76,11 @@ class WorkflowResponse(BaseModel):
     workflow_id: str
     name: str
     description: str
-    nodes: Dict[str, Any]
-    connections: List[Dict[str, Any]]
+    nodes: dict[str, Any]
+    connections: list[dict[str, Any]]
 
 
-@router.get("/workflows", response_model=List[Dict[str, Any]])
+@router.get("/workflows", response_model=list[dict[str, Any]])
 async def list_workflows():
     """List all available workflow files."""
     return workflow_manager.list_workflows()
@@ -124,7 +124,11 @@ async def get_workflow(workflow_id: str):
 @router.post("/workflows")
 async def create_workflow(request: WorkflowCreateRequest):
     """Create a new workflow."""
-    from backend.node_engine.email_nodes import AIAnalysisNode, EmailSourceNode, PreprocessingNode
+    from backend.node_engine.email_nodes import (
+        AIAnalysisNode,
+        EmailSourceNode,
+        PreprocessingNode,
+    )
     from backend.node_engine.node_base import Workflow
 
     workflow = Workflow(name=request.name, description=request.description)
@@ -160,19 +164,22 @@ class PerformanceMetricResponse(BaseModel):
     source: str
 
 
-@router.get("/performance/metrics", response_model=List[PerformanceMetricResponse])
+@router.get("/performance/metrics", response_model=list[PerformanceMetricResponse])
 async def get_performance_metrics(minutes: int = 5, source_filter: str = None):
     """Get recent performance metrics."""
     metrics = performance_monitor.get_recent_metrics(minutes, source_filter)
     return [
         PerformanceMetricResponse(
-            timestamp=metric.timestamp, value=metric.value, unit=metric.unit, source=metric.source
+            timestamp=metric.timestamp,
+            value=metric.value,
+            unit=metric.unit,
+            source=metric.source,
         )
         for metric in metrics
     ]
 
 
-@router.get("/performance/system-stats", response_model=Dict[str, float])
+@router.get("/performance/system-stats", response_model=dict[str, float])
 async def get_system_stats():
     """Get current system statistics."""
     return performance_monitor.get_system_stats()

@@ -7,10 +7,10 @@ import gzip
 import json
 import logging
 import os
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from functools import partial
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from .performance_monitor import log_performance
 
@@ -45,11 +45,11 @@ class EmailDataManager:
         self.email_content_dir = email_content_dir
 
         # In-memory data stores
-        self.emails_data: List[Dict[str, Any]] = []  # Stores light email records
+        self.emails_data: list[dict[str, Any]] = []  # Stores light email records
 
         # In-memory indexes
-        self.emails_by_id: Dict[int, Dict[str, Any]] = {}
-        self.emails_by_message_id: Dict[str, Dict[str, Any]] = {}
+        self.emails_by_id: dict[int, dict[str, Any]] = {}
+        self.emails_by_message_id: dict[str, dict[str, Any]] = {}
 
         # Ensure directories exist
         if not os.path.exists(self.email_content_dir):
@@ -62,7 +62,7 @@ class EmailDataManager:
         """Returns the path for an individual email's content file."""
         return os.path.join(self.email_content_dir, f"{email_id}.json.gz")
 
-    async def _load_and_merge_content(self, email_light: Dict[str, Any]) -> Dict[str, Any]:
+    async def _load_and_merge_content(self, email_light: dict[str, Any]) -> dict[str, Any]:
         """Loads heavy content for a given light email record and merges them."""
         full_email = email_light.copy()
         email_id = full_email.get(FIELD_ID)
@@ -75,7 +75,7 @@ class EmailDataManager:
                 with gzip.open(content_path, "rt", encoding="utf-8") as f:
                     heavy_data = await asyncio.to_thread(json.load, f)
                     full_email.update(heavy_data)
-            except (IOError, json.JSONDecodeError) as e:
+            except (OSError, json.JSONDecodeError) as e:
                 logger = logging.getLogger(__name__)
                 logger.error(f"Error loading content for email {email_id}: {e}")
         return full_email
@@ -92,7 +92,7 @@ class EmailDataManager:
         }
         logger.info("Email indexes built successfully.")
 
-    async def create_email(self, email_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    async def create_email(self, email_data: dict[str, Any]) -> dict[str, Any] | None:
         """Create a new email record, separating heavy and light content."""
         logger = logging.getLogger(__name__)
 
@@ -101,7 +101,7 @@ class EmailDataManager:
         # It would require a reference to the full database instance
 
         new_id = self._generate_id(self.emails_data)
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(UTC).isoformat()
 
         analysis_metadata = email_data.get(
             FIELD_ANALYSIS_METADATA, email_data.get("analysisMetadata", {})
@@ -140,7 +140,7 @@ class EmailDataManager:
             with gzip.open(content_path, "wt", encoding="utf-8") as f:
                 dump_func = partial(json.dump, heavy_data, f, indent=4)
                 await asyncio.to_thread(dump_func)
-        except IOError as e:
+        except OSError as e:
             logger.error(f"Error saving heavy content for email {new_id}: {e}")
 
         # For this simplified version, we'll return without category details
@@ -149,7 +149,7 @@ class EmailDataManager:
 
     async def get_email_by_id(
         self, email_id: int, include_content: bool = True
-    ) -> Optional[Dict[str, Any]]:
+    ) -> dict[str, Any] | None:
         """Get email by ID using in-memory index, with option to load heavy content."""
         email_light = self.emails_by_id.get(email_id)
         if not email_light:
@@ -161,7 +161,7 @@ class EmailDataManager:
         else:
             return email_light.copy()
 
-    async def get_emails(self, limit: int = 50, offset: int = 0) -> List[Dict[str, Any]]:
+    async def get_emails(self, limit: int = 50, offset: int = 0) -> list[dict[str, Any]]:
         """Get emails with pagination."""
         try:
             sorted_emails = sorted(
@@ -173,14 +173,16 @@ class EmailDataManager:
             logger = logging.getLogger(__name__)
             logger.warning("Sorting emails failed due to incomparable types.")
             sorted_emails = sorted(
-                self.emails_data, key=lambda e: e.get(FIELD_CREATED_AT, ""), reverse=True
+                self.emails_data,
+                key=lambda e: e.get(FIELD_CREATED_AT, ""),
+                reverse=True,
             )
         paginated_emails = sorted_emails[offset : offset + limit]
         return paginated_emails
 
     async def get_email_by_message_id(
         self, message_id: str, include_content: bool = True
-    ) -> Optional[Dict[str, Any]]:
+    ) -> dict[str, Any] | None:
         """Get email by messageId using in-memory index, with option to load heavy content."""
         if not message_id:
             return None
@@ -193,12 +195,12 @@ class EmailDataManager:
         else:
             return email_light.copy()
 
-    async def get_all_emails(self, limit: int = 50, offset: int = 0) -> List[Dict[str, Any]]:
+    async def get_all_emails(self, limit: int = 50, offset: int = 0) -> list[dict[str, Any]]:
         """Get all emails with pagination"""
         return await self.get_emails(limit=limit, offset=offset)
 
     @log_performance(operation="search_emails")
-    async def search_emails(self, search_term: str, limit: int = 50) -> List[Dict[str, Any]]:
+    async def search_emails(self, search_term: str, limit: int = 50) -> list[dict[str, Any]]:
         """Search emails. Searches subject/sender in-memory, and content on-disk."""
         if not search_term:
             return await self.get_emails(limit=limit, offset=0)
@@ -227,7 +229,7 @@ class EmailDataManager:
                         content = heavy_data.get(FIELD_CONTENT, "")
                         if isinstance(content, str) and search_term_lower in content.lower():
                             filtered_emails.append(email_light)
-                except (IOError, json.JSONDecodeError) as e:
+                except (OSError, json.JSONDecodeError) as e:
                     logger.error(f"Could not search content for email {email_id}: {e}")
         try:
             sorted_emails = sorted(
@@ -243,7 +245,7 @@ class EmailDataManager:
         paginated_emails = sorted_emails[:limit]
         return paginated_emails
 
-    def _generate_id(self, data_list: List[Dict[str, Any]]) -> int:
+    def _generate_id(self, data_list: list[dict[str, Any]]) -> int:
         """Generates a new unique integer ID."""
         if not data_list:
             return 1

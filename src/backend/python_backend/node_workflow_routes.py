@@ -8,7 +8,7 @@ This module provides API endpoints for managing and executing node-based workflo
 that were implemented in the new node engine architecture.
 """
 
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
@@ -24,8 +24,9 @@ from backend.node_engine.email_nodes import (
 # Import the new node-based workflow components
 from backend.node_engine.node_base import Workflow as NodeWorkflow
 from backend.node_engine.workflow_engine import workflow_engine as node_workflow_engine
-from backend.node_engine.workflow_manager import workflow_manager as node_workflow_manager
-
+from backend.node_engine.workflow_manager import (
+    workflow_manager as node_workflow_manager,
+)
 
 router = APIRouter()
 
@@ -33,34 +34,34 @@ router = APIRouter()
 class NodeWorkflowCreateRequest(BaseModel):
     name: str
     description: str = ""
-    nodes: List[Dict[str, Any]] = []
-    connections: List[Dict[str, str]] = (
-        []
-    )  # Format: {source_node_id, source_port, target_node_id, target_port}
+    nodes: list[dict[str, Any]] = []
+    connections: list[
+        dict[str, str]
+    ] = []  # Format: {source_node_id, source_port, target_node_id, target_port}
 
 
 class NodeWorkflowResponse(BaseModel):
     workflow_id: str
     name: str
     description: str
-    nodes: List[Dict[str, Any]]
-    connections: List[Dict[str, str]]
+    nodes: list[dict[str, Any]]
+    connections: list[dict[str, str]]
     created_at: str
     updated_at: str
 
 
 class ExecuteWorkflowRequest(BaseModel):
-    initial_inputs: Dict[str, Any] = {}
-    user_id: Optional[str] = None
+    initial_inputs: dict[str, Any] = {}
+    user_id: str | None = None
 
 
 class ExecuteWorkflowResponse(BaseModel):
     workflow_id: str
     status: str
     execution_time: float
-    execution_path: List[str]
-    errors: List[Dict[str, Any]]
-    outputs: Dict[str, Any]
+    execution_path: list[str]
+    errors: list[dict[str, Any]]
+    outputs: dict[str, Any]
 
 
 @router.post("/api/nodes/workflows", response_model=NodeWorkflowResponse)
@@ -122,7 +123,7 @@ async def create_node_workflow(request: NodeWorkflowCreateRequest):
         raise HTTPException(status_code=500, detail=f"Failed to create node workflow: {str(e)}")
 
 
-@router.get("/api/nodes/workflows", response_model=List[str])
+@router.get("/api/nodes/workflows", response_model=list[str])
 async def list_node_workflows():
     """List all available node-based workflows."""
     try:
@@ -278,7 +279,7 @@ async def execute_node_workflow(workflow_id: str, request: ExecuteWorkflowReques
 
 
 # Node Management Routes
-@router.get("/api/nodes/types", response_model=List[str])
+@router.get("/api/nodes/types", response_model=list[str])
 async def get_available_node_types():
     """Get list of available node types."""
     try:
@@ -311,7 +312,7 @@ async def get_node_info(node_type: str):
 
 
 # Node Library Routes
-@router.get("/api/nodes/library/types", response_model=List[str])
+@router.get("/api/nodes/library/types", response_model=list[str])
 async def get_node_types():
     """Get list of all available node types."""
     try:
@@ -322,7 +323,7 @@ async def get_node_types():
         raise HTTPException(status_code=500, detail=f"Failed to get node types: {str(e)}")
 
 
-@router.get("/api/nodes/library/types/{node_type}", response_model=Dict[str, Any])
+@router.get("/api/nodes/library/types/{node_type}", response_model=dict[str, Any])
 async def get_node_type_info(node_type: str):
     """Get detailed information about a specific node type."""
     try:
@@ -335,7 +336,7 @@ async def get_node_type_info(node_type: str):
         raise HTTPException(status_code=500, detail=f"Failed to get node info: {str(e)}")
 
 
-@router.get("/api/nodes/library/categories", response_model=Dict[str, List[Dict[str, Any]]])
+@router.get("/api/nodes/library/categories", response_model=dict[str, list[dict[str, Any]]])
 async def get_nodes_by_category():
     """Get all nodes grouped by category."""
     try:
@@ -346,7 +347,7 @@ async def get_nodes_by_category():
         raise HTTPException(status_code=500, detail=f"Failed to get nodes by category: {str(e)}")
 
 
-@router.get("/api/nodes/library/all", response_model=List[Dict[str, Any]])
+@router.get("/api/nodes/library/all", response_model=list[dict[str, Any]])
 async def get_all_nodes_info():
     """Get information about all available nodes."""
     try:
@@ -374,6 +375,9 @@ async def get_active_executions():
                 }
             )
 
-        return {"active_executions": active_executions, "total_active": len(active_executions)}
+        return {
+            "active_executions": active_executions,
+            "total_active": len(active_executions),
+        }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to get active executions: {str(e)}")

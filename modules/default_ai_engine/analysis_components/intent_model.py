@@ -9,7 +9,7 @@ and falls back to a regex-based analysis if the model is not present.
 
 import logging
 import re
-from typing import Any, Dict, Optional
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -26,7 +26,7 @@ class IntentModel:
         logger: A logger for recording events and errors.
     """
 
-    def __init__(self, intent_model: Optional[Any]):
+    def __init__(self, intent_model: Any | None):
         """
         Initializes the IntentModel.
 
@@ -37,7 +37,7 @@ class IntentModel:
         self.model = intent_model
         self.logger = logging.getLogger(__name__)
 
-    def _analyze_model(self, text: str) -> Optional[Dict[str, Any]]:
+    def _analyze_model(self, text: str) -> dict[str, Any] | None:
         """
         Analyzes intent using the loaded scikit-learn model.
 
@@ -63,7 +63,7 @@ class IntentModel:
             self.logger.error(f"Error using intent model: {e}. Trying fallback.")
             return None
 
-    def _analyze_regex(self, text: str) -> Dict[str, Any]:
+    def _analyze_regex(self, text: str) -> dict[str, Any]:
         """
         Analyzes intent using regex pattern matching as a fallback.
 
@@ -104,7 +104,7 @@ class IntentModel:
                 "method_used": "fallback_regex_intent",
             }
 
-    def analyze(self, text: str) -> Dict[str, Any]:
+    def analyze(self, text: str) -> dict[str, Any]:
         """
         Determines the intent of the email using the best available method.
 

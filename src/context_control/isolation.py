@@ -1,13 +1,12 @@
 """Context isolation mechanisms to prevent contamination between agents."""
 
-from pathlib import Path
-from typing import List, Dict, Any
 import fnmatch
+from pathlib import Path
+from typing import Any
 
-from .models import AgentContext
-from .logging import get_context_logger
 from .config import get_current_config
-
+from .logging import get_context_logger
+from .models import AgentContext
 
 logger = get_context_logger()
 
@@ -24,7 +23,7 @@ class ContextIsolator:
         """
         self.context = context
         self.config = config or get_current_config()
-        self._access_log: List[Dict[str, Any]] = []
+        self._access_log: list[dict[str, Any]] = []
         logger.info(f"Context isolator initialized for agent '{context.agent_id}'")
 
     def is_file_accessible(self, file_path: str) -> bool:
@@ -53,7 +52,7 @@ class ContextIsolator:
         self._log_access(normalized_path, False, "no_match")
         return False
 
-    def filter_accessible_files(self, file_paths: List[str]) -> List[str]:
+    def filter_accessible_files(self, file_paths: list[str]) -> list[str]:
         """Filter a list of files to only include accessible ones.
 
         Args:
@@ -88,9 +87,7 @@ class ContextIsolator:
 
             # Check that context has proper boundaries
             if not self.context.accessible_files and not self.context.restricted_files:
-                logger.warning(
-                    "Context has no file access boundaries - potential security risk"
-                )
+                logger.warning("Context has no file access boundaries - potential security risk")
                 # This is a warning, not an error, as some contexts might be unrestricted
 
             return True
@@ -99,7 +96,7 @@ class ContextIsolator:
             logger.error(f"Error validating context integrity: {e}")
             return False
 
-    def get_access_summary(self) -> Dict[str, Any]:
+    def get_access_summary(self) -> dict[str, Any]:
         """Get a summary of file access patterns.
 
         Returns:
@@ -137,7 +134,7 @@ class ContextIsolator:
             # Fallback to original path
             return file_path
 
-    def _matches_patterns(self, file_path: str, patterns: List[str]) -> bool:
+    def _matches_patterns(self, file_path: str, patterns: list[str]) -> bool:
         """Check if a file path matches any of the given patterns.
 
         Args:
@@ -198,7 +195,7 @@ class IsolationManager:
             config: Optional configuration override
         """
         self.config = config or get_current_config()
-        self._isolators: Dict[str, ContextIsolator] = {}
+        self._isolators: dict[str, ContextIsolator] = {}
         logger.info("Isolation manager initialized")
 
     def get_isolator(self, context: AgentContext) -> ContextIsolator:
@@ -217,7 +214,7 @@ class IsolationManager:
 
         return self._isolators[key]
 
-    def check_cross_context_access(self, contexts: List[AgentContext]) -> List[str]:
+    def check_cross_context_access(self, contexts: list[AgentContext]) -> list[str]:
         """Check for potential cross-context access violations.
 
         Args:
@@ -243,7 +240,7 @@ class IsolationManager:
 
         return violations
 
-    def enforce_isolation(self, contexts: List[AgentContext]) -> bool:
+    def enforce_isolation(self, contexts: list[AgentContext]) -> bool:
         """Enforce isolation rules across all contexts.
 
         Args:
@@ -263,9 +260,7 @@ class IsolationManager:
         for context in contexts:
             isolator = self.get_isolator(context)
             if not isolator.validate_context_integrity():
-                logger.error(
-                    f"Context integrity violation for agent '{context.agent_id}'"
-                )
+                logger.error(f"Context integrity violation for agent '{context.agent_id}'")
                 return False
 
         return True

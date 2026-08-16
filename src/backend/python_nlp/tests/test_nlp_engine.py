@@ -7,7 +7,6 @@ from backend.python_nlp.nlp_engine import NLPEngine
 # Ensure the root directory is in the Python path
 
 
-
 @pytest.fixture
 def nlp_engine_with_mocks():
     """
@@ -22,22 +21,42 @@ def nlp_engine_with_mocks():
         patch(
             "backend.python_nlp.nlp_engine.NLPEngine._analyze_sentiment",
             MagicMock(
-                return_value={"sentiment": "neutral", "confidence": 0.9, "method_used": "mock"}
+                return_value={
+                    "sentiment": "neutral",
+                    "confidence": 0.9,
+                    "method_used": "mock",
+                }
             ),
         ) as mock_sentiment,
         patch(
             "backend.python_nlp.nlp_engine.NLPEngine._analyze_topic",
-            MagicMock(return_value={"topic": "general", "confidence": 0.9, "method_used": "mock"}),
+            MagicMock(
+                return_value={
+                    "topic": "general",
+                    "confidence": 0.9,
+                    "method_used": "mock",
+                }
+            ),
         ) as mock_topic,
         patch(
             "backend.python_nlp.nlp_engine.NLPEngine._analyze_intent",
             MagicMock(
-                return_value={"intent": "informational", "confidence": 0.9, "method_used": "mock"}
+                return_value={
+                    "intent": "informational",
+                    "confidence": 0.9,
+                    "method_used": "mock",
+                }
             ),
         ) as mock_intent,
         patch(
             "backend.python_nlp.nlp_engine.NLPEngine._analyze_urgency",
-            MagicMock(return_value={"urgency": "low", "confidence": 0.9, "method_used": "mock"}),
+            MagicMock(
+                return_value={
+                    "urgency": "low",
+                    "confidence": 0.9,
+                    "method_used": "mock",
+                }
+            ),
         ) as mock_urgency,
         patch(
             "backend.python_nlp.nlp_engine.NLPEngine._extract_keywords",
@@ -48,7 +67,6 @@ def nlp_engine_with_mocks():
             MagicMock(return_value=["Mock Category"]),
         ) as mock_categorize,
     ):
-
         # Instantiate the engine within the patch context
         engine = NLPEngine()
 
@@ -126,7 +144,6 @@ def test_sentiment_analysis_fallback_logic():
                 return_value={"method_used": "fallback_keyword_sentiment"},
             ) as mock_keyword,
         ):
-
             result = engine._analyze_sentiment("A test sentence.")
 
             # Assert that the methods were called in the correct order
@@ -159,7 +176,6 @@ def test_analyze_email_success_path(mock_load_model):
         patch("backend.python_nlp.nlp_engine.NLPEngine._analyze_intent") as mock_intent,
         patch("backend.python_nlp.nlp_engine.NLPEngine._analyze_urgency") as mock_urgency,
     ):
-
         mock_sentiment.return_value = {
             "sentiment": "positive",
             "confidence": 0.9,

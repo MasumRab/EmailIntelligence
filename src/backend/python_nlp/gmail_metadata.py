@@ -11,7 +11,7 @@ import json
 import logging
 import re
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 
 @dataclass
@@ -68,19 +68,19 @@ class GmailMessage:
     thread_id: str
     subject: str
     from_address: str
-    to_addresses: List[str]
-    cc_addresses: List[str]
-    bcc_addresses: List[str]
-    reply_to: Optional[str]
+    to_addresses: list[str]
+    cc_addresses: list[str]
+    bcc_addresses: list[str]
+    reply_to: str | None
     date: str
     internal_date: str
     body_plain: str
     body_html: str
     snippet: str
-    labels: List[str]
-    label_ids: List[str]
-    importance_markers: Dict[str, Any]
-    thread_info: Dict[str, Any]
+    labels: list[str]
+    label_ids: list[str]
+    importance_markers: dict[str, Any]
+    thread_info: dict[str, Any]
     size_estimate: int
     history_id: str
     is_unread: bool
@@ -91,21 +91,21 @@ class GmailMessage:
     is_spam: bool
     is_trash: bool
     is_chat: bool
-    attachments: List[Dict[str, Any]]
+    attachments: list[dict[str, Any]]
     has_attachments: bool
-    spf_status: Optional[str]
-    dkim_status: Optional[str]
-    dmarc_status: Optional[str]
-    encryption_info: Dict[str, Any]
-    message_headers: Dict[str, str]
-    custom_headers: Dict[str, str]
-    in_reply_to: Optional[str]
-    references: List[str]
-    category: Optional[str]
+    spf_status: str | None
+    dkim_status: str | None
+    dmarc_status: str | None
+    encryption_info: dict[str, Any]
+    message_headers: dict[str, str]
+    custom_headers: dict[str, str]
+    in_reply_to: str | None
+    references: list[str]
+    category: str | None
     priority: str
     auto_reply: bool
-    mailing_list: Optional[str]
-    raw_email: Optional[str]
+    mailing_list: str | None
+    raw_email: str | None
 
 
 class GmailMetadataExtractor:
@@ -134,7 +134,12 @@ class GmailMetadataExtractor:
             "CATEGORY_UPDATES": "updates",
             "CATEGORY_FORUMS": "forums",
         }
-        self.priority_headers = ["X-Priority", "Priority", "Importance", "X-MSMail-Priority"]
+        self.priority_headers = [
+            "X-Priority",
+            "Priority",
+            "Importance",
+            "X-MSMail-Priority",
+        ]
         self.security_headers = [
             "Authentication-Results",
             "Received-SPF",
@@ -142,7 +147,7 @@ class GmailMetadataExtractor:
             "ARC-Authentication-Results",
         ]
 
-    def extract_complete_metadata(self, gmail_message: Dict[str, Any]) -> GmailMessage:
+    def extract_complete_metadata(self, gmail_message: dict[str, Any]) -> GmailMessage:
         """
         Extracts all available metadata from a raw Gmail API message dictionary.
 
@@ -243,16 +248,16 @@ class GmailMetadataExtractor:
             )
             return self._create_minimal_metadata(gmail_message)
 
-    def _extract_headers(self, headers_list: List[Dict[str, str]]) -> Dict[str, str]:
+    def _extract_headers(self, headers_list: list[dict[str, str]]) -> dict[str, str]:
         """Extracts and normalizes email headers into a dictionary."""
         return {h.get("name"): h.get("value") for h in headers_list}
 
-    def _extract_body_content(self, payload: Dict[str, Any]) -> tuple[str, str]:
+    def _extract_body_content(self, payload: dict[str, Any]) -> tuple[str, str]:
         """Recursively extracts plain text and HTML body content from the payload."""
         body_plain = []
         body_html = []
 
-        def extract_from_part(part: Dict[str, Any]):
+        def extract_from_part(part: dict[str, Any]):
             mime_type = part.get("mimeType", "")
             if "data" in (body := part.get("body", {})):
                 try:
@@ -271,11 +276,11 @@ class GmailMetadataExtractor:
         extract_from_part(payload)
         return "".join(body_plain).strip(), "".join(body_html).strip()
 
-    def _extract_attachments(self, payload: Dict[str, Any]) -> List[Dict[str, Any]]:
+    def _extract_attachments(self, payload: dict[str, Any]) -> list[dict[str, Any]]:
         """Recursively extracts attachment information from the payload."""
         attachments = []
 
-        def process_part(part: Dict[str, Any]):
+        def process_part(part: dict[str, Any]):
             if "attachmentId" in (body := part.get("body", {})):
                 attachments.append(
                     {
@@ -292,7 +297,7 @@ class GmailMetadataExtractor:
         process_part(payload)
         return attachments
 
-    def _extract_category(self, label_ids: List[str]) -> Optional[str]:
+    def _extract_category(self, label_ids: list[str]) -> str | None:
         """Extracts the primary Gmail category from a list of label IDs."""
         category_mappings = {
             "CATEGORY_PERSONAL": "primary",
@@ -307,10 +312,13 @@ class GmailMetadataExtractor:
         return "primary" if "INBOX" in label_ids else None
 
     def _extract_importance_markers(
-        self, headers: Dict[str, str], label_ids: List[str]
-    ) -> Dict[str, Any]:
+        self, headers: dict[str, str], label_ids: list[str]
+    ) -> dict[str, Any]:
         """Extracts various importance and priority markers."""
-        markers = {"is_important": "IMPORTANT" in label_ids, "is_starred": "STARRED" in label_ids}
+        markers = {
+            "is_important": "IMPORTANT" in label_ids,
+            "is_starred": "STARRED" in label_ids,
+        }
         for header in self.priority_headers:
             if header in headers:
                 markers["priority_header"] = headers[header]
@@ -318,8 +326,8 @@ class GmailMetadataExtractor:
         return markers
 
     def _extract_thread_info(
-        self, headers: Dict[str, str], gmail_message: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self, headers: dict[str, str], gmail_message: dict[str, Any]
+    ) -> dict[str, Any]:
         """Extracts conversation thread-related information."""
         return {
             "thread_id": gmail_message.get("threadId", ""),
@@ -328,13 +336,13 @@ class GmailMetadataExtractor:
             "references": self._extract_references(headers.get("References", "")),
         }
 
-    def _extract_references(self, references_header: str) -> List[str]:
+    def _extract_references(self, references_header: str) -> list[str]:
         """Extracts a list of Message-IDs from the 'References' header."""
         return re.findall(r"<([^>]+)>", references_header) if references_header else []
 
     def _extract_security_status(
-        self, headers: Dict[str, str]
-    ) -> tuple[Optional[str], Optional[str], Optional[str]]:
+        self, headers: dict[str, str]
+    ) -> tuple[str | None, str | None, str | None]:
         """Extracts SPF, DKIM, and DMARC status from authentication headers."""
         auth_results = headers.get("Authentication-Results", "")
         spf = re.search(r"spf=(\w+)", auth_results, re.IGNORECASE)
@@ -346,7 +354,7 @@ class GmailMetadataExtractor:
             dmarc.group(1).lower() if dmarc else None,
         )
 
-    def _extract_encryption_info(self, headers: Dict[str, str]) -> Dict[str, Any]:
+    def _extract_encryption_info(self, headers: dict[str, str]) -> dict[str, Any]:
         """Extracts information about message encryption (TLS, S/MIME, etc.)."""
         info = {"tls_encrypted": False, "signed": False}
         for received in [v for k, v in headers.items() if k.lower() == "received"]:
@@ -357,7 +365,7 @@ class GmailMetadataExtractor:
             info["signed"] = True
         return info
 
-    def _extract_priority(self, headers: Dict[str, str]) -> str:
+    def _extract_priority(self, headers: dict[str, str]) -> str:
         """Extracts and normalizes the message priority."""
         for header in self.priority_headers:
             if value := headers.get(header, "").lower():
@@ -367,14 +375,14 @@ class GmailMetadataExtractor:
                     return "low"
         return "normal"
 
-    def _extract_mailing_list_info(self, headers: Dict[str, str]) -> Optional[str]:
+    def _extract_mailing_list_info(self, headers: dict[str, str]) -> str | None:
         """Extracts mailing list information from headers."""
         for header in ["List-ID", "List-Post", "Mailing-List"]:
             if value := headers.get(header):
                 return value
         return None
 
-    def _is_auto_reply(self, headers: Dict[str, str], labels: List[str]) -> bool:
+    def _is_auto_reply(self, headers: dict[str, str], labels: list[str]) -> bool:
         """Determines if a message is likely an auto-reply."""
         for header in ["Auto-Submitted", "X-Auto-Response-Suppress"]:
             if value := headers.get(header, "").lower():
@@ -389,7 +397,7 @@ class GmailMetadataExtractor:
             return match.group(1)
         return address_header.strip()
 
-    def _extract_email_addresses(self, addresses_header: str) -> List[str]:
+    def _extract_email_addresses(self, addresses_header: str) -> list[str]:
         """Extracts multiple email addresses from a header string."""
         return [
             self._extract_email_address(addr.strip())
@@ -397,12 +405,12 @@ class GmailMetadataExtractor:
             if addr
         ]
 
-    def _extract_custom_headers(self, headers: Dict[str, str]) -> Dict[str, str]:
+    def _extract_custom_headers(self, headers: dict[str, str]) -> dict[str, str]:
         """Extracts custom headers (those starting with 'X-')."""
         standard = {"From", "To", "Cc", "Bcc", "Subject", "Date", "Message-ID"}
         return {k: v for k, v in headers.items() if k not in standard and k.startswith("X-")}
 
-    def _create_minimal_metadata(self, gmail_message: Dict[str, Any]) -> GmailMessage:
+    def _create_minimal_metadata(self, gmail_message: dict[str, Any]) -> GmailMessage:
         """Creates a minimally populated GmailMessage object for error cases."""
         return GmailMessage(
             message_id=gmail_message.get("id", ""),
@@ -449,7 +457,7 @@ class GmailMetadataExtractor:
             raw_email=None,
         )
 
-    def extract_batch_metadata(self, gmail_messages: List[Dict[str, Any]]) -> List[GmailMessage]:
+    def extract_batch_metadata(self, gmail_messages: list[dict[str, Any]]) -> list[GmailMessage]:
         """
         Extracts metadata from a batch of Gmail message objects.
 
@@ -461,7 +469,7 @@ class GmailMetadataExtractor:
         """
         return [self.extract_complete_metadata(msg) for msg in gmail_messages]
 
-    def to_training_format(self, gmail_message: GmailMessage) -> Dict[str, Any]:
+    def to_training_format(self, gmail_message: GmailMessage) -> dict[str, Any]:
         """
         Converts a `GmailMessage` object into a dictionary suitable for training data.
 

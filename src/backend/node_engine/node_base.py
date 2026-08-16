@@ -12,7 +12,7 @@ import logging
 import uuid
 from abc import ABC, abstractmethod
 from enum import Enum
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Union
 
 try:
     import networkx as nx
@@ -45,26 +45,19 @@ class GenericType:
     def __init__(
         self,
         base_type: DataType,
-        type_parameters: List[Union[DataType, "GenericType"]],
+        type_parameters: list[Union[DataType, "GenericType"]],
     ):
         self.base_type = base_type
         self.type_parameters = type_parameters
 
     def __repr__(self):
-        params = [
-            p.value if isinstance(p, DataType) else str(p) for p in self.type_parameters
-        ]
+        params = [p.value if isinstance(p, DataType) else str(p) for p in self.type_parameters]
         return f"{self.base_type.value}[{', '.join(params)}]"
 
     def __eq__(self, other):
         if not isinstance(other, GenericType):
             return False
-        return (
-            self.base_type == other.base_type
-            and self.type_parameters == other.type_parameters
-        )
-
-
+        return self.base_type == other.base_type and self.type_parameters == other.type_parameters
 
 
 class SecurityContext:
@@ -72,15 +65,15 @@ class SecurityContext:
 
     def __init__(
         self,
-        user_id: Optional[str] = None,
-        permissions: Optional[List[str]] = None,
-        resource_limits: Optional[Dict[str, Any]] = None,
+        user_id: str | None = None,
+        permissions: list[str] | None = None,
+        resource_limits: dict[str, Any] | None = None,
     ):
         self.user_id = user_id
         self.permissions = permissions or []
         self.resource_limits = resource_limits or {}
         self.execution_start_time = None
-        self.audit_trail: List[Dict[str, Any]] = []
+        self.audit_trail: list[dict[str, Any]] = []
 
 
 class NodePort:
@@ -89,7 +82,7 @@ class NodePort:
     def __init__(
         self,
         name: str,
-        data_type: Union[DataType, GenericType],
+        data_type: DataType | GenericType,
         required: bool = True,
         description: str = "",
     ):
@@ -106,7 +99,11 @@ class Connection:
     """Represents a connection between two nodes."""
 
     def __init__(
-        self, source_node_id: str, source_port: str, target_node_id: str, target_port: str
+        self,
+        source_node_id: str,
+        source_port: str,
+        target_node_id: str,
+        target_port: str,
     ):
         self.source_node_id = source_node_id
         self.source_port = source_port
@@ -123,26 +120,26 @@ class Connection:
 class ExecutionContext:
     """Maintains execution context during workflow execution."""
 
-    def __init__(self, security_context: Optional[SecurityContext] = None):
-        self.node_outputs: Dict[str, Dict[str, Any]] = {}
-        self.shared_state: Dict[str, Any] = {}
-        self.execution_path: List[str] = []
-        self.errors: List[Dict[str, Any]] = []
-        self.metadata: Dict[str, Any] = {}
+    def __init__(self, security_context: SecurityContext | None = None):
+        self.node_outputs: dict[str, dict[str, Any]] = {}
+        self.shared_state: dict[str, Any] = {}
+        self.execution_path: list[str] = []
+        self.errors: list[dict[str, Any]] = []
+        self.metadata: dict[str, Any] = {}
         self.security_context = security_context
 
-    def set_node_output(self, node_id: str, output: Dict[str, Any]):
+    def set_node_output(self, node_id: str, output: dict[str, Any]):
         """Store the output of a node."""
         self.node_outputs[node_id] = output
 
-    def get_node_output(self, node_id: str, port_name: str) -> Optional[Any]:
+    def get_node_output(self, node_id: str, port_name: str) -> Any | None:
         """Get the output of a specific node's port."""
         node_output = self.node_outputs.get(node_id)
         if node_output:
             return node_output.get(port_name)
         return None
 
-    def add_error(self, node_id: str, error: str, details: Optional[Dict[str, Any]] = None):
+    def add_error(self, node_id: str, error: str, details: dict[str, Any] | None = None):
         """Add an error to the execution context."""
         error_info = {
             "node_id": node_id,
@@ -156,19 +153,24 @@ class ExecutionContext:
 class BaseNode(ABC):
     """Abstract base class for all nodes in the workflow system."""
 
-    def __init__(self, node_id: Optional[str] = None, name: Optional[str] = None, description: str = ""):
+    def __init__(
+        self,
+        node_id: str | None = None,
+        name: str | None = None,
+        description: str = "",
+    ):
         self.node_id = node_id or str(uuid.uuid4())
         self.name = name or self.__class__.__name__
         self.description = description
-        self.input_ports: List[NodePort] = []
-        self.output_ports: List[NodePort] = []
-        self.inputs: Dict[str, Any] = {}
-        self.outputs: Dict[str, Any] = {}
+        self.input_ports: list[NodePort] = []
+        self.output_ports: list[NodePort] = []
+        self.inputs: dict[str, Any] = {}
+        self.outputs: dict[str, Any] = {}
         self.logger = logging.getLogger(f"{self.__class__.__module__}.{self.__class__.__name__}")
-        self._parent_workflow_id: Optional[str] = None
+        self._parent_workflow_id: str | None = None
 
     @abstractmethod
-    async def execute(self, context: ExecutionContext) -> Dict[str, Any]:
+    async def execute(self, context: ExecutionContext) -> dict[str, Any]:
         """
         Execute the node's primary function.
 
@@ -180,7 +182,7 @@ class BaseNode(ABC):
         """
         pass
 
-    def validate_inputs(self) -> Dict[str, Any]:
+    def validate_inputs(self) -> dict[str, Any]:
         """
         Validate that all required inputs are present and correct type.
 
@@ -203,11 +205,11 @@ class BaseNode(ABC):
         """Set an input value for the node."""
         self.inputs[port_name] = value
 
-    def set_inputs(self, inputs: Dict[str, Any]):
+    def set_inputs(self, inputs: dict[str, Any]):
         """Set multiple input values at once."""
         self.inputs.update(inputs)
 
-    def get_node_info(self) -> Dict[str, Any]:
+    def get_node_info(self) -> dict[str, Any]:
         """Get information about the node for UI display."""
         return {
             "node_id": self.node_id,
@@ -245,12 +247,12 @@ class BaseNode(ABC):
 class Workflow:
     """Represents a complete workflow of connected nodes."""
 
-    def __init__(self, workflow_id: Optional[str] = None, name: str = "", description: str = ""):
+    def __init__(self, workflow_id: str | None = None, name: str = "", description: str = ""):
         self.workflow_id = workflow_id or str(uuid.uuid4())
         self.name = name
         self.description = description
-        self.nodes: Dict[str, BaseNode] = {}
-        self.connections: List[Connection] = []
+        self.nodes: dict[str, BaseNode] = {}
+        self.connections: list[Connection] = []
         self.logger = logging.getLogger(f"{self.__class__.__module__}.{self.__class__.__name__}")
 
     def add_node(self, node: BaseNode):
@@ -297,7 +299,7 @@ class Workflow:
 
         self.connections.append(connection)
 
-    def get_connections_for_node(self, node_id: str) -> List[Connection]:
+    def get_connections_for_node(self, node_id: str) -> list[Connection]:
         """Get all connections involving a specific node."""
         return [
             conn
@@ -305,7 +307,7 @@ class Workflow:
             if conn.source_node_id == node_id or conn.target_node_id == node_id
         ]
 
-    def get_upstream_nodes(self, node_id: str) -> List[str]:
+    def get_upstream_nodes(self, node_id: str) -> list[str]:
         """Get all nodes that provide input to the specified node."""
         upstream = []
         for conn in self.connections:
@@ -313,7 +315,7 @@ class Workflow:
                 upstream.append(conn.source_node_id)
         return upstream
 
-    def get_downstream_nodes(self, node_id: str) -> List[str]:
+    def get_downstream_nodes(self, node_id: str) -> list[str]:
         """Get all nodes that receive input from the specified node."""
         downstream = []
         for conn in self.connections:
@@ -321,14 +323,14 @@ class Workflow:
                 downstream.append(conn.target_node_id)
         return downstream
 
-    def get_execution_order(self) -> List[str]:
+    def get_execution_order(self) -> list[str]:
         """Calculate the execution order of nodes using NetworkX topological sort."""
         if NETWORKX_AVAILABLE and nx:
             return self._get_execution_order_networkx()
         else:
             return self._get_execution_order_manual()
 
-    def _get_execution_order_networkx(self) -> List[str]:
+    def _get_execution_order_networkx(self) -> list[str]:
         """Calculate execution order using NetworkX for better performance and cycle detection."""
         # Create directed graph
         graph = nx.DiGraph()
@@ -350,10 +352,10 @@ class Workflow:
             else:
                 raise
 
-    def _get_execution_order_manual(self) -> List[str]:
+    def _get_execution_order_manual(self) -> list[str]:
         """Fallback manual topological sort implementation."""
         # Build adjacency list of dependencies
-        dependencies: Dict[str, List[str]] = {node_id: [] for node_id in self.nodes.keys()}
+        dependencies: dict[str, list[str]] = {node_id: [] for node_id in self.nodes.keys()}
 
         for conn in self.connections:
             dependencies[conn.target_node_id].append(conn.source_node_id)

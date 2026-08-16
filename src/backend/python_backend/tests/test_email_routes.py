@@ -1,7 +1,6 @@
 from datetime import datetime
 
 
-
 def create_mock_email(email_id: int, subject: str, **kwargs) -> dict:
     """Helper to create a valid mock email dictionary."""
     now = datetime.now().isoformat()

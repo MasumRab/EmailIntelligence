@@ -11,10 +11,10 @@ import gzip
 import json
 import logging
 import os
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from functools import partial
 from pathlib import Path
-from typing import Any, Dict, List, Literal, Optional
+from typing import Any, Literal
 
 from .constants import DEFAULT_CATEGORY_COLOR
 from .performance_monitor import log_performance
@@ -89,16 +89,16 @@ class JSONDataManager:
         self.users_file = os.path.join(self.data_dir, "users.json.gz")
 
         # In-memory data stores
-        self.emails_data: List[Dict[str, Any]] = []  # Stores light email records
-        self.categories_data: List[Dict[str, Any]] = []
-        self.users_data: List[Dict[str, Any]] = []
+        self.emails_data: list[dict[str, Any]] = []  # Stores light email records
+        self.categories_data: list[dict[str, Any]] = []
+        self.users_data: list[dict[str, Any]] = []
 
         # In-memory indexes
-        self.emails_by_id: Dict[int, Dict[str, Any]] = {}
-        self.emails_by_message_id: Dict[str, Dict[str, Any]] = {}
-        self.categories_by_id: Dict[int, Dict[str, Any]] = {}
-        self.categories_by_name: Dict[str, Dict[str, Any]] = {}
-        self.category_counts: Dict[int, int] = {}
+        self.emails_by_id: dict[int, dict[str, Any]] = {}
+        self.emails_by_message_id: dict[str, dict[str, Any]] = {}
+        self.categories_by_id: dict[int, dict[str, Any]] = {}
+        self.categories_by_name: dict[str, dict[str, Any]] = {}
+        self.category_counts: dict[int, int] = {}
 
         # State
         self._dirty_data: set[str] = set()
@@ -112,7 +112,7 @@ class JSONDataManager:
         """Returns the path for an individual email's content file."""
         return os.path.join(self.email_content_dir, f"{email_id}.json.gz")
 
-    async def _load_and_merge_content(self, email_light: Dict[str, Any]) -> Dict[str, Any]:
+    async def _load_and_merge_content(self, email_light: dict[str, Any]) -> dict[str, Any]:
         """Loads heavy content for a given light email record and merges them."""
         full_email = email_light.copy()
         email_id = full_email.get(FIELD_ID)
@@ -125,7 +125,7 @@ class JSONDataManager:
                 with gzip.open(content_path, "rt", encoding="utf-8") as f:
                     heavy_data = await asyncio.to_thread(json.load, f)
                     full_email.update(heavy_data)
-            except (IOError, json.JSONDecodeError) as e:
+            except (OSError, json.JSONDecodeError) as e:
                 logger.error(f"Error loading content for email {email_id}: {e}")
         return full_email
 
@@ -184,7 +184,7 @@ class JSONDataManager:
                     setattr(self, data_list_attr, [])
                     await self._save_data_to_file(data_type)
                     logger.info(f"Created empty data file: {file_path}")
-            except (IOError, json.JSONDecodeError) as e:
+            except (OSError, json.JSONDecodeError) as e:
                 logger.error(
                     f"Error loading data from {file_path}: {e}. Initializing with empty list."
                 )
@@ -212,7 +212,7 @@ class JSONDataManager:
                 dump_func = partial(json.dump, data_to_save, f, indent=4)
                 await asyncio.to_thread(dump_func)
             logger.info(f"Persisted {len(data_to_save)} items to compressed file: {file_path}")
-        except IOError as e:
+        except OSError as e:
             logger.error(f"Error saving data to {file_path}: {e}")
 
     async def _save_data(self, data_type: Literal["emails", "categories", "users"]) -> None:
@@ -227,7 +227,7 @@ class JSONDataManager:
         self._dirty_data.clear()
         logger.info("Shutdown complete.")
 
-    def _generate_id(self, data_list: List[Dict[str, Any]]) -> int:
+    def _generate_id(self, data_list: list[dict[str, Any]]) -> int:
         """
         Generates a new unique integer ID for a record.
 
@@ -241,7 +241,7 @@ class JSONDataManager:
             return 1
         return max(item.get(FIELD_ID, 0) for item in data_list) + 1
 
-    def _parse_json_fields(self, row: Dict[str, Any], fields: List[str]) -> Dict[str, Any]:
+    def _parse_json_fields(self, row: dict[str, Any], fields: list[str]) -> dict[str, Any]:
         """
         Parses fields in a data row that are stored as JSON strings.
 
@@ -268,7 +268,7 @@ class JSONDataManager:
                         row[field] = []
         return row
 
-    def _add_category_details(self, email: Dict[str, Any]) -> Dict[str, Any]:
+    def _add_category_details(self, email: dict[str, Any]) -> dict[str, Any]:
         """Add category name and color to an email using cached category data."""
         if not email:
             return email
@@ -280,7 +280,7 @@ class JSONDataManager:
                 email[FIELD_CATEGORY_COLOR] = category.get(FIELD_COLOR)
         return self._parse_json_fields(email, [FIELD_ANALYSIS_METADATA])
 
-    async def create_email(self, email_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    async def create_email(self, email_data: dict[str, Any]) -> dict[str, Any] | None:
         """Create a new email record, separating heavy and light content."""
         message_id = email_data.get(FIELD_MESSAGE_ID, email_data.get("messageId"))
         if await self.get_email_by_message_id(message_id, include_content=False):
@@ -288,7 +288,7 @@ class JSONDataManager:
             return await self.update_email_by_message_id(message_id, email_data)
 
         new_id = self._generate_id(self.emails_data)
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(UTC).isoformat()
 
         analysis_metadata = email_data.get(
             FIELD_ANALYSIS_METADATA, email_data.get("analysisMetadata", {})
@@ -328,7 +328,7 @@ class JSONDataManager:
             with gzip.open(content_path, "wt", encoding="utf-8") as f:
                 dump_func = partial(json.dump, heavy_data, f, indent=4)
                 await asyncio.to_thread(dump_func)
-        except IOError as e:
+        except OSError as e:
             logger.error(f"Error saving heavy content for email {new_id}: {e}")
 
         category_id = light_email_record.get(FIELD_CATEGORY_ID)
@@ -339,7 +339,7 @@ class JSONDataManager:
 
     async def get_email_by_id(
         self, email_id: int, include_content: bool = True
-    ) -> Optional[Dict[str, Any]]:
+    ) -> dict[str, Any] | None:
         """Get email by ID using in-memory index, with option to load heavy content."""
         email_light = self.emails_by_id.get(email_id)
         if not email_light:
@@ -351,14 +351,14 @@ class JSONDataManager:
         else:
             return self._add_category_details(email_light.copy())
 
-    async def get_all_categories(self) -> List[Dict[str, Any]]:
+    async def get_all_categories(self) -> list[dict[str, Any]]:
         """Get all categories with their counts from cache."""
         for cat_id, count in self.category_counts.items():
             if cat_id in self.categories_by_id:
                 self.categories_by_id[cat_id][FIELD_COUNT] = count
         return sorted(self.categories_by_id.values(), key=lambda c: c.get(FIELD_NAME, ""))
 
-    async def create_category(self, category_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    async def create_category(self, category_data: dict[str, Any]) -> dict[str, Any] | None:
         """Create a new category and update indexes."""
         category_name_lower = category_data.get(FIELD_NAME, "").lower()
         if category_name_lower in self.categories_by_name:
@@ -399,9 +399,9 @@ class JSONDataManager:
         self,
         limit: int = 50,
         offset: int = 0,
-        category_id: Optional[int] = None,
-        is_unread: Optional[bool] = None,
-    ) -> List[Dict[str, Any]]:
+        category_id: int | None = None,
+        is_unread: bool | None = None,
+    ) -> list[dict[str, Any]]:
         """Get emails with pagination and filtering."""
         filtered_emails = self.emails_data
         if category_id is not None:
@@ -429,8 +429,8 @@ class JSONDataManager:
         return result_emails
 
     async def update_email_by_message_id(
-        self, message_id: str, update_data: Dict[str, Any]
-    ) -> Optional[Dict[str, Any]]:
+        self, message_id: str, update_data: dict[str, Any]
+    ) -> dict[str, Any] | None:
         """Update email by messageId, handling separated content."""
         email_to_update = await self.get_email_by_message_id(message_id, include_content=True)
         if not email_to_update:
@@ -448,7 +448,7 @@ class JSONDataManager:
                 changed_fields = True
 
         if changed_fields:
-            email_to_update[FIELD_UPDATED_AT] = datetime.now(timezone.utc).isoformat()
+            email_to_update[FIELD_UPDATED_AT] = datetime.now(UTC).isoformat()
             heavy_data = {
                 field: email_to_update.pop(field)
                 for field in HEAVY_EMAIL_FIELDS
@@ -460,13 +460,14 @@ class JSONDataManager:
                 with gzip.open(content_path, "wt", encoding="utf-8") as f:
                     dump_func = partial(json.dump, heavy_data, f, indent=4)
                     await asyncio.to_thread(dump_func)
-            except IOError as e:
+            except OSError as e:
                 logger.error(f"Error updating heavy content for email {email_id}: {e}")
 
             self.emails_by_id[email_id] = email_to_update
             self.emails_by_message_id[message_id] = email_to_update
             idx = next(
-                (i for i, e in enumerate(self.emails_data) if e.get(FIELD_ID) == email_id), -1
+                (i for i, e in enumerate(self.emails_data) if e.get(FIELD_ID) == email_id),
+                -1,
             )
             if idx != -1:
                 self.emails_data[idx] = email_to_update
@@ -482,7 +483,7 @@ class JSONDataManager:
 
     async def get_email_by_message_id(
         self, message_id: str, include_content: bool = True
-    ) -> Optional[Dict[str, Any]]:
+    ) -> dict[str, Any] | None:
         """Get email by messageId using in-memory index, with option to load heavy content."""
         if not message_id:
             return None
@@ -495,7 +496,7 @@ class JSONDataManager:
         else:
             return self._add_category_details(email_light.copy())
 
-    async def get_all_emails(self, limit: int = 50, offset: int = 0) -> List[Dict[str, Any]]:
+    async def get_all_emails(self, limit: int = 50, offset: int = 0) -> list[dict[str, Any]]:
         """
         Retrieves all emails with pagination.
 
@@ -510,12 +511,12 @@ class JSONDataManager:
 
     async def get_emails_by_category(
         self, category_id: int, limit: int = 50, offset: int = 0
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """Get emails by category"""
         return await self.get_emails(limit=limit, offset=offset, category_id=category_id)
 
     @log_performance("search_emails")
-    async def search_emails(self, search_term: str, limit: int = 50) -> List[Dict[str, Any]]:
+    async def search_emails(self, search_term: str, limit: int = 50) -> list[dict[str, Any]]:
         """Search emails. Searches subject/sender in-memory, and content on-disk."""
         if not search_term:
             return await self.get_emails(limit=limit, offset=0)
@@ -542,7 +543,7 @@ class JSONDataManager:
                         content = heavy_data.get(FIELD_CONTENT, "")
                         if isinstance(content, str) and search_term_lower in content.lower():
                             filtered_emails.append(email_light)
-                except (IOError, json.JSONDecodeError) as e:
+                except (OSError, json.JSONDecodeError) as e:
                     logger.error(f"Could not search content for email {email_id}: {e}")
         try:
             total_emails = len(self.emails_data)
@@ -574,8 +575,8 @@ class JSONDataManager:
             }
 
     async def update_email(
-        self, email_id: int, update_data: Dict[str, Any]
-    ) -> Optional[Dict[str, Any]]:
+        self, email_id: int, update_data: dict[str, Any]
+    ) -> dict[str, Any] | None:
         """Update email by its internal ID, handling separated content."""
         email_to_update = await self.get_email_by_id(email_id, include_content=True)
         if not email_to_update:
@@ -595,7 +596,7 @@ class JSONDataManager:
                 changed_fields = True
 
         if changed_fields:
-            email_to_update[FIELD_UPDATED_AT] = datetime.now(timezone.utc).isoformat()
+            email_to_update[FIELD_UPDATED_AT] = datetime.now(UTC).isoformat()
             heavy_data = {
                 field: email_to_update.pop(field)
                 for field in HEAVY_EMAIL_FIELDS
@@ -606,14 +607,15 @@ class JSONDataManager:
                 with gzip.open(content_path, "wt", encoding="utf-8") as f:
                     dump_func = partial(json.dump, heavy_data, f, indent=4)
                     await asyncio.to_thread(dump_func)
-            except IOError as e:
+            except OSError as e:
                 logger.error(f"Error updating heavy content for email {email_id}: {e}")
 
             self.emails_by_id[email_id] = email_to_update
             if email_to_update.get(FIELD_MESSAGE_ID):
                 self.emails_by_message_id[email_to_update[FIELD_MESSAGE_ID]] = email_to_update
             idx = next(
-                (i for i, e in enumerate(self.emails_data) if e.get(FIELD_ID) == email_id), -1
+                (i for i, e in enumerate(self.emails_data) if e.get(FIELD_ID) == email_id),
+                -1,
             )
             if idx != -1:
                 self.emails_data[idx] = email_to_update

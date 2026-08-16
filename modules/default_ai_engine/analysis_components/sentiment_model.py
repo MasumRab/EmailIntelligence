@@ -8,7 +8,7 @@ a keyword-based approach if other methods are unavailable.
 """
 
 import logging
-from typing import Any, Dict, Optional
+from typing import Any
 
 try:
     from textblob import TextBlob
@@ -34,7 +34,7 @@ class SentimentModel:
         logger: A logger for recording events and errors.
     """
 
-    def __init__(self, sentiment_model: Optional[Any], has_nltk_installed: bool):
+    def __init__(self, sentiment_model: Any | None, has_nltk_installed: bool):
         """
         Initializes the SentimentModel.
 
@@ -47,7 +47,7 @@ class SentimentModel:
         self.has_nltk = has_nltk_installed
         self.logger = logging.getLogger(__name__)
 
-    def _analyze_model(self, text: str) -> Optional[Dict[str, Any]]:
+    def _analyze_model(self, text: str) -> dict[str, Any] | None:
         """
         Analyzes sentiment using the loaded scikit-learn model.
 
@@ -67,7 +67,9 @@ class SentimentModel:
             polarity = (
                 confidence
                 if prediction == "positive"
-                else -confidence if prediction == "negative" else 0.0
+                else -confidence
+                if prediction == "negative"
+                else 0.0
             )
             return {
                 "sentiment": str(prediction),
@@ -80,7 +82,7 @@ class SentimentModel:
             self.logger.error(f"Error using sentiment model: {e}. Trying fallback.")
             return None
 
-    def _analyze_textblob(self, text: str) -> Optional[Dict[str, Any]]:
+    def _analyze_textblob(self, text: str) -> dict[str, Any] | None:
         """
         Analyzes sentiment using TextBlob as a fallback.
 
@@ -114,7 +116,7 @@ class SentimentModel:
             self.logger.error(f"Error during TextBlob analysis: {e}")
             return None
 
-    def _analyze_keyword(self, text: str) -> Dict[str, Any]:
+    def _analyze_keyword(self, text: str) -> dict[str, Any]:
         """
         Analyzes sentiment using keyword matching as a final fallback.
 
@@ -155,7 +157,7 @@ class SentimentModel:
                 "method_used": "fallback_keyword_sentiment",
             }
 
-    def analyze(self, text: str) -> Dict[str, Any]:
+    def analyze(self, text: str) -> dict[str, Any]:
         """
         Performs sentiment analysis using the best available method.
 

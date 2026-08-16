@@ -11,7 +11,6 @@ import importlib
 import inspect
 import logging
 from pathlib import Path
-from typing import Dict, Optional
 
 from backend.plugins.base_plugin import BasePlugin, ProcessingNode, UIComponentPlugin
 
@@ -23,9 +22,9 @@ class PluginManager:
 
     def __init__(self, plugins_dir: str = "backend/plugins"):
         self.plugins_dir = Path(plugins_dir)
-        self._plugins: Dict[str, BasePlugin] = {}
-        self._ui_plugins: Dict[str, UIComponentPlugin] = {}
-        self._processing_nodes: Dict[str, ProcessingNode] = {}
+        self._plugins: dict[str, BasePlugin] = {}
+        self._ui_plugins: dict[str, UIComponentPlugin] = {}
+        self._processing_nodes: dict[str, ProcessingNode] = {}
 
     def load_plugins(self) -> bool:
         """Discover and load all plugins in the plugins directory"""
@@ -78,27 +77,27 @@ class PluginManager:
             logger.error(f"Failed to load plugins: {str(e)}")
             return False
 
-    def get_plugin(self, name: str) -> Optional[BasePlugin]:
+    def get_plugin(self, name: str) -> BasePlugin | None:
         """Get a plugin by name"""
         return self._plugins.get(name)
 
-    def get_ui_plugin(self, name: str) -> Optional[UIComponentPlugin]:
+    def get_ui_plugin(self, name: str) -> UIComponentPlugin | None:
         """Get a UI component plugin by name"""
         return self._ui_plugins.get(name)
 
-    def get_processing_node(self, name: str) -> Optional[ProcessingNode]:
+    def get_processing_node(self, name: str) -> ProcessingNode | None:
         """Get a processing node by name"""
         return self._processing_nodes.get(name)
 
-    def get_all_plugins(self) -> Dict[str, BasePlugin]:
+    def get_all_plugins(self) -> dict[str, BasePlugin]:
         """Get all loaded plugins"""
         return self._plugins.copy()
 
-    def get_all_ui_plugins(self) -> Dict[str, UIComponentPlugin]:
+    def get_all_ui_plugins(self) -> dict[str, UIComponentPlugin]:
         """Get all loaded UI component plugins"""
         return self._ui_plugins.copy()
 
-    def get_all_processing_nodes(self) -> Dict[str, ProcessingNode]:
+    def get_all_processing_nodes(self) -> dict[str, ProcessingNode]:
         """Get all loaded processing nodes"""
         return self._processing_nodes.copy()
 

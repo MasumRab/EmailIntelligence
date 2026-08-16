@@ -9,7 +9,7 @@ regex-based analysis if the model is not present.
 
 import logging
 import re
-from typing import Any, Dict, Optional
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -26,7 +26,7 @@ class UrgencyModel:
         logger: A logger for recording events and errors.
     """
 
-    def __init__(self, urgency_model: Optional[Any]):
+    def __init__(self, urgency_model: Any | None):
         """
         Initializes the UrgencyModel.
 
@@ -37,7 +37,7 @@ class UrgencyModel:
         self.model = urgency_model
         self.logger = logging.getLogger(__name__)
 
-    def _analyze_model(self, text: str) -> Optional[Dict[str, Any]]:
+    def _analyze_model(self, text: str) -> dict[str, Any] | None:
         """
         Analyzes urgency using the loaded scikit-learn model.
 
@@ -63,7 +63,7 @@ class UrgencyModel:
             self.logger.error(f"Error using urgency model: {e}. Trying fallback.")
             return None
 
-    def _analyze_regex(self, text: str) -> Dict[str, Any]:
+    def _analyze_regex(self, text: str) -> dict[str, Any]:
         """
         Analyzes urgency using regex pattern matching as a fallback.
 
@@ -81,13 +81,25 @@ class UrgencyModel:
                 "method_used": "fallback_regex_urgency",
             }
         elif re.search(r"\b(soon|quickly|priority|important|deadline)\b", text_lower):
-            return {"urgency": "high", "confidence": 0.8, "method_used": "fallback_regex_urgency"}
+            return {
+                "urgency": "high",
+                "confidence": 0.8,
+                "method_used": "fallback_regex_urgency",
+            }
         elif re.search(r"\b(next week|upcoming|scheduled)\b", text_lower):
-            return {"urgency": "medium", "confidence": 0.6, "method_used": "fallback_regex_urgency"}
+            return {
+                "urgency": "medium",
+                "confidence": 0.6,
+                "method_used": "fallback_regex_urgency",
+            }
         else:
-            return {"urgency": "low", "confidence": 0.5, "method_used": "fallback_regex_urgency"}
+            return {
+                "urgency": "low",
+                "confidence": 0.5,
+                "method_used": "fallback_regex_urgency",
+            }
 
-    def analyze(self, text: str) -> Dict[str, Any]:
+    def analyze(self, text: str) -> dict[str, Any]:
         """
         Assesses the urgency of the email using the best available method.
 

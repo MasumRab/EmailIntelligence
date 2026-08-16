@@ -8,7 +8,7 @@ This module provides a library of available nodes that can be consumed
 by the Gradio UI to allow users to build node-based workflows.
 """
 
-from typing import Any, Dict, List
+from typing import Any
 
 from backend.node_engine.email_nodes import (
     ActionNode,
@@ -189,18 +189,18 @@ class NodeLibrary:
             ],
         }
 
-    def get_node_types(self) -> List[str]:
+    def get_node_types(self) -> list[str]:
         """Get a list of all available node types."""
         return list(self._nodes.keys())
 
-    def get_node_info(self, node_type: str) -> Dict[str, Any]:
+    def get_node_info(self, node_type: str) -> dict[str, Any]:
         """Get detailed information about a specific node type."""
         if node_type not in self._nodes:
             raise ValueError(f"Node type '{node_type}' not found")
 
         return self._nodes[node_type]
 
-    def get_nodes_by_category(self) -> Dict[str, List[Dict[str, Any]]]:
+    def get_nodes_by_category(self) -> dict[str, list[dict[str, Any]]]:
         """Get all nodes grouped by category."""
         categories = {}
         for node_type, node_info in self._nodes.items():
@@ -217,7 +217,7 @@ class NodeLibrary:
 
         return categories
 
-    def get_all_node_info(self) -> List[Dict[str, Any]]:
+    def get_all_node_info(self) -> list[dict[str, Any]]:
         """Get information about all available nodes."""
         result = []
         for node_type, node_info in self._nodes.items():
@@ -235,7 +235,11 @@ class NodeLibrary:
         return result
 
     def create_node(
-        self, node_type: str, config: Dict[str, Any] = None, node_id: str = None, name: str = None
+        self,
+        node_type: str,
+        config: dict[str, Any] = None,
+        node_id: str = None,
+        name: str = None,
     ):
         """Create an instance of a node."""
         if node_type not in self._nodes:
@@ -250,21 +254,21 @@ node_library = NodeLibrary()
 
 
 # Convenience functions for UI consumption
-def get_available_node_types() -> List[str]:
+def get_available_node_types() -> list[str]:
     """Get a list of all available node types."""
     return node_library.get_node_types()
 
 
-def get_node_info(node_type: str) -> Dict[str, Any]:
+def get_node_info(node_type: str) -> dict[str, Any]:
     """Get detailed information about a specific node type."""
     return node_library.get_node_info(node_type)
 
 
-def get_nodes_by_category() -> Dict[str, List[Dict[str, Any]]]:
+def get_nodes_by_category() -> dict[str, list[dict[str, Any]]]:
     """Get all nodes grouped by category."""
     return node_library.get_nodes_by_category()
 
 
-def get_all_node_info() -> List[Dict[str, Any]]:
+def get_all_node_info() -> list[dict[str, Any]]:
     """Get information about all available nodes."""
     return node_library.get_all_node_info()

@@ -10,10 +10,11 @@ import json
 import logging
 import os
 import re
+from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any
 
 # Try to import bleach for HTML sanitization, fallback if not available
 try:
@@ -37,16 +38,16 @@ except ImportError:
 @dataclass
 class ResourceLimits:
     """Defines resource limits for workflow execution."""
+
     max_api_calls: int = 1000
     max_execution_time: int = 300  # seconds
     max_memory_mb: int = 512
     max_concurrent_nodes: int = 10
 
 
-
-
 class SanitizationLevel(Enum):
     """Security levels for input sanitization policies."""
+
     STRICT = "strict"
     STANDARD = "standard"
     PERMISSIVE = "permissive"
@@ -55,9 +56,10 @@ class SanitizationLevel(Enum):
 @dataclass
 class SanitizationPolicy:
     """Defines rules for input sanitization."""
+
     level: SanitizationLevel
-    allowed_tags: List[str]
-    allowed_attributes: Dict[str, List[str]]
+    allowed_tags: list[str]
+    allowed_attributes: dict[str, list[str]]
     strip: bool = True
 
 
@@ -67,28 +69,70 @@ SANITIZATION_POLICIES = {
         level=SanitizationLevel.STRICT,
         allowed_tags=[],  # No tags allowed, plain text only
         allowed_attributes={},
-        strip=True
+        strip=True,
     ),
     SanitizationLevel.STANDARD: SanitizationPolicy(
         level=SanitizationLevel.STANDARD,
         allowed_tags=[
-            "p", "br", "strong", "em", "u", "ol", "ul", "li",
-            "h1", "h2", "h3", "h4", "h5", "h6", "blockquote", "code", "pre"
+            "p",
+            "br",
+            "strong",
+            "em",
+            "u",
+            "ol",
+            "ul",
+            "li",
+            "h1",
+            "h2",
+            "h3",
+            "h4",
+            "h5",
+            "h6",
+            "blockquote",
+            "code",
+            "pre",
         ],
         allowed_attributes={
             "a": ["href", "title"],
             "img": ["src", "alt", "title", "width", "height"],
             "*": ["class", "id"],
         },
-        strip=True
+        strip=True,
     ),
     SanitizationLevel.PERMISSIVE: SanitizationPolicy(
         level=SanitizationLevel.PERMISSIVE,
         allowed_tags=[
-            "p", "br", "strong", "em", "u", "ol", "ul", "li",
-            "h1", "h2", "h3", "h4", "h5", "h6", "blockquote", "code", "pre",
-            "div", "span", "table", "thead", "tbody", "tr", "th", "td",
-            "img", "a", "hr", "sub", "sup", "iframe"
+            "p",
+            "br",
+            "strong",
+            "em",
+            "u",
+            "ol",
+            "ul",
+            "li",
+            "h1",
+            "h2",
+            "h3",
+            "h4",
+            "h5",
+            "h6",
+            "blockquote",
+            "code",
+            "pre",
+            "div",
+            "span",
+            "table",
+            "thead",
+            "tbody",
+            "tr",
+            "th",
+            "td",
+            "img",
+            "a",
+            "hr",
+            "sub",
+            "sup",
+            "iframe",
         ],
         allowed_attributes={
             "a": ["href", "title", "target", "rel"],
@@ -96,7 +140,7 @@ SANITIZATION_POLICIES = {
             "iframe": ["src", "width", "height", "frameborder", "allowfullscreen"],
             "*": ["class", "id", "style"],
         },
-        strip=True
+        strip=True,
     ),
 }
 
@@ -106,10 +150,10 @@ class SecurityManager:
     Manages security and authorization for workflow operations.
     """
 
-    def __init__(self, user_roles: Dict[str, List[str]] = None):
+    def __init__(self, user_roles: dict[str, list[str]] = None):
         self.user_roles = user_roles or {}
         self.trusted_nodes = set()
-        self._api_call_counts: Dict[str, int] = {}
+        self._api_call_counts: dict[str, int] = {}
         self.logger = logging.getLogger(f"{self.__class__.__module__}.{self.__class__.__name__}")
 
     def is_trusted_node(self, node_type: str) -> bool:
@@ -192,7 +236,7 @@ class SecurityManager:
         # Default to no permission if no specific rule matches
         return False
 
-    def validate_node_execution(self, node_type: str, config: Dict[str, Any]) -> bool:
+    def validate_node_execution(self, node_type: str, config: dict[str, Any]) -> bool:
         """
         Validate that a node can be executed with the given configuration.
 
@@ -273,7 +317,7 @@ class InputSanitizer:
                 value,
                 tags=policy.allowed_tags,
                 attributes=policy.allowed_attributes,
-                strip=policy.strip
+                strip=policy.strip,
             )
         else:
             # Fallback to basic implementation if bleach is not available
@@ -338,7 +382,7 @@ class InputSanitizer:
         return value
 
     @staticmethod
-    def sanitize_xml(value: str, schema_path: Optional[str] = None) -> str:
+    def sanitize_xml(value: str, schema_path: str | None = None) -> str:
         """
         Sanitize XML content using defusedxml.
 
@@ -356,7 +400,9 @@ class InputSanitizer:
             # Fallback if defusedxml is not installed
             # Perform basic check for DOCTYPE/ENTITY which are vectors for XXE
             if "<!DOCTYPE" in value or "<!ENTITY" in value:
-                raise ValueError("Potentially unsafe XML: DOCTYPE/ENTITY detected and defusedxml not available")
+                raise ValueError(
+                    "Potentially unsafe XML: DOCTYPE/ENTITY detected and defusedxml not available"
+                )
             return InputSanitizer.sanitize_string(value)
 
         try:
@@ -397,7 +443,9 @@ class InputSanitizer:
     # - Implement binary data sanitization for file uploads
 
     @staticmethod
-    def sanitize_json(value: str, level: SanitizationLevel = SanitizationLevel.STANDARD) -> Dict[str, Any]:
+    def sanitize_json(
+        value: str, level: SanitizationLevel = SanitizationLevel.STANDARD
+    ) -> dict[str, Any]:
         """Sanitize and parse JSON input."""
         try:
             parsed = json.loads(value)
@@ -406,7 +454,9 @@ class InputSanitizer:
             raise ValueError("Invalid JSON input")
 
     @staticmethod
-    def _sanitize_dict(obj: Dict[str, Any], level: SanitizationLevel = SanitizationLevel.STANDARD) -> Dict[str, Any]:
+    def _sanitize_dict(
+        obj: dict[str, Any], level: SanitizationLevel = SanitizationLevel.STANDARD
+    ) -> dict[str, Any]:
         """Recursively sanitize a dictionary."""
         if not isinstance(obj, dict):
             return obj
@@ -451,10 +501,10 @@ class ExecutionSandbox:
         try:
             result = await asyncio.wait_for(coro(*args, **kwargs), timeout=timeout)
             return result
-        except asyncio.TimeoutError:
+        except TimeoutError:
             raise RuntimeError(f"Execution timed out after {timeout} seconds")
 
-    def validate_input_types(self, inputs: Dict[str, Any], expected_types: Dict[str, type]) -> bool:
+    def validate_input_types(self, inputs: dict[str, Any], expected_types: dict[str, type]) -> bool:
         """Validate input types against expected types."""
         for port_name, expected_type in expected_types.items():
             if port_name in inputs:
@@ -494,12 +544,16 @@ class AuditLogger:
     def log_workflow_end(self, workflow_id: str, status: str, duration: float, user_id: str = None):
         """Log workflow execution end."""
         self.logger.info(
-            f"WORKFLOW_END: id={workflow_id}, status={status}, "
-            f"duration={duration}s, user={user_id}"
+            f"WORKFLOW_END: id={workflow_id}, status={status}, duration={duration}s, user={user_id}"
         )
 
     def log_node_execution(
-        self, workflow_id: str, node_id: str, node_name: str, status: str, duration: float
+        self,
+        workflow_id: str,
+        node_id: str,
+        node_name: str,
+        status: str,
+        duration: float,
     ):
         """Log node execution."""
         self.logger.info(
@@ -507,7 +561,7 @@ class AuditLogger:
             f"status={status}, duration={duration}s"
         )
 
-    def log_security_event(self, event_type: str, details: Dict[str, Any]):
+    def log_security_event(self, event_type: str, details: dict[str, Any]):
         """Log security-related events."""
         self.logger.warning(f"SECURITY_EVENT: type={event_type}, details={details}")
 
@@ -554,11 +608,11 @@ class ResourceManager:
             f"{self.current_workflows}/{self.max_concurrent_workflows}"
         )
 
-    async def get_next_queued_workflow(self) -> Optional[str]:
+    async def get_next_queued_workflow(self) -> str | None:
         """Get the next workflow from the queue."""
         try:
             return await asyncio.wait_for(self.workflow_queue.get(), timeout=0.1)
-        except asyncio.TimeoutError:
+        except TimeoutError:
             return None
 
 

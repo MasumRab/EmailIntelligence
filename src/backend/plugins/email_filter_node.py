@@ -7,7 +7,7 @@ Sample Email Processing Node Plugin for Email Intelligence Platform
 Implements a sample processing node for the node-based workflow system.
 """
 
-from typing import Any, Dict, Type
+from typing import Any
 
 from backend.plugins.base_plugin import ProcessingNode
 
@@ -29,14 +29,14 @@ class EmailFilterNode(ProcessingNode):
         return "1.0.0"
 
     @property
-    def input_types(self) -> Dict[str, Type]:
+    def input_types(self) -> dict[str, type]:
         return {
             "emails": list,  # List of email objects
             "filter_criteria": dict,  # Criteria for filtering
         }
 
     @property
-    def output_types(self) -> Dict[str, Type]:
+    def output_types(self) -> dict[str, type]:
         return {
             "filtered_emails": list,  # Filtered list of email objects
             "stats": dict,  # Statistics about filtering
@@ -54,7 +54,7 @@ class EmailFilterNode(ProcessingNode):
             return self.run(emails=data["emails"], filter_criteria=data["filter_criteria"])
         return {"filtered_emails": [], "stats": {}}
 
-    def run(self, **kwargs) -> Dict[str, Any]:
+    def run(self, **kwargs) -> dict[str, Any]:
         """
         Execute the node with the provided inputs.
         Returns a dictionary of outputs based on output_types.

@@ -5,17 +5,17 @@ Provides comprehensive event tracking, security monitoring, and compliance loggi
 with structured JSON output and configurable log levels.
 """
 
+import asyncio
 import atexit
 import json
 import logging
 import threading
-import asyncio
 from dataclasses import asdict, dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 from pathlib import Path
 from queue import Queue
-from typing import Any, Dict, Optional
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -76,17 +76,17 @@ class AuditEvent:
     timestamp: str
     event_type: AuditEventType
     severity: AuditSeverity
-    user_id: Optional[str]
-    session_id: Optional[str]
-    ip_address: Optional[str]
-    user_agent: Optional[str]
-    resource: Optional[str]  # What was accessed/modified
+    user_id: str | None
+    session_id: str | None
+    ip_address: str | None
+    user_agent: str | None
+    resource: str | None  # What was accessed/modified
     action: str  # What happened
     result: str  # success/failure
-    details: Dict[str, Any]
-    metadata: Dict[str, Any]  # Additional context
+    details: dict[str, Any]
+    metadata: dict[str, Any]  # Additional context
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary for JSON serialization."""
         data = asdict(self)
         data["event_type"] = self.event_type.value
@@ -143,22 +143,22 @@ class AuditLogger:
         self,
         event_type: AuditEventType,
         severity: AuditSeverity,
-        user_id: Optional[str] = None,
-        session_id: Optional[str] = None,
-        ip_address: Optional[str] = None,
-        user_agent: Optional[str] = None,
-        resource: Optional[str] = None,
+        user_id: str | None = None,
+        session_id: str | None = None,
+        ip_address: str | None = None,
+        user_agent: str | None = None,
+        resource: str | None = None,
         action: str = "",
         result: str = "success",
-        details: Optional[Dict[str, Any]] = None,
-        metadata: Optional[Dict[str, Any]] = None,
+        details: dict[str, Any] | None = None,
+        metadata: dict[str, Any] | None = None,
     ):
         """Log a security-related event with automatic metadata collection."""
         import uuid
 
         event = AuditEvent(
             event_id=str(uuid.uuid4()),
-            timestamp=datetime.now(timezone.utc).isoformat(),
+            timestamp=datetime.now(UTC).isoformat(),
             event_type=event_type,
             severity=severity,
             user_id=user_id,
@@ -179,10 +179,10 @@ class AuditLogger:
         workflow_name: str,
         event_type: AuditEventType,
         user_id: str,
-        execution_id: Optional[str] = None,
-        node_name: Optional[str] = None,
-        duration: Optional[float] = None,
-        error_message: Optional[str] = None,
+        execution_id: str | None = None,
+        node_name: str | None = None,
+        duration: float | None = None,
+        error_message: str | None = None,
     ):
         """Log workflow-related events."""
         details = {
@@ -211,11 +211,11 @@ class AuditLogger:
         self,
         endpoint: str,
         method: str,
-        user_id: Optional[str],
+        user_id: str | None,
         ip_address: str,
         status_code: int,
         response_time: float,
-        user_agent: Optional[str] = None,
+        user_agent: str | None = None,
     ):
         """Log API access events."""
         severity = AuditSeverity.LOW
@@ -250,7 +250,7 @@ class AuditLogger:
                     event = self._event_queue.get(timeout=1.0)
                     events_to_process.append(event)
                     self._event_queue.task_done()
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 pass  # No events available
 
             # Write events
@@ -294,7 +294,7 @@ class AuditLogger:
                 event = self._event_queue.get(timeout=1.0)
                 self._write_event_immediate(event)
                 self._event_queue.task_done()
-        except asyncio.TimeoutError:
+        except TimeoutError:
             pass
 
         if self._processing_thread.is_alive():

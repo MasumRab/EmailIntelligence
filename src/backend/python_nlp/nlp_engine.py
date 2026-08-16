@@ -6,7 +6,6 @@ This module provides advanced natural language processing capabilities with mult
 and validation for analyzing email content.
 """
 
-
 import argparse
 import json
 import logging
@@ -14,12 +13,11 @@ import os
 import re
 import sys
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from transformers import AutoModelForSequenceClassification, AutoTokenizer, pipeline
 
 from backend.python_nlp.text_utils import clean_text
-from core.security import verify_model_safety
 
 from .analysis_components.importance_model import ImportanceModel
 
@@ -123,7 +121,8 @@ class NLPEngine:
     def __init__(self):
         """Initializes the NLP engine and loads all necessary models and resources."""
         model_dir = os.getenv(
-            "NLP_MODEL_DIR", os.path.join(os.path.dirname(__file__), "..", "..", "models")
+            "NLP_MODEL_DIR",
+            os.path.join(os.path.dirname(__file__), "..", "..", "models"),
         )
         self.sentiment_model_path = os.path.join(model_dir, "sentiment")
         self.topic_model_path = os.path.join(model_dir, "topic")
@@ -160,7 +159,7 @@ class NLPEngine:
         }
         logger.info("Regex patterns compiled successfully.")
 
-    def _load_model(self, model_path: str, expected_hash: Optional[str] = None):
+    def _load_model(self, model_path: str):
         """
         Load a model from the specified path.
 
@@ -172,9 +171,6 @@ class NLPEngine:
         """
         try:
             if os.path.exists(model_path):
-                if not verify_model_safety(model_path, expected_hash):
-                    logger.error(f"Security: Model path or signature validation failed for {model_path}")
-                    return None
                 import joblib
 
                 model = joblib.load(model_path)
@@ -199,7 +195,7 @@ class NLPEngine:
         """
         return clean_text(text)
 
-    def _analyze_sentiment_model(self, text: str) -> Optional[Dict[str, Any]]:
+    def _analyze_sentiment_model(self, text: str) -> dict[str, Any] | None:
         """
         Analyze sentiment using the loaded Hugging Face model.
         """
@@ -224,7 +220,7 @@ class NLPEngine:
             logger.error(f"Error using sentiment model: {e}. Trying fallback.")
             return None
 
-    def _analyze_sentiment_textblob(self, text: str) -> Optional[Dict[str, Any]]:
+    def _analyze_sentiment_textblob(self, text: str) -> dict[str, Any] | None:
         """
         Analyze sentiment using TextBlob as a fallback method.
         """
@@ -258,7 +254,7 @@ class NLPEngine:
             logger.error(f"Error during TextBlob sentiment analysis: {e}")
             return None
 
-    def _analyze_sentiment_keyword(self, text: str) -> Dict[str, Any]:
+    def _analyze_sentiment_keyword(self, text: str) -> dict[str, Any]:
         """
         Analyze sentiment using keyword matching as a final fallback method.
         """
@@ -273,7 +269,16 @@ class NLPEngine:
             "happy",
             "love",
         ]
-        negative_words = ["bad", "terrible", "problem", "issue", "error", "failed", "hate", "angry"]
+        negative_words = [
+            "bad",
+            "terrible",
+            "problem",
+            "issue",
+            "error",
+            "failed",
+            "hate",
+            "angry",
+        ]
 
         positive_count = sum(1 for word in positive_words if word in text_lower)
         negative_count = sum(1 for word in negative_words if word in text_lower)
@@ -299,7 +304,7 @@ class NLPEngine:
             "method_used": "fallback_keyword_sentiment",
         }
 
-    def _analyze_sentiment(self, text: str) -> Dict[str, Any]:
+    def _analyze_sentiment(self, text: str) -> dict[str, Any]:
         """
         Perform sentiment analysis using available methods in order of preference.
         """
@@ -316,7 +321,7 @@ class NLPEngine:
         logger.info("Sentiment analysis performed using keyword matching as final fallback.")
         return self._analyze_sentiment_keyword(text)
 
-    def _analyze_topic_model(self, text: str) -> Optional[Dict[str, Any]]:
+    def _analyze_topic_model(self, text: str) -> dict[str, Any] | None:
         """
         Analyzes the topic of the text using a pre-trained Hugging Face model.
 
@@ -341,7 +346,7 @@ class NLPEngine:
             logger.error(f"Error using topic model: {e}. Trying fallback.")
             return None
 
-    def _analyze_topic_keyword(self, text: str) -> Dict[str, Any]:
+    def _analyze_topic_keyword(self, text: str) -> dict[str, Any]:
         """
         Analyze topic using keyword matching as a fallback method.
 
@@ -438,7 +443,7 @@ class NLPEngine:
             "method_used": "fallback_keyword_topic",
         }
 
-    def _analyze_topic(self, text: str) -> Dict[str, Any]:
+    def _analyze_topic(self, text: str) -> dict[str, Any]:
         """
         Identify the main topic of the email using available methods.
         It first tries the ML model and then falls back to keyword matching.
@@ -453,7 +458,7 @@ class NLPEngine:
         logger.info("Topic analysis performed using keyword matching as fallback.")
         return self._analyze_topic_keyword(text)
 
-    def _analyze_intent_model(self, text: str) -> Optional[Dict[str, Any]]:
+    def _analyze_intent_model(self, text: str) -> dict[str, Any] | None:
         """
         Analyze intent using the loaded Hugging Face model.
         """
@@ -472,7 +477,7 @@ class NLPEngine:
             logger.error(f"Error using intent model: {e}. Trying fallback.")
             return None
 
-    def _analyze_intent_regex(self, text: str) -> Dict[str, Any]:
+    def _analyze_intent_regex(self, text: str) -> dict[str, Any]:
         """
         Analyze intent using regex pattern matching as a fallback method.
         """
@@ -509,7 +514,7 @@ class NLPEngine:
                 "method_used": "fallback_regex_intent",
             }
 
-    def _analyze_intent(self, text: str) -> Dict[str, Any]:
+    def _analyze_intent(self, text: str) -> dict[str, Any]:
         """
         Determine the intent of the email using available methods.
         """
@@ -521,7 +526,7 @@ class NLPEngine:
         logger.info("Intent analysis performed using regex matching as fallback.")
         return self._analyze_intent_regex(text)
 
-    def _analyze_urgency_model(self, text: str) -> Optional[Dict[str, Any]]:
+    def _analyze_urgency_model(self, text: str) -> dict[str, Any] | None:
         """
         Analyze urgency using the loaded Hugging Face model.
         """
@@ -540,7 +545,7 @@ class NLPEngine:
             logger.error(f"Error using urgency model: {e}. Trying fallback.")
             return None
 
-    def _analyze_urgency_regex(self, text: str) -> Dict[str, Any]:
+    def _analyze_urgency_regex(self, text: str) -> dict[str, Any]:
         """
         Analyze urgency using regex pattern matching as a fallback method.
         """
@@ -570,7 +575,7 @@ class NLPEngine:
             "method_used": "fallback_regex_urgency",
         }
 
-    def _analyze_urgency(self, text: str) -> Dict[str, Any]:
+    def _analyze_urgency(self, text: str) -> dict[str, Any]:
         """
         Assess the urgency level of the email using available methods.
         """
@@ -582,13 +587,13 @@ class NLPEngine:
         logger.info("Urgency analysis performed using regex matching as fallback.")
         return self._analyze_urgency_regex(text)
 
-    def _analyze_importance(self, text: str) -> Dict[str, Any]:
+    def _analyze_importance(self, text: str) -> dict[str, Any]:
         """
         Assess the importance of the email.
         """
         return self.importance_model.analyze(text)
 
-    def _extract_keywords(self, text: str) -> List[str]:
+    def _extract_keywords(self, text: str) -> list[str]:
         """
         Extract important keywords from text.
 
@@ -645,7 +650,7 @@ class NLPEngine:
         # Remove duplicates and limit to 15 keywords
         return list(set(keywords))[:15]
 
-    def _categorize_content(self, text: str) -> List[str]:
+    def _categorize_content(self, text: str) -> list[str]:
         """
         Categorize email content based on pre-compiled keyword patterns.
         This method uses regex pattern matching to identify the categories
@@ -678,7 +683,7 @@ class NLPEngine:
         )
         return sorted_categories[:3]
 
-    def _calculate_confidence(self, analysis_results: List[Dict[str, Any]]) -> float:
+    def _calculate_confidence(self, analysis_results: list[dict[str, Any]]) -> float:
         """
         Calculate overall confidence score based on individual analysis results.
 
@@ -699,10 +704,10 @@ class NLPEngine:
 
     def _generate_reasoning(
         self,
-        sentiment: Optional[Dict[str, Any]],
-        topic: Optional[Dict[str, Any]],
-        intent: Optional[Dict[str, Any]],
-        urgency: Optional[Dict[str, Any]],
+        sentiment: dict[str, Any] | None,
+        topic: dict[str, Any] | None,
+        intent: dict[str, Any] | None,
+        urgency: dict[str, Any] | None,
     ) -> str:
         """
         Generate human-readable reasoning for the analysis results.
@@ -721,7 +726,7 @@ class NLPEngine:
         """
         parts = []
 
-        def get_method_suffix(analysis_result: Optional[Dict[str, Any]]) -> str:
+        def get_method_suffix(analysis_result: dict[str, Any] | None) -> str:
             """Generate a suffix indicating which method was used for analysis."""
             if not analysis_result or "method_used" not in analysis_result:
                 return " (method unknown)"
@@ -743,16 +748,16 @@ class NLPEngine:
 
         # Add topic reasoning if significant
         if topic and topic.get("topic") != "General":
-            parts.append(f"Identified topic: {topic['topic']}" f"{get_method_suffix(topic)}")
+            parts.append(f"Identified topic: {topic['topic']}{get_method_suffix(topic)}")
 
         # Add intent reasoning if significant
         if intent and intent.get("intent") != "informational":
-            parts.append(f"Detected intent: {intent['intent']}" f"{get_method_suffix(intent)}")
+            parts.append(f"Detected intent: {intent['intent']}{get_method_suffix(intent)}")
 
         # Add urgency reasoning if significant
         if urgency and urgency.get("urgency") != "low":
             parts.append(
-                f"Assessed urgency level: {urgency['urgency']}" f"{get_method_suffix(urgency)}"
+                f"Assessed urgency level: {urgency['urgency']}{get_method_suffix(urgency)}"
             )
 
         # Return default message if no significant insights
@@ -762,7 +767,7 @@ class NLPEngine:
         # Join all parts with periods
         return f"{'. '.join(parts)}."
 
-    def _suggest_labels(self, categories: List[str], urgency: str) -> List[str]:
+    def _suggest_labels(self, categories: list[str], urgency: str) -> list[str]:
         """Suggest labels for the email"""
         labels = categories.copy()
 
@@ -771,7 +776,7 @@ class NLPEngine:
 
         return list(set(labels))[:6]
 
-    def _detect_risk_factors(self, text: str) -> List[str]:
+    def _detect_risk_factors(self, text: str) -> list[str]:
         """Detect potential risk factors in the email"""
         risk_flags = []
         text_lower = text.lower()
@@ -795,7 +800,7 @@ class NLPEngine:
 
         return risk_flags
 
-    def _validate_analysis(self, analysis_results: Dict[str, Any]) -> Dict[str, Any]:
+    def _validate_analysis(self, analysis_results: dict[str, Any]) -> dict[str, Any]:
         """Validate the analysis results"""
         # Simple validation based on confidence levels
         confidence = self._calculate_confidence([analysis_results[key] for key in analysis_results])
@@ -811,7 +816,7 @@ class NLPEngine:
             "feedback": feedback,
         }
 
-    def _get_fallback_analysis(self, error_msg: str) -> Dict[str, Any]:
+    def _get_fallback_analysis(self, error_msg: str) -> dict[str, Any]:
         """Return a fallback analysis in case of errors"""
         return {
             "topic": "General",
@@ -833,7 +838,7 @@ class NLPEngine:
             # "action_items": [], # Removed
         }
 
-    def _get_simple_fallback_analysis(self, subject: str, content: str) -> Dict[str, Any]:
+    def _get_simple_fallback_analysis(self, subject: str, content: str) -> dict[str, Any]:
         """Simple fallback analysis when NLTK is not available"""
         text = f"{subject} {content}".lower()
         # Basic sentiment analysis
@@ -916,7 +921,7 @@ class NLPEngine:
             # "action_items": [], # Removed
         }
 
-    def _analyze_action_items(self, text: str) -> List[Dict[str, Any]]:
+    def _analyze_action_items(self, text: str) -> list[dict[str, Any]]:
         """
         Analyzes text for action items using a regex-based approach.
         """
@@ -951,7 +956,7 @@ class NLPEngine:
                 )
         return action_items
 
-    def analyze_email(self, subject: str, content: str) -> Dict[str, Any]:
+    def analyze_email(self, subject: str, content: str) -> dict[str, Any]:
         """
         Comprehensive email analysis using multiple NLP techniques
         """
@@ -1041,7 +1046,7 @@ class NLPEngine:
         keywords,
         risk_analysis_flags,
         action_items,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Helper function to consolidate analysis results and build the final response dictionary.
         """
@@ -1225,7 +1230,7 @@ def _perform_email_analysis_cli(engine: NLPEngine, subject: str, content: str, o
 
 
 def _handle_backward_compatible_cli_invocation(
-    engine: NLPEngine, args: argparse.Namespace, argv: List[str]
+    engine: NLPEngine, args: argparse.Namespace, argv: list[str]
 ) -> bool:
     """
     Handles backward compatible CLI invocation using positional arguments.

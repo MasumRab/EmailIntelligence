@@ -1,12 +1,15 @@
-import logging
 import json
+import logging
+from collections import defaultdict
 from pathlib import Path
+
 from fastapi import APIRouter, Depends, HTTPException
+
+from src.core.auth import get_current_active_user
 from src.core.data.repository import EmailRepository
 from src.core.factory import get_email_repository
-from src.core.auth import get_current_active_user
+
 from .models import ConsolidatedDashboardStats, WeeklyGrowth
-from collections import defaultdict
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -14,10 +17,11 @@ router = APIRouter()
 # Use absolute path for performance log file
 LOG_FILE = Path(__file__).resolve().parent.parent.parent / "performance_metrics_log.jsonl"
 
+
 @router.get("/stats", response_model=ConsolidatedDashboardStats)
 async def get_dashboard_stats(
     repository: EmailRepository = Depends(get_email_repository),
-    current_user: str = Depends(get_current_active_user)
+    current_user: str = Depends(get_current_active_user),
 ):
     """
     Retrieve consolidated dashboard statistics using efficient server-side aggregations.
@@ -34,11 +38,11 @@ async def get_dashboard_stats(
         categorized_emails = await repository.get_category_breakdown(limit=10)
 
         # Extract values from aggregates
-        total_emails = aggregates.get('total_emails', 0)
-        unread_emails = aggregates.get('unread_count', 0)
-        auto_labeled = aggregates.get('auto_labeled', 0)
-        categories_count = aggregates.get('categories_count', 0)
-        weekly_growth_data = aggregates.get('weekly_growth')
+        total_emails = aggregates.get("total_emails", 0)
+        unread_emails = aggregates.get("unread_count", 0)
+        auto_labeled = aggregates.get("auto_labeled", 0)
+        categories_count = aggregates.get("categories_count", 0)
+        weekly_growth_data = aggregates.get("weekly_growth")
 
         # Calculate time_saved (2 minutes per auto-labeled email, matching legacy implementation)
         time_saved_minutes = auto_labeled * 2
@@ -50,31 +54,31 @@ async def get_dashboard_stats(
         weekly_growth = None
         if weekly_growth_data:
             weekly_growth = WeeklyGrowth(
-                emails=weekly_growth_data.get('emails', 0),
-                percentage=weekly_growth_data.get('percentage', 0.0)
+                emails=weekly_growth_data.get("emails", 0),
+                percentage=weekly_growth_data.get("percentage", 0.0),
             )
 
         # Performance metrics (keep existing logic for now)
-        performance_metrics = defaultdict(lambda: {'total_duration': 0, 'count': 0})
+        performance_metrics = defaultdict(lambda: {"total_duration": 0, "count": 0})
         try:
-            with open(LOG_FILE, "r", encoding="utf-8") as f:
+            with open(LOG_FILE, encoding="utf-8") as f:
                 for line in f:
                     try:
                         log_entry = json.loads(line)
                         op = log_entry.get("operation")
                         duration = log_entry.get("duration_seconds")
                         if op and duration is not None:
-                            performance_metrics[op]['total_duration'] += duration
-                            performance_metrics[op]['count'] += 1
+                            performance_metrics[op]["total_duration"] += duration
+                            performance_metrics[op]["count"] += 1
                     except json.JSONDecodeError:
                         continue
         except FileNotFoundError:
             logger.warning(f"Performance log file not found: {LOG_FILE}")
 
         avg_performance_metrics = {
-            op: data['total_duration'] / data['count']
+            op: data["total_duration"] / data["count"]
             for op, data in performance_metrics.items()
-            if data['count'] > 0  # Avoid division by zero
+            if data["count"] > 0  # Avoid division by zero
         }
 
         return ConsolidatedDashboardStats(
@@ -88,5 +92,8 @@ async def get_dashboard_stats(
             performance_metrics=avg_performance_metrics,
         )
     except Exception as e:
-        logger.error(f"Error fetching dashboard stats for user {current_user}: {e}", exc_info=True)
+        logger.error(
+            f"Error fetching dashboard stats for user {current_user}: {e}",
+            exc_info=True,
+        )
         raise HTTPException(status_code=500, detail="Error fetching dashboard stats.")

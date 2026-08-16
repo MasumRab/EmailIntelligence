@@ -2,9 +2,14 @@
 Strategy selection module.
 """
 
-from typing import Dict, Any
+from typing import Any
 
-from ..core.conflict_models import Conflict, AnalysisResult, ResolutionStrategy, RiskLevel
+from ..core.conflict_models import (
+    AnalysisResult,
+    Conflict,
+    ResolutionStrategy,
+    RiskLevel,
+)
 from ..utils.logger import get_logger
 
 logger = get_logger(__name__)
@@ -19,7 +24,7 @@ class StrategySelector:
         self,
         conflict: Conflict,
         analysis: AnalysisResult,
-        context: Dict[str, Any] = None,
+        context: dict[str, Any] = None,
     ) -> ResolutionStrategy:
         """
         Select the best resolution strategy.

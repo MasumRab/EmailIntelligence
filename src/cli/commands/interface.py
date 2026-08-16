@@ -7,7 +7,7 @@ This interface establishes the contract that all commands must implement.
 
 from abc import ABC, abstractmethod
 from argparse import Namespace
-from typing import Any, Dict
+from typing import Any
 
 
 class Command(ABC):
@@ -65,7 +65,7 @@ class Command(ABC):
         pass
 
     @abstractmethod
-    def get_dependencies(self) -> Dict[str, Any]:
+    def get_dependencies(self) -> dict[str, Any]:
         """
         Get the dependencies required by this command.
 
@@ -74,7 +74,7 @@ class Command(ABC):
         """
         pass
 
-    def set_dependencies(self, dependencies: Dict[str, Any]) -> None:
+    def set_dependencies(self, dependencies: dict[str, Any]) -> None:
         """
         Set the dependencies for this command.
 

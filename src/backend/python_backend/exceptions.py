@@ -6,8 +6,6 @@ Custom exceptions for the Email Intelligence Platform
 Provides consistent error handling across the application
 """
 
-from typing import Optional
-
 from fastapi import HTTPException, status
 from pydantic import BaseModel
 
@@ -18,7 +16,7 @@ class APIError(BaseModel):
     success: bool = False
     message: str
     error_code: str
-    details: Optional[str] = None
+    details: str | None = None
 
 
 class AppException(HTTPException):
@@ -29,7 +27,7 @@ class AppException(HTTPException):
         status_code: int,
         message: str,
         error_code: str = "GENERAL_ERROR",
-        details: Optional[str] = None,
+        details: str | None = None,
     ):
         error_response = APIError(
             success=False, message=message, error_code=error_code, details=details
@@ -52,7 +50,9 @@ class EmailNotFoundException(AppException):
             error_code = "EMAIL_NOT_FOUND"
 
         super().__init__(
-            status_code=status.HTTP_404_NOT_FOUND, message=message, error_code=error_code
+            status_code=status.HTTP_404_NOT_FOUND,
+            message=message,
+            error_code=error_code,
         )
 
 
@@ -70,7 +70,7 @@ class CategoryNotFoundException(AppException):
 class ValidationError(AppException):
     """Raised when validation fails"""
 
-    def __init__(self, message: str, details: Optional[str] = None):
+    def __init__(self, message: str, details: str | None = None):
         super().__init__(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             message=message,
@@ -82,7 +82,7 @@ class ValidationError(AppException):
 class DatabaseError(AppException):
     """Raised when a database operation fails"""
 
-    def __init__(self, message: str, details: Optional[str] = None):
+    def __init__(self, message: str, details: str | None = None):
         super().__init__(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             message=message,
@@ -96,7 +96,9 @@ class UnauthorizedException(AppException):
 
     def __init__(self, message: str = "Unauthorized access"):
         super().__init__(
-            status_code=status.HTTP_401_UNAUTHORIZED, message=message, error_code="UNAUTHORIZED"
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            message=message,
+            error_code="UNAUTHORIZED",
         )
 
 
@@ -105,7 +107,9 @@ class ForbiddenException(AppException):
 
     def __init__(self, message: str = "Access forbidden"):
         super().__init__(
-            status_code=status.HTTP_403_FORBIDDEN, message=message, error_code="FORBIDDEN"
+            status_code=status.HTTP_403_FORBIDDEN,
+            message=message,
+            error_code="FORBIDDEN",
         )
 
 
@@ -129,6 +133,8 @@ class GmailServiceError(BaseAppException):
     """Exception for Gmail service related errors."""
 
     def __init__(
-        self, detail: str = "An error occurred with the Gmail service.", status_code: int = 502
+        self,
+        detail: str = "An error occurred with the Gmail service.",
+        status_code: int = 502,
     ):
         super().__init__(status_code=status_code, detail=detail)

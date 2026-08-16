@@ -8,7 +8,6 @@ and performance monitoring with minimal overhead.
 import ipaddress
 import logging
 import time
-from typing import Optional
 
 from fastapi import Request
 from fastapi.responses import JSONResponse
@@ -31,7 +30,7 @@ class SecurityMiddleware:
         enable_rate_limiting: bool = True,
         enable_audit_logging: bool = True,
         enable_performance_monitoring: bool = True,
-        trusted_proxies: Optional[list] = None,
+        trusted_proxies: list | None = None,
     ):
         self.app = app
         self.enable_rate_limiting = enable_rate_limiting
@@ -55,7 +54,8 @@ class SecurityMiddleware:
         # Rate limiting check
         if self.enable_rate_limiting:
             allowed, headers = await api_rate_limiter.check_rate_limit(
-                request.url.path, client_ip  # Use IP as client key, could be enhanced with user_id
+                request.url.path,
+                client_ip,  # Use IP as client key, could be enhanced with user_id
             )
 
             if not allowed:
@@ -178,7 +178,7 @@ class SecurityMiddleware:
         # Fall back to direct client IP
         return request.client.host if request.client else "unknown"
 
-    def _get_user_id(self, request: Request) -> Optional[str]:
+    def _get_user_id(self, request: Request) -> str | None:
         """Extract user ID from request (JWT token, session, etc.)."""
         # This is a placeholder - in a real implementation, you'd extract
         # the user ID from JWT tokens, session cookies, etc.
@@ -199,8 +199,8 @@ class SecurityHeadersMiddleware:
             "X-Content-Type-Options": "nosniff",
             "X-Frame-Options": "DENY",
             "X-XSS-Protection": "1; mode=block",
-            "Strict-Transport-Security": "max-age=31536000; includeSubDomains; preload",
-            "Content-Security-Policy": "default-src 'self'; frame-ancestors 'none'; form-action 'self'",
+            "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+            "Content-Security-Policy": "default-src 'self'",
             "Referrer-Policy": "strict-origin-when-cross-origin",
             "Permissions-Policy": "geolocation=(), microphone=(), camera=()",
         }
@@ -216,12 +216,6 @@ class SecurityHeadersMiddleware:
                 # Add security headers
                 for header_name, header_value in self.security_headers.items():
                     headers.append([header_name.encode(), header_value.encode()])
-
-                # Add cache control for sensitive endpoints (API routes)
-                if scope.get("path", "").startswith("/api/"):
-                    headers.append([b"Cache-Control", b"no-store, max-age=0, must-revalidate"])
-                    headers.append([b"Pragma", b"no-cache"])
-
                 message["headers"] = headers
 
             await send(message)
@@ -235,7 +229,7 @@ def create_security_middleware(
     enable_rate_limiting: bool = True,
     enable_audit_logging: bool = True,
     enable_performance_monitoring: bool = True,
-    trusted_proxies: Optional[list] = None,
+    trusted_proxies: list | None = None,
 ):
     """Create security middleware with specified options."""
     return SecurityMiddleware(

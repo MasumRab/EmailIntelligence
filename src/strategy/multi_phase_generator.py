@@ -11,15 +11,16 @@ Features:
 - Phased execution planning with checkpoints
 """
 
-from typing import Dict, List, Any, Optional
-from datetime import datetime, timezone
 from dataclasses import dataclass
+from datetime import UTC, datetime
 from enum import Enum
+from typing import Any
+
 import structlog
 
 from ..resolution.types import (
-    RiskLevel,
     ResolutionStep,
+    RiskLevel,
 )
 
 logger = structlog.get_logger()
@@ -94,9 +95,9 @@ class ExecutionCheckpoint:
     phase: ExecutionPhase
     name: str
     description: str
-    required_outputs: List[str]
-    success_criteria: List[str]
-    failure_procedures: List[str]
+    required_outputs: list[str]
+    success_criteria: list[str]
+    failure_procedures: list[str]
     estimated_duration: int  # minutes
     critical_path: bool
     parallel_executable: bool
@@ -112,20 +113,20 @@ class MultiPhaseStrategy:
     description: str
     strategy_type: StrategyType
     approach: str
-    steps: List[ResolutionStep]
-    pros: List[str]
-    cons: List[str]
+    steps: list[ResolutionStep]
+    pros: list[str]
+    cons: list[str]
     confidence: float
     estimated_time: int  # minutes
     risk_level: RiskLevel
-    resource_requirements: Dict[str, Any]
+    resource_requirements: dict[str, Any]
     requires_approval: bool
-    success_criteria: List[str]
+    success_criteria: list[str]
     rollback_strategy: str
     validation_approach: str
-    enhancement_preservation: List[EnhancementPreservation]
-    risk_factors: List[RiskFactor]
-    execution_phases: List[ExecutionCheckpoint]
+    enhancement_preservation: list[EnhancementPreservation]
+    risk_factors: list[RiskFactor]
+    execution_phases: list[ExecutionCheckpoint]
     parallel_execution: bool = False
     constitutional_compliant: bool = True
 
@@ -144,7 +145,7 @@ class MultiPhaseStrategyGenerator:
 
         logger.info("Multi-phase strategy generator initialized")
 
-    def _initialize_strategy_types(self) -> Dict[StrategyType, Dict[str, Any]]:
+    def _initialize_strategy_types(self) -> dict[StrategyType, dict[str, Any]]:
         """Initialize strategy type configurations"""
         return {
             StrategyType.CONSERVATIVE_MERGE: {
@@ -227,7 +228,7 @@ class MultiPhaseStrategyGenerator:
             },
         }
 
-    def _initialize_preservation_patterns(self) -> Dict[str, Dict[str, Any]]:
+    def _initialize_preservation_patterns(self) -> dict[str, dict[str, Any]]:
         """Initialize enhancement preservation patterns"""
         return {
             "feature_branching": {
@@ -268,7 +269,7 @@ class MultiPhaseStrategyGenerator:
             },
         }
 
-    def _initialize_risk_templates(self) -> Dict[RiskCategory, List[Dict[str, Any]]]:
+    def _initialize_risk_templates(self) -> dict[RiskCategory, list[dict[str, Any]]]:
         """Initialize risk factor templates"""
         return {
             RiskCategory.TECHNICAL: [
@@ -345,7 +346,7 @@ class MultiPhaseStrategyGenerator:
 
     def _initialize_execution_templates(
         self,
-    ) -> Dict[StrategyType, List[ExecutionCheckpoint]]:
+    ) -> dict[StrategyType, list[ExecutionCheckpoint]]:
         """Initialize execution checkpoint templates"""
         templates = {}
 
@@ -435,10 +436,10 @@ class MultiPhaseStrategyGenerator:
     def generate_multi_phase_strategies(
         self,
         conflict_data,
-        context: Dict[str, Any],
+        context: dict[str, Any],
         risk_tolerance: str = "medium",
         time_constraints: str = "normal",
-    ) -> List[MultiPhaseStrategy]:
+    ) -> list[MultiPhaseStrategy]:
         """
         Generate multiple resolution strategies with multi-phase execution
 
@@ -490,8 +491,8 @@ class MultiPhaseStrategyGenerator:
         return strategies
 
     def _select_strategy_types(
-        self, conflict_data, context: Dict[str, Any], risk_tolerance: str
-    ) -> List[StrategyType]:
+        self, conflict_data, context: dict[str, Any], risk_tolerance: str
+    ) -> list[StrategyType]:
         """Select appropriate strategy types based on context"""
 
         selected_types = []
@@ -527,17 +528,17 @@ class MultiPhaseStrategyGenerator:
         self,
         strategy_type: StrategyType,
         conflict_data,
-        context: Dict[str, Any],
+        context: dict[str, Any],
         risk_tolerance: str,
         time_constraints: str,
-    ) -> Optional[MultiPhaseStrategy]:
+    ) -> MultiPhaseStrategy | None:
         """Generate a single multi-phase strategy"""
 
         try:
             type_config = self.strategy_types[strategy_type]
 
             # Create strategy ID
-            strategy_id = f"{strategy_type.value}_{int(datetime.now(timezone.utc).timestamp())}"
+            strategy_id = f"{strategy_type.value}_{int(datetime.now(UTC).timestamp())}"
 
             # Calculate estimated time
             base_time = context.get("estimated_resolution_time", 30)
@@ -614,8 +615,8 @@ class MultiPhaseStrategyGenerator:
             return None
 
     def _generate_enhancement_preservation(
-        self, conflict_data, context: Dict[str, Any], strategy_type: StrategyType
-    ) -> List[EnhancementPreservation]:
+        self, conflict_data, context: dict[str, Any], strategy_type: StrategyType
+    ) -> list[EnhancementPreservation]:
         """Generate enhancement preservation analysis"""
 
         preservation_list = []
@@ -662,10 +663,10 @@ class MultiPhaseStrategyGenerator:
     def _generate_risk_factors(
         self,
         conflict_data,
-        context: Dict[str, Any],
+        context: dict[str, Any],
         strategy_type: StrategyType,
         risk_tolerance: str,
-    ) -> List[RiskFactor]:
+    ) -> list[RiskFactor]:
         """Generate risk factors for the strategy"""
 
         risk_factors = []
@@ -711,8 +712,8 @@ class MultiPhaseStrategyGenerator:
         return risk_factors
 
     def _generate_execution_phases(
-        self, conflict_data, context: Dict[str, Any], strategy_type: StrategyType
-    ) -> List[ExecutionCheckpoint]:
+        self, conflict_data, context: dict[str, Any], strategy_type: StrategyType
+    ) -> list[ExecutionCheckpoint]:
         """Generate execution phases for the strategy"""
 
         # Get base execution template
@@ -754,7 +755,7 @@ class MultiPhaseStrategyGenerator:
         self,
         template_checkpoint: ExecutionCheckpoint,
         conflict_data,
-        context: Dict[str, Any],
+        context: dict[str, Any],
         strategy_type: StrategyType,
     ) -> ExecutionCheckpoint:
         """Adapt checkpoint template based on context"""
@@ -781,17 +782,17 @@ class MultiPhaseStrategyGenerator:
 
     def _generate_hybrid_strategy(
         self,
-        strategies: List[MultiPhaseStrategy],
+        strategies: list[MultiPhaseStrategy],
         conflict_data,
-        context: Dict[str, Any],
-    ) -> Optional[MultiPhaseStrategy]:
+        context: dict[str, Any],
+    ) -> MultiPhaseStrategy | None:
         """Generate hybrid strategy combining multiple approaches"""
 
         if len(strategies) < 2:
             return None
 
         # Select best characteristics from different strategies
-        hybrid_id = f"hybrid_{int(datetime.now(timezone.utc).timestamp())}"
+        hybrid_id = f"hybrid_{int(datetime.now(UTC).timestamp())}"
 
         # Combine pros and cons
         all_pros = []
@@ -846,7 +847,7 @@ class MultiPhaseStrategyGenerator:
 
         return hybrid_strategy
 
-    def _rank_strategies(self, strategies: List[MultiPhaseStrategy]) -> List[MultiPhaseStrategy]:
+    def _rank_strategies(self, strategies: list[MultiPhaseStrategy]) -> list[MultiPhaseStrategy]:
         """Rank strategies by confidence, risk, and time"""
 
         def rank_key(strategy: MultiPhaseStrategy):
@@ -863,8 +864,8 @@ class MultiPhaseStrategyGenerator:
     def _calculate_strategy_confidence(
         self,
         strategy_type: StrategyType,
-        risk_factors: List[RiskFactor],
-        context: Dict[str, Any],
+        risk_factors: list[RiskFactor],
+        context: dict[str, Any],
     ) -> float:
         """Calculate strategy confidence based on various factors"""
 
@@ -891,7 +892,7 @@ class MultiPhaseStrategyGenerator:
 
         return max(0.3, min(0.95, confidence))  # Clamp between 0.3 and 0.95
 
-    def _calculate_risk_level(self, risk_factors: List[RiskFactor]) -> RiskLevel:
+    def _calculate_risk_level(self, risk_factors: list[RiskFactor]) -> RiskLevel:
         """Calculate overall risk level from risk factors"""
 
         if not risk_factors:
@@ -934,8 +935,8 @@ class MultiPhaseStrategyGenerator:
 
     # Helper methods for strategy generation (simplified implementations)
     def _generate_pros(
-        self, strategy_type: StrategyType, preservation: List[EnhancementPreservation]
-    ) -> List[str]:
+        self, strategy_type: StrategyType, preservation: list[EnhancementPreservation]
+    ) -> list[str]:
         """Generate strategy pros"""
         pros = [f"Provides {strategy_type.value.replace('_', ' ')} approach"]
 
@@ -962,7 +963,7 @@ class MultiPhaseStrategyGenerator:
 
         return pros
 
-    def _generate_cons(self, strategy_type: StrategyType, risks: List[RiskFactor]) -> List[str]:
+    def _generate_cons(self, strategy_type: StrategyType, risks: list[RiskFactor]) -> list[str]:
         """Generate strategy cons"""
         cons = [f"May have {len(risks)} associated risks"]
 
@@ -989,7 +990,7 @@ class MultiPhaseStrategyGenerator:
 
         return cons
 
-    def _generate_success_criteria(self, strategy_type: StrategyType) -> List[str]:
+    def _generate_success_criteria(self, strategy_type: StrategyType) -> list[str]:
         """Generate success criteria for strategy"""
         return [
             f"{strategy_type.value} approach successful",
@@ -1005,8 +1006,8 @@ class MultiPhaseStrategyGenerator:
         )
 
     def _generate_resource_requirements(
-        self, strategy_type: StrategyType, phases: List[ExecutionCheckpoint]
-    ) -> Dict[str, Any]:
+        self, strategy_type: StrategyType, phases: list[ExecutionCheckpoint]
+    ) -> dict[str, Any]:
         """Generate resource requirements"""
         return {
             "execution_phases": len(phases),
@@ -1016,12 +1017,12 @@ class MultiPhaseStrategyGenerator:
             "rollback_points": [p.id for p in phases if p.rollback_point],
         }
 
-    def _determine_parallel_execution(self, phases: List[ExecutionCheckpoint]) -> bool:
+    def _determine_parallel_execution(self, phases: list[ExecutionCheckpoint]) -> bool:
         """Determine if strategy supports parallel execution"""
         return any(p.parallel_executable for p in phases)
 
     # Simplified implementations for remaining helper methods
-    def _determine_preservation_priority(self, feature: str, context: Dict[str, Any]) -> str:
+    def _determine_preservation_priority(self, feature: str, context: dict[str, Any]) -> str:
         return "high" if context.get("critical_features", []).__contains__(feature) else "medium"
 
     def _select_preservation_method(self, feature: str, strategy_type: StrategyType) -> str:
@@ -1040,28 +1041,28 @@ class MultiPhaseStrategyGenerator:
 
     def _calculate_risk_probability(
         self,
-        template: Dict[str, Any],
+        template: dict[str, Any],
         conflict_data,
-        context: Dict[str, Any],
+        context: dict[str, Any],
         strategy_type: StrategyType,
     ) -> float:
         return 0.3  # Default probability
 
     def _calculate_risk_impact(
         self,
-        template: Dict[str, Any],
+        template: dict[str, Any],
         conflict_data,
-        context: Dict[str, Any],
+        context: dict[str, Any],
         strategy_type: StrategyType,
     ) -> float:
         return 0.5  # Default impact
 
     def _generate_mitigation_strategy(
-        self, template: Dict[str, Any], strategy_type: StrategyType, risk_tolerance: str
+        self, template: dict[str, Any], strategy_type: StrategyType, risk_tolerance: str
     ) -> str:
         return template.get("mitigation_template", "Implement standard mitigation procedures")
 
-    def _determine_risk_owner(self, category: RiskCategory, context: Dict[str, Any]) -> str:
+    def _determine_risk_owner(self, category: RiskCategory, context: dict[str, Any]) -> str:
         owner_map = {
             RiskCategory.TECHNICAL: "Technical Lead",
             RiskCategory.BUSINESS: "Product Manager",
@@ -1074,10 +1075,10 @@ class MultiPhaseStrategyGenerator:
     def _generate_strategy_steps(
         self,
         conflict_data,
-        context: Dict[str, Any],
+        context: dict[str, Any],
         strategy_type: StrategyType,
-        phases: List[ExecutionCheckpoint],
-    ) -> List[ResolutionStep]:
+        phases: list[ExecutionCheckpoint],
+    ) -> list[ResolutionStep]:
         """Generate resolution steps from execution phases"""
         steps = []
 
@@ -1095,8 +1096,8 @@ class MultiPhaseStrategyGenerator:
         return steps
 
     def _merge_execution_phases(
-        self, phase_lists: List[List[ExecutionCheckpoint]]
-    ) -> List[ExecutionCheckpoint]:
+        self, phase_lists: list[list[ExecutionCheckpoint]]
+    ) -> list[ExecutionCheckpoint]:
         """Merge execution phases from multiple strategies"""
         # Simplified merge - in reality would be more sophisticated
         all_phases = []

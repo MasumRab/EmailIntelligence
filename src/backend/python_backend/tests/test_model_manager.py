@@ -36,7 +36,6 @@ def test_discover_models_success(model_manager):
         patch("os.listdir", return_value=["sentiment-test.json", "topic-test.json"]),
         patch("builtins.open", m),
     ):
-
         model_manager.discover_models()
 
         assert len(model_manager.list_models()) == 2

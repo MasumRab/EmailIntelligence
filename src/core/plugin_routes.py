@@ -6,7 +6,6 @@ including installation, configuration, and marketplace integration.
 """
 
 import logging
-from typing import List, Optional
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
@@ -17,7 +16,7 @@ from .plugin_manager import PluginManager
 logger = logging.getLogger(__name__)
 
 # Global plugin manager instance
-_plugin_manager: Optional[PluginManager] = None
+_plugin_manager: PluginManager | None = None
 
 
 async def get_plugin_manager() -> PluginManager:
@@ -41,15 +40,15 @@ class PluginInfo(BaseModel):
     status: str
     security_level: str
     loaded: bool
-    loaded_at: Optional[float] = None
-    capabilities: Optional[List[str]] = None
+    loaded_at: float | None = None
+    capabilities: list[str] | None = None
 
 
 class PluginInstallation(BaseModel):
     """Plugin installation request."""
 
     plugin_id: str = Field(..., description="Plugin ID to install")
-    version: Optional[str] = Field(None, description="Specific version to install")
+    version: str | None = Field(None, description="Specific version to install")
 
 
 class PluginConfiguration(BaseModel):
@@ -66,11 +65,11 @@ class MarketplacePlugin(BaseModel):
     version: str
     author: str
     description: str
-    tags: List[str]
+    tags: list[str]
     rating: float
     downloads: int
     installed: bool
-    installed_version: Optional[str] = None
+    installed_version: str | None = None
     update_available: bool = False
 
 
@@ -90,7 +89,7 @@ class SystemStatus(BaseModel):
 router = APIRouter(prefix="/api/plugins", tags=["Plugin Management"])
 
 
-@router.get("/", response_model=List[PluginInfo])
+@router.get("/", response_model=list[PluginInfo])
 async def list_plugins(manager: PluginManager = Depends(get_plugin_manager)):
     """List all installed plugins with their status."""
     try:
@@ -249,7 +248,7 @@ async def update_plugin_config(
     raise HTTPException(status_code=501, detail="Plugin configuration update not yet implemented")
 
 
-@router.get("/marketplace/", response_model=List[MarketplacePlugin])
+@router.get("/marketplace/", response_model=list[MarketplacePlugin])
 async def get_marketplace_plugins(
     refresh: bool = Query(False, description="Force refresh marketplace cache"),
     manager: PluginManager = Depends(get_plugin_manager),
@@ -264,7 +263,9 @@ async def get_marketplace_plugins(
 
 
 @router.get("/status", response_model=SystemStatus)
-async def get_plugin_system_status(manager: PluginManager = Depends(get_plugin_manager)):
+async def get_plugin_system_status(
+    manager: PluginManager = Depends(get_plugin_manager),
+):
     """Get comprehensive plugin system status."""
     try:
         return SystemStatus(**manager.get_system_status())
@@ -313,7 +314,9 @@ async def get_registered_hooks(manager: PluginManager = Depends(get_plugin_manag
 
 @router.post("/hooks/trigger")
 async def trigger_hook(
-    hook_name: str, data: dict = None, manager: PluginManager = Depends(get_plugin_manager)
+    hook_name: str,
+    data: dict = None,
+    manager: PluginManager = Depends(get_plugin_manager),
 ):
     """Trigger a hook manually (for testing/debugging)."""
     try:
@@ -323,7 +326,11 @@ async def trigger_hook(
         hook_system = manager.get_hook_system()
         results = await hook_system.trigger_hook(hook_name, **data)
 
-        return {"hook_name": hook_name, "results_count": len(results), "results": results}
+        return {
+            "hook_name": hook_name,
+            "results_count": len(results),
+            "results": results,
+        }
 
     except Exception as e:
         logger.error(f"Error triggering hook {hook_name}: {e}")
@@ -344,7 +351,11 @@ async def check_security_sandbox(
         sandbox = manager.get_security_sandbox()
         allowed = sandbox.validate_import(module_name, security_level)
 
-        return {"module": module_name, "security_level": security_level.value, "allowed": allowed}
+        return {
+            "module": module_name,
+            "security_level": security_level.value,
+            "allowed": allowed,
+        }
 
     except Exception as e:
         logger.error(f"Error checking security sandbox: {e}")

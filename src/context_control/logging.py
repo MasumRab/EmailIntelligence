@@ -2,14 +2,13 @@
 
 import logging
 import sys
-from typing import Optional
 from pathlib import Path
 
 
 def setup_logging(
     level: str = "INFO",
-    log_file: Optional[str] = None,
-    format_string: Optional[str] = None,
+    log_file: str | None = None,
+    format_string: str | None = None,
 ) -> logging.Logger:
     """Setup logging configuration for the context control library.
 
@@ -31,9 +30,7 @@ def setup_logging(
 
     # Default format
     if format_string is None:
-        format_string = (
-            "%(asctime)s - %(name)s - %(levelname)s - " "[%(context_id)s] %(message)s"
-        )
+        format_string = "%(asctime)s - %(name)s - %(levelname)s - [%(context_id)s] %(message)s"
 
     formatter = logging.Formatter(format_string)
 
@@ -72,7 +69,7 @@ def get_logger(name: str = "context_control") -> logging.Logger:
 class ContextAdapter(logging.LoggerAdapter):
     """Logger adapter that adds context_id to log records."""
 
-    def __init__(self, logger: logging.Logger, context_id: Optional[str] = None):
+    def __init__(self, logger: logging.Logger, context_id: str | None = None):
         super().__init__(logger, {"context_id": context_id or "unknown"})
 
     def process(self, msg, kwargs):
@@ -85,7 +82,7 @@ class ContextAdapter(logging.LoggerAdapter):
 
 
 def get_context_logger(
-    context_id: Optional[str] = None, name: str = "context_control"
+    context_id: str | None = None, name: str = "context_control"
 ) -> ContextAdapter:
     """Get a context-aware logger that includes context_id in all log messages.
 

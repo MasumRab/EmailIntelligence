@@ -1,12 +1,10 @@
 """Base exception classes for Agent Context Control library."""
 
-from typing import Optional
-
 
 class ContextControlError(Exception):
     """Base exception for all context control operations."""
 
-    def __init__(self, message: str, context_id: Optional[str] = None) -> None:
+    def __init__(self, message: str, context_id: str | None = None) -> None:
         super().__init__(message)
         self.context_id = context_id
 

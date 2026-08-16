@@ -6,13 +6,13 @@ This module bridges the modular command system with the CLI entry point.
 """
 
 import asyncio
-from typing import Any, Dict, Optional
+from typing import Any
 
 from .factory import CommandFactory
 from .registry import CommandRegistry
 
 
-def create_default_dependencies() -> Dict[str, Any]:
+def create_default_dependencies() -> dict[str, Any]:
     """
     Create default dependencies for all commands.
 
@@ -96,7 +96,7 @@ def create_default_dependencies() -> Dict[str, Any]:
 
 
 def create_command_factory(
-    dependencies: Optional[Dict[str, Any]] = None,
+    dependencies: dict[str, Any] | None = None,
 ) -> CommandFactory:
     """
     Create and configure the command factory with dependencies.
@@ -111,7 +111,7 @@ def create_command_factory(
     return CommandFactory(deps)
 
 
-def create_registry(factory: Optional[CommandFactory] = None) -> CommandRegistry:
+def create_registry(factory: CommandFactory | None = None) -> CommandRegistry:
     """
     Create and populate the command registry with all commands.
 
@@ -122,10 +122,10 @@ def create_registry(factory: Optional[CommandFactory] = None) -> CommandRegistry
         Configured CommandRegistry with all commands registered
     """
     from .analyze_command import AnalyzeCommand
-    from .resolve_command import ResolveCommand
-    from .validate_command import ValidateCommand
     from .analyze_history_command import AnalyzeHistoryCommand
     from .plan_rebase_command import PlanRebaseCommand
+    from .resolve_command import ResolveCommand
+    from .validate_command import ValidateCommand
 
     cmd_factory = factory or create_command_factory()
     registry = CommandRegistry(cmd_factory)
@@ -140,7 +140,7 @@ def create_registry(factory: Optional[CommandFactory] = None) -> CommandRegistry
     return registry
 
 
-def get_command_dispatcher(registry: Optional[CommandRegistry] = None):
+def get_command_dispatcher(registry: CommandRegistry | None = None):
     """
     Create a dispatcher function for CLI entry point.
 
@@ -176,7 +176,7 @@ def get_command_dispatcher(registry: Optional[CommandRegistry] = None):
     return dispatch
 
 
-def add_modular_arguments(subparsers) -> Dict:
+def add_modular_arguments(subparsers) -> dict:
     """
     Add modular command arguments to a subparsers group.
 
@@ -216,14 +216,10 @@ def setup_modular_cli(parser):
     )
 
     # Legacy mode (existing commands)
-    legacy_parser = mode_subparsers.add_parser(
-        "legacy", help="Use legacy command system"
-    )
+    legacy_parser = mode_subparsers.add_parser("legacy", help="Use legacy command system")
 
     # Modular mode
-    modular_parser = mode_subparsers.add_parser(
-        "modular", help="Use new modular command system"
-    )
+    modular_parser = mode_subparsers.add_parser("modular", help="Use new modular command system")
     modular_subparsers = modular_parser.add_subparsers(
         dest="modular_command", help="Modular command to execute"
     )

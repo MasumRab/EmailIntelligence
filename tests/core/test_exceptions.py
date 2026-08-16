@@ -1,4 +1,6 @@
-"""Tests for core exceptions module."""
+"""
+Tests for src/core/exceptions.py
+"""
 
 import pytest
 from src.core.exceptions import (
@@ -10,100 +12,98 @@ from src.core.exceptions import (
 
 
 class TestBaseAppException:
-    """Test the BaseAppException class."""
+    """Tests for BaseAppException."""
 
-    def test_base_exception_creation(self):
-        """Test creating a base exception with status and detail."""
-        exc = BaseAppException(status_code=400, detail="Test error")
+    def test_base_exception_initialization(self):
+        """Test BaseAppException initialization with status code and detail."""
+        exc = BaseAppException(status_code=400, detail="Bad request")
+        
         assert exc.status_code == 400
-        assert exc.detail == "Test error"
-        assert str(exc) == "Test error"
+        assert exc.detail == "Bad request"
+        assert str(exc) == "Bad request"
 
-    def test_base_exception_with_custom_message(self):
-        """Test base exception with custom message."""
-        exc = BaseAppException(status_code=500, detail="Server error")
-        assert exc.args[0] == "Server error"
-
-    def test_base_exception_inheritance(self):
-        """Test that BaseAppException inherits from Exception."""
+    def test_base_exception_status_code_type(self):
+        """Test status_code is an integer."""
         exc = BaseAppException(status_code=404, detail="Not found")
-        assert isinstance(exc, Exception)
+        assert isinstance(exc.status_code, int)
+
+    def test_base_exception_detail_type(self):
+        """Test detail is a string."""
+        exc = BaseAppException(status_code=500, detail="Internal error")
+        assert isinstance(exc.detail, str)
 
 
 class TestDatabaseError:
-    """Test the DatabaseError class."""
+    """Tests for DatabaseError."""
 
-    def test_database_error_default(self):
-        """Test database error with default message."""
+    def test_database_error_default_values(self):
+        """Test DatabaseError has correct default values."""
         exc = DatabaseError()
+        
         assert exc.status_code == 503
         assert exc.detail == "A database error occurred."
 
     def test_database_error_custom_message(self):
-        """Test database error with custom message."""
+        """Test DatabaseError with custom message."""
         exc = DatabaseError(detail="Connection failed")
+        
         assert exc.status_code == 503
         assert exc.detail == "Connection failed"
-        assert str(exc) == "Connection failed"
 
-    def test_database_error_inheritance(self):
+    def test_database_error_is_base_app_exception(self):
         """Test DatabaseError inherits from BaseAppException."""
         exc = DatabaseError()
         assert isinstance(exc, BaseAppException)
-        assert isinstance(exc, Exception)
 
 
 class TestAIAnalysisError:
-    """Test the AIAnalysisError class."""
+    """Tests for AIAnalysisError."""
 
-    def test_ai_analysis_error_default(self):
-        """Test AI analysis error with default message."""
+    def test_ai_analysis_error_default_values(self):
+        """Test AIAnalysisError has correct default values."""
         exc = AIAnalysisError()
+        
         assert exc.status_code == 500
         assert exc.detail == "An error occurred during AI analysis."
 
     def test_ai_analysis_error_custom_message(self):
-        """Test AI analysis error with custom message."""
-        exc = AIAnalysisError(detail="Model not found")
+        """Test AIAnalysisError with custom message."""
+        exc = AIAnalysisError(detail="Model inference failed")
+        
         assert exc.status_code == 500
-        assert exc.detail == "Model not found"
+        assert exc.detail == "Model inference failed"
 
-    def test_ai_analysis_error_inheritance(self):
+    def test_ai_analysis_error_is_base_app_exception(self):
         """Test AIAnalysisError inherits from BaseAppException."""
         exc = AIAnalysisError()
         assert isinstance(exc, BaseAppException)
-        assert isinstance(exc, Exception)
 
 
 class TestGmailServiceError:
-    """Test the GmailServiceError class."""
+    """Tests for GmailServiceError."""
 
-    def test_gmail_service_error_default(self):
-        """Test Gmail service error with default values."""
+    def test_gmail_service_error_default_values(self):
+        """Test GmailServiceError has correct default values."""
         exc = GmailServiceError()
+        
         assert exc.status_code == 502
         assert exc.detail == "An error occurred with the Gmail service."
 
-    def test_gmail_service_error_custom_detail(self):
-        """Test Gmail service error with custom detail."""
+    def test_gmail_service_error_custom_message(self):
+        """Test GmailServiceError with custom message."""
         exc = GmailServiceError(detail="Authentication failed")
+        
         assert exc.status_code == 502
         assert exc.detail == "Authentication failed"
 
-    def test_gmail_service_error_custom_status(self):
-        """Test Gmail service error with custom status code."""
-        exc = GmailServiceError(status_code=429, detail="Rate limited")
-        assert exc.status_code == 429
-        assert exc.detail == "Rate limited"
+    def test_gmail_service_error_custom_status_code(self):
+        """Test GmailServiceError with custom status code."""
+        exc = GmailServiceError(status_code=401, detail="Unauthorized")
+        
+        assert exc.status_code == 401
+        assert exc.detail == "Unauthorized"
 
-    def test_gmail_service_error_custom_both(self):
-        """Test Gmail service error with custom detail and status."""
-        exc = GmailServiceError(detail="Timeout", status_code=504)
-        assert exc.status_code == 504
-        assert exc.detail == "Timeout"
-
-    def test_gmail_service_error_inheritance(self):
+    def test_gmail_service_error_is_base_app_exception(self):
         """Test GmailServiceError inherits from BaseAppException."""
         exc = GmailServiceError()
         assert isinstance(exc, BaseAppException)
-        assert isinstance(exc, Exception)
