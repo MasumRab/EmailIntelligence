@@ -107,9 +107,13 @@ def run_command(cmd: List[str], description: str, **kwargs) -> bool:
         elif executable == "npm":
             proc = subprocess.run(["npm", *args], check=True, text=True, capture_output=True, shell=False, **kwargs)  # sourcery skip: command-injection
         elif "python" in str(executable):
-            proc = subprocess.run([str(executable), *args], check=True, text=True, capture_output=True, shell=False, **kwargs)  # sourcery skip: command-injection
+            proc = subprocess.run(["python", *args], check=True, text=True, capture_output=True, shell=False, **kwargs)  # sourcery skip: command-injection
+        elif "pytest" in executable:
+            proc = subprocess.run(["pytest", *args], check=True, text=True, capture_output=True, shell=False, **kwargs)  # sourcery skip: command-injection
+        elif "uv" in executable:
+            proc = subprocess.run(["uv", *args], check=True, text=True, capture_output=True, shell=False, **kwargs)  # sourcery skip: command-injection
         else:
-            proc = subprocess.run([str(executable), *args], check=True, text=True, capture_output=True, shell=False, **kwargs)  # sourcery skip: command-injection
+            raise ValueError(f"Unauthorized command executable: {executable}")
         if proc.stdout:
             logger.debug(proc.stdout)
         if proc.stderr:
@@ -256,9 +260,8 @@ def start_backend(host: str, port: int, debug: bool = False):
         # SonarCloud security validation
     if cmd[0] not in [get_python_executable(), str(get_python_executable()), 'npm', 'notmuch', 'pytest', 'uv', 'python', 'python3']:
         raise ValueError("Unauthorized backend executable")
-    executable = cmd[0]
     args = cmd[1:]
-    process = subprocess.Popen([str(executable), *args], cwd=ROOT_DIR, shell=False)  # sourcery skip: command-injection
+    process = subprocess.Popen(["python", *args], cwd=ROOT_DIR, shell=False)  # sourcery skip: command-injection
     process_manager.add_process(process)
 
 
@@ -277,8 +280,8 @@ def start_node_service(service_path: Path, service_name: str, port: int, api_url
 
 def start_gradio_ui(host, port, share, debug):
     """Start the Gradio UI."""
-    logger.info("Starting Gradio UI...")
     python_exe = get_python_executable()
+    logger.info("Starting Gradio UI...")
     cmd = [python_exe, "-m", "src.main"]
     if share:
         cmd.append("--share")
@@ -289,9 +292,8 @@ def start_gradio_ui(host, port, share, debug):
     # SonarCloud security validation
     if cmd[0] not in [get_python_executable(), str(get_python_executable()), 'npm', 'notmuch', 'pytest', 'uv', 'python', 'python3']:
         raise ValueError("Unauthorized UI executable")
-    executable = cmd[0]
     args = cmd[1:]
-    process = subprocess.Popen([str(executable), *args], cwd=ROOT_DIR, env=env, shell=False)  # sourcery skip: command-injection
+    process = subprocess.Popen(["python", *args], cwd=ROOT_DIR, env=env, shell=False)  # sourcery skip: command-injection
     process_manager.add_process(process)
 
 
