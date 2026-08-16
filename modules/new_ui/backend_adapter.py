@@ -115,17 +115,26 @@ class BackendClient:
             logger.error(f"Error getting metrics: {e}")
             return {"error": str(e)}
 
+    def _resolve_key_path(self, key: str) -> Optional[Path]:
+        """
+        Resolve a key to a safe path within DATA_DIR.
+        Returns None if path traversal is detected.
+        """
+        safe_key = "".join(x for x in key if x.isalnum() or x in "_-")
+        resolved = (DATA_DIR / f"{safe_key}.json").resolve()
+        if not resolved.is_relative_to(DATA_DIR.resolve()):
+            return None
+        return resolved
+
     def persist_item(self, key: str, data: Dict[str, Any]) -> bool:
         """
         Generic persistence using local JSON files (Fallback).
         Stored in modules/new_ui/data/{key}.json
         """
         try:
-            safe_key = "".join(x for x in key if x.isalnum() or x in "_-")
-            resolved = (DATA_DIR / f"{safe_key}.json").resolve()
-            if not resolved.is_relative_to(DATA_DIR.resolve()):
+            file_path = self._resolve_key_path(key)
+            if file_path is None:
                 raise ValueError("Path traversal attempt blocked")
-            file_path = resolved
 
             # Atomic write
             temp_path = file_path.with_suffix(".tmp")
@@ -144,13 +153,8 @@ class BackendClient:
         Generic retrieval using local JSON files (Fallback).
         """
         try:
-            safe_key = "".join(x for x in key if x.isalnum() or x in "_-")
-            resolved = (DATA_DIR / f"{safe_key}.json").resolve()
-            if not resolved.is_relative_to(DATA_DIR.resolve()):
-                return None
-            file_path = resolved
-
-            if not file_path.exists():
+            file_path = self._resolve_key_path(key)
+            if file_path is None or not file_path.exists():
                 return None
 
             with open(file_path, "r") as f:
