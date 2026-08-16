@@ -138,7 +138,7 @@ class BackendClient:
         try:
             file_path = self._resolve_key_path(key)
             if file_path is None:
-                raise ValueError("Path traversal attempt blocked")
+                return False
 
             # Atomic write
             temp_path = file_path.with_suffix(".tmp")
