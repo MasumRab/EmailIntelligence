@@ -43,13 +43,8 @@ Gradio UI (gradio_app.py)
 ├── 📧 Gmail Tab
 |   └── Calls POST /api/gmail/sync ──> Triggers Gmail synchronization
 |
-├── 🔬 AI Lab Tab (Advanced Tools)
-|   ├── Analysis Sub-Tab ──────────> Calls POST /api/ai/analyze
-|   └── Model Management Sub-Tab ────> Calls GET/POST /api/models/*
-|
-└── ⚙️ System Status Tab
-    ├── Calls GET /health ───────────> Displays system health
-    └── Calls GET /api/gmail/performance -> Displays performance metrics
+└── 📋 Strategies Tab
+    └── Calls GET /api/gmail/strategies -> Displays available retrieval strategies
 ```
 
 ## Prerequisites
