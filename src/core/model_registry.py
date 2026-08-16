@@ -14,7 +14,7 @@ from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from core.security import verify_model_safety
+from core.security import verify_model_safety, secure_load_joblib
 
 logger = logging.getLogger(__name__)
 
@@ -505,20 +505,12 @@ class ModelRegistry:
     async def _load_sklearn_model(self, metadata: ModelMetadata) -> Optional[Any]:
         """Load a scikit-learn model."""
         try:
-            import joblib
-
             model_path = metadata.path / f"{metadata.model_id}.pkl"
 
-            if model_path.exists():
-                if not verify_model_safety(model_path):
-                    logger.error(f"Model file failed safety verification: {model_path}")
-                    return None
-
-                model = joblib.load(model_path)
-                return model
-            else:
-                logger.error(f"Model file not found: {model_path}")
-                return None
+            model = secure_load_joblib(model_path)
+            if model is None:
+                logger.error(f"Model file not found or failed validation: {model_path}")
+            return model
         except Exception as e:
             logger.error(f"Failed to load sklearn model {metadata.model_id}: {e}")
             return None

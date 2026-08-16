@@ -18,7 +18,7 @@ from typing import Any, Dict, List, Optional
 from transformers import AutoModelForSequenceClassification, AutoTokenizer, pipeline
 
 from backend.python_nlp.text_utils import clean_text
-from core.security import verify_model_safety
+from core.security import secure_load_joblib
 
 from .analysis_components.importance_model import ImportanceModel
 
@@ -181,23 +181,14 @@ class NLPEngine:
             Loaded model object or None if loading fails
         """
         try:
-            if os.path.exists(model_path):
-                if not verify_model_safety(model_path):
-                    logger.warning(
-                        f"Model file failed safety verification at {model_path}."
-                    )
-                    return None
-
-                import joblib
-
-                model = joblib.load(model_path)
+            model = secure_load_joblib(model_path)
+            if model is not None:
                 logger.info(f"Successfully loaded model from {model_path}")
-                return model
-
-            logger.warning(
-                f"Model file not found at {model_path}. This model will be unavailable."
-            )
-            return None
+            else:
+                logger.warning(
+                    f"Model file not found or failed validation at {model_path}. This model will be unavailable."
+                )
+            return model
         except Exception as e:
             logger.error(f"Error loading model from {model_path}: {e}")
             return None
