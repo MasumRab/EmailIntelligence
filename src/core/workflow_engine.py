@@ -45,7 +45,9 @@ class Node:
         self.inputs = inputs
         self.outputs = outputs
         self.failure_strategy = failure_strategy  # "stop", "continue", or "retry"
-        self.conditional_expression = conditional_expression  # Optional conditional for execution
+        self.conditional_expression = (
+            conditional_expression  # Optional conditional for execution
+        )
         self.status = NodeExecutionStatus.PENDING
 
     def execute(self, context: Dict[str, Any]) -> Dict[str, Any]:
@@ -73,7 +75,10 @@ class Node:
 
         except Exception as e:
             self.status = NodeExecutionStatus.FAILED
-            logger.error(f"Error executing node '{self.name}' ({self.node_id}): {e}", exc_info=True)
+            logger.error(
+                f"Error executing node '{self.name}' ({self.node_id}): {e}",
+                exc_info=True,
+            )
             raise
 
 
@@ -82,7 +87,9 @@ class Workflow:
     Represents a processing workflow as a directed acyclic graph (DAG) of nodes.
     """
 
-    def __init__(self, name: str, nodes: Dict[str, Node], connections: List[Dict[str, str]]):
+    def __init__(
+        self, name: str, nodes: Dict[str, Node], connections: List[Dict[str, str]]
+    ):
         self.name = name
         self.nodes = nodes
         self.connections = connections  # List of connections in the format
@@ -138,9 +145,13 @@ class Workflow:
             to_node_id = conn["to"]["node_id"]
 
             if from_node_id not in self.nodes:
-                errors.append(f"Connection {i}: Source node '{from_node_id}' does not exist")
+                errors.append(
+                    f"Connection {i}: Source node '{from_node_id}' does not exist"
+                )
             if to_node_id not in self.nodes:
-                errors.append(f"Connection {i}: Target node '{to_node_id}' does not exist")
+                errors.append(
+                    f"Connection {i}: Target node '{to_node_id}' does not exist"
+                )
 
         # Check for cycles using the topological sort
         try:
@@ -199,7 +210,9 @@ class WorkflowRunner:
         self.workflow = workflow
         self.fail_on_error = fail_on_error
         self.max_retries = max_retries
-        self.max_concurrent = max_concurrent  # Maximum number of nodes to execute in parallel
+        self.max_concurrent = (
+            max_concurrent  # Maximum number of nodes to execute in parallel
+        )
         self.execution_context = {}
         self.node_results = {}
         self.execution_stats = {
@@ -239,7 +252,9 @@ class WorkflowRunner:
         # Validate the workflow before execution
         is_valid, validation_errors = self.workflow.validate()
         if not is_valid:
-            validation_error_msg = f"Workflow validation failed: {', '.join(validation_errors)}"
+            validation_error_msg = (
+                f"Workflow validation failed: {', '.join(validation_errors)}"
+            )
             logger.error(validation_error_msg)
             return {
                 "success": False,
@@ -382,7 +397,10 @@ class WorkflowRunner:
                         elif node.failure_strategy == "continue":
                             # Continue with execution
                             continue
-                        elif node.failure_strategy == "retry" and retry_count > self.max_retries:
+                        elif (
+                            node.failure_strategy == "retry"
+                            and retry_count > self.max_retries
+                        ):
                             # Already retried max times, continue to next node
                             continue
 
@@ -397,7 +415,8 @@ class WorkflowRunner:
                     if node_to_cleanup in self.node_results:
                         del self.node_results[node_to_cleanup]
                         logger.debug(
-                            f"Cleaned up results for node " f"{node_to_cleanup} to optimize memory"
+                            f"Cleaned up results for node "
+                            f"{node_to_cleanup} to optimize memory"
                         )
 
     async def _run_parallel(self, execution_order, cleanup_schedule):
@@ -424,7 +443,9 @@ class WorkflowRunner:
                 node_id = ready_nodes.pop(0)
 
                 # Create an async task to execute the node
-                task = asyncio.create_task(self._execute_single_node_with_timing(node_id))
+                task = asyncio.create_task(
+                    self._execute_single_node_with_timing(node_id)
+                )
                 running_tasks[node_id] = task
 
             if running_tasks:
@@ -486,9 +507,9 @@ class WorkflowRunner:
                         del running_tasks[node_id]
 
                 # If memory optimization is enabled, clean up results that are no longer needed
-                for (
-                    node_id
-                ) in completed_nodes.copy():  # Use copy to avoid mutation during iteration
+                for node_id in (
+                    completed_nodes.copy()
+                ):  # Use copy to avoid mutation during iteration
                     if node_id in cleanup_schedule:
                         for node_to_cleanup in cleanup_schedule[node_id]:
                             if (
@@ -568,12 +589,17 @@ class WorkflowRunner:
             target_node = conn["to"]["node_id"]
             source_node = conn["from"]["node_id"]
 
-            if target_node in dependencies and source_node not in dependencies[target_node]:
+            if (
+                target_node in dependencies
+                and source_node not in dependencies[target_node]
+            ):
                 dependencies[target_node].append(source_node)
 
         return dependencies
 
-    def _calculate_cleanup_schedule(self, execution_order: List[str]) -> Dict[str, List[str]]:
+    def _calculate_cleanup_schedule(
+        self, execution_order: List[str]
+    ) -> Dict[str, List[str]]:
         """
         Calculate which node results can be cleaned up after each node executes.
         This helps optimize memory usage by removing results that are no longer needed.

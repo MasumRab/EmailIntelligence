@@ -43,6 +43,7 @@ from .ai_engine import AdvancedAIEngine
 from .auth import create_access_token
 from .exceptions import AppException, BaseAppException
 from .database import get_db
+
 db_manager = None
 
 # Import new components
