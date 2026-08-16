@@ -154,7 +154,10 @@ class BackendClient:
 
     def _is_valid_workflow_id(self, workflow_id: str) -> bool:
         """Validate workflow id from UI before using it in storage key construction."""
-        return bool(workflow_id) and re.fullmatch(r"[A-Za-z0-9_-]+", workflow_id) is not None
+        return (
+            bool(workflow_id)
+            and re.fullmatch(r"[A-Za-z0-9_-]+", workflow_id) is not None
+        )
 
     def retrieve_item(self, key: str) -> Optional[Dict[str, Any]]:
         """
