@@ -128,7 +128,6 @@ class DatabaseManager:
         return full_email
 
     async def _ensure_initialized(self) -> None:
-
         if not self._initialized:
             await self._load_data()
             self._build_indexes()
@@ -357,7 +356,6 @@ class DatabaseManager:
             return self._add_category_details(email_light.copy())
 
     async def get_all_categories(self) -> List[Dict[str, Any]]:
-
         for cat_id, count in self.category_counts.items():
             if cat_id in self.categories_by_id:
                 self.categories_by_id[cat_id][FIELD_COUNT] = count
