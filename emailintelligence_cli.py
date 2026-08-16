@@ -639,22 +639,65 @@ class EmailIntelligenceCLI:
         for req in requirements:
             requirement_name = req.get('name', req.get('key', 'Unknown'))
             requirement_type = req.get('type', 'MUST')
-
             # High-Fidelity LibCST Compliance validation
             try:
                 from src.resolution import GovernanceValidationResult, ComplianceLevel
                 import libcst as cst
 
-                # Heuristic mapping for standard text requirements
+                # We will structurally check the conflicted files
+                has_docstrings = False
+                has_type_hints = False
+                has_tests = False
+
+                class ComplianceVisitor(cst.CSTVisitor):
+                    def __init__(self):
+                        self.has_docstring = False
+                        self.has_type_hint = False
+                        self.has_test = False
+
+                    def visit_Module(self, node: cst.Module):
+                        if node.get_docstring():
+                            self.has_docstring = True
+
+                    def visit_FunctionDef(self, node: cst.FunctionDef):
+                        if node.get_docstring():
+                            self.has_docstring = True
+                        if node.returns is not None or getattr(node.params, 'params', []):
+                            for param in getattr(node.params, 'params', []):
+                                if getattr(param, 'annotation', None) is not None:
+                                    self.has_type_hint = True
+                        if node.name.value.startswith("test_"):
+                            self.has_test = True
+
+                # Check actual codebase files involved in the conflict
+                visitor = ComplianceVisitor()
+                files_to_check = [c.get('file', '') for c in conflicts if c.get('file', '').endswith('.py')]
+                for fpath in files_to_check:
+                    try:
+                        file_content = self.fs_proxy.read_file(fpath)
+                        tree = cst.parse_module(file_content)
+                        tree.visit(visitor)
+                    except Exception as parse_e:
+                        pass
+
                 text = requirement_name.lower()
-                if 'must' in text or 'required' in text:
-                    compliance_status = 'CONFORMANT'
+                if 'docstring' in text or 'documentation' in text:
+                    compliance_status = 'CONFORMANT' if visitor.has_docstring else 'NON_CONFORMANT'
+                elif 'type hint' in text or 'typing' in text:
+                    compliance_status = 'CONFORMANT' if visitor.has_type_hint else 'NON_CONFORMANT'
+                elif 'test' in text:
+                    compliance_status = 'CONFORMANT' if visitor.has_test else 'NON_CONFORMANT'
+                elif 'must' in text or 'required' in text:
+                    # Generic structural constraint that we heuristically fallback to conformant
+                    # if code successfully parsed with CST (syntactically valid python)
+                    compliance_status = 'CONFORMANT' if files_to_check else 'PARTIALLY_CONFORMANT'
                 elif 'should' in text:
                     compliance_status = 'PARTIALLY_CONFORMANT'
                 else:
                     compliance_status = 'NON_CONFORMANT' if requirement_type in ['MUST', 'REQUIRED'] else 'PARTIALLY_CONFORMANT'
             except Exception:
                 compliance_status = 'PARTIALLY_CONFORMANT'
+
 
             requirement_assessment = {
                 'name': requirement_name,

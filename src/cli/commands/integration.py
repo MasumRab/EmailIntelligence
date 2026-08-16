@@ -8,7 +8,6 @@ and the Implementation (Discrete CLI Commands).
 
 import asyncio
 import logging
-from pathlib import Path
 from typing import Any, Dict, Optional
 
 from .factory import CommandFactory
@@ -108,74 +107,6 @@ def create_default_dependencies() -> Dict[str, Any]:
     # 4. Git Domain
     from src.git.worktree import WorktreeManager
     dependencies["worktree_manager"] = WorktreeManager()
-
-    # 5. History + classification services (GitHistory, CommitClassifier)
-    try:
-        from src.git.history import GitHistory, CommitClassifier
-        dependencies["history"] = GitHistory()
-        dependencies["classifier"] = CommitClassifier()
-    except Exception:
-        dependencies["history"] = None
-        dependencies["classifier"] = None
-
-    # 6. Rebase planning (RebasePlanner)
-    try:
-        from src.strategy.reordering import RebasePlanner
-        dependencies["planner"] = RebasePlanner()
-    except Exception:
-        dependencies["planner"] = None
-
-    # 7. Repository operations
-    try:
-        from src.git.repository import RepositoryOperations
-        dependencies["repository_ops"] = RepositoryOperations()
-    except Exception:
-        dependencies["repository_ops"] = None
-
-    # 8. Conflict detection (GitConflictDetector)
-    try:
-        from src.git.conflict_detector import GitConflictDetector
-        dependencies["conflict_detector"] = GitConflictDetector()
-    except Exception:
-        dependencies["conflict_detector"] = None
-
-    # 9. Governance analyzer (ConstitutionalAnalyzer alias)
-    try:
-        from src.analysis.governance.analyzer import GovernanceAnalyzer
-        dependencies["analyzer"] = GovernanceAnalyzer()
-    except Exception:
-        dependencies["analyzer"] = None
-
-    # 10. Strategy generation (StrategyGenerator)
-    try:
-        from src.strategy.generator import StrategyGenerator
-        dependencies["strategy_generator"] = StrategyGenerator()
-    except Exception:
-        dependencies["strategy_generator"] = None
-
-    # 11. Resolution engine (AutoResolver)
-    try:
-        from src.core.resolution.engine import AutoResolver
-        dependencies["resolver"] = AutoResolver()
-    except Exception:
-        dependencies["resolver"] = None
-
-    # 12. Git wrapper + rebase analyzer (optional: need GitPython)
-    try:
-        from src.lib.git_wrapper import GitWrapper
-        dependencies["git_wrapper"] = GitWrapper(str(Path.cwd()))
-    except Exception:
-        dependencies["git_wrapper"] = None
-
-    try:
-        from src.services.rebase_analyzer import RebaseAnalyzer
-        dependencies["rebase_analyzer"] = (
-            RebaseAnalyzer(dependencies["git_wrapper"])
-            if dependencies.get("git_wrapper") is not None
-            else None
-        )
-    except Exception:
-        dependencies["rebase_analyzer"] = None
 
     return dependencies
 

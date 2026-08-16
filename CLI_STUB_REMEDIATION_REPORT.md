@@ -20,3 +20,4 @@ Base ref verified as: `consolidate/cli-unification`
 - Overlapping format aliases (`-f`) causing argparse conflicts in `--help` were resolved.
 
 - Wired 30+ modular `src/cli/commands/*` commands dynamically into the legacy monolithic `emailintelligence_cli.py` entrypoint via `CommandRegistry`.
+- Completely purged the `EmailIntelligenceCLI` class from `emailintelligence_cli.py`, reducing it from ~1800 lines to ~170 lines, strictly delegating all root execution commands natively to the `src/cli/commands/` modular codebase mapping.

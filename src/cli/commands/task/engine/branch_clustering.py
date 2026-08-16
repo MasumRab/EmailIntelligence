@@ -119,9 +119,11 @@ class BranchAnalyzer:
             try:
                 cst_tree = cst.parse_module(content)
 
-                class CommentVisitor(cst.CSTVisitor):
+                class SemanticVisitor(cst.CSTVisitor):
                     def __init__(self):
                         self.comments = []
+                        self.functions = []
+                        self.classes = []
 
                     def visit_Comment(self, node):
                         self.comments.append(node.value)
@@ -130,14 +132,24 @@ class BranchAnalyzer:
                         self.comments.append(node.value)
 
                     def visit_Module(self, node):
-                        if node.get_docstring(): self.comments.append(node.get_docstring())
+                        doc = node.get_docstring()
+                        if doc:
+                            self.comments.append(doc)
 
+                    def visit_FunctionDef(self, node: cst.FunctionDef):
+                        self.functions.append(node.name.value)
 
-                        if node.get_docstring(): self.comments.append(node.get_docstring())
+                    def visit_ClassDef(self, node: cst.ClassDef):
+                        self.classes.append(node.name.value)
 
-                visitor = CommentVisitor()
+                visitor = SemanticVisitor()
                 cst_tree.visit(visitor)
                 result["comments"] = visitor.comments
+                # Enhance with deep semantic extraction
+                if visitor.functions:
+                    result["functions"].extend(visitor.functions)
+                if visitor.classes:
+                    result["classes"].extend(visitor.classes)
             except SyntaxError as e:
                 # Invalid syntax - skip CST parsing but log
                 import logging

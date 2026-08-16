@@ -4,7 +4,7 @@ Rebase strategy planning module.
 
 from typing import List
 from ..git.history import Commit
-from ..core.conflict_models import RiskLevel
+from ..resolution.types import RiskLevel
 
 
 class RebasePlanner:
