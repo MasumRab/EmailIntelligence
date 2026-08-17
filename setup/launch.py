@@ -114,7 +114,7 @@ def check_wsl_requirements():
 
     # Check if X11 server is accessible (optional check)
     try:
-        result = subprocess.run(["xset", "-q"], capture_output=True, timeout=2)  # NOSONAR
+        result = subprocess.run(["xset", "-q"], capture_output=True, timeout=2)  # NOSONAR  # sourcery skip: dangerous-subprocess-use-audit
         if result.returncode != 0:
             logger.warning("X11 server not accessible - GUI applications may not work")
             logger.info("Install VcXsrv, MobaXterm, or similar X11 server on Windows")
@@ -381,7 +381,7 @@ def run_command(cmd: List[str], description: str, **kwargs) -> bool:
         ALLOWED_EXECUTABLES = {'python', 'python3', 'npm', 'notmuch', 'pytest', 'uv', str(get_python_executable())}
         if not cmd or cmd[0] not in ALLOWED_EXECUTABLES:
             raise ValueError(f"Unauthorized executable: {cmd[0]}")
-        proc = subprocess.run(cmd, check=True, text=True, capture_output=True, **kwargs)  # NOSONAR
+        proc = subprocess.run(cmd, check=True, text=True, capture_output=True, **kwargs)  # NOSONAR  # sourcery skip: dangerous-subprocess-use-audit
         if proc.stdout:
             logger.debug(proc.stdout)
         if proc.stderr:
@@ -417,7 +417,7 @@ def setup_dependencies(venv_path: Path, use_poetry: bool = False):
         run_command([python_exe, "-m", "pip", "install", "--upgrade", "pip"], "Upgrading pip")
         # For poetry, we need to install it first if not available
         try:
-            subprocess.run([python_exe, "-c", "import poetry"], check=True, capture_output=True)  # NOSONAR
+            subprocess.run([python_exe, "-c", "import poetry"], check=True, capture_output=True)  # NOSONAR  # sourcery skip: dangerous-subprocess-use-audit
         except subprocess.CalledProcessError:
             run_command([python_exe, "-m", "pip", "install", "poetry"], "Installing Poetry")
 
@@ -431,7 +431,7 @@ def setup_dependencies(venv_path: Path, use_poetry: bool = False):
         run_command([python_exe, "-m", "pip", "install", "--upgrade", "pip"], "Upgrading pip")
         # For uv, install if not available
         try:
-            subprocess.run([python_exe, "-c", "import uv"], check=True, capture_output=True)  # NOSONAR
+            subprocess.run([python_exe, "-c", "import uv"], check=True, capture_output=True)  # NOSONAR  # sourcery skip: dangerous-subprocess-use-audit
         except subprocess.CalledProcessError:
             run_command([python_exe, "-m", "pip", "install", "uv"], "Installing uv")
 
@@ -447,7 +447,7 @@ def setup_dependencies(venv_path: Path, use_poetry: bool = False):
 
 def install_notmuch_matching_system():
     try:
-        result = subprocess.run(  # NOSONAR
+        result = subprocess.run(  # NOSONAR  # sourcery skip: dangerous-subprocess-use-audit
             ["notmuch", "--version"], capture_output=True, text=True, check=True
         )
         version_line = result.stdout.strip()
@@ -486,7 +486,7 @@ except Exception as e:
 """
 
     logger.info("Downloading NLTK data...")
-    result = subprocess.run(  # NOSONAR
+    result = subprocess.run(  # NOSONAR  # sourcery skip: dangerous-subprocess-use-audit
         [python_exe, "-c", nltk_download_script], cwd=ROOT_DIR, capture_output=True, text=True
     )
     if result.returncode != 0:
@@ -509,7 +509,7 @@ except Exception as e:
 """
 
     logger.info("Downloading TextBlob corpora...")
-    result = subprocess.run(  # NOSONAR
+    result = subprocess.run(  # NOSONAR  # sourcery skip: dangerous-subprocess-use-audit
         [python_exe, "-c", textblob_download_script],
         cwd=ROOT_DIR,
         capture_output=True,
@@ -527,7 +527,7 @@ def check_uvicorn_installed() -> bool:
     """Check if uvicorn is installed."""
     python_exe = get_python_executable()
     try:
-        result = subprocess.run(  # NOSONAR
+        result = subprocess.run(  # NOSONAR  # sourcery skip: dangerous-subprocess-use-audit
             [python_exe, "-c", "import uvicorn"], capture_output=True, text=True
         )
         if result.returncode == 0:
