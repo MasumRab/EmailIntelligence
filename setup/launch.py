@@ -396,7 +396,7 @@ def run_command(cmd: List[str], description: str, **kwargs) -> bool:
     """Run a command and log its output."""
     logger.info(f"{description}...")
     try:
-        proc = subprocess.run(cmd, check=True, text=True, capture_output=True, **kwargs)  # NOSONAR  # sourcery skip: dangerous-subprocess-use-audit
+        proc = subprocess.run([str(c) for c in cmd], check=True, text=True, capture_output=True, **kwargs)  # NOSONAR  # sourcery skip: dangerous-subprocess-use-audit
         if proc.stdout:
             logger.debug(proc.stdout)
         if proc.stderr:
@@ -430,7 +430,7 @@ def setup_dependencies(venv_path: Path, use_poetry: bool = False):
     if use_poetry:
         # For poetry, we need to install it first if not available
         try:
-            subprocess.run([python_exe, "-c", "import poetry"], check=True, capture_output=True)  # NOSONAR  # sourcery skip: dangerous-subprocess-use-audit
+            subprocess.run([str(c) for c in [python_exe, "-c", "import poetry"]], check=True, capture_output=True)  # NOSONAR  # sourcery skip: dangerous-subprocess-use-audit
         except subprocess.CalledProcessError:
             run_command([python_exe, "-m", "pip", "install", "poetry"], "Installing Poetry")
 
@@ -442,7 +442,7 @@ def setup_dependencies(venv_path: Path, use_poetry: bool = False):
     else:
         # For uv, install if not available
         try:
-            subprocess.run([python_exe, "-c", "import uv"], check=True, capture_output=True)  # NOSONAR  # sourcery skip: dangerous-subprocess-use-audit
+            subprocess.run([str(c) for c in [python_exe, "-c", "import uv"]], check=True, capture_output=True)  # NOSONAR  # sourcery skip: dangerous-subprocess-use-audit
         except subprocess.CalledProcessError:
             run_command([python_exe, "-m", "pip", "install", "uv"], "Installing uv")
 
