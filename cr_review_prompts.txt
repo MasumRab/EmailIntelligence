@@ -1096,4 +1096,3 @@ Replaying 69 AI prompts from your last review on main.
   _execute_check_command exit codes when critical files are missing. Use
   mocks or temporary fixtures as appropriate while preserving existing
   command behavior.
-
