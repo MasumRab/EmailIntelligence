@@ -32,7 +32,7 @@ jobs:
             fi
             TOTAL=$(jq 'length' <<< "$CHECKS")
             PENDING=$(jq '[.[] | select(.bucket == "pending")] | length' <<< "$CHECKS")
-            BLOCKERS=$(jq '[.[] | select(.bucket == "failure" or .bucket == "cancelled")] | length' <<< "$CHECKS")
+            BLOCKERS=$(jq '[.[] | select(.bucket == "FAILURE" or .bucket == "CANCELLED" or .bucket == "failure" or .bucket == "cancelled")] | length' <<< "$CHECKS")
             echo "Total: $TOTAL, Pending: $PENDING, Blockers: $BLOCKERS"
             # If there are no required checks, proceed immediately according to merge policy
             if [ "$TOTAL" -eq 0 ]; then
