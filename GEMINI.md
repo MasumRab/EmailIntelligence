@@ -5,6 +5,15 @@
 
 # Template Name: Jules Backlog Task Completion
 
+> ## 🔴 CANONICAL BRANCH RULES — READ FIRST
+> Branch workflow for `main` / `scientific` / `orchestration-tools` is governed by **[`.taskmaster/BRANCH_MANAGEMENT_MODEL.md`](.taskmaster/BRANCH_MANAGEMENT_MODEL.md)**.
+> Branches are **intentionally divergent** (stable product on `main`, experimental product on `scientific`, shared tooling **substrate** on `orchestration-tools`). **Do NOT** converge `main ↔ scientific`. **Do NOT** merge `orchestration-tools-combined` into this branch — it is the deprecated main+scientific merge artifact (see §7). Use the curated transfer patterns (T1/T2/T3/T4) in that file.
+>
+> ### EmailIntelligence Documentation (Discovery)
+> - **[Getting Started Guide](docs/getting_started.md)** · **[Architecture Decision Records](docs/adr/)** · **[AI Model Training Guide](docs/ai_model_training_guide.md)** · **[Testing Guide](docs/testing_guide.md)**
+>
+> To read the canonical branch rules locally: `git submodule update --init` (`.taskmaster/` is a submodule, gitignored on product branches).
+
 ## Description
 This template is designed to guide the AI assistant, Jules, in autonomously completing specific backlog tasks within a software project. It provides a structured approach for understanding the task, planning the implementation, executing code changes, testing, and updating documentation, ultimately aiming for a ready-for-review pull request.
 

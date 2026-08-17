@@ -147,11 +147,19 @@ export function EmailList({ emails, loading, onEmailSelect }: EmailListProps) {
                       {email.categoryData.name}
                     </Badge>
                   )}
-                  {email.labels?.split(",").map((label: string, index: number) => (
+{(() => {
+                    let labels: string[] = [];
+                    if (typeof email.labels === "string") {
+                      labels = email.labels.split(",");
+                    } else if (Array.isArray(email.labels)) {
+                      labels = email.labels;
+                    }
+                    return labels.map((label: string, index: number) => (
                     <Badge key={index} variant="outline" className="text-xs">
                       {label}
                     </Badge>
-                  ))}
+                  );
+                  })()}
                   {email.confidence && (
                     <span className="text-xs text-gray-500 flex items-center">
                       <Brain className="h-3 w-3 mr-1" />
