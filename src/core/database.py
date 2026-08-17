@@ -199,7 +199,7 @@ class DatabaseManager(DataSource):
                 with gzip.open(content_path, "rt", encoding="utf-8") as f:
                     heavy_data = await asyncio.to_thread(json.load, f)
                     full_email.update(heavy_data)
-                    
+
                     # Cache the content
                     self.caching_manager.put_email_content(email_id, heavy_data)
             except (IOError, json.JSONDecodeError) as e:
@@ -378,11 +378,11 @@ class DatabaseManager(DataSource):
         for data_type in list(self._dirty_data):
             await self._save_data_to_file(data_type)
         self._dirty_data.clear()
-        
+
         # Log cache statistics
         cache_stats = self.caching_manager.get_cache_statistics()
         logger.info(f"Cache statistics: {cache_stats}")
-        
+
         logger.info("Shutdown complete.")
 
     def _generate_id(self, data_list: List[Dict[str, Any]]) -> int:
@@ -508,7 +508,7 @@ class DatabaseManager(DataSource):
         cached_email = self.caching_manager.get_email_record(email_id)
         if cached_email is not None and not include_content:
             return self._add_category_details(cached_email.copy())
-        
+
         email_light = self.emails_by_id.get(email_id)
         if not email_light:
             return None
@@ -520,18 +520,18 @@ class DatabaseManager(DataSource):
                 email_full = email_light.copy()
                 email_full.update(cached_content)
                 return self._add_category_details(email_full)
-            
+
             email_full = await self._load_and_merge_content(email_light)
-            
+
             # Cache the content
             heavy_fields = {k: v for k, v in email_full.items() if k in HEAVY_EMAIL_FIELDS}
             if heavy_fields:
                 self.caching_manager.put_email_content(email_id, heavy_fields)
-            
+
             result = self._add_category_details(email_full)
         else:
             result = self._add_category_details(email_light.copy())
-        
+
         # Cache the email record
         self.caching_manager.put_email_record(email_id, email_light)
         return result
@@ -704,10 +704,10 @@ class DatabaseManager(DataSource):
                     await self._update_category_count(original_category_id, decrement=True)
                 if new_category_id is not None:
                     await self._update_category_count(new_category_id, increment=True)
-            
+
             # Invalidate cache for this email
             self.caching_manager.invalidate_email_record(email_id)
-            
+
             # Invalidate sorted cache and query cache
             self._sorted_emails_cache = None
             self.caching_manager.clear_query_cache()
@@ -720,12 +720,12 @@ class DatabaseManager(DataSource):
         """Get email by messageId using in-memory index, with option to load heavy content."""
         if not message_id:
             return None
-            
+
         # Find email_id from message_id to use with caching
         email_light = self.emails_by_message_id.get(message_id)
         if not email_light:
             return None
-            
+
         email_id = email_light.get(FIELD_ID)
         if not email_id:
             # Fallback to original method if no ID
@@ -734,7 +734,7 @@ class DatabaseManager(DataSource):
                 return self._add_category_details(email_full)
             else:
                 return self._add_category_details(email_light.copy())
-        
+
         # Use the enhanced caching with email_id
         return await self.get_email_by_id(email_id, include_content)
 
@@ -925,7 +925,7 @@ class DatabaseManager(DataSource):
                 email_id = int(email_id)
             except ValueError:
                 return False
-        
+
         email = await self.get_email_by_id(email_id)
         if not email:
             return False
@@ -944,7 +944,7 @@ class DatabaseManager(DataSource):
                 email_id = int(email_id)
             except ValueError:
                 return False
-        
+
         email = await self.get_email_by_id(email_id)
         if not email:
             return False

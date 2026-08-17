@@ -560,6 +560,38 @@ class WorkflowRunner:
             self.execution_stats["node_execution_times"][node_id] = execution_time
             raise
 
+    def _build_node_context(self, node_id: str) -> Dict[str, Any]:
+        """
+        Builds the input context for a specific node based on the workflow's connections.
+        Maps the required inputs of the target node to the outputs available in the current
+        execution context.
+        """
+        node_context = {}
+        node = self.workflow.nodes[node_id]
+
+        # First, pass along any available inputs from the main execution context
+        # This handles initial inputs provided to the workflow
+        for input_name in node.inputs:
+            if input_name in self.execution_context:
+                node_context[input_name] = self.execution_context[input_name]
+
+        # Then, override or add inputs based on specific connections
+        # This allows mapping specific node outputs to specific node inputs
+        for conn in self.workflow.connections:
+            if conn["to"]["node_id"] == node_id:
+                # This connection targets our node
+                source_node_id = conn["from"]["node_id"]
+                output_name = conn["from"]["output"]
+                input_name = conn["to"]["input"]
+
+                # If the source node has executed and we have its results
+                if source_node_id in self.node_results:
+                    source_results = self.node_results[source_node_id]
+                    if output_name in source_results:
+                        node_context[input_name] = source_results[output_name]
+
+        return node_context
+
     def _calculate_node_dependencies(self) -> Dict[str, List[str]]:
         """Calculate which nodes each node depends on"""
         dependencies = {node_id: [] for node_id in self.workflow.nodes}
@@ -578,33 +610,33 @@ class WorkflowRunner:
         Calculate which node results can be cleaned up after each node executes.
         This helps optimize memory usage by removing results that are no longer needed.
         """
-        cleanup_schedule = {}
+        cleanup_schedule = {node_id: [] for node_id in execution_order}
 
-        # For each node in the execution order, determine which previous nodes' results
-        # are no longer needed after this node executes
-        for i, node_id in enumerate(execution_order):
-            cleanup_schedule[node_id] = []
+        # Build an adjacency list to quickly lookup node consumers
+        consumers = {node_id: set() for node_id in execution_order}
+        for conn in self.workflow.connections:
+            source = conn["from"]["node_id"]
+            target = conn["to"]["node_id"]
+            if source in consumers:
+                consumers[source].add(target)
 
-            # Check all previous nodes to see if their results are still needed
-            for prev_node_id in execution_order[:i]:
-                # Check if any subsequent nodes need the result from prev_node_id
-                still_needed = False
+        # To determine when a node's result is no longer needed, we find the last
+        # execution position among all its consumers.
+        order_index = {node_id: idx for idx, node_id in enumerate(execution_order)}
 
-                for subsequent_node_id in execution_order[i + 1 :]:
-                    # Check if there's a connection from prev_node to subsequent_node
-                    for conn in self.workflow.connections:
-                        if (
-                            conn["from"]["node_id"] == prev_node_id
-                            and conn["to"]["node_id"] == subsequent_node_id
-                        ):
-                            still_needed = True
-                            break
-                    if still_needed:
-                        break
+        for node_id in execution_order:
+            node_consumers = consumers.get(node_id, set())
 
-                # If not still needed by any subsequent nodes, it can be cleaned up
-                if not still_needed:
-                    cleanup_schedule[node_id].append(prev_node_id)
+            if node_consumers:
+                # Find the maximum index among all consumers
+                max_consumer_idx = -1
+                for consumer in node_consumers:
+                    if consumer in order_index:
+                        max_consumer_idx = max(max_consumer_idx, order_index[consumer])
+
+                if max_consumer_idx != -1:
+                    last_consumer = execution_order[max_consumer_idx]
+                    cleanup_schedule[last_consumer].append(node_id)
 
         return cleanup_schedule
 
