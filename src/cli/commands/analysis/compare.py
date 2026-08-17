@@ -67,32 +67,48 @@ class CompareCommand(Command):
         
         comparisons = []
         for i in range(len(chain) - 1):
-            comparisons.append(self._compare_dna(chain[i], chain[i+1]))
+            # Pass wrapper dicts correctly
+            comparisons.append(self._compare_dna(chain[i], chain[i+1], strategy="logic-compare"))
+
+            # Need to maintain wrapper properties at output layer
+            comparisons[-1]["from"] = chain[i]["file"]
+            comparisons[-1]["to"] = chain[i+1]["file"]
+
+            missing_patterns = [p for p, val in chain[i]["patterns"].items() if val and not chain[i+1]["patterns"][p]]
+            comparisons[-1]["missing_patterns"] = missing_patterns
             
         return {"files": [c["file"] for c in chain], "comparisons": comparisons}
 
     def _extract_logical_dna(self, path: Path) -> Dict[str, Dict]:
-        """Extract normalized logic signatures for every function."""
+        """Extract high-fidelity LibCST logic signatures."""
         dna = {}
         try:
+            import libcst as cst
             content = path.read_text(encoding='utf-8')
-            tree = ast.parse(content)
-            for node in ast.walk(tree):
-                if isinstance(node, ast.FunctionDef):
-                    # 1. Normalize logic (strip comments/whitespace)
-                    logic_body = ast.get_source_segment(content, node) or ""
-                    normalized = self._normalize_logic(logic_body)
+            tree = cst.parse_module(content)
+
+            class FunctionExtractor(cst.CSTVisitor):
+                def __init__(self):
+                    self.dna = {}
                     
-                    # 2. Generate Logical Signature
+                def visit_FunctionDef(self, node: cst.FunctionDef) -> None:
+                    # LibCST code generation strips external noise authentically
+                    logic_body = cst.Module([]).code_for_node(node)
+                    normalized = "".join(logic_body.split())
                     sig = hashlib.sha256(normalized.encode()).hexdigest()[:12]
                     
-                    dna[node.name] = {
+                    self.dna[node.name.value] = {
                         "sig": sig,
-                        "complexity": len(node.body),
+                        "complexity": len(node.body.body),
                         "body": normalized
                     }
+
+            extractor = FunctionExtractor()
+            tree.visit(extractor)
+            dna = extractor.dna
         except Exception as e:
-            print("Error extracting DNA from {}: {}".format(path.name, e))
+            import logging
+            logging.debug(f"DNA extraction error: {e}")
         return dna
 
     def _detect_patterns(self, path: Path) -> Dict[str, bool]:
@@ -117,8 +133,8 @@ class CompareCommand(Command):
             patterns['iteration_tracking'] = 'iteration_history' in content or 'best_results' in content
             patterns['dependency_validation'] = 'dep_id' in content and 'validate' in content
             patterns['self_healing'] = 'improvement' in content and 'threshold' in content
-        except Exception:
-            pass
+        except Exception as e:
+            import logging; logging.debug(e)
         return patterns
 
     def _normalize_logic(self, source: str) -> str:
@@ -127,23 +143,31 @@ class CompareCommand(Command):
                  if line.strip() and not line.strip().startswith("#")]
         return "".join(lines)
 
-    def _compare_dna(self, old: Dict, new: Dict) -> Dict:
-        """Deep comparison of logical signatures and patterns."""
-        old_dna = old["dna"]
-        new_dna = new["dna"]
+    def _compare_dna(self, old: Dict, new: Dict, strategy: str = "logic-compare") -> Dict:
+        """Deep parameterizable comparison of logical signatures."""
+        old_dna = old.get("dna", {})
+        new_dna = new.get("dna", {})
         
         matches = []
         drifts = []
         missing = []
 
-        # Function-level comparison
         for fn_name, old_data in old_dna.items():
             if fn_name in new_dna:
                 new_data = new_dna[fn_name]
                 if old_data["sig"] == new_data["sig"]:
                     matches.append(fn_name)
                 else:
-                    similarity = SequenceMatcher(None, old_data["body"], new_data["body"]).ratio()
+                    # Strategy Parameterization
+                    if strategy == "logic-compare":
+                        similarity = 1.0 if old_data["body"] == new_data["body"] else 0.0
+                    elif strategy == "alignment":
+                        struct_sim = SequenceMatcher(None, old_data["sig"], new_data["sig"]).ratio()
+                        lexical_sim = SequenceMatcher(None, old_data["body"], new_data["body"]).ratio()
+                        similarity = (struct_sim * 0.4) + (lexical_sim * 0.6)
+                    else: # logic-drift
+                        similarity = SequenceMatcher(None, old_data["body"], new_data["body"]).ratio()
+
                     drifts.append({
                         "name": fn_name,
                         "similarity": similarity,
@@ -152,18 +176,21 @@ class CompareCommand(Command):
             else:
                 missing.append(fn_name)
 
-        # Pattern-level comparison
-        missing_patterns = [p for p, val in old["patterns"].items() if val and not new["patterns"][p]]
-
-        return {
-            "from": old["file"],
-            "to": new["file"],
+        ret = {
             "parity_score": len(matches) / len(old_dna) if old_dna else 1.0,
             "matches": matches,
             "drifts": drifts,
-            "missing": missing,
-            "missing_patterns": missing_patterns
+            "missing": missing
         }
+
+        if "file" in old and "file" in new:
+            ret["from"] = old["file"]
+            ret["to"] = new["file"]
+
+        if "patterns" in old and "patterns" in new:
+            ret["missing_patterns"] = [p for p, val in old["patterns"].items() if val and not new["patterns"][p]]
+
+        return ret
 
     def _print_forensic_report(self, results: Dict, threshold: float):
         for comp in results["comparisons"]:

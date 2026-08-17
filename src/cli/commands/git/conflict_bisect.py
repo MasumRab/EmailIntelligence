@@ -78,7 +78,7 @@ class ConflictBisectCommand(Command):
         )
         parser.add_argument(
             "--fix-branch",
-            "-f",
+
             help="Branch to apply fix to (default: main)",
             default="main",
         )
@@ -101,7 +101,7 @@ class ConflictBisectCommand(Command):
         )
         parser.add_argument(
             "--format",
-            "-f",
+
             choices=["json", "yaml", "text"],
             default="json",
             help="Output format (default: json)",

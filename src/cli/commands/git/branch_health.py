@@ -69,7 +69,7 @@ class BranchHealthCommand(Command):
         )
         parser.add_argument(
             "--format",
-            "-f",
+
             choices=["json", "yaml", "text"],
             default="json",
             help="Output format (default: json)",
@@ -233,8 +233,8 @@ class BranchHealthCommand(Command):
                         }
                     )
                     score -= 15
-        except Exception:
-            pass
+        except Exception as e:
+            import logging; logging.debug(e)
 
         try:
             cmd = ["git", "merge-base", target, branch]
@@ -254,8 +254,8 @@ class BranchHealthCommand(Command):
                         }
                     )
                     score -= 5
-        except Exception:
-            pass
+        except Exception as e:
+            import logging; logging.debug(e)
 
         try:
             cmd = ["git", "log", f"{target}..{branch}", "--grep=rebase", "--oneline"]
@@ -270,8 +270,8 @@ class BranchHealthCommand(Command):
                     }
                 )
                 score -= 10
-        except Exception:
-            pass
+        except Exception as e:
+            import logging; logging.debug(e)
 
         score = max(0, min(100, score))
         return score, risks

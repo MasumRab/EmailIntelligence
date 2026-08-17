@@ -80,10 +80,10 @@ class GitDiscoverCommand(Command):
 
                 # 3. Semantic Intent Analysis
                 similarity = await self._nlp.calculate_similarity(dna, self.CORE_SCOPE)
-                
+
                 status = "IN SCOPE" if similarity > args.threshold else "🚨 OUT OF SCOPE / EXTERNAL TOOL"
                 print(f"  - Semantic Affinity: {similarity:.2f} ({status})")
-                
+
                 if similarity <= args.threshold:
                     print(f"  - Found potential external toolset in {branch}")
                     # List top scripts found in this 'external' branch

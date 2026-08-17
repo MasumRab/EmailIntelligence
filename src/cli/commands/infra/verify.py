@@ -172,7 +172,7 @@ class VerifyCommand(Command):
                         if result.returncode == 0:
                             count = len([line for line in result.stdout.split('\n') if line.strip()])
                             print(f"📦 Packages in venv: {count}")
-                    except Exception:
-                        pass
+                    except Exception as e:
+                        import logging; logging.debug(e)
                 return True
         return False

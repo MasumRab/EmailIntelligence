@@ -1,12 +1,12 @@
 """
-Constitutional Analyzer module.
-Orchestrates the checking of code against constitutional rules.
+Governance Analyzer module.
+Orchestrates the checking of code against governance rules.
 """
 
 from pathlib import Path
 from typing import List, Dict, Any
 
-from ...core.interfaces import IConstitutionalAnalyzer
+from ...core.interfaces import IGovernanceAnalyzer
 from ...core.conflict_models import Conflict, AnalysisResult, RiskLevel
 from ...utils.logger import get_logger
 from .models import RequirementViolation
@@ -21,13 +21,13 @@ from .requirement_checker import (
 logger = get_logger(__name__)
 
 
-class ConstitutionalAnalyzer(IConstitutionalAnalyzer):
+class GovernanceAnalyzer(IGovernanceAnalyzer):
     """
-    Analyzes code against constitutional rules and requirements.
+    Analyzes code against governance rules and requirements.
     """
 
-    def __init__(self, constitution_file: str = None):
-        self.constitution_file = constitution_file
+    def __init__(self, standards_file: str = None):
+        self.standards_file = standards_file
         self.checkers = [
             ErrorHandlingChecker(),
             TypeHintChecker(),
@@ -35,9 +35,9 @@ class ConstitutionalAnalyzer(IConstitutionalAnalyzer):
             SecurityChecker(),
         ]
 
-    async def analyze_constitutional_compliance(self, code: str, context: Dict[str, Any]) -> AnalysisResult:
+    async def analyze_governance_compliance(self, code: str, context: Dict[str, Any]) -> AnalysisResult:
         """
-        Analyze code for constitutional compliance.
+        Analyze code for governance compliance.
 
         Args:
             code: The code to analyze
@@ -46,7 +46,7 @@ class ConstitutionalAnalyzer(IConstitutionalAnalyzer):
         Returns:
             Analysis result with compliance information
         """
-        logger.info(f"Starting constitutional analysis for code of length {len(code)}")
+        logger.info(f"Starting governance analysis for code of length {len(code)}")
         
         violations = []
         recommendations = []
@@ -76,5 +76,5 @@ class ConstitutionalAnalyzer(IConstitutionalAnalyzer):
             details=details
         )
         
-        logger.info(f"Constitutional analysis completed with score: {compliance_score:.2f}")
+        logger.info(f"Governance analysis completed with score: {compliance_score:.2f}")
         return analysis_result

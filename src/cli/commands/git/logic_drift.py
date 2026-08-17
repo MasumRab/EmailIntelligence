@@ -51,7 +51,12 @@ class LogicDriftAnalyzerCommand(Command):
         base_dna = self._extract_logical_dna(base_content)
         head_dna = self._extract_logical_dna(head_content)
         
-        comp = self._compare_dna(base_dna, head_dna)
+        # Execute parameterized logic-drift strategy against base vs head DNA
+        from src.cli.commands.analysis.compare import CompareCommand
+        cmd = CompareCommand()
+        old_wrapper = {"dna": base_dna}
+        new_wrapper = {"dna": head_dna}
+        comp = cmd._compare_dna(old_wrapper, new_wrapper, strategy="logic-drift")
         
         if args.json:
             print(json.dumps(comp, indent=2))
@@ -67,53 +72,30 @@ class LogicDriftAnalyzerCommand(Command):
             return None
 
     def _extract_logical_dna(self, content: str) -> Dict[str, Dict]:
-        dna = {}
+        import tempfile
+        import os
+        from pathlib import Path
+        from src.cli.commands.analysis.compare import CompareCommand
+
+        # Reuse CompareCommand's exact DNA extractor to satisfy DRY principles
+        with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.py', encoding='utf-8') as tf:
+            tf.write(content)
+            temp_path = tf.name
+
         try:
-            tree = ast.parse(content)
-            for node in ast.walk(tree):
-                if isinstance(node, ast.FunctionDef):
-                    logic_body = ast.get_source_segment(content, node) or ""
-                    normalized = self._normalize_logic(logic_body)
-                    sig = hashlib.sha256(normalized.encode()).hexdigest()[:12]
-                    dna[node.name] = {
-                        "sig": sig,
-                        "complexity": len(node.body),
-                        "body": normalized
-                    }
-        except Exception:
-            pass
+            cmd = CompareCommand()
+            dna = cmd._extract_logical_dna(Path(temp_path))
+        finally:
+            if os.path.exists(temp_path):
+                os.remove(temp_path)
+
         return dna
 
     def _normalize_logic(self, source: str) -> str:
         lines = [line.strip() for line in source.splitlines() if line.strip() and not line.strip().startswith("#")]
         return "".join(lines)
 
-    def _compare_dna(self, old_dna: Dict, new_dna: Dict) -> Dict:
-        matches = []
-        drifts = []
-        missing = []
 
-        for fn_name, old_data in old_dna.items():
-            if fn_name in new_dna:
-                new_data = new_dna[fn_name]
-                if old_data["sig"] == new_data["sig"]:
-                    matches.append(fn_name)
-                else:
-                    similarity = SequenceMatcher(None, old_data["body"], new_data["body"]).ratio()
-                    drifts.append({
-                        "name": fn_name,
-                        "similarity": similarity,
-                        "complexity_delta": new_data["complexity"] - old_data["complexity"]
-                    })
-            else:
-                missing.append(fn_name)
-
-        return {
-            "parity_score": len(matches) / len(old_dna) if old_dna else 1.0,
-            "matches": matches,
-            "drifts": drifts,
-            "missing": missing
-        }
 
     def _print_forensic_report(self, comp: Dict, threshold: float):
         print("Parity Score: {:.2f}%".format(comp['parity_score'] * 100))

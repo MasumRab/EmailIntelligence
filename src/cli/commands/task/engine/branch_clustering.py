@@ -113,22 +113,43 @@ class BranchAnalyzer:
                 ast.dump(tree, annotate_fields=False, include_attributes=False)
             )
         except SyntaxError:
-            pass
+            return None
 
         if HAVE_LIBCST:
             try:
                 cst_tree = cst.parse_module(content)
 
-                class CommentVisitor(cst.CSTVisitor):
+                class SemanticVisitor(cst.CSTVisitor):
                     def __init__(self):
                         self.comments = []
+                        self.functions = []
+                        self.classes = []
 
                     def visit_Comment(self, node):
                         self.comments.append(node.value)
 
-                visitor = CommentVisitor()
+                    def visit_SimpleString(self, node):
+                        self.comments.append(node.value)
+
+                    def visit_Module(self, node):
+                        doc = node.get_docstring()
+                        if doc:
+                            self.comments.append(doc)
+
+                    def visit_FunctionDef(self, node: cst.FunctionDef):
+                        self.functions.append(node.name.value)
+
+                    def visit_ClassDef(self, node: cst.ClassDef):
+                        self.classes.append(node.name.value)
+
+                visitor = SemanticVisitor()
                 cst_tree.visit(visitor)
                 result["comments"] = visitor.comments
+                # Enhance with deep semantic extraction
+                if visitor.functions:
+                    result["functions"].extend(visitor.functions)
+                if visitor.classes:
+                    result["classes"].extend(visitor.classes)
             except SyntaxError as e:
                 # Invalid syntax - skip CST parsing but log
                 import logging

@@ -128,8 +128,8 @@ class GitMergeSemanticCommand(Command):
                 return str(sorted(list(set(p1 + p2))))
             if isinstance(p1, dict) and isinstance(p2, dict):
                 return str({**p1, **p2})
-        except Exception:
-            pass
+        except Exception as e:
+            import logging; logging.debug(e)
         return f"/* CONFLICT {v1} | {v2} */"
 
     def _merge_imports(self, lines_a: List[str], lines_b: List[str]) -> List[str]:

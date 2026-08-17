@@ -76,23 +76,18 @@ def create_default_dependencies() -> Dict[str, Any]:
     dependencies = {}
 
     # 1. Security Domain (Proxy Pattern)
-    try:
-        from ...core.security import SecurityValidator, SecureFileSystemProxy
+    from src.core.security import SecurityValidator, SecureFileSystemProxy
 
-        validator = SecurityValidator()
-        dependencies["security_validator"] = validator
-        dependencies["fs_proxy"] = SecureFileSystemProxy(validator)
-    except ImportError:
-        logger.warning("Security modules not available. Using fallback placeholders.")
-        dependencies["security_validator"] = None
-        dependencies["fs_proxy"] = None
+    validator = SecurityValidator()
+    dependencies["security_validator"] = validator
+    dependencies["fs_proxy"] = SecureFileSystemProxy(validator)
 
     # 2. Validation Domain - Simple in-memory validator for CLI
     class CLIValidator:
         """Simple validator for CLI validation command."""
 
         def __init__(self):
-            pass
+            return None
 
         async def validate(self, target):
             """Run validation on target."""
@@ -106,21 +101,12 @@ def create_default_dependencies() -> Dict[str, Any]:
     dependencies["validator"] = CLIValidator()
 
     # 3. NLP Domain (Strategy Pattern)
-    try:
-        from ..services.nlp import NLPService
-
-        dependencies["nlp"] = NLPService()
-    except ImportError:
-        logger.warning("NLP Service not available.")
-        dependencies["nlp"] = None
+    from src.cli.services.nlp import NLPService
+    dependencies["nlp"] = NLPService()
 
     # 4. Git Domain
-    try:
-        from ..git.worktree import WorktreeManager
-
-        dependencies["worktree_manager"] = WorktreeManager()
-    except ImportError:
-        dependencies["worktree_manager"] = None
+    from src.git.worktree import WorktreeManager
+    dependencies["worktree_manager"] = WorktreeManager()
 
     return dependencies
 

@@ -195,8 +195,8 @@ class MonitorCommand(Command):
         try:
             with open(self._monitoring_file, 'w') as f:
                 json.dump(data, f, indent=2)
-        except Exception:
-            pass
+        except Exception as e:
+            import logging; logging.debug(e)
 
     def load_monitoring(self):
         if not self._monitoring_file.exists():
@@ -205,8 +205,8 @@ class MonitorCommand(Command):
             with open(self._monitoring_file, 'r') as f:
                 data = json.load(f)
                 self._system_resources.extend(data.get("system", []))
-        except Exception:
-            pass
+        except Exception as e:
+            import logging; logging.debug(e)
 
 
 class AgentHealthMetrics:

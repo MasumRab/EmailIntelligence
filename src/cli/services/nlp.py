@@ -68,10 +68,13 @@ class ScientificSimilarityStrategy(SimilarityStrategy):
             return self._engine
         try:
             from src.backend.python_nlp.nlp_engine import NLPEngine
-
             self._engine = NLPEngine()
             return self._engine
         except ImportError:
+            return None
+        except Exception as e:
+            import logging
+            logging.debug(f"NLP engine unavailable due to backend error: {e}")
             return None
 
     def calculate(self, text1: str, text2: str) -> float:
@@ -80,26 +83,48 @@ class ScientificSimilarityStrategy(SimilarityStrategy):
         if engine and hasattr(engine, "calculate_similarity"):
             try:
                 return float(engine.calculate_similarity(text1, text2))
-            except ImportError:
-                # Module not available - fall through to fallback
-                pass
+            except ImportError as e:
+                import logging
+                logging.debug(f"NLP engine unavailable: {e}")
             except Exception as e:
                 # Log but don't fail silently - fall through to fallback
                 import logging
 
                 logging.warning(f"NLP similarity calculation failed: {e}")
 
-        # Fallback to local TF-IDF if engine is unavailable or doesn't support similarity
+        # Fallback to local BM25 ranking (per spec 004-guided-workflow) if engine doesn't support generic similarities
         if not HAS_SCIENTIFIC:
             return 0.0
         try:
-            from sklearn.feature_extraction.text import TfidfVectorizer
-            from sklearn.metrics.pairwise import cosine_similarity
+            from rank_bm25 import BM25Okapi
 
-            vectorizer = TfidfVectorizer(token_pattern=r"\w+")
-            tfidf = vectorizer.fit_transform([text1, text2])
-            return float(cosine_similarity(tfidf[0:1], tfidf[1:2])[0][0])
-        except Exception:
+            # Simple tokenization
+            tokenized_doc1 = text1.lower().split()
+            tokenized_doc2 = text2.lower().split()
+
+            if not tokenized_doc1 or not tokenized_doc2:
+                return 0.0
+
+            bm25 = BM25Okapi([tokenized_doc1])
+            # BM25 scores can be greater than 1, normalize via log or arbitrary ceiling for interface compatibility
+            raw_score = bm25.get_scores(tokenized_doc2)[0]
+            import math
+            normalized_score = min(1.0, max(0.0, math.log1p(raw_score) / 10.0))
+            return float(normalized_score)
+        except ImportError:
+            # Fall back to TF-IDF if rank_bm25 is missing
+            try:
+                from sklearn.feature_extraction.text import TfidfVectorizer
+                from sklearn.metrics.pairwise import cosine_similarity
+
+                vectorizer = TfidfVectorizer(token_pattern=r"\w+")
+                tfidf = vectorizer.fit_transform([text1, text2])
+                return float(cosine_similarity(tfidf[0:1], tfidf[1:2])[0][0])
+            except Exception:
+                return 0.0
+        except Exception as e:
+            import logging
+            logging.debug(f"BM25 Error: {e}")
             return 0.0
 
 
