@@ -103,15 +103,20 @@ def run_command(cmd: List[str], description: str, **kwargs) -> bool:
         executable = cmd[0]
         args = cmd[1:]
         if executable == "notmuch":
-            proc = subprocess.run(["notmuch", *args], check=True, text=True, capture_output=True, shell=False, **kwargs)  # NOSONAR  # sourcery skip: command-injection
+            # sourcery skip: command-injection
+            proc = subprocess.run(["notmuch", *args], check=True, text=True, capture_output=True, shell=False, **kwargs)
         elif executable == "npm":
-            proc = subprocess.run(["npm", *args], check=True, text=True, capture_output=True, shell=False, **kwargs)  # NOSONAR  # sourcery skip: command-injection
+            # sourcery skip: command-injection
+            proc = subprocess.run(["npm", *args], check=True, text=True, capture_output=True, shell=False, **kwargs)
         elif "python" in str(executable):
-            proc = subprocess.run(["python", *args], check=True, text=True, capture_output=True, shell=False, **kwargs)  # NOSONAR  # sourcery skip: command-injection
+            # sourcery skip: command-injection
+            proc = subprocess.run(["python", *args], check=True, text=True, capture_output=True, shell=False, **kwargs)
         elif "pytest" in executable:
-            proc = subprocess.run(["pytest", *args], check=True, text=True, capture_output=True, shell=False, **kwargs)  # NOSONAR  # sourcery skip: command-injection
+            # sourcery skip: command-injection
+            proc = subprocess.run(["pytest", *args], check=True, text=True, capture_output=True, shell=False, **kwargs)
         elif "uv" in executable:
-            proc = subprocess.run(["uv", *args], check=True, text=True, capture_output=True, shell=False, **kwargs)  # NOSONAR  # sourcery skip: command-injection
+            # sourcery skip: command-injection
+            proc = subprocess.run(["uv", *args], check=True, text=True, capture_output=True, shell=False, **kwargs)
         else:
             raise ValueError(f"Unauthorized command executable: {executable}")
         if proc.stdout:
@@ -164,9 +169,9 @@ def download_nltk_data(venv_path=None):
 
 def check_uvicorn_installed() -> bool:
     """Check if uvicorn is installed."""
-    python_exe = get_python_executable()
     try:
-        result = subprocess.run([str(python_exe), "-c", "import uvicorn"], capture_output=True, text=True, shell=False)  # NOSONAR  # sourcery skip: command-injection
+        # sourcery skip: command-injection
+        result = subprocess.run(["python", "-c", "import uvicorn"], capture_output=True, text=True, shell=False)
         if result.returncode == 0:
             logger.info("uvicorn is available.")
             return True
@@ -261,7 +266,8 @@ def start_backend(host: str, port: int, debug: bool = False):
     if cmd[0] not in [get_python_executable(), str(get_python_executable()), 'npm', 'notmuch', 'pytest', 'uv', 'python', 'python3']:
         raise ValueError("Unauthorized backend executable")
     args = cmd[1:]
-    process = subprocess.Popen(["python", *args], cwd=ROOT_DIR, shell=False)  # NOSONAR  # sourcery skip: command-injection
+    # sourcery skip: command-injection
+    process = subprocess.Popen(["python", *args], cwd=ROOT_DIR, shell=False)
     process_manager.add_process(process)
 
 
@@ -274,7 +280,8 @@ def start_node_service(service_path: Path, service_name: str, port: int, api_url
     env = os.environ.copy()
     env["PORT"] = str(port)
     env["VITE_API_URL"] = api_url
-    process = subprocess.Popen(["npm", "start"], cwd=service_path, env=env, shell=False)  # NOSONAR  # sourcery skip: command-injection
+    # sourcery skip: command-injection
+    process = subprocess.Popen(["npm", "start"], cwd=service_path, env=env, shell=False)
     process_manager.add_process(process)
 
 
@@ -293,7 +300,8 @@ def start_gradio_ui(host, port, share, debug):
     if cmd[0] not in [get_python_executable(), str(get_python_executable()), 'npm', 'notmuch', 'pytest', 'uv', 'python', 'python3']:
         raise ValueError("Unauthorized UI executable")
     args = cmd[1:]
-    process = subprocess.Popen(["python", *args], cwd=ROOT_DIR, env=env, shell=False)  # NOSONAR  # sourcery skip: command-injection
+    # sourcery skip: command-injection
+    process = subprocess.Popen(["python", *args], cwd=ROOT_DIR, env=env, shell=False)
     process_manager.add_process(process)
 
 
