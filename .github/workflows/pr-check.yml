@@ -9,6 +9,7 @@ on:
     branches:
       - main
       - scientific
+  workflow_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -35,7 +36,7 @@ jobs:
 
       - name: Install dependencies
         working-directory: ./client
-        run: npm ci
+        run: npm ci || npm ci --legacy-peer-deps
 
       - name: Lint
         run: npm run lint || echo "Linting ignored"
@@ -154,5 +155,6 @@ jobs:
           files: ./python-coverage/coverage.xml
           flags: unittests
           name: python-coverage
+          fail_ci_if_error: false
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
