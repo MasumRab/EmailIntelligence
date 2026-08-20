@@ -31,7 +31,8 @@ class TokenData(BaseModel):
     role: Optional[str] = "user"
 
 
-from enum import Enum
+from enum import Enum  # noqa: E402
+import argon2  # noqa: E402
 
 
 class UserRole(str, Enum):
