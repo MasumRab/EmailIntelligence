@@ -5,6 +5,30 @@ from .dynamic_model_manager import DynamicModelManager
 
 logger = logging.getLogger(__name__)
 
+# Constants for analysis
+POSITIVE_WORDS = {"good", "great", "excellent", "happy", "love", "like", "thank"}
+NEGATIVE_WORDS = {"bad", "terrible", "hate", "dislike", "sorry", "problem", "issue"}
+
+TOPIC_PATTERNS = {
+    "work": ["meeting", "project", "deadline", "office", "work", "business"],
+    "finance": ["payment", "invoice", "bill", "account", "money", "bank"],
+    "healthcare": ["doctor", "medical", "appointment", "health", "clinic"],
+    "personal": ["family", "friend", "party", "vacation", "holiday"],
+    "technical": ["software", "code", "bug", "server", "database", "api"],
+}
+
+INTENT_KEYWORDS_QUESTION = {"?", "what", "how", "when", "where", "why"}
+INTENT_KEYWORDS_REQUEST = {"please", "can you", "would you", "help"}
+INTENT_KEYWORDS_APOLOGY = {"sorry", "apologize", "mistake"}
+INTENT_KEYWORDS_GRATITUDE = {"thank", "appreciate", "grateful"}
+
+URGENCY_INDICATORS = {"urgent", "asap", "emergency", "immediately", "deadline", "critical"}
+
+STOP_WORDS = {
+    "the", "a", "an", "and", "or", "but", "in", "on", "at", "to",
+    "for", "of", "with", "by"
+}
+
 
 class AIAnalysisResult:
     """
@@ -200,12 +224,14 @@ class ModernAIEngine(BaseAIEngine):
         try:
             # Combine subject and content for analysis
             full_text = f"{subject} {content}"
+            # Compute lower case text once to avoid repetition in helper methods
+            text_lower = full_text.lower()
 
             # Perform analysis using available models
-            sentiment = await self._analyze_sentiment(full_text)
-            topics = await self._analyze_topics(full_text)
-            intent = await self._analyze_intent(full_text)
-            urgency = await self._analyze_urgency(full_text)
+            sentiment = await self._analyze_sentiment(full_text, text_lower)
+            topics = await self._analyze_topics(full_text, text_lower)
+            intent = await self._analyze_intent(full_text, text_lower)
+            urgency = await self._analyze_urgency(full_text, text_lower)
 
             # Generate comprehensive result
             result_data = {
@@ -217,7 +243,7 @@ class ModernAIEngine(BaseAIEngine):
                     sentiment, topics, intent, urgency
                 ),
                 "categories": topics if topics else [],
-                "keywords": self._extract_keywords(full_text),
+                "keywords": self._extract_keywords(full_text, text_lower),
                 "reasoning": "Analysis performed using ModernAIEngine with integrated model management",
                 "suggested_labels": self._generate_suggested_labels(
                     sentiment, topics, intent, urgency
@@ -241,25 +267,25 @@ class ModernAIEngine(BaseAIEngine):
                 }
             )
 
-    async def _analyze_sentiment(self, text: str) -> Optional[Dict[str, Any]]:
+    async def _analyze_sentiment(self, text: str, text_lower: Optional[str] = None) -> Optional[Dict[str, Any]]:
         """Analyze sentiment using available models."""
         try:
             # Try to use sentiment model from model manager
             if self._model_manager and hasattr(self._model_manager, "get_sentiment_model"):
-                model = self._model_manager.get_sentiment_model()
+                model = await self._model_manager.get_sentiment_model()
                 if model:
                     return await model.analyze(text)
         except Exception as e:
             logger.debug(f"Sentiment model analysis failed: {e}")
 
         # Fallback to simple keyword-based analysis
-        return await self._simple_sentiment_analysis(text)
+        return await self._simple_sentiment_analysis(text_lower or text.lower())
 
-    async def _analyze_topics(self, text: str) -> List[str]:
+    async def _analyze_topics(self, text: str, text_lower: Optional[str] = None) -> List[str]:
         """Analyze topics using available models."""
         try:
             if self._model_manager and hasattr(self._model_manager, "get_topic_model"):
-                model = self._model_manager.get_topic_model()
+                model = await self._model_manager.get_topic_model()
                 if model:
                     result = await model.analyze(text)
                     return result.get("topics", [])
@@ -267,40 +293,36 @@ class ModernAIEngine(BaseAIEngine):
             logger.debug(f"Topic model analysis failed: {e}")
 
         # Fallback to rule-based topic detection
-        return await self._rule_based_topics(text)
+        return await self._rule_based_topics(text_lower or text.lower())
 
-    async def _analyze_intent(self, text: str) -> Optional[Dict[str, Any]]:
+    async def _analyze_intent(self, text: str, text_lower: Optional[str] = None) -> Optional[Dict[str, Any]]:
         """Analyze intent using available models."""
         try:
             if self._model_manager and hasattr(self._model_manager, "get_intent_model"):
-                model = self._model_manager.get_intent_model()
+                model = await self._model_manager.get_intent_model()
                 if model:
                     return await model.analyze(text)
         except Exception as e:
             logger.debug(f"Intent model analysis failed: {e}")
 
-        return await self._simple_intent_analysis(text)
+        return await self._simple_intent_analysis(text_lower or text.lower())
 
-    async def _analyze_urgency(self, text: str) -> Optional[Dict[str, Any]]:
+    async def _analyze_urgency(self, text: str, text_lower: Optional[str] = None) -> Optional[Dict[str, Any]]:
         """Analyze urgency using available models."""
         try:
             if self._model_manager and hasattr(self._model_manager, "get_urgency_model"):
-                model = self._model_manager.get_urgency_model()
+                model = await self._model_manager.get_urgency_model()
                 if model:
                     return await model.analyze(text)
         except Exception as e:
             logger.debug(f"Urgency model analysis failed: {e}")
 
-        return await self._simple_urgency_analysis(text)
+        return await self._simple_urgency_analysis(text_lower or text.lower())
 
-    async def _simple_sentiment_analysis(self, text: str) -> Dict[str, Any]:
+    async def _simple_sentiment_analysis(self, text_lower: str) -> Dict[str, Any]:
         """Simple keyword-based sentiment analysis."""
-        positive_words = ["good", "great", "excellent", "happy", "love", "like", "thank"]
-        negative_words = ["bad", "terrible", "hate", "dislike", "sorry", "problem", "issue"]
-
-        text_lower = text.lower()
-        positive_count = sum(1 for word in positive_words if word in text_lower)
-        negative_count = sum(1 for word in negative_words if word in text_lower)
+        positive_count = sum(1 for word in POSITIVE_WORDS if word in text_lower)
+        negative_count = sum(1 for word in NEGATIVE_WORDS if word in text_lower)
 
         if positive_count > negative_count:
             sentiment = "positive"
@@ -311,48 +333,35 @@ class ModernAIEngine(BaseAIEngine):
 
         return {"label": sentiment, "confidence": 0.5}
 
-    async def _rule_based_topics(self, text: str) -> List[str]:
+    async def _rule_based_topics(self, text_lower: str) -> List[str]:
         """Rule-based topic detection."""
-        text_lower = text.lower()
         topics = []
 
-        topic_patterns = {
-            "work": ["meeting", "project", "deadline", "office", "work", "business"],
-            "finance": ["payment", "invoice", "bill", "account", "money", "bank"],
-            "healthcare": ["doctor", "medical", "appointment", "health", "clinic"],
-            "personal": ["family", "friend", "party", "vacation", "holiday"],
-            "technical": ["software", "code", "bug", "server", "database", "api"],
-        }
-
-        for topic, keywords in topic_patterns.items():
+        for topic, keywords in TOPIC_PATTERNS.items():
             if any(keyword in text_lower for keyword in keywords):
                 topics.append(topic)
 
         return topics[:3] if topics else ["general"]
 
-    async def _simple_intent_analysis(self, text: str) -> Dict[str, Any]:
+    async def _simple_intent_analysis(self, text_lower: str) -> Dict[str, Any]:
         """Simple intent analysis based on keywords."""
-        text_lower = text.lower()
-
-        if any(word in text_lower for word in ["?", "what", "how", "when", "where", "why"]):
+        # Using module level constants
+        if any(word in text_lower for word in INTENT_KEYWORDS_QUESTION):
             intent_type = "question"
-        elif any(word in text_lower for word in ["please", "can you", "would you", "help"]):
+        elif any(word in text_lower for word in INTENT_KEYWORDS_REQUEST):
             intent_type = "request"
-        elif any(word in text_lower for word in ["sorry", "apologize", "mistake"]):
+        elif any(word in text_lower for word in INTENT_KEYWORDS_APOLOGY):
             intent_type = "apology"
-        elif any(word in text_lower for word in ["thank", "appreciate", "grateful"]):
+        elif any(word in text_lower for word in INTENT_KEYWORDS_GRATITUDE):
             intent_type = "gratitude"
         else:
             intent_type = "information"
 
         return {"type": intent_type, "confidence": 0.6}
 
-    async def _simple_urgency_analysis(self, text: str) -> Dict[str, Any]:
+    async def _simple_urgency_analysis(self, text_lower: str) -> Dict[str, Any]:
         """Simple urgency analysis."""
-        text_lower = text.lower()
-        urgency_indicators = ["urgent", "asap", "emergency", "immediately", "deadline", "critical"]
-
-        has_urgency = any(indicator in text_lower for indicator in urgency_indicators)
+        has_urgency = any(indicator in text_lower for indicator in URGENCY_INDICATORS)
 
         return {
             "level": "high" if has_urgency else "low",
@@ -371,28 +380,16 @@ class ModernAIEngine(BaseAIEngine):
 
         return sum(confidences) / len(confidences) if confidences else 0.5
 
-    def _extract_keywords(self, text: str) -> List[str]:
+    def _extract_keywords(self, text: str, text_lower: Optional[str] = None) -> List[str]:
         """Extract important keywords from text."""
         # Simple keyword extraction - could be enhanced with NLP
-        words = text.lower().split()
-        # Filter out common stop words and short words
-        stop_words = {
-            "the",
-            "a",
-            "an",
-            "and",
-            "or",
-            "but",
-            "in",
-            "on",
-            "at",
-            "to",
-            "for",
-            "of",
-            "with",
-            "by",
-        }
-        keywords = [word for word in words if len(word) > 3 and word not in stop_words]
+        if text_lower is None:
+            text_lower = text.lower()
+
+        words = text_lower.split()
+
+        # Use constant set for O(1) lookups
+        keywords = [word for word in words if len(word) > 3 and word not in STOP_WORDS]
         return list(set(keywords))[:10]  # Return unique keywords, max 10
 
     def _generate_suggested_labels(self, sentiment, topics, intent, urgency) -> List[str]:
