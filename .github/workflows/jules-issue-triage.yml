@@ -30,7 +30,7 @@ jobs:
 
       - name: Fetch issue details and available labels
         id: prepare
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             const issueNumber = context.issue.number;
@@ -83,7 +83,7 @@ jobs:
       - name: Prepare Jules triage prompt
         if: steps.prepare.outputs.skip != 'true'
         id: prompt
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             const fs = require('fs');
@@ -208,7 +208,7 @@ jobs:
 
       - name: Parse and apply labels
         if: steps.prepare.outputs.skip != 'true'
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         env:
           SESSION_STATE: ${{ steps.poll.outputs.session_state }}
         with:
