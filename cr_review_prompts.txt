@@ -1,0 +1,1098 @@
+Replaying 69 AI prompts from your last review on main.
+
+────────────────────────────────────────────────────────────────────────
+  minor [Functional Correctness]
+  → ]8;;vscode://file//home/masum/github/remote/EmailIntelligence/.github/workflows/jules-pr-walkthrough.yml:247.github/workflows/jules-pr-walkthrough.yml:247]8;;
+
+  ▶ Prompt for AI agent
+  Verify each finding against current code. Fix only still-valid issues,
+  skip the rest with a brief reason, keep changes minimal, and validate.
+
+  In @.github/workflows/jules-pr-walkthrough.yml at line 247, Update the
+  walkthrough comment lookup using the existing comments collection so it
+  explicitly selects the marker comment with the most recent created_at
+  timestamp in descending order before updating. Replace the current
+  comments.find logic while preserving the jules-walkthrough marker filter.
+
+
+────────────────────────────────────────────────────────────────────────
+  major [Functional Correctness]
+  → ]8;;vscode://file//home/masum/github/remote/EmailIntelligence/src/backend/python_backend/auth.py:7src/backend/python_backend/auth.py:7]8;;
+
+  ▶ Prompt for AI agent
+  Verify each finding against current code. Fix only still-valid issues,
+  skip the rest with a brief reason, keep changes minimal, and validate.
+
+  In @src/backend/python_backend/auth.py at line 7, Extend regression
+  coverage for create_access_token to exercise both a caller-provided
+  expires_delta and the 15-minute default using timezone-aware UTC values.
+  Decode each generated JWT with the repository’s PyJWT configuration and
+  assert expiration validation succeeds, confirming the installed PyJWT
+  version serializes aware datetime values correctly.
+
+
+────────────────────────────────────────────────────────────────────────
+  major [Data Integrity & Integration]
+  → ]8;;vscode://file//home/masum/github/remote/EmailIntelligence/LLXPRT.md:3LLXPRT.md:3-7]8;;
+
+  ▶ Prompt for AI agent
+  Verify each finding against current code. Fix only still-valid issues,
+  skip the rest with a brief reason, keep changes minimal, and validate.
+
+  In @LLXPRT.md around lines 3 - 7, Narrow the memory-correction statement
+  in the “CANONICAL BRANCH RULES” section to obsolete blanket
+  main/scientific convergence guidance only. Explicitly preserve the
+  prohibition against merging orchestration-tools-combined into product
+  branches, while continuing to defer to
+  .taskmaster/BRANCH_MANAGEMENT_MODEL.md as canonical.
+
+
+────────────────────────────────────────────────────────────────────────
+  major [Data Integrity & Integration]
+  → ]8;;vscode://file//home/masum/github/remote/EmailIntelligence/AGENT.md:3AGENT.md:3-7]8;;
+
+  ▶ Prompt for AI agent
+  Verify each finding against current code. Fix only still-valid issues,
+  skip the rest with a brief reason, keep changes minimal, and validate.
+
+  In @AGENT.md around lines 3 - 7, Update the correction sentence in the
+  canonical branch rules near the “never merge” guidance so it only rejects
+  obsolete blanket main/scientific convergence instructions, while
+  explicitly preserving the prohibition against merging
+  orchestration-tools-combined into product branches. Keep
+  .taskmaster/BRANCH_MANAGEMENT_MODEL.md as the authoritative reference.
+
+
+────────────────────────────────────────────────────────────────────────
+  minor [Functional Correctness]
+  → ]8;;vscode://file//home/masum/github/remote/EmailIntelligence/scripts/git_utils.py:138scripts/git_utils.py:138]8;;
+
+  ▶ Prompt for AI agent
+  Verify each finding against current code. Fix only still-valid issues,
+  skip the rest with a brief reason, keep changes minimal, and validate.
+
+  In @scripts/git_utils.py at line 138, Update the add() method’s self.run
+  invocation to pass Git’s option terminator before the caller-provided
+  path_strs, ensuring filenames beginning with hyphens are treated as paths
+  while preserving the existing path handling.
+
+
+────────────────────────────────────────────────────────────────────────
+  major [Functional Correctness]
+  → ]8;;vscode://file//home/masum/github/remote/EmailIntelligence/setup/launch.py:1441setup/launch.py:1441-1454]8;;
+
+  ▶ Prompt for AI agent
+  Verify each finding against current code. Fix only still-valid issues,
+  skip the rest with a brief reason, keep changes minimal, and validate.
+
+  In @setup/launch.py around lines 1441 - 1454, Update the check-command
+  branching around check_critical_files() and
+  validate_orchestration_environment() so the default no-flag path invokes
+  only validate_orchestration_environment(), which already performs the
+  critical-files check. Preserve independent behavior for --critical-files
+  and --env without duplicate execution or reporting.
+
+
+────────────────────────────────────────────────────────────────────────
+  minor [Stability & Availability]
+  → ]8;;vscode://file//home/masum/github/remote/EmailIntelligence/src/core/rate_limiter.py:41src/core/rate_limiter.py:41-45]8;;
+
+  ▶ Prompt for AI agent
+  Verify each finding against current code. Fix only still-valid issues,
+  skip the rest with a brief reason, keep changes minimal, and validate.
+
+  In @src/core/rate_limiter.py around lines 41 - 45, Validate max_clients in
+  RateLimiter.__init__ and reject values less than 1 before initializing or
+  using the client state, preserving normal behavior for positive values.
+  Add a constructor regression test covering non-positive values and
+  confirming they are rejected.
+
+
+────────────────────────────────────────────────────────────────────────
+  major [Stability & Availability]
+  → ]8;;vscode://file//home/masum/github/remote/EmailIntelligence/src/resolution/auto_resolver.py:201src/resolution/auto_resolver.py:201-202]8;;
+
+  ▶ Prompt for AI agent
+  Verify each finding against current code. Fix only still-valid issues,
+  skip the rest with a brief reason, keep changes minimal, and validate.
+
+  In @src/resolution/auto_resolver.py around lines 201 - 202, Add regression
+  coverage for the resolver loop around the exception handler in
+  auto_resolver: verify ordinary Exception failures from one pattern
+  resolver are caught so the next resolver runs, while process-control
+  exceptions propagate instead of being swallowed. Keep the test focused on
+  this exception boundary and the existing resolution behavior.
+
+
+────────────────────────────────────────────────────────────────────────
+  minor [Data Integrity & Integration]
+  → ]8;;vscode://file//home/masum/github/remote/EmailIntelligence/modules/new_ui/backend_adapter.py:166modules/new_ui/backend_adapter.py:166-167]8;;
+
+  ▶ Prompt for AI agent
+  Verify each finding against current code. Fix only still-valid issues,
+  skip the rest with a brief reason, keep changes minimal, and validate.
+
+  In @modules/new_ui/backend_adapter.py around lines 166 - 167, Update the
+  exception handler in the workflow-file loading logic to catch the
+  exception, log both file_path and the exception details, then continue
+  processing remaining files. Add a regression test covering an invalid
+  workflow file and verifying the error is logged while valid workflows
+  remain available.
+
+
+────────────────────────────────────────────────────────────────────────
+  major [Functional Correctness]
+  → ]8;;vscode://file//home/masum/github/remote/EmailIntelligence/.github/workflows/jules-pr-resolve-conflicts.yml:35.github/workflows/jules-pr-resolve-conflicts.yml:35-45]8;;
+
+  ▶ Prompt for AI agent
+  Verify each finding against current code. Fix only still-valid issues,
+  skip the rest with a brief reason, keep changes minimal, and validate.
+
+  In @.github/workflows/jules-pr-resolve-conflicts.yml around lines 35 - 45,
+  Update the workflow’s checkout, fetch/reset, recheck, and Jules payload
+  logic to use the immutable monitored PR head SHA (or refs/pull//head)
+  instead of github.event.pull_request.head.ref. Ensure every subsequent
+  operation, including the recheck, uses that same revision so later pushes
+  cannot change the processed tree.
+
+
+────────────────────────────────────────────────────────────────────────
+  minor [Functional Correctness]
+  → ]8;;vscode://file//home/masum/github/remote/EmailIntelligence/client/src/components/email-list.tsx:150client/src/components/email-list.tsx:150-162]8;;
+
+  ▶ Prompt for AI agent
+  Verify each finding against current code. Fix only still-valid issues,
+  skip the rest with a brief reason, keep changes minimal, and validate.
+
+  In @client/src/components/email-list.tsx around lines 150 - 162, Extract
+  the label normalization from the inline JSX IIFE into a nearby
+  normalizeLabels helper, alongside getInitials. Have it accept unknown
+  values, split strings on commas, handle arrays, trim each entry, and
+  remove empty labels; then map the returned labels when rendering Badge
+  elements.
+
+
+────────────────────────────────────────────────────────────────────────
+  major [Security & Privacy]
+  → ]8;;vscode://file//home/masum/github/remote/EmailIntelligence/src/backend/python_backend/main.py:356src/backend/python_backend/main.py:356-357]8;;
+
+  ▶ Prompt for AI agent
+  Verify each finding against current code. Fix only still-valid issues,
+  skip the rest with a brief reason, keep changes minimal, and validate.
+
+  In @src/backend/python_backend/main.py around lines 356 - 357, Sanitize
+  the broad health-check exception logging around the handler containing the
+  except Exception as e block: log only request.url.path, the exception
+  type, and the existing request ID, never str(request.url) or str(e).
+  Add a regression test verifying query parameters and sensitive exception
+  text are absent from health-check logs.
+
+
+────────────────────────────────────────────────────────────────────────
+  major [Functional Correctness]
+  → ]8;;vscode://file//home/masum/github/remote/EmailIntelligence/.github/workflows/jules-pr-walkthrough.yml:30.github/workflows/jules-pr-walkthrough.yml:30-33]8;;
+
+  ▶ Prompt for AI agent
+  Verify each finding against current code. Fix only still-valid issues,
+  skip the rest with a brief reason, keep changes minimal, and validate.
+
+  In @.github/workflows/jules-pr-walkthrough.yml around lines 30 - 33,
+  Update the checkout step using actions/checkout@v4 to run only for
+  same-repository pull requests, and replace the ref based on
+  github.event.pull_request.head.ref with the immutable
+  github.event.pull_request.head.sha. Preserve the existing fork-skip
+  behavior while ensuring checkout cannot occur before that condition for
+  fork PRs.
+
+
+────────────────────────────────────────────────────────────────────────
+  major [Stability & Availability]
+  → ]8;;vscode://file//home/masum/github/remote/EmailIntelligence/.github/workflows/jules-pr-auto-fix.yml:29.github/workflows/jules-pr-auto-fix.yml:29-32]8;;
+
+  ▶ Prompt for AI agent
+  Verify each finding against current code. Fix only still-valid issues,
+  skip the rest with a brief reason, keep changes minimal, and validate.
+
+  In @.github/workflows/jules-pr-auto-fix.yml around lines 29 - 32, Update
+  the workflow’s checkout and fork-handling steps so fork pull requests are
+  detected before attempting checkout. Gate the checkout using the fork
+  condition, and gate the skip step with that same condition instead of
+  steps.prepare.outputs.skip, ensuring fork jobs skip successfully without
+  referencing the unavailable head ref.
+
+
+────────────────────────────────────────────────────────────────────────
+  major [Security & Privacy]
+  → ]8;;vscode://file//home/masum/github/remote/EmailIntelligence/.github/workflows/jules-pr-resolve-conflicts.yml:223.github/workflows/jules-pr-resolve-conflicts.yml:223-236]8;;
+
+  ▶ Prompt for AI agent
+  Verify each finding against current code. Fix only still-valid issues,
+  skip the rest with a brief reason, keep changes minimal, and validate.
+
+  In @.github/workflows/jules-pr-resolve-conflicts.yml around lines 223 -
+  236, Update the priorFeedback and priorReviews construction to retain only
+  comments from authorized repository users, then place the retained text in
+  a clearly delimited data block explicitly labeled as non-executable
+  reference data. Ensure the surrounding Jules prompt treats these comments
+  only as context and never as resolution criteria or instructions, using
+  the existing comment-processing flow and authorization mechanism.
+
+
+────────────────────────────────────────────────────────────────────────
+  minor [Maintainability & Code Quality]
+  → ]8;;vscode://file//home/masum/github/remote/EmailIntelligence/src/resolution/__init__.py:6src/resolution/__init__.py:6-11]8;;
+
+  ▶ Prompt for AI agent
+  Verify each finding against current code. Fix only still-valid issues,
+  skip the rest with a brief reason, keep changes minimal, and validate.
+
+  In @src/resolution/__init__.py around lines 6 - 11, Move the module
+  docstring in src.resolution before the from enum import Enum statement so
+  it becomes the module’s __doc__. Keep the existing Constitutional Engine
+  description unchanged and place all imports after it.
+
+
+────────────────────────────────────────────────────────────────────────
+  minor [Maintainability & Code Quality]
+  → ]8;;vscode://file//home/masum/github/remote/EmailIntelligence/GEMINI.md:303GEMINI.md:303-349]8;;
+
+  ▶ Prompt for AI agent
+  Verify each finding against current code. Fix only still-valid issues,
+  skip the rest with a brief reason, keep changes minimal, and validate.
+
+  In @GEMINI.md around lines 303 - 349, Update the “Semantic Tooling &
+  Intelligence” section to state that code-review-graph MCP tools must be
+  used first for exploration and review, with ck, rg, fd, and other text or
+  file scanning tools used only when the graph lacks the required
+  information. Place this fallback-order rule before the listed search
+  examples, while preserving the existing tool descriptions.
+
+
+────────────────────────────────────────────────────────────────────────
+  critical [Functional Correctness]
+  → ]8;;vscode://file//home/masum/github/remote/EmailIntelligence/setup/launch.py:721setup/launch.py:721-725]8;;
+
+  ▶ Prompt for AI agent
+  Verify each finding against current code. Fix only still-valid issues,
+  skip the rest with a brief reason, keep changes minimal, and validate.
+
+  In @setup/launch.py around lines 721 - 725, Update the dependency-install
+  command in the setup flow around run_command to remove the unsupported
+  --exclude notmuch arguments and restore the CPU-only PyTorch index used by
+  the previous implementation. Exclude notmuch through the project’s
+  supported extras configuration or a constraints file, while preserving
+  installation of the remaining development dependencies.
+
+
+────────────────────────────────────────────────────────────────────────
+  major [Functional Correctness]
+  → ]8;;vscode://file//home/masum/github/remote/EmailIntelligence/.github/workflows/jules-pr-review.yml:94.github/workflows/jules-pr-review.yml:94-133]8;;
+
+  ▶ Prompt for AI agent
+  Verify each finding against current code. Fix only still-valid issues,
+  skip the rest with a brief reason, keep changes minimal, and validate.
+
+  In @.github/workflows/jules-pr-review.yml around lines 94 - 133, Restore
+  duplicate-review suppression in the workflow’s review-generation logic:
+  retain a jules-pr-reviewer comment marker containing the current head_sha
+  in the posted review body, and before generating a review skip processing
+  when an existing jules-pr-reviewer issue comment contains that same SHA.
+  Preserve the existing filtering and walkthrough detection behavior.
+
+
+────────────────────────────────────────────────────────────────────────
+  major [Data Integrity & Integration]
+  → ]8;;vscode://file//home/masum/github/remote/EmailIntelligence/setup/services.py:175setup/services.py:175-177]8;;
+
+  ▶ Prompt for AI agent
+  Verify each finding against current code. Fix only still-valid issues,
+  skip the rest with a brief reason, keep changes minimal, and validate.
+
+  In @setup/services.py around lines 175 - 177, Move host validation into
+  the start_services() orchestration boundary, before api_url is derived or
+  any sibling service is launched, and stop startup immediately for invalid
+  args.host values. Preserve acceptance of hosts matching the existing
+  hostname pattern and the args.api_url override behavior. Add regression
+  tests covering valid hosts, rejected hosts, and ensuring
+  start_node_service() is not called after validation fails.
+
+
+────────────────────────────────────────────────────────────────────────
+  major [Functional Correctness]
+  → ]8;;vscode://file//home/masum/github/remote/EmailIntelligence/deployment/setup_env.py:33deployment/setup_env.py:33-36]8;;
+
+  ▶ Prompt for AI agent
+  Verify each finding against current code. Fix only still-valid issues,
+  skip the rest with a brief reason, keep changes minimal, and validate.
+
+  In @deployment/setup_env.py around lines 33 - 36, Update the callers
+  around the command execution flow, especially the commands at lines 59 and
+  61, to pass sys.executable and its pip arguments as a list rather than an
+  unquoted string. Preserve the existing shlex.split handling for string
+  commands, while ensuring executable paths containing spaces remain a
+  single argument.
+
+
+────────────────────────────────────────────────────────────────────────
+  major [Functional Correctness]
+  → ]8;;vscode://file//home/masum/github/remote/EmailIntelligence/.gitignore:127.gitignore:127-151]8;;
+
+  ▶ Prompt for AI agent
+  Verify each finding against current code. Fix only still-valid issues,
+  skip the rest with a brief reason, keep changes minimal, and validate.
+
+  In @.gitignore around lines 127 - 151, Reorder the committed-file
+  exceptions in .gitignore so the negated entries for
+  .pre-commit-config.yaml, .prettierrc.json, .eslintrc.json, .github/,
+  .github/workflows/, client/.eslintrc.json, server/.eslintrc.json, and
+  .env.example appear after the .* rule. Preserve the existing exceptions
+  and ensure the final matching rule keeps these files tracked.
+
+
+────────────────────────────────────────────────────────────────────────
+  major [Stability & Availability]
+  → ]8;;vscode://file//home/masum/github/remote/EmailIntelligence/.github/workflows/jules-pr-resolve-conflicts.yml:316.github/workflows/jules-pr-resolve-conflicts.yml:316-319]8;;
+
+  ▶ Prompt for AI agent
+  Verify each finding against current code. Fix only still-valid issues,
+  skip the rest with a brief reason, keep changes minimal, and validate.
+
+  In @.github/workflows/jules-pr-resolve-conflicts.yml around lines 316 -
+  319, Add --connect-timeout and --max-time options to the curl invocation
+  assigning RESPONSE in the Jules API request, using bounded durations
+  appropriate for the workflow. Also restore an explicit timeout-minutes
+  setting for the job containing this request.
+
+
+────────────────────────────────────────────────────────────────────────
+  critical [Functional Correctness]
+  → ]8;;vscode://file//home/masum/github/remote/EmailIntelligence/.github/workflows/jules-pr-rebuild.yml:235.github/workflows/jules-pr-rebuild.yml:235]8;;
+
+  ▶ Prompt for AI agent
+  Verify each finding against current code. Fix only still-valid issues,
+  skip the rest with a brief reason, keep changes minimal, and validate.
+
+  In @.github/workflows/jules-pr-rebuild.yml at line 235, Remove the
+  duplicate fs declaration from the rebuild payload script, keeping only one
+  const fs = require('fs') binding for the shared scope around the existing
+  declarations at lines 235 and 277. Ensure all uses continue referencing
+  the retained declaration so the script parses successfully.
+
+
+────────────────────────────────────────────────────────────────────────
+  major [Security & Privacy]
+  → ]8;;vscode://file//home/masum/github/remote/EmailIntelligence/.github/workflows/jules-pr-walkthrough.yml:85.github/workflows/jules-pr-walkthrough.yml:85-97]8;;
+
+  ▶ Prompt for AI agent
+  Verify each finding against current code. Fix only still-valid issues,
+  skip the rest with a brief reason, keep changes minimal, and validate.
+
+  In @.github/workflows/jules-pr-walkthrough.yml around lines 85 - 97,
+  Update the prompt construction around priorFeedback and priorReviews to
+  explicitly label all included PR and review comment text as untrusted
+  reference data, and instruct Jules never to follow instructions contained
+  in those comments or disclose repository context based on them. Preserve
+  the existing comment formatting and filtering, and use trusted commenter
+  identities only if commenter context is necessary.
+
+
+────────────────────────────────────────────────────────────────────────
+  major [Security & Privacy]
+  → ]8;;vscode://file//home/masum/github/remote/EmailIntelligence/src/core/security.py:681src/core/security.py:681-686]8;;
+
+  ▶ Prompt for AI agent
+  Verify each finding against current code. Fix only still-valid issues,
+  skip the rest with a brief reason, keep changes minimal, and validate.
+
+  In @src/core/security.py around lines 681 - 686, Update
+  verify_model_safety and its callers so validation and joblib.load use the
+  same already-open regular, non-symlink file descriptor; avoid reopening
+  model_path after hashing. Hash the descriptor’s bytes, rewind it, and pass
+  that descriptor through the loading path so the loaded bytes are exactly
+  those validated.
+
+
+────────────────────────────────────────────────────────────────────────
+  critical [Stability & Availability]
+  → ]8;;vscode://file//home/masum/github/remote/EmailIntelligence/src/backend/python_backend/main.py:45src/backend/python_backend/main.py:45-46]8;;
+
+  ▶ Prompt for AI agent
+  Verify each finding against current code. Fix only still-valid issues,
+  skip the rest with a brief reason, keep changes minimal, and validate.
+
+  In @src/backend/python_backend/main.py around lines 45 - 46, Restore a
+  valid shared database manager in the module-level setup used by
+  startup_event() and shutdown_event(), replacing the None assignment or
+  ensuring initialize_services() rebinds it before connect and close are
+  called. Add regression tests covering successful startup connection and
+  shutdown closure without AttributeError.
+
+
+────────────────────────────────────────────────────────────────────────
+  critical [Security & Privacy]
+  → ]8;;vscode://file//home/masum/github/remote/EmailIntelligence/.github/workflows/jules-pr-automerge-label.yml:30.github/workflows/jules-pr-automerge-label.yml:30-32]8;;
+
+  ▶ Prompt for AI agent
+  Verify each finding against current code. Fix only still-valid issues,
+  skip the rest with a brief reason, keep changes minimal, and validate.
+
+  In @.github/workflows/jules-pr-automerge-label.yml around lines 30 - 32,
+  Update the PR filter around the loop over prs so the jules-* branch match
+  is accepted only when the pull request head repository is the trusted
+  repository, while preserving the direct pr.user.login === 'jules' match.
+  Use the pull request’s head repository identity to require it matches the
+  current repository before applying the automerge label.
+
+
+────────────────────────────────────────────────────────────────────────
+  major [Data Integrity & Integration]
+  → ]8;;vscode://file//home/masum/github/remote/EmailIntelligence/IFLOW.md:3IFLOW.md:3-7]8;;
+
+  ▶ Prompt for AI agent
+  Verify each finding against current code. Fix only still-valid issues,
+  skip the rest with a brief reason, keep changes minimal, and validate.
+
+  In @IFLOW.md around lines 3 - 7, Update the branch-rule correction in
+  IFLOW.md to target only obsolete blanket main/scientific convergence
+  guidance, rather than all “never merge” instructions. Explicitly preserve
+  the prohibition against merging orchestration-tools-combined into product
+  branches, consistent with .taskmaster/BRANCH_MANAGEMENT_MODEL.md.
+
+
+────────────────────────────────────────────────────────────────────────
+  major [Data Integrity & Integration]
+  → ]8;;vscode://file//home/masum/github/remote/EmailIntelligence/QWEN.md:3QWEN.md:3-7]8;;
+
+  ▶ Prompt for AI agent
+  Verify each finding against current code. Fix only still-valid issues,
+  skip the rest with a brief reason, keep changes minimal, and validate.
+
+  In @QWEN.md around lines 3 - 7, Update the canonical branch rules in
+  QWEN.md to narrow the memory correction to obsolete blanket
+  main/scientific convergence guidance. Explicitly preserve the prohibition
+  against merging orchestration-tools-combined into product branches,
+  consistent with .taskmaster/BRANCH_MANAGEMENT_MODEL.md.
+
+
+────────────────────────────────────────────────────────────────────────
+  minor [Data Integrity & Integration]
+  → ]8;;vscode://file//home/masum/github/remote/EmailIntelligence/src/core/database.py:579src/core/database.py:579-580]8;;
+
+  ▶ Prompt for AI agent
+  Verify each finding against current code. Fix only still-valid issues,
+  skip the rest with a brief reason, keep changes minimal, and validate.
+
+  In @src/core/database.py around lines 579 - 580, Validate the
+  increment/decrement flags before mutating category_counts in the
+  category-count update logic, rejecting the invalid case where both are
+  True with a validation error. Preserve independent increment-only and
+  decrement-only behavior, and add regression tests covering both flags
+  together and category changes during email updates.
+
+
+────────────────────────────────────────────────────────────────────────
+  critical [Stability & Availability]
+  → ]8;;vscode://file//home/masum/github/remote/EmailIntelligence/setup/launch.py:1355setup/launch.py:1355-1362]8;;
+
+  ▶ Prompt for AI agent
+  Verify each finding against current code. Fix only still-valid issues,
+  skip the rest with a brief reason, keep changes minimal, and validate.
+
+  In @setup/launch.py around lines 1355 - 1362, Remove the duplicate main
+  definition near the service initialization block and preserve the original
+  main implementation that registers the check subparser; then remove the
+  undefined _check_setup_warnings() call or implement that function in
+  setup/launch.py, ensuring launcher invocation no longer raises NameError.
+
+
+────────────────────────────────────────────────────────────────────────
+  major [Maintainability & Code Quality]
+  → ]8;;vscode://file//home/masum/github/remote/EmailIntelligence/scripts/git_utils.py:15scripts/git_utils.py:15-443]8;;
+
+  ▶ Prompt for AI agent
+  Verify each finding against current code. Fix only still-valid issues,
+  skip the rest with a brief reason, keep changes minimal, and validate.
+
+  In @scripts/git_utils.py around lines 15 - 443, Add regression tests
+  covering the public GitHelper methods add, checkout, read_tree, and
+  reset_hard using isolated temporary Git repositories. Verify successful
+  operations, expected false results on Git failures, and safe handling of
+  option-like filenames during staging or checkout; keep each test
+  self-contained and avoid relying on the developer’s repository state.
+
+
+────────────────────────────────────────────────────────────────────────
+  major [Security & Privacy]
+  → ]8;;vscode://file//home/masum/github/remote/EmailIntelligence/modules/auth/routes.py:268modules/auth/routes.py:268]8;;
+
+  ▶ Prompt for AI agent
+  Verify each finding against current code. Fix only still-valid issues,
+  skip the rest with a brief reason, keep changes minimal, and validate.
+
+  In @modules/auth/routes.py at line 268, Update the token creation logic in
+  the self-registration flow to derive the role from trusted server-side
+  state instead of the request’s user_data.role; for the minimum fix, always
+  use UserRole.USER.value. Leave custom role assignment restricted to an
+  authorized administrative path.
+
+
+────────────────────────────────────────────────────────────────────────
+  critical [Stability & Availability]
+  → ]8;;vscode://file//home/masum/github/remote/EmailIntelligence/setup/launch.py:79setup/launch.py:79-87]8;;
+
+  ▶ Prompt for AI agent
+  Verify each finding against current code. Fix only still-valid issues,
+  skip the rest with a brief reason, keep changes minimal, and validate.
+
+  In @setup/launch.py around lines 79 - 87, Define COMMAND_PATTERN_AVAILABLE
+  in the import guard in setup/launch.py: set it true when the
+  command-pattern imports succeed and false in the ImportError fallback.
+  Ensure the existing checks around the command execution paths at lines
+  1099 and 1418 can read the flag without raising NameError.
+
+
+────────────────────────────────────────────────────────────────────────
+  major [Maintainability & Code Quality]
+  → ]8;;vscode://file//home/masum/github/remote/EmailIntelligence/.github/workflows/pr-check.yml:40.github/workflows/pr-check.yml:40-41]8;;
+
+  ▶ Prompt for AI agent
+  Verify each finding against current code. Fix only still-valid issues,
+  skip the rest with a brief reason, keep changes minimal, and validate.
+
+  In @.github/workflows/pr-check.yml around lines 40 - 41, Update the Lint
+  step in the Frontend Check job to run npm run lint directly without the ||
+  echo fallback, so lint failures propagate and fail the workflow; then
+  resolve the currently reported lint errors.
+
+
+────────────────────────────────────────────────────────────────────────
+  major [Functional Correctness]
+  → ]8;;vscode://file//home/masum/github/remote/EmailIntelligence/.github/workflows/jules-pr-auto-fix.yml:84.github/workflows/jules-pr-auto-fix.yml:84-107]8;;
+
+  ▶ Prompt for AI agent
+  Verify each finding against current code. Fix only still-valid issues,
+  skip the rest with a brief reason, keep changes minimal, and validate.
+
+  In @.github/workflows/jules-pr-auto-fix.yml around lines 84 - 107, Update
+  the issueComments retrieval and selection in the workflow to account for
+  GitHub’s oldest-first ordering: remove the unsupported direction
+  parameter, paginate as needed to obtain all relevant comments, and select
+  the newest 10 via the tail before mapping. Preserve the existing
+  skipMarkers filtering and formatting in priorFeedback.
+
+
+────────────────────────────────────────────────────────────────────────
+  major [Functional Correctness]
+  → ]8;;vscode://file//home/masum/github/remote/EmailIntelligence/.github/workflows/jules-pr-review.yml:79.github/workflows/jules-pr-review.yml:79-92]8;;
+
+  ▶ Prompt for AI agent
+  Verify each finding against current code. Fix only still-valid issues,
+  skip the rest with a brief reason, keep changes minimal, and validate.
+
+  In @.github/workflows/jules-pr-review.yml around lines 79 - 92, Update the
+  comment retrieval calls so they reliably select the 20 most recent
+  comments: add sort: 'created' alongside direction: 'desc' in
+  pulls.listReviewComments, and do not rely on the unsupported direction
+  parameter in issues.listComments—paginate or fetch ascending comments and
+  take the final 20 entries. Preserve the existing reviewComments and
+  issueComments data flow.
+
+
+────────────────────────────────────────────────────────────────────────
+  critical [Functional Correctness]
+  → ]8;;vscode://file//home/masum/github/remote/EmailIntelligence/.github/workflows/jules-pr-address-comments.yml:39.github/workflows/jules-pr-address-comments.yml:39-53]8;;
+
+  ▶ Prompt for AI agent
+  Verify each finding against current code. Fix only still-valid issues,
+  skip the rest with a brief reason, keep changes minimal, and validate.
+
+  In @.github/workflows/jules-pr-address-comments.yml around lines 39 - 53,
+  Replace the reviewComments.filter(rc => rc.state === 'PENDING') logic
+  because REST review comment objects do not provide resolution state; use
+  the GraphQL reviewThreads connection and each thread’s isResolved
+  field to build only unresolved review sections. Update the resolved
+  handling accordingly, preserving the existing comment and diff-context
+  formatting.
+
+
+────────────────────────────────────────────────────────────────────────
+  major [Functional Correctness]
+  → ]8;;vscode://file//home/masum/github/remote/EmailIntelligence/src/backend/python_backend/gradio_app.py:146src/backend/python_backend/gradio_app.py:146]8;;
+
+  ▶ Prompt for AI agent
+  Verify each finding against current code. Fix only still-valid issues,
+  skip the rest with a brief reason, keep changes minimal, and validate.
+
+  In @src/backend/python_backend/gradio_app.py at line 146, Update
+  update_outputs and its button callback so the returned values match the
+  declared output components: either restore sentiment_chart and topic_chart
+  to the output list or remove those values from every success and error
+  return path. Add regression tests covering both callback success and error
+  behavior.
+
+
+────────────────────────────────────────────────────────────────────────
+  major [Functional Correctness]
+  → ]8;;vscode://file//home/masum/github/remote/EmailIntelligence/client/src/components/ui/calendar.tsx:20client/src/components/ui/calendar.tsx:20-57]8;;
+
+  ▶ Prompt for AI agent
+  Verify each finding against current code. Fix only still-valid issues,
+  skip the rest with a brief reason, keep changes minimal, and validate.
+
+  In @client/src/components/ui/calendar.tsx around lines 20 - 57, Confirm
+  the resolved react-day-picker version from client/package.json and the
+  lockfile, then update the Calendar wrapper to match that API. If using v9
+  or later, replace the deprecated v8 classNames with the current
+  UI/DayFlag/SelectionState keys, replace components.IconLeft/IconRight with
+  the Chevron component using its orientation prop, and add a rendering
+  regression test for the wrapper; otherwise retain the v8 implementation.
+
+
+────────────────────────────────────────────────────────────────────────
+  minor [Stability & Availability]
+  → ]8;;vscode://file//home/masum/github/remote/EmailIntelligence/.github/workflows/jules-pr-rebuild.yml:292.github/workflows/jules-pr-rebuild.yml:292-298]8;;
+
+  ▶ Prompt for AI agent
+  Verify each finding against current code. Fix only still-valid issues,
+  skip the rest with a brief reason, keep changes minimal, and validate.
+
+  In @.github/workflows/jules-pr-rebuild.yml around lines 292 - 298, Update
+  the session response handling near SESSION_NAME to accept .id when
+  .name is absent, matching the fallback behavior used by the analysis
+  step. Preserve the existing empty-value failure check and GitHub output
+  assignment, using the selected identifier for session_name.
+
+
+────────────────────────────────────────────────────────────────────────
+  critical [Functional Correctness]
+  → ]8;;vscode://file//home/masum/github/remote/EmailIntelligence/.github/workflows/jules-pr-rebuild.yml:54.github/workflows/jules-pr-rebuild.yml:54]8;;
+
+  ▶ Prompt for AI agent
+  Verify each finding against current code. Fix only still-valid issues,
+  skip the rest with a brief reason, keep changes minimal, and validate.
+
+  In @.github/workflows/jules-pr-rebuild.yml at line 54, Remove the
+  duplicate fs declaration from the analysis payload script, keeping a
+  single const fs = require('fs') binding shared by the surrounding function
+  scope. Update the declaration near the later usage rather than changing
+  the existing file-system operations.
+
+
+────────────────────────────────────────────────────────────────────────
+  major [Security & Privacy]
+  → ]8;;vscode://file//home/masum/github/remote/EmailIntelligence/src/core/rate_limiter.py:62src/core/rate_limiter.py:62-70]8;;
+
+  ▶ Prompt for AI agent
+  Verify each finding against current code. Fix only still-valid issues,
+  skip the rest with a brief reason, keep changes minimal, and validate.
+
+  In @src/core/rate_limiter.py around lines 62 - 70, Replace the eviction
+  behavior in the rate-limiter state management around _limits and
+  RateLimitState so evicted keys cannot re-enter with a fresh burst_limit
+  allowance; use a shared store or separate global limiter to preserve
+  enforcement for new and high-cardinality keys. Add a regression test
+  covering a key’s eviction and subsequent re-entry, verifying its
+  rate-limit guarantee remains enforced.
+
+
+────────────────────────────────────────────────────────────────────────
+  major [Maintainability & Code Quality]
+  → ]8;;vscode://file//home/masum/github/remote/EmailIntelligence/src/core/security.py:644src/core/security.py:644-688]8;;
+
+  ▶ Prompt for AI agent
+  Verify each finding against current code. Fix only still-valid issues,
+  skip the rest with a brief reason, keep changes minimal, and validate.
+
+  In @src/core/security.py around lines 644 - 688, Add comprehensive
+  regression tests for verify_model_safety covering approved
+  model/artifact/checkpoint paths, missing files and hashes, matching and
+  mismatched SHA256 hashes, and symlink resolution outside approved
+  directories. Also test every model loader that consumes
+  verify_model_safety, verifying both accepted and rejected paths while
+  preserving the helper’s fail-closed behavior.
+
+
+────────────────────────────────────────────────────────────────────────
+  critical [Functional Correctness]
+  → ]8;;vscode://file//home/masum/github/remote/EmailIntelligence/setup/launch.py:537setup/launch.py:537-557]8;;
+
+  ▶ Prompt for AI agent
+  Verify each finding against current code. Fix only still-valid issues,
+  skip the rest with a brief reason, keep changes minimal, and validate.
+
+  In @setup/launch.py around lines 537 - 557, Resolve the orphaned Conda
+  activation code around activate_conda_env by either restoring the complete
+  function and its related definitions, including valid indentation and
+  enclosing returns, or removing the leftover block entirely. Since these
+  symbols are imported from setup.environment, prefer deleting the duplicate
+  incomplete block and retain the imported implementations.
+
+
+────────────────────────────────────────────────────────────────────────
+  critical [Functional Correctness]
+  → ]8;;vscode://file//home/masum/github/remote/EmailIntelligence/.github/workflows/jules-pr-auto-fix.yml:109.github/workflows/jules-pr-auto-fix.yml:109-118]8;;
+
+  ▶ Prompt for AI agent
+  Verify each finding against current code. Fix only still-valid issues,
+  skip the rest with a brief reason, keep changes minimal, and validate.
+
+  In @.github/workflows/jules-pr-auto-fix.yml around lines 109 - 118, Move
+  the existing require('fs') declaration to before the reviewRules
+  loading loop so fs.existsSync and fs.readFileSync can execute safely,
+  then remove the later duplicate declaration. Keep the optional-file
+  handling and search order unchanged.
+
+
+────────────────────────────────────────────────────────────────────────
+  major [Data Integrity & Integration]
+  → ]8;;vscode://file//home/masum/github/remote/EmailIntelligence/modules/auth/routes.py:249modules/auth/routes.py:249-257]8;;
+
+  ▶ Prompt for AI agent
+  Verify each finding against current code. Fix only still-valid issues,
+  skip the rest with a brief reason, keep changes minimal, and validate.
+
+  In @modules/auth/routes.py around lines 249 - 257, Remove the unused
+  dictionary and update the create_user persistence flow to accept an
+  explicit user record containing the computed hashed password, role,
+  permissions, mfa_enabled, mfa_secret, and mfa_backup_codes. Ensure the
+  registration handler passes this record to create_user and that the
+  persistence API stores every field rather than continuing to use only
+  username, password, and db.
+
+
+────────────────────────────────────────────────────────────────────────
+  major [Security & Privacy]
+  → ]8;;vscode://file//home/masum/github/remote/EmailIntelligence/src/core/model_registry.py:473src/core/model_registry.py:473-475]8;;
+
+  ▶ Prompt for AI agent
+  Verify each finding against current code. Fix only still-valid issues,
+  skip the rest with a brief reason, keep changes minimal, and validate.
+
+  In @src/core/model_registry.py around lines 473 - 475, Apply
+  verify_model_safety to every framework-specific loading path in the model
+  registry, not only the scikit-learn branch. Before calling Transformers
+  from_pretrained or tf.saved_model.load, validate metadata.path against the
+  configured allowlist and integrity/signature policy; for directory-based
+  models, validate the approved directory or signed manifest covering all
+  required artifacts. Preserve the existing failure behavior by logging the
+  security error and returning None when validation fails.
+
+
+────────────────────────────────────────────────────────────────────────
+  major [Stability & Availability]
+  → ]8;;vscode://file//home/masum/github/remote/EmailIntelligence/src/backend/python_backend/workflow_editor_ui.py:321src/backend/python_backend/workflow_editor_ui.py:321]8;;
+
+  ▶ Prompt for AI agent
+  Verify each finding against current code. Fix only still-valid issues,
+  skip the rest with a brief reason, keep changes minimal, and validate.
+
+  In @src/backend/python_backend/workflow_editor_ui.py at line 321, Make
+  workflow-system initialization explicit before any UI code accesses it:
+  update the main startup path, direct UI import path, and test setup to
+  perform initialization rather than relying on import-time side effects.
+  Add a startup smoke test covering the application entry point and ensure
+  existing tests initialize the workflow system before UI usage.
+
+
+────────────────────────────────────────────────────────────────────────
+  major [Stability & Availability]
+  → ]8;;vscode://file//home/masum/github/remote/EmailIntelligence/.github/workflows/jules-pr-rebuild.yml:189.github/workflows/jules-pr-rebuild.yml:189-205]8;;
+
+  ▶ Prompt for AI agent
+  Verify each finding against current code. Fix only still-valid issues,
+  skip the rest with a brief reason, keep changes minimal, and validate.
+
+  In @.github/workflows/jules-pr-rebuild.yml around lines 189 - 205, Update
+  the analyze job to publish its fork-skip result as a skip output, then
+  extend the rebuild job condition to require needs.analyze.outputs.skip
+  is not true in addition to the existing jules-rebuild label check.
+  Preserve normal rebuild behavior for non-fork pull requests.
+
+
+────────────────────────────────────────────────────────────────────────
+  major [Data Integrity & Integration]
+  → ]8;;vscode://file//home/masum/github/remote/EmailIntelligence/CRUSH.md:3CRUSH.md:3-7]8;;
+
+  ▶ Prompt for AI agent
+  Verify each finding against current code. Fix only still-valid issues,
+  skip the rest with a brief reason, keep changes minimal, and validate.
+
+  In @CRUSH.md around lines 3 - 7, Update the correction in the CANONICAL
+  BRANCH RULES section to target only obsolete blanket main/scientific
+  convergence guidance, rather than all “never merge” instructions.
+  Explicitly preserve the prohibition against merging
+  orchestration-tools-combined into product branches, consistent with
+  .taskmaster/BRANCH_MANAGEMENT_MODEL.md.
+
+
+────────────────────────────────────────────────────────────────────────
+  major [Maintainability & Code Quality]
+  → ]8;;vscode://file//home/masum/github/remote/EmailIntelligence/setup/launch.py:413setup/launch.py:413-460]8;;
+
+  ▶ Prompt for AI agent
+  Verify each finding against current code. Fix only still-valid issues,
+  skip the rest with a brief reason, keep changes minimal, and validate.
+
+  In @setup/launch.py around lines 413 - 460, Update check_critical_files so
+  product branches are not required to contain orchestration-tools-only
+  paths. Move the critical-file list into branch-scoped configuration, or
+  gate validation on detecting the orchestration layout before checking
+  those entries; preserve validation for branches where that layout exists
+  and ensure _execute_check_command does not fail solely because the
+  divergent orchestration files are absent.
+
+
+────────────────────────────────────────────────────────────────────────
+  major [Data Integrity & Integration]
+  → ]8;;vscode://file//home/masum/github/remote/EmailIntelligence/src/core/model_registry.py:54src/core/model_registry.py:54]8;;
+
+  ▶ Prompt for AI agent
+  Verify each finding against current code. Fix only still-valid issues,
+  skip the rest with a brief reason, keep changes minimal, and validate.
+
+  In @src/core/model_registry.py at line 54, Update _save_metadata to
+  serialize ModelMetadata.expected_hash into metadata.json, and update
+  discover_models’ metadata reconstruction to read the persisted value back
+  with a missing-field fallback of None. Preserve the existing SHA256
+  validation behavior for models without and with an expected hash.
+
+
+────────────────────────────────────────────────────────────────────────
+  major [Stability & Availability]
+  → ]8;;vscode://file//home/masum/github/remote/EmailIntelligence/scripts/branch_rename_migration.py:18scripts/branch_rename_migration.py:18-28]8;;
+
+  ▶ Prompt for AI agent
+  Verify each finding against current code. Fix only still-valid issues,
+  skip the rest with a brief reason, keep changes minimal, and validate.
+
+  In @scripts/branch_rename_migration.py around lines 18 - 28, Update
+  run_command to also catch OSError and ValueError around subprocess.run,
+  print the command and exception details consistently with the existing
+  CalledProcessError handling, and return None so get_local_branches and
+  get_remote_branches preserve their fallback behavior.
+
+
+────────────────────────────────────────────────────────────────────────
+  critical [Stability & Availability]
+  → ]8;;vscode://file//home/masum/github/remote/EmailIntelligence/.github/workflows/jules-pr-resolve-conflicts.yml:240.github/workflows/jules-pr-resolve-conflicts.yml:240-245]8;;
+
+  ▶ Prompt for AI agent
+  Verify each finding against current code. Fix only still-valid issues,
+  skip the rest with a brief reason, keep changes minimal, and validate.
+
+  In @.github/workflows/jules-pr-resolve-conflicts.yml around lines 240 -
+  245, Move the fs declaration and initialization before the
+  conflict-resolution loop that calls fs.existsSync and fs.readFileSync,
+  ensuring the first use occurs after initialization. Remove or avoid the
+  later duplicate declaration near the payload-building logic.
+
+
+────────────────────────────────────────────────────────────────────────
+  major [Security & Privacy]
+  → ]8;;vscode://file//home/masum/github/remote/EmailIntelligence/src/backend/node_engine/workflow_manager.py:50src/backend/node_engine/workflow_manager.py:50-65]8;;
+
+  ▶ Prompt for AI agent
+  Verify each finding against current code. Fix only still-valid issues,
+  skip the rest with a brief reason, keep changes minimal, and validate.
+
+  In @src/backend/node_engine/workflow_manager.py around lines 50 - 65, The
+  path-safety changes around the workflow save logic need regression tests.
+  Add coverage for valid filenames, ../ traversal, absolute paths,
+  sibling-prefix paths, and symlink targets; verify the node manager raises
+  ValueError for rejected paths and the backend manager returns False or
+  None as its existing contract specifies. Update the appropriate
+  unit/integration tests without changing production behavior.
+
+
+────────────────────────────────────────────────────────────────────────
+  major [Maintainability & Code Quality]
+  → ]8;;vscode://file//home/masum/github/remote/EmailIntelligence/.github/workflows/jules-pr-resolve-conflicts.yml:238.github/workflows/jules-pr-resolve-conflicts.yml:238-247]8;;
+
+  ▶ Prompt for AI agent
+  Verify each finding against current code. Fix only still-valid issues,
+  skip the rest with a brief reason, keep changes minimal, and validate.
+
+  In @.github/workflows/jules-pr-resolve-conflicts.yml around lines 238 -
+  247, Update the reviewRules loading loop to include .taskmaster/AGENT.md
+  and concatenate every existing instruction file instead of stopping after
+  the first match. Preserve optional-file handling while ensuring the
+  combined rules include the Task Master workflow commands and
+  branch-management constraints.
+
+
+────────────────────────────────────────────────────────────────────────
+  minor [Stability & Availability]
+  → ]8;;vscode://file//home/masum/github/remote/EmailIntelligence/.github/workflows/jules-pr-review.yml:104.github/workflows/jules-pr-review.yml:104-107]8;;
+
+  ▶ Prompt for AI agent
+  Verify each finding against current code. Fix only still-valid issues,
+  skip the rest with a brief reason, keep changes minimal, and validate.
+
+  In @.github/workflows/jules-pr-review.yml around lines 104 - 107, Update
+  the priorReviews mapping to safely handle null or missing c.body before
+  calling slice, matching the existing priorFeedback behavior while
+  preserving the current formatting and truncation for comments with a body.
+
+
+────────────────────────────────────────────────────────────────────────
+  major [Maintainability & Code Quality]
+  → ]8;;vscode://file//home/masum/github/remote/EmailIntelligence/setup/launch.py:32setup/launch.py:32-45]8;;
+
+  ▶ Prompt for AI agent
+  Verify each finding against current code. Fix only still-valid issues,
+  skip the rest with a brief reason, keep changes minimal, and validate.
+
+  In @setup/launch.py around lines 32 - 45, Resolve the duplicate setup
+  helper definitions by choosing one implementation per symbol: retain
+  imported helpers from the setup modules and remove their local
+  definitions, or remove imports where the local implementation is intended.
+  Apply this consistently to the listed validation, service, environment,
+  and system-info helpers so no imported name is shadowed and delegation
+  behavior is preserved.
+
+
+────────────────────────────────────────────────────────────────────────
+  major [Functional Correctness]
+  → ]8;;vscode://file//home/masum/github/remote/EmailIntelligence/.github/workflows/jules-pr-address-comments.yml:102.github/workflows/jules-pr-address-comments.yml:102-111]8;;
+
+  ▶ Prompt for AI agent
+  Verify each finding against current code. Fix only still-valid issues,
+  skip the rest with a brief reason, keep changes minimal, and validate.
+
+  In @.github/workflows/jules-pr-address-comments.yml around lines 102 -
+  111, Update the review-thread reply block to remove the unused body
+  variable, pass the intended blank-line-prefixed @jules prompt as the
+  request body, and replace pulls.createReviewComment with
+  pulls.createReplyForReviewComment while retaining the repository, pull
+  request, and comment identifiers.
+
+
+────────────────────────────────────────────────────────────────────────
+  major [Functional Correctness]
+  → ]8;;vscode://file//home/masum/github/remote/EmailIntelligence/setup/launch.py:741setup/launch.py:741-760]8;;
+
+  ▶ Prompt for AI agent
+  Verify each finding against current code. Fix only still-valid issues,
+  skip the rest with a brief reason, keep changes minimal, and validate.
+
+  In @setup/launch.py around lines 741 - 760, Update the notmuch
+  installation in the setup flow around get_python_executable to use a
+  compatible-release specifier based on major_minor instead of an exact
+  two-part pin, and capture the run_command result. When installation fails,
+  log a warning and attempt the existing latest-version fallback so setup
+  does not silently continue without notmuch.
+
+
+────────────────────────────────────────────────────────────────────────
+  major [Functional Correctness]
+  → ]8;;vscode://file//home/masum/github/remote/EmailIntelligence/.github/workflows/jules-pr-review.yml:246.github/workflows/jules-pr-review.yml:246-248]8;;
+
+  ▶ Prompt for AI agent
+  Verify each finding against current code. Fix only still-valid issues,
+  skip the rest with a brief reason, keep changes minimal, and validate.
+
+  In @.github/workflows/jules-pr-review.yml around lines 246 - 248, Replace
+  the hardcoded “[VERDICT]: approve” example in the prompt construction with
+  a neutral placeholder while preserving the allowed verdict values shown by
+  the adjacent comment. Update the relevant prompt/template assembly so the
+  model must generate the verdict after analysis and the parser receives the
+  model’s actual choice.
+
+
+────────────────────────────────────────────────────────────────────────
+  major [Stability & Availability]
+  → ]8;;vscode://file//home/masum/github/remote/EmailIntelligence/.github/workflows/jules-pr-rebuild.yml:132.github/workflows/jules-pr-rebuild.yml:132-135]8;;
+
+  ▶ Prompt for AI agent
+  Verify each finding against current code. Fix only still-valid issues,
+  skip the rest with a brief reason, keep changes minimal, and validate.
+
+  In @.github/workflows/jules-pr-rebuild.yml around lines 132 - 135, Add
+  --connect-timeout 10 and --max-time 60 to the curl invocation that assigns
+  RESPONSE for the sessions POST request, matching the polling requests.
+  Also set an appropriate timeout-minutes value on the analyze job to
+  prevent a hung request from consuming the runner’s default limit.
+
+
+────────────────────────────────────────────────────────────────────────
+  major [Stability & Availability]
+  → ]8;;vscode://file//home/masum/github/remote/EmailIntelligence/.github/workflows/jules-pr-resolve-conflicts.yml:53.github/workflows/jules-pr-resolve-conflicts.yml:53-58]8;;
+
+  ▶ Prompt for AI agent
+  Verify each finding against current code. Fix only still-valid issues,
+  skip the rest with a brief reason, keep changes minimal, and validate.
+
+  In @.github/workflows/jules-pr-resolve-conflicts.yml around lines 53 - 58,
+  Update the merge-tree status handling around git merge-tree and its
+  repeated conflict-check block so the command runs within an if condition,
+  allowing exit status 1 without triggering Bash -e termination. Capture and
+  map the resulting status to has_conflicts=false, true, or error as
+  currently intended.
+
+
+────────────────────────────────────────────────────────────────────────
+  major [Data Integrity & Integration]
+  → ]8;;vscode://file//home/masum/github/remote/EmailIntelligence/src/context_control/models.py:43src/context_control/models.py:43-44]8;;
+
+  ▶ Prompt for AI agent
+  Verify each finding against current code. Fix only still-valid issues,
+  skip the rest with a brief reason, keep changes minimal, and validate.
+
+  In @src/context_control/models.py around lines 43 - 44, Add regression
+  tests for all six changed timestamp fields in the models, verifying
+  defaults are offset-aware UTC values and serialize with a UTC offset. Test
+  deserialization of existing naive timestamps and comparisons against
+  last_validated or other persisted timestamps; normalize legacy naive
+  values at the boundary where needed so aware and naive datetimes are not
+  compared directly.
+
+
+────────────────────────────────────────────────────────────────────────
+  critical [Functional Correctness]
+  → ]8;;vscode://file//home/masum/github/remote/EmailIntelligence/setup/launch.py:5setup/launch.py:5-87]8;;
+
+  ▶ Prompt for AI agent
+  Verify each finding against current code. Fix only still-valid issues,
+  skip the rest with a brief reason, keep changes minimal, and validate.
+
+  In @setup/launch.py around lines 5 - 87, Resolve every merge-conflict hunk
+  in setup/launch.py by removing all conflict markers and selecting the
+  correct implementation for each section, preserving valid imports and
+  launcher behavior. Ensure check_for_merge_conflicts no longer detects
+  these markers in the file, and follow the curated branch-transfer rules in
+  BRANCH_MANAGEMENT_MODEL.md rather than retaining merge artifacts or
+  wholesale branch changes.
+
+
+────────────────────────────────────────────────────────────────────────
+  major [Stability & Availability]
+  → ]8;;vscode://file//home/masum/github/remote/EmailIntelligence/.github/workflows/jules-pr-walkthrough.yml:166.github/workflows/jules-pr-walkthrough.yml:166-169]8;;
+
+  ▶ Prompt for AI agent
+  Verify each finding against current code. Fix only still-valid issues,
+  skip the rest with a brief reason, keep changes minimal, and validate.
+
+  In @.github/workflows/jules-pr-walkthrough.yml around lines 166 - 169,
+  Update the session-creation curl invocation assigned to RESPONSE to
+  include bounded connection and total timeouts, without retrying the POST
+  automatically. In the polling and activity-request logic, handle curl
+  failures by logging the failed attempt and continuing until MAX_ATTEMPTS,
+  while preserving normal completion and walkthrough-comment behavior.
+
+
+────────────────────────────────────────────────────────────────────────
+  major [Maintainability & Code Quality]
+  → ]8;;vscode://file//home/masum/github/remote/EmailIntelligence/setup/launch.py:1105setup/launch.py:1105-1134]8;;
+
+  ▶ Prompt for AI agent
+  Verify each finding against current code. Fix only still-valid issues,
+  skip the rest with a brief reason, keep changes minimal, and validate.
+
+  In @setup/launch.py around lines 1105 - 1134, Extend the existing
+  launch.py test coverage for the new subparser flow and related symbols:
+  verify subcommand dispatch is distinct from legacy dispatch, exercise
+  check_critical_files through check --critical-files,
+  validate_orchestration_environment through check --env, and cover
+  _execute_check_command exit codes when critical files are missing. Use
+  mocks or temporary fixtures as appropriate while preserving existing
+  command behavior.
