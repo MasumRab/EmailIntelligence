@@ -14,9 +14,9 @@ from backend.node_engine.workflow_manager import workflow_manager
 
 from ..plugins.plugin_manager import plugin_manager
 from .model_manager import ModelManager
-model_manager = ModelManager()
 from .performance_monitor import performance_monitor
 
+model_manager = ModelManager()
 router = APIRouter()
 
 
