@@ -25,7 +25,47 @@ class ContextIsolator:
         self.context = context
         self.config = config or get_current_config()
         self._access_log: List[Dict[str, Any]] = []
+
+        # Pre-compile patterns for performance
+        self._restricted_patterns = self._compile_patterns(context.restricted_files)
+        self._accessible_patterns = self._compile_patterns(context.accessible_files)
+
         logger.info(f"Context isolator initialized for agent '{context.agent_id}'")
+
+    def _compile_patterns(self, patterns: List[str]):
+        """Compile glob patterns into a single optimized regex object.
+
+        Args:
+            patterns: List of glob patterns
+
+        Returns:
+            Compiled regex object or None if no valid patterns
+        """
+        import re
+        if not patterns:
+            return None
+
+        regex_strs = []
+        for p in patterns:
+            try:
+                # Use fnmatch.translate to convert glob to regex
+                regex_str = fnmatch.translate(p)
+                regex_strs.append(regex_str)
+            except Exception as e:
+                logger.error(f"Failed to compile pattern '{p}': {e}")
+
+        if not regex_strs:
+            return None
+
+        try:
+            # Combine all patterns into a single regex for O(1) matching complexity relative to pattern count
+            # fnmatch.translate produces patterns like '(?s:pattern)\Z'
+            # We join them with OR operator '|', wrapping each in a non-capturing group (?:) to avoid anchor issues
+            combined_regex = '|'.join(f'(?:{r})' for r in regex_strs)
+            return re.compile(combined_regex)
+        except Exception as e:
+            logger.error(f"Failed to compile combined patterns: {e}")
+            return None
 
     def is_file_accessible(self, file_path: str) -> bool:
         """Check if a file is accessible within the current context.
@@ -40,12 +80,12 @@ class ContextIsolator:
         normalized_path = self._normalize_path(file_path)
 
         # Check blocked files first (deny list)
-        if self._matches_patterns(normalized_path, self.context.restricted_files):
+        if self._matches_patterns(normalized_path, self._restricted_patterns):
             self._log_access(normalized_path, False, "blocked")
             return False
 
         # Check allowed files (allow list)
-        if self._matches_patterns(normalized_path, self.context.accessible_files):
+        if self._matches_patterns(normalized_path, self._accessible_patterns):
             self._log_access(normalized_path, True, "allowed")
             return True
 
@@ -137,29 +177,36 @@ class ContextIsolator:
             # Fallback to original path
             return file_path
 
-    def _matches_patterns(self, file_path: str, patterns: List[str]) -> bool:
-        """Check if a file path matches any of the given patterns.
+    def _matches_patterns(self, file_path: str, pattern) -> bool:
+        """Check if a file path matches the compiled pattern.
 
         Args:
             file_path: File path to check
-            patterns: List of glob patterns
+            pattern: Compiled regex pattern (or None)
 
         Returns:
-            True if any pattern matches, False otherwise
+            True if pattern matches, False otherwise
         """
-        for pattern in patterns:
-            try:
-                if fnmatch.fnmatch(file_path, pattern):
-                    return True
+        if pattern is None:
+            return False
 
-                # Also try matching against just the filename
-                filename = Path(file_path).name
-                if fnmatch.fnmatch(filename, pattern):
-                    return True
+        # Optimize: Calculate basename once
+        try:
+            filename = Path(file_path).name
+        except Exception:
+            filename = file_path
 
-            except Exception:
-                # Skip invalid patterns
-                continue
+        try:
+            if pattern.match(file_path):
+                return True
+
+            # Also try matching against just the filename
+            if pattern.match(filename):
+                return True
+
+        except Exception:
+            # Skip invalid matches
+            pass
 
         return False
 

@@ -1,8 +1,5 @@
 name: '📋 Gemini Scheduled Issue Triage'
 
-permissions:
-  contents: read
-
 on:
   schedule:
     - cron: '0 * * * *' # Runs every hour
