@@ -710,7 +710,7 @@ def create_app():
         """Redirect root to Gradio UI."""
         return RedirectResponse(url="/ui")
 
-    # Create the main Gradio UI as a placeholder
+    # Create the main Gradio UI
     # Modules will add their own tabs and components to this.
     with gr.Blocks(
         theme=gr.themes.Soft(), title="Email Intelligence Platform"
@@ -718,6 +718,15 @@ def create_app():
         gr.Markdown("# Email Intelligence Platform")
 
         with gr.Tabs():
+            with gr.TabItem("System Status"):
+                create_system_status_tab()
+
+            with gr.TabItem("AI Lab"):
+                create_ai_lab_tab()
+
+            with gr.TabItem("Gmail Integration"):
+                create_gmail_integration_tab()
+
             with gr.TabItem("Simple UI (A)"):
                 gr.Markdown(
                     "## Simple & Streamlined UI\nThis is the placeholder for the simple, user-friendly interface where users can run pre-built workflows."
