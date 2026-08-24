@@ -176,7 +176,10 @@ def sanitize_html(html_content: str) -> str:
 
     # Remove style tags (including malformed end tags like </style foo>)
     html_content = re.sub(
-        r"<style\b[^>]*>.*?</\s*style(?:\s+[^>]*)?>", "", html_content, flags=re.DOTALL | re.IGNORECASE
+        r"<style\b[^>]*>.*?</\s*style(?:\s+[^>]*)?>",
+        "",
+        html_content,
+        flags=re.DOTALL | re.IGNORECASE,
     )
 
     # Remove event handlers
