@@ -37,6 +37,21 @@ from .security import PathValidator
 
 logger = logging.getLogger(__name__)
 
+# System tags that are managed by notmuch/email clients, not user categories
+_SYSTEM_TAGS = frozenset(
+    {
+        "inbox",
+        "unread",
+        "sent",
+        "draft",
+        "deleted",
+        "spam",
+        "flagged",
+        "replied",
+        "forwarded",
+    }
+)
+
 
 class NotmuchDataSource(DataSource):
     """
@@ -99,6 +114,21 @@ class NotmuchDataSource(DataSource):
             logger.warning(
                 "Notmuch module not available. NotmuchDataSource will operate in limited mode."
             )
+
+    async def _apply_smart_filters(
+        self, message_id: str, subject: str, content: str, analysis_results: dict
+    ) -> Optional[dict]:
+        """Apply smart filters to an email and return filter results, or None."""
+        if not self.filter_manager:
+            return None
+        return await self.filter_manager.apply_filters_to_email(
+            {
+                "id": message_id,
+                "subject": subject,
+                "content": content,
+                "analysis": analysis_results,
+            }
+        )
 
     async def _ensure_initialized(self):
         """Ensure the Notmuch database connection is available."""
@@ -399,26 +429,20 @@ class NotmuchDataSource(DataSource):
 
             # Apply smart filters for categorization
             try:
-                if self.filter_manager:
-                    filter_results = await self.filter_manager.apply_filters_to_email(
-                        {
-                            "id": message_id,
-                            "subject": subject,
-                            "content": content,
-                            "analysis": analysis_results,
-                        }
-                    )
+                filter_results = await self._apply_smart_filters(
+                    message_id, subject, content, analysis_results
+                )
 
-                    if filter_results:
-                        analysis_results["smart_filters"] = filter_results
+                if filter_results:
+                    analysis_results["smart_filters"] = filter_results
 
-                        # Apply suggested tags based on filters
-                        suggested_tags = filter_results.get("categories", [])
-                        if suggested_tags:
-                            # Add suggested tags
-                            new_tags = suggested_tags
-                            # Update tags in notmuch
-                            await self.update_tags_for_message(message_id, new_tags)
+                    # Apply suggested tags based on filters
+                    suggested_tags = filter_results.get("categories", [])
+                    if suggested_tags:
+                        # Add suggested tags
+                        new_tags = suggested_tags
+                        # Update tags in notmuch
+                        await self.update_tags_for_message(message_id, new_tags)
 
             except Exception as e:
                 logger.warning(f"Smart filtering failed for email {message_id}: {e}")
@@ -524,18 +548,7 @@ class NotmuchDataSource(DataSource):
             # For categories, we'll count distinct tags (excluding system tags)
             all_tags = self.notmuch_db.get_all_tags()
             # Filter out common system tags to get user-defined categories
-            system_tags = {
-                "inbox",
-                "unread",
-                "sent",
-                "draft",
-                "deleted",
-                "spam",
-                "flagged",
-                "replied",
-                "forwarded",
-            }
-            category_tags = [tag for tag in all_tags if tag.lower() not in system_tags]
+            category_tags = [tag for tag in all_tags if tag.lower() not in _SYSTEM_TAGS]
             categories_count = len(category_tags)
 
             # Weekly growth - simplified calculation
@@ -579,25 +592,12 @@ class NotmuchDataSource(DataSource):
             # Get all tags and their counts
             tag_counts = {}
 
-            # Exclude common system tags
-            system_tags = {
-                "inbox",
-                "unread",
-                "sent",
-                "draft",
-                "deleted",
-                "spam",
-                "flagged",
-                "replied",
-                "forwarded",
-            }
-
             # Get all tags from the database
             all_tags = list(self.notmuch_db.get_all_tags())
 
             # For each tag (that's not a system tag), count messages
             for tag in all_tags:
-                if tag.lower() not in system_tags:
+                if tag.lower() not in _SYSTEM_TAGS:
                     query = self.notmuch_db.create_query(f"tag:{tag}")
                     count = query.count_messages()
                     if count > 0:  # Only include tags with emails
@@ -788,28 +788,22 @@ class NotmuchDataSource(DataSource):
 
             # Apply smart filters for categorization
             try:
-                if self.filter_manager:
-                    filter_results = await self.filter_manager.apply_filters_to_email(
-                        {
-                            "id": message_id,
-                            "subject": subject,
-                            "content": content,
-                            "analysis": analysis_results,
-                        }
-                    )
+                filter_results = await self._apply_smart_filters(
+                    message_id, subject, content, analysis_results
+                )
 
-                    if filter_results:
-                        analysis_results["smart_filters"] = filter_results
+                if filter_results:
+                    analysis_results["smart_filters"] = filter_results
 
-                        # Apply suggested tags based on filters
-                        suggested_tags = filter_results.get("categories", [])
-                        if suggested_tags:
-                            # Get current tags
-                            current_tags = email_data.get("tags", [])
-                            # Add suggested tags
-                            new_tags = list(set(current_tags + suggested_tags))
-                            # Update tags in notmuch
-                            await self.update_tags_for_message(message_id, new_tags)
+                    # Apply suggested tags based on filters
+                    suggested_tags = filter_results.get("categories", [])
+                    if suggested_tags:
+                        # Get current tags
+                        current_tags = email_data.get("tags", [])
+                        # Add suggested tags
+                        new_tags = list(set(current_tags + suggested_tags))
+                        # Update tags in notmuch
+                        await self.update_tags_for_message(message_id, new_tags)
 
             except Exception as e:
                 logger.warning(f"Smart filtering failed for email {message_id}: {e}")

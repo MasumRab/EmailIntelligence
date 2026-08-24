@@ -62,6 +62,45 @@ class SanitizationPolicy:
     strip: bool = True
 
 
+# Base HTML tags allowed in standard sanitization level
+_BASE_ALLOWED_TAGS = [
+    "p",
+    "br",
+    "strong",
+    "em",
+    "u",
+    "ol",
+    "ul",
+    "li",
+    "h1",
+    "h2",
+    "h3",
+    "h4",
+    "h5",
+    "h6",
+    "blockquote",
+    "code",
+    "pre",
+]
+
+# Additional tags allowed in permissive sanitization level
+_PERMISSIVE_EXTRA_TAGS = [
+    "div",
+    "span",
+    "table",
+    "thead",
+    "tbody",
+    "tr",
+    "th",
+    "td",
+    "img",
+    "a",
+    "hr",
+    "sub",
+    "sup",
+    "iframe",
+]
+
 # Define sanitization policies for each level
 SANITIZATION_POLICIES = {
     SanitizationLevel.STRICT: SanitizationPolicy(
@@ -72,25 +111,7 @@ SANITIZATION_POLICIES = {
     ),
     SanitizationLevel.STANDARD: SanitizationPolicy(
         level=SanitizationLevel.STANDARD,
-        allowed_tags=[
-            "p",
-            "br",
-            "strong",
-            "em",
-            "u",
-            "ol",
-            "ul",
-            "li",
-            "h1",
-            "h2",
-            "h3",
-            "h4",
-            "h5",
-            "h6",
-            "blockquote",
-            "code",
-            "pre",
-        ],
+        allowed_tags=_BASE_ALLOWED_TAGS,
         allowed_attributes={
             "a": ["href", "title"],
             "img": ["src", "alt", "title", "width", "height"],
@@ -100,39 +121,7 @@ SANITIZATION_POLICIES = {
     ),
     SanitizationLevel.PERMISSIVE: SanitizationPolicy(
         level=SanitizationLevel.PERMISSIVE,
-        allowed_tags=[
-            "p",
-            "br",
-            "strong",
-            "em",
-            "u",
-            "ol",
-            "ul",
-            "li",
-            "h1",
-            "h2",
-            "h3",
-            "h4",
-            "h5",
-            "h6",
-            "blockquote",
-            "code",
-            "pre",
-            "div",
-            "span",
-            "table",
-            "thead",
-            "tbody",
-            "tr",
-            "th",
-            "td",
-            "img",
-            "a",
-            "hr",
-            "sub",
-            "sup",
-            "iframe",
-        ],
+        allowed_tags=_BASE_ALLOWED_TAGS + _PERMISSIVE_EXTRA_TAGS,
         allowed_attributes={
             "a": ["href", "title", "target", "rel"],
             "img": ["src", "alt", "title", "width", "height", "style"],

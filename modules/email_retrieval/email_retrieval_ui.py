@@ -290,6 +290,19 @@ with gr.Blocks() as email_retrieval_tab:
                 start_date = gr.Textbox(label="Start Date (YYYY/MM/DD)", visible=False)
                 end_date = gr.Textbox(label="End Date (YYYY/MM/DD)", visible=False)
 
+            # Shared list of filter input components (reused across event handlers)
+            filter_inputs = [
+                sender,
+                to,
+                subject,
+                keywords,
+                date_filter,
+                start_date,
+                end_date,
+                category,
+                has_attachment,
+            ]
+
             def toggle_date_fields(date_filter_value):
                 return gr.update(visible=date_filter_value == "Custom"), gr.update(
                     visible=date_filter_value == "Custom"
@@ -329,17 +342,7 @@ with gr.Blocks() as email_retrieval_tab:
     load_filter_button.click(
         fn=load_filter,
         inputs=[saved_filters_dropdown],
-        outputs=[
-            sender,
-            to,
-            subject,
-            keywords,
-            date_filter,
-            start_date,
-            end_date,
-            category,
-            has_attachment,
-        ],
+        outputs=filter_inputs,
     )
 
     def refresh_filters():
@@ -351,37 +354,13 @@ with gr.Blocks() as email_retrieval_tab:
 
     save_button.click(
         fn=save_filter,
-        inputs=[
-            new_filter_name,
-            sender,
-            to,
-            subject,
-            keywords,
-            date_filter,
-            start_date,
-            end_date,
-            category,
-            has_attachment,
-        ],
+        inputs=[new_filter_name] + filter_inputs,
         outputs=[retrieval_status],
     ).then(fn=refresh_filters, inputs=[], outputs=[saved_filters_dropdown])
 
     test_button.click(
         fn=test_filter,
-        inputs=[
-            email_address,
-            password,
-            server,
-            sender,
-            to,
-            subject,
-            keywords,
-            date_filter,
-            start_date,
-            end_date,
-            category,
-            has_attachment,
-        ],
+        inputs=[email_address, password, server] + filter_inputs,
         outputs=estimation_output,
     )
 
@@ -426,17 +405,8 @@ with gr.Blocks() as email_retrieval_tab:
             email_address,
             password,
             server,
-            sender,
-            to,
-            subject,
-            keywords,
-            date_filter,
-            start_date,
-            end_date,
-            category,
-            has_attachment,
-            max_emails_slider,
-            download_format_dropdown,
-        ],
+        ]
+        + filter_inputs
+        + [max_emails_slider, download_format_dropdown],
         outputs=[retrieval_status, email_table],
     )
