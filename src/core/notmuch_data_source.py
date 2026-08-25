@@ -198,16 +198,7 @@ class NotmuchDataSource(DataSource):
 
             results = []
             for message in list(messages)[:limit]:
-                results.append(
-                    {
-                        "id": message.get_message_id(),
-                        "message_id": message.get_message_id(),
-                        "subject": message.get_header("subject"),
-                        "sender": message.get_header("from"),
-                        "date": message.get_date(),
-                        "tags": list(message.get_tags()),
-                    }
-                )
+                results.append(self._message_to_dict(message))
             return results
         except Exception as e:
             logger.error(f"Error searching emails in notmuch: {e}")
@@ -322,16 +313,7 @@ class NotmuchDataSource(DataSource):
 
             results = []
             for message in list(messages)[offset : offset + limit]:
-                results.append(
-                    {
-                        "id": message.get_message_id(),
-                        "message_id": message.get_message_id(),
-                        "subject": message.get_header("subject"),
-                        "sender": message.get_header("from"),
-                        "date": message.get_date(),
-                        "tags": list(message.get_tags()),
-                    }
-                )
+                results.append(self._message_to_dict(message))
             return results
         except Exception as e:
             logger.error(f"Error getting emails from notmuch: {e}")
@@ -395,37 +377,54 @@ class NotmuchDataSource(DataSource):
 
         return result
 
+    @staticmethod
+    def _message_to_dict(message: Any) -> Dict[str, Any]:
+        """Convert a notmuch message object to a dictionary. Shared helper."""
+        return {
+            "id": message.get_message_id(),
+            "message_id": message.get_message_id(),
+            "subject": message.get_header("subject"),
+            "sender": message.get_header("from"),
+            "date": message.get_date(),
+            "tags": list(message.get_tags()),
+        }
+
+    def _run_sentiment_and_topic_analysis(
+        self, full_text: str, message_id: str
+    ) -> Dict[str, Any]:
+        """Run sentiment and topic analysis on email text. Shared helper to avoid duplication."""
+        analysis_results: Dict[str, Any] = {}
+
+        try:
+            if self.ai_engine:
+                sentiment = self.ai_engine.analyze_sentiment(full_text)
+                if sentiment:
+                    analysis_results["sentiment"] = sentiment
+        except Exception as e:
+            logger.warning(f"Sentiment analysis failed for email {message_id}: {e}")
+
+        try:
+            if self.ai_engine:
+                topics = self.ai_engine.classify_topic(full_text)
+                if topics:
+                    analysis_results["topics"] = topics
+        except Exception as e:
+            logger.warning(f"Topic classification failed for email {message_id}: {e}")
+
+        return analysis_results
+
     async def _analyze_and_tag_email_background(
         self, message_id: str, email_data: Dict[str, Any]
     ):
         """Perform background AI analysis and tagging for a new email."""
         try:
-            # Get the full email content for analysis
             subject = email_data.get("subject", "")
             content = email_data.get("body", "")
             full_text = f"{subject} {content}"
 
-            analysis_results = {}
-
-            # Sentiment analysis
-            try:
-                if self.ai_engine:
-                    sentiment = self.ai_engine.analyze_sentiment(full_text)
-                    if sentiment:
-                        analysis_results["sentiment"] = sentiment
-            except Exception as e:
-                logger.warning(f"Sentiment analysis failed for email {message_id}: {e}")
-
-            # Topic classification
-            try:
-                if self.ai_engine:
-                    topics = self.ai_engine.classify_topic(full_text)
-                    if topics:
-                        analysis_results["topics"] = topics
-            except Exception as e:
-                logger.warning(
-                    f"Topic classification failed for email {message_id}: {e}"
-                )
+            analysis_results = self._run_sentiment_and_topic_analysis(
+                full_text, message_id
+            )
 
             # Apply smart filters for categorization
             try:
@@ -439,9 +438,7 @@ class NotmuchDataSource(DataSource):
                     # Apply suggested tags based on filters
                     suggested_tags = filter_results.get("categories", [])
                     if suggested_tags:
-                        # Add suggested tags
                         new_tags = suggested_tags
-                        # Update tags in notmuch
                         await self.update_tags_for_message(message_id, new_tags)
 
             except Exception as e:
@@ -699,7 +696,6 @@ class NotmuchDataSource(DataSource):
         try:
             logger.info(f"Re-analyzing email {message_id} after tag update")
 
-            # Get email content
             email_data = await self.get_email_by_message_id(
                 message_id, include_content=True
             )
@@ -709,32 +705,11 @@ class NotmuchDataSource(DataSource):
                 )
                 return
 
-            # Perform AI analysis
             subject = email_data.get("subject", "")
             content = email_data.get("body", "")
             full_text = f"{subject} {content}"
 
-            analysis_results = {}
-
-            # Sentiment analysis
-            try:
-                if self.ai_engine:
-                    sentiment = self.ai_engine.analyze_sentiment(full_text)
-                    if sentiment:
-                        analysis_results["sentiment"] = sentiment
-            except Exception as e:
-                logger.warning(f"Sentiment analysis failed for email {message_id}: {e}")
-
-            # Topic classification
-            try:
-                if self.ai_engine:
-                    topics = self.ai_engine.classify_topic(full_text)
-                    if topics:
-                        analysis_results["topics"] = topics
-            except Exception as e:
-                logger.warning(
-                    f"Topic classification failed for email {message_id}: {e}"
-                )
+            self._run_sentiment_and_topic_analysis(full_text, message_id)
 
             logger.info(f"Completed re-analysis for email {message_id}")
         except Exception as e:
@@ -751,7 +726,6 @@ class NotmuchDataSource(DataSource):
             return False
 
         try:
-            # Get email content
             email_data = await self.get_email_by_message_id(
                 message_id, include_content=True
             )
@@ -759,32 +733,13 @@ class NotmuchDataSource(DataSource):
                 logger.error(f"Could not retrieve email data for {message_id}")
                 return False
 
-            # Perform AI analysis
             subject = email_data.get("subject", "")
             content = email_data.get("body", "")
             full_text = f"{subject} {content}"
 
-            analysis_results = {}
-
-            # Sentiment analysis
-            try:
-                if self.ai_engine:
-                    sentiment = self.ai_engine.analyze_sentiment(full_text)
-                    if sentiment:
-                        analysis_results["sentiment"] = sentiment
-            except Exception as e:
-                logger.warning(f"Sentiment analysis failed for email {message_id}: {e}")
-
-            # Topic classification
-            try:
-                if self.ai_engine:
-                    topics = self.ai_engine.classify_topic(full_text)
-                    if topics:
-                        analysis_results["topics"] = topics
-            except Exception as e:
-                logger.warning(
-                    f"Topic classification failed for email {message_id}: {e}"
-                )
+            analysis_results = self._run_sentiment_and_topic_analysis(
+                full_text, message_id
+            )
 
             # Apply smart filters for categorization
             try:
@@ -795,14 +750,10 @@ class NotmuchDataSource(DataSource):
                 if filter_results:
                     analysis_results["smart_filters"] = filter_results
 
-                    # Apply suggested tags based on filters
                     suggested_tags = filter_results.get("categories", [])
                     if suggested_tags:
-                        # Get current tags
                         current_tags = email_data.get("tags", [])
-                        # Add suggested tags
                         new_tags = list(set(current_tags + suggested_tags))
-                        # Update tags in notmuch
                         await self.update_tags_for_message(message_id, new_tags)
 
             except Exception as e:
