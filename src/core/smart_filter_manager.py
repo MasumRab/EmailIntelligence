@@ -161,12 +161,19 @@ class SmartFilterManager:
         if conn is not self.conn:
             conn.close()
 
-    def _db_execute(self, query: str, params: tuple = (), retries: int = 3):
-        """Execute a query (INSERT, UPDATE, DELETE) with retry logic for robustness."""
+    def _db_with_retry(
+        self,
+        operation: str,
+        query: str,
+        exec_fn: Any,
+        retries: int = 3,
+        extra_context: Optional[Dict[str, Any]] = None,
+    ) -> None:
+        """Shared retry logic for database write operations."""
         for attempt in range(retries):
             conn = self._get_db_connection()
             try:
-                conn.execute(query, params)
+                exec_fn(conn)
                 conn.commit()
                 return
             except sqlite3.OperationalError as e:
@@ -176,13 +183,16 @@ class SmartFilterManager:
                     )
                     import time
 
-                    time.sleep(0.1 * (attempt + 1))  # Exponential backoff
+                    time.sleep(0.1 * (attempt + 1))
                     continue
                 else:
+                    ctx = {"query": query[:100], "attempt": attempt}
+                    if extra_context:
+                        ctx.update(extra_context)
                     error_context = create_error_context(
                         component="SmartFilterManager",
-                        operation="_db_execute",
-                        additional_context={"query": query[:100], "attempt": attempt},
+                        operation=operation,
+                        additional_context=ctx,
                     )
                     error_id = log_error(
                         e,
@@ -195,10 +205,13 @@ class SmartFilterManager:
                     )
                     raise
             except sqlite3.Error as e:
+                ctx = {"query": query[:100]}
+                if extra_context:
+                    ctx.update(extra_context)
                 error_context = create_error_context(
                     component="SmartFilterManager",
-                    operation="_db_execute",
-                    additional_context={"query": query[:100]},
+                    operation=operation,
+                    additional_context=ctx,
                 )
                 error_id = log_error(
                     e,
@@ -212,65 +225,25 @@ class SmartFilterManager:
                 raise
             finally:
                 self._close_db_connection(conn)
+
+    def _db_execute(self, query: str, params: tuple = (), retries: int = 3):
+        """Execute a query (INSERT, UPDATE, DELETE) with retry logic for robustness."""
+        self._db_with_retry(
+            "_db_execute",
+            query,
+            lambda conn: conn.execute(query, params),
+            retries,
+        )
 
     def _db_executemany(self, query: str, params_list: List[tuple], retries: int = 3):
         """Execute a batch query (INSERT, UPDATE) with retry logic for robustness."""
-        for attempt in range(retries):
-            conn = self._get_db_connection()
-            try:
-                conn.executemany(query, params_list)
-                conn.commit()
-                return
-            except sqlite3.OperationalError as e:
-                if "database is locked" in str(e) and attempt < retries - 1:
-                    self.logger.warning(
-                        f"Database locked, retrying ({attempt + 1}/{retries}): {e}"
-                    )
-                    import time
-
-                    time.sleep(0.1 * (attempt + 1))  # Exponential backoff
-                    continue
-                else:
-                    error_context = create_error_context(
-                        component="SmartFilterManager",
-                        operation="_db_executemany",
-                        additional_context={
-                            "query": query[:100],
-                            "attempt": attempt,
-                            "batch_size": len(params_list),
-                        },
-                    )
-                    error_id = log_error(
-                        e,
-                        severity=ErrorSeverity.ERROR,
-                        category=ErrorCategory.INTEGRATION,
-                        context=error_context,
-                    )
-                    self.logger.error(
-                        f"Database error after {retries} attempts: {e} with query: {query[:100]}. Error ID: {error_id}"
-                    )
-                    raise
-            except sqlite3.Error as e:
-                error_context = create_error_context(
-                    component="SmartFilterManager",
-                    operation="_db_executemany",
-                    additional_context={
-                        "query": query[:100],
-                        "batch_size": len(params_list),
-                    },
-                )
-                error_id = log_error(
-                    e,
-                    severity=ErrorSeverity.ERROR,
-                    category=ErrorCategory.INTEGRATION,
-                    context=error_context,
-                )
-                self.logger.error(
-                    f"Database error: {e} with query: {query[:100]}. Error ID: {error_id}"
-                )
-                raise
-            finally:
-                self._close_db_connection(conn)
+        self._db_with_retry(
+            "_db_executemany",
+            query,
+            lambda conn: conn.executemany(query, params_list),
+            retries,
+            extra_context={"batch_size": len(params_list)},
+        )
 
     def _db_fetchone(self, query: str, params: tuple = ()) -> Optional[sqlite3.Row]:
         """Executes a read query and fetches a single row."""
