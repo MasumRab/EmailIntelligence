@@ -115,6 +115,16 @@ class DatabaseManager(DataSource):
     """Optimized async database manager with in-memory caching, write-behind,
     and hybrid on-demand content loading."""
 
+    @staticmethod
+    def _coerce_email_id(email_id: Any) -> Optional[int]:
+        """Convert email_id to int if string, return None on failure."""
+        if isinstance(email_id, str):
+            try:
+                return int(email_id)
+            except ValueError:
+                return None
+        return email_id
+
     def __init__(self, config: DatabaseConfig = None):
         """Initializes the DatabaseManager, setting up file paths and data caches."""
         # Support both new config-based initialization and legacy initialization
@@ -996,12 +1006,9 @@ class DatabaseManager(DataSource):
 
     async def add_tags(self, email_id: Any, tags: List[str]) -> bool:
         """Adds tags to an email."""
-        # Convert email_id to int if it's a string
-        if isinstance(email_id, str):
-            try:
-                email_id = int(email_id)
-            except ValueError:
-                return False
+        email_id = self._coerce_email_id(email_id)
+        if email_id is None:
+            return False
 
         email = await self.get_email_by_id(email_id)
         if not email:
@@ -1017,12 +1024,9 @@ class DatabaseManager(DataSource):
 
     async def remove_tags(self, email_id: Any, tags: List[str]) -> bool:
         """Removes tags from an email."""
-        # Convert email_id to int if it's a string
-        if isinstance(email_id, str):
-            try:
-                email_id = int(email_id)
-            except ValueError:
-                return False
+        email_id = self._coerce_email_id(email_id)
+        if email_id is None:
+            return False
 
         email = await self.get_email_by_id(email_id)
         if not email:

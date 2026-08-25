@@ -53,6 +53,21 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+# Shared sentiment word lists used by multiple fallback methods
+_POSITIVE_WORDS = frozenset(
+    {"good", "great", "excellent", "thank", "please", "welcome", "happy", "love"}
+)
+_NEGATIVE_WORDS = frozenset(
+    {"bad", "terrible", "problem", "issue", "error", "failed", "hate", "angry"}
+)
+_URGENT_WORDS = frozenset(
+    {"urgent", "asap", "immediately", "critical", "emergency", "deadline"}
+)
+_WORK_WORDS = frozenset(
+    {"meeting", "project", "deadline", "work", "office", "business"}
+)
+_PERSONAL_WORDS = frozenset({"family", "friend", "personal", "home", "birthday"})
+
 
 def clean_text(text: str) -> str:
     """Basic text cleaning utility."""
@@ -299,29 +314,9 @@ class NLPEngine:
         Analyze sentiment using keyword matching as a final fallback method.
         """
         text_lower = text.lower()
-        positive_words = [
-            "good",
-            "great",
-            "excellent",
-            "thank",
-            "please",
-            "welcome",
-            "happy",
-            "love",
-        ]
-        negative_words = [
-            "bad",
-            "terrible",
-            "problem",
-            "issue",
-            "error",
-            "failed",
-            "hate",
-            "angry",
-        ]
 
-        positive_count = sum(1 for word in positive_words if word in text_lower)
-        negative_count = sum(1 for word in negative_words if word in text_lower)
+        positive_count = sum(1 for word in _POSITIVE_WORDS if word in text_lower)
+        negative_count = sum(1 for word in _NEGATIVE_WORDS if word in text_lower)
 
         if positive_count > negative_count:
             sentiment_label = "positive"
@@ -901,27 +896,8 @@ class NLPEngine:
         """Simple fallback analysis when NLTK is not available"""
         text = f"{subject} {content}".lower()
         # Basic sentiment analysis
-        positive_words = [
-            "good",
-            "great",
-            "excellent",
-            "thank",
-            "please",
-            "welcome",
-            "happy",
-        ]
-        negative_words = [
-            "bad",
-            "terrible",
-            "problem",
-            "issue",
-            "error",
-            "failed",
-            "urgent",
-        ]
-
-        positive_count = sum(1 for word in positive_words if word in text)
-        negative_count = sum(1 for word in negative_words if word in text)
+        positive_count = sum(1 for word in _POSITIVE_WORDS if word in text)
+        negative_count = sum(1 for word in _NEGATIVE_WORDS if word in text)
 
         if positive_count > negative_count:
             sentiment = "positive"
@@ -937,24 +913,13 @@ class NLPEngine:
             confidence_value = 0.5
 
         # Basic urgency detection
-        urgent_words = [
-            "urgent",
-            "asap",
-            "immediately",
-            "critical",
-            "emergency",
-            "deadline",
-        ]
-        urgency = "high" if any(word in text for word in urgent_words) else "low"
+        urgency = "high" if any(word in text for word in _URGENT_WORDS) else "low"
 
         # Basic categorization
-        work_words = ["meeting", "project", "deadline", "work", "office", "business"]
-        personal_words = ["family", "friend", "personal", "home", "birthday"]
-
-        if any(word in text for word in work_words):
+        if any(word in text for word in _WORK_WORDS):
             categories = ["Work & Business"]
             topic = "work_business"
-        elif any(word in text for word in personal_words):
+        elif any(word in text for word in _PERSONAL_WORDS):
             categories = ["Personal & Family"]
             topic = "personal_family"
         else:
