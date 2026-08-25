@@ -9,6 +9,8 @@ requires-python = ">=3.11"
 
 # Core dependencies only - always required
 dependencies = [
+    "bleach>=6.4.0",
+    "requests>=2.33.0",
     # Web framework (always needed)
     "fastapi>=0.115.12",
     "uvicorn[standard]>=0.34.3",
