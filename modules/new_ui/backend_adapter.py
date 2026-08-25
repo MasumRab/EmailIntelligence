@@ -122,10 +122,14 @@ class BackendClient:
     def _resolve_key_path(self, key: str) -> Optional[Path]:
         """
         Resolve a key to a safe path within DATA_DIR.
-        Returns None if path traversal is detected.
+        Returns None if the key format is invalid or path traversal is detected.
         """
-        safe_key = "".join(x for x in key if x.isalnum() or x in "_-")
-        resolved = (DATA_DIR / f"{safe_key}.json").resolve()
+        if not isinstance(key, str) or not key:
+            return None
+        if re.fullmatch(r"[A-Za-z0-9_-]+", key) is None:
+            return None
+
+        resolved = (DATA_DIR / f"{key}.json").resolve()
         if not resolved.is_relative_to(DATA_DIR.resolve()):
             return None
         return resolved
