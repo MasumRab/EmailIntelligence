@@ -11,6 +11,8 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
 
+_USER_NOT_FOUND = "User not found"
+
 from src.core.auth import (
     authenticate_user,
     create_access_token,
