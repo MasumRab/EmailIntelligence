@@ -140,4 +140,5 @@ where = ["src"]
 
 [[tool.uv.index]]
 name = "pytorch-cpu"
+explicit = true
 url = "https://download.pytorch.org/whl/cpu"
