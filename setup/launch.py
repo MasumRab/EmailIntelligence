@@ -250,7 +250,7 @@ def check_required_components() -> bool:
             models_dir.mkdir(parents=True, exist_ok=True)
             logger.info("AI models directory created successfully.")
         except Exception as e:  # noqa: BLE001
-            logger.error(f"Failed to create models directory: {e}")
+            logger.exception("Failed to create models directory: %s", e)
             issues.append("Failed to create models directory")
 
     if issues:
@@ -538,7 +538,7 @@ def run_command(cmd: list[str], description: str, **kwargs) -> bool:
             logger.warning(proc.stderr)
         return True
     except (subprocess.CalledProcessError, FileNotFoundError) as e:
-        logger.error(f"Failed: {description}")
+        logger.exception("Failed: %s", description)
         if isinstance(e, subprocess.CalledProcessError):
             logger.error(f"Stderr: {e.stderr}")
         return False
@@ -1232,7 +1232,7 @@ def _handle_legacy_args(args) -> int:
         if hasattr(args, "frontend_port"):
             args.frontend_port = validate_port(args.frontend_port)
     except ValueError as e:
-        logger.error(f"Input validation failed: {e}")
+        logger.exception("Input validation failed: %s", e)
         return 1
 
     if args.setup:

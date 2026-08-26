@@ -188,8 +188,8 @@ class DynamicModelManager:
             return await self.load_model(version_id)
 
         except Exception as e:
-            logger.error(
-                f"Failed to rollback model {model_id} to version {version}: {e}"
+            logger.exception(
+                "Failed to rollback model %s to version %s: %s", model_id, version, e
             )
             return False
 
