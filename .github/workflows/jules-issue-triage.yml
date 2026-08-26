@@ -4,16 +4,11 @@ name: Jules Issue Triage
 # Replaces the deprecated Gemini triage workflows (gemini-triage.yml,
 # gemini-scheduled-triage.yml) which relied on the Google Gemini CLI.
 #
-# Two triggers:
-#   1. issues: [opened, reopened, edited]  — immediate triage on new activity
-#   2. schedule: '0 * * * *'               — hourly sweep of unlabeled issues
+# Trigger: issues: [opened, reopened, edited] — immediate triage on new issue activity
 
 on:
   issues:
     types: [opened, reopened, edited]
-  schedule:
-    - cron: '0 * * * *' # once per hour
-  workflow_dispatch:
 
 concurrency:
   group: jules-triage-${{ github.event.issue.number || github.event.pull_request.number || 'schedule' }}
@@ -22,7 +17,7 @@ concurrency:
 jobs:
   triage:
     # Only run on issues, not PRs (PRs have pull_request in the event payload)
-    if: ${{ !github.event.pull_request }}
+    if: ${{ github.event_name == 'issues' }}
     runs-on: ubuntu-latest
     permissions:
       issues: write
