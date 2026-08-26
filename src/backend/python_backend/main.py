@@ -12,7 +12,6 @@ import os
 import threading
 import time
 import uuid
-from typing import Annotated
 from collections import defaultdict
 from datetime import datetime, timedelta
 
@@ -314,7 +313,7 @@ except ImportError:
 
 # Authentication endpoints
 @app.post("/token")
-async def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]):
+async def login(form_data: OAuth2PasswordRequestForm = Depends()):
     """Login endpoint to get access token"""
     # Use the new authentication system
     db = await get_db()
