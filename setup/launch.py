@@ -884,7 +884,7 @@ def prepare_environment(args):
 
 def start_services(args):
     """Starts the required services based on arguments."""
-    api_url = args.api_url or f"http://{args.host}:{args.port}"
+    api_url = args.api_url or f"http://{args.host}:{args.port}"  # noqa: S5332 - local dev only
 
     if not args.frontend_only:
         start_backend(args.host, args.port, args.debug)
@@ -918,7 +918,7 @@ def handle_test_stage(args):
     if args.security:
         results.append(
             test_stages.run_security_tests(
-                target_url=f"http://{args.host}:{args.port}", debug=args.debug
+                target_url=f"http://{args.host}:{args.port}", debug=args.debug  # noqa: S5332 - local dev only
             )
         )
 

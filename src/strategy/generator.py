@@ -169,38 +169,31 @@ class StrategyGenerator(IResolutionStrategy):
         else:
             return "low"
 
+    @staticmethod
+    def _assess_file_keyword_risk(
+        conflicts: List[Conflict], keywords: List[str], default: str = "low"
+    ) -> str:
+        """Assess risk by checking if any conflict file path contains keywords."""
+        for conflict in conflicts:
+            if any(kw in conflict.file_path.lower() for kw in keywords):
+                return "high"
+        return default
+
     def _assess_breaking_changes_risk(self, conflicts: List[Conflict]) -> str:
         """Assess risk of breaking changes."""
-        for conflict in conflicts:
-            if (
-                "api" in conflict.file_path.lower()
-                or "interface" in conflict.file_path.lower()
-            ):
-                return "high"
-
-        return "medium" if len(conflicts) > 3 else "low"
+        return self._assess_file_keyword_risk(
+            conflicts, ["api", "interface"], "medium" if len(conflicts) > 3 else "low"
+        )
 
     def _assess_performance_risk(self, conflicts: List[Conflict]) -> str:
         """Assess performance impact risk."""
-        for conflict in conflicts:
-            if (
-                "performance" in conflict.file_path.lower()
-                or "cache" in conflict.file_path.lower()
-            ):
-                return "high"
-
-        return "low"
+        return self._assess_file_keyword_risk(conflicts, ["performance", "cache"])
 
     def _assess_security_risk(self, conflicts: List[Conflict]) -> str:
         """Assess security risk."""
-        for conflict in conflicts:
-            if (
-                "auth" in conflict.file_path.lower()
-                or "security" in conflict.file_path.lower()
-            ):
-                return "high"
-
-        return "medium" if len(conflicts) > 5 else "low"
+        return self._assess_file_keyword_risk(
+            conflicts, ["auth", "security"], "medium" if len(conflicts) > 5 else "low"
+        )
 
     def _generate_risk_recommendations(self, conflicts: List[Conflict]) -> List[str]:
         """Generate risk mitigation recommendations."""

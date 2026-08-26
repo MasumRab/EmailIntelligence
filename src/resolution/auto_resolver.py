@@ -173,21 +173,11 @@ class AutoResolver(IResolutionEngine):
                     ),
                 }
             else:
-                return {
-                    "method": "semantic_merge",
-                    "success": False,
-                    "details": {"error": "Semantic merge failed"},
-                    "requires_manual_review": True,
-                }
+                return self._failed_resolution("semantic_merge", "Semantic merge failed")
 
         except Exception as e:
             logger.error(f"Semantic merge failed: {str(e)}")
-            return {
-                "method": "semantic_merge",
-                "success": False,
-                "details": {"error": str(e)},
-                "requires_manual_review": True,
-            }
+            return self._failed_resolution("semantic_merge", str(e))
 
     async def _resolve_with_patterns(self, conflict: Conflict) -> Dict[str, Any]:
         """Resolve conflict using pattern-based rules."""
@@ -345,10 +335,15 @@ class AutoResolver(IResolutionEngine):
                 continue  # Try next rule
 
         # If no rules apply, mark for manual review
+        return self._failed_resolution("rule_based", "No applicable rules found")
+
+    @staticmethod
+    def _failed_resolution(method: str, error: str) -> Dict[str, Any]:
+        """Return a standard failed-resolution result dict."""
         return {
-            "method": "rule_based",
+            "method": method,
             "success": False,
-            "details": {"error": "No applicable rules found"},
+            "details": {"error": error},
             "requires_manual_review": True,
         }
 

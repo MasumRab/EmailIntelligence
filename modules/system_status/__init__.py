@@ -6,7 +6,7 @@ import asyncio  # noqa: F401
 
 import gradio as gr
 from fastapi import FastAPI, HTTPException
-import requests
+import httpx
 
 from .models import SystemStatus, HealthCheck
 
@@ -151,26 +151,28 @@ async def get_system_status() -> SystemStatus:
 
         # Get dashboard stats
         try:
-            dashboard_response = requests.get(
-                "http://127.0.0.1:8000/api/dashboard/stats", timeout=5
-            )
+            async with httpx.AsyncClient(timeout=5) as client:
+                dashboard_response = await client.get(
+                    "http://127.0.0.1:8000/api/dashboard/stats"
+                )
             dashboard_data = (
                 dashboard_response.json()
                 if dashboard_response.status_code == 200
                 else {}
             )
-        except (requests.RequestException, ValueError):
+        except (httpx.HTTPError, ValueError):
             dashboard_data = {}
 
         # Get Gmail performance metrics
         try:
-            gmail_response = requests.get(
-                "http://127.0.0.1:8000/api/gmail/performance", timeout=5
-            )
+            async with httpx.AsyncClient(timeout=5) as client:
+                gmail_response = await client.get(
+                    "http://127.0.0.1:8000/api/gmail/performance"
+                )
             gmail_data = (
                 gmail_response.json() if gmail_response.status_code == 200 else {}
             )
-        except (requests.RequestException, ValueError):
+        except (httpx.HTTPError, ValueError):
             gmail_data = {}
 
         return SystemStatus(
@@ -203,7 +205,8 @@ async def perform_health_checks() -> HealthCheck:
 
     # Backend API health check
     try:
-        response = requests.get("http://127.0.0.1:8000/health", timeout=5)
+        async with httpx.AsyncClient(timeout=5) as client:
+            response = await client.get("http://127.0.0.1:8000/health")
         health_results["backend_api"] = {
             "status": "healthy" if response.status_code == 200 else "unhealthy",
             "response_time": response.elapsed.total_seconds() * 1000,
@@ -216,7 +219,8 @@ async def perform_health_checks() -> HealthCheck:
 
     # Database health check
     try:
-        response = requests.get("http://127.0.0.1:8000/api/emails?limit=1", timeout=5)
+        async with httpx.AsyncClient(timeout=5) as client:
+            response = await client.get("http://127.0.0.1:8000/api/emails?limit=1")
         health_results["database"] = {
             "status": "healthy" if response.status_code == 200 else "unhealthy",
             "response_time": response.elapsed.total_seconds() * 1000,
@@ -226,11 +230,11 @@ async def perform_health_checks() -> HealthCheck:
 
     # AI Engine health check
     try:
-        response = requests.post(
-            "http://127.0.0.1:8000/api/ai/analyze",
-            json={"subject": "test", "content": "test"},
-            timeout=10,
-        )
+        async with httpx.AsyncClient(timeout=10) as client:
+            response = await client.post(
+                "http://127.0.0.1:8000/api/ai/analyze",
+                json={"subject": "test", "content": "test"},
+            )
         health_results["ai_engine"] = {
             "status": "healthy" if response.status_code == 200 else "unhealthy",
             "response_time": response.elapsed.total_seconds() * 1000,
@@ -240,9 +244,10 @@ async def perform_health_checks() -> HealthCheck:
 
     # Gmail API health check
     try:
-        response = requests.get(
-            "http://127.0.0.1:8000/api/gmail/performance", timeout=5
-        )
+        async with httpx.AsyncClient(timeout=5) as client:
+            response = await client.get(
+                "http://127.0.0.1:8000/api/gmail/performance"
+            )
         health_results["gmail_api"] = {
             "status": "healthy" if response.status_code == 200 else "unhealthy",
             "response_time": response.elapsed.total_seconds() * 1000,
