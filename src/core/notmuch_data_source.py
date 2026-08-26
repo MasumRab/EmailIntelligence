@@ -227,9 +227,12 @@ class NotmuchDataSource(DataSource):
             filename = message.get_filename()
 
             try:
-                # Parse email content from file
-                with open(filename, "r", encoding="utf-8", errors="ignore") as f:
-                    email_message = email.message_from_file(f)
+                # Parse email content from file (run sync I/O in thread)
+                def _parse_email_file(path: str):
+                    with open(path, "r", encoding="utf-8", errors="ignore") as f:
+                        return email.message_from_file(f)
+
+                email_message = await asyncio.to_thread(_parse_email_file, filename)
 
                 email_data = {
                     "id": message.get_message_id(),
@@ -367,7 +370,7 @@ class NotmuchDataSource(DataSource):
         if self.ai_engine:
             try:
                 # Schedule AI analysis as a background task
-                asyncio.create_task(
+                _bg_task = asyncio.create_task(
                     self._analyze_and_tag_email_background(
                         result["message_id"], email_data
                     )

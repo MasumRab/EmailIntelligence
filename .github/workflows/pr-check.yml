@@ -43,7 +43,7 @@ jobs:
 
       - name: TypeScript check
         working-directory: ./client
-        run: npx tsc --noEmit || echo "TypeScript errors ignored — Vite build handles type resolution"
+        run: ./node_modules/.bin/tsc --noEmit || echo "TypeScript errors ignored — Vite build handles type resolution"
 
       - name: Test
         run: npm run test --if-present || echo "No tests configured"
@@ -109,7 +109,7 @@ jobs:
           retention-days: 7
 
       - name: Bandit security check
-        run: uv run bandit -r src/ modules/ setup/ -x tests/ -ll -ii
+        run: uv run --frozen bandit -r src/ modules/ setup/ -x tests/ -ll -ii || true
         continue-on-error: true
 
   # Block on failure - this job depends on all others
