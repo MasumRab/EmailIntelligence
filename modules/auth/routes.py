@@ -11,6 +11,8 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
 
+_USER_NOT_FOUND = "User not found"
+
 from src.core.auth import (
     authenticate_user,
     create_access_token,
@@ -147,7 +149,7 @@ async def setup_mfa(
     user = await db.get_user_by_username(current_user.username)
     if not user:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail=_USER_NOT_FOUND
         )
 
     mfa_service = get_mfa_service()
@@ -191,7 +193,7 @@ async def enable_mfa(
     user = await db.get_user_by_username(current_user.username)
     if not user:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail=_USER_NOT_FOUND
         )
 
     # Check if MFA is already enabled
@@ -238,7 +240,7 @@ async def disable_mfa(
     user = await db.get_user_by_username(current_user.username)
     if not user:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail=_USER_NOT_FOUND
         )
 
     # Find and update the user record to disable MFA

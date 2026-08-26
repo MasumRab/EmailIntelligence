@@ -12,6 +12,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, RedirectResponse
 from pydantic import ValidationError
 
+_GMAIL_PERF_URL = _GMAIL_PERF_URL
+
 from .core.audit_logger import AuditEventType, AuditSeverity, audit_logger
 from .core.middleware import (
     SecurityHeadersMiddleware,
@@ -63,7 +65,7 @@ def create_system_status_tab():
             # Get Gmail performance metrics
             try:
                 gmail_response = requests.get(
-                    "http://127.0.0.1:8000/api/gmail/performance", timeout=2
+                    _GMAIL_PERF_URL, timeout=2
                 )
                 gmail_data = (
                     gmail_response.json() if gmail_response.status_code == 200 else {}
@@ -459,7 +461,7 @@ def create_gmail_integration_tab():
         """Get Gmail performance metrics."""
         try:
             response = requests.get(
-                "http://127.0.0.1:8000/api/gmail/performance", timeout=10
+                _GMAIL_PERF_URL, timeout=10
             )
 
             if response.status_code == 200:
@@ -612,7 +614,7 @@ def create_gmail_integration_tab():
                 """Test Gmail API connection."""
                 try:
                     response = requests.get(
-                        "http://127.0.0.1:8000/api/gmail/performance", timeout=5
+                        _GMAIL_PERF_URL, timeout=5
                     )
                     if response.status_code == 200:
                         return "✅ Gmail API connection successful"

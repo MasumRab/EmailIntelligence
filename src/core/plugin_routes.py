@@ -207,8 +207,9 @@ async def install_plugin(
             "status": "initiated",
         }
     except Exception as e:
-        logger.error(
-            f"Error initiating install for plugin {installation.plugin_id}: {e}"
+        logger.exception(
+            "Error initiating install for plugin %s: %s",
+            installation.plugin_id, e,
         )
         raise HTTPException(
             status_code=500, detail="Failed to initiate plugin installation"

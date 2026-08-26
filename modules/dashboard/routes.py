@@ -91,9 +91,5 @@ async def get_dashboard_stats(
             performance_metrics=avg_performance_metrics,
         )
     except Exception as e:
-        logger.error(
-            "Error fetching dashboard stats: %s",
-            e,
-            exc_info=True,
-        )
+        logger.exception("Error fetching dashboard stats: %s", e)
         raise HTTPException(status_code=500, detail="Error fetching dashboard stats.")

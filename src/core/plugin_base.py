@@ -518,8 +518,9 @@ class PluginRegistry:
             return True
 
         except Exception as e:
-            logger.error(
-                f"Security validation failed for plugin {metadata.plugin_id}: {e}"
+            logger.exception(
+                "Security validation failed for plugin %s: %s",
+                metadata.plugin_id, e,
             )
             return False
 
