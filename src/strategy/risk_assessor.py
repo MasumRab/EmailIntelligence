@@ -47,8 +47,8 @@ class RiskAssessor:
 
         risk_summary = {
             "total_conflicts": len(conflicts),
-            "by_severity": self._categorize_by_severity(conflicts),
-            "by_type": self._categorize_by_type(conflicts),
+            "by_severity": self._categorize(conflicts, "severity"),
+            "by_type": self._categorize(conflicts, "conflict_type"),
             "critical_files": self._identify_critical_files(conflicts),
             "risk_score": self._calculate_overall_risk_score(conflicts),
             "risk_level": self._determine_overall_risk_level(conflicts),
@@ -61,21 +61,14 @@ class RiskAssessor:
         )
         return risk_summary
 
-    def _categorize_by_severity(self, conflicts: List[Conflict]) -> Dict[str, int]:
-        """Categorize conflicts by severity."""
-        severity_counts = {}
+    @staticmethod
+    def _categorize(conflicts: List[Conflict], attr: str) -> Dict[str, int]:
+        """Categorize conflicts by a given attribute ('severity' or 'conflict_type')."""
+        counts: Dict[str, int] = {}
         for conflict in conflicts:
-            severity = conflict.severity.value
-            severity_counts[severity] = severity_counts.get(severity, 0) + 1
-        return severity_counts
-
-    def _categorize_by_type(self, conflicts: List[Conflict]) -> Dict[str, int]:
-        """Categorize conflicts by type."""
-        type_counts = {}
-        for conflict in conflicts:
-            conflict_type = conflict.conflict_type.value
-            type_counts[conflict_type] = type_counts.get(conflict_type, 0) + 1
-        return type_counts
+            value = getattr(conflict, attr).value
+            counts[value] = counts.get(value, 0) + 1
+        return counts
 
     def _identify_critical_files(self, conflicts: List[Conflict]) -> List[str]:
         """Identify critical files that appear in conflicts."""
@@ -222,25 +215,28 @@ class RiskAssessor:
 
         return strategy_risks
 
+    _RISK_SCORE_MAPS = {
+        "complexity": {"low": 0.2, "medium": 0.5, "high": 0.8},
+        "time": {"low": 0.1, "medium": 0.4, "high": 0.7},
+        "quality": {"low": 0.1, "medium": 0.4, "high": 0.8},
+    }
+
+    @staticmethod
+    def _threshold_risk(value: float, high: float, medium: float) -> str:
+        """Return 'high', 'medium', or 'low' based on threshold comparisons."""
+        if value > high:
+            return "high"
+        elif value > medium:
+            return "medium"
+        return "low"
+
     def _assess_complexity_risk(self, strategy: Dict[str, Any]) -> str:
         """Assess complexity risk of the strategy."""
-        steps = strategy.get("steps", [])
-        if len(steps) > 10:
-            return "high"
-        elif len(steps) > 5:
-            return "medium"
-        else:
-            return "low"
+        return self._threshold_risk(len(strategy.get("steps", [])), high=10, medium=5)
 
     def _assess_time_risk(self, strategy: Dict[str, Any]) -> str:
         """Assess time-related risks of the strategy."""
-        estimated_time = strategy.get("estimated_time", 0)
-        if estimated_time > 240:  # More than 4 hours
-            return "high"
-        elif estimated_time > 120:  # More than 2 hours
-            return "medium"
-        else:
-            return "low"
+        return self._threshold_risk(strategy.get("estimated_time", 0), high=240, medium=120)
 
     def _assess_quality_risk(self, strategy: Dict[str, Any]) -> str:
         """Assess quality risks of the strategy."""
@@ -249,19 +245,15 @@ class RiskAssessor:
             return "high"
         elif strategy_type in ["standard_resolution"]:
             return "medium"
-        else:
-            return "low"
+        return "low"
 
     def _calculate_strategy_risk_score(self, strategy: Dict[str, Any]) -> float:
         """Calculate an overall risk score for the strategy."""
-        # This is a simplified calculation - in a real system, this would be more sophisticated
-        complexity_risk = {"low": 0.2, "medium": 0.5, "high": 0.8}[
+        complexity_risk = self._RISK_SCORE_MAPS["complexity"][
             self._assess_complexity_risk(strategy)
         ]
-        time_risk = {"low": 0.1, "medium": 0.4, "high": 0.7}[
-            self._assess_time_risk(strategy)
-        ]
-        quality_risk = {"low": 0.1, "medium": 0.4, "high": 0.8}[
+        time_risk = self._RISK_SCORE_MAPS["time"][self._assess_time_risk(strategy)]
+        quality_risk = self._RISK_SCORE_MAPS["quality"][
             self._assess_quality_risk(strategy)
         ]
 

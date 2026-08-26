@@ -1,67 +1,78 @@
-# Pre-commit hooks for EmailIntelligence
-# Install with: pre-commit install
-
 repos:
-  # Python hooks
   - repo: local
     hooks:
       - id: ruff-format
         name: ruff format
         entry: ruff format
         language: system
-        types: [python]
-
+        types:
+          - python
       - id: ruff-lint
         name: ruff lint
         entry: ruff check
         language: system
-        types: [python]
-
+        types:
+          - python
       - id: py-compile
         name: py_compile
         entry: python3 -m py_compile
         language: system
-        types: [python]
-
+        types:
+          - python
       - id: bandit
         name: bandit
         entry: bandit
-        args: ["-r"]
+        args:
+          - -r
         language: system
-        types: [python]
-
-  # Node.js hooks for frontend (client)
+        types:
+          - python
+      - id: sonar-pre-push
+        name: Sonar pre-push scan
+        entry: sonar hook git-pre-push --
+        language: system
+        pass_filenames: true
+        stages:
+          - pre-push
   - repo: local
     hooks:
       - id: eslint-client
         name: eslint client
         entry: eslint
-        args: ["client/", "--max-warnings", "0"]
+        args:
+          - client/
+          - --max-warnings
+          - '0'
         language: system
         files: ^client/
-
       - id: prettier-client
         name: prettier client
         entry: prettier
-        args: ["--write", "client/"]
+        args:
+          - --write
+          - client/
         language: system
         files: ^client/
-
-  # Node.js hooks for root/server
   - repo: local
     hooks:
       - id: eslint-root
         name: eslint root
         entry: eslint
-        args: ["server/", "--ext", "ts", "--max-warnings", "0"]
+        args:
+          - server/
+          - --ext
+          - ts
+          - --max-warnings
+          - '0'
         language: system
         files: ^server/
-
       - id: prettier-root
         name: prettier root
         entry: prettier
-        args: ["--write", "."]
+        args:
+          - --write
+          - .
         language: system
         files: ^(?!(client/))
-
-default_stages: [pre-commit]
+default_stages:
+  - pre-commit
