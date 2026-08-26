@@ -10,6 +10,10 @@ from pathlib import Path
 from typing import Dict, List, Optional, Set
 from dataclasses import dataclass, field
 
+# Common project file names
+_README_MD = _README_MD
+_MAIN_PY = _MAIN_PY
+
 
 @dataclass
 class ProjectPaths:
@@ -56,13 +60,13 @@ class ProjectComponents:
 
     # Required files (must exist in root)
     required_files: Set[str] = field(
-        default_factory=lambda: {"pyproject.toml", "README.md", "requirements.txt"}
+        default_factory=lambda: {"pyproject.toml", _README_MD, "requirements.txt"}
     )
 
     # Critical files to check for merge conflicts (Python backend files)
     critical_backend_files: Set[str] = field(
         default_factory=lambda: {
-            "main.py",
+            _MAIN_PY,
             "database.py",
             "email_routes.py",
             "category_routes.py",
@@ -92,7 +96,7 @@ class ProjectComponents:
         default_factory=lambda: {
             "python_backend": {
                 "path": "backend/python_backend",
-                "main_file": "main.py",
+                "main_file": _MAIN_PY,
                 "port": 8000,
             },
             "typescript_backend": {
@@ -107,7 +111,7 @@ class ProjectComponents:
             },
             "gradio_ui": {
                 "path": "backend/python_backend",
-                "main_file": "main.py",
+                "main_file": _MAIN_PY,
                 "port": 7860,
             },
         }
@@ -128,7 +132,7 @@ class ProjectConfig:
         current = Path(__file__).resolve().parent.parent
 
         # Look for project root markers (prioritize root-level files)
-        root_markers = ["README.md", ".git"]
+        root_markers = [_README_MD, ".git"]
 
         # First check if we're already in the right place
         if all((current / marker).exists() for marker in root_markers):
@@ -142,7 +146,7 @@ class ProjectConfig:
 
         # Fallback: look for pyproject.toml at root level
         current = Path(__file__).resolve().parent.parent
-        if (current / "README.md").exists():
+        if (current / _README_MD).exists():
             return current
 
         # Final fallback
@@ -215,7 +219,7 @@ class ProjectConfig:
             discovered_services["python_backend"] = {
                 "path": "backend/python_backend",
                 "type": "python",
-                "main_file": "main.py",
+                "main_file": _MAIN_PY,
             }
 
         # Check for TypeScript backend

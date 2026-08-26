@@ -298,8 +298,9 @@ class PluginManager:
             else:
                 return method(*args, **kwargs)
         except Exception as e:
-            logger.error(
-                f"Plugin method execution failed: {plugin_id}.{method_name}: {e}"
+            logger.exception(
+                "Plugin method execution failed: %s.%s: %s",
+                plugin_id, method_name, e,
             )
             raise
 
@@ -393,8 +394,9 @@ class PluginManager:
                 return await self.registry.register_plugin(metadata)
 
         except Exception as e:
-            logger.error(
-                f"Failed to download and install plugin {plugin_info.plugin_id}: {e}"
+            logger.exception(
+                "Failed to download and install plugin %s: %s",
+                plugin_info.plugin_id, e,
             )
             return False
 

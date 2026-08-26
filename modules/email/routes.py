@@ -38,7 +38,7 @@ async def get_emails(
             emails = await db.get_all_emails()
         return emails
     except DatabaseError as e:
-        logger.error(f"Database error while fetching emails: {e}", exc_info=True)
+        logger.exception("Database error while fetching emails: %s", e)
         raise HTTPException(status_code=500, detail="Database error occurred.")
 
 
@@ -58,9 +58,7 @@ async def get_email(
             return email
         raise HTTPException(status_code=404, detail="Email not found")
     except DatabaseError as e:
-        logger.error(
-            f"Database error while fetching email {email_id}: {e}", exc_info=True
-        )
+        logger.exception("Database error while fetching email %s: %s", email_id, e)
         raise HTTPException(status_code=500, detail="Database error occurred.")
 
 
@@ -79,7 +77,7 @@ async def create_email(
         created_email = await db.create_email(email_data)
         return created_email
     except DatabaseError as e:
-        logger.error(f"Database error while creating email: {e}", exc_info=True)
+        logger.exception("Database error while creating email: %s", e)
         raise HTTPException(status_code=500, detail="Database error occurred.")
 
 
@@ -100,7 +98,5 @@ async def update_email(
             return updated_email
         raise HTTPException(status_code=404, detail="Email not found")
     except DatabaseError as e:
-        logger.error(
-            f"Database error while updating email {email_id}: {e}", exc_info=True
-        )
+        logger.exception("Database error while updating email %s: %s", email_id, e)
         raise HTTPException(status_code=500, detail="Database error occurred.")

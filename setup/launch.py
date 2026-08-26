@@ -46,15 +46,20 @@ logging.basicConfig(
 )
 logger = logging.getLogger("launcher")
 
+# Common project file names
+_PYPROJECT_TOML = _PYPROJECT_TOML
+_REQUIREMENTS_TXT = _REQUIREMENTS_TXT
+_PACKAGE_JSON = _PACKAGE_JSON
+
 
 # --- Global state ---
 def find_project_root() -> Path:
     """Find the project root directory by looking for key files."""
     current = Path(__file__).resolve().parent
-    if (current / "pyproject.toml").exists() and current.name != "setup":
+    if (current / _PYPROJECT_TOML).exists() and current.name != "setup":
         return current
     for parent in current.parents:
-        if (parent / "pyproject.toml").exists():
+        if (parent / _PYPROJECT_TOML).exists():
             return parent
     return current
 
@@ -190,8 +195,8 @@ def check_for_merge_conflicts() -> bool:
         "backend/python_nlp/smart_retrieval.py",
         "backend/python_nlp/ai_training.py",
         "README.md",
-        "pyproject.toml",
-        "requirements.txt",
+        _PYPROJECT_TOML,
+        _REQUIREMENTS_TXT,
         "requirements-dev.txt",
     ]
 
@@ -237,7 +242,7 @@ def check_required_components() -> bool:
             issues.append(f"Required directory '{dir_name}' is missing.")
 
     # Check key files
-    required_files = ["pyproject.toml", "README.md", "requirements.txt"]
+    required_files = [_PYPROJECT_TOML, "README.md", _REQUIREMENTS_TXT]
     for file_name in required_files:
         if not (ROOT_DIR / file_name).exists():
             issues.append(f"Required file '{file_name}' is missing.")
@@ -250,7 +255,7 @@ def check_required_components() -> bool:
             models_dir.mkdir(parents=True, exist_ok=True)
             logger.info("AI models directory created successfully.")
         except Exception as e:  # noqa: BLE001
-            logger.error(f"Failed to create models directory: {e}")
+            logger.exception("Failed to create models directory: %s", e)
             issues.append("Failed to create models directory")
 
     if issues:
@@ -538,7 +543,7 @@ def run_command(cmd: list[str], description: str, **kwargs) -> bool:
             logger.warning(proc.stderr)
         return True
     except (subprocess.CalledProcessError, FileNotFoundError) as e:
-        logger.error(f"Failed: {description}")
+        logger.exception("Failed: %s", description)
         if isinstance(e, subprocess.CalledProcessError):
             logger.error(f"Stderr: {e.stderr}")
         return False
@@ -735,7 +740,7 @@ def check_node_npm_installed() -> bool:
 
 def install_nodejs_dependencies(directory: str, update: bool = False) -> bool:
     """Install Node.js dependencies in a given directory."""
-    pkg_json_path = ROOT_DIR / directory / "package.json"
+    pkg_json_path = ROOT_DIR / directory / _PACKAGE_JSON
     if not pkg_json_path.exists():
         logger.debug(f"No package.json in '{directory}/', skipping npm install.")
         return True
@@ -769,7 +774,7 @@ def start_server_ts():
         return
 
     # Check if package.json exists
-    pkg_json_path = ROOT_DIR / "backend" / "server-ts" / "package.json"
+    pkg_json_path = ROOT_DIR / "backend" / "server-ts" / _PACKAGE_JSON
     if not pkg_json_path.exists():
         logger.debug(
             "No package.json in 'backend/server-ts/', skipping TypeScript backend server startup."
@@ -818,7 +823,7 @@ def start_node_service(service_path: Path, service_name: str, port: int, api_url
 
 def setup_node_dependencies(service_path: Path, service_name: str):
     """Install npm dependencies for a Node.js service."""
-    if not (service_path / "package.json").exists():
+    if not (service_path / _PACKAGE_JSON).exists():
         logger.warning(
             f"package.json not found for {service_name}, skipping dependency installation."
         )
@@ -978,10 +983,10 @@ def print_system_info():
 
     print("\n=== Configuration Files ===")
     config_files = [
-        "pyproject.toml",
-        "requirements.txt",
+        _PYPROJECT_TOML,
+        _REQUIREMENTS_TXT,
         "requirements-dev.txt",
-        "package.json",
+        _PACKAGE_JSON,
         "launch-user.env",
         ".env",
     ]
@@ -1232,7 +1237,7 @@ def _handle_legacy_args(args) -> int:
         if hasattr(args, "frontend_port"):
             args.frontend_port = validate_port(args.frontend_port)
     except ValueError as e:
-        logger.error(f"Input validation failed: {e}")
+        logger.exception("Input validation failed: %s", e)
         return 1
 
     if args.setup:

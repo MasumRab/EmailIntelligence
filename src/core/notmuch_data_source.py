@@ -451,8 +451,9 @@ class NotmuchDataSource(DataSource):
                 f"Completed background AI analysis and tagging for email {message_id}"
             )
         except Exception as e:
-            logger.error(
-                f"Critical error in background email analysis and tagging for {message_id}: {e}"
+            logger.exception(
+                "Critical error in background email analysis and tagging for %s: %s",
+                message_id, e,
             )
 
     async def get_email_by_id(
@@ -689,8 +690,9 @@ class NotmuchDataSource(DataSource):
                 context=error_context,
                 details={"error_type": type(e).__name__},
             )
-            logger.error(
-                f"Error updating tags for message {message_id}: {e}. Error ID: {error_id}"
+            logger.exception(
+                "Error updating tags for message %s: %s. Error ID: %s",
+                message_id, e, error_id,
             )
             return False
 
@@ -766,8 +768,9 @@ class NotmuchDataSource(DataSource):
             return True
 
         except Exception as e:
-            logger.error(
-                f"Critical error in email analysis and tagging for {message_id}: {e}"
+            logger.exception(
+                "Critical error in email analysis and tagging for %s: %s",
+                message_id, e,
             )
             return False
 

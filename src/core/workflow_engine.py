@@ -75,9 +75,8 @@ class Node:
 
         except Exception as e:
             self.status = NodeExecutionStatus.FAILED
-            logger.error(
-                f"Error executing node '{self.name}' ({self.node_id}): {e}",
-                exc_info=True,
+            logger.exception(
+                "Error executing node '%s' (%s): %s", self.name, self.node_id, e,
             )
             raise
 

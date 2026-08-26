@@ -242,8 +242,9 @@ class DatabaseManager(DataSource):
                     context=error_context,
                     details={"error_type": type(e).__name__},
                 )
-                logger.error(
-                    f"Error loading content for email {email_id}: {e}. Error ID: {error_id}"
+                logger.exception(
+                    "Error loading content for email %s: %s. Error ID: %s",
+                    email_id, e, error_id,
                 )
         return full_email
 
@@ -905,8 +906,8 @@ class DatabaseManager(DataSource):
                         ):
                             filtered_emails.append(email_light)
                     except (IOError, json.JSONDecodeError) as e:
-                        logger.error(
-                            f"Could not search content for email {email_id}: {e}"
+                        logger.exception(
+                            "Could not search content for email %s: %s", email_id, e
                         )
                 else:
                     # Index out of sync, remove it
