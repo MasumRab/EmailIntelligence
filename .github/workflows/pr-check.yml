@@ -105,8 +105,11 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: python-coverage
-          path: coverage/
+          path: |
+            coverage.xml
+            coverage/
           retention-days: 7
+          if-no-files-found: ignore
 
       - name: Bandit security check
         run: uv run --frozen bandit -r src/ modules/ setup/ -x tests/ -ll -ii || true
