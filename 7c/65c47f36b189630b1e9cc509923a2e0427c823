@@ -1,0 +1,22 @@
+modules/dashboard/routes.py
+  h_ab7a2e0168e897 94
+setup/launch.py
+  h_ab7a2e0168e897 50-52,892,926
+setup/project_config.py
+  h_ab7a2e0168e897 14-15
+src/core/database.py
+  h_ab7a2e0168e897 859
+src/main.py
+  h_ab7a2e0168e897 15
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "7c65c47f36b189630b1e9cc509923a2e0427c823",
+  "prompts": {},
+  "humans": {
+    "h_ab7a2e0168e897": {
+      "author": "Masum Rab <masum.rab@gmail.com>"
+    }
+  }
+}
