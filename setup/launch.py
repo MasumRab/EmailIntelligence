@@ -47,9 +47,9 @@ logging.basicConfig(
 logger = logging.getLogger("launcher")
 
 # Common project file names
-_PYPROJECT_TOML = _PYPROJECT_TOML
-_REQUIREMENTS_TXT = _REQUIREMENTS_TXT
-_PACKAGE_JSON = _PACKAGE_JSON
+_PYPROJECT_TOML = "pyproject.toml"
+_REQUIREMENTS_TXT = "requirements.txt"
+_PACKAGE_JSON = "package.json"
 
 
 # --- Global state ---
@@ -889,7 +889,7 @@ def prepare_environment(args):
 
 def start_services(args):
     """Starts the required services based on arguments."""
-    api_url = args.api_url or f"http://{args.host}:{args.port}"  # noqa: S5332 - local dev only
+    api_url = args.api_url or f"http://{args.host}:{args.port}"  # NOSONAR - local dev only
 
     if not args.frontend_only:
         start_backend(args.host, args.port, args.debug)
@@ -923,7 +923,7 @@ def handle_test_stage(args):
     if args.security:
         results.append(
             test_stages.run_security_tests(
-                target_url=f"http://{args.host}:{args.port}", debug=args.debug  # noqa: S5332 - local dev only
+                target_url=f"http://{args.host}:{args.port}", debug=args.debug  # NOSONAR - local dev only
             )
         )
 
