@@ -856,7 +856,7 @@ class DatabaseManager(DataSource):
         # when we already have enough recent matches.
         source_emails = self._get_sorted_emails()
 
-        logger.info("Starting email search (term length: %d)", len(search_term_lower))
+        logger.info("Starting email search")
 
         for email_light in source_emails:
             if len(filtered_emails) >= limit:

@@ -12,7 +12,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, RedirectResponse
 from pydantic import ValidationError
 
-_GMAIL_PERF_URL = _GMAIL_PERF_URL
+_GMAIL_PERF_URL = "http://127.0.0.1:8000/api/gmail/performance"
 
 from .core.audit_logger import AuditEventType, AuditSeverity, audit_logger
 from .core.middleware import (

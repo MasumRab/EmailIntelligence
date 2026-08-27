@@ -11,8 +11,8 @@ from typing import Dict, List, Optional, Set
 from dataclasses import dataclass, field
 
 # Common project file names
-_README_MD = _README_MD
-_MAIN_PY = _MAIN_PY
+_README_MD = "README.md"
+_MAIN_PY = "main.py"
 
 
 @dataclass
