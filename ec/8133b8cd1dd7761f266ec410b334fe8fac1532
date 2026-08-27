@@ -1,0 +1,14 @@
+sonar-project.properties
+  h_ab7a2e0168e897 11
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "ec8133b8cd1dd7761f266ec410b334fe8fac1532",
+  "prompts": {},
+  "humans": {
+    "h_ab7a2e0168e897": {
+      "author": "Masum Rab <masum.rab@gmail.com>"
+    }
+  }
+}
