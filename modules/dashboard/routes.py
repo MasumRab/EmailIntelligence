@@ -30,7 +30,7 @@ async def get_dashboard_stats(
     """
     try:
         # Log user access for audit purposes
-        logger.info(f"Dashboard stats requested by user: {current_user}")
+        logger.info("Dashboard stats requested")
 
         # Get efficient server-side aggregations
         aggregates = await repository.get_dashboard_aggregates()
