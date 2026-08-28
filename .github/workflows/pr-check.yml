@@ -39,12 +39,15 @@ jobs:
         run: npm ci || npm install --legacy-peer-deps
 
       - name: Lint
+        working-directory: ./client
         run: npm run lint || echo "Linting ignored"
 
       - name: TypeScript check
+        working-directory: ./client
         run: npx tsc --noEmit
 
       - name: Test
+        working-directory: ./client
         run: npm run test --if-present || echo "No tests configured"
 
       - name: Upload coverage
