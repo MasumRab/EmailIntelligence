@@ -62,6 +62,11 @@ class SmartRetrievalManager:
                 os.makedirs(os.path.dirname(self.checkpoint_db_path), exist_ok=True)
             except Exception:
                 pass
+            import os
+            try:
+                os.makedirs(os.path.dirname(self.checkpoint_db_path), exist_ok=True)
+            except Exception:
+                pass
             conn = sqlite3.connect(self.checkpoint_db_path)
             cursor = conn.cursor()
 
@@ -149,6 +154,11 @@ class SmartRetrievalManager:
     def _save_checkpoint(self, checkpoint: SyncCheckpoint):
         """Save a sync checkpoint to the database."""
         try:
+            import os
+            try:
+                os.makedirs(os.path.dirname(self.checkpoint_db_path), exist_ok=True)
+            except Exception:
+                pass
             import os
             try:
                 os.makedirs(os.path.dirname(self.checkpoint_db_path), exist_ok=True)
@@ -249,4 +259,5 @@ class SmartRetrievalManager:
 #
 #     if __name__ == "__main__":
 #     asyncio.run(main_cli())
+
 

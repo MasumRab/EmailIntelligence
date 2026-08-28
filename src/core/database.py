@@ -991,3 +991,4 @@ async def get_db() -> DatabaseManager:
         await _db_manager_instance._ensure_initialized()
     return _db_manager_instance
 
+

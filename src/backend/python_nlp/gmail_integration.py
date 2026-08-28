@@ -154,6 +154,11 @@ class EmailCache:
             os.makedirs(os.path.dirname(self.cache_path), exist_ok=True)
         except Exception:
             pass
+        import os
+        try:
+            os.makedirs(os.path.dirname(self.cache_path), exist_ok=True)
+        except Exception:
+            pass
         self.conn = sqlite3.connect(self.cache_path, check_same_thread=False)
         self._init_cache()
 
@@ -616,4 +621,5 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
+
 
