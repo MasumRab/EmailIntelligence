@@ -7,3 +7,4 @@
 ## 2024-11-23 - Secure Authentication Token Endpoint
 **Vulnerability:** The `/token` endpoint previously extracted credentials (`username` and `password`) from the request query parameters, meaning passwords could be logged in plain text in server logs, proxy histories, and browser history.
 **Learning:** In FastAPI, plain function arguments are assumed to be query parameters by default. Although authentication was happening correctly, it occurred insecurely.
+**Prevention:** Use `fastapi.security.OAuth2PasswordRequestForm` wrapped with `Depends()` to ensure FastAPI extracts login credentials securely from an `application/x-www-form-urlencoded` request body instead.
