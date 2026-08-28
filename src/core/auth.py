@@ -9,7 +9,6 @@ from datetime import datetime, timedelta
 from typing import Optional, Dict, Any, List
 import time
 import secrets
-import argon2
 from argon2 import PasswordHasher
 
 import jwt
@@ -32,7 +31,7 @@ class TokenData(BaseModel):
     role: Optional[str] = "user"
 
 
-from enum import Enum  # noqa: E402
+from enum import Enum
 
 
 class UserRole(str, Enum):
