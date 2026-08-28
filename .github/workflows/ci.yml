@@ -52,7 +52,6 @@ jobs:
         continue-on-error: true
       - name: Type checking
         run: uv run mypy src/ modules/ --show-error-codes --no-strict-optional
-
   lint-only:
     if: |
       !contains(github.event.head_commit.message, '[skip ci]') &&
