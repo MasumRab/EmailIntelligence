@@ -22,6 +22,7 @@ pull_request_rules:
       - -closed
       # NOTE: GitHub username is google-labs-jules[bot], not "jules"
       - author=google-labs-jules[bot]
+          - author~=^openhands.*
     actions:
       comment:
         message: >
@@ -58,6 +59,7 @@ pull_request_rules:
           - author=sentinel-bot
           - author=bolt-bot
           - author=google-labs-jules[bot]
+          - author~=^openhands.*
 
       # CI must be green
       - check-success=test
