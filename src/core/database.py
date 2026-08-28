@@ -35,6 +35,8 @@ EMAILS_FILE = os.path.join(DATA_DIR, "emails.json.gz")
 CATEGORIES_FILE = os.path.join(DATA_DIR, "categories.json.gz")
 USERS_FILE = os.path.join(DATA_DIR, "users.json.gz")
 
+# TODO(P1, 6h): Refactor global state management to use dependency injection
+# TODO(P2, 4h): Make data directory configurable via environment variables or settings
 
 # Data types
 DATA_TYPE_EMAILS = "emails"
@@ -99,7 +101,7 @@ class DatabaseConfig:
 
 
 # Import DataSource locally to avoid circular imports
-from .data.data_source import DataSource  # noqa: E402
+from .data.data_source import DataSource
 
 class DatabaseManager(DataSource):
     """Optimized async database manager with in-memory caching, write-behind,
@@ -364,7 +366,7 @@ class DatabaseManager(DataSource):
                 severity=ErrorSeverity.ERROR,
                 category=ErrorCategory.DATA,
                 context=error_context,
-                details={"error_type": type(e).__name__},
+                details={"error_type": type(e).__name__}
             )
             logger.error(f"Error saving data to {file_path}: {e}. Error ID: {error_id}")
 
@@ -576,7 +578,7 @@ class DatabaseManager(DataSource):
             return
         if increment:
             self.category_counts[category_id] += 1
-        elif decrement:
+        if decrement:
             self.category_counts[category_id] -= 1
         self._dirty_data.add(DATA_TYPE_CATEGORIES)
 
@@ -833,6 +835,9 @@ class DatabaseManager(DataSource):
         self.caching_manager.put_query_result(cache_key, results)
         return results
 
+    # TODO(P1, 6h): Optimize search performance to avoid disk I/O per STATIC_ANALYSIS_REPORT.md
+    # TODO(P2, 4h): Implement search indexing to improve query performance
+    # TODO(P3, 3h): Add support for search result caching
 
     async def _update_email_fields(
         self, email: Dict[str, Any], update_data: Dict[str, Any]
@@ -864,6 +869,7 @@ class DatabaseManager(DataSource):
 
             # Update content availability index
             self._content_available_index.add(email_id)
+
         except IOError as e:
             logger.error(f"Error saving heavy content for email {email_id}: {e}")
 
