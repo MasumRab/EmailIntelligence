@@ -1,8 +1,12 @@
 from unittest.mock import MagicMock, patch
-
+import sys
+sys.modules['transformers'] = MagicMock()
+sys.modules['transformers.pipeline'] = MagicMock()
+sys.modules['nltk'] = MagicMock()
+sys.modules['joblib'] = MagicMock()
 import pytest
-
 from backend.python_nlp.nlp_engine import NLPEngine
+
 
 # Ensure the root directory is in the Python path
 
