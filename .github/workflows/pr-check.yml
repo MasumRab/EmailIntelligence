@@ -151,7 +151,7 @@ jobs:
         with:
           name: python-coverage
           path: python-coverage
-          if-no-files-found: ignore
+          
 
       - name: Upload to Codecov
         if: always()
