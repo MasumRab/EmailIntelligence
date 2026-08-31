@@ -12,7 +12,8 @@ def test_hash_password():
     password = "test_password"
     hashed = hash_password(password)
     assert hashed is not None
-    assert ":" in hashed  # Should contain salt
+    # Argon2 format uses $ as delimiter, not colon
+    assert "$" in hashed and hashed.startswith("$argon2")
 
 
 def test_verify_password():
