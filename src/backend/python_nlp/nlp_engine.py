@@ -13,19 +13,15 @@ import logging
 import os
 import re
 import sys
-from dataclasses import dataclass
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
 from transformers import AutoModelForSequenceClassification, AutoTokenizer, pipeline
 
 from backend.python_nlp.text_utils import clean_text
+from core.security import verify_model_safety
 
 from .analysis_components.importance_model import ImportanceModel
-from .analysis_components.intent_model import IntentModel
-from .analysis_components.sentiment_model import SentimentModel
-from .analysis_components.topic_model import TopicModel
-from .analysis_components.urgency_model import UrgencyModel
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(name)s - %(message)s"
@@ -164,7 +160,7 @@ class NLPEngine:
         }
         logger.info("Regex patterns compiled successfully.")
 
-    def _load_model(self, model_path: str):
+    def _load_model(self, model_path: str, expected_hash: Optional[str] = None):
         """
         Load a model from the specified path.
 
@@ -176,6 +172,9 @@ class NLPEngine:
         """
         try:
             if os.path.exists(model_path):
+                if not verify_model_safety(model_path, expected_hash):
+                    logger.error(f"Security: Model path or signature validation failed for {model_path}")
+                    return None
                 import joblib
 
                 model = joblib.load(model_path)

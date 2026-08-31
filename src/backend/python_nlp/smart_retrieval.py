@@ -1,20 +1,12 @@
-import argparse
-import asyncio
-import json
 import logging
 import os
 import sqlite3
-import sys
-from dataclasses import asdict, dataclass
+from dataclasses import dataclass
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
 from dotenv import load_dotenv
-from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
-from google_auth_oauthlib.flow import InstalledAppFlow
-from googleapiclient.discovery import build
-from googleapiclient.errors import HttpError
 
 load_dotenv()
 SCOPES = ["https://www.googleapis.com/auth/gmail.readonly"]

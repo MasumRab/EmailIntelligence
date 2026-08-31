@@ -4,16 +4,12 @@ It will be removed in a future release.
 """
 
 import json
-from typing import Any, Dict, List
 
 import gradio as gr
-import matplotlib.pyplot as plt
-import numpy as np
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 import requests
-import seaborn as sns
 
 from backend.python_nlp.nlp_engine import NLPEngine
 
@@ -147,8 +143,7 @@ with gr.Blocks(title="Email Intelligence", theme=gr.themes.Soft()) as iface:
                     reasoning_output,
                     keywords_output,
                     analysis_output,
-                    sentiment_chart,
-                    topic_chart,
+
                 ],
             )
 

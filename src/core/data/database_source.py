@@ -2,7 +2,6 @@ from typing import List, Dict, Any
 from .data_source import DataSource
 from ..database import DatabaseManager, create_database_manager, DatabaseConfig
 from ..factory import get_data_source
-from ..data_source import DataSource as DataSourceProtocol
 
 class DatabaseDataSource(DataSource):
     """
@@ -93,7 +92,6 @@ async def get_database_data_source() -> DatabaseDataSource:
     Provides a singleton instance of the DatabaseDataSource.
     """
     # Use the factory approach instead of the old singleton
-    from ..factory import get_data_source
     data_source = await get_data_source()
     # If it's already a DatabaseDataSource, return it
     if isinstance(data_source, DatabaseDataSource):

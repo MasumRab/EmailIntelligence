@@ -5,10 +5,8 @@ This module provides enhanced error reporting capabilities with structured loggi
 error context information, and error analytics to help diagnose issues more effectively.
 """
 
-import asyncio
 import json
 import logging
-import sys
 import traceback
 from datetime import datetime, timezone
 from enum import Enum

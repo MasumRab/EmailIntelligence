@@ -13,7 +13,7 @@ import time
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from functools import wraps
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 import psutil
 

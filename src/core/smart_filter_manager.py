@@ -6,7 +6,6 @@ performance monitoring, and integration with the advanced workflow engine.
 It follows the same patterns as other core modules in the src/core directory.
 """
 
-import asyncio
 import json
 import logging
 import os
@@ -15,8 +14,7 @@ import sqlite3
 from collections import Counter
 from dataclasses import dataclass
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional, Set, Union
-from pathlib import Path
+from typing import Any, Dict, List, Optional, Union
 
 from .database import DATA_DIR
 from .performance_monitor import log_performance
@@ -810,8 +808,13 @@ class SmartFilterManager:
         current_time = datetime.now(timezone.utc).isoformat()
         self._db_execute(update_query, (current_time, filter_id))
 
-        # Invalidate cache for active filters
-        await self.caching_manager.delete("active_filters_sorted")
+        # OPTIMIZATION: Removed redundant cache invalidation for "active_filters_sorted".
+        # Why: Invalidating this cache on every filter match causes a "thundering herd"
+        # effect where the entire filter list is re-fetched from DB for every matched email.
+        # Impact: Turns O(N) DB reads into O(1) cache hits during batch processing.
+        # Trade-off: Usage counts in the cached list will be slightly stale until TTL expires,
+        # which is acceptable as they are not used for filter logic (priority/criteria).
+        # await self.caching_manager.delete("active_filters_sorted")
 
     async def _batch_update_filter_usage(self, filters: List[EmailFilter]):
         """

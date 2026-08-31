@@ -1,7 +1,6 @@
-
+import configparser
 import argparse
 import logging
-
 import gradio as gr
 import uvicorn
 import psutil
@@ -18,6 +17,7 @@ from .core.audit_logger import audit_logger, AuditEventType, AuditSeverity
 from .core.performance_monitor import performance_monitor
 import configparser
 configparser.SafeConfigParser = configparser.ConfigParser
+
 
 
 # Configure logging
@@ -582,6 +582,8 @@ def create_app():
         allow_methods=["*"],
         allow_headers=["*"],
     )
+
+    from .core.middleware import SecurityMiddleware, SecurityHeadersMiddleware
 
     # Add comprehensive security middleware
     app.add_middleware(SecurityMiddleware)

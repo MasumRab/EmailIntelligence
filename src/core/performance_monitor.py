@@ -183,6 +183,15 @@ def _create_decorator(func, op_name):
         return sync_wrapper
 
 
+import atexit
+
+# Enhanced performance monitoring system with additional features
+from collections import defaultdict, deque
+from dataclasses import asdict, dataclass
+from pathlib import Path
+from typing import Any, Dict, Optional, Union
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass

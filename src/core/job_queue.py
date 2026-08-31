@@ -5,12 +5,10 @@ Implements RQ-based job queue for heavy dashboard calculations,
 providing async processing for weekly growth and performance metrics.
 """
 
-import asyncio
-import json
 import logging
-from typing import Any, Dict, Optional
+from typing import Any, Optional
 from dataclasses import dataclass
-from datetime import datetime, timedelta
+from datetime import datetime
 
 try:
     from rq import Queue, Connection, Worker

@@ -6,9 +6,8 @@ Category service for the Email Intelligence Platform
 Handles all category-related business logic
 """
 
-from typing import List, Optional, Dict, Any
+from typing import Dict, Any
 from .base_service import BaseService, BaseResponse
-from src.core.database import FIELD_ID
 
 
 class CategoryService(BaseService):

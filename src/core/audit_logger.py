@@ -9,14 +9,13 @@ import atexit
 import json
 import logging
 import threading
-import time
 import asyncio
 from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from enum import Enum
 from pathlib import Path
 from queue import Queue
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
 logger = logging.getLogger(__name__)
 

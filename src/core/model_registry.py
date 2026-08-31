@@ -8,6 +8,7 @@ and monitoring AI models with versioning, metadata, and performance metrics.
 import asyncio
 import json
 import logging
+from .security import verify_model_safety
 import time
 from dataclasses import dataclass, field
 from enum import Enum
@@ -50,6 +51,7 @@ class ModelMetadata:
     framework: str  # "sklearn", "transformers", "tensorflow", etc.
     size_bytes: int = 0
     created_at: float = field(default_factory=time.time)
+    expected_hash: Optional[str] = None  # SHA256 hash for external models
     last_loaded: Optional[float] = None
     last_used: Optional[float] = None
     load_count: int = 0
@@ -468,6 +470,9 @@ class ModelRegistry:
             model_path = metadata.path / f"{metadata.model_id}.pkl"
 
             if model_path.exists():
+                if not verify_model_safety(model_path, getattr(metadata, "expected_hash", None)):
+                    logger.error(f"Security: Model path or signature validation failed for {model_path}")
+                    return None
                 model = joblib.load(model_path)
                 return model
             else:
@@ -484,8 +489,8 @@ class ModelRegistry:
 
             model_path = metadata.path
             if model_path.exists():
-                model = AutoModelForSequenceClassification.from_pretrained(str(model_path))
-                tokenizer = AutoTokenizer.from_pretrained(str(model_path))
+                model = await asyncio.to_thread(AutoModelForSequenceClassification.from_pretrained, str(model_path), local_files_only=True)
+                tokenizer = await asyncio.to_thread(AutoTokenizer.from_pretrained, str(model_path), local_files_only=True)
                 return {"model": model, "tokenizer": tokenizer}
             else:
                 logger.error(f"Transformers model path not found: {model_path}")
@@ -624,6 +629,8 @@ class ModelRegistry:
                 # Try to load the file
                 import joblib
 
+                if not verify_model_safety(model_file, getattr(metadata, "expected_hash", None)):
+                    return {"passed": False, "issues": ["Model path or signature validation failed"]}
                 joblib.load(model_file)
                 return {"passed": True}
 
@@ -685,6 +692,14 @@ class ModelRegistry:
             instance = await self.get_model(model_id)
             if not instance:
                 return {"passed": False, "issues": ["Cannot test unloaded model"]}
+
+            # Test with sample data based on model type
+            if instance.metadata.model_type == ModelType.SENTIMENT:
+                pass
+            elif instance.metadata.model_type == ModelType.TOPIC:
+                pass
+            else:
+                pass
 
             start_time = time.time()
             # This would need to be implemented based on the actual model interface

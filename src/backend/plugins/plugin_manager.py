@@ -10,9 +10,8 @@ Manages the loading, registration, and execution of plugins in the system.
 import importlib
 import inspect
 import logging
-import os
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Type
+from typing import Dict, Optional
 
 from backend.plugins.base_plugin import BasePlugin, ProcessingNode, UIComponentPlugin
 

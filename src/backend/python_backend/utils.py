@@ -5,9 +5,8 @@ It will be removed in a future release.
 Utility functions to reduce code duplication across the backend.
 """
 
-import json
 import logging
-from typing import Any, Callable, List
+from typing import Any, List
 
 logger = logging.getLogger(__name__)
 

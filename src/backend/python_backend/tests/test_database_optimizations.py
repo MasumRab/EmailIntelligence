@@ -1,4 +1,3 @@
-import asyncio
 import gzip
 import json
 import os
@@ -8,7 +7,6 @@ import pytest
 import pytest_asyncio
 
 from backend.python_backend.database import HEAVY_EMAIL_FIELDS, DatabaseManager
-from backend.python_backend.performance_monitor import LOG_FILE
 
 # Mark all tests in this file as asyncio
 pytestmark = pytest.mark.asyncio
@@ -18,7 +16,6 @@ pytestmark = pytest.mark.asyncio
 async def fresh_db():
     """Fixture to provide a fresh, isolated DatabaseManager instance for each test."""
     import os
-    from pathlib import Path
 
     temp_data_dir = os.getenv("TEMP_DATA_DIR", "backend/python_backend/tests/temp_data")
     content_dir = os.path.join(temp_data_dir, "email_content")

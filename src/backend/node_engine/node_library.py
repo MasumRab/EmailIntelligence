@@ -17,7 +17,6 @@ from backend.node_engine.email_nodes import (
     FilterNode,
     PreprocessingNode,
 )
-from backend.node_engine.node_base import DataType, NodePort
 
 
 class NodeLibrary:

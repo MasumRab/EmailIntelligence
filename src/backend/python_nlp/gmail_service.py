@@ -16,13 +16,10 @@ from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
 # To avoid circular imports with type hints
 if TYPE_CHECKING:
-    from ..python_backend.ai_engine import AdvancedAIEngine
-    from ..python_backend.database import DatabaseManager
-    from .protocols import AIEngineProtocol, DatabaseProtocol
+    pass
 
 # AI Training and PromptEngineer might not be directly used by GmailAIService after refactoring
 # if all AI analysis is delegated to AdvancedAIEngine.
-from .ai_training import ModelConfig
 from .data_strategy import DataCollectionStrategy
 from .gmail_integration import EmailBatch, GmailDataCollector, RateLimitConfig
 from .gmail_metadata import GmailMessage, GmailMetadataExtractor

@@ -5,11 +5,10 @@ This module provides enhanced caching capabilities for the DatabaseManager,
 including LRU cache for frequently accessed data and query result caching.
 """
 
-import asyncio
 import logging
 import time
 from collections import OrderedDict
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -64,24 +63,32 @@ class LRUCache:
             "size": len(self.cache),
             "hits": self.hits,
             "misses": self.misses,
-            "hit_rate": hit_rate
+            "hit_rate": hit_rate,
         }
 
 
 class QueryResultCache:
-    """Cache for query results with TTL (Time To Live) support."""
+    """Cache for query results with TTL (Time To Live) and LRU capacity support."""
 
-    def __init__(self, ttl_seconds: int = 300):  # 5 minutes default
+    def __init__(
+        self, ttl_seconds: int = 300, capacity: int = 1000
+    ):  # 5 minutes default
+        if capacity <= 0:
+            raise ValueError("capacity must be greater than zero")
         self.ttl_seconds = ttl_seconds
-        self.cache: Dict[str, Tuple[Any, float]] = {}  # (value, timestamp)
+        self.capacity = capacity
+        # Use OrderedDict to implement LRU eviction for capacity limit
+        self.cache = OrderedDict()  # key -> (value, timestamp)
         self.hits = 0
         self.misses = 0
 
     def get(self, key: str) -> Optional[Any]:
-        """Get value from cache if not expired."""
+        """Get value from cache if not expired, marking it as recently used."""
         if key in self.cache:
             value, timestamp = self.cache[key]
             if time.time() - timestamp < self.ttl_seconds:
+                # Move to end to mark as recently used
+                self.cache.move_to_end(key)
                 self.hits += 1
                 return value
             else:
@@ -91,7 +98,17 @@ class QueryResultCache:
         return None
 
     def put(self, key: str, value: Any) -> None:
-        """Put value in cache with current timestamp."""
+        """Put value in cache with current timestamp, evicting oldest if necessary."""
+        if key in self.cache:
+            # Update existing entry and move to end
+            self.cache.move_to_end(key)
+        elif len(self.cache) >= self.capacity:
+            # First, try to clear expired entries
+            self.clear_expired()
+            # If still over capacity, remove least recently used item
+            if len(self.cache) >= self.capacity:
+                self.cache.popitem(last=False)
+
         self.cache[key] = (value, time.time())
 
     def invalidate(self, key: str) -> None:
@@ -103,7 +120,8 @@ class QueryResultCache:
         """Remove all expired entries."""
         current_time = time.time()
         expired_keys = [
-            key for key, (_, timestamp) in self.cache.items()
+            key
+            for key, (_, timestamp) in self.cache.items()
             if current_time - timestamp >= self.ttl_seconds
         ]
         for key in expired_keys:
@@ -125,7 +143,7 @@ class QueryResultCache:
             "hits": self.hits,
             "misses": self.misses,
             "hit_rate": hit_rate,
-            "ttl_seconds": self.ttl_seconds
+            "ttl_seconds": self.ttl_seconds,
         }
 
 
@@ -138,10 +156,13 @@ class EnhancedCachingManager:
         self.category_record_cache = LRUCache(capacity=50)
 
         # Query result cache for complex queries
-        self.query_cache = QueryResultCache(ttl_seconds=300)  # 5 minutes
+        self.query_cache = QueryResultCache(ttl_seconds=300, capacity=1000)  # 5 minutes
 
         # Cache for email content (heavy data)
         self.email_content_cache = LRUCache(capacity=100)
+
+        # Cache for smart filters (optimization)
+        self.filter_cache = LRUCache(capacity=100)
 
         # Statistics tracking
         self.cache_operations = {
@@ -152,8 +173,51 @@ class EnhancedCachingManager:
             "query_result_get": 0,
             "query_result_put": 0,
             "content_get": 0,
-            "content_put": 0
+            "content_put": 0,
+            "filter_get": 0,
+            "filter_put": 0,
         }
+
+    # --- Async Interface for SmartFilterManager compatibility ---
+
+    async def _ensure_initialized(self) -> None:
+        """Async initialization (no-op but required by interface)."""
+        pass
+
+    async def get(self, key: str) -> Optional[Any]:
+        """
+        Generic async get for SmartFilterManager compatibility.
+        Routes to the appropriate cache based on the key.
+        """
+        if key == "active_filters_sorted":
+            return self.get_query_result(key)
+        elif key.startswith("filter_"):
+            self.cache_operations["filter_get"] += 1
+            return self.filter_cache.get(key)
+        return None
+
+    async def set(self, key: str, value: Any) -> None:
+        """
+        Generic async set for SmartFilterManager compatibility.
+        Routes to the appropriate cache based on the key.
+        """
+        if key == "active_filters_sorted":
+            self.put_query_result(key, value)
+        elif key.startswith("filter_"):
+            self.cache_operations["filter_put"] += 1
+            self.filter_cache.put(key, value)
+
+    async def delete(self, key: str) -> None:
+        """
+        Generic async delete for SmartFilterManager compatibility.
+        Routes to the appropriate cache based on the key.
+        """
+        if key == "active_filters_sorted":
+            self.invalidate_query_result(key)
+        elif key.startswith("filter_"):
+            self.filter_cache.invalidate(key)
+
+    # --- Specific Cache Methods ---
 
     def get_email_record(self, email_id: int) -> Optional[Dict[str, Any]]:
         """Get email record from cache."""
@@ -170,7 +234,9 @@ class EnhancedCachingManager:
         self.cache_operations["category_record_get"] += 1
         return self.category_record_cache.get(f"category_{category_id}")
 
-    def put_category_record(self, category_id: int, category_record: Dict[str, Any]) -> None:
+    def put_category_record(
+        self, category_id: int, category_record: Dict[str, Any]
+    ) -> None:
         """Put category record in cache."""
         self.cache_operations["category_record_put"] += 1
         self.category_record_cache.put(f"category_{category_id}", category_record)
@@ -218,6 +284,7 @@ class EnhancedCachingManager:
         self.category_record_cache.clear()
         self.query_cache.clear()
         self.email_content_cache.clear()
+        self.filter_cache.clear()
 
         # Reset statistics
         for key in self.cache_operations:
@@ -230,5 +297,6 @@ class EnhancedCachingManager:
             "category_record_cache": self.category_record_cache.get_stats(),
             "query_cache": self.query_cache.get_stats(),
             "email_content_cache": self.email_content_cache.get_stats(),
-            "operations": self.cache_operations.copy()
+            "filter_cache": self.filter_cache.get_stats(),
+            "operations": self.cache_operations.copy(),
         }
