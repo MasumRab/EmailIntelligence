@@ -7,6 +7,7 @@ It handles dependency injection, fallback mechanisms, and error handling.
 
 import json
 import logging
+import re
 from typing import Dict, Any, Optional, List
 from pathlib import Path
 
@@ -46,7 +47,7 @@ class BackendClient:
         """
         try:
             # Split text into subject/content roughly for the API
-            lines = text.split('\n', 1)
+            lines = text.split("\n", 1)
             subject = lines[0] if lines else "No Subject"
             content = lines[1] if len(lines) > 1 else text
 
@@ -62,11 +63,14 @@ class BackendClient:
         Start a workflow.
         Payload expected to contain 'workflow_id' and 'email_data'.
         """
-        workflow_id = payload.get("workflow_id")
+        workflow_id = (payload.get("workflow_id") or "").strip()
         payload.get("email_data", {})
 
         if not workflow_id:
             return {"error": "No workflow_id provided"}
+        if not self._is_valid_workflow_id(workflow_id):
+            logger.warning(f"Rejected invalid workflow id: {workflow_id!r}")
+            return {"error": "Invalid workflow_id format"}
 
         # TODO: Load real workflow definition from registry or DB
         # For now, we construct a dummy workflow if not found, or try to load from a file
@@ -76,9 +80,9 @@ class BackendClient:
         workflow_def = self.retrieve_item(f"workflow_{workflow_id}")
 
         if not workflow_def:
-             # Fallback to a mock/simple workflow if not found
-             logger.warning(f"Workflow {workflow_id} not found in storage. Using dummy.")
-             return {"error": f"Workflow {workflow_id} not found"}
+            # Fallback to a mock/simple workflow if not found
+            logger.warning(f"Workflow {workflow_id} not found in storage. Using dummy.")
+            return {"error": f"Workflow {workflow_id} not found"}
 
         try:
             # Reconstruct Workflow object from stored definition
@@ -97,7 +101,7 @@ class BackendClient:
 
             return {
                 "status": "failed",
-                "error": "Workflow execution from UI not fully wired to backend registry yet."
+                "error": "Workflow execution from UI not fully wired to backend registry yet.",
             }
 
         except Exception as e:
@@ -115,18 +119,34 @@ class BackendClient:
             logger.error(f"Error getting metrics: {e}")
             return {"error": str(e)}
 
+    def _resolve_key_path(self, key: str) -> Optional[Path]:
+        """
+        Resolve a key to a safe path within DATA_DIR.
+        Returns None if the key format is invalid or path traversal is detected.
+        """
+        if not isinstance(key, str) or not key:
+            return None
+        if re.fullmatch(r"[A-Za-z0-9_-]+", key) is None:
+            return None
+
+        resolved = (DATA_DIR / f"{key}.json").resolve()
+        if not resolved.is_relative_to(DATA_DIR.resolve()):
+            return None
+        return resolved
+
     def persist_item(self, key: str, data: Dict[str, Any]) -> bool:
         """
         Generic persistence using local JSON files (Fallback).
         Stored in modules/new_ui/data/{key}.json
         """
         try:
-            safe_key = "".join(x for x in key if x.isalnum() or x in "_-")
-            file_path = DATA_DIR / f"{safe_key}.json"
+            file_path = self._resolve_key_path(key)
+            if file_path is None:
+                return False
 
             # Atomic write
             temp_path = file_path.with_suffix(".tmp")
-            with open(temp_path, 'w') as f:
+            with open(temp_path, "w") as f:
                 json.dump(data, f, indent=2)
             temp_path.replace(file_path)
 
@@ -136,18 +156,23 @@ class BackendClient:
             logger.error(f"Failed to persist item {key}: {e}")
             return False
 
+    def _is_valid_workflow_id(self, workflow_id: str) -> bool:
+        """Validate workflow id from UI before using it in storage key construction."""
+        return (
+            bool(workflow_id)
+            and re.fullmatch(r"[A-Za-z0-9_-]+", workflow_id) is not None
+        )
+
     def retrieve_item(self, key: str) -> Optional[Dict[str, Any]]:
         """
         Generic retrieval using local JSON files (Fallback).
         """
         try:
-            safe_key = "".join(x for x in key if x.isalnum() or x in "_-")
-            file_path = DATA_DIR / f"{safe_key}.json"
-
-            if not file_path.exists():
+            file_path = self._resolve_key_path(key)
+            if file_path is None or not file_path.exists():
                 return None
 
-            with open(file_path, 'r') as f:
+            with open(file_path, "r") as f:
                 return json.load(f)
         except Exception as e:
             logger.error(f"Failed to retrieve item {key}: {e}")
@@ -160,7 +185,7 @@ class BackendClient:
         try:
             for file_path in DATA_DIR.glob("workflow_*.json"):
                 try:
-                    with open(file_path, 'r') as f:
+                    with open(file_path, "r") as f:
                         data = json.load(f)
                         workflows.append(data)
                 except Exception:
