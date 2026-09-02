@@ -15,6 +15,8 @@ import sys
 import re
 import shlex
 
+import shlex
+
 def run_command(command):
     """Run a shell command and return the output."""
     try:

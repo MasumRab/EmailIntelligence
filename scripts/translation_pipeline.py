@@ -276,7 +276,7 @@ class DistributedTranslationManager:
                                  source_lang: str, target_lang: str, confidence_score: float):
         """Add a translation to the translation memory."""
         # Create a key for the translation memory entry
-        key = hashlib.md5(f"{source_text}_{source_lang}_{target_lang}".encode()).hexdigest()
+        key = hashlib.md5(f"{source_text}_{source_lang}_{target_lang}".encode(), usedforsecurity=False).hexdigest()
 
         if key in self.translation_memory:
             # Update existing entry
@@ -302,7 +302,7 @@ class DistributedTranslationManager:
     def lookup_translation_memory(self, source_text: str, source_lang: str,
                                 target_lang: str) -> Optional[TranslationMemoryEntry]:
         """Look up a translation in the translation memory."""
-        key = hashlib.md5(f"{source_text}_{source_lang}_{target_lang}".encode()).hexdigest()
+        key = hashlib.md5(f"{source_text}_{source_lang}_{target_lang}".encode(), usedforsecurity=False).hexdigest()
 
         with self._lock:
             return self.translation_memory.get(key)

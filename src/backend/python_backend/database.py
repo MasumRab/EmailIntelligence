@@ -712,6 +712,12 @@ async def get_db() -> DatabaseManager:
         await _db_manager_instance._ensure_initialized()
     return _db_manager_instance
 
+    async def connect(self):
+        await self._ensure_initialized()
+
+    async def close(self):
+        pass
+
 
 async def initialize_db():
     """Initialize the database manager. Should be called during application startup."""
@@ -719,3 +725,9 @@ async def initialize_db():
     if _db_manager_instance is None:
         _db_manager_instance = DatabaseManager()
         await _db_manager_instance._ensure_initialized()
+
+# Legacy export for backward compatibility with main.py
+db_manager = DatabaseManager()
+_db_manager_instance = db_manager
+
+# Ensure connect/close are defined on DatabaseManager for legacy support

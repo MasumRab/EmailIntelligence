@@ -7,6 +7,7 @@ import asyncio
 import gzip
 import itertools
 import json
+from .data.data_source import DataSource
 import logging
 import os
 from datetime import datetime, timezone

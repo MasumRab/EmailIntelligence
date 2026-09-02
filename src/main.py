@@ -12,9 +12,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, RedirectResponse
 from pydantic import ValidationError
 from .core.module_manager import ModuleManager
+from .core.middleware import SecurityMiddleware, SecurityHeadersMiddleware
 from .core.audit_logger import audit_logger, AuditEventType, AuditSeverity
 from .core.performance_monitor import performance_monitor
-
+import configparser
 configparser.SafeConfigParser = configparser.ConfigParser
 
 

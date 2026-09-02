@@ -9,9 +9,11 @@ from datetime import datetime, timedelta
 from typing import Optional, Dict, Any, List
 import time
 import secrets
+import argon2
 from argon2 import PasswordHasher
 
 import jwt
+from enum import Enum
 from fastapi import HTTPException, status, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel
@@ -30,8 +32,6 @@ class TokenData(BaseModel):
     username: Optional[str] = None
     role: Optional[str] = "user"
 
-
-from enum import Enum
 
 
 class UserRole(str, Enum):
