@@ -13,7 +13,6 @@ on:
       - '**.md'
       - 'docs/**'
       - '**.mdx'
-  workflow_dispatch:
 
 permissions:
   contents: read
@@ -32,23 +31,23 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+          cache: 'pip'
       - uses: astral-sh/setup-uv@v5
         with:
           enable-cache: true
       - name: Install dependencies
-        run: uv sync --all-extras --dev  # NOSONAR - controlled CI environment
+        run: uv sync --all-extras
       - name: Run tests
         run: |
           uv run pytest tests/ src/ modules/ -v --tb=short \
             --cov=src --cov=modules --cov-report=xml --cov-report=term-missing \
-            --cov-fail-under=70 || true
+            --cov-fail-under=70
       - name: Run Security Scans
-        run: uv run bandit -r src/ modules/ || true
+        run: uv run bandit -r src/ modules/
       - name: Run linting
         run: |
           uv run ruff check src/ modules/
           uv run ruff format --check src/ modules/
-        continue-on-error: true
       - name: Type checking
         run: uv run mypy src/ modules/ --show-error-codes --no-strict-optional
         continue-on-error: true
@@ -68,12 +67,13 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+          cache: 'pip'
       - uses: astral-sh/setup-uv@v5
         with:
           enable-cache: true
       - name: Install dependencies
-        run: uv sync --all-extras --dev  # NOSONAR - controlled CI environment
+        run: uv sync --all-extras
       - name: Run ruff
         run: |
-          uv run ruff check src/ modules/ || true
-          uv run ruff format --check src/ modules/ || true
+          uv run ruff check src/ modules/
+          uv run ruff format --check src/ modules/
