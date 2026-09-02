@@ -11,7 +11,6 @@ node-based workflows.
 import json
 import logging
 import os
-import pathlib
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
@@ -47,22 +46,17 @@ class WorkflowManager:
         """
         workflow_data = self._workflow_to_dict(workflow)
         filename = f"{workflow.workflow_id}.json"
-
-        # Security: Prevent path traversal using pathlib
-        base_dir = pathlib.Path(self.workflows_dir).resolve()
-        target_path = pathlib.Path(self.workflows_dir) / filename
-        filepath = target_path.resolve()
-
-        try:
-            filepath.relative_to(base_dir)
-        except ValueError:
+        raw_filepath = os.path.join(self.workflows_dir, filename)
+        filepath = os.path.normpath(raw_filepath)
+        # Validate that the workflow file resides within self.workflows_dir
+        if not filepath.startswith(os.path.abspath(self.workflows_dir) + os.sep):
             raise ValueError("Invalid workflow_id resulting in unsafe file path")
 
         with open(filepath, "w", encoding="utf-8") as f:
             json.dump(workflow_data, f, indent=2, default=str)
 
         self.logger.info(f"Workflow {workflow.name} saved to {filepath}")
-        return str(filepath)
+        return filepath
 
     def load_workflow(self, workflow_id: str) -> Optional[Workflow]:
         """
@@ -75,19 +69,13 @@ class WorkflowManager:
             The loaded workflow or None if not found
         """
         filename = f"{workflow_id}.json"
-
-        # Security: Prevent path traversal using pathlib
-        base_dir = pathlib.Path(self.workflows_dir).resolve()
-        target_path = pathlib.Path(self.workflows_dir) / filename
-        filepath = target_path.resolve()
-
-        try:
-            filepath.relative_to(base_dir)
-        except ValueError:
+        raw_filepath = os.path.join(self.workflows_dir, filename)
+        filepath = os.path.normpath(raw_filepath)
+        if not filepath.startswith(os.path.abspath(self.workflows_dir) + os.sep):
             self.logger.warning(f"Attempted file access outside workflows_dir: {filepath}")
             return None
 
-        if not filepath.exists():
+        if not os.path.exists(filepath):
             self.logger.warning(f"Workflow file not found: {filepath}")
             return None
 
