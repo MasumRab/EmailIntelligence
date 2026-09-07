@@ -42,8 +42,7 @@ jobs:
         run: npm run lint || echo "Linting ignored"
 
       - name: TypeScript check
-        working-directory: ./client
-        run: ./node_modules/.bin/tsc --noEmit || echo "TypeScript errors ignored — Vite build handles type resolution"
+        run: npx tsc --noEmit
 
       - name: Test
         run: npm run test --if-present || echo "No tests configured"
@@ -53,7 +52,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: frontend-coverage
-          path: coverage/
+          path: coverage.xml
           retention-days: 7
 
   # Python backend checks
@@ -80,7 +79,7 @@ jobs:
           cache-dependency-glob: 'setup/pyproject.toml'
 
       - name: Install dependencies
-        run: uv sync --all-extras --dev  # NOSONAR - controlled CI environment
+        run: uv sync --all-extras --dev
 
       - name: Ruff lint check
         run: uv run ruff check src/ modules/ setup/ || true
@@ -105,14 +104,11 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: python-coverage
-          path: |
-            coverage.xml
-            coverage/
+          path: coverage.xml
           retention-days: 7
-          if-no-files-found: ignore
 
       - name: Bandit security check
-        run: uv run bandit -r src/ modules/ setup/ -x tests/ || true
+        run: uv run bandit -r src/ modules/ setup/ -x tests/
 
   # Block on failure - this job depends on all others
   block-on-failure:
@@ -150,7 +146,6 @@ jobs:
         with:
           name: python-coverage
           path: python-coverage
-          if-no-files-found: ignore
 
       - name: Upload to Codecov
         if: always()
