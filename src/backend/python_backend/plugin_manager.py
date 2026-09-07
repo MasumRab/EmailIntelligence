@@ -1,3 +1,4 @@
+import importlib.util
 """
 Plugin Manager for the Email Intelligence Platform
 

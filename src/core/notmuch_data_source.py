@@ -1,3 +1,4 @@
+from src.core.database import DatabaseManager
 """
 Enhanced Notmuch Data Source with AI Analysis and Tagging Support
 
