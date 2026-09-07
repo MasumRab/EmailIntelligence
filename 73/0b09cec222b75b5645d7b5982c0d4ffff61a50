@@ -1,0 +1,14 @@
+.taskmaster
+  h_ab7a2e0168e897 1
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "730b09cec222b75b5645d7b5982c0d4ffff61a50",
+  "prompts": {},
+  "humans": {
+    "h_ab7a2e0168e897": {
+      "author": "Masum Rab <masum.rab@gmail.com>"
+    }
+  }
+}
