@@ -27,14 +27,6 @@ logger = logging.getLogger(__name__)
 LOG_FILE = "performance_metrics_log.jsonl"
 
 
-@dataclass
-class PerformanceMetric:
-    """Represents a single performance metric"""
-
-    timestamp: float
-    value: float
-    unit: str
-    source: str
 
 
 @dataclass
@@ -179,13 +171,13 @@ def _create_decorator(func, op_name):
         return sync_wrapper
 
 
-import atexit
+import atexit  # noqa: E402
 
 # Enhanced performance monitoring system with additional features
-from collections import defaultdict, deque
-from dataclasses import asdict, dataclass
-from pathlib import Path
-from typing import Any, Dict, Optional, Union
+from collections import defaultdict, deque  # noqa: E402
+from dataclasses import asdict, dataclass  # noqa: E402
+from pathlib import Path  # noqa: E402
+from typing import Any, Dict, Optional, Union  # noqa: E402
 
 logger = logging.getLogger(__name__)
 
@@ -310,17 +302,6 @@ class OptimizedPerformanceMonitor:
         # Add to buffer (thread-safe)
         with self._buffer_lock:
             self._metrics_buffer.append(metric)
-
-    def log_performance(self, log_entry: Dict[str, Any]) -> None:
-        """Compatibility method for legacy log_performance decorator."""
-        operation = log_entry.get("operation", "unknown")
-        duration = log_entry.get("duration_seconds", 0) * 1000  # Convert to ms
-        self.record_metric(
-            name=f"operation_duration_{operation}",
-            value=duration,
-            unit="ms",
-            tags={"operation": operation},
-        )
 
     def time_function(
         self, name: str, tags: Optional[Dict[str, str]] = None, sample_rate: float = 1.0
