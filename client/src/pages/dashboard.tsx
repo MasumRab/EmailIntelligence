@@ -13,7 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Search, FolderSync, Filter } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { Category, EmailWithCategory } from "@shared/schema";
 
 /**
@@ -28,16 +28,25 @@ import type { Category, EmailWithCategory } from "@shared/schema";
  */
 export default function Dashboard() {
   const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
   const [syncLoading, setSyncLoading] = useState(false);
   const [selectedEmail, setSelectedEmail] = useState<EmailWithCategory | null>(null);
   const { toast } = useToast();
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery);
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
   const { data: categories = [] } = useQuery<Category[]>({
     queryKey: ["/api/categories"],
   });
 
   const { data: emails = [], isLoading: emailsLoading, refetch: refetchEmails } = useQuery<EmailWithCategory[]>({
-    queryKey: ["/api/emails", searchQuery ? { search: searchQuery } : {}],
+    queryKey: ["/api/emails", debouncedSearchQuery ? { search: debouncedSearchQuery } : {}],
   });
 
   /**
