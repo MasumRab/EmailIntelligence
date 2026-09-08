@@ -98,17 +98,30 @@ class FilterPerformance:
     false_negatives: int
 
 
-@dataclass
 class _EmailContext:
     """
     Internal context helper to avoid redundant processing of email fields
-    during filter application loop.
+    during filter application loop. Uses lazy evaluation for large text fields
+    to save CPU cycles and memory allocations when filters fail early.
     """
-    email: Dict[str, Any]
-    sender_domain: str
-    subject_lower: str
-    content_lower: str
-    sender_lower: str
+    def __init__(self, email: Dict[str, Any], sender_domain: str, sender_lower: str):
+        self.email = email
+        self.sender_domain = sender_domain
+        self.sender_lower = sender_lower
+        self._subject_lower: Optional[str] = None
+        self._content_lower: Optional[str] = None
+
+    @property
+    def subject_lower(self) -> str:
+        if self._subject_lower is None:
+            self._subject_lower = self.email.get("subject", "").lower()
+        return self._subject_lower
+
+    @property
+    def content_lower(self) -> str:
+        if self._content_lower is None:
+            self._content_lower = self.email.get("content", self.email.get("body", "")).lower()
+        return self._content_lower
 
 
 class SmartFilterManager:
@@ -623,8 +636,6 @@ class SmartFilterManager:
             ctx = _EmailContext(
                 email=context,
                 sender_domain=self._extract_domain(sender_email),
-                subject_lower=context.get("subject", "").lower(),
-                content_lower=context.get("content", context.get("body", "")).lower(),
                 sender_lower=sender_email.lower()
             )
         else:
@@ -738,8 +749,6 @@ class SmartFilterManager:
         email_context = _EmailContext(
             email=email_data,
             sender_domain=self._extract_domain(sender_email),
-            subject_lower=email_data.get("subject", "").lower(),
-            content_lower=email_data.get("content", email_data.get("body", "")).lower(),
             sender_lower=sender_email.lower()
         )
 
