@@ -173,7 +173,9 @@ class AutoResolver(IResolutionEngine):
                     ),
                 }
             else:
-                return self._failed_resolution("semantic_merge", "Semantic merge failed")
+                return self._failed_resolution(
+                    "semantic_merge", "Semantic merge failed"
+                )
 
         except Exception as e:
             logger.error(f"Semantic merge failed: {str(e)}")

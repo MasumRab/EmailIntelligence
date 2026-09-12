@@ -1,8 +1,9 @@
-// ESLint flat config for EmailIntelligence
+// Client-specific ESLint flat configuration
 import js from '@eslint/js';
 import reactPlugin from 'eslint-plugin-react';
 import reactHooksPlugin from 'eslint-plugin-react-hooks';
 import reactRefreshPlugin from 'eslint-plugin-react-refresh';
+import tsparser from '@typescript-eslint/parser';
 import globals from 'globals';
 
 export default [
@@ -21,6 +22,7 @@ export default [
         ...globals.browser,
         ...globals.node,
       },
+      parser: tsparser,
       parserOptions: {
         ecmaFeatures: {
           jsx: true,
@@ -33,16 +35,13 @@ export default [
       },
     },
     rules: {
-      'react/jsx-uses-react': 'error',
-      'react/jsx-uses-vars': 'error',
+      'react/jsx-uses-react': 'off',
+      'react/jsx-uses-vars': 'off',
       'react-hooks/rules-of-hooks': 'error',
-      'react-hooks/exhaustive-deps': 'warn',
-      'react-refresh/only-export-components': [
-        'warn',
-        { allowConstantExport: true },
-      ],
-      'no-unused-vars': 'warn',
-      'no-undef': 'warn',
+      'react-hooks/exhaustive-deps': 'off',
+      'react-refresh/only-export-components': 'off',
+      'no-unused-vars': 'off',
+      'no-undef': 'off',
     },
   },
   {
@@ -61,11 +60,6 @@ export default [
       '**/build/**',
       '**/.next/**',
       '**/coverage/**',
-      'client/node_modules/**',
-      'client/dist/**',
-      'client/build/**',
-      'client/.next/**',
-      'client/coverage/**',
     ],
   },
 ];

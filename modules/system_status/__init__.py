@@ -245,9 +245,7 @@ async def perform_health_checks() -> HealthCheck:
     # Gmail API health check
     try:
         async with httpx.AsyncClient(timeout=5) as client:
-            response = await client.get(
-                "http://127.0.0.1:8000/api/gmail/performance"
-            )
+            response = await client.get("http://127.0.0.1:8000/api/gmail/performance")
         health_results["gmail_api"] = {
             "status": "healthy" if response.status_code == 200 else "unhealthy",
             "response_time": response.elapsed.total_seconds() * 1000,

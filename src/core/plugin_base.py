@@ -520,7 +520,8 @@ class PluginRegistry:
         except Exception as e:
             logger.exception(
                 "Security validation failed for plugin %s: %s",
-                metadata.plugin_id, e,
+                metadata.plugin_id,
+                e,
             )
             return False
 

@@ -453,7 +453,8 @@ class NotmuchDataSource(DataSource):
         except Exception as e:
             logger.exception(
                 "Critical error in background email analysis and tagging for %s: %s",
-                message_id, e,
+                message_id,
+                e,
             )
 
     async def get_email_by_id(
@@ -692,7 +693,9 @@ class NotmuchDataSource(DataSource):
             )
             logger.exception(
                 "Error updating tags for message %s: %s. Error ID: %s",
-                message_id, e, error_id,
+                message_id,
+                e,
+                error_id,
             )
             return False
 
@@ -770,7 +773,8 @@ class NotmuchDataSource(DataSource):
         except Exception as e:
             logger.exception(
                 "Critical error in email analysis and tagging for %s: %s",
-                message_id, e,
+                message_id,
+                e,
             )
             return False
 

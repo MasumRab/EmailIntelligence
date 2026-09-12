@@ -235,16 +235,18 @@ class DatabaseManager(DataSource):
             error_context = create_error_context(
                 component="DatabaseManager",
                 operation="_load_and_merge_content",
-                additional_context={"email_id": email_id, "content_path": content_path}
+                additional_context={"email_id": email_id, "content_path": content_path},
             )
             error_id = log_error(
                 e,
                 severity=ErrorSeverity.WARNING,
                 category=ErrorCategory.DATA,
                 context=error_context,
-                details={"error_type": type(e).__name__}
+                details={"error_type": type(e).__name__},
             )
-            logger.error(f"Error loading content for email {email_id}: {e}. Error ID: {error_id}")
+            logger.error(
+                f"Error loading content for email {email_id}: {e}. Error ID: {error_id}"
+            )
         return full_email
 
     async def _ensure_initialized(self) -> None:
@@ -328,7 +330,9 @@ class DatabaseManager(DataSource):
                 with gzip.open(file_path, "rt", encoding="utf-8") as f:
                     data = await asyncio.to_thread(json.load, f)
                     setattr(self, data_list_attr, data)
-                logger.info(f"Loaded {len(data)} items from compressed file: {file_path}")
+                logger.info(
+                    f"Loaded {len(data)} items from compressed file: {file_path}"
+                )
             except FileNotFoundError:
                 setattr(self, data_list_attr, [])
                 await self._save_data_to_file(data_type)
@@ -890,9 +894,14 @@ class DatabaseManager(DataSource):
                 content_path = self._get_email_content_path(email_id)
                 try:
                     # Offload synchronous file I/O to a thread to prevent blocking the event loop
-                    heavy_data = await asyncio.to_thread(self._read_content_sync, content_path)
+                    heavy_data = await asyncio.to_thread(
+                        self._read_content_sync, content_path
+                    )
                     content = heavy_data.get(FIELD_CONTENT, "")
-                    if isinstance(content, str) and search_term_lower in content.lower():
+                    if (
+                        isinstance(content, str)
+                        and search_term_lower in content.lower()
+                    ):
                         filtered_emails.append(email_light)
                 except FileNotFoundError:
                     # Index out of sync, remove it

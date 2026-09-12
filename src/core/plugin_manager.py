@@ -300,7 +300,9 @@ class PluginManager:
         except Exception as e:
             logger.exception(
                 "Plugin method execution failed: %s.%s: %s",
-                plugin_id, method_name, e,
+                plugin_id,
+                method_name,
+                e,
             )
             raise
 
@@ -396,7 +398,8 @@ class PluginManager:
         except Exception as e:
             logger.exception(
                 "Failed to download and install plugin %s: %s",
-                plugin_info.plugin_id, e,
+                plugin_info.plugin_id,
+                e,
             )
             return False
 

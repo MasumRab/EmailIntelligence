@@ -236,7 +236,9 @@ class RiskAssessor:
 
     def _assess_time_risk(self, strategy: Dict[str, Any]) -> str:
         """Assess time-related risks of the strategy."""
-        return self._threshold_risk(strategy.get("estimated_time", 0), high=240, medium=120)
+        return self._threshold_risk(
+            strategy.get("estimated_time", 0), high=240, medium=120
+        )
 
     def _assess_quality_risk(self, strategy: Dict[str, Any]) -> str:
         """Assess quality risks of the strategy."""

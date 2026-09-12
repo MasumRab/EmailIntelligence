@@ -64,9 +64,7 @@ def create_system_status_tab():
 
             # Get Gmail performance metrics
             try:
-                gmail_response = requests.get(
-                    _GMAIL_PERF_URL, timeout=2
-                )
+                gmail_response = requests.get(_GMAIL_PERF_URL, timeout=2)
                 gmail_data = (
                     gmail_response.json() if gmail_response.status_code == 200 else {}
                 )
@@ -460,9 +458,7 @@ def create_gmail_integration_tab():
     def get_gmail_performance():
         """Get Gmail performance metrics."""
         try:
-            response = requests.get(
-                _GMAIL_PERF_URL, timeout=10
-            )
+            response = requests.get(_GMAIL_PERF_URL, timeout=10)
 
             if response.status_code == 200:
                 data = response.json()
@@ -613,9 +609,7 @@ def create_gmail_integration_tab():
             def test_gmail_connection():
                 """Test Gmail API connection."""
                 try:
-                    response = requests.get(
-                        _GMAIL_PERF_URL, timeout=5
-                    )
+                    response = requests.get(_GMAIL_PERF_URL, timeout=5)
                     if response.status_code == 200:
                         return "✅ Gmail API connection successful"
                     else:
