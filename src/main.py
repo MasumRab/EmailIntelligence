@@ -1,6 +1,9 @@
 import configparser
+configparser.SafeConfigParser = configparser.ConfigParser
+
 import argparse
 import logging
+
 import gradio as gr
 import uvicorn
 import psutil
@@ -12,12 +15,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, RedirectResponse
 from pydantic import ValidationError
 from .core.module_manager import ModuleManager
+from .core.middleware import create_security_middleware, create_security_headers_middleware
 from .core.audit_logger import audit_logger, AuditEventType, AuditSeverity
 from .core.performance_monitor import performance_monitor
-
-configparser.SafeConfigParser = configparser.ConfigParser
-
-
 
 # Configure logging
 logging.basicConfig(
@@ -582,11 +582,9 @@ def create_app():
         allow_headers=["*"],
     )
 
-    from .core.middleware import SecurityMiddleware, SecurityHeadersMiddleware
-
     # Add comprehensive security middleware
-    app.add_middleware(SecurityMiddleware)
-    app.add_middleware(SecurityHeadersMiddleware)
+    app.add_middleware(create_security_middleware(app))
+    app.add_middleware(create_security_headers_middleware(app))
 
     # Add security headers middleware (additional layer)
     @app.middleware("http")

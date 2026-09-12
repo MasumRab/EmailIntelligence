@@ -50,8 +50,8 @@ _gmail_service_instance: Optional["GmailAIService"] = None
 
 async def initialize_services():
     """Initialize all singleton services. This should be called on application startup."""
-
     global _model_manager_instance, _ai_engine_instance, _filter_manager_instance, _workflow_engine_instance, _plugin_manager_instance, _gmail_service_instance
+
     db = await get_db()
 
     # Initialize core managers first
@@ -173,6 +173,5 @@ async def get_category_service() -> "CategoryService":
 
 async def get_database():
     """Provides database instance (for existing code that uses direct database access)"""
-    global _model_manager_instance, _ai_engine_instance, _filter_manager_instance, _workflow_engine_instance, _plugin_manager_instance, _gmail_service_instance
     db = await get_db()
     return db
