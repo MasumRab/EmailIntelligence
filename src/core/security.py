@@ -13,7 +13,6 @@ import html
 import hmac
 import json
 import logging
-from typing import Union, Optional
 import re
 import secrets
 import time

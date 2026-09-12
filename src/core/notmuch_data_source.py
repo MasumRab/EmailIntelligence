@@ -8,6 +8,9 @@ with AI analysis, smart filtering, and tagging functionality.
 import asyncio
 import logging
 from typing import Any, Dict, List, Optional
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from src.core.database import DatabaseManager
 from datetime import datetime
 import email
 
