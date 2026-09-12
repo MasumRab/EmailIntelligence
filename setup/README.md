@@ -16,12 +16,39 @@ This directory contains all the launch and setup files for the Email Intelligenc
 
 ## Purpose
 
-This directory is designed to be used as a git subtree that can be easily integrated into different branches of the project. This allows for consistent launch and setup experiences across all branches while keeping the setup files separate from the main application logic.
+This directory provides consistent launch and setup experiences across all branches of the project. The setup files are maintained centrally on the orchestration-tools branch and synchronized to other branches via Git hooks, ensuring a unified setup process.
+
+## Branch Integration
+
+**On orchestration-tools branch**:
+- This setup directory is the authoritative source
+- All scripts are maintained here
+- Other branches sync from this branch
+
+**On development branches** (scientific, main, etc.):
+- Setup directory is synchronized via Git hooks
+- `.taskmaster/` submodule provides task management
+- Together they provide a complete development environment
 
 ## Usage
 
-When using this as a subtree in other branches:
+The launch scripts should be run from the project root directory:
 
-1. The launch scripts should be run from the project root directory
-2. Update the paths in the setup scripts if needed to access the main project code
-3. Ensure that the requirements files are properly referenced in the project's setup process
+```bash
+# Using the launcher
+python setup/launch.py
+
+# Or via shell script (Unix)
+bash setup/launch.sh
+
+# Or via batch script (Windows)
+setup\launch.bat
+```
+
+## Git Synchronization
+
+These files are automatically synchronized across branches:
+- Git hooks detect changes to setup/
+- Changes are propagated to other branches
+- No manual subtree commands needed
+- Standard Git workflow applies

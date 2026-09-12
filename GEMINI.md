@@ -1,28 +1,30 @@
 # Gemini CLI-Specific Instructions
 
-> ## 🔴 CANONICAL BRANCH RULES — READ FIRST
-> Branch workflow for `main` / `scientific` / `orchestration-tools` is governed by **[`.taskmaster/BRANCH_MANAGEMENT_MODEL.md`](.taskmaster/BRANCH_MANAGEMENT_MODEL.md)**.
-> Branches are **intentionally divergent** (two products + shared tooling substrate + shared task ledger). **Do NOT** converge them and **do NOT** do wholesale `main ↔ scientific` merges. Use the curated transfer patterns in that file.
-> If your memory/agent file says "never merge" or "converge into main", **both are inaccurate** — see §7 of that document to correct your stored understanding.
+> **Note:** This file works alongside `AGENTS.md` (generic AI agent instructions). AGENTS.md contains the shared Task Master workflow and project baseline. This file keeps Gemini-specific runtime and workflow guidance at the project root as a reviewed Tier 2 context file.
 
-> **Note:** This file works alongside `AGENTS.md` (generic AI agent instructions). AGENTS.md contains the core Task Master commands and workflows for all AI agents. This file contains only Gemini CLI-specific features and integrations.
+## Runtime on This Branch
 
-## MCP Configuration for Gemini CLI
+- Project config lives in `.gemini/settings.json`.
+- The current Gemini runtime loads `AGENTS.md` as the shared baseline via `"contextFileName": "AGENTS.md"`.
+- Keep `GEMINI.md` at the project root so Gemini-specific behavior is preserved instead of being collapsed into shared AGENTS content.
 
-Configure Task Master MCP server in `~/.gemini/settings.json`:
+## MCP Configuration
+
+Current project configuration:
 
 ```json
 {
+  "contextFileName": "AGENTS.md",
   "mcpServers": {
     "task-master-ai": {
-      "command": "npx",
-      "args": ["-y", "task-master-ai"]
+      "command": "npm",
+      "args": ["exec", "task-master-ai"]
     }
   }
 }
 ```
 
-**Note:** API keys are configured via `task-master models --setup`, not in MCP configuration.
+API keys are still configured via `task-master models --setup` or environment variables, not by hard-coding secrets into repo files.
 
 ## Gemini CLI-Specific Features
 
@@ -30,86 +32,59 @@ Configure Task Master MCP server in `~/.gemini/settings.json`:
 
 Built-in session commands:
 
-- `/chat` - Start new conversation while keeping context
-- `/checkpoint save <name>` - Save session state
-- `/checkpoint load <name>` - Resume saved session
-- `/memory show` - View loaded context
+- `/chat` — start a new conversation while keeping context
+- `/checkpoint save <name>` — save session state
+- `/checkpoint load <name>` — resume saved state
+- `/memory show` — inspect loaded context
 
-Both `AGENTS.md` and `GEMINI.md` are auto-loaded on every Gemini CLI session.
+For this repo, checkpoints work best when paired with `docs/handoff/STATE.md` so long-running handoffs can be resumed cleanly.
 
 ### Headless Mode for Automation
 
-Non-interactive mode for scripts:
+Non-interactive mode is useful for quick lookups and scripted checks:
 
 ```bash
-# Simple text response
 gemini -p "What's the next task?"
-
-# JSON output for parsing
-gemini -p "List all pending tasks" --output-format json
-
-# Stream events for long operations
-gemini -p "Expand all tasks" --output-format stream-json
+gemini -p "List pending handoff phases" --output-format json
+gemini -p "Summarize this diff" --output-format stream-json
 ```
 
-### Token Usage Monitoring
+### Research and Grounding
 
-```bash
-# In Gemini CLI session
-/stats
+Gemini can use Google Search grounding for:
 
-# Shows: token usage, API costs, request counts
-```
+- official documentation lookups
+- implementation pattern research
+- security or dependency checks
+- validating tool behavior before changing configs
 
-### Google Search Grounding
+### File-Oriented Workflow
 
-Leverage built-in Google Search as an alternative to Perplexity research mode:
-- Best practices research
-- Library documentation
-- Security vulnerability checks
-- Implementation patterns
+- Use `@path/to/file` references when asking Gemini to focus on specific files.
+- Keep the shared baseline in `AGENTS.md`, then use this file for Gemini-only workflow differences.
+- The Jules backlog template content lives in `.gemini/JULES_TEMPLATE.md`; keep it separate from the live root guidance.
 
 ## Important Differences from Other Agents
 
-### No Slash Commands
-Gemini CLI does not support custom slash commands (unlike Claude Code). Use natural language instead.
+### No Custom Project Slash Commands
 
-### No Tool Allowlist
-Security is managed at the MCP level, not via agent configuration.
+Gemini has built-in slash commands, but this repo does not rely on custom project slash-command files the way some other agents do.
 
-### Session Persistence
-Use `/checkpoint` instead of git worktrees for managing multiple work contexts.
+### MCP Permissions Live in Settings
 
-### Configuration Files
-- Global: `~/.gemini/settings.json`
-- Project: `.gemini/settings.json`
-- **Not**: `.mcp.json` (that's for Claude Code)
+Security and server wiring are managed through `.gemini/settings.json`, not through `.mcp.json`.
 
-## Recommended Model Configuration
+### Shared Baseline + Tier 2 Split
 
-For Gemini CLI users:
+On this branch, Gemini uses the shared baseline from `AGENTS.md`, but `GEMINI.md` still matters because it captures Gemini-specific workflow guidance that should remain easy to discover at the root.
 
-```bash
-# Set Gemini as primary model
-task-master models --set-main gemini-2.0-flash-exp
-task-master models --set-fallback gemini-1.5-flash
+## Recommended Usage
 
-# Optional: Use Perplexity for research (or rely on Google Search)
-task-master models --set-research perplexity-llama-3.1-sonar-large-128k-online
-```
+As a Gemini assistant in this repo:
 
-## Your Role with Gemini CLI
+1. Use `AGENTS.md` for shared project rules and commands.
+2. Use `GEMINI.md` for Gemini-only behavior, especially checkpoints, grounding, and file-oriented prompting.
+3. Use `docs/handoff/STATE.md` as the authoritative resume log for this cleanup work.
+4. Prefer official docs or live code evidence when tool behavior is uncertain.
 
-As a Gemini CLI assistant with Task Master:
-
-1. **Use MCP tools naturally** - They integrate transparently in conversation
-2. **Reference files with @** - Leverage Gemini's file inclusion
-3. **Save checkpoints** - Offer to save state after significant progress
-4. **Monitor usage** - Remind users about `/stats` for long sessions
-5. **Use Google Search** - Leverage search grounding for research
-
-**Key Principle:** Focus on natural conversation. Task Master MCP tools work seamlessly with Gemini CLI's interface.
-
----
-
-*See AGENTS.md for complete Task Master commands, workflows, and best practices.*
+**Key Principle:** Keep shared rules centralized, but keep Gemini-specific workflow behavior explicit at the root.

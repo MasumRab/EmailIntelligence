@@ -99,8 +99,7 @@ sudo apt install -y \
     python3-plotly \
     python3-sklearn \
     python3-joblib \
-    python3-sentencepiece \
-    python3-networkx
+    python3-sentencepiece
 
 # Graphics and imaging libraries
 sudo apt install -y \
@@ -147,8 +146,7 @@ sudo apt install -y \
     xvfb \
     libgtk-3-dev \
     libgirepository1.0-dev \
-    gir1.2-gtk-3.0 \
-    python3-notmuch
+    gir1.2-gtk-3.0
 
 # Use system Python 3.12+ (default in Ubuntu 24.04+)
 PYTHON_CMD="python3"
@@ -485,20 +483,6 @@ try:
     print('✅ Email Validator import: OK')
 except ImportError:
     print('❌ Email Validator import: FAILED')
-    success = False
-
-try:
-    import networkx
-    print('✅ NetworkX import: OK')
-except ImportError:
-    print('❌ NetworkX import: FAILED')
-    success = False
-
-try:
-    import notmuch
-    print('✅ Notmuch import: OK')
-except ImportError:
-    print('❌ Notmuch import: FAILED')
     success = False
 
 if not success:

@@ -7,7 +7,7 @@ ignore-patterns=
     env,
     node_modules,
     .eggs,
-    *.egg,
+    \*.egg,
     build,
     dist,
     .pytest_cache,
@@ -39,7 +39,6 @@ disable=
 
 [DESIGN]
 max-attributes=7
-max-arguments=5
 max-statements=50
 max-locals=15
 

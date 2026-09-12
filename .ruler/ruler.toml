@@ -1,0 +1,66 @@
+# Ruler Configuration — EmailIntelligence
+# Docs: https://github.com/intellectronica/ruler
+
+nested = false
+
+[gitignore]
+enabled = true
+local = false
+
+# CLI-first priority order (Tier 1 CLI → Tier 2 CLI → IDE agents)
+default_agents = [
+  "gemini-cli",
+  "qwen",
+  "opencode",
+  "amp",
+  "kilocode",
+  "claude",
+  "cursor",
+  "cline",
+  "roo",
+  "kiro",
+  "trae",
+  "windsurf",
+]
+
+[agents.claude]
+enabled = true
+output_path = "CLAUDE.md"
+
+[agents.cursor]
+enabled = true
+output_path = ".cursor/rules/system.md"
+
+[agents.cline]
+enabled = true
+output_path = ".clinerules/ruler_instructions.md"
+
+[agents.roo]
+enabled = true
+output_path = ".roo/rules/system.md"
+
+[agents.kiro]
+enabled = true
+output_path = ".kiro/steering/system.md"
+
+[agents.trae]
+enabled = true
+output_path = ".trae/rules/system.md"
+
+[agents.windsurf]
+enabled = true
+output_path = ".windsurf/rules/system.md"
+
+# MCP Server Configuration
+[mcp_servers.task-master-ai]
+command = "npm"
+args = ["exec", "task-master-ai"]
+
+[mcp_servers.task-master-ai.env]
+GOOGLE_API_KEY = "${GOOGLE_API_KEY}"
+GEMINI_API_KEY = "${GEMINI_API_KEY}"
+XAI_API_KEY = "${XAI_API_KEY}"
+OPENROUTER_API_KEY = "${OPENROUTER_API_KEY}"
+MISTRAL_API_KEY = "${MISTRAL_API_KEY}"
+OLLAMA_API_KEY = "${OLLAMA_API_KEY}"
+GITHUB_API_KEY = "${GITHUB_API_KEY}"

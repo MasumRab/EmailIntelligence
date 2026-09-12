@@ -1,0 +1,76 @@
+# Copy these prompts one-by-one into a new Amp thread
+# First, share ORCHESTRATION_PROCESS_GUIDE.md, ORCHESTRATION_PUSH_STRATEGIES.md, PHASE3_ROLLBACK_OPTIONS.md
+
+---
+
+PROMPT 1 - Basic Strategy
+What is Strategy 5 and when should we use it?
+
+---
+
+PROMPT 2 - Emergency Detection
+Our team just noticed we're getting 2-3 duplicate PRs even though the debounce file exists. What should we do?
+
+---
+
+PROMPT 3 - Context Contamination
+After running the validation script on orchestration-tools branch, we got:
+✗ CRITICAL: Found 'plugins/' (should not exist on orchestration-tools)
+✗ CRITICAL: Found 'AGENTS.md' (should be on main, not orchestration-tools)
+What happened and how do we fix it?
+
+---
+
+PROMPT 4 - Branch Roles
+I need to understand the three orchestration branches. What goes on each one and why are they separate?
+
+---
+
+PROMPT 5 - Strategy 7 Activation
+We want to enable Strategy 7 (hybrid) as a backup. Walk me through the steps to activate it on the orchestration-tools branch.
+
+---
+
+PROMPT 6 - Debounce Configuration
+Our debounce timeout is set to 5 seconds, but we're seeing duplicate PRs created because pushes come in waves faster than 5 seconds. How do we fix this?
+
+---
+
+PROMPT 7 - Quick Command Check
+I need to check if debounce is currently active right now. What command do I run?
+
+---
+
+PROMPT 8 - Rollback Decision
+Everything is failing. We need to undo Strategy 5 completely without losing work on main. What's the fastest option?
+
+---
+
+PROMPT 9 - Monitoring Checklist
+Create a daily monitoring checklist that a team should run to ensure Strategy 5 is working correctly. What 4 commands should be in it?
+
+---
+
+PROMPT 10 - Scenario Walkthrough
+Walk me through what happens step-by-step when a developer makes 5 commits and pushes them to orchestration-tools-changes in quick succession (all within 5 seconds).
+
+---
+
+PROMPT 11 - Advanced Failure Mode
+We're experiencing a race condition where two pushes happen simultaneously (within <100ms). Strategy 5 sometimes creates 2 PRs instead of 1. Which strategy should we switch to and why?
+
+---
+
+PROMPT 12 - Integration Question
+If I merge orchestration-tools into main right now, what files would be lost from main? Should we ever do a full branch merge?
+
+---
+
+SCORING GUIDE:
+90-100% = Ready for production
+80-89% = Mostly ready (minor gaps)
+70-79% = Needs more context
+<70% = Documentation unclear
+
+Count how many questions the LLM scores 80%+ on.
+If 10/12 or higher = PASS

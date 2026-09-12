@@ -1,8 +1,15 @@
 {
   "targets": [
-    "copilot",
-    "cursor",
     "claudecode",
+    "cursor",
+    "cline",
+    "roo",
+    "kiro",
+    "windsurf",
+    "qwencode",
+    "opencode",
+    "geminicli",
+    "agentsmd",
     "codexcli"
   ],
   "features": [
@@ -11,16 +18,17 @@
     "mcp",
     "commands",
     "subagents",
-  "central"
+    "skills",
+    "hooks",
+    "permissions"
   ],
   "baseDirs": [
     "."
   ],
-  "delete": true,
+  "delete": false,
   "verbose": false,
   "global": false,
-  "simulatedCommands": false,
-  "simulatedSubagents": false,
-  "modularMcp": false,
-  "centralStore": "~/central"
+  "simulatedCommands": true,
+  "simulatedSubagents": true,
+  "modularMcp": false
 }

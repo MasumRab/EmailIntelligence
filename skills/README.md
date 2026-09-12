@@ -183,24 +183,3 @@ To update skills from the source:
 # Or manually
 cp -r ~/.letta/skills/jules-* ./skills/
 ```
-
----
-
-## jules-scheduling
-
-Task orchestration and scheduling for complex multi-task workflows.
-
-**Package:** `jules-scheduling.skill`
-
-**Features:**
-- Schedule JSON schema with phases, dependencies, quality gates
-- Parallel execution rules (max concurrent tasks, fail modes)
-- Task template with validation criteria
-- Progress monitoring queries
-
-**Usage:**
-```bash
-jules new --schedule jules_sessions/task_schedule.json
-```
-
-**See:** [[jules-scheduling]] skill for full reference.

@@ -1,0 +1,86 @@
+# === AMP COMPLETION + TOKEN-EFFICIENCY CONTRACT ===
+1. Persist until goal done end-to-end (implement -> verify -> report). No early stops.
+2. Resolve blockers yourself; only escalate after exhausting tools and journaling attempts.
+3. Mark phase done ONLY after acceptance criteria pass and STATE_<branch>.md is updated.
+4. Decompose unstructured tasks into a numbered checklist in your first reply.
+T1. Never read whole files when range/grep works (rg, ast-grep, serena, Read read_range).
+T2. Subagents only for INDEPENDENT fan-out; pass plan + paths in their prompt.
+T3. Summaries beat raw dumps: wc -l / head / tail / diffs over cat.
+T4. Cache discovery once per thread; do not re-list dirs or re-read AGENTS.md.
+T5. Source docs/handoff/context-guard.sh ONCE; reuse $PROJECT_ROOT and $CURRENT_BRANCH.
+T6. Skip oracle for mechanical work; use only for architecture or after 2 failed attempts.
+T7. Skip librarian for local code; use ck / serena / Grep.
+T8. <=4 lines of prose in summaries; tables/bullets preferred.
+T9. Batch independent tool calls in one response.
+T10. Stop generating prose when work is done.
+C1. source docs/handoff/context-guard.sh at thread start.
+C2. Reference $PROJECT_ROOT; never cd.
+C3. Read STATE_${CURRENT_BRANCH}.md first; copy STATE_TEMPLATE.md if missing.
+C4. Log decisions via docs/handoff/execution-journal.sh.
+V1. bash scripts/verify-agent-content.sh after content changes.
+V2. bash docs/handoff/context-agnostic-gates.sh between phases.
+V3. bash scripts/apply-unified-gitignore.sh --audit before --apply.
+V4. Never git push --force / git reset --hard / --no-verify.
+F1. On error: read it, check assumptions, focused fix. No identical retries.
+F2. After 3 failures: log + oracle with files attached.
+# === END CONTRACT ===
+
+# === PHASE 11 TASK (SMART MODE) ===
+Doc: $HANDOFF_DIR/phase-11-smart-remediation.md
+Steps: 8
+Focus: Shell hardening (independent)
+
+## BOOTSTRAP — resolve $HANDOFF_DIR (works on any branch, any variant)
+# The current branch may NOT have docs/handoff/ committed (it lives on
+# orchestration-tools). This block resolves a usable handoff dir without
+# changing the working tree of the current branch.
+PROJECT_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+WORKSPACE_ROOT="$(dirname "$PROJECT_ROOT")"
+HANDOFF_DIR=""
+# 1. Project-local (this branch already has it)
+if [ -d "$PROJECT_ROOT/docs/handoff" ]; then
+  HANDOFF_DIR="$PROJECT_ROOT/docs/handoff"
+# 2. Workspace mirror (cross-variant shared copy)
+elif [ -d "$WORKSPACE_ROOT/docs/handoff" ]; then
+  HANDOFF_DIR="$WORKSPACE_ROOT/docs/handoff"
+# 3. Pull from orchestration-tools branch into a temp dir (no checkout)
+elif git -C "$PROJECT_ROOT" cat-file -e orchestration-tools:docs/handoff/context-guard.sh 2>/dev/null; then
+  HANDOFF_DIR="$(mktemp -d -t handoff.XXXXXX)"
+  git -C "$PROJECT_ROOT" archive orchestration-tools docs/handoff \
+    | tar -x -C "$HANDOFF_DIR" --strip-components=2
+# 4. Same for origin/orchestration-tools
+elif git -C "$PROJECT_ROOT" cat-file -e origin/orchestration-tools:docs/handoff/context-guard.sh 2>/dev/null; then
+  HANDOFF_DIR="$(mktemp -d -t handoff.XXXXXX)"
+  git -C "$PROJECT_ROOT" archive origin/orchestration-tools docs/handoff \
+    | tar -x -C "$HANDOFF_DIR" --strip-components=2
+else
+  echo "FATAL: no handoff dir locatable. Try: git fetch origin orchestration-tools" >&2
+  return 1 2>/dev/null || exit 1
+fi
+export PROJECT_ROOT HANDOFF_DIR
+echo "HANDOFF_DIR=$HANDOFF_DIR  PROJECT_ROOT=$PROJECT_ROOT"
+source "$HANDOFF_DIR/context-guard.sh"
+# context-guard.sh sets CURRENT_BRANCH; STATE file lives in HANDOFF_DIR (read-only mirror)
+# OR in $PROJECT_ROOT/docs/handoff/ if writable. Prefer project-local for STATE persistence:
+STATE_DIR="$PROJECT_ROOT/docs/handoff"
+[ -d "$STATE_DIR" ] || STATE_DIR="$HANDOFF_DIR"
+STATE_FILE="$STATE_DIR/STATE_${CURRENT_BRANCH}.md"
+[ -f "$STATE_FILE" ] || cp "$HANDOFF_DIR/STATE_TEMPLATE.md" "$STATE_FILE" 2>/dev/null || true
+echo "STATE_FILE=$STATE_FILE"
+## END BOOTSTRAP
+
+## Execute
+1. cat "$HANDOFF_DIR/phase-11-smart-remediation.md"   # read ONLY this phase doc
+2. Print a numbered checklist of unchecked steps in your first reply.
+3. Execute each unchecked step in order. After each:
+   - update "$STATE_FILE" (tickbox + 1-line note)
+   - bash "$HANDOFF_DIR/context-agnostic-gates.sh"
+4. On step failure: focused fix; after 3 attempts log + escalate.
+
+## Stop conditions
+- Shellcheck not installed -> install or escalate
+
+## Final report
+- 3 lines prose max
+- Table: Step | Status | Verification | Notes
+- Recommended next phase to run in a separate thread (cite the .txt prompt path)
