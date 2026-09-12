@@ -125,12 +125,18 @@ class BackendClient:
         Resolve a key to a safe path within DATA_DIR.
         Returns None if the key format is invalid or path traversal is detected.
         """
-        if not isinstance(key, str) or not key:
-            return None
-        if re.fullmatch(r"[A-Za-z0-9_-]+", key) is None:
+        if not isinstance(key, str):
             return None
 
-        resolved = (DATA_DIR / f"{key}.json").resolve()
+        safe_key = key.strip()
+        if not safe_key:
+            return None
+        if re.fullmatch(r"[A-Za-z0-9_-]+", safe_key) is None:
+            return None
+
+        # Build a basename-only filename and force .json extension.
+        filename = Path(safe_key).with_suffix(".json").name
+        resolved = (DATA_DIR / filename).resolve()
         if not resolved.is_relative_to(DATA_DIR.resolve()):
             return None
         return resolved
