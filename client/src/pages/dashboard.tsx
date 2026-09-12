@@ -86,6 +86,7 @@ export default function Dashboard() {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     // The query will automatically trigger refetch due to dependency in useQuery
+    setDebouncedSearchQuery(searchQuery);
   };
 
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
