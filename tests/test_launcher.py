@@ -171,7 +171,7 @@ class TestServiceStartup:
 
     @patch("setup.launch.get_python_executable", return_value="/app/venv/bin/python")
     @patch("setup.launch.subprocess.Popen")
-    def test_start_gradio_ui_success(self, mock_popen, mock_get_python):
+    def test_start_gradio_ui_success(self, mock_popen, _mock_get_python):
         """Test successful Gradio UI startup."""
         mock_process = MagicMock()
         mock_popen.return_value = mock_process
@@ -189,10 +189,10 @@ class TestLauncherIntegration:
     @patch("setup.launch.subprocess.run")
     @patch("setup.launch.shutil.which", return_value="/usr/bin/npm")
     @patch("setup.launch.Path.exists", return_value=True)
-    def test_full_setup_workflow(self, mock_exists, mock_which, mock_run):
+    def test_full_setup_workflow(self, _mock_exists, _mock_which, mock_run):
         """Test complete setup workflow."""
         mock_run.return_value = MagicMock(returncode=0, stdout="", stderr="")
-        pass  # In a real scenario, you'd verify the final state
+        # In a real scenario, you'd verify the final state
 
     def test_version_compatibility_matrix(self):
         """Test version compatibility for different Python versions."""
