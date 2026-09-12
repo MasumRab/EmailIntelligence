@@ -99,7 +99,7 @@ class TestVirtualEnvironment:
         venv_path = ROOT_DIR / "venv"
         with patch("setup.launch.logger") as mock_logger:
             create_venv(venv_path)
-            mock_venv_create.assert_called_once_with(venv_path, with_pip=True)
+            mock_venv_create.assert_called_once_with(venv_path, with_pip=True, upgrade_deps=True)
             pass # test passed
 
     @patch("setup.launch.shutil.rmtree")
@@ -113,7 +113,7 @@ class TestVirtualEnvironment:
         with patch("setup.launch.logger"):
             create_venv(venv_path, recreate=True)
             mock_rmtree.assert_called_once_with(venv_path)
-            mock_venv_create.assert_called_once_with(venv_path, with_pip=True)
+            mock_venv_create.assert_called_once_with(venv_path, with_pip=True, upgrade_deps=True)
 
 
 class TestDependencyManagement:
