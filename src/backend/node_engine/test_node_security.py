@@ -53,12 +53,16 @@ async def test_security_features():
     # TODO(P2, 2h): Implement negative test cases for security validation
 
     # Test that trusted nodes can execute
-    print(f"EmailSourceNode trusted: {security_manager.validate_node_execution('EmailSourceNode', {{}})}")
-    print(f"PreprocessingNode trusted: {security_manager.validate_node_execution('PreprocessingNode', {{}})}")
+    es_result = security_manager.validate_node_execution("EmailSourceNode", {})
+    print("EmailSourceNode trusted: {}".format(es_result))
+    pp_result = security_manager.validate_node_execution("PreprocessingNode", {})
+    print("PreprocessingNode trusted: {}".format(pp_result))
 
     # Execute workflow with security
     try:
-        context = await workflow_engine.execute_workflow(workflow, user_id="test_user_123")
+        context = await workflow_engine.execute_workflow(
+            workflow, user_id="test_user_123"
+        )
         print(f"Workflow executed with security: {context.metadata.get('status')}")
         success = context.metadata.get("status") == "completed"
     except Exception as e:
@@ -114,7 +118,9 @@ async def test_audit_logging():
     workflow.add_node(source_node)
 
     try:
-        context = await workflow_engine.execute_workflow(workflow, user_id="audit_tester")
+        context = await workflow_engine.execute_workflow(
+            workflow, user_id="audit_tester"
+        )
         print(f"Audit workflow completed: {context.metadata.get('status')}")
 
         # The audit logs should have been written to the log file
@@ -133,7 +139,9 @@ async def test_input_sanitization():
     from backend.node_engine.security_manager import InputSanitizer
 
     # Test sanitizing a potentially dangerous string
-    dangerous_input = '<script>alert("xss")</script> Hello <img src="x" onerror="alert(\'xss\')">'
+    dangerous_input = (
+        '<script>alert("xss")</script> Hello <img src="x" onerror="alert(\'xss\')">'
+    )
     safe_output = InputSanitizer.sanitize_string(dangerous_input)
     print(f"Dangerous input: {dangerous_input}")
     print(f"Sanitized output: {safe_output}")
@@ -191,7 +199,8 @@ async def test_scalability():
     completed_count = sum(
         1
         for r in results
-        if not isinstance(r, Exception) and getattr(r, "metadata", {}).get("status") == "completed"
+        if not isinstance(r, Exception)
+        and getattr(r, "metadata", {}).get("status") == "completed"
     )
 
     print(f"Executed {len(workflows)} workflows concurrently")

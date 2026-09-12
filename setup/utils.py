@@ -51,7 +51,9 @@ class ProcessManager:
                     try:
                         process.wait(timeout=5)
                     except subprocess.TimeoutExpired:
-                        logger.warning(f"Process {process.pid} did not terminate gracefully, killing...")
+                        logger.warning(
+                            f"Process {process.pid} did not terminate gracefully, killing..."
+                        )
                         process.kill()
                         process.wait()
             except Exception as e:
@@ -94,13 +96,14 @@ def is_conda_available() -> bool:
     """Check if conda is available on the system."""
     try:
         result = subprocess.run(
-            ["conda", "--version"],
-            capture_output=True,
-            text=True,
-            timeout=5
+            ["conda", "--version"], capture_output=True, text=True, timeout=5
         )
         return result.returncode == 0
-    except (subprocess.CalledProcessError, FileNotFoundError, subprocess.TimeoutExpired):
+    except (
+        subprocess.CalledProcessError,
+        FileNotFoundError,
+        subprocess.TimeoutExpired,
+    ):
         return False
 
 
@@ -115,19 +118,17 @@ def get_conda_env_info():
 
         # Check conda info
         result = subprocess.run(
-            ["conda", "info", "--json"],
-            capture_output=True,
-            text=True,
-            timeout=10
+            ["conda", "info", "--json"], capture_output=True, text=True, timeout=10
         )
 
         if result.returncode == 0:
             import json
+
             info = json.loads(result.stdout)
             return {
                 "active": info.get("active_prefix") is not None,
                 "prefix": info.get("active_prefix"),
-                "envs": info.get("envs", [])
+                "envs": info.get("envs", []),
             }
     except Exception as e:
         logger.debug(f"Could not get conda info: {e}")
@@ -185,10 +186,20 @@ def print_system_info():
     print("  Available Tools:")
     for tool in tools:
         try:
-            result = subprocess.run([tool, "--version"], capture_output=True, text=True, timeout=2)
-            version = result.stdout.strip().split('\n')[0] if result.returncode == 0 else "Not found"
+            result = subprocess.run(
+                [tool, "--version"], capture_output=True, text=True, timeout=2
+            )
+            version = (
+                result.stdout.strip().split("\n")[0]
+                if result.returncode == 0
+                else "Not found"
+            )
             print(f"    {tool}: {version}")
-        except (subprocess.CalledProcessError, FileNotFoundError, subprocess.TimeoutExpired):
+        except (
+            subprocess.CalledProcessError,
+            FileNotFoundError,
+            subprocess.TimeoutExpired,
+        ):
             print(f"    {tool}: Not found")
 
     # Check conda environment

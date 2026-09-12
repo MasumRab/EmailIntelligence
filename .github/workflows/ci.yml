@@ -43,7 +43,8 @@ jobs:
             --cov=src --cov=modules --cov-report=xml --cov-report=term-missing \
             --cov-fail-under=70 || true
       - name: Run Security Scans
-        run: uv run bandit -r src/ modules/ || true
+        run: uv run --frozen bandit -r src/ modules/ -ll -ii
+        continue-on-error: true
       - name: Run linting
         run: |
           uv run ruff check src/ modules/

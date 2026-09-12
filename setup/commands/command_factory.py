@@ -18,7 +18,7 @@ from .cleanup_command import CleanupCommand
 class CommandFactory:
     """
     Factory class for creating command instances.
-    
+
     This factory maps command names to their corresponding command classes
     and creates instances with the provided arguments.
     """
@@ -26,35 +26,35 @@ class CommandFactory:
     def __init__(self):
         """Initialize the command factory with available commands."""
         self._commands = {
-            'setup': SetupCommand,
-            'run': RunCommand,
-            'test': TestCommand,
-            'check': CheckCommand,
-            'cleanup': CleanupCommand,
+            "setup": SetupCommand,
+            "run": RunCommand,
+            "test": TestCommand,
+            "check": CheckCommand,
+            "cleanup": CleanupCommand,
         }
 
     def create_command(self, command_name: str, args: Namespace) -> Optional[Command]:
         """
         Create a command instance based on the command name.
-        
+
         Args:
             command_name: Name of the command to create
             args: Parsed command-line arguments
-            
+
         Returns:
             Command instance or None if command is not found
         """
         command_class = self._commands.get(command_name)
         if command_class is None:
             return None
-            
+
         command = command_class(args)
         return command
 
     def get_available_commands(self) -> list:
         """
         Get a list of available command names.
-        
+
         Returns:
             List of available command names
         """
@@ -63,17 +63,17 @@ class CommandFactory:
     def get_command_description(self, command_name: str) -> str:
         """
         Get the description of a command.
-        
+
         Args:
             command_name: Name of the command
-            
+
         Returns:
             Description of the command or empty string if not found
         """
         command_class = self._commands.get(command_name)
         if command_class is None:
             return ""
-            
+
         # Create a temporary instance to get the description
         try:
             command = command_class()
@@ -89,7 +89,7 @@ _command_factory = None
 def get_command_factory() -> CommandFactory:
     """
     Get the global command factory instance.
-    
+
     Returns:
         CommandFactory instance
     """

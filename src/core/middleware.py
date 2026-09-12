@@ -55,7 +55,8 @@ class SecurityMiddleware:
         # Rate limiting check
         if self.enable_rate_limiting:
             allowed, headers = await api_rate_limiter.check_rate_limit(
-                request.url.path, client_ip  # Use IP as client key, could be enhanced with user_id
+                request.url.path,
+                client_ip,  # Use IP as client key, could be enhanced with user_id
             )
 
             if not allowed:
@@ -167,7 +168,8 @@ class SecurityMiddleware:
                 try:
                     proxy_ip = ipaddress.ip_address(request.client.host)
                     if any(
-                        proxy_ip in ipaddress.ip_network(proxy) for proxy in self.trusted_proxies
+                        proxy_ip in ipaddress.ip_network(proxy)
+                        for proxy in self.trusted_proxies
                     ):
                         return real_ip
                 except (ValueError, ipaddress.AddressValueError):
@@ -184,7 +186,9 @@ class SecurityMiddleware:
         # the user ID from JWT tokens, session cookies, etc.
         # For now, we'll look for a simple header or query param
 
-        user_id = request.headers.get("X-User-ID") or request.query_params.get("user_id")
+        user_id = request.headers.get("X-User-ID") or request.query_params.get(
+            "user_id"
+        )
         return user_id
 
 
@@ -219,7 +223,9 @@ class SecurityHeadersMiddleware:
 
                 # Add cache control for sensitive endpoints (API routes)
                 if scope.get("path", "").startswith("/api/"):
-                    headers.append([b"Cache-Control", b"no-store, max-age=0, must-revalidate"])
+                    headers.append(
+                        [b"Cache-Control", b"no-store, max-age=0, must-revalidate"]
+                    )
                     headers.append([b"Pragma", b"no-cache"])
 
                 message["headers"] = headers

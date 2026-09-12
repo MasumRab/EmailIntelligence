@@ -30,7 +30,9 @@ class Workflow:
         self.connections: List[Dict[str, Any]] = []
         self.config: Dict[str, Any] = {}
 
-    def add_node(self, node_type: str, node_id: str, x: float = 0, y: float = 0, **kwargs) -> None:
+    def add_node(
+        self, node_type: str, node_id: str, x: float = 0, y: float = 0, **kwargs
+    ) -> None:
         """Add a node to the workflow"""
         node = {
             "id": node_id,
@@ -42,7 +44,11 @@ class Workflow:
         self.updated_at = datetime.now().isoformat()
 
     def add_connection(
-        self, source_node_id: str, source_output: str, target_node_id: str, target_input: str
+        self,
+        source_node_id: str,
+        source_output: str,
+        target_node_id: str,
+        target_input: str,
     ) -> None:
         """Add a connection between nodes"""
         connection = {
@@ -86,7 +92,9 @@ class WorkflowManager:
     def __init__(self, workflows_dir: str = "workflows"):
         self.workflows_dir = Path(workflows_dir)
         self.workflows_dir.mkdir(exist_ok=True)
-        self._workflow_history: Dict[str, List[str]] = {}  # workflow name to version history
+        self._workflow_history: Dict[
+            str, List[str]
+        ] = {}  # workflow name to version history
 
     def save_workflow(self, workflow: Workflow, filename: Optional[str] = None) -> bool:
         """Save a workflow to a JSON file"""
@@ -100,7 +108,9 @@ class WorkflowManager:
             try:
                 filepath.resolve().relative_to(self.workflows_dir.resolve())
             except ValueError:
-                logger.error(f"Access to file outside workflow directory is not allowed: {filepath}")
+                logger.error(
+                    f"Access to file outside workflow directory is not allowed: {filepath}"
+                )
                 return False
 
             with open(filepath, "w", encoding="utf-8") as f:
@@ -127,7 +137,9 @@ class WorkflowManager:
             try:
                 filepath.resolve().relative_to(self.workflows_dir.resolve())
             except ValueError:
-                logger.error(f"Access to file outside workflow directory is not allowed: {filepath}")
+                logger.error(
+                    f"Access to file outside workflow directory is not allowed: {filepath}"
+                )
                 return None
 
             if not filepath.exists():
