@@ -133,6 +133,11 @@ class StashResolveCommand(Command):
         if branch == "unknown":
             print("   ⚠️  Warning: Could not determine branch. Staying on current.")
         else:
+            # Validate branch name to prevent command injection or path traversal
+            if not re.match(r'^[a-zA-Z0-9_\-\./]+$', branch) or branch.startswith('-') or ".." in branch:
+                print(f"   ❌ Error: Invalid branch name detected '{branch}'. Aborting to prevent potential security risks.")
+                return False
+
             # Check if branch exists locally
             exists = subprocess.run(
                 ["git", "show-ref", "--verify", "--quiet", f"refs/heads/{branch}"],
