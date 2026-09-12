@@ -60,7 +60,7 @@ def create_system_status_tab():
                     else {}
                 )
             except (requests.RequestException, ValueError) as e:
-                dashboard_data = {"error": f"Dashboard API unavailable: {e!s}"}
+                dashboard_data = {"error": f"Dashboard API unavailable: {e}"}
 
             # Get Gmail performance metrics
             try:
@@ -71,7 +71,7 @@ def create_system_status_tab():
                     gmail_response.json() if gmail_response.status_code == 200 else {}
                 )
             except (requests.RequestException, ValueError) as e:
-                gmail_data = {"error": f"Gmail API unavailable: {e!s}"}
+                gmail_data = {"error": f"Gmail API unavailable: {e}"}
 
             return {
                 "system_info": system_info,
@@ -228,7 +228,7 @@ def create_ai_lab_tab():
                 return {"error": error_msg}, error_msg, ""
 
         except Exception as e:  # noqa: BLE001
-            error_msg = f"Analysis failed: {e!s}"
+            error_msg = f"Analysis failed: {e}"
             return {"error": error_msg}, error_msg, ""
 
     def batch_analyze_emails(email_texts, analysis_type):
@@ -297,7 +297,7 @@ def create_ai_lab_tab():
                 return "No emails were successfully analyzed", []
 
         except Exception as e:  # noqa: BLE001
-            return f"Batch analysis failed: {e!s}", []
+            return f"Batch analysis failed: {e}", []
 
     with gr.Row(), gr.Column(scale=1):
         gr.Markdown("# AI Lab")
@@ -410,7 +410,7 @@ def create_ai_lab_tab():
                         "status": "active",
                     }
                 except Exception as e:  # noqa: BLE001
-                    return {"error": f"Model status unavailable: {e!s}"}
+                    return {"error": f"Model status unavailable: {e}"}
 
             refresh_models_btn.click(fn=refresh_model_status, outputs=[model_status])
 
@@ -455,7 +455,7 @@ def create_gmail_integration_tab():
                 return f"❌ API Error: {response.status_code} - {response.text}", {}
 
         except Exception as e:  # noqa: BLE001
-            return f"❌ Sync failed: {e!s}", {}
+            return f"❌ Sync failed: {e}", {}
 
     def get_gmail_performance():
         """Get Gmail performance metrics."""
@@ -478,7 +478,7 @@ def create_gmail_integration_tab():
                 return f"❌ Failed to get performance data: {response.status_code}", {}
 
         except Exception as e:  # noqa: BLE001
-            return f"❌ Error: {e!s}", {}
+            return f"❌ Error: {e}", {}
 
     def get_gmail_strategies():
         """Get available Gmail retrieval strategies."""
@@ -504,7 +504,7 @@ def create_gmail_integration_tab():
                 return f"❌ Failed to get strategies: {response.status_code}", []
 
         except Exception as e:  # noqa: BLE001
-            return f"❌ Error: {e!s}", []
+            return f"❌ Error: {e}", []
 
     with gr.Row(), gr.Column(scale=1):
         gr.Markdown("# Gmail Integration")
@@ -621,7 +621,7 @@ def create_gmail_integration_tab():
                     else:
                         return f"❌ Gmail API returned status {response.status_code}"
                 except Exception as e:  # noqa: BLE001
-                    return f"❌ Connection failed: {e!s}"
+                    return f"❌ Connection failed: {e}"
 
             test_connection_btn.click(
                 fn=test_gmail_connection, outputs=[connection_test_result]
@@ -697,8 +697,8 @@ def create_app():
         )
 
     @app.exception_handler(Exception)
-    async def general_exception_handler(request: Request, exc: Exception):
-        logger.error(f"Unhandled exception: {exc}", exc_info=True)  # noqa: LOG014
+    async def general_exception_handler(_request: Request, exc: Exception):
+        logger.error("Unhandled exception: %s", exc, exc_info=True)  # noqa: LOG014
         return JSONResponse(
             status_code=500,
             content={
