@@ -115,7 +115,7 @@ def check_wsl_requirements():
 
     # Check if X11 server is accessible (optional check)
     try:
-        result = subprocess.run([str("xset"), "-q"], capture_output=True, timeout=2)  # NOSONAR  # sourcery skip: command-injection
+        result = subprocess.run([str("xset"), "-q"], capture_output=True, timeout=2)  # NOSONAR
         if result.returncode != 0:
             logger.warning("X11 server not accessible - GUI applications may not work")
             logger.info("Install VcXsrv, MobaXterm, or similar X11 server on Windows")
@@ -333,7 +333,7 @@ def run_command(cmd: list[str], description: str, **kwargs) -> bool:
     """Run a command and log its output."""
     logger.info(f"{description}...")
     try:
-        proc = subprocess.run([str(cmd[0])] + cmd[1:], check=True, text=True, capture_output=True, **kwargs)  # NOSONAR  # sourcery skip: command-injection
+        proc = subprocess.run([str(cmd[0])] + cmd[1:], check=True, text=True, capture_output=True, **kwargs)  # NOSONAR
         if proc.stdout:
             logger.debug(proc.stdout)
         if proc.stderr:
@@ -371,7 +371,7 @@ def setup_dependencies(venv_path: Path, use_poetry: bool = False):
         )
         # For poetry, we need to install it first if not available
         try:
-            subprocess.run(  # sourcery skip: command-injection
+            subprocess.run(
                 [str(python_exe), "-c", "import poetry"], check=True, capture_output=True
             )  # NOSONAR
         except subprocess.CalledProcessError:
@@ -391,7 +391,7 @@ def setup_dependencies(venv_path: Path, use_poetry: bool = False):
         )
         # For uv, install if not available
         try:
-            subprocess.run(  # sourcery skip: command-injection
+            subprocess.run(
                 [str(python_exe), "-c", "import uv"], check=True, capture_output=True
             )  # NOSONAR
         except subprocess.CalledProcessError:
@@ -419,7 +419,7 @@ def setup_dependencies(venv_path: Path, use_poetry: bool = False):
 
 def install_notmuch_matching_system():
     try:
-        result = subprocess.run(  # sourcery skip: command-injection
+        result = subprocess.run(
             [str("notmuch"), "--version"], capture_output=True, text=True, check=True
         )  # NOSONAR
         version_line = result.stdout.strip()
@@ -458,7 +458,7 @@ except Exception as e:
 """
 
     logger.info("Downloading NLTK data...")
-    result = subprocess.run(  # sourcery skip: command-injection
+    result = subprocess.run(
         [str(python_exe), "-c", nltk_download_script],
         cwd=ROOT_DIR,
         capture_output=True,
@@ -484,7 +484,7 @@ except Exception as e:
 """
 
     logger.info("Downloading TextBlob corpora...")
-    result = subprocess.run(  # sourcery skip: command-injection
+    result = subprocess.run(
         [str(python_exe), "-c", textblob_download_script],
         cwd=ROOT_DIR,
         capture_output=True,
@@ -502,7 +502,7 @@ def check_uvicorn_installed() -> bool:
     """Check if uvicorn is installed."""
     python_exe = get_python_executable()
     try:
-        result = subprocess.run(  # sourcery skip: command-injection
+        result = subprocess.run(
             [str(python_exe), "-c", "import uvicorn"], capture_output=True, text=True
         )  # NOSONAR
         if result.returncode == 0:

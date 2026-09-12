@@ -1,4 +1,3 @@
-import argon2
 """
 Authentication module for the Email Intelligence Platform.
 

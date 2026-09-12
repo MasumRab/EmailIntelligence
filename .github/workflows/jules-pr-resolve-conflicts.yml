@@ -22,7 +22,7 @@ jobs:
       contents: write
     steps:
       - name: Consume label — prevent duplicate sessions
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             await github.rest.issues.removeLabel({
@@ -59,7 +59,7 @@ jobs:
 
       - name: No conflicts — notify
         if: steps.conflict-check.outputs.has_conflicts == 'false'
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             await github.rest.issues.createComment({
@@ -72,7 +72,7 @@ jobs:
       - name: Watch source PR for stability before resolving
         if: steps.conflict-check.outputs.has_conflicts == 'true'
         id: watch
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             const prNumber = context.payload.pull_request.number;
@@ -167,7 +167,7 @@ jobs:
 
       - name: Conflicts resolved — no session needed
         if: steps.recheck.outputs.has_conflicts == 'false'
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             const commentId = Number('${{ steps.watch.outputs.comment_id }}');
@@ -186,7 +186,7 @@ jobs:
       - name: Build payload with full PR context
         if: steps.recheck.outputs.has_conflicts == 'true'
         id: build
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             const pr = context.payload.pull_request;
@@ -330,7 +330,7 @@ jobs:
 
       - name: Update resolution notice with session info
         if: steps.recheck.outputs.has_conflicts == 'true'
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             const commentId = Number('${{ steps.watch.outputs.comment_id }}');
