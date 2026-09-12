@@ -8,6 +8,7 @@ It handles dependency injection, fallback mechanisms, and error handling.
 import json
 import logging
 import re
+import tempfile
 from typing import Dict, Any, Optional, List
 from pathlib import Path
 
@@ -144,10 +145,16 @@ class BackendClient:
             if file_path is None:
                 return False
 
-            # Atomic write
-            temp_path = file_path.with_suffix(".tmp")
-            with open(temp_path, "w") as f:
-                json.dump(data, f, indent=2)
+            # Atomic write: create temp file in trusted DATA_DIR, then replace destination
+            with tempfile.NamedTemporaryFile(
+                mode="w",
+                dir=str(DATA_DIR),
+                suffix=".tmp",
+                delete=False,
+                encoding="utf-8",
+            ) as tmp_file:
+                json.dump(data, tmp_file, indent=2)
+                temp_path = Path(tmp_file.name)
             temp_path.replace(file_path)
 
             logger.info(f"Persisted item {key} to {file_path}")
