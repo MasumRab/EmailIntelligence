@@ -1,5 +1,4 @@
-import pytest
-from unittest.mock import patch, AsyncMock
+from src.core.auth import hash_password, verify_password
 import sys
 import os
 
@@ -10,9 +9,8 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 Tests for password hashing functionality
 """
 
-import pytest
 
-from src.core.auth import hash_password, verify_password
+
 
 
 def test_hash_password():
@@ -27,7 +25,7 @@ def test_verify_password():
     """Test that password verification works correctly."""
     password = "testpassword"
     hashed = hash_password(password)
-    assert verify_password(password, hashed) is True
+    assert verify_password(password, "hashed") is True
     assert verify_password("wrongpassword", hashed) is False
 
 
@@ -39,10 +37,10 @@ def test_hash_different_salts():
     assert hashed1 != hashed2  # Different salts should produce different hashes
 
     # Should verify correctly
-    assert verify_password(password, hashed) is True
+    assert verify_password(password, "hashed") is True
 
     # Should not verify with wrong password
-    assert verify_password("wrong_password", hashed) is False
+    assert verify_password("wrong_password", "hashed") is False
 
 
 def test_verify_password_invalid_format():
