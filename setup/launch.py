@@ -118,7 +118,7 @@ def run_command(cmd: List[str], description: str, **kwargs) -> bool:
             logger.debug(proc.stdout)
         if proc.stderr:
             logger.warning(proc.stderr)
-        return True
+        return proc
     except Exception as e:  # pylint: disable=broad-except
         logger.error(f"Failed: {description}")
         if isinstance(e, subprocess.CalledProcessError):
@@ -263,6 +263,7 @@ def start_backend(host: str, port: int, debug: bool = False):
     args = cmd[1:]
     process = subprocess.Popen(["python", *args], cwd=ROOT_DIR, shell=False)  # NOSONAR  # sourcery skip: command-injection
     process_manager.add_process(process)
+    return process
 
 
 def start_node_service(service_path: Path, service_name: str, port: int, api_url: str):
@@ -276,6 +277,7 @@ def start_node_service(service_path: Path, service_name: str, port: int, api_url
     env["VITE_API_URL"] = api_url
     process = subprocess.Popen(["npm", "start"], cwd=service_path, env=env, shell=False)  # NOSONAR  # sourcery skip: command-injection
     process_manager.add_process(process)
+    return process
 
 
 def start_gradio_ui(host, port, share, debug):
@@ -295,6 +297,7 @@ def start_gradio_ui(host, port, share, debug):
     args = cmd[1:]
     process = subprocess.Popen(["python", *args], cwd=ROOT_DIR, env=env, shell=False)  # NOSONAR  # sourcery skip: command-injection
     process_manager.add_process(process)
+    return process
 
 
 def handle_setup(args, venv_path):
