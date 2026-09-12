@@ -33,3 +33,6 @@ class GmailServiceError(BaseAppException):
         self, detail: str = "An error occurred with the Gmail service.", status_code: int = 502
     ):
         super().__init__(status_code=status_code, detail=detail)
+
+class EmailNotFoundException(Exception):
+    pass

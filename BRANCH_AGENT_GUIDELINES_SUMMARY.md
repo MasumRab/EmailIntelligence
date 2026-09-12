@@ -1,7 +1,7 @@
 # Branch-Specific Agent Guidelines Summary
 
-**Document Version**: 1.0  
-**Last Updated**: 2026-03-26  
+**Document Version**: 1.0
+**Last Updated**: 2026-03-26
 **Status**: Active - Main Branch Configuration
 
 ---

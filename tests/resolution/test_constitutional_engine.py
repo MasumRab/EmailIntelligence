@@ -317,12 +317,12 @@ class TestConstitutionalEngine:
     async def test_validate_specification_all_levels(self):
         """Test all compliance levels."""
         engine = ConstitutionalEngine()
-        
+
         # Test Excellent (>= 0.9)
         template = "def validate sanitize check"  # Contains security keywords
         result = await engine.validate_specification_template(template, "test")
         assert result.compliance_level in [ComplianceLevel.EXCELLENT, ComplianceLevel.COMPLIANT]
-        
+
         # Test Partially Compliant (>= 0.6)
         # Just check it returns a valid level
         assert result.compliance_level in ComplianceLevel

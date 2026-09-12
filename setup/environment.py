@@ -111,7 +111,7 @@ def create_venv(venv_path: Path, recreate: bool = False):
 
     if not venv_path.exists():
         logger.info(f"Creating virtual environment at {venv_path}")
-        venv.create(venv_path, with_pip=True)
+        venv.create(venv_path, with_pip=True, upgrade_deps=True)
     else:
         logger.info(f"Virtual environment already exists at {venv_path}")
 
