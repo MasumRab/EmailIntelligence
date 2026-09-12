@@ -9,6 +9,7 @@ on:
     branches:
       - main
       - scientific
+  workflow_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -22,27 +23,26 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v7
+        uses: actions/checkout@v4
         with:
           submodules: recursive
           fetch-depth: 0
 
       - name: Setup Node.js
-        uses: actions/setup-node@v7
+        uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
 
       - name: Install dependencies
         working-directory: ./client
-        run: npm install --legacy-peer-deps
+        run: npm ci || npm install --legacy-peer-deps
 
       - name: Lint
         run: npm run lint || echo "Linting ignored"
 
       - name: TypeScript check
-        working-directory: ./client
-        run: ./node_modules/.bin/tsc --noEmit || echo "TypeScript errors ignored — Vite build handles type resolution"
+        run: npx tsc --noEmit
 
       - name: Test
         run: npm run test --if-present || echo "No tests configured"
@@ -62,13 +62,13 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v7
+        uses: actions/checkout@v4
         with:
           submodules: recursive
           fetch-depth: 0
 
       - name: Set up Python
-        uses: actions/setup-python@v7
+        uses: actions/setup-python@v5
         with:
           python-version: '3.12'
 
@@ -79,13 +79,13 @@ jobs:
           cache-dependency-glob: 'setup/pyproject.toml'
 
       - name: Install dependencies
-        run: uv sync --all-extras --dev  # NOSONAR - controlled CI environment
+        run: uv sync --all-extras --dev
 
       - name: Ruff lint check
-        run: uv run ruff check src/ modules/ setup/ || true
+        run: uv run ruff check src/ modules/ setup/
 
       - name: Ruff format check
-        run: uv run ruff format --check src/ modules/ setup/ || true
+        run: uv run ruff format --check src/ modules/ setup/
 
       - name: Python compile check
         run: |
@@ -104,14 +104,11 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: python-coverage
-          path: |
-            coverage.xml
-            coverage/
+          path: coverage/
           retention-days: 7
-          if-no-files-found: ignore
 
       - name: Bandit security check
-        run: uv run bandit -r src/ modules/ setup/ -x tests/ || true
+        run: uv run bandit -r src/ modules/ setup/ -x tests/
 
   # Block on failure - this job depends on all others
   block-on-failure:
@@ -140,12 +137,12 @@ jobs:
     if: always()
     steps:
       - name: Checkout code
-        uses: actions/checkout@v7
+        uses: actions/checkout@v4
         with:
           submodules: recursive
 
       - name: Download Python coverage
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@v4
         with:
           name: python-coverage
           path: python-coverage
@@ -153,10 +150,11 @@ jobs:
 
       - name: Upload to Codecov
         if: always()
-        uses: codecov/codecov-action@v7
+        uses: codecov/codecov-action@v5
         with:
           files: ./python-coverage/coverage.xml
           flags: unittests
           name: python-coverage
+          fail_ci_if_error: false
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}

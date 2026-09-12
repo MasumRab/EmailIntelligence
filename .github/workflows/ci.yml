@@ -26,24 +26,25 @@ jobs:
       !contains(github.event.pull_request.labels.*.name, 'ci:skip-tests')
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@v4
         with:
           submodules: recursive
-      - uses: actions/setup-python@v7
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+          cache: 'pip'
       - uses: astral-sh/setup-uv@v5
         with:
           enable-cache: true
       - name: Install dependencies
-        run: uv sync --all-extras --dev  # NOSONAR - controlled CI environment
+        run: uv sync --all-extras --dev
       - name: Run tests
         run: |
           uv run pytest tests/ src/ modules/ -v --tb=short \
             --cov=src --cov=modules --cov-report=xml --cov-report=term-missing \
             --cov-fail-under=70 || true
       - name: Run Security Scans
-        run: uv run bandit -r src/ modules/ || true
+        run: uv run bandit -r src/ modules/
       - name: Run linting
         run: |
           uv run ruff check src/ modules/
@@ -51,6 +52,7 @@ jobs:
         continue-on-error: true
       - name: Type checking
         run: uv run mypy src/ modules/ --show-error-codes --no-strict-optional
+
   lint-only:
     if: |
       !contains(github.event.head_commit.message, '[skip ci]') &&
@@ -60,18 +62,19 @@ jobs:
     runs-on: ubuntu-latest
     continue-on-error: true
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@v4
         with:
           submodules: recursive
-      - uses: actions/setup-python@v7
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+          cache: 'pip'
       - uses: astral-sh/setup-uv@v5
         with:
           enable-cache: true
       - name: Install dependencies
-        run: uv sync --all-extras --dev  # NOSONAR - controlled CI environment
+        run: uv sync --all-extras --dev
       - name: Run ruff
         run: |
-          uv run ruff check src/ modules/ || true
-          uv run ruff format --check src/ modules/ || true
+          uv run ruff check src/ modules/
+          uv run ruff format --check src/ modules/

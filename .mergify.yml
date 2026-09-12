@@ -1,4 +1,39 @@
 pull_request_rules:
+
+  # Rule 1: Dependabot PRs — auto-merge when real CI passes + SonarQube clean
+  - name: Automatically merge Dependabot PRs when CI and quality gates pass
+    conditions:
+      - author=dependabot[bot]
+      - check-success=test
+      - check-success=sonarcloud
+      - -label=do-not-merge
+    actions:
+      merge:
+        method: merge
+
+  # Rule 2: Agent PRs (Jules/Sentinel/Bolt) — require human label
+  - name: Auto-merge agent PRs only when explicitly approved
+    conditions:
+      - label=auto-merge-approved
+      - check-success=test
+      - check-success=sonarcloud
+      - -label=do-not-merge
+      - -label=review-finding-open
+    actions:
+      merge:
+        method: squash
+
+  # Rule 3: Block PRs with unresolved review findings
+  - name: Block PRs with open review findings
+    conditions:
+      - label=review-finding-open
+    actions:
+      post_check:
+        title: "Blocked: unresolved Critical/High review findings"
+        summary: |
+          This PR has unresolved findings from Qodo or SonarQube.
+          Remove the 'review-finding-open' label after addressing them.
+
   - name: Ping PR author when conflicting
     description: Warn the pull request author when their PR is conflicting. Tag @jules if they're an author.
     conditions:
@@ -22,7 +57,6 @@ pull_request_rules:
       - -closed
       # NOTE: GitHub username is google-labs-jules[bot], not "jules"
       - author=google-labs-jules[bot]
-          - author~=^openhands.*
     actions:
       comment:
         message: >
@@ -34,54 +68,6 @@ pull_request_rules:
           3. **Use GitHub UI:** Click "Resolve conflicts" button on this PR
 
           After resolving: `git push --force-with-lease` (if rebased) or `git push` (if merged)
-
-  # Rule 1: Dependabot PRs — auto-merge when real CI passes + SonarQube clean
-  - name: Automatically merge Dependabot PRs when CI and quality gates pass
-    conditions:
-      - author=dependabot[bot]
-      - check-success=test
-      - check-success=sonarcloud
-      - -label=do-not-merge
-    actions:
-      merge:
-        method: merge
-
-  # Rule 2: Agent PRs (Jules/Sentinel/Bolt) — require human label
-  # NOTE: This rule is restricted to agent-authored PRs via `author` conditions.
-  - name: Auto-merge agent PRs only when explicitly approved
-    conditions:
-      # Auto-merge must be explicitly requested
-      - label=auto-merge-approved
-
-      # Restrict to agent authors so human PRs don't bypass normal approval rules
-      - or:
-          - author=jules-bot
-          - author=sentinel-bot
-          - author=bolt-bot
-          - author=google-labs-jules[bot]
-          - author~=^openhands.*
-
-      # CI must be green
-      - check-success=test
-      - check-success=sonarcloud
-
-      # Block if certain labels are present
-      - -label=do-not-merge
-      - -label=review-finding-open
-    actions:
-      merge:
-        method: squash
-
-  # Rule 3: Block PRs with unresolved review findings
-  - name: Block PRs with open review findings
-    conditions:
-      - label=review-finding-open
-    actions:
-      post_check:
-        title: "Blocked: unresolved Critical/High review findings"
-        summary: |
-          This PR has unresolved findings from Qodo or SonarQube.
-          Remove the 'review-finding-open' label after addressing them.
 
   - name: Label conflicting pull requests
     description: Add a label to a pull request with conflict to spot it easily
