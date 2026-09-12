@@ -317,6 +317,15 @@ class WorkflowEngine:
 
                 node.set_input(conn.target_port, source_output)
 
+        # Apply default values for unconnected ports or missing inputs
+        for port in node.input_ports:
+            # Check if input is missing (not set by connections above)
+            # Note: A connection might have set it to None, which is a valid value,
+            # but usually we want to respect the connection if it exists.
+            # Here we check if the key exists in node.inputs.
+            if port.name not in node.inputs and port.default_value is not None:
+                node.set_input(port.name, port.default_value)
+
     # TODO(P2, 2h): Enhance type validation to support more complex type relationships
     # Pseudo code for complex type relationships:
     # - Support union types (e.g., EMAIL | EMAIL_LIST)
@@ -324,11 +333,8 @@ class WorkflowEngine:
     # - Support generic types with constraints
     # - Add type aliases and custom type definitions
 
-    # TODO(P2, 3h): Add support for optional input ports with default values
-    # Pseudo code for optional ports:
-    # - Modify NodePort to include default_value parameter
-    # - Update validate_inputs to skip validation for optional ports without values
-    # - Modify set_inputs to use default values when not provided
+    # Completed: Add support for optional input ports with default values
+    # Logic is implemented in _set_node_inputs
 
     # TODO(P3, 4h): Implement input transformation pipeline for incompatible but convertible types
     # Pseudo code for transformation pipeline:

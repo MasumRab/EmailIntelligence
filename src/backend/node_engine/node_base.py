@@ -59,15 +59,24 @@ class NodePort:
     """Defines an input or output port for a node."""
 
     def __init__(
-        self, name: str, data_type: DataType, required: bool = True, description: str = ""
+        self,
+        name: str,
+        data_type: DataType,
+        required: bool = True,
+        description: str = "",
+        default_value: Any = None,
     ):
         self.name = name
         self.data_type = data_type
         self.required = required
         self.description = description
+        self.default_value = default_value
 
     def __repr__(self):
-        return f"NodePort(name='{self.name}', data_type={self.data_type}, required={self.required})"
+        return (
+            f"NodePort(name='{self.name}', data_type={self.data_type}, "
+            f"required={self.required}, default={self.default_value})"
+        )
 
 
 class Connection:
@@ -160,7 +169,11 @@ class BaseNode(ABC):
         # Check required inputs
         for port in self.input_ports:
             if port.required and port.name not in self.inputs:
-                errors.append(f"Required input '{port.name}' is missing")
+                # If the port is required but missing from inputs,
+                # check if it has a default value.
+                # If it has a default value, we consider it valid (as the engine will apply it).
+                if port.default_value is None:
+                    errors.append(f"Required input '{port.name}' is missing")
 
         # Type validation would go here if we implement it
         # For now, we rely on run-time type checking
@@ -188,6 +201,7 @@ class BaseNode(ABC):
                     "type": port.data_type.value,
                     "required": port.required,
                     "description": port.description,
+                    "default_value": port.default_value,
                 }
                 for port in self.input_ports
             ],
