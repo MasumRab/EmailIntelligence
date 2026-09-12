@@ -9,7 +9,7 @@ joblib==1.4.2
 nltk==3.9.4
 psycopg2-binary==2.9.9
 pydantic==2.11.5
-pyngrok==7.1.6
+pyngrok==8.1.2
 python-dotenv==1.0.1
 python-multipart==0.0.22
 scikit-learn==1.4.2
