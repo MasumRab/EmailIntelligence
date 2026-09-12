@@ -1,3 +1,5 @@
+import importlib.util
+
 """
 Plugin Manager for the Email Intelligence Platform
 
@@ -5,9 +7,9 @@ This module provides a system for discovering, loading, and managing
 external plugins.
 """
 
-import logging
-import os
-from typing import List
+import logging  # noqa: E402
+import os  # noqa: E402
+from typing import List  # noqa: E402
 
 logger = logging.getLogger(__name__)
 
@@ -59,7 +61,9 @@ class PluginManager:
                 self.loaded_plugins.append(plugin_name)
                 logger.info(f"Successfully registered plugin: '{plugin_name}'")
             else:
-                logger.warning(f"Plugin '{plugin_name}' does not have a 'register' function.")
+                logger.warning(
+                    f"Plugin '{plugin_name}' does not have a 'register' function."
+                )
 
         except Exception as e:
             logger.error(f"Failed to load plugin '{plugin_name}': {e}", exc_info=True)
