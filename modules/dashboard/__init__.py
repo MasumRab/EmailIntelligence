@@ -2,7 +2,6 @@ import logging
 
 from fastapi import FastAPI
 
-from .ui import create_dashboard_ui
 from .routes import router as dashboard_router
 
 logger = logging.getLogger(__name__)

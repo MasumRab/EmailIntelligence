@@ -1,35 +1,4 @@
 #!/bin/bash
-#
-# DEPRECATED - This script is no longer recommended for use.
-#
-# This script was originally used to set up the Python environment for the
-# EmailIntelligence project. It is now deprecated and has been replaced by the
-# more comprehensive `launch.py` script.
-#
-# Please use `launch.py` for all environment setup and application management.
-#
-
-# ##############################################################################
-# # DEPRECATION NOTICE                                                         #
-# ##############################################################################
-# # This script (setup_python.sh) is DEPRECATED and should no longer be used.  #
-# # It may be removed in future versions.                                      #
-# #                                                                            #
-# # Please use the main launcher script `launch.py` for all environment setup  #
-# # and application management tasks:                                          #
-# #                                                                            #
-# # python launch.py --stage dev                                               #
-# #                                                                            #
-# # `launch.py` handles virtual environment creation, dependency installation, #
-# # NLTK data downloads, and more. Refer to README_ENV_MANAGEMENT.md for       #
-# # details.                                                                   #
-# ##############################################################################
-# # Proceeding with this script is not recommended.                            #
-# ##############################################################################
-echo "WARNING: This script (setup_python.sh) is DEPRECATED." >&2
-echo "WARNING: Please use 'python launch.py' instead for environment setup." >&2
-echo "WARNING: Continuing in 5 seconds..." >&2
-sleep 5
 
 # Exit on error
 set -e

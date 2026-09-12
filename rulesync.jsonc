@@ -10,8 +10,7 @@
     "ignore",
     "mcp",
     "commands",
-    "subagents",
-  "central"
+    "subagents"
   ],
   "baseDirs": [
     "."
@@ -21,6 +20,5 @@
   "global": false,
   "simulatedCommands": false,
   "simulatedSubagents": false,
-  "modularMcp": false,
-  "centralStore": "~/central"
+  "modularMcp": false
 }

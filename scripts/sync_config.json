@@ -1,6 +1,6 @@
 {
   "sync_rules": {
-    "inheritance_base": "docs/clean-inheritance-base",
+    "inheritance_base": "docs",
     "worktrees": ["docs-main", "docs-scientific"],
     "common_docs_path": "docs/common/docs",
     "branch_docs_paths": {

@@ -2,7 +2,7 @@ import logging
 import psutil
 import platform
 from datetime import datetime
-import asyncio
+import asyncio  # noqa: F401
 
 import gradio as gr
 from fastapi import FastAPI, HTTPException
@@ -31,11 +31,9 @@ def create_system_status_ui():
     with gr.Row():
         with gr.Column(scale=1):
             gr.Markdown("## System Health Dashboard")
-            gr.Markdown(
-                "Monitor system performance, health metrics, and operational status."
-            )
+            gr.Markdown("Monitor system performance, health metrics, and operational status.")
 
-        refresh_btn = gr.Button("🔄 Refresh", variant="secondary")
+        gr.Button("🔄 Refresh", variant="secondary")
 
     with gr.Tabs():
         with gr.TabItem("Overview"):
@@ -56,28 +54,34 @@ def create_overview_tab():
 
     with gr.Row():
         with gr.Column():
-            status_indicator = gr.Textbox(
-                label="System Status", value="🟢 Online", interactive=False
+            gr.Textbox(
+                label="System Status",
+                value="🟢 Online",
+                interactive=False
             )
 
-            uptime_display = gr.Textbox(label="System Uptime", interactive=False)
+            gr.Textbox(
+                label="System Uptime",
+                interactive=False
+            )
 
-            last_updated = gr.Textbox(label="Last Updated", interactive=False)
+            gr.Textbox(
+                label="Last Updated",
+                interactive=False
+            )
 
     with gr.Row():
         with gr.Column():
             gr.Markdown("### Email Statistics")
-            total_emails = gr.Number(label="Total Emails", interactive=False)
-            unread_emails = gr.Number(label="Unread Emails", interactive=False)
-            categorized_plot = gr.Plot(label="Email Categories")
+            gr.Number(label="Total Emails", interactive=False)
+            gr.Number(label="Unread Emails", interactive=False)
+            gr.Plot(label="Email Categories")
 
         with gr.Column():
             gr.Markdown("### Performance Metrics")
-            avg_response_time = gr.Number(
-                label="Avg Response Time (ms)", interactive=False
-            )
-            total_operations = gr.Number(label="Total Operations", interactive=False)
-            performance_plot = gr.Plot(label="Operation Performance")
+            gr.Number(label="Avg Response Time (ms)", interactive=False)
+            gr.Number(label="Total Operations", interactive=False)
+            gr.Plot(label="Operation Performance")
 
 
 def create_performance_tab():
@@ -86,13 +90,13 @@ def create_performance_tab():
     with gr.Row():
         with gr.Column():
             gr.Markdown("### API Performance")
-            api_response_times = gr.Plot(label="API Response Times")
-            operation_counts = gr.Plot(label="Operation Counts")
+            gr.Plot(label="API Response Times")
+            gr.Plot(label="Operation Counts")
 
         with gr.Column():
             gr.Markdown("### System Performance")
-            cpu_usage_plot = gr.Plot(label="CPU Usage Over Time")
-            memory_usage_plot = gr.Plot(label="Memory Usage Over Time")
+            gr.Plot(label="CPU Usage Over Time")
+            gr.Plot(label="Memory Usage Over Time")
 
 
 def create_health_tab():
@@ -101,14 +105,14 @@ def create_health_tab():
     with gr.Row():
         with gr.Column():
             gr.Markdown("### Service Health")
-            backend_status = gr.Textbox(label="Backend API", interactive=False)
-            database_status = gr.Textbox(label="Database", interactive=False)
-            ai_engine_status = gr.Textbox(label="AI Engine", interactive=False)
+            gr.Textbox(label="Backend API", interactive=False)
+            gr.Textbox(label="Database", interactive=False)
+            gr.Textbox(label="AI Engine", interactive=False)
 
         with gr.Column():
             gr.Markdown("### Gmail Integration")
-            gmail_status = gr.Textbox(label="Gmail API", interactive=False)
-            gmail_performance = gr.JSON(label="Performance Metrics")
+            gr.Textbox(label="Gmail API", interactive=False)
+            gr.JSON(label="Performance Metrics")
 
 
 def create_resources_tab():
@@ -117,13 +121,13 @@ def create_resources_tab():
     with gr.Row():
         with gr.Column():
             gr.Markdown("### System Resources")
-            cpu_percent = gr.Number(label="CPU Usage (%)", interactive=False)
-            memory_percent = gr.Number(label="Memory Usage (%)", interactive=False)
-            disk_usage = gr.Number(label="Disk Usage (%)", interactive=False)
+            gr.Number(label="CPU Usage (%)", interactive=False)
+            gr.Number(label="Memory Usage (%)", interactive=False)
+            gr.Number(label="Disk Usage (%)", interactive=False)
 
         with gr.Column():
             gr.Markdown("### Network")
-            network_io = gr.JSON(label="Network I/O")
+            gr.JSON(label="Network I/O")
 
 
 async def get_system_status() -> SystemStatus:
@@ -142,7 +146,7 @@ async def get_system_status() -> SystemStatus:
         # Current resource usage
         cpu_percent = psutil.cpu_percent(interval=1)
         memory = psutil.virtual_memory()
-        disk = psutil.disk_usage("/")
+        disk = psutil.disk_usage('/')
 
         # Network I/O
         net_io = psutil.net_io_counters()
@@ -155,25 +159,15 @@ async def get_system_status() -> SystemStatus:
 
         # Get dashboard stats
         try:
-            dashboard_response = requests.get(
-                "http://127.0.0.1:8000/api/dashboard/stats", timeout=5
-            )
-            dashboard_data = (
-                dashboard_response.json()
-                if dashboard_response.status_code == 200
-                else {}
-            )
+            dashboard_response = requests.get("http://127.0.0.1:8000/api/dashboard/stats", timeout=5)
+            dashboard_data = dashboard_response.json() if dashboard_response.status_code == 200 else {}
         except (requests.RequestException, ValueError):
             dashboard_data = {}
 
         # Get Gmail performance metrics
         try:
-            gmail_response = requests.get(
-                "http://127.0.0.1:8000/api/gmail/performance", timeout=5
-            )
-            gmail_data = (
-                gmail_response.json() if gmail_response.status_code == 200 else {}
-            )
+            gmail_response = requests.get("http://127.0.0.1:8000/api/gmail/performance", timeout=5)
+            gmail_data = gmail_response.json() if gmail_response.status_code == 200 else {}
         except (requests.RequestException, ValueError):
             gmail_data = {}
 
@@ -190,14 +184,12 @@ async def get_system_status() -> SystemStatus:
             dashboard_stats=dashboard_data,
             gmail_performance=gmail_data,
             timestamp=datetime.now().isoformat(),
-            uptime_seconds=0,  # Would need to track from startup
+            uptime_seconds=0  # Would need to track from startup
         )
 
     except Exception as e:
         logger.error(f"Error getting system status: {e}")
-        raise HTTPException(
-            status_code=500, detail=f"Failed to get system status: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Failed to get system status: {str(e)}")
 
 
 async def perform_health_checks() -> HealthCheck:
@@ -211,57 +203,63 @@ async def perform_health_checks() -> HealthCheck:
         health_results["backend_api"] = {
             "status": "healthy" if response.status_code == 200 else "unhealthy",
             "response_time": response.elapsed.total_seconds() * 1000,
-            "details": response.json()
-            if response.status_code == 200
-            else {"error": response.text},
+            "details": response.json() if response.status_code == 200 else {"error": response.text}
         }
     except Exception as e:
-        health_results["backend_api"] = {"status": "unhealthy", "error": str(e)}
+        health_results["backend_api"] = {
+            "status": "unhealthy",
+            "error": str(e)
+        }
 
     # Database health check
     try:
         response = requests.get("http://127.0.0.1:8000/api/emails?limit=1", timeout=5)
         health_results["database"] = {
             "status": "healthy" if response.status_code == 200 else "unhealthy",
-            "response_time": response.elapsed.total_seconds() * 1000,
+            "response_time": response.elapsed.total_seconds() * 1000
         }
     except Exception as e:
-        health_results["database"] = {"status": "unhealthy", "error": str(e)}
+        health_results["database"] = {
+            "status": "unhealthy",
+            "error": str(e)
+        }
 
     # AI Engine health check
     try:
         response = requests.post(
             "http://127.0.0.1:8000/api/ai/analyze",
             json={"subject": "test", "content": "test"},
-            timeout=10,
+            timeout=10
         )
         health_results["ai_engine"] = {
             "status": "healthy" if response.status_code == 200 else "unhealthy",
-            "response_time": response.elapsed.total_seconds() * 1000,
+            "response_time": response.elapsed.total_seconds() * 1000
         }
     except Exception as e:
-        health_results["ai_engine"] = {"status": "unhealthy", "error": str(e)}
+        health_results["ai_engine"] = {
+            "status": "unhealthy",
+            "error": str(e)
+        }
 
     # Gmail API health check
     try:
-        response = requests.get(
-            "http://127.0.0.1:8000/api/gmail/performance", timeout=5
-        )
+        response = requests.get("http://127.0.0.1:8000/api/gmail/performance", timeout=5)
         health_results["gmail_api"] = {
             "status": "healthy" if response.status_code == 200 else "unhealthy",
-            "response_time": response.elapsed.total_seconds() * 1000,
+            "response_time": response.elapsed.total_seconds() * 1000
         }
     except Exception as e:
-        health_results["gmail_api"] = {"status": "unhealthy", "error": str(e)}
+        health_results["gmail_api"] = {
+            "status": "unhealthy",
+            "error": str(e)
+        }
 
-    overall_status = (
-        "healthy"
-        if all(check.get("status") == "healthy" for check in health_results.values())
-        else "unhealthy"
-    )
+    overall_status = "healthy" if all(
+        check.get("status") == "healthy" for check in health_results.values()
+    ) else "unhealthy"
 
     return HealthCheck(
         overall_status=overall_status,
         service_checks=health_results,
-        timestamp=datetime.now().isoformat(),
+        timestamp=datetime.now().isoformat()
     )

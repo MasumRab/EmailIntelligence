@@ -2,17 +2,6 @@
 Unit tests for the enhanced workflow engine.
 Tests all the new functionality implemented for workflow engine enhancement.
 """
-import asyncio
-import pytest
-import sys
-import os
-# Add the project root to the path to import correctly
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
-
-from src.core.workflow_engine import Node, Workflow, WorkflowRunner
-
-def test_topological_sort():
-    """Test the topological sorting of nodes"""
 
 import asyncio
 import os
@@ -52,6 +41,7 @@ def test_topological_sort():
 
 def test_workflow_validation():
     """Test workflow validation functionality"""
+
     def dummy_operation(x):
         return x
 
@@ -72,8 +62,6 @@ def test_workflow_validation():
 
     # Test with invalid connection
     invalid_connections = [
-        {"from": {"node_id": "NONEXISTENT", "output": "output"}, "to": {"node_id": "B", "input": "input"}},
-
         {
             "from": {"node_id": "NONEXISTENT", "output": "output"},
             "to": {"node_id": "B", "input": "input"},
@@ -88,13 +76,12 @@ def test_workflow_validation():
 
 def test_conditional_execution():
     """Test conditional execution of nodes"""
+
     def dummy_operation(x):
         return x + 1
 
     # Create a node with a conditional expression
     node_a = Node("A", "Node A", dummy_operation, ["input"], ["output"])
-    node_b = Node("B", "Node B", dummy_operation, ["input"], ["output"], conditional_expression="value > 5")
-
     node_b = Node(
         "B", "Node B", dummy_operation, ["input"], ["output"], conditional_expression="value > 5"
     )
@@ -119,6 +106,7 @@ def test_conditional_execution():
 
 def test_error_handling_and_recovery():
     """Test error handling and recovery mechanisms"""
+
     def good_operation(x):
         return x + 1
 
@@ -127,8 +115,6 @@ def test_error_handling_and_recovery():
 
     # Create nodes
     node_a = Node("A", "Node A", good_operation, ["input"], ["output"])
-    node_b = Node("B", "Node B", failing_operation, ["input"], ["output"], failure_strategy="continue")
-
     node_b = Node(
         "B", "Node B", failing_operation, ["input"], ["output"], failure_strategy="continue"
     )
@@ -138,8 +124,6 @@ def test_error_handling_and_recovery():
         {"from": {"node_id": "A", "output": "output"}, "to": {"node_id": "B", "input": "input"}},
         {"from": {"node_id": "B", "output": "output"}, "to": {"node_id": "C", "input": "input"}},
     ]
-
-    workflow = Workflow("error_handling_workflow", {"A": node_a, "B": node_b, "C": node_c}, connections)
 
     workflow = Workflow(
         "error_handling_workflow", {"A": node_a, "B": node_b, "C": node_c}, connections
@@ -155,6 +139,7 @@ def test_error_handling_and_recovery():
 
 def test_memory_optimization():
     """Test memory optimization feature"""
+
     def dummy_operation(x):
         return x + 1
 
@@ -170,8 +155,6 @@ def test_memory_optimization():
         {"from": {"node_id": "C", "output": "output"}, "to": {"node_id": "D", "input": "input"}},
     ]
 
-    workflow = Workflow("memory_opt_workflow", {"A": node_a, "B": node_b, "C": node_c, "D": node_d}, connections)
-
     workflow = Workflow(
         "memory_opt_workflow", {"A": node_a, "B": node_b, "C": node_c, "D": node_d}, connections
     )
@@ -185,6 +168,7 @@ def test_memory_optimization():
 
 def test_parallel_execution():
     """Test parallel execution of independent nodes"""
+
     def dummy_operation(x):
         return x + 1
 
@@ -201,8 +185,6 @@ def test_parallel_execution():
         {"from": {"node_id": "C", "output": "output"}, "to": {"node_id": "D", "input": "input2"}},
     ]
 
-    workflow = Workflow("parallel_workflow", {"A": node_a, "B": node_b, "C": node_c, "D": node_d}, connections)
-
     workflow = Workflow(
         "parallel_workflow", {"A": node_a, "B": node_b, "C": node_c, "D": node_d}, connections
     )
@@ -216,6 +198,7 @@ def test_parallel_execution():
 
 def test_metrics_collection():
     """Test metrics collection functionality"""
+
     def dummy_operation(x):
         return x + 1
 
@@ -232,6 +215,7 @@ def test_metrics_collection():
 
     # Run the workflow
     result = runner.run({"input": 1})
+
     # Check that metrics were collected
     stats = result["stats"]
     assert "nodes_executed" in stats
@@ -266,23 +250,4 @@ if __name__ == "__main__":
     test_metrics_collection()
     print("✓ Metrics collection test passed")
 
-    
-    test_workflow_validation()
-    print("✓ Workflow validation test passed")
-    
-    test_conditional_execution()
-    print("✓ Conditional execution test passed")
-    
-    test_error_handling_and_recovery()
-    print("✓ Error handling and recovery test passed")
-    
-    test_memory_optimization()
-    print("✓ Memory optimization test passed")
-    
-    test_parallel_execution()
-    print("✓ Parallel execution test passed")
-    
-    test_metrics_collection()
-    print("✓ Metrics collection test passed")
-    
     print("\nAll tests passed! 🎉")

@@ -22,6 +22,10 @@ for file in $STAGED_FILES; do
             # File is in correct location
             continue
         else
+            # Allow README.md files in code directories
+            if [[ "$file" == */README.md ]]; then
+                continue
+            fi
             # Check if file is in forbidden location
             if [[ "$file" == src/* ]] || [[ "$file" == python_backend/* ]] || [[ "$file" == client/* ]] || [[ "$file" == backend/* ]] || [[ "$file" == modules/* ]] || [[ "$file" == tests/* ]] || [[ "$file" == scripts/* ]] || [[ "$file" == deployment/* ]] || [[ "$file" == config/* ]] || [[ "$file" == data/* ]] || [[ "$file" == models/* ]] || [[ "$file" == plugins/* ]] || [[ "$file" == shared/* ]] || [[ "$file" == venv/* ]] || [[ "$file" == node_modules/* ]] || [[ "$file" == __pycache__/* ]] || [[ "$file" == .git/* ]] || [[ "$file" == .github/* ]] || [[ "$file" == logs/* ]]; then
                 MISPLACED_FILES+=("$file")

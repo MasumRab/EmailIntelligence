@@ -117,7 +117,7 @@ async def create_node_workflow(request: NodeWorkflowCreateRequest):
             workflow.add_connection(connection)
 
         # Save the workflow
-        file_path = node_workflow_manager.save_workflow(workflow)
+        node_workflow_manager.save_workflow(workflow)
 
         return NodeWorkflowResponse(
             workflow_id=workflow.workflow_id,
@@ -245,7 +245,7 @@ async def update_node_workflow(workflow_id: str, request: NodeWorkflowCreateRequ
             updated_workflow.add_connection(connection)
 
         # Save the updated workflow
-        file_path = node_workflow_manager.save_workflow(updated_workflow)
+        node_workflow_manager.save_workflow(updated_workflow)
 
         return NodeWorkflowResponse(
             workflow_id=updated_workflow.workflow_id,

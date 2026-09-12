@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 # Updated imports to use the new core framework components
 from src.core.data.factory import get_data_source
 from src.core.data.data_source import DataSource
-from src.core.factory import get_data_source
+from src.core.factory import get_data_source  # noqa: F811
 from src.core.models import CategoryCreate, CategoryResponse
 from src.core.performance_monitor import log_performance
 from src.core.auth import get_current_active_user
@@ -20,7 +20,7 @@ router = APIRouter()
 async def get_categories(
     request: Request,
     current_user: str = Depends(get_current_active_user),
-    db: DataSource = Depends(get_data_source),
+    db: DataSource = Depends(get_data_source)
 ):
     """
     Retrieves all categories from the database.
@@ -40,7 +40,7 @@ async def create_category(
     request: Request,
     category: CategoryCreate,
     current_user: str = Depends(get_current_active_user),
-    db: DataSource = Depends(get_data_source),
+    db: DataSource = Depends(get_data_source)
 ):
     """
     Creates a new category in the database.

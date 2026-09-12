@@ -18,7 +18,7 @@ from backend.plugins.plugin_manager import plugin_manager
 
 # Try to import security manager if available
 try:
-    from src.core.security import Permission, SecurityLevel, get_security_manager
+
 
     security_manager_available = True
 except ImportError:
@@ -61,22 +61,16 @@ def create_workflow_editor_ui():
                 workflow_description = gr.Textbox(label="Description", lines=2)
 
                 with gr.Row():
-                    save_workflow_btn = gr.Button(
-                        "💾 Save Workflow", variant="secondary"
-                    )
-                    load_workflow_btn = gr.Button(
-                        "📂 Load Workflow", variant="secondary"
-                    )
+                    save_workflow_btn = gr.Button("💾 Save Workflow", variant="secondary")
+                    load_workflow_btn = gr.Button("📂 Load Workflow", variant="secondary")
 
                 workflow_list = gr.Dropdown(
                     choices=workflow_manager.list_workflows(), label="Saved Workflows"
                 )
 
                 with gr.Row():
-                    create_workflow_btn = gr.Button(
-                        "➕ Create New", variant="secondary"
-                    )
-                    delete_workflow_btn = gr.Button("🗑️ Delete", variant="secondary")
+                    gr.Button("➕ Create New", variant="secondary")
+                    gr.Button("🗑️ Delete", variant="secondary")
 
                 gr.Markdown("### 🚀 Execute Workflow")
                 execute_btn = gr.Button("▶️ Execute Workflow", variant="primary")
@@ -122,7 +116,7 @@ def create_workflow_editor_ui():
                 </script>
                 """
 
-                canvas = gr.HTML(canvas_html, label="Workflow Visualization")
+                gr.HTML(canvas_html, label="Workflow Visualization")
 
                 # JSON representation of workflow (for debugging/serialization)
                 workflow_json = gr.Code(
@@ -202,15 +196,9 @@ def create_workflow_editor_ui():
                         workflow_manager.list_workflows(),
                     )
                 else:
-                    return (
-                        "❌ Failed to save workflow",
-                        workflow_manager.list_workflows(),
-                    )
+                    return "❌ Failed to save workflow", workflow_manager.list_workflows()
             except Exception as e:
-                return (
-                    f"❌ Error saving workflow: {str(e)}",
-                    workflow_manager.list_workflows(),
-                )
+                return f"❌ Error saving workflow: {str(e)}", workflow_manager.list_workflows()
 
         def load_selected_workflow(workflow_filename: str):
             try:
@@ -258,9 +246,7 @@ def create_workflow_editor_ui():
                 return {"error": str(e)}
 
         # Connect events
-        add_node_btn.click(
-            fn=add_node_to_workflow, inputs=available_nodes, outputs=workflow_json
-        )
+        add_node_btn.click(fn=add_node_to_workflow, inputs=available_nodes, outputs=workflow_json)
 
         save_workflow_btn.click(
             fn=save_current_workflow,
@@ -332,7 +318,7 @@ def create_advanced_workflow_ui():
 
 
 # Initialize the workflow system when this module is loaded
-initialize_workflow_system()
+
 
 if __name__ == "__main__":
     # For testing the workflow editor UI

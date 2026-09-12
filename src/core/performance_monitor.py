@@ -67,6 +67,15 @@ class PerformanceMonitor:
         except Exception as e:
             logger.warning(f"Failed to create performance log file: {e}")
 
+    def log_performance(self, log_entry: Dict[str, Any]) -> None:
+        """Log a performance entry to the log file"""
+        try:
+            with self.lock:
+                with open(LOG_FILE, "a") as f:
+                    f.write(json.dumps(log_entry) + "\n")
+        except Exception as e:
+            logger.warning(f"Failed to log performance: {e}")
+
     def get_system_metrics(self) -> Dict[str, Any]:
         """Get current system metrics"""
         try:
@@ -104,7 +113,7 @@ def log_performance(operation_or_func=None, *, operation: str = ""):
         return _create_decorator(func, op_name)
     elif operation_or_func is not None and operation == "":
         # Used as @log_performance("custom_name")
-        op_name = operation_or_func
+        op_name = operation
 
         def decorator(func):
             return _create_decorator(func, op_name)
@@ -175,10 +184,8 @@ import atexit
 # Enhanced performance monitoring system with additional features
 from collections import defaultdict, deque
 from dataclasses import asdict, dataclass
-from datetime import datetime, timezone
-from functools import wraps
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Union
+from typing import Any, Dict, Optional, Union
 
 logger = logging.getLogger(__name__)
 
@@ -238,18 +245,14 @@ class OptimizedPerformanceMonitor:
         self.log_file.parent.mkdir(parents=True, exist_ok=True)
 
         # Metrics storage
-        self._metrics_buffer: deque[PerformanceMetric] = deque(
-            maxlen=max_metrics_buffer
-        )
+        self._metrics_buffer: deque[PerformanceMetric] = deque(maxlen=max_metrics_buffer)
         self._aggregated_metrics: Dict[str, AggregatedMetric] = {}
 
         # Threading and async
         self._buffer_lock = threading.Lock()
         self._stop_event = threading.Event()
         self._processing_thread = threading.Thread(
-            target=self._process_metrics_background,
-            daemon=True,
-            name="PerformanceMonitor",
+            target=self._process_metrics_background, daemon=True, name="PerformanceMonitor"
         )
 
         # Start background processing
@@ -259,6 +262,17 @@ class OptimizedPerformanceMonitor:
         atexit.register(self.shutdown)
 
         logger.info("OptimizedPerformanceMonitor initialized")
+
+    def log_performance(self, log_entry: Dict[str, Any]) -> None:
+        """Compatibility method for legacy log_performance decorator."""
+        # Extract fields from log_entry to map to record_metric
+        operation = log_entry.get("operation", "unknown_operation")
+        duration_ms = log_entry.get("duration_seconds", 0) * 1000
+        self.record_metric(
+            name=operation,
+            value=duration_ms,
+            unit="ms"
+        )
 
     def record_metric(
         self,
@@ -297,6 +311,17 @@ class OptimizedPerformanceMonitor:
         with self._buffer_lock:
             self._metrics_buffer.append(metric)
 
+    def log_performance(self, log_entry: Dict[str, Any]) -> None:
+        """Compatibility method for legacy log_performance decorator."""
+        operation = log_entry.get("operation", "unknown")
+        duration = log_entry.get("duration_seconds", 0) * 1000  # Convert to ms
+        self.record_metric(
+            name=f"operation_duration_{operation}",
+            value=duration,
+            unit="ms",
+            tags={"operation": operation},
+        )
+
     def time_function(
         self, name: str, tags: Optional[Dict[str, str]] = None, sample_rate: float = 1.0
     ):
@@ -319,15 +344,9 @@ class OptimizedPerformanceMonitor:
                 try:
                     return func(*args, **kwargs)
                 finally:
-                    duration = (
-                        time.perf_counter() - start_time
-                    ) * 1000  # Convert to milliseconds
+                    duration = (time.perf_counter() - start_time) * 1000  # Convert to milliseconds
                     self.record_metric(
-                        name=name,
-                        value=duration,
-                        unit="ms",
-                        tags=tags,
-                        sample_rate=sample_rate,
+                        name=name, value=duration, unit="ms", tags=tags, sample_rate=sample_rate
                     )
 
             return wrapper
@@ -347,18 +366,12 @@ class OptimizedPerformanceMonitor:
                 def __exit__(self, exc_type, exc_val, exc_tb):
                     duration = (time.perf_counter() - self.start_time) * 1000
                     self.record_metric(
-                        name=name,
-                        value=duration,
-                        unit="ms",
-                        tags=tags,
-                        sample_rate=sample_rate,
+                        name=name, value=duration, unit="ms", tags=tags, sample_rate=sample_rate
                     )
 
             return TimerContext()
 
-    def get_aggregated_metrics(
-        self, name: Optional[str] = None
-    ) -> Dict[str, AggregatedMetric]:
+    def get_aggregated_metrics(self, name: Optional[str] = None) -> Dict[str, AggregatedMetric]:
         """
         Get current aggregated metrics.
 
@@ -373,9 +386,7 @@ class OptimizedPerformanceMonitor:
             )
         return self._aggregated_metrics.copy()
 
-    def get_recent_metrics(
-        self, name: str, limit: int = 100
-    ) -> List[PerformanceMetric]:
+    def get_recent_metrics(self, name: str, limit: int = 100) -> List[PerformanceMetric]:
         """Get recent raw metrics for a specific name."""
         with self._buffer_lock:
             return [m for m in self._metrics_buffer if m.name == name][-limit:]
@@ -466,3 +477,11 @@ performance_monitor = OptimizedPerformanceMonitor()
 
 
 # Convenience functions
+def record_metric(*args, **kwargs):
+    """Convenience function to record metrics."""
+    performance_monitor.record_metric(*args, **kwargs)
+
+
+def time_function(*args, **kwargs):
+    """Convenience function to time functions."""
+    return performance_monitor.time_function(*args, **kwargs)

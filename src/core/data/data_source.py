@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 
 class DataSource(ABC):
@@ -9,11 +9,7 @@ class DataSource(ABC):
 
     @abstractmethod
     async def get_emails(
-        self,
-        limit: int = 100,
-        offset: int = 0,
-        category_id: int = None,
-        is_unread: bool = None,
+        self, limit: int = 100, offset: int = 0, category_id: Optional[int] = None, is_unread: Optional[bool] = None
     ) -> List[Dict[str, Any]]:
         """
         Fetches a list of emails.
@@ -43,9 +39,7 @@ class DataSource(ABC):
         pass
 
     @abstractmethod
-    async def update_email(
-        self, email_id: Any, email_data: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    async def update_email(self, email_id: Any, email_data: Dict[str, Any]) -> Dict[str, Any]:
         """
         Updates an existing email.
 
@@ -120,7 +114,7 @@ class DataSource(ABC):
         pass
 
     @abstractmethod
-    async def create_category(self, email_data: Dict[str, Any]) -> Dict[str, Any]:
+    async def create_category(self, category_data: Dict[str, Any]) -> Dict[str, Any]:
         """
         Creates a new category.
         """

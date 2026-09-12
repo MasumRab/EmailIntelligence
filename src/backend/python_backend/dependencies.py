@@ -6,29 +6,32 @@ Dependency injection system for the Email Intelligence Platform
 Manages service dependencies and provides them to route handlers
 """
 
-from typing import AsyncGenerator
 import logging
-from typing import TYPE_CHECKING, Optional
+from typing import Optional
 from fastapi import Depends
-
 # Updated to use the new src architecture where available
 from backend.python_backend.services.email_service import EmailService
 from backend.python_backend.services.category_service import CategoryService
-from backend.python_backend.database import get_db, DatabaseManager
+from src.core.database import get_db, DatabaseManager
 from .model_manager import ModelManager
 from .ai_engine import AdvancedAIEngine
 from .smart_filters import SmartFilterManager
 from .workflow_engine import WorkflowEngine
-from src.plugins.plugin_manager import PluginManager
-from .gmail_service import GmailAIService
 
-if TYPE_CHECKING:
-    from .model_manager import ModelManager
-    from .ai_engine import AdvancedAIEngine
-    from .smart_filters import SmartFilterManager
-    from .workflow_engine import WorkflowEngine
-    from src.plugins.plugin_manager import PluginManager
-    from .gmail_service import GmailAIService
+try:
+    from src.core.plugin_manager import PluginManager
+except ImportError:
+    # Fallback or mock if needed
+    PluginManager = None  # type: ignore
+
+try:
+    from src.backend.python_nlp.gmail_service import GmailAIService
+except ImportError:
+    # Fallback to local if available
+    try:
+        from .gmail_service import GmailAIService
+    except ImportError:
+        GmailAIService = None  # type: ignore
 
 logger = logging.getLogger(__name__)
 
@@ -41,44 +44,14 @@ _plugin_manager_instance: Optional["PluginManager"] = None
 _gmail_service_instance: Optional["GmailAIService"] = None
 
 
-# Dependency functions for services
-async def get_email_service() -> AsyncGenerator[EmailService, None]:
-    """Provides an EmailService instance"""
-    service = EmailService()
-    try:
-        yield service
-    finally:
-        # Perform any cleanup if needed
-        pass
-
-
-async def get_category_service() -> AsyncGenerator[CategoryService, None]:
-    """Provides a CategoryService instance"""
-    service = CategoryService()
-    try:
-        yield service
-    finally:
-        # Perform any cleanup if needed
-        pass
-
-
-# For backward compatibility with existing code
-async def get_database():
-    """Provides database instance (for existing code that uses direct database access)"""
-    db = await get_db()
-    return db
+# Initial implementations removed to avoid conflicts with singleton accessors below.
+# The singleton pattern accessors defined later in this file are the correct ones to use.
 
 
 async def initialize_services():
     """Initialize all singleton services. This should be called on application startup."""
-    global \
-        _model_manager_instance, \
-        _ai_engine_instance, \
-        _filter_manager_instance, \
-        _workflow_engine_instance, \
-        _plugin_manager_instance, \
-        _gmail_service_instance
 
+    global _model_manager_instance, _ai_engine_instance, _filter_manager_instance, _workflow_engine_instance, _plugin_manager_instance, _gmail_service_instance
     db = await get_db()
 
     # Initialize core managers first
@@ -96,27 +69,31 @@ async def initialize_services():
     if _workflow_engine_instance is None:
         _workflow_engine_instance = WorkflowEngine()
         await _workflow_engine_instance.discover_workflows(
-            ai_engine=_ai_engine_instance,
-            filter_manager=_filter_manager_instance,
-            db=db,
+            ai_engine=_ai_engine_instance, filter_manager=_filter_manager_instance, db=db
         )
 
     # Initialize Plugin Manager, which may need other managers
     if _plugin_manager_instance is None:
-        _plugin_manager_instance = PluginManager()
-        _plugin_manager_instance.discover_and_load_plugins(
-            model_manager=_model_manager_instance,
-            workflow_engine=_workflow_engine_instance,
-            ai_engine=_ai_engine_instance,
-            filter_manager=_filter_manager_instance,
-            db=db,
-        )
+        if PluginManager:
+            _plugin_manager_instance = PluginManager()
+            _plugin_manager_instance.discover_and_load_plugins(
+                model_manager=_model_manager_instance,
+                workflow_engine=_workflow_engine_instance,
+                ai_engine=_ai_engine_instance,
+                filter_manager=_filter_manager_instance,
+                db=db,
+            )
+        else:
+            logger.warning("PluginManager not available, plugins will not be loaded.")
 
     # Initialize services that depend on the core managers
     if _gmail_service_instance is None:
-        _gmail_service_instance = GmailAIService(
-            db_manager=db, advanced_ai_engine=_ai_engine_instance
-        )
+        if GmailAIService:
+            _gmail_service_instance = GmailAIService(
+                db_manager=db, advanced_ai_engine=_ai_engine_instance
+            )
+        else:
+            logger.warning("GmailAIService not available, Gmail integration will be disabled.")
 
 
 def get_model_manager() -> "ModelManager":
@@ -156,6 +133,8 @@ def get_plugin_manager() -> "PluginManager":
     """Dependency injector for PluginManager."""
     global _plugin_manager_instance
     if _plugin_manager_instance is None:
+        if not PluginManager:
+            raise ImportError("PluginManager module is not available. Ensure required dependencies are installed.")
         _plugin_manager_instance = PluginManager()
         _plugin_manager_instance.discover_and_load_plugins()
     return _plugin_manager_instance
@@ -175,8 +154,25 @@ def get_gmail_service(
     """Dependency injector for GmailAIService."""
     global _gmail_service_instance
     if _gmail_service_instance is None:
+        if not GmailAIService:
+            raise ImportError("GmailAIService module is not available. Ensure required dependencies are installed.")
         ai_engine = get_ai_engine()
-        _gmail_service_instance = GmailAIService(
-            db_manager=db, advanced_ai_engine=ai_engine
-        )
+        _gmail_service_instance = GmailAIService(db_manager=db, advanced_ai_engine=ai_engine)
     return _gmail_service_instance
+
+
+async def get_email_service() -> "EmailService":
+    """Provides an EmailService instance"""
+    return EmailService()
+
+
+async def get_category_service() -> "CategoryService":
+    """Provides a CategoryService instance"""
+    return CategoryService()
+
+
+async def get_database():
+    """Provides database instance (for existing code that uses direct database access)"""
+    global _model_manager_instance, _ai_engine_instance, _filter_manager_instance, _workflow_engine_instance, _plugin_manager_instance, _gmail_service_instance
+    db = await get_db()
+    return db
