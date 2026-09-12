@@ -51,7 +51,7 @@ from setup.project_config import get_project_config
 try:
     from setup.commands.command_factory import get_command_factory
     from setup.container import get_container, initialize_all_services
-except ImportError as e:
+except ImportError:
     # Command pattern not available, will use legacy mode
     get_command_factory = None
     get_container = None
