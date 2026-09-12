@@ -199,8 +199,8 @@ class SecurityHeadersMiddleware:
             "X-Content-Type-Options": "nosniff",
             "X-Frame-Options": "DENY",
             "X-XSS-Protection": "1; mode=block",
-            "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
-            "Content-Security-Policy": "default-src 'self'",
+            "Strict-Transport-Security": "max-age=31536000; includeSubDomains; preload",
+            "Content-Security-Policy": "default-src 'self'; frame-ancestors 'none'; form-action 'self'",
             "Referrer-Policy": "strict-origin-when-cross-origin",
             "Permissions-Policy": "geolocation=(), microphone=(), camera=()",
         }
@@ -216,6 +216,12 @@ class SecurityHeadersMiddleware:
                 # Add security headers
                 for header_name, header_value in self.security_headers.items():
                     headers.append([header_name.encode(), header_value.encode()])
+
+                # Add cache control for sensitive endpoints (API routes)
+                if scope.get("path", "").startswith("/api/"):
+                    headers.append([b"Cache-Control", b"no-store, max-age=0, must-revalidate"])
+                    headers.append([b"Pragma", b"no-cache"])
+
                 message["headers"] = headers
 
             await send(message)

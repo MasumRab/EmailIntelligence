@@ -6,7 +6,6 @@ This module defines the base Command interface that all commands should implemen
 
 from abc import ABC, abstractmethod
 from argparse import Namespace
-from typing import Optional
 
 
 class Command(ABC):

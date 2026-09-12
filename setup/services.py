@@ -86,7 +86,7 @@ def install_nodejs_dependencies(directory: str, update: bool = False) -> bool:
             logger.error(f"Failed to install Node.js dependencies in {directory}: {result.stderr}")
             return False
     except Exception as e:
-        logger.error(f"Error installing Node.js dependencies: {e}")
+        logger.error("Error installing Node.js dependencies", exc_info=e)
         return False
 
 
@@ -116,7 +116,7 @@ def start_client():
         from setup.utils import process_manager
         process_manager.add_process(process)
     except Exception as e:
-        logger.error(f"Failed to start client: {e}")
+        logger.error("Failed to start client", exc_info=e)
 
 
 def start_server_ts():
@@ -145,7 +145,7 @@ def start_server_ts():
         from setup.utils import process_manager
         process_manager.add_process(process)
     except Exception as e:
-        logger.error(f"Failed to start TypeScript backend: {e}")
+        logger.error("Failed to start TypeScript backend", exc_info=e)
 
 
 def get_python_executable() -> str:
@@ -172,7 +172,7 @@ def start_backend(host: str, port: int, debug: bool = False):
 
     # Sanitize host parameter to prevent command injection
     import re
-    if not re.match(r"^[a-zA-Z0-9.-]+$", host):
+    if not re.match(r'^[a-zA-Z0-9.-]+$', host):
         logger.error(f"Invalid host parameter: {host}")
         return
 
@@ -221,7 +221,7 @@ def start_node_service(service_path: Path, service_name: str, port: int, api_url
         else:
             logger.error(f"No package.json found for {service_name}")
     except Exception as e:
-        logger.error(f"Failed to start {service_name}: {e}")
+        logger.error(f"Failed to start {service_name}", exc_info=e)
 
 
 def setup_node_dependencies(service_path: Path, service_name: str):
@@ -250,7 +250,7 @@ def setup_node_dependencies(service_path: Path, service_name: str):
             else:
                 logger.error(f"Failed to install dependencies for {service_name}: {result.stderr}")
         except Exception as e:
-            logger.error(f"Error installing dependencies for {service_name}: {e}")
+            logger.error(f"Error installing dependencies for {service_name}", exc_info=e)
 
 
 def start_gradio_ui(host, port, share, debug):
@@ -284,7 +284,7 @@ def start_gradio_ui(host, port, share, debug):
         from setup.utils import process_manager
         process_manager.add_process(process)
     except Exception as e:
-        logger.error(f"Failed to start Gradio UI: {e}")
+        logger.error("Failed to start Gradio UI", exc_info=e)
 
 
 def validate_services() -> Dict[str, bool]:
@@ -344,7 +344,9 @@ def start_services(args):
 
         # Start frontend if configured and available
         if available_services.get("frontend", False):
+            frontend_config = config.get_service_config("frontend")
+            _ = frontend_config
             frontend_path = config.get_service_path("frontend")
             start_node_service(frontend_path, "Frontend Client", args.frontend_port, api_url)
 
-
+>>>>>>> main

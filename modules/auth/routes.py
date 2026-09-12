@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
-class UserLogin(BaseModel):
+class UserLogin(BaseModel):  # noqa: F811
     username: str
     password: str
 
@@ -33,7 +33,7 @@ class UserCreate(BaseModel):
     permissions: Optional[List[str]] = []
 
 
-class UserLogin(BaseModel):
+class UserLogin(BaseModel):  # noqa: F811
     username: str
     password: str
     mfa_token: Optional[str] = None
