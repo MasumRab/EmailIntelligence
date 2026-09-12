@@ -656,7 +656,12 @@ def create_app():
     )
 
     # Add comprehensive security middleware
-    app.add_middleware(SecurityMiddleware)
+    app.add_middleware(
+        SecurityMiddleware,
+        enable_rate_limiting=True,
+        enable_audit_logging=True,
+        enable_performance_monitoring=True,
+    )
     app.add_middleware(SecurityHeadersMiddleware)
 
     # Add security headers middleware (additional layer)

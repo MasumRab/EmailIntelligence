@@ -149,6 +149,7 @@ class BackendClient:
         try:
             file_path = self._resolve_key_path(key)
             if file_path is None:
+                logger.error(f"Invalid key format for persistence: {key}")
                 return False
 
             # Atomic write: create temp file in trusted DATA_DIR, then replace destination
