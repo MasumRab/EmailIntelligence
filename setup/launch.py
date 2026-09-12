@@ -344,7 +344,7 @@ def run_command(cmd: list[str], description: str, **kwargs) -> bool:
             proc = subprocess.run(["npm", *args], check=True, text=True, capture_output=True, shell=False, **kwargs)  # NOSONAR
         elif "python" in executable or "python3" in executable:
             # sourcery skip: command-injection
-            proc = subprocess.run(["python3", *args], check=True, text=True, capture_output=True, shell=False, **kwargs)  # NOSONAR
+            proc = subprocess.run([sys.executable, *args], check=True, text=True, capture_output=True, shell=False, **kwargs)  # NOSONAR
         elif "pytest" in executable:
             # sourcery skip: command-injection
             proc = subprocess.run(["pytest", *args], check=True, text=True, capture_output=True, shell=False, **kwargs)  # NOSONAR
@@ -518,9 +518,10 @@ except Exception as e:
 def check_uvicorn_installed() -> bool:
     """Check if uvicorn is installed."""
     try:
+        python_exe = get_python_executable()
         # sourcery skip: command-injection
         result = subprocess.run(
-            ["python3", "-c", "import uvicorn"], capture_output=True, text=True, shell=False
+            [python_exe, "-c", "import uvicorn"], capture_output=True, text=True, shell=False
         )  # NOSONAR
         if result.returncode == 0:
             logger.info("uvicorn is available.")
@@ -614,7 +615,7 @@ def start_backend(host: str, port: int, debug: bool = False):
     args = cmd[1:]
     if "python" in executable or "python3" in executable:
         # sourcery skip: command-injection
-        process = subprocess.Popen(["python3", *args], cwd=ROOT_DIR, shell=False)  # NOSONAR
+        process = subprocess.Popen([sys.executable, *args], cwd=ROOT_DIR, shell=False)  # NOSONAR
     else:
         # sourcery skip: command-injection
         process = subprocess.Popen([executable, *args], cwd=ROOT_DIR, shell=False)  # NOSONAR
@@ -663,7 +664,7 @@ def start_gradio_ui(host, port, share, debug):
     args = cmd[1:]
     if "python" in executable or "python3" in executable:
         # sourcery skip: command-injection
-        process = subprocess.Popen(["python3", *args], cwd=ROOT_DIR, env=env, shell=False)  # NOSONAR
+        process = subprocess.Popen([sys.executable, *args], cwd=ROOT_DIR, env=env, shell=False)  # NOSONAR
     else:
         # sourcery skip: command-injection
         process = subprocess.Popen([executable, *args], cwd=ROOT_DIR, env=env, shell=False)  # NOSONAR
