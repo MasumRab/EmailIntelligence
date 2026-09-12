@@ -7,6 +7,7 @@ This module implements JWT-based authentication for API endpoints and integrates
 import logging
 from datetime import datetime, timedelta
 from typing import Optional, Dict, Any, List
+import argon2
 import time
 import secrets
 from argon2 import PasswordHasher
@@ -31,7 +32,7 @@ class TokenData(BaseModel):
     role: Optional[str] = "user"
 
 
-from enum import Enum
+from enum import Enum  # noqa: E402  # noqa: E402
 
 
 class UserRole(str, Enum):
