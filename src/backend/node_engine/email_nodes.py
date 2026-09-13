@@ -30,7 +30,9 @@ class NLPEngine:
         sentiment = (
             "positive"
             if any(w in text for w in ["good", "great", "excellent", "thank"])
-            else "negative" if any(w in text for w in ["bad", "terrible", "problem"]) else "neutral"
+            else "negative"
+            if any(w in text for w in ["bad", "terrible", "problem"])
+            else "neutral"
         )
 
         # Simple topic analysis
@@ -97,13 +99,20 @@ class EmailSourceNode(BaseNode):
     Node that sources emails from various providers (Gmail, etc.).
     """
 
-    def __init__(self, config: Dict[str, Any] = None, node_id: str = None, name: str = None):
-        super().__init__(node_id, name or "Email Source", "Sources emails from email provider")
+    def __init__(
+        self, config: Dict[str, Any] = None, node_id: str = None, name: str = None
+    ):
+        super().__init__(
+            node_id, name or "Email Source", "Sources emails from email provider"
+        )
         self.config = config or {}
         self.input_ports = []
         self.output_ports = [
             NodePort(
-                "emails", DataType.EMAIL_LIST, required=True, description="List of retrieved emails"
+                "emails",
+                DataType.EMAIL_LIST,
+                required=True,
+                description="List of retrieved emails",
             ),
             NodePort(
                 "status",
@@ -166,8 +175,12 @@ class PreprocessingNode(BaseNode):
     Node that preprocesses email data (cleaning, normalization, etc.).
     """
 
-    def __init__(self, config: Dict[str, Any] = None, node_id: str = None, name: str = None):
-        super().__init__(node_id, name or "Email Preprocessor", "Preprocesses email data")
+    def __init__(
+        self, config: Dict[str, Any] = None, node_id: str = None, name: str = None
+    ):
+        super().__init__(
+            node_id, name or "Email Preprocessor", "Preprocesses email data"
+        )
         self.config = config or {}
         self.input_ports = [
             NodePort(
@@ -185,7 +198,10 @@ class PreprocessingNode(BaseNode):
                 description="List of preprocessed emails",
             ),
             NodePort(
-                "stats", DataType.JSON, required=True, description="Statistics about preprocessing"
+                "stats",
+                DataType.JSON,
+                required=True,
+                description="Statistics about preprocessing",
             ),
         ]
 
@@ -263,8 +279,12 @@ class AIAnalysisNode(BaseNode):
     Node that performs AI analysis on emails (sentiment, topic, intent, etc.).
     """
 
-    def __init__(self, config: Dict[str, Any] = None, node_id: str = None, name: str = None):
-        super().__init__(node_id, name or "AI Analyzer", "Performs AI analysis on emails")
+    def __init__(
+        self, config: Dict[str, Any] = None, node_id: str = None, name: str = None
+    ):
+        super().__init__(
+            node_id, name or "AI Analyzer", "Performs AI analysis on emails"
+        )
         self.config = config or {}
         self.nlp_engine = NLPEngine()
         self.input_ports = [
@@ -283,7 +303,10 @@ class AIAnalysisNode(BaseNode):
                 description="AI analysis results for each email",
             ),
             NodePort(
-                "summary", DataType.JSON, required=True, description="Summary of the analysis"
+                "summary",
+                DataType.JSON,
+                required=True,
+                description="Summary of the analysis",
             ),
         ]
 
@@ -295,7 +318,10 @@ class AIAnalysisNode(BaseNode):
             if not input_emails:
                 return {
                     "analysis_results": [],
-                    "summary": {"analyzed_count": 0, "timestamp": datetime.now().isoformat()},
+                    "summary": {
+                        "analyzed_count": 0,
+                        "timestamp": datetime.now().isoformat(),
+                    },
                 }
 
             results = []
@@ -308,7 +334,10 @@ class AIAnalysisNode(BaseNode):
                 analysis = self.nlp_engine.analyze_email(subject, content)
                 results.append({"email_id": email.get("id"), "analysis": analysis})
 
-            summary = {"analyzed_count": len(results), "timestamp": datetime.now().isoformat()}
+            summary = {
+                "analyzed_count": len(results),
+                "timestamp": datetime.now().isoformat(),
+            }
 
             return {"analysis_results": results, "summary": summary}
         except Exception as e:
@@ -328,12 +357,19 @@ class FilterNode(BaseNode):
     Node that applies filtering rules to emails.
     """
 
-    def __init__(self, config: Dict[str, Any] = None, node_id: str = None, name: str = None):
-        super().__init__(node_id, name or "Email Filter", "Filters emails based on criteria")
+    def __init__(
+        self, config: Dict[str, Any] = None, node_id: str = None, name: str = None
+    ):
+        super().__init__(
+            node_id, name or "Email Filter", "Filters emails based on criteria"
+        )
         self.config = config or {}
         self.input_ports = [
             NodePort(
-                "emails", DataType.EMAIL_LIST, required=True, description="List of emails to filter"
+                "emails",
+                DataType.EMAIL_LIST,
+                required=True,
+                description="List of emails to filter",
             ),
             NodePort(
                 "criteria",
@@ -355,7 +391,12 @@ class FilterNode(BaseNode):
                 required=True,
                 description="Emails that didn't match criteria",
             ),
-            NodePort("stats", DataType.JSON, required=True, description="Filtering statistics"),
+            NodePort(
+                "stats",
+                DataType.JSON,
+                required=True,
+                description="Filtering statistics",
+            ),
         ]
 
     async def execute(self, context: ExecutionContext) -> Dict[str, Any]:
@@ -406,7 +447,9 @@ class FilterNode(BaseNode):
                 },
             }
 
-    def _matches_criteria(self, email: Dict[str, Any], criteria: Dict[str, Any]) -> bool:
+    def _matches_criteria(
+        self, email: Dict[str, Any], criteria: Dict[str, Any]
+    ) -> bool:
         """Check if an email matches the filtering criteria."""
         # If no criteria provided, pass everything through
         if not criteria:
@@ -425,7 +468,9 @@ class FilterNode(BaseNode):
         email_date = None
         if timestamp_str:
             try:
-                email_date = datetime.fromisoformat(timestamp_str.replace("Z", "+00:00"))
+                email_date = datetime.fromisoformat(
+                    timestamp_str.replace("Z", "+00:00")
+                )
             except ValueError:
                 pass  # If timestamp format is invalid, keep email_date as None
 
@@ -459,31 +504,47 @@ class FilterNode(BaseNode):
         required_recipients = criteria.get("required_recipients", [])
         excluded_recipients = criteria.get("excluded_recipients", [])
 
-        if required_recipients and not any(r.lower() in recipients for r in required_recipients):
+        if required_recipients and not any(
+            r.lower() in recipients for r in required_recipients
+        ):
             return False
 
-        if excluded_recipients and any(r.lower() in recipients for r in excluded_recipients):
+        if excluded_recipients and any(
+            r.lower() in recipients for r in excluded_recipients
+        ):
             return False
 
         # 4. Category-based filtering
-        required_categories = [cat.lower() for cat in criteria.get("required_categories", [])]
-        excluded_categories = [cat.lower() for cat in criteria.get("excluded_categories", [])]
+        required_categories = [
+            cat.lower() for cat in criteria.get("required_categories", [])
+        ]
+        excluded_categories = [
+            cat.lower() for cat in criteria.get("excluded_categories", [])
+        ]
 
-        if required_categories and not any(cat.lower() in category for cat in required_categories):
+        if required_categories and not any(
+            cat.lower() in category for cat in required_categories
+        ):
             return False
 
-        if excluded_categories and any(cat.lower() in category for cat in excluded_categories):
+        if excluded_categories and any(
+            cat.lower() in category for cat in excluded_categories
+        ):
             return False
 
         # 5. Date/time-based filtering
         date_criteria = criteria.get("date_criteria", {})
         if date_criteria and email_date:
             if "after" in date_criteria:
-                after_date = datetime.fromisoformat(date_criteria["after"].replace("Z", "+00:00"))
+                after_date = datetime.fromisoformat(
+                    date_criteria["after"].replace("Z", "+00:00")
+                )
                 if email_date < after_date:
                     return False
             if "before" in date_criteria:
-                before_date = datetime.fromisoformat(date_criteria["before"].replace("Z", "+00:00"))
+                before_date = datetime.fromisoformat(
+                    date_criteria["before"].replace("Z", "+00:00")
+                )
                 if email_date > before_date:
                     return False
 
@@ -539,7 +600,9 @@ class FilterNode(BaseNode):
         # Default: if all conditions pass, return True
         return True
 
-    def _evaluate_condition(self, email: Dict[str, Any], condition: Dict[str, Any]) -> bool:
+    def _evaluate_condition(
+        self, email: Dict[str, Any], condition: Dict[str, Any]
+    ) -> bool:
         """Evaluate a single boolean condition against an email."""
         # This is a helper for the boolean logic implementation
         # It checks individual conditions within complex boolean operations
@@ -566,8 +629,12 @@ class ActionNode(BaseNode):
     Node that executes actions on emails (move, label, forward, etc.).
     """
 
-    def __init__(self, config: Dict[str, Any] = None, node_id: str = None, name: str = None):
-        super().__init__(node_id, name or "Action Executor", "Executes actions on emails")
+    def __init__(
+        self, config: Dict[str, Any] = None, node_id: str = None, name: str = None
+    ):
+        super().__init__(
+            node_id, name or "Action Executor", "Executes actions on emails"
+        )
         self.config = config or {}
         self.input_ports = [
             NodePort(
@@ -577,7 +644,10 @@ class ActionNode(BaseNode):
                 description="List of emails to act upon",
             ),
             NodePort(
-                "actions", DataType.JSON, required=True, description="Actions to perform on emails"
+                "actions",
+                DataType.JSON,
+                required=True,
+                description="Actions to perform on emails",
             ),
         ]
         self.output_ports = [
@@ -588,7 +658,10 @@ class ActionNode(BaseNode):
                 description="Results of the actions performed",
             ),
             NodePort(
-                "status", DataType.JSON, required=True, description="Status of action execution"
+                "status",
+                DataType.JSON,
+                required=True,
+                description="Status of action execution",
             ),
         ]
 

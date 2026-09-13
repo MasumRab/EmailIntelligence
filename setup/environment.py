@@ -125,7 +125,9 @@ def install_package_manager(venv_path: Path, manager: str):
         run_command([str(python_exe), "-m", "pip", "install", "uv"], "Installing uv")
     elif manager == "poetry":
         logger.info("Installing Poetry package manager...")
-        run_command([str(python_exe), "-m", "pip", "install", "poetry"], "Installing Poetry")
+        run_command(
+            [str(python_exe), "-m", "pip", "install", "poetry"], "Installing Poetry"
+        )
 
 
 def setup_dependencies(venv_path: Path, use_poetry: bool = False):
@@ -135,9 +137,13 @@ def setup_dependencies(venv_path: Path, use_poetry: bool = False):
     if use_poetry:
         # For poetry, we need to install it first if not available
         try:
-            subprocess.run([python_exe, "-c", "import poetry"], check=True, capture_output=True)
+            subprocess.run(
+                [python_exe, "-c", "import poetry"], check=True, capture_output=True
+            )
         except subprocess.CalledProcessError:
-            run_command([python_exe, "-m", "pip", "install", "poetry"], "Installing Poetry")
+            run_command(
+                [python_exe, "-m", "pip", "install", "poetry"], "Installing Poetry"
+            )
 
         run_command(
             [python_exe, "-m", "poetry", "install", "--with", "dev"],
@@ -147,7 +153,9 @@ def setup_dependencies(venv_path: Path, use_poetry: bool = False):
     else:
         # For uv, install if not available
         try:
-            subprocess.run([python_exe, "-c", "import uv"], check=True, capture_output=True)
+            subprocess.run(
+                [python_exe, "-c", "import uv"], check=True, capture_output=True
+            )
         except subprocess.CalledProcessError:
             run_command([python_exe, "-m", "pip", "install", "uv"], "Installing uv")
 
@@ -201,7 +209,9 @@ def install_environment_specific_requirements(python_exe: str):
         # Check for CUDA availability (simple check)
         result = subprocess.run(
             [python_exe, "-c", "import torch; print(torch.cuda.is_available())"],
-            capture_output=True, text=True, timeout=10
+            capture_output=True,
+            text=True,
+            timeout=10,
         )
         has_cuda = result.stdout.strip() == "True"
         if has_cuda:
@@ -210,7 +220,9 @@ def install_environment_specific_requirements(python_exe: str):
             requirements_files.append("requirements-cpu.txt")
     except (subprocess.CalledProcessError, subprocess.TimeoutExpired):
         # If torch check fails, default to CPU
-        logger.info("Could not detect CUDA availability, defaulting to CPU requirements")
+        logger.info(
+            "Could not detect CUDA availability, defaulting to CPU requirements"
+        )
         requirements_files.append("requirements-cpu.txt")
 
     # Install each requirements file if it exists
@@ -224,19 +236,30 @@ def install_environment_specific_requirements(python_exe: str):
                 cwd=ROOT_DIR,
             )
         else:
-            logger.debug(f"Environment-specific requirements file {req_file} not found, skipping")
+            logger.debug(
+                f"Environment-specific requirements file {req_file} not found, skipping"
+            )
 
 
 def download_nltk_data(venv_path=None):
     """Download NLTK data required by the application."""
-    python_exe = get_python_executable() if venv_path is None else get_venv_executable(venv_path, "python")
+    python_exe = (
+        get_python_executable()
+        if venv_path is None
+        else get_venv_executable(venv_path, "python")
+    )
 
     logger.info("Downloading NLTK data...")
     try:
-        result = subprocess.run([
-            python_exe, "-c",
-            "import nltk; nltk.download('punkt'); nltk.download('stopwords')"
-        ], capture_output=True, text=True)
+        result = subprocess.run(
+            [
+                python_exe,
+                "-c",
+                "import nltk; nltk.download('punkt'); nltk.download('stopwords')",
+            ],
+            capture_output=True,
+            text=True,
+        )
 
         if result.returncode == 0:
             logger.info("NLTK data downloaded successfully")
@@ -253,7 +276,9 @@ def handle_setup(args, venv_path):
     if args.use_conda:
         # For Conda, we assume the environment is already set up
         # Could add Conda environment creation here in the future
-        logger.info("Using Conda environment - assuming dependencies are already installed")
+        logger.info(
+            "Using Conda environment - assuming dependencies are already installed"
+        )
     else:
         # Use venv
         create_venv(venv_path, args.force_recreate_venv)
@@ -269,12 +294,14 @@ def handle_setup(args, venv_path):
         frontend_path = config.get_service_path("frontend")
         if frontend_path and frontend_path.exists():
             from setup.services import setup_node_dependencies
+
             setup_node_dependencies(frontend_path, "Frontend Client")
 
         # Setup TypeScript backend dependencies
         ts_backend_path = config.get_service_path("typescript_backend")
         if ts_backend_path and ts_backend_path.exists():
             from setup.services import setup_node_dependencies
+
             setup_node_dependencies(ts_backend_path, "TypeScript Backend")
 
     logger.info("Setup complete.")
@@ -285,6 +312,7 @@ def prepare_environment(args):
     if not args.no_venv:
         # Try conda first
         from setup.utils import activate_conda_env
+
         if not activate_conda_env():
             # Fall back to venv setup
             handle_setup(args, ROOT_DIR / "venv")

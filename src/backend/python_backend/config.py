@@ -17,7 +17,9 @@ class Settings(BaseSettings):
     These settings are loaded from environment variables or a .env file.
     """
 
-    DATA_DIR: Path = Path("backend/data")  # Default, can be overridden by DATA_DIR env var
+    DATA_DIR: Path = Path(
+        "backend/data"
+    )  # Default, can be overridden by DATA_DIR env var
 
     @property
     def EMAILS_FILE(self) -> Path:

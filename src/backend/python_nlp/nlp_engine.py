@@ -6,7 +6,6 @@ This module provides advanced natural language processing capabilities with mult
 and validation for analyzing email content.
 """
 
-
 import argparse
 import json
 import logging
@@ -49,8 +48,25 @@ except ImportError:
 
 
 # Configure logging
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
 logger = logging.getLogger(__name__)
+
+# Shared sentiment word lists used by multiple fallback methods
+_POSITIVE_WORDS = frozenset(
+    {"good", "great", "excellent", "thank", "please", "welcome", "happy", "love"}
+)
+_NEGATIVE_WORDS = frozenset(
+    {"bad", "terrible", "problem", "issue", "error", "failed", "hate", "angry"}
+)
+_URGENT_WORDS = frozenset(
+    {"urgent", "asap", "immediately", "critical", "emergency", "deadline"}
+)
+_WORK_WORDS = frozenset(
+    {"meeting", "project", "deadline", "work", "office", "business"}
+)
+_PERSONAL_WORDS = frozenset({"family", "friend", "personal", "home", "birthday"})
 
 
 def clean_text(text: str) -> str:
@@ -83,47 +99,70 @@ class NLPEngine:
 
     CATEGORY_PATTERNS = {
         "Work & Business": [
-            r"\b(meeting|conference|project|deadline|client|presentation|report|proposal|budget|team|"
-            r"colleague|office|work|business|professional|corporate|company|organization)",
-            r"\b(employee|staff|manager|supervisor|director|executive|department|division|"
-            r"quarterly|annual|monthly|weekly|daily)\b",
+            (
+                r"\b(meeting|conference|project|deadline|client|presentation|report|proposal|budget|team|"
+                r"colleague|office|work|business|professional|corporate|company|organization)"
+            ),
+            (
+                r"\b(employee|staff|manager|supervisor|director|executive|department|division|"
+                r"quarterly|annual|monthly|weekly|daily)\b"
+            ),
         ],
         "Finance & Banking": [
-            r"\b(bank|payment|transaction|invoice|bill|statement|account|credit|debit|transfer|"
-            r"money|financial|insurance|investment|loan|mortgage)\b",
+            (
+                r"\b(bank|payment|transaction|invoice|bill|statement|account|credit|debit|transfer|"
+                r"money|financial|insurance|investment|loan|mortgage)\b"
+            ),
             r"\$[\d,]+|\b\d+\s?(dollars?|USD|EUR|GBP)\b",
             r"\b(tax|taxes|irs|refund|audit|accountant|bookkeeping|overdraft|bankruptcy)\b",
         ],
         "Healthcare": [
-            r"\b(doctor|medical|health|hospital|clinic|appointment|prescription|medicine|"
-            r"treatment|therapy|checkup|surgery|dental|pharmacy)\b",
-            r"\b(symptoms|diagnosis|patient|specialist|emergency|ambulance|insurance|"
-            r"medicare|medicaid|covid|coronavirus|vaccine)\b",
+            (
+                r"\b(doctor|medical|health|hospital|clinic|appointment|prescription|medicine|"
+                r"treatment|therapy|checkup|surgery|dental|pharmacy)\b"
+            ),
+            (
+                r"\b(symptoms|diagnosis|patient|specialist|emergency|ambulance|insurance|"
+                r"medicare|medicaid|covid|coronavirus|vaccine)\b"
+            ),
         ],
         "Personal & Family": [
-            r"\b(family|personal|friend|birthday|anniversary|vacation|holiday|weekend|"
-            r"dinner|lunch|home|house|kids|children)\b",
-            r"\b(mom|dad|mother|father|sister|brother|grandma|grandpa|wedding|"
-            r"graduation|baby|party|celebration)\b",
+            (
+                r"\b(family|personal|friend|birthday|anniversary|vacation|holiday|weekend|"
+                r"dinner|lunch|home|house|kids|children)\b"
+            ),
+            (
+                r"\b(mom|dad|mother|father|sister|brother|grandma|grandpa|wedding|"
+                r"graduation|baby|party|celebration)\b"
+            ),
         ],
         "Travel": [
-            r"\b(travel|flight|hotel|booking|reservation|trip|vacation|destination|"
-            r"airport|airline|passport|visa|itinerary)\b",
-            r"\b(departure|arrival|check-in|luggage|baggage|cruise|resort|tour|"
-            r"tickets|confirmation)\b",
+            (
+                r"\b(travel|flight|hotel|booking|reservation|trip|vacation|destination|"
+                r"airport|airline|passport|visa|itinerary)\b"
+            ),
+            (
+                r"\b(departure|arrival|check-in|luggage|baggage|cruise|resort|tour|"
+                r"tickets|confirmation)\b"
+            ),
         ],
         "Technology": [
-            r"\b(software|hardware|computer|laptop|mobile|app|application|website|"
-            r"internet|email|password|account|login)\b",
-            r"\b(server|database|API|code|programming|development|tech|technical|"
-            r"IT|support|troubleshoot|install)\b",
+            (
+                r"\b(software|hardware|computer|laptop|mobile|app|application|website|"
+                r"internet|email|password|account|login)\b"
+            ),
+            (
+                r"\b(server|database|API|code|programming|development|tech|technical|"
+                r"IT|support|troubleshoot|install)\b"
+            ),
         ],
     }
 
     def __init__(self):
         """Initializes the NLP engine and loads all necessary models and resources."""
         model_dir = os.getenv(
-            "NLP_MODEL_DIR", os.path.join(os.path.dirname(__file__), "..", "..", "models")
+            "NLP_MODEL_DIR",
+            os.path.join(os.path.dirname(__file__), "..", "..", "models"),
         )
         self.sentiment_model_path = os.path.join(model_dir, "sentiment")
         self.topic_model_path = os.path.join(model_dir, "topic")
@@ -145,10 +184,18 @@ class NLPEngine:
             self.stop_words = set()
 
         logger.info("Attempting to load NLP models...")
-        self.sentiment_analyzer = pipeline("sentiment-analysis", model=self.sentiment_model_path)
-        self.topic_analyzer = pipeline("text-classification", model=self.topic_model_path)
-        self.intent_analyzer = pipeline("text-classification", model=self.intent_model_path)
-        self.urgency_analyzer = pipeline("text-classification", model=self.urgency_model_path)
+        self.sentiment_analyzer = pipeline(
+            "sentiment-analysis", model=self.sentiment_model_path
+        )
+        self.topic_analyzer = pipeline(
+            "text-classification", model=self.topic_model_path
+        )
+        self.intent_analyzer = pipeline(
+            "text-classification", model=self.intent_model_path
+        )
+        self.urgency_analyzer = pipeline(
+            "text-classification", model=self.urgency_model_path
+        )
         self.importance_model = ImportanceModel()
 
     def initialize_patterns(self):
@@ -173,7 +220,9 @@ class NLPEngine:
         try:
             if os.path.exists(model_path):
                 if not verify_model_safety(model_path, expected_hash):
-                    logger.error(f"Security: Model path or signature validation failed for {model_path}")
+                    logger.error(
+                        f"Security: Model path or signature validation failed for {model_path}"
+                    )
                     return None
                 import joblib
 
@@ -181,7 +230,9 @@ class NLPEngine:
                 logger.info(f"Successfully loaded model from {model_path}")
                 return model
 
-            logger.warning(f"Model file not found at {model_path}. This model will be unavailable.")
+            logger.warning(
+                f"Model file not found at {model_path}. This model will be unavailable."
+            )
             return None
         except Exception as e:
             logger.error(f"Error loading model from {model_path}: {e}")
@@ -263,20 +314,9 @@ class NLPEngine:
         Analyze sentiment using keyword matching as a final fallback method.
         """
         text_lower = text.lower()
-        positive_words = [
-            "good",
-            "great",
-            "excellent",
-            "thank",
-            "please",
-            "welcome",
-            "happy",
-            "love",
-        ]
-        negative_words = ["bad", "terrible", "problem", "issue", "error", "failed", "hate", "angry"]
 
-        positive_count = sum(1 for word in positive_words if word in text_lower)
-        negative_count = sum(1 for word in negative_words if word in text_lower)
+        positive_count = sum(1 for word in _POSITIVE_WORDS if word in text_lower)
+        negative_count = sum(1 for word in _NEGATIVE_WORDS if word in text_lower)
 
         if positive_count > negative_count:
             sentiment_label = "positive"
@@ -313,7 +353,9 @@ class NLPEngine:
             logger.info("Sentiment analysis performed using TextBlob as fallback.")
             return analysis_result
 
-        logger.info("Sentiment analysis performed using keyword matching as final fallback.")
+        logger.info(
+            "Sentiment analysis performed using keyword matching as final fallback."
+        )
         return self._analyze_sentiment_keyword(text)
 
     def _analyze_topic_model(self, text: str) -> Optional[Dict[str, Any]]:
@@ -557,7 +599,9 @@ class NLPEngine:
         ):
             urgency_label = "high"
             confidence = 0.8
-        elif re.search(r"\b(when you can|next week|upcoming|planned|scheduled)\b", text_lower):
+        elif re.search(
+            r"\b(when you can|next week|upcoming|planned|scheduled)\b", text_lower
+        ):
             urgency_label = "medium"
             confidence = 0.6
         else:
@@ -636,7 +680,9 @@ class NLPEngine:
         # Extract important single words (not in stopwords and longer than 3 chars)
         words = blob.words
         important_words = [
-            word for word in words if len(word) > 3 and word.lower() not in self.stop_words
+            word
+            for word in words
+            if len(word) > 3 and word.lower() not in self.stop_words
         ]
 
         # Add top 10 important words
@@ -743,16 +789,21 @@ class NLPEngine:
 
         # Add topic reasoning if significant
         if topic and topic.get("topic") != "General":
-            parts.append(f"Identified topic: {topic['topic']}" f"{get_method_suffix(topic)}")
+            parts.append(
+                f"Identified topic: {topic['topic']}{get_method_suffix(topic)}"
+            )
 
         # Add intent reasoning if significant
         if intent and intent.get("intent") != "informational":
-            parts.append(f"Detected intent: {intent['intent']}" f"{get_method_suffix(intent)}")
+            parts.append(
+                f"Detected intent: {intent['intent']}{get_method_suffix(intent)}"
+            )
 
         # Add urgency reasoning if significant
         if urgency and urgency.get("urgency") != "low":
             parts.append(
-                f"Assessed urgency level: {urgency['urgency']}" f"{get_method_suffix(urgency)}"
+                f"Assessed urgency level: {urgency['urgency']}"
+                f"{get_method_suffix(urgency)}"
             )
 
         # Return default message if no significant insights
@@ -781,12 +832,16 @@ class NLPEngine:
             r"\b(free|winner|congratulations|claim|prize|lottery)\b",
             r"\b(click here|act now|limited time|exclusive offer)\b",
         ]
-        spam_score = sum(len(re.findall(pattern, text_lower)) for pattern in spam_patterns)
+        spam_score = sum(
+            len(re.findall(pattern, text_lower)) for pattern in spam_patterns
+        )
         if spam_score > 2:
             risk_flags.append("potential_spam")
 
         # Suspicious patterns
-        suspicious_patterns = [r"\b(confidential|private|secret|password|ssn|social security)\b"]
+        suspicious_patterns = [
+            r"\b(confidential|private|secret|password|ssn|social security)\b"
+        ]
         suspicious_score = sum(
             len(re.findall(pattern, text_lower)) for pattern in suspicious_patterns
         )
@@ -798,7 +853,9 @@ class NLPEngine:
     def _validate_analysis(self, analysis_results: Dict[str, Any]) -> Dict[str, Any]:
         """Validate the analysis results"""
         # Simple validation based on confidence levels
-        confidence = self._calculate_confidence([analysis_results[key] for key in analysis_results])
+        confidence = self._calculate_confidence(
+            [analysis_results[key] for key in analysis_results]
+        )
         is_reliable = confidence > 0.7
         if is_reliable:
             feedback = "Analysis completed with high confidence."
@@ -833,31 +890,14 @@ class NLPEngine:
             # "action_items": [], # Removed
         }
 
-    def _get_simple_fallback_analysis(self, subject: str, content: str) -> Dict[str, Any]:
+    def _get_simple_fallback_analysis(
+        self, subject: str, content: str
+    ) -> Dict[str, Any]:
         """Simple fallback analysis when NLTK is not available"""
         text = f"{subject} {content}".lower()
         # Basic sentiment analysis
-        positive_words = [
-            "good",
-            "great",
-            "excellent",
-            "thank",
-            "please",
-            "welcome",
-            "happy",
-        ]
-        negative_words = [
-            "bad",
-            "terrible",
-            "problem",
-            "issue",
-            "error",
-            "failed",
-            "urgent",
-        ]
-
-        positive_count = sum(1 for word in positive_words if word in text)
-        negative_count = sum(1 for word in negative_words if word in text)
+        positive_count = sum(1 for word in _POSITIVE_WORDS if word in text)
+        negative_count = sum(1 for word in _NEGATIVE_WORDS if word in text)
 
         if positive_count > negative_count:
             sentiment = "positive"
@@ -873,24 +913,13 @@ class NLPEngine:
             confidence_value = 0.5
 
         # Basic urgency detection
-        urgent_words = [
-            "urgent",
-            "asap",
-            "immediately",
-            "critical",
-            "emergency",
-            "deadline",
-        ]
-        urgency = "high" if any(word in text for word in urgent_words) else "low"
+        urgency = "high" if any(word in text for word in _URGENT_WORDS) else "low"
 
         # Basic categorization
-        work_words = ["meeting", "project", "deadline", "work", "office", "business"]
-        personal_words = ["family", "friend", "personal", "home", "birthday"]
-
-        if any(word in text for word in work_words):
+        if any(word in text for word in _WORK_WORDS):
             categories = ["Work & Business"]
             topic = "work_business"
-        elif any(word in text for word in personal_words):
+        elif any(word in text for word in _PERSONAL_WORDS):
             categories = ["Personal & Family"]
             topic = "personal_family"
         else:
@@ -943,9 +972,13 @@ class NLPEngine:
                         "action_phrase": action_phrase,
                         "verb": verb,
                         "object": obj.strip() if obj else None,
-                        "raw_due_date_text": due_date_text.strip() if due_date_text else None,
+                        "raw_due_date_text": due_date_text.strip()
+                        if due_date_text
+                        else None,
                         "context": text_lower[
-                            max(0, match.start() - 50) : min(len(text_lower), match.end() + 50)
+                            max(0, match.start() - 50) : min(
+                                len(text_lower), match.end() + 50
+                            )
                         ].strip(),
                     }
                 )
@@ -991,11 +1024,15 @@ class NLPEngine:
             # This method is regex-based, no model to load for it currently per its implementation
             logger.info("Detecting risk factors...")
             risk_analysis_flags = self._detect_risk_factors(cleaned_text)
-            logger.info(f"Risk factor detection completed. Flags: {risk_analysis_flags}")
+            logger.info(
+                f"Risk factor detection completed. Flags: {risk_analysis_flags}"
+            )
 
             # Extract keywords and entities
             logger.info("Extracting keywords...")
-            keywords = self._extract_keywords(cleaned_text)  # Uses TextBlob if available
+            keywords = self._extract_keywords(
+                cleaned_text
+            )  # Uses TextBlob if available
             logger.info(f"Keyword extraction completed. Keywords: {keywords}")
 
             logger.info("Categorizing content...")
@@ -1072,20 +1109,32 @@ class NLPEngine:
             "intent": intent_analysis,
             "urgency": urgency_analysis,
         }
-        validation_input_filtered = {k: v for k, v in validation_input.items() if v is not None}
+        validation_input_filtered = {
+            k: v for k, v in validation_input.items() if v is not None
+        }
         validation = self._validate_analysis(validation_input_filtered)
 
         # Determine default values for primary analysis fields
-        final_topic = topic_analysis.get("topic", "General") if topic_analysis else "General"
+        final_topic = (
+            topic_analysis.get("topic", "General") if topic_analysis else "General"
+        )
         final_sentiment = (
-            sentiment_analysis.get("sentiment", "neutral") if sentiment_analysis else "neutral"
+            sentiment_analysis.get("sentiment", "neutral")
+            if sentiment_analysis
+            else "neutral"
         )
         final_intent = (
-            intent_analysis.get("intent", "informational") if intent_analysis else "informational"
+            intent_analysis.get("intent", "informational")
+            if intent_analysis
+            else "informational"
         )
-        final_urgency = urgency_analysis.get("urgency", "low") if urgency_analysis else "low"
+        final_urgency = (
+            urgency_analysis.get("urgency", "low") if urgency_analysis else "low"
+        )
         final_is_important = (
-            importance_analysis.get("is_important", False) if importance_analysis else False
+            importance_analysis.get("is_important", False)
+            if importance_analysis
+            else False
         )
 
         suggested_labels = self._suggest_labels(categories, final_urgency)
@@ -1126,10 +1175,14 @@ def main():
     parser = argparse.ArgumentParser(
         description="Enhanced NLP Engine for Gmail AI Email Management"
     )
-    parser.add_argument("--analyze-email", action="store_true", help="Perform email analysis.")
+    parser.add_argument(
+        "--analyze-email", action="store_true", help="Perform email analysis."
+    )
     parser.add_argument("--subject", type=str, default="", help="Subject of the email.")
     parser.add_argument("--content", type=str, default="", help="Content of the email.")
-    parser.add_argument("--health-check", action="store_true", help="Perform a health check.")
+    parser.add_argument(
+        "--health-check", action="store_true", help="Perform a health check."
+    )
     parser.add_argument(
         "--output-format",
         type=str,
@@ -1146,7 +1199,9 @@ def main():
         sys.exit(0)
 
     if args.analyze_email:
-        _perform_email_analysis_cli(engine, args.subject, args.content, args.output_format)
+        _perform_email_analysis_cli(
+            engine, args.subject, args.content, args.output_format
+        )
         sys.exit(0)
 
     # Backward compatibility / Default behavior
@@ -1212,7 +1267,9 @@ def _perform_health_check(engine: NLPEngine, output_format: str):
         print(json.dumps(health_status, indent=2))
 
 
-def _perform_email_analysis_cli(engine: NLPEngine, subject: str, content: str, output_format: str):
+def _perform_email_analysis_cli(
+    engine: NLPEngine, subject: str, content: str, output_format: str
+):
     """Performs email analysis based on CLI arguments and prints the result."""
     if not subject and not content:
         # If called with --analyze-email but no subject/content, could be an error or expect empty analysis
@@ -1259,9 +1316,13 @@ def _handle_backward_compatible_cli_invocation(
         subject_old = argv[1]
         content_old = argv[2] if len(argv) > 2 else ""
 
-        logger.info("Processing with backward compatibility mode (positional arguments).")
+        logger.info(
+            "Processing with backward compatibility mode (positional arguments)."
+        )
         # Use the already defined _perform_email_analysis_cli for consistency in output
-        _perform_email_analysis_cli(engine, subject_old, content_old, args.output_format)
+        _perform_email_analysis_cli(
+            engine, subject_old, content_old, args.output_format
+        )
         return True
     return False
 

@@ -2,6 +2,7 @@ import unittest
 import os
 from backend.node_engine.security_manager import InputSanitizer
 
+
 class TestInputSanitizerEnhanced(unittest.TestCase):
     def test_sanitize_markdown(self):
         # Test basic markdown
@@ -53,7 +54,7 @@ class TestInputSanitizerEnhanced(unittest.TestCase):
         xxe = """<!DOCTYPE foo [<!ENTITY xxe SYSTEM "file:///etc/passwd">]><root>&xxe;</root>"""
         # Should raise ValueError (or subclass EntitiesForbidden/DTDForbidden)
         with self.assertRaises(ValueError):
-             InputSanitizer.sanitize_xml(xxe)
+            InputSanitizer.sanitize_xml(xxe)
 
     def test_sanitize_xml_schema(self):
         # Create a temporary schema
@@ -70,7 +71,8 @@ class TestInputSanitizerEnhanced(unittest.TestCase):
 </xs:schema>"""
 
         import tempfile
-        with tempfile.NamedTemporaryFile(mode='w', delete=False) as f:
+
+        with tempfile.NamedTemporaryFile(mode="w", delete=False) as f:
             f.write(schema_content)
             schema_path = f.name
 
@@ -79,7 +81,7 @@ class TestInputSanitizerEnhanced(unittest.TestCase):
             sanitized = InputSanitizer.sanitize_xml(valid_xml, schema_path=schema_path)
             self.assertTrue("note" in sanitized)
 
-            invalid_xml = "<note><to>Tove</to></note>" # Missing 'from'
+            invalid_xml = "<note><to>Tove</to></note>"  # Missing 'from'
             with self.assertRaises(ValueError) as cm:
                 InputSanitizer.sanitize_xml(invalid_xml, schema_path=schema_path)
             self.assertIn("XML validation failed", str(cm.exception))
@@ -87,5 +89,6 @@ class TestInputSanitizerEnhanced(unittest.TestCase):
         finally:
             os.unlink(schema_path)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

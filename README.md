@@ -43,13 +43,8 @@ Gradio UI (gradio_app.py)
 ├── 📧 Gmail Tab
 |   └── Calls POST /api/gmail/sync ──> Triggers Gmail synchronization
 |
-├── 🔬 AI Lab Tab (Advanced Tools)
-|   ├── Analysis Sub-Tab ──────────> Calls POST /api/ai/analyze
-|   └── Model Management Sub-Tab ────> Calls GET/POST /api/models/*
-|
-└── ⚙️ System Status Tab
-    ├── Calls GET /health ───────────> Displays system health
-    └── Calls GET /api/gmail/performance -> Displays performance metrics
+└── 📋 Strategies Tab
+    └── Calls GET /api/gmail/strategies -> Displays available retrieval strategies
 ```
 
 ## Prerequisites
@@ -640,3 +635,4 @@ For more detailed guides and specific component documentation, please refer to t
 - Attempts to override these nested `esbuild` versions to a non-vulnerable version (e.g., `^0.25.5`, which is used by other parts of this project like Vite) using npm's `overrides` feature in `package.json` were made. However, these overrides were not fully effective, with `npm list` indicating version incompatibilities for the overridden packages. `npm audit` continued to report the vulnerabilities.
 - These `esbuild` vulnerabilities cannot be fully remediated without an update to `drizzle-kit` itself that addresses its `esbuild` dependency requirements, particularly for the deprecated `@esbuild-kit/*` packages.
 - On a related note, `vite` and `@vitejs/plugin-react` were successfully updated to their latest compatible versions (`vite@6.3.5` and `@vitejs/plugin-react@4.5.2` respectively) during the audit process to address other potential issues and ensure compatibility.
+# Trigger CI

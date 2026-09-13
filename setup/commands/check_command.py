@@ -43,13 +43,16 @@ class CheckCommand(Command):
             int: Exit code (0 for success, non-zero for failure)
         """
         try:
-            from setup.validation import validate_orchestration_environment, check_critical_files
-            
+            from setup.validation import (
+                validate_orchestration_environment,
+                check_critical_files,
+            )
+
             logger.info("Running orchestration checks...")
 
             # Handle specific check types
             if self.args:
-                if hasattr(self.args, 'critical_files') and self.args.critical_files:
+                if hasattr(self.args, "critical_files") and self.args.critical_files:
                     # Check only critical files
                     success = check_critical_files()
                     if success:
@@ -58,7 +61,7 @@ class CheckCommand(Command):
                     else:
                         logger.error("Critical files check failed")
                         return 1
-                elif hasattr(self.args, 'env') and self.args.env:
+                elif hasattr(self.args, "env") and self.args.env:
                     # Check orchestration environment
                     success = validate_orchestration_environment()
                     if success:
@@ -67,10 +70,10 @@ class CheckCommand(Command):
                     else:
                         logger.error("Orchestration environment validation failed")
                         return 1
-            
+
             # Default: run all checks
             success = validate_orchestration_environment()
-            
+
             if success:
                 logger.info("Orchestration checks passed successfully!")
                 return 0
