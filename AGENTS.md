@@ -372,6 +372,19 @@ DO NOT RE-INITIALIZE. That will not do anything beyond re-adding the same Taskma
 
 ## Important Notes
 
+## 🚫 Disabled Workflow Rules (NON-NEGOTIABLE)
+Files ending in `.DISABLED` under `.github/workflows/` were deliberately disabled by the repository owner. The disabled state IS the intent — it is not an accident to "fix".
+- **NEVER re-enable**: do not rename `*.yml.DISABLED` → `*.yml`, do not delete `.DISABLED` files, do not "restore" active copies from PR branches
+- **NEVER edit contents**: `.DISABLED` files are frozen; their content must match `origin/main` exactly. Version bumps (e.g. `actions/setup-python@v7`) and step changes have zero effect on non-running workflows — they only create merge noise and regression risk
+- **Conflict handling**: if a merge/rebase conflict involves a `.DISABLED` file, keep the `.DISABLED` version exactly as it exists on current `origin/main`
+- **Reporting**: if a PR's diff touches any `*.DISABLED` path, that is a FINDING to report in review — not something to "fix" by re-enabling
+
+## 🧊 Stale-Snapshot Guards (your sandbox may be weeks old)
+Your codebase snapshot may be significantly older than current `origin/main`. These guards prevent the most common regressions:
+- **Fetch before any revert**: NEVER revert a path "to origin/main" from remembered state. Always `git fetch origin main` first and diff against the FETCHED state. API "stale commit OID" errors mean your reference is stale — re-fetch, don't retry
+- **Stale-paste guard**: if your "fix" would change >200 lines in a file NOT in the PR's original scope, STOP — you are likely pasting an older cached version. Re-read the current file from disk (`git show HEAD:<path>`) and apply only the minimal edit needed. Large intentional rewrites must use a `refactor:` prefix and justify the scope in the commit message
+- **Never trust remembered file state**: before editing any file, read its CURRENT version. Sibling sessions and main may have changed it since your snapshot was taken
+
 ### AI-Powered Operations
 
 These commands make AI calls and may take up to a minute:
