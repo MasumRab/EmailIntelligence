@@ -71,6 +71,8 @@ class QueryResultCache:
     """Cache for query results with TTL (Time To Live) support and LRU eviction."""
 
     def __init__(self, ttl_seconds: int = 300, max_capacity: int = 1000):  # 5 minutes default
+        if max_capacity <= 0:
+            raise ValueError("max_capacity must be greater than zero")
         self.ttl_seconds = ttl_seconds
         self.max_capacity = max_capacity
         self.cache: OrderedDict[str, tuple[Any, float]] = OrderedDict()  # (value, timestamp)
@@ -149,7 +151,7 @@ class EnhancedCachingManager:
         self.category_record_cache = LRUCache(capacity=50)
 
         # Query result cache for complex queries
-        self.query_cache = QueryResultCache(ttl_seconds=300, capacity=1000)  # 5 minutes
+        self.query_cache = QueryResultCache(ttl_seconds=300, max_capacity=1000)  # 5 minutes
 
         # Cache for email content (heavy data)
         self.email_content_cache = LRUCache(capacity=100)
