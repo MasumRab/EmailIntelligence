@@ -31,7 +31,7 @@ jobs:
             echo "Checking CI status... (attempt $i/$MAX_ATTEMPTS)"
 
             # Get the status of all checks for this PR
-            STATUS=$(gh pr checks "${{ github.event.pull_request.number }}" --state pending --json bucket -q '. | length' 2>/dev/null || echo "0")
+            STATUS=$(gh pr checks "${{ github.event.pull_request.number }}" --state pending --json status -q '. | length' 2>/dev/null || echo "0")
             echo "Pending checks: $STATUS"
 
             if [ "$STATUS" -eq "0" ]; then
@@ -51,9 +51,9 @@ jobs:
 
           echo "Timeout waiting for CI checks"
           exit 1
-
-              env:
+        env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Auto-merge Dependabot PR
         run: |
           set -e
