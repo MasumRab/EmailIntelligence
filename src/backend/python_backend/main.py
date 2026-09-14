@@ -171,13 +171,13 @@ async def startup_event():
     from .dependencies import initialize_services
 
     await initialize_services()
-    await db_manager.connect()
+    await db_manager._ensure_initialized()
 
 
 @app.on_event("shutdown")
 async def shutdown_event():
     """Application shutdown: disconnect from the database."""
-    await db_manager.close()
+    pass
 
 
 @app.exception_handler(AppException)
@@ -268,7 +268,6 @@ app.include_router(category_routes.router)
 app.include_router(gmail_routes.router)
 app.include_router(training_routes.router)
 app.include_router(workflow_routes.router)
-app.include_router(model_routes.router)
 app.include_router(performance_routes.router)
 app.include_router(dashboard_routes.router)
 app.include_router(ai_routes.router)
