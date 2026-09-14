@@ -11,6 +11,99 @@ Usage:
     python launch.py [arguments]
 """
 
+# TODO(factory-command-reintegration): Reconnect the intended command/factory
+# architecture on top of this PR-775 launcher instead of maintaining a second
+# dispatcher or copying the older launch-fix branch wholesale. PR 775 retained
+# setup/commands/ and setup/commands/command_factory.py, but this launcher now
+# exposes only flat legacy flags and never creates args.command or invokes the
+# factory. The implementation below is deliberately left as the compatibility
+# baseline until the reintegration is completed in the sequence documented in
+# docs/pr775-command-factory-reintegration.md.
+#
+# Required reimplementation contract:
+#
+# 1. Extend the argparse surface with positional subcommands for setup, run,
+#    test, check, and cleanup while preserving --setup, --check,
+#    --critical-files, --env-check, --unit, --integration, --e2e,
+#    --performance, and --security. Normalize both forms into one canonical
+#    Namespace before any command executes; do not duplicate command-name
+#    dispatch in this file and in CommandFactory.
+#
+# 2. Restore a single dispatch seam that performs, in order: parse arguments;
+#    normalize legacy arguments; handle help/version-only requests; validate
+#    the normalized Namespace; initialize the service container once when the
+#    selected command needs it; call get_command_factory().create_command();
+#    execute the returned command; and call command.cleanup() exactly once in
+#    a finally block. Unknown commands must return a controlled nonzero exit
+#    status, and cleanup must not replace the original execution failure.
+#
+# 3. Repair the command implementations before wiring them in. Every command
+#    must implement validate_args() -> bool, execute() -> int, cleanup() ->
+#    None, and get_description() -> str. RunCommand must call validate_args(),
+#    use setup.services.start_services() as the sole service owner, retain a
+#    foreground wait only for foreground execution, handle KeyboardInterrupt,
+#    and return a deterministic status after shared process-manager cleanup.
+#
+# 4. Make setup/services.py canonical for backend and service startup. Remove
+#    or reduce this module's start_services() to a compatibility delegate only
+#    after all callers use the canonical implementation. start_backend() must
+#    resolve the authoritative entrypoint from setup.project_config, invoke
+#    subprocess.Popen(), register each process once with setup.utils.process_manager,
+#    and return the process handle. Do not guess between backend/... and
+#    src/backend/... layouts or leave a validation-only no-op startup path.
+#
+# 5. Consolidate lifecycle ownership. Reuse setup.utils.ProcessManager rather
+#    than this launcher-local ProcessManager, make cleanup idempotent and safe
+#    for already-exited children, and ensure signal handlers, command cleanup,
+#    atexit cleanup, and legacy cleanup cannot terminate the same process twice
+#    or hide the original exit code.
+#
+# 6. Reconnect setup.container.get_container() and
+#    initialize_all_services(container) exactly once after normalization and
+#    before service-dependent commands. Help and validation-only paths should
+#    not initialize application services, and legacy compatibility must not
+#    initialize the container a second time.
+#
+# 7. Standardize the setup-facing test adapter before dispatch is enabled.
+#    setup/commands/test_command.py currently imports handle_test_stage from
+#    setup.test_stages, but that symbol is absent there. Add one canonical
+#    adapter or change TestCommand to use the existing test_stages object; make
+#    both command and legacy paths use it. Return the Boolean/result object,
+#    convert failed stages to a nonzero launcher status, and never unconditionally
+#    return success after a failed test run. Keep deployment.test_stages behind
+#    an explicit adapter rather than leaking deployment-only uv assumptions into
+#    setup/launch.py.
+#
+# 8. Correct prerequisite defects before relying on command imports: fix the
+#    self-referential constants in setup/project_config.py; establish one
+#    authoritative project layout and required/optional path policy; align
+#    Python-version policy across this launcher, setup/validation.py,
+#    setup/pyproject.toml, CI, and documentation; and remove stale conflict
+#    checks that silently skip required missing files.
+#
+# 9. Reconcile packaging separately from command wiring. The launcher must
+#    install the selected supported dependency profile, optional groups must not
+#    be omitted accidentally, every directly installed Torch package must be
+#    declared (or removed), and setup/pyproject.toml's full extra must not
+#    reference emailintelligence[...] recursively. Do not modify requirements
+#    files merely because the installation profile changed; first verify their
+#    actual runtime coverage.
+#
+# 10. Verification gates before removing this TODO: --help, setup --help, run
+#     --help, test --help, and check --help must all parse; every factory
+#     command must instantiate the expected class; unknown commands must fail
+#     cleanly; command cleanup must run on success and failure; mocked backend
+#     startup must reach Popen and register/return one process; test failures
+#     must propagate nonzero; project_config must import successfully; and
+#     legacy flags must exercise the same canonical services, validation,
+#     tests, and process manager. Run the broader PR-only runtime/workflow
+#     regressions separately rather than hiding them in this launcher TODO.
+#
+# Do not resolve this TODO with blanket ours/theirs, restore/reset, or a
+# wholesale file replacement. Implement small, reviewable hunks, preserve PR
+# 775's valid cleanup, checkpoint findings after each stage, and remove this
+# block only when the documented contracts and verification gates are met.
+
 import argparse
 import atexit
 import logging
