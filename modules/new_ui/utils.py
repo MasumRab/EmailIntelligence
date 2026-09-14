@@ -167,19 +167,21 @@ def sanitize_html(html_content: str) -> str:
         return ""
 
     # Remove script tags (including malformed end tags like </script\t\n bar>)
+    # Using (?:(?!</script>).)*? instead of .*? to avoid regex backtracking
     html_content = re.sub(
-        r"<script\b[^>]*>.*?</\s*script(?:\s+[^>]*)?>",
+        r"<script\b[^>]*>(?:(?!</script>).)*?</\s*script(?:\s+[^>]*)?>",
         "",
         html_content,
-        flags=re.DOTALL | re.IGNORECASE,
+        flags=re.IGNORECASE,
     )
 
     # Remove style tags (including malformed end tags like </style foo>)
+    # Using (?:(?!</style>).)*? instead of .*? to avoid regex backtracking
     html_content = re.sub(
-        r"<style\b[^>]*>.*?</\s*style(?:\s+[^>]*)?>",
+        r"<style\b[^>]*>(?:(?!</style>).)*?</\s*style(?:\s+[^>]*)?>",
         "",
         html_content,
-        flags=re.DOTALL | re.IGNORECASE,
+        flags=re.IGNORECASE,
     )
 
     # Remove event handlers

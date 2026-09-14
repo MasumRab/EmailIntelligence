@@ -231,8 +231,9 @@ class AutoResolver(IResolutionEngine):
         # Look for timestamp/version patterns
         import re
 
+        # Using specific digit ranges to avoid regex backtracking
         timestamp_pattern = r"\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}"
-        version_pattern = r"\d+\.\d+\.\d+"
+        version_pattern = r"\d{1,3}\.\d{1,3}\.\d{1,3}"
 
         if re.search(timestamp_pattern, before_text) or re.search(
             timestamp_pattern, after_text
