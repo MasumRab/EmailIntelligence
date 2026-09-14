@@ -146,15 +146,17 @@ jobs:
           submodules: recursive
 
       - name: Download Python coverage
-        uses: actions/download-artifact@v4
+        id: dl-coverage
+        continue-on-error: true
+        uses: actions/download-artifact@v8
         with:
           name: python-coverage
           path: python-coverage
-          if-no-files-found: ignore
 
       - name: Upload to Codecov
         if: always()
-        uses: codecov/codecov-action@v5
+        continue-on-error: true
+        uses: codecov/codecov-action@v7
         with:
           files: ./python-coverage/coverage.xml
           flags: unittests
