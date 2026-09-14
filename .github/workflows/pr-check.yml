@@ -113,7 +113,7 @@ jobs:
           if-no-files-found: ignore
 
       - name: Bandit security check
-        run: uv run --frozen bandit -r src/ modules/ setup/ -x tests/ -ll -ii || true
+        run: uv run --frozen --no-script bandit -r src/ modules/ setup/ -x tests/ -ll -ii || true
         continue-on-error: true
 
   # Block on failure - this job depends on all others
