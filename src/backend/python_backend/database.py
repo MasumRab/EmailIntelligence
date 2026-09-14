@@ -107,6 +107,11 @@ class DatabaseManager:
             logger.info(f"Created email content directory: {self.email_content_dir}")
 
     def _get_email_content_path(self, email_id: int) -> str:
+        try:
+            email_id = int(email_id)
+        except (ValueError, TypeError):
+            raise ValueError(f"Invalid email_id format: {email_id}")
+
         return os.path.join(self.email_content_dir, f"{email_id}.json.gz")
 
     async def _load_and_merge_content(self, email_light: Dict[str, Any]) -> Dict[str, Any]:
