@@ -15,7 +15,7 @@ import sys
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from transformers import AutoModelForSequenceClassification, AutoTokenizer, pipeline
+from transformers import pipeline
 
 from backend.python_nlp.text_utils import clean_text
 from core.security import verify_model_safety
@@ -29,9 +29,9 @@ logger = logging.getLogger(__name__)
 
 # Try to import optional dependencies
 try:
-    import nltk
+    # import nltk
     from textblob import TextBlob
-    from transformers import AutoModelForSequenceClassification, AutoTokenizer
+    # from transformers import AutoModelForSequenceClassification, AutoTokenizer
 
     HAS_NLTK = True
     HAS_SKLEARN_AND_JOBLIB = True
@@ -54,7 +54,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-def clean_text(text: str) -> str:
+def clean_text_local(text: str) -> str:
     """Basic text cleaning utility."""
     return text.lower().strip()
 
@@ -183,7 +183,9 @@ class NLPEngine:
         try:
             if os.path.exists(model_path):
                 if not verify_model_safety(model_path, expected_hash):
-                    logger.error(f"Security: Model path or signature validation failed for {model_path}")
+                    logger.error(
+                        f"Security: Model path or signature validation failed for {model_path}"
+                    )
                     return None
                 import joblib
 
