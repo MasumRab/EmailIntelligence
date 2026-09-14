@@ -83,19 +83,19 @@ jobs:
         run: uv sync --all-extras --dev --no-build  # NOSONAR - controlled CI environment
 
       - name: Ruff lint check
-        run: uv run ruff check src/ modules/ setup/ || true
+        run: uv run --no-build ruff check src/ modules/ setup/ || true
 
       - name: Ruff format check
-        run: uv run ruff format --check src/ modules/ setup/ || true
+        run: uv run --no-build ruff format --check src/ modules/ setup/ || true
 
       - name: Python compile check
         run: |
-          uv run python -m py_compile src/**/*.py setup/*.py
-          uv run python -m py_compile modules/**/*.py
+          uv run --no-build python -m py_compile src/**/*.py setup/*.py
+          uv run --no-build python -m py_compile modules/**/*.py
 
       - name: Run tests
         run: |
-          uv run pytest tests/ src/ modules/ -v --tb=short \
+          uv run --no-build pytest tests/ src/ modules/ -v --tb=short \
             --cov=src --cov=modules --cov=setup \
             --cov-report=xml --cov-report=term-missing \
             --cov-fail-under=80 \
@@ -113,7 +113,7 @@ jobs:
           if-no-files-found: ignore
 
       - name: Bandit security check
-        run: uv run --frozen --no-script bandit -r src/ modules/ setup/ -x tests/ -ll -ii || true
+        run: uv run --frozen --no-build bandit -r src/ modules/ setup/ -x tests/ -ll -ii || true
         continue-on-error: true
 
   # Block on failure - this job depends on all others
