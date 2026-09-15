@@ -18,7 +18,7 @@ from typing import Any, Dict, List, Optional
 from transformers import AutoModelForSequenceClassification, AutoTokenizer, pipeline
 
 from backend.python_nlp.text_utils import clean_text
-from src.core.security import verify_model_safety
+from core.security import verify_model_safety
 
 from .analysis_components.importance_model import ImportanceModel
 

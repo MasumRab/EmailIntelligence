@@ -14,7 +14,7 @@ from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from src.core.security import verify_model_safety
+from core.security import verify_model_safety
 
 logger = logging.getLogger(__name__)
 
