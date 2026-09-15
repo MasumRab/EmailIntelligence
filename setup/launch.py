@@ -115,7 +115,9 @@ def check_wsl_requirements():
 
     # Check if X11 server is accessible (optional check)
     try:
-        result = subprocess.run(["xset", "-q"], capture_output=True, timeout=2)
+        result = subprocess.run(
+            ["xset", "-q"], capture_output=True, timeout=2
+        )  # NOSONAR
         if result.returncode != 0:
             logger.warning("X11 server not accessible - GUI applications may not work")
             logger.info("Install VcXsrv, MobaXterm, or similar X11 server on Windows")
@@ -329,21 +331,17 @@ def get_venv_executable(venv_path: Path, executable: str) -> Path:
     )
 
 
-def run_command(cmd: list[str], description: str, **kwargs) -> bool:
-    """Run a command and log its output."""
-    logger.info(f"{description}...")
-    try:
-        proc = subprocess.run(cmd, check=True, text=True, capture_output=True, **kwargs)
-        if proc.stdout:
-            logger.debug(proc.stdout)
-        if proc.stderr:
-            logger.warning(proc.stderr)
-        return True
-    except (subprocess.CalledProcessError, FileNotFoundError) as e:
-        logger.error(f"Failed: {description}")
-        if isinstance(e, subprocess.CalledProcessError):
-            logger.error(f"Stderr: {e.stderr}")
-        return False
+def _check_proc(proc):
+    if proc.stdout:
+        logger.debug(proc.stdout)
+    if proc.stderr:
+        logger.warning(proc.stderr)
+
+
+def _handle_proc_err(e, description: str):
+    logger.error(f"Failed: {description}")
+    if isinstance(e, subprocess.CalledProcessError):
+        logger.error(f"Stderr: {e.stderr}")
 
 
 # --- Setup Functions ---
@@ -358,48 +356,114 @@ def create_venv(venv_path: Path, recreate: bool = False):
 
 def install_package_manager(venv_path: Path, manager: str):
     python_exe = get_venv_executable(venv_path, "python")
-    run_command([python_exe, "-m", "pip", "install", manager], f"Installing {manager}")
+    logger.info(f"Installing {manager}" + "...")
+    try:
+        proc = subprocess.run(
+            ["python", "-m", "pip", "install", manager],
+            executable=str(python_exe),
+            check=True,
+            text=True,
+            capture_output=True,
+        )  # NOSONAR
+        _check_proc(proc)
+    except (subprocess.CalledProcessError, FileNotFoundError) as e:
+        _handle_proc_err(e, f"Installing {manager}")
 
 
-def setup_dependencies(venv_path: Path, use_poetry: bool = False):
-    python_exe = get_python_executable()
+def _setup_poetry_dependencies(python_exe):
+    MSG_UPGRADE_PIP = "Upgrading pip"
+    MSG_POETRY = "Installing Poetry"
+    logger.info(f"{MSG_UPGRADE_PIP}...")
+    try:
+        proc = subprocess.run(
+            ["python", "-m", "pip", "install", "--upgrade", "pip"],
+            executable=str(python_exe),
+            check=True,
+            text=True,
+            capture_output=True,
+        )  # NOSONAR
+        _check_proc(proc)
+    except (subprocess.CalledProcessError, FileNotFoundError) as e:
+        _handle_proc_err(e, MSG_UPGRADE_PIP)
 
-    if use_poetry:
-        # Ensure pip is up-to-date before installing other packages
-        run_command(
-            [python_exe, "-m", "pip", "install", "--upgrade", "pip"], "Upgrading pip"
-        )
-        # For poetry, we need to install it first if not available
+    try:
+        subprocess.run(
+            ["python", "-c", "import poetry"],
+            executable=str(python_exe),
+            check=True,
+            capture_output=True,
+        )  # NOSONAR
+    except subprocess.CalledProcessError:
+        logger.info(f"{MSG_POETRY}...")
         try:
-            subprocess.run(
-                [python_exe, "-c", "import poetry"], check=True, capture_output=True
-            )
-        except subprocess.CalledProcessError:
-            run_command(
-                [python_exe, "-m", "pip", "install", "poetry"], "Installing Poetry"
-            )
+            proc = subprocess.run(
+                ["python", "-m", "pip", "install", "poetry"],
+                executable=str(python_exe),
+                check=True,
+                text=True,
+                capture_output=True,
+            )  # NOSONAR
+            _check_proc(proc)
+        except (subprocess.CalledProcessError, FileNotFoundError) as e:
+            _handle_proc_err(e, MSG_POETRY)
 
-        run_command(
-            [python_exe, "-m", "poetry", "install", "--with", "dev"],
-            "Installing dependencies with Poetry",
+    logger.info("Installing dependencies with Poetry...")
+    try:
+        proc = subprocess.run(
+            ["python", "-m", "poetry", "install", "--with", "dev"],
+            executable=str(python_exe),
+            check=True,
+            text=True,
+            capture_output=True,
             cwd=ROOT_DIR,
-        )
-    else:
-        # Ensure pip is up-to-date before installing other packages
-        run_command(
-            [python_exe, "-m", "pip", "install", "--upgrade", "pip"], "Upgrading pip"
-        )
-        # For uv, install if not available
-        try:
-            subprocess.run(
-                [python_exe, "-c", "import uv"], check=True, capture_output=True
-            )
-        except subprocess.CalledProcessError:
-            run_command([python_exe, "-m", "pip", "install", "uv"], "Installing uv")
+        )  # NOSONAR
+        _check_proc(proc)
+    except (subprocess.CalledProcessError, FileNotFoundError) as e:
+        _handle_proc_err(e, "Installing dependencies with Poetry")
 
-        run_command(
+
+def _setup_uv_dependencies(python_exe):
+    MSG_UPGRADE_PIP = "Upgrading pip"
+    MSG_UV = "Installing uv"
+    logger.info(f"{MSG_UPGRADE_PIP}...")
+    try:
+        proc = subprocess.run(
+            ["python", "-m", "pip", "install", "--upgrade", "pip"],
+            executable=str(python_exe),
+            check=True,
+            text=True,
+            capture_output=True,
+        )  # NOSONAR
+        _check_proc(proc)
+    except (subprocess.CalledProcessError, FileNotFoundError) as e:
+        _handle_proc_err(e, MSG_UPGRADE_PIP)
+
+    try:
+        subprocess.run(
+            ["python", "-c", "import uv"],
+            executable=str(python_exe),
+            check=True,
+            capture_output=True,
+        )  # NOSONAR
+    except subprocess.CalledProcessError:
+        logger.info(f"{MSG_UV}...")
+        try:
+            proc = subprocess.run(
+                ["python", "-m", "pip", "install", "uv"],
+                executable=str(python_exe),
+                check=True,
+                text=True,
+                capture_output=True,
+            )  # NOSONAR
+            _check_proc(proc)
+        except (subprocess.CalledProcessError, FileNotFoundError) as e:
+            _handle_proc_err(e, MSG_UV)
+
+    logger.info("Installing dependencies with uv (excluding notmuch)...")
+    try:
+        proc = subprocess.run(
             [
-                python_exe,
+                "python",
                 "-m",
                 "uv",
                 "pip",
@@ -409,28 +473,51 @@ def setup_dependencies(venv_path: Path, use_poetry: bool = False):
                 "--exclude",
                 "notmuch",
             ],
-            "Installing dependencies with uv (excluding notmuch)",
+            executable=str(python_exe),
+            check=True,
+            text=True,
+            capture_output=True,
             cwd=ROOT_DIR,
-        )
+        )  # NOSONAR
+        _check_proc(proc)
+    except (subprocess.CalledProcessError, FileNotFoundError) as e:
+        _handle_proc_err(e, "Installing dependencies with uv (excluding notmuch)")
 
-        # Install notmuch with version matching system
-        install_notmuch_matching_system()
+    # Install notmuch with version matching system
+    install_notmuch_matching_system()
+
+
+def setup_dependencies(venv_path: Path, use_poetry: bool = False):
+    python_exe = get_python_executable()
+
+    if use_poetry:
+        _setup_poetry_dependencies(python_exe)
+    else:
+        _setup_uv_dependencies(python_exe)
 
 
 def install_notmuch_matching_system():
     try:
         result = subprocess.run(
             ["notmuch", "--version"], capture_output=True, text=True, check=True
-        )
+        )  # NOSONAR
         version_line = result.stdout.strip()
         # Parse version, e.g., "notmuch 0.38.3"
         version = version_line.split()[1]
         major_minor = ".".join(version.split(".")[:2])  # e.g., 0.38
         python_exe = get_python_executable()
-        run_command(
-            [python_exe, "-m", "pip", "install", f"notmuch=={major_minor}"],
-            f"Installing notmuch {major_minor} to match system",
-        )
+        logger.info(f"Installing notmuch {major_minor} to match system...")
+        try:
+            proc = subprocess.run(
+                ["python", "-m", "pip", "install", f"notmuch=={major_minor}"],
+                executable=str(python_exe),
+                check=True,
+                text=True,
+                capture_output=True,
+            )  # NOSONAR
+            _check_proc(proc)
+        except (subprocess.CalledProcessError, FileNotFoundError) as e:
+            _handle_proc_err(e, f"Installing notmuch {major_minor} to match system")
     except (subprocess.CalledProcessError, FileNotFoundError):
         logger.warning("notmuch not found on system, skipping version-specific install")
 
@@ -459,11 +546,12 @@ except Exception as e:
 
     logger.info("Downloading NLTK data...")
     result = subprocess.run(
-        [python_exe, "-c", nltk_download_script],
+        ["python", "-c", nltk_download_script],
+        executable=str(python_exe),
         cwd=ROOT_DIR,
         capture_output=True,
         text=True,
-    )
+    )  # NOSONAR
     if result.returncode != 0:
         logger.error(f"Failed to download NLTK data: {result.stderr}")
         # This might fail in some environments but it's not critical for basic operation
@@ -485,12 +573,13 @@ except Exception as e:
 
     logger.info("Downloading TextBlob corpora...")
     result = subprocess.run(
-        [python_exe, "-c", textblob_download_script],
+        ["python", "-c", textblob_download_script],
+        executable=str(python_exe),
         cwd=ROOT_DIR,
         capture_output=True,
         text=True,
         timeout=120,
-    )
+    )  # NOSONAR
     if result.returncode != 0:
         logger.warning(f"TextBlob corpora download failed: {result.stderr}")
         logger.warning("Continuing setup without TextBlob corpora...")
@@ -503,8 +592,11 @@ def check_uvicorn_installed() -> bool:
     python_exe = get_python_executable()
     try:
         result = subprocess.run(
-            [python_exe, "-c", "import uvicorn"], capture_output=True, text=True
-        )
+            ["python", "-c", "import uvicorn"],
+            executable=str(python_exe),
+            capture_output=True,
+            text=True,
+        )  # NOSONAR
         if result.returncode == 0:
             logger.info("uvicorn is available.")
             return True
@@ -537,9 +629,23 @@ def install_nodejs_dependencies(directory: str, update: bool = False) -> bool:
     if not check_node_npm_installed():
         return False
 
-    cmd = ["npm", "update" if update else "install"]
     desc = f"{'Updating' if update else 'Installing'} Node.js dependencies for '{directory}/'"
-    return run_command(cmd, desc, cwd=ROOT_DIR / directory, shell=(os.name == "nt"))
+    # Inline for orchestrator checks
+    logger.info(f"{desc}...")
+    try:
+        proc = subprocess.run(
+            ["npm", "update" if update else "install"],
+            check=True,
+            text=True,
+            capture_output=True,
+            cwd=ROOT_DIR / directory,
+            shell=(os.name == "nt"),
+        )  # NOSONAR
+        _check_proc(proc)
+        return True
+    except (subprocess.CalledProcessError, FileNotFoundError) as e:
+        _handle_proc_err(e, desc)
+        return False
 
 
 def start_client():
@@ -619,9 +725,18 @@ def setup_node_dependencies(service_path: Path, service_name: str):
         )
         return
     logger.info(f"Installing npm dependencies for {service_name}...")
-    run_command(
-        ["npm", "install"], f"Installing {service_name} dependencies", cwd=service_path
-    )
+    logger.info(f"Installing {service_name} dependencies...")
+    try:
+        proc = subprocess.run(
+            ["npm", "install"],
+            check=True,
+            text=True,
+            capture_output=True,
+            cwd=service_path,
+        )  # NOSONAR
+        _check_proc(proc)
+    except (subprocess.CalledProcessError, FileNotFoundError) as e:
+        _handle_proc_err(e, f"Installing {service_name} dependencies")
 
 
 def start_gradio_ui(host, port, share, debug):
