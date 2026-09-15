@@ -14,6 +14,8 @@ from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
+from core.security import verify_model_safety
+
 logger = logging.getLogger(__name__)
 
 
@@ -508,6 +510,10 @@ class ModelRegistry:
             model_path = metadata.path / f"{metadata.model_id}.pkl"
 
             if model_path.exists():
+                if not verify_model_safety(model_path):
+                    logger.error(f"Security validation failed for model path: {model_path}")
+                    return None
+
                 model = joblib.load(model_path)
                 return model
             else:
@@ -665,6 +671,9 @@ class ModelRegistry:
                 if not model_file.exists():
                     return {"passed": False, "issues": ["Model file not found"]}
 
+                if not verify_model_safety(model_file):
+                    return {"passed": False, "issues": ["Model path failed safety verification"]}
+
                 # Try to load the file
                 import joblib
 
@@ -732,11 +741,11 @@ class ModelRegistry:
 
             # Test with sample data based on model type
             if instance.metadata.model_type == ModelType.SENTIMENT:
-                test_input = "This is a great product!"
+                _test_input = "This is a great product!"
             elif instance.metadata.model_type == ModelType.TOPIC:
-                test_input = "Meeting about project deadlines"
+                _test_input = "Meeting about project deadlines"
             else:
-                test_input = "Test input for model validation"
+                _test_input = "Test input for model validation"
 
             start_time = time.time()
             # This would need to be implemented based on the actual model interface

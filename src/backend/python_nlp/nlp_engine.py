@@ -18,6 +18,7 @@ from typing import Any, Dict, List, Optional
 from transformers import AutoModelForSequenceClassification, AutoTokenizer, pipeline
 
 from backend.python_nlp.text_utils import clean_text
+from core.security import verify_model_safety
 
 from .analysis_components.importance_model import ImportanceModel
 
@@ -28,9 +29,9 @@ logger = logging.getLogger(__name__)
 
 # Try to import optional dependencies
 try:
-    import nltk
+    import nltk  # noqa: F401
     from textblob import TextBlob
-    from transformers import AutoModelForSequenceClassification, AutoTokenizer
+    from transformers import AutoModelForSequenceClassification, AutoTokenizer  # noqa: F401
 
     HAS_NLTK = True
     HAS_SKLEARN_AND_JOBLIB = True
@@ -53,7 +54,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-def clean_text(text: str) -> str:
+def clean_text(text: str) -> str:  # noqa: F811
     """Basic text cleaning utility."""
     return text.lower().strip()
 
@@ -181,6 +182,10 @@ class NLPEngine:
         """
         try:
             if os.path.exists(model_path):
+                if not verify_model_safety(model_path):
+                    logger.error(f"Security validation failed for model path: {model_path}")
+                    return None
+
                 import joblib
 
                 model = joblib.load(model_path)
