@@ -82,6 +82,23 @@ class DataCollectionStrategy:
         self.logger = logging.getLogger(__name__)
         self.annotation_guidelines = self._load_annotation_guidelines()
         self.preprocessing_rules = self._load_preprocessing_rules()
+        self._compile_regexes()
+
+    def _compile_regexes(self):
+        """Compiles regex patterns for performance optimization."""
+        self._compiled_regexes = {
+            "signatures": re.compile(self.preprocessing_rules["email_patterns"]["signatures"], flags=re.MULTILINE | re.IGNORECASE),
+            "forwarded_headers": re.compile(self.preprocessing_rules["email_patterns"]["forwarded_headers"], flags=re.MULTILINE | re.IGNORECASE),
+            "whitespace": re.compile(r"\s+"),
+            "newlines": re.compile(r"\n+"),
+            "sentences": re.compile(r"[.!?]+"),
+            "numbers": re.compile(r"\d+"),
+            "email_addresses": re.compile(self.preprocessing_rules["email_patterns"]["email_addresses"]),
+            "phone_numbers": re.compile(self.preprocessing_rules["email_patterns"]["phone_numbers"]),
+            "urls": re.compile(self.preprocessing_rules["email_patterns"]["urls"]),
+            "dates": re.compile(r"\b\d{1,2}[/-]\d{1,2}[/-]\d{2,4}\b"),
+            "words": re.compile(r"\b\w+\b"),
+        }
 
     def _load_annotation_guidelines(self) -> Dict[str, Any]:
         """Loads internal guidelines and standards for annotation."""
@@ -236,20 +253,10 @@ class DataCollectionStrategy:
 
     def _clean_email_content(self, text: str) -> str:
         """Cleans and normalizes the text content of an email."""
-        text = re.sub(
-            self.preprocessing_rules["email_patterns"]["signatures"],
-            "",
-            text,
-            flags=re.MULTILINE | re.IGNORECASE,
-        )
-        text = re.sub(
-            self.preprocessing_rules["email_patterns"]["forwarded_headers"],
-            "",
-            text,
-            flags=re.MULTILINE | re.IGNORECASE,
-        )
-        text = re.sub(r"\s+", " ", text)
-        text = re.sub(r"\n+", "\n", text)
+        text = self._compiled_regexes["signatures"].sub("", text)
+        text = self._compiled_regexes["forwarded_headers"].sub("", text)
+        text = self._compiled_regexes["whitespace"].sub(" ", text)
+        text = self._compiled_regexes["newlines"].sub("\n", text)
         text = text.strip()
         return text
 
@@ -258,27 +265,13 @@ class DataCollectionStrategy:
         combined_text = f"{subject} {content}".lower()
         features = {
             "word_count": len(content.split()),
-            "sentence_count": len(re.split(r"[.!?]+", content)),
+            "sentence_count": len(self._compiled_regexes["sentences"].split(content)),
             "has_question": "?" in combined_text,
             "has_exclamation": "!" in combined_text,
-            "has_numbers": bool(re.search(r"\d+", combined_text)),
-            "has_email": bool(
-                re.search(
-                    self.preprocessing_rules["email_patterns"]["email_addresses"],
-                    combined_text,
-                )
-            ),
-            "has_phone": bool(
-                re.search(
-                    self.preprocessing_rules["email_patterns"]["phone_numbers"],
-                    combined_text,
-                )
-            ),
-            "has_url": bool(
-                re.search(
-                    self.preprocessing_rules["email_patterns"]["urls"], combined_text
-                )
-            ),
+            "has_numbers": bool(self._compiled_regexes["numbers"].search(combined_text)),
+            "has_email": bool(self._compiled_regexes["email_addresses"].search(combined_text)),
+            "has_phone": bool(self._compiled_regexes["phone_numbers"].search(combined_text)),
+            "has_url": bool(self._compiled_regexes["urls"].search(combined_text)),
             "urgency_keywords": self._count_pattern_matches(
                 combined_text, "urgency_signals"
             ),
@@ -453,23 +446,19 @@ class DataCollectionStrategy:
     def _extract_entities(self, text: str) -> List[str]:
         """Extracts named entities (email, phone, URL, date) from text."""
         entities = []
-        emails = re.findall(
-            self.preprocessing_rules["email_patterns"]["email_addresses"], text
-        )
+        emails = self._compiled_regexes["email_addresses"].findall(text)
         entities.extend([f"EMAIL:{email}" for email in emails])
-        phones = re.findall(
-            self.preprocessing_rules["email_patterns"]["phone_numbers"], text
-        )
+        phones = self._compiled_regexes["phone_numbers"].findall(text)
         entities.extend([f"PHONE:{phone}" for phone in phones])
-        urls = re.findall(self.preprocessing_rules["email_patterns"]["urls"], text)
+        urls = self._compiled_regexes["urls"].findall(text)
         entities.extend([f"URL:{url}" for url in urls])
-        dates = re.findall(r"\b\d{1,2}[/-]\d{1,2}[/-]\d{2,4}\b", text)
+        dates = self._compiled_regexes["dates"].findall(text)
         entities.extend([f"DATE:{date}" for date in dates])
         return entities
 
     def _extract_keywords(self, text: str) -> List[str]:
         """Extracts important keywords from text using frequency analysis."""
-        words = re.findall(r"\b\w+\b", text.lower())
+        words = self._compiled_regexes["words"].findall(text.lower())
         stopwords = {
             "the",
             "a",
