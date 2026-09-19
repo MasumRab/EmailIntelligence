@@ -12,7 +12,7 @@ def test_hash_password():
     password = "test_password"
     hashed = hash_password(password)
     assert hashed is not None
-    assert ":" in hashed  # Should contain salt
+    assert "$" in hashed  # Should contain salt
 
 
 def test_verify_password():
