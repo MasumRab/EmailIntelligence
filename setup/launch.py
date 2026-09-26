@@ -80,7 +80,7 @@ logger = logging.getLogger("launcher")
 ROOT_DIR = get_project_config().root_dir
 
 # --- Constants ---
-PYTHON_MIN_VERSION = (3, 12)
+PYTHON_MIN_VERSION = (3, 11)
 PYTHON_MAX_VERSION = (3, 13)
 VENV_DIR = "venv"
 CONDA_ENV_NAME = os.getenv("CONDA_ENV_NAME", "base")
