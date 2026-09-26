@@ -4,7 +4,8 @@ import pytest
 from fastapi.testclient import TestClient
 
 # Import the app instance
-from backend.python_backend.main import app
+from src.main import create_app
+app = create_app()
 
 # Create a mock instance for GmailAIService
 mock_gmail_service_instance = MagicMock()
