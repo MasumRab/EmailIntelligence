@@ -1,6 +1,4 @@
 pull_request_rules:
-
-  # Rule 1: Dependabot PRs — auto-merge when real CI passes + SonarQube clean
   - name: Automatically merge Dependabot PRs when CI and quality gates pass
     conditions:
       - author=dependabot[bot]
@@ -12,6 +10,7 @@ pull_request_rules:
         method: merge
 
   # Rule 2: Agent PRs (Jules/Sentinel/Bolt) — require human label
+
   - name: Auto-merge agent PRs only when explicitly approved
     conditions:
       - label=auto-merge-approved
@@ -24,6 +23,7 @@ pull_request_rules:
         method: squash
 
   # Rule 3: Block PRs with unresolved review findings
+
   - name: Block PRs with open review findings
     conditions:
       - label=review-finding-open
@@ -87,3 +87,45 @@ pull_request_rules:
       label:
         remove:
           - conflict
+
+  - name: Auto-merge Dependabot PRs (no approval required)
+    description: Automatically merge Dependabot PRs when CI passes. No human approval required for dependency updates.
+    conditions:
+      - author=dependabot[bot]
+      - check-success=test
+      - -conflict
+      - -draft
+    actions:
+      merge:
+        method: merge
+        commit_message_template: |
+          {{ title }} (#{{ number }})
+          {{ body }}
+
+  - name: Auto-merge with label (no approval required)
+    description: Automatically merge PRs with 'automerge' label when CI passes
+    conditions:
+      - label=automerge
+      - or:
+          - check-success=test
+          - check-success=lint-only
+      - -conflict
+      - -draft
+    actions:
+      merge:
+        method: merge
+
+  - name: Automatic merge for human PRs (approval required)
+    description: Merge human PRs during office hours with approval. Hotfixes merge anytime.
+    conditions:
+      - -author=dependabot[bot]
+      - or:
+          - schedule=Mon-Fri 09:00-17:00[America/Los_Angeles]
+          - label=hotfix
+      - check-success=test
+      - "#approved-reviews-by>=1"
+      - -conflict
+      - -draft
+    actions:
+      merge:
+        method: merge
