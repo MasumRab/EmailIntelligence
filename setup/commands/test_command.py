@@ -5,7 +5,6 @@ Handles running tests for the EmailIntelligence application.
 """
 
 import logging
-from argparse import Namespace
 
 from .command_interface import Command
 

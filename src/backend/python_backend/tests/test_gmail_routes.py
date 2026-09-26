@@ -29,7 +29,9 @@ def client_gmail():
     app.dependency_overrides[get_gmail_service] = lambda: mock_gmail_service_instance
 
     # Patch performance_monitor directly as it's not injected
-    with patch("backend.python_backend.gmail_routes.log_performance") as mock_log_performance:
+    with patch(
+        "backend.python_backend.gmail_routes.log_performance"
+    ) as mock_log_performance:
         mock_log_performance.side_effect = lambda name: (lambda func: func)
         yield TestClient(app)
 
@@ -97,7 +99,9 @@ def test_sync_gmail_api_error(client_gmail):
 def test_smart_retrieval(client_gmail):
     """Test the smart retrieval endpoint."""
     mock_retrieval_result = {"success": True, "totalEmails": 50}
-    mock_gmail_service_instance.execute_smart_retrieval.return_value = mock_retrieval_result
+    mock_gmail_service_instance.execute_smart_retrieval.return_value = (
+        mock_retrieval_result
+    )
 
     request_payload = {
         "strategies": ["strat1"],
@@ -128,7 +132,9 @@ def test_get_retrieval_strategies(client_gmail):
             "date_range_days": 1,
         }
     ]
-    mock_gmail_service_instance.get_retrieval_strategies.return_value = mock_strategies_data
+    mock_gmail_service_instance.get_retrieval_strategies.return_value = (
+        mock_strategies_data
+    )
 
     response = client_gmail.get("/api/gmail/strategies")
     assert response.status_code == 200
@@ -143,7 +149,9 @@ def test_get_gmail_performance(client_gmail):
         "daily_stats": [],
         "strategy_performance": [],
     }
-    mock_gmail_service_instance.get_performance_metrics.return_value = mock_performance_data
+    mock_gmail_service_instance.get_performance_metrics.return_value = (
+        mock_performance_data
+    )
 
     response = client_gmail.get("/api/gmail/performance")
     assert response.status_code == 200
