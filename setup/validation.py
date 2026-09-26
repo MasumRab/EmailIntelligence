@@ -17,7 +17,7 @@ ROOT_DIR = Path(__file__).resolve().parent.parent
 
 # Version requirements
 PYTHON_MIN_VERSION = (3, 11)
-PYTHON_MAX_VERSION = (3, 12)
+PYTHON_MAX_VERSION = (3, 13)
 
 
 def check_python_version():

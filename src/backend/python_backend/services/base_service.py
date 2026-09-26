@@ -35,7 +35,9 @@ class BaseService(ABC):
             self._db = await get_db()
         return self._db
 
-    async def handle_error(self, error: Exception, operation: str = "unknown") -> BaseResponse:
+    async def handle_error(
+        self, error: Exception, operation: str = "unknown"
+    ) -> BaseResponse:
         """Handle errors consistently across services"""
         error_msg = f"Error in {operation}: {str(error)}"
         return BaseResponse(success=False, message="An error occurred", error=error_msg)

@@ -8,7 +8,7 @@ and monitoring AI models with versioning, metadata, and performance metrics.
 import asyncio
 import json
 import logging
-from core.security import verify_model_safety
+from .security import verify_model_safety
 import time
 from dataclasses import dataclass, field
 from enum import Enum
