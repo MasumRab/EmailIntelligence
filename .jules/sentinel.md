@@ -14,3 +14,9 @@
 **Vulnerability:** Found that `Content-Security-Policy` lacked `frame-ancestors` and `form-action`, exposing the app to Clickjacking and malicious form submissions. `Strict-Transport-Security` lacked `preload`, and API endpoints lacked strict `Cache-Control` (`no-store`), which could leak sensitive JSON data.
 **Learning:** Security headers must be uniformly applied across all entry points. Both the Node.js frontend server (`server/index.ts`) and the Python backend (`src/main.py`) needed the exact same comprehensive headers to ensure consistent defense-in-depth regardless of how requests are routed.
 **Prevention:** Always include `frame-ancestors 'none'` and `form-action 'self'` in CSP definitions. Always append `preload` to HSTS. Explicitly block caching on all `/api/` routes by setting `Cache-Control: no-store, max-age=0, must-revalidate` and `Pragma: no-cache`.
+
+## 2026-09-21 - Secure Authentication Token Endpoint
+
+**Vulnerability:** The `/token` endpoint previously extracted credentials (`username` and `password`) from the request query parameters, meaning passwords could be logged in plain text in server logs, proxy histories, and browser history.
+**Learning:** In FastAPI, plain function arguments are assumed to be query parameters by default. Although authentication was happening correctly, it occurred insecurely.
+**Prevention:** Use `fastapi.security.OAuth2PasswordRequestForm` wrapped with `Depends()` to ensure FastAPI extracts login credentials securely from an `application/x-www-form-urlencoded` request body instead.
