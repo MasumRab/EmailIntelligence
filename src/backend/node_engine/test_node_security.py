@@ -53,8 +53,8 @@ async def test_security_features():
     # TODO(P2, 2h): Implement negative test cases for security validation
 
     # Test that trusted nodes can execute
-    print(f"EmailSourceNode trusted: {security_manager.validate_node_execution('EmailSourceNode', {{}})}")
-    print(f"PreprocessingNode trusted: {security_manager.validate_node_execution('PreprocessingNode', {{}})}")
+    print(f"EmailSourceNode trusted: {security_manager.validate_node_execution('EmailSourceNode', {})}")
+    print(f"PreprocessingNode trusted: {security_manager.validate_node_execution('PreprocessingNode', {})}")
 
     # Execute workflow with security
     try:
