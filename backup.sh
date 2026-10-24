@@ -20,22 +20,22 @@ NC='\033[0m'
 
 # Logging functions
 log_info() {
-    local clean_msg=$(echo -n "$1" | sed 's/\x1b\[[0-9;]*[a-zA-Z]//g')
+    local clean_msg=$(printf '%s' "$1" | tr -d '\000-\010\013\014\016-\037\177')
     printf "%b[INFO]%b %s - %s\n" "${BLUE}" "${NC}" "$(date '+%Y-%m-%d %H:%M:%S')" "$clean_msg"
 }
 
 log_success() {
-    local clean_msg=$(echo -n "$1" | sed 's/\x1b\[[0-9;]*[a-zA-Z]//g')
+    local clean_msg=$(printf '%s' "$1" | tr -d '\000-\010\013\014\016-\037\177')
     printf "%b[SUCCESS]%b %s - %s\n" "${GREEN}" "${NC}" "$(date '+%Y-%m-%d %H:%M:%S')" "$clean_msg"
 }
 
 log_warning() {
-    local clean_msg=$(echo -n "$1" | sed 's/\x1b\[[0-9;]*[a-zA-Z]//g')
+    local clean_msg=$(printf '%s' "$1" | tr -d '\000-\010\013\014\016-\037\177')
     printf "%b[WARNING]%b %s - %s\n" "${YELLOW}" "${NC}" "$(date '+%Y-%m-%d %H:%M:%S')" "$clean_msg"
 }
 
 log_error() {
-    local clean_msg=$(echo -n "$1" | sed 's/\x1b\[[0-9;]*[a-zA-Z]//g')
+    local clean_msg=$(printf '%s' "$1" | tr -d '\000-\010\013\014\016-\037\177')
     printf "%b[ERROR]%b %s - %s\n" "${RED}" "${NC}" "$(date '+%Y-%m-%d %H:%M:%S')" "$clean_msg"
 }
 

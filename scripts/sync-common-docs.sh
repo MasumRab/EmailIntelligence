@@ -17,22 +17,22 @@ NC='\033[0m' # No Color
 
 # Function to print colored output
 print_status() {
-    local clean_msg=$(echo -n "$1" | sed 's/\x1b\[[0-9;]*[a-zA-Z]//g')
+    local clean_msg=$(printf '%s' "$1" | tr -d '\000-\010\013\014\016-\037\177')
     printf "%b[INFO]%b %s\n" "${BLUE}" "${NC}" "$clean_msg"
 }
 
 print_success() {
-    local clean_msg=$(echo -n "$1" | sed 's/\x1b\[[0-9;]*[a-zA-Z]//g')
+    local clean_msg=$(printf '%s' "$1" | tr -d '\000-\010\013\014\016-\037\177')
     printf "%b[SUCCESS]%b %s\n" "${GREEN}" "${NC}" "$clean_msg"
 }
 
 print_warning() {
-    local clean_msg=$(echo -n "$1" | sed 's/\x1b\[[0-9;]*[a-zA-Z]//g')
+    local clean_msg=$(printf '%s' "$1" | tr -d '\000-\010\013\014\016-\037\177')
     printf "%b[WARNING]%b %s\n" "${YELLOW}" "${NC}" "$clean_msg"
 }
 
 print_error() {
-    local clean_msg=$(echo -n "$1" | sed 's/\x1b\[[0-9;]*[a-zA-Z]//g')
+    local clean_msg=$(printf '%s' "$1" | tr -d '\000-\010\013\014\016-\037\177')
     printf "%b[ERROR]%b %s\n" "${RED}" "${NC}" "$clean_msg"
 }
 
