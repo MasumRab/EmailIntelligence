@@ -1,7 +1,7 @@
 import unittest
 from unittest.mock import patch, MagicMock
 import io
-import sys
+import contextlib
 import scripts.analyze_complex_branch as analyzer
 
 class TestAnalyzeComplexBranch(unittest.TestCase):
@@ -26,9 +26,8 @@ class TestAnalyzeComplexBranch(unittest.TestCase):
         mock_run.side_effect = side_effect
         
         captured_output = io.StringIO()
-        sys.stdout = captured_output
-        analyzer.analyze_branch("feature-branch", "main")
-        sys.stdout = sys.__stdout__
+        with contextlib.redirect_stdout(captured_output):
+            analyzer.analyze_branch("feature-branch", "main")
         
         output = captured_output.getvalue()
         self.assertIn("SIMPLE", output)
@@ -55,9 +54,8 @@ class TestAnalyzeComplexBranch(unittest.TestCase):
         mock_run.side_effect = side_effect
         
         captured_output = io.StringIO()
-        sys.stdout = captured_output
-        analyzer.analyze_branch("feature-branch", "main")
-        sys.stdout = sys.__stdout__
+        with contextlib.redirect_stdout(captured_output):
+            analyzer.analyze_branch("feature-branch", "main")
         
         output = captured_output.getvalue()
         self.assertIn("SIMPLE", output)
@@ -84,9 +82,8 @@ class TestAnalyzeComplexBranch(unittest.TestCase):
         mock_run.side_effect = side_effect
         
         captured_output = io.StringIO()
-        sys.stdout = captured_output
-        analyzer.analyze_branch("feature-branch", "main")
-        sys.stdout = sys.__stdout__
+        with contextlib.redirect_stdout(captured_output):
+            analyzer.analyze_branch("feature-branch", "main")
         
         output = captured_output.getvalue()
         self.assertIn("COMPLEX", output)
@@ -112,9 +109,8 @@ class TestAnalyzeComplexBranch(unittest.TestCase):
         mock_run.side_effect = side_effect
         
         captured_output = io.StringIO()
-        sys.stdout = captured_output
-        analyzer.analyze_branch("feature-branch", "main")
-        sys.stdout = sys.__stdout__
+        with contextlib.redirect_stdout(captured_output):
+            analyzer.analyze_branch("feature-branch", "main")
         
         output = captured_output.getvalue()
         self.assertIn("COMPLEX", output)
