@@ -1,6 +1,16 @@
 import subprocess
 import argparse
 import sys
+import re
+
+def is_valid_branch_name(name):
+    # Basic validation for git branch names
+    # Allow alphanumeric, slash, dash, underscore, dot
+    # Disallow spaces, control characters, or starting with a dash
+    if not name or name.startswith('-'):
+        return False
+    # This is a simplified regex; git check-ref-format is more thorough but this prevents basic injection
+    return re.match(r'^[a-zA-Z0-9/\-_\.]+$', name) is not None
 
 def run_cmd(cmd):
     try:
@@ -17,7 +27,13 @@ def main():
     
     args = parser.parse_args()
     
-    # Ensure branches are available locally (we assume they are for this script context)
+    if not is_valid_branch_name(args.feature_branch):
+        print(f"Error: Invalid feature branch name '{args.feature_branch}'", file=sys.stderr)
+        sys.exit(1)
+        
+    if not is_valid_branch_name(args.primary_branch):
+        print(f"Error: Invalid primary branch name '{args.primary_branch}'", file=sys.stderr)
+        sys.exit(1)
     
     # Get the latest commit of the primary branch
     primary_commit = run_cmd(["git", "rev-parse", args.primary_branch])
