@@ -15,17 +15,18 @@ class TestHookRecursionPrevention:
         hook_path = Path(".git/hooks/post-checkout")
         if not hook_path.exists():
             pytest.skip("post-checkout hook not found, skipping recursion test")
-        assert hook_path.exists(), "post-checkout hook should exist"
+        if not (hook_path.exists()):
+            pytest.fail("post-checkout hook should exist")
 
         content = hook_path.read_text()
 
         # Should check for recursion prevention environment variable
-        assert "ORCHESTRATION_SYNC_ACTIVE" in content, \
-            "post-checkout hook should check for recursion prevention"
+        if "ORCHESTRATION_SYNC_ACTIVE" not in content:
+            pytest.fail("post-checkout hook should check for recursion prevention")
 
         # Should exit early when recursion prevention is active
-        assert "exit 0" in content, \
-            "post-checkout hook should exit early to prevent recursion"
+        if "exit 0" not in content:
+            pytest.fail("post-checkout hook should exit early to prevent recursion")
 
     def test_hook_recursion_safety_mechanisms(self):
         """Test that hooks performing git operations have safety mechanisms."""
@@ -45,13 +46,13 @@ class TestHookRecursionPrevention:
 
                 # If hook contains git checkout operations, it must prevent recursion
                 if "git checkout" in content:
-                    assert has_recursion_check, \
-                        f"Hook {hook_name} performs git checkout but lacks recursion prevention"
+                    if not (has_recursion_check):
+                        pytest.fail(f"Hook {hook_name} performs git checkout but lacks recursion prevention")
 
                 # If hook contains git operations, it should have safety checks
                 if "git " in content and "checkout" in content:
-                    assert has_recursion_check, \
-                        f"Hook {hook_name} performs git operations but lacks recursion prevention"
+                    if not (has_recursion_check):
+                        pytest.fail(f"Hook {hook_name} performs git operations but lacks recursion prevention")
 
     def test_hook_execution_safety(self):
         """Test that hooks can execute without causing infinite loops."""
@@ -66,8 +67,8 @@ class TestHookRecursionPrevention:
 
             # If there are checkout operations, there must be recursion prevention
             if checkout_count > 0:
-                assert "ORCHESTRATION_SYNC_ACTIVE" in content, \
-                    f"Hook has {checkout_count} checkout operations but no recursion prevention"
+                if "ORCHESTRATION_SYNC_ACTIVE" not in content:
+                    pytest.fail(f"Hook has {checkout_count} checkout operations but no recursion prevention")
 
     def test_environment_variable_protection(self):
         """Test that environment variable prevents hook execution."""
@@ -86,7 +87,8 @@ class TestHookRecursionPrevention:
                 result = subprocess.run([str(hook_path)], capture_output=True, text=True)
 
                 # Should exit successfully without doing work
-                assert result.returncode == 0, "Hook should exit cleanly when recursion prevention is active"
+                if not (result.returncode == 0):
+                    pytest.fail("Hook should exit cleanly when recursion prevention is active")
 
             finally:
                 # Restore environment
@@ -109,14 +111,15 @@ class TestHookRecursionPrevention:
                 result = subprocess.run(["bash", "-n", str(hook_path)],
                                       capture_output=True, text=True)
 
-                assert result.returncode == 0, \
-                    f"Hook {hook_name} has syntax errors: {result.stderr}"
+                if not (result.returncode == 0):
+
+                    pytest.fail(f"Hook {hook_name} has syntax errors: {result.stderr}")
 
                 # Additional validation for recursion prevention
                 content = hook_path.read_text()
                 if "git checkout" in content:
-                    assert "ORCHESTRATION_SYNC_ACTIVE" in content, \
-                        f"Hook {hook_name} has git checkout but missing recursion prevention"
+                    if "ORCHESTRATION_SYNC_ACTIVE" not in content:
+                        pytest.fail(f"Hook {hook_name} has git checkout but missing recursion prevention")
 
     def test_worktree_subtree_detection(self):
         """Test that hooks can detect worktree vs subtree setup."""
@@ -126,14 +129,20 @@ class TestHookRecursionPrevention:
             content = hook_path.read_text()
 
             # Should have worktree/subtree detection logic
-            assert "IS_WORKTREE" in content, "Hook should detect worktree setup"
-            assert "IS_SUBTREE" in content, "Hook should detect subtree setup"
-            assert ".git" in content, "Hook should check .git directory/file for setup detection"
+            if "IS_WORKTREE" not in content:
+                pytest.fail("Hook should detect worktree setup")
+            if "IS_SUBTREE" not in content:
+                pytest.fail("Hook should detect subtree setup")
+            if ".git" not in content:
+                pytest.fail("Hook should check .git directory/file for setup detection")
 
             # Should have warning messages for different setups
-            assert "WARNING: Detected WORKTREE setup" in content, "Should warn about worktree detection"
-            assert "WARNING: Detected SUBTREE setup" in content, "Should warn about subtree detection"
-            assert "Consider using worktrees" in content, "Should suggest worktrees for subtrees"
+            if "WARNING: Detected WORKTREE setup" not in content:
+                pytest.fail("Should warn about worktree detection")
+            if "WARNING: Detected SUBTREE setup" not in content:
+                pytest.fail("Should warn about subtree detection")
+            if "Consider using worktrees" not in content:
+                pytest.fail("Should suggest worktrees for subtrees")
 
     def test_conditional_sync_logic(self):
         """Test that hooks have conditional sync logic for different setups."""
@@ -149,8 +158,8 @@ class TestHookRecursionPrevention:
             )
 
             if "git checkout" in content:
-                assert has_conditional_logic, \
-                    "Hook with git operations should have conditional sync logic for worktree/subtree"
+                if not (has_conditional_logic):
+                    pytest.fail("Hook with git operations should have conditional sync logic for worktree/subtree")
 
     def test_worktree_safe_operations(self):
         """Test that worktree operations are considered safe."""
@@ -163,12 +172,16 @@ class TestHookRecursionPrevention:
             if "IS_WORKTREE" in content and "git checkout" in content:
                 # Check that worktrees have conditional logic for safe checkout
                 # Worktrees should be able to checkout directly without extra conflict checks
-                assert "IS_WORKTREE\" == true" in content, "Should have worktree-specific logic"
-                assert "Worktrees: safe to checkout directly" in content, "Should indicate worktrees are safe"
+                if "IS_WORKTREE\" == true" not in content:
+                    pytest.fail("Should have worktree-specific logic")
+                if "Worktrees: safe to checkout directly" not in content:
+                    pytest.fail("Should indicate worktrees are safe")
 
                 # Subtrees should have conflict checks, worktrees should not
-                assert "git status --porcelain" in content, "Should check for conflicts in subtrees"
-                assert "has local changes in subtree" in content, "Should warn about subtree conflicts"
+                if "git status --porcelain" not in content:
+                    pytest.fail("Should check for conflicts in subtrees")
+                if "has local changes in subtree" not in content:
+                    pytest.fail("Should warn about subtree conflicts")
 
     def test_disable_flag_functionality(self):
         """Test that the DISABLE_ORCHESTRATION_CHECKS flag works."""
@@ -178,8 +191,10 @@ class TestHookRecursionPrevention:
             content = hook_path.read_text()
 
             # Should have disable flag check
-            assert "DISABLE_ORCHESTRATION_CHECKS" in content, "Should check for disable flag"
-            assert "Orchestration checks disabled" in content, "Should provide disable message"
+            if "DISABLE_ORCHESTRATION_CHECKS" not in content:
+                pytest.fail("Should check for disable flag")
+            if "Orchestration checks disabled" not in content:
+                pytest.fail("Should provide disable message")
 
             # Test that the flag actually works
             import subprocess
@@ -196,8 +211,10 @@ class TestHookRecursionPrevention:
                 result = subprocess.run([str(hook_path)], capture_output=True, text=True)
 
                 # Should exit cleanly without doing sync work
-                assert result.returncode == 0, "Hook should exit cleanly when disabled"
-                assert "Orchestration checks disabled" in result.stdout, "Should show disable message"
+                if not (result.returncode == 0):
+                    pytest.fail("Hook should exit cleanly when disabled")
+                if "Orchestration checks disabled" not in result.stdout:
+                    pytest.fail("Should show disable message")
 
             finally:
                 # Restore environment
@@ -214,17 +231,19 @@ class TestHookRecursionPrevention:
             content = hook_path.read_text()
 
             # Should have multiple levels of recursion prevention
-            assert "ORCHESTRATION_SYNC_ACTIVE" in content, "Should check for sync active flag"
+            if "ORCHESTRATION_SYNC_ACTIVE" not in content:
+                pytest.fail("Should check for sync active flag")
 
             # Should set the flag before doing git operations
-            assert "export ORCHESTRATION_SYNC_ACTIVE=1" in content, "Should set sync active flag"
+            if "export ORCHESTRATION_SYNC_ACTIVE=1" not in content:
+                pytest.fail("Should set sync active flag")
 
             # Should check for flag early in the script (within first 15 lines)
             lines = content.split('\n')
             early_checks = lines[:15]  # First 15 lines
             early_check_content = '\n'.join(early_checks)
-            assert "ORCHESTRATION_SYNC_ACTIVE" in early_check_content, \
-                "Should check recursion flag early in the script"
+            if "ORCHESTRATION_SYNC_ACTIVE" not in early_check_content:
+                pytest.fail("Should check recursion flag early in the script")
 
     def test_git_checkout_operations_are_protected(self):
         """Test that git checkout operations within hooks are protected from recursion."""
@@ -244,11 +263,13 @@ class TestHookRecursionPrevention:
                     flag_setting_line = i
                     break
 
-            assert flag_setting_line is not None, "Should set ORCHESTRATION_SYNC_ACTIVE flag"
+            if not (flag_setting_line is not None):
+
+                pytest.fail("Should set ORCHESTRATION_SYNC_ACTIVE flag")
 
             # All git checkout operations should come after the flag is set
             for line in checkout_lines:
                 line_index = content.find(line)
                 # This is a rough check - in practice we'd need more sophisticated parsing
-                assert flag_setting_line < content[:line_index].count('\n'), \
-                    f"Git checkout operation '{line.strip()}' should come after sync flag is set"
+                if not (flag_setting_line < content[:line_index].count('\n')):
+                    pytest.fail(f"Git checkout operation '{line.strip()}' should come after sync flag is set")

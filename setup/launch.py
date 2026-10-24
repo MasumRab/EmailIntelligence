@@ -12,7 +12,12 @@ Usage:
 """
 
 import argparse
-import atexit
+
+PYPROJECT_TOML = "pyproject.toml"
+REQUIREMENTS_TXT = "requirements.txt"
+
+PYPROJECT_TOML = PYPROJECT_TOML
+REQUIREMENTS_TXT = REQUIREMENTS_TXT
 import logging
 import os
 import platform
@@ -20,7 +25,6 @@ import shutil
 import subprocess
 import sys
 import time
-import threading
 import venv
 from pathlib import Path
 from typing import List
@@ -37,7 +41,7 @@ from setup.validation import (
     validate_environment, validate_port, validate_host
 )
 from setup.services import (
-    start_services, start_backend, start_node_service, start_gradio_ui, validate_services
+    start_services, start_backend, start_node_service, start_gradio_ui
 )
 from setup.environment import (
     handle_setup, prepare_environment, setup_wsl_environment, check_wsl_requirements
@@ -77,7 +81,7 @@ logger = logging.getLogger("launcher")
 ROOT_DIR = get_project_config().root_dir
 
 # Import process manager from utils
-from setup.utils import process_manager, get_python_executable
+from setup.utils import get_python_executable
 
 # --- Constants ---
 PYTHON_MIN_VERSION = (3, 12)
@@ -161,8 +165,8 @@ def check_for_merge_conflicts() -> bool:
         "backend/python_nlp/smart_retrieval.py",
         "backend/python_nlp/ai_training.py",
         "README.md",
-        "pyproject.toml",
-        "requirements.txt",
+        PYPROJECT_TOML,
+        REQUIREMENTS_TXT,
         "requirements-dev.txt",
     ]
 
@@ -208,7 +212,7 @@ def check_required_components() -> bool:
             issues.append(f"Required directory '{dir_name}' is missing.")
 
     # Check key files
-    required_files = ["pyproject.toml", "README.md", "requirements.txt"]
+    required_files = [PYPROJECT_TOML, "README.md", REQUIREMENTS_TXT]
     for file_name in required_files:
         if not (ROOT_DIR / file_name).exists():
             issues.append(f"Required file '{file_name}' is missing.")
@@ -826,8 +830,8 @@ def print_system_info():
 
     print("\n=== Configuration Files ===")
     config_files = [
-        "pyproject.toml",
-        "requirements.txt",
+        PYPROJECT_TOML,
+        REQUIREMENTS_TXT,
         "requirements-dev.txt",
         "package.json",
         "launch-user.env",

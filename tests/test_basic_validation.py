@@ -3,15 +3,20 @@
 def test_basic_import():
     """Test that basic imports work."""
     try:
-        import os
-        import sys
-        assert True
+        pass
     except ImportError:
-        assert False, "Basic imports failed"
+        import pytest
+        pytest.fail("Basic imports failed")
 
 def test_project_structure():
     """Test that the project has expected structure."""
     import os
-    assert os.path.exists("setup")
-    assert os.path.exists("pyproject.toml") or os.path.exists("setup.cfg")
-    assert os.path.exists("tests")
+    if not os.path.exists("setup"):
+        import pytest
+        pytest.fail("setup directory missing")
+    if not (os.path.exists("pyproject.toml") or os.path.exists("setup.cfg")):
+        import pytest
+        pytest.fail("pyproject.toml or setup.cfg missing")
+    if not os.path.exists("tests"):
+        import pytest
+        pytest.fail("tests directory missing")
