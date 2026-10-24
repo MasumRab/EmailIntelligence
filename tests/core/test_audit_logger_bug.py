@@ -15,7 +15,6 @@ def test_audit_logger_empty_queue_exception_handling():
     try:
         logger.shutdown()
         # Should reach here without raising queue.Empty
-        assert True
     except Exception as e:
         pytest.fail(f"shutdown() raised an exception: {e}")
 
