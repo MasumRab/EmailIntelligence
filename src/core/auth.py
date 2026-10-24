@@ -25,8 +25,8 @@ from .security import SecurityContext, Permission, SecurityLevel
 logger = logging.getLogger(__name__)
 
 # Pre-calculated dummy hash to equalize timing during authentication
-# This is a valid Argon2 hash for the word "dummy_password"
-DUMMY_PASSWORD_HASH = "$argon2id$v=19$m=65536,t=3,p=4$DnF1/L/JzW/0QZ3r5Y/y0w$K7g/6Z5x4y3w2v1u0t9s8"
+# This is a valid Argon2 hash of a dummy value, used only for timing equalization
+DUMMY_PASSWORD_HASH = "$argon2id$v=19$m=65536,t=3,p=4$DnF1/L/JzW/0QZ3r5Y/y0w$K7g/6Z5x4y3w2v1u0t9s8"  # NOSONAR - dummy hash for timing equalization, not a credential
 
 
 class TokenData(BaseModel):
