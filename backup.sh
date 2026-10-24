@@ -20,19 +20,23 @@ NC='\033[0m'
 
 # Logging functions
 log_info() {
-    echo -e "${BLUE}[INFO]${NC} $(date '+%Y-%m-%d %H:%M:%S') - $1"
+    local clean_msg=$(printf '%s' "$1" | tr -d '\000-\010\013\014\016-\037\177')
+    printf "%b[INFO]%b %s - %s\n" "${BLUE}" "${NC}" "$(date '+%Y-%m-%d %H:%M:%S')" "$clean_msg"
 }
 
 log_success() {
-    echo -e "${GREEN}[SUCCESS]${NC} $(date '+%Y-%m-%d %H:%M:%S') - $1"
+    local clean_msg=$(printf '%s' "$1" | tr -d '\000-\010\013\014\016-\037\177')
+    printf "%b[SUCCESS]%b %s - %s\n" "${GREEN}" "${NC}" "$(date '+%Y-%m-%d %H:%M:%S')" "$clean_msg"
 }
 
 log_warning() {
-    echo -e "${YELLOW}[WARNING]${NC} $(date '+%Y-%m-%d %H:%M:%S') - $1"
+    local clean_msg=$(printf '%s' "$1" | tr -d '\000-\010\013\014\016-\037\177')
+    printf "%b[WARNING]%b %s - %s\n" "${YELLOW}" "${NC}" "$(date '+%Y-%m-%d %H:%M:%S')" "$clean_msg"
 }
 
 log_error() {
-    echo -e "${RED}[ERROR]${NC} $(date '+%Y-%m-%d %H:%M:%S') - $1"
+    local clean_msg=$(printf '%s' "$1" | tr -d '\000-\010\013\014\016-\037\177')
+    printf "%b[ERROR]%b %s - %s\n" "${RED}" "${NC}" "$(date '+%Y-%m-%d %H:%M:%S')" "$clean_msg"
 }
 
 # Create backup
