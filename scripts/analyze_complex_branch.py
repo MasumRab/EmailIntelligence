@@ -3,16 +3,18 @@ import subprocess
 import sys
 
 def run_git_command(command, check=True):
-    result = subprocess.run(
-        command,
-        capture_output=True,
-        text=True
-    )
-    if check and result.returncode != 0:
+    try:
+        result = subprocess.run(
+            command,
+            capture_output=True,
+            text=True,
+            check=check
+        )
+        return result.stdout.strip(), result.returncode
+    except subprocess.CalledProcessError as e:
         print(f"Error running command: {' '.join(command)}", file=sys.stderr)
-        print(result.stderr, file=sys.stderr)
+        print(e.stderr, file=sys.stderr)
         sys.exit(1)
-    return result.stdout.strip(), result.returncode
 
 def is_divergent(branch, base):
     _, returncode = run_git_command(["git", "merge-base", "--is-ancestor", base, branch], check=False)
