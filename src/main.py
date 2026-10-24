@@ -16,8 +16,8 @@ _GMAIL_PERF_URL = "http://127.0.0.1:8000/api/gmail/performance"
 
 from .core.audit_logger import AuditEventType, AuditSeverity, audit_logger
 from .core.middleware import (
-    SecurityHeadersMiddleware,
-    SecurityMiddleware,
+    create_security_headers_middleware,
+    create_security_middleware,
 )
 from .core.module_manager import ModuleManager
 from .core.performance_monitor import performance_monitor
@@ -657,12 +657,12 @@ def create_app():
 
     # Add comprehensive security middleware
     app.add_middleware(
-        SecurityMiddleware,
+        create_security_middleware,
         enable_rate_limiting=True,
         enable_audit_logging=True,
         enable_performance_monitoring=True,
     )
-    app.add_middleware(SecurityHeadersMiddleware)
+    app.add_middleware(create_security_headers_middleware)
 
     # Add security headers middleware (additional layer)
     @app.middleware("http")
