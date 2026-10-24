@@ -8,6 +8,7 @@ including installation, configuration, and marketplace integration.
 import logging
 from typing import List, Optional
 
+from .auth import get_current_active_user
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
@@ -87,7 +88,7 @@ class SystemStatus(BaseModel):
 
 
 # Create router
-router = APIRouter(prefix="/api/plugins", tags=["Plugin Management"])
+router = APIRouter(prefix="/api/plugins", tags=["Plugin Management"], dependencies=[Depends(get_current_active_user)])
 
 
 @router.get("/", response_model=List[PluginInfo])
