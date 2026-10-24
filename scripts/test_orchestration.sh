@@ -20,19 +20,23 @@ PASSED_TESTS=0
 
 # Logging functions
 log_info() {
-    echo -e "${BLUE}[INFO]${NC} $1"
+    local clean_msg=$(echo -n "$1" | sed 's/\x1b\[[0-9;]*[a-zA-Z]//g')
+    printf "%b[INFO]%b %s\n" "${BLUE}" "${NC}" "$clean_msg"
 }
 
 log_success() {
-    echo -e "${GREEN}[PASS]${NC} $1"
+    local clean_msg=$(echo -n "$1" | sed 's/\x1b\[[0-9;]*[a-zA-Z]//g')
+    printf "%b[PASS]%b %s\n" "${GREEN}" "${NC}" "$clean_msg"
 }
 
 log_warning() {
-    echo -e "${YELLOW}[WARN]${NC} $1"
+    local clean_msg=$(echo -n "$1" | sed 's/\x1b\[[0-9;]*[a-zA-Z]//g')
+    printf "%b[WARN]%b %s\n" "${YELLOW}" "${NC}" "$clean_msg"
 }
 
 log_error() {
-    echo -e "${RED}[FAIL]${NC} $1"
+    local clean_msg=$(echo -n "$1" | sed 's/\x1b\[[0-9;]*[a-zA-Z]//g')
+    printf "%b[FAIL]%b %s\n" "${RED}" "${NC}" "$clean_msg"
 }
 
 # Test runner

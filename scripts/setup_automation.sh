@@ -14,19 +14,23 @@ RED='\033[0;31m'
 NC='\033[0m'
 
 print_status() {
-    echo -e "${BLUE}[INFO]${NC} $1"
+    local clean_msg=$(echo -n "$1" | sed 's/\x1b\[[0-9;]*[a-zA-Z]//g')
+    printf "%b[INFO]%b %s\n" "${BLUE}" "${NC}" "$clean_msg"
 }
 
 print_success() {
-    echo -e "${GREEN}[SUCCESS]${NC} $1"
+    local clean_msg=$(echo -n "$1" | sed 's/\x1b\[[0-9;]*[a-zA-Z]//g')
+    printf "%b[SUCCESS]%b %s\n" "${GREEN}" "${NC}" "$clean_msg"
 }
 
 print_warning() {
-    echo -e "${YELLOW}[WARNING]${NC} $1"
+    local clean_msg=$(echo -n "$1" | sed 's/\x1b\[[0-9;]*[a-zA-Z]//g')
+    printf "%b[WARNING]%b %s\n" "${YELLOW}" "${NC}" "$clean_msg"
 }
 
 print_error() {
-    echo -e "${RED}[ERROR]${NC} $1"
+    local clean_msg=$(echo -n "$1" | sed 's/\x1b\[[0-9;]*[a-zA-Z]//g')
+    printf "%b[ERROR]%b %s\n" "${RED}" "${NC}" "$clean_msg"
 }
 
 # Check if we're in the project root
