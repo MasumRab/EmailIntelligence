@@ -158,7 +158,7 @@ export function EmailList({ emails, loading, onEmailSelect }: EmailListProps) {
                     <Badge key={index} variant="outline" className="text-xs">
                       {label}
                     </Badge>
-                  );
+                  ));
                   })()}
                   {email.confidence && (
                     <span className="text-xs text-gray-500 flex items-center">
