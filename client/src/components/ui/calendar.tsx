@@ -125,11 +125,11 @@ function Calendar({
         ...classNames,
       }}
       components={{
-        Root: ({ className, rootRef, ...props }) => {
+        Root: ({ className, ...props }) => {
           return (
             <div
               data-slot="calendar"
-              ref={rootRef}
+
               className={cn(className)}
               {...props}
             />
@@ -187,7 +187,7 @@ function CalendarDayButton({
 
   return (
     <Button
-      ref={ref}
+
       variant="ghost"
       size="icon"
       data-day={day.date.toLocaleDateString()}
