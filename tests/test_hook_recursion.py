@@ -46,12 +46,12 @@ class TestHookRecursionPrevention:
 
                 # If hook contains git checkout operations, it must prevent recursion
                 if "git checkout" in content:
-                    if not (has_recursion_check):
+                    if not has_recursion_check:
                         pytest.fail(f"Hook {hook_name} performs git checkout but lacks recursion prevention")
 
                 # If hook contains git operations, it should have safety checks
                 if "git " in content and "checkout" in content:
-                    if not (has_recursion_check):
+                    if not has_recursion_check:
                         pytest.fail(f"Hook {hook_name} performs git operations but lacks recursion prevention")
 
     def test_hook_execution_safety(self):
@@ -87,7 +87,7 @@ class TestHookRecursionPrevention:
                 result = subprocess.run([str(hook_path)], capture_output=True, text=True)
 
                 # Should exit successfully without doing work
-                if not (result.returncode == 0):
+                if result.returncode != 0:
                     pytest.fail("Hook should exit cleanly when recursion prevention is active")
 
             finally:
@@ -111,8 +111,7 @@ class TestHookRecursionPrevention:
                 result = subprocess.run(["bash", "-n", str(hook_path)],
                                       capture_output=True, text=True)
 
-                if not (result.returncode == 0):
-
+                if result.returncode != 0:
                     pytest.fail(f"Hook {hook_name} has syntax errors: {result.stderr}")
 
                 # Additional validation for recursion prevention
@@ -158,7 +157,7 @@ class TestHookRecursionPrevention:
             )
 
             if "git checkout" in content:
-                if not (has_conditional_logic):
+                if not has_conditional_logic:
                     pytest.fail("Hook with git operations should have conditional sync logic for worktree/subtree")
 
     def test_worktree_safe_operations(self):
@@ -211,7 +210,7 @@ class TestHookRecursionPrevention:
                 result = subprocess.run([str(hook_path)], capture_output=True, text=True)
 
                 # Should exit cleanly without doing sync work
-                if not (result.returncode == 0):
+                if result.returncode != 0:
                     pytest.fail("Hook should exit cleanly when disabled")
                 if "Orchestration checks disabled" not in result.stdout:
                     pytest.fail("Should show disable message")
@@ -263,13 +262,12 @@ class TestHookRecursionPrevention:
                     flag_setting_line = i
                     break
 
-            if not (flag_setting_line is not None):
-
+            if flag_setting_line is None:
                 pytest.fail("Should set ORCHESTRATION_SYNC_ACTIVE flag")
 
             # All git checkout operations should come after the flag is set
             for line in checkout_lines:
                 line_index = content.find(line)
                 # This is a rough check - in practice we'd need more sophisticated parsing
-                if not (flag_setting_line < content[:line_index].count('\n')):
+                if flag_setting_line >= content[:line_index].count('\n'):
                     pytest.fail(f"Git checkout operation '{line.strip()}' should come after sync flag is set")

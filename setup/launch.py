@@ -12,12 +12,14 @@ Usage:
 """
 
 import argparse
+HELP_SETUP = "Set up the development environment"
+HELP_RUN = "Run the EmailIntelligence application"
+HELP_TEST = "Run tests"
+
 
 PYPROJECT_TOML = "pyproject.toml"
 REQUIREMENTS_TXT = "requirements.txt"
 
-PYPROJECT_TOML = PYPROJECT_TOML
-REQUIREMENTS_TXT = REQUIREMENTS_TXT
 import logging
 import os
 import platform
@@ -854,16 +856,16 @@ def main():
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
 
     # Setup command
-    setup_parser = subparsers.add_parser("setup", help="Set up the development environment")
+    setup_parser = subparsers.add_parser("setup", help=HELP_SETUP)
     _add_common_args(setup_parser)
 
     # Run command
-    run_parser = subparsers.add_parser("run", help="Run the EmailIntelligence application")
+    run_parser = subparsers.add_parser("run", help=HELP_RUN)
     _add_common_args(run_parser)
     run_parser.add_argument("--dev", action="store_true", help="Run in development mode")
 
     # Test command
-    test_parser = subparsers.add_parser("test", help="Run tests")
+    test_parser = subparsers.add_parser("test", help=HELP_TEST)
     _add_common_args(test_parser)
     test_parser.add_argument("--unit", action="store_true", help="Run unit tests")
     test_parser.add_argument("--integration", action="store_true", help="Run integration tests")
@@ -1060,16 +1062,16 @@ def main():
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
 
     # Setup command
-    setup_parser = subparsers.add_parser("setup", help="Set up the development environment")
+    setup_parser = subparsers.add_parser("setup", help=HELP_SETUP)
     _add_common_args(setup_parser)
 
     # Run command
-    run_parser = subparsers.add_parser("run", help="Run the EmailIntelligence application")
+    run_parser = subparsers.add_parser("run", help=HELP_RUN)
     _add_common_args(run_parser)
     run_parser.add_argument("--dev", action="store_true", help="Run in development mode")
 
     # Test command
-    test_parser = subparsers.add_parser("test", help="Run tests")
+    test_parser = subparsers.add_parser("test", help=HELP_TEST)
     _add_common_args(test_parser)
     test_parser.add_argument("--unit", action="store_true", help="Run unit tests")
     test_parser.add_argument("--integration", action="store_true", help="Run integration tests")
