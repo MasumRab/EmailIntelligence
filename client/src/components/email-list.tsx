@@ -35,7 +35,7 @@ export function EmailList({ emails, loading, onEmailSelect }: EmailListProps) {
   if (loading) {
     return (
       <div className="divide-y divide-gray-200">
-        {[...Array(3)].map((_, i) => (
+        {Array.from({ length: 3 }).map((_, i) => (
           <div key={i} className="p-4">
             <div className="flex items-center space-x-4">
               <Skeleton className="w-10 h-10 rounded-full" />
@@ -158,7 +158,7 @@ export function EmailList({ emails, loading, onEmailSelect }: EmailListProps) {
                       labels = email.labels;
                     }
                     return labels.map((label: string, index: number) => (
-                    <Badge key={index} variant="outline" className="text-xs">
+                    <Badge key={label || index} variant="outline" className="text-xs">
                       {label}
                     </Badge>
                   ));
