@@ -32,6 +32,17 @@ interface EmailListProps {
  * @param {EmailListProps} props - The props for the component.
  * @returns {JSX.Element} The rendered list of emails, or a loading/empty state.
  */
+/**
+ * Normalizes email labels by splitting comma-separated strings and trimming each label.
+ * @param {string | string[] | undefined | null} labels - The labels to normalize.
+ * @returns {string[]} An array of trimmed label strings.
+ */
+const normalizeLabels = (labels?: string | string[] | null): string[] => {
+  if (!labels) return [];
+  if (Array.isArray(labels)) return labels;
+  return labels.split(',').map(label => label.trim()).filter(Boolean);
+};
+
 export const EmailList = React.memo(function EmailList({ emails, loading, onEmailSelect }: EmailListProps) {
   if (loading) {
     return (
@@ -148,7 +159,7 @@ export const EmailList = React.memo(function EmailList({ emails, loading, onEmai
                       {email.categoryData.name}
                     </Badge>
                   )}
-                  {(Array.isArray(email.labels) ? email.labels : email.labels ? [email.labels] : []).map((label: string, index: number) => (
+                  {normalizeLabels(email.labels).map((label: string, index: number) => (
                     <Badge key={index} variant="outline" className="text-xs">
                       {label}
                     </Badge>
