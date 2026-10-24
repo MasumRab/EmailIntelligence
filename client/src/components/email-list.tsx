@@ -111,6 +111,9 @@ export function EmailList({ emails, loading, onEmailSelect }: EmailListProps) {
             key={email.id} 
             className="p-4 hover:bg-gray-50 transition-colors cursor-pointer"
             onClick={() => handleEmailClick(email)}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleEmailClick(email); }}
+            role="button"
+            tabIndex={0}
           >
             <div className="flex items-center space-x-4">
               <div className="flex-shrink-0">
