@@ -1,0 +1,48 @@
+--- src/main.py
++++ src/main.py
+@@ -16,8 +16,8 @@
+
+ from .core.audit_logger import AuditEventType, AuditSeverity, audit_logger
+ from .core.middleware import (
+-    SecurityHeadersMiddleware,
+-    SecurityMiddleware,
++    create_security_headers_middleware,
++    create_security_middleware,
+ )
+ from .core.module_manager import ModuleManager
+ from .core.performance_monitor import performance_monitor
+@@ -656,12 +656,12 @@
+
+     # Add comprehensive security middleware
+     app.add_middleware(
+-        SecurityMiddleware,
++        create_security_middleware,
+         enable_rate_limiting=True,
+         enable_audit_logging=True,
+         enable_performance_monitoring=True,
+     )
+-    app.add_middleware(SecurityHeadersMiddleware)
++    app.add_middleware(create_security_headers_middleware)
+
+     # Add security headers middleware (additional layer)
+     @app.middleware("http")
+--- tests/test_main.py
++++ tests/test_main.py
+@@ -107,14 +107,14 @@
+     """Verify security middleware classes (not instances) are registered."""
+
+     def test_security_middleware_present(self, app):
+-        from src.core.middleware import SecurityMiddleware
++        from src.core.middleware import create_security_middleware
+
+-        found = any(m.cls is SecurityMiddleware for m in app.user_middleware)
++        found = any(m.cls is create_security_middleware for m in app.user_middleware)
+         assert found, "SecurityMiddleware not registered"
+
+     def test_security_headers_middleware_present(self, app):
+-        from src.core.middleware import SecurityHeadersMiddleware
++        from src.core.middleware import create_security_headers_middleware
+
+-        found = any(m.cls is SecurityHeadersMiddleware for m in app.user_middleware)
++        found = any(m.cls is create_security_headers_middleware for m in app.user_middleware)
+         assert found, "SecurityHeadersMiddleware not registered"
