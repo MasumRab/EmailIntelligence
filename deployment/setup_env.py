@@ -48,6 +48,9 @@ def run_command(command, cwd=None, check=True):
         logger.error(f"Command failed with exit code {e.returncode}")
         logger.error(e.stderr)
         return False
+    except FileNotFoundError as e:
+        logger.error(f"Command not found: {e.filename}")
+        return False
 
 
 def setup_python_environment(dev_mode=False):
@@ -58,7 +61,7 @@ def setup_python_environment(dev_mode=False):
     if dev_mode:
         return run_command(f"{sys.executable} -m pip install -r requirements.txt")
     else:
-        return run_command(f"{sys.executable} -m pip install -r requirements.txt --no-dev")
+        return run_command(f"{sys.executable} -m pip install -r requirements.txt")
 
 
 def setup_node_environment(dev_mode=False):
