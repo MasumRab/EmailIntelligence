@@ -9,7 +9,8 @@ import json
 import logging
 from typing import Any, Dict, List
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
+from src.core.auth import get_current_active_user
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -18,7 +19,7 @@ LOG_FILE = "performance_metrics_log.jsonl"
 
 
 @router.get("/api/performance", response_model=List[Dict[str, Any]])
-async def get_performance_metrics():
+async def get_performance_metrics(current_user: dict = Depends(get_current_active_user)):
     """
     Retrieves performance metrics from the log file.
     """
