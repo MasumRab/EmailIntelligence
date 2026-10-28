@@ -27,9 +27,10 @@ def write_manifest(output_path, branches):
     manifest = {
         "branches": branches
     }
-    base_dir = os.path.dirname(os.path.abspath(output_path)) or os.getcwd()
-    file_name = os.path.basename(output_path)
-    safe_output_path = os.path.join(base_dir, file_name)
+    # Normalize the path to prevent directory traversal
+    import pathlib
+    safe_output_path = pathlib.Path(output_path).resolve()
+    
     with open(safe_output_path, 'w') as f:
         json.dump(manifest, f, indent=2)
 
