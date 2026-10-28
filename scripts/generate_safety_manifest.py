@@ -32,7 +32,9 @@ def write_manifest(output_path, branches):
 
 def main():
     if len(sys.argv) > 1:
-        output_path = sys.argv[1]
+        # Sanitize path to prevent traversal
+        requested_path = sys.argv[1]
+        output_path = os.path.basename(requested_path)
     else:
         output_path = "safety_manifest.json"
     
