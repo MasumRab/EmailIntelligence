@@ -45,8 +45,9 @@ def run_command(command, cwd=None, check=True):
         logger.info(result.stdout)
         return True
     except subprocess.CalledProcessError as e:
-        logger.error(f"Command failed with exit code {e.returncode}")
-        logger.error(e.stderr)
+        logger.exception(
+            f"Command failed with exit code {e.returncode}: {e.stderr or ''}".rstrip()
+        )
         return False
     except FileNotFoundError as e:
         logger.error(f"Command not found: {e.filename}")
@@ -59,9 +60,10 @@ def setup_python_environment(dev_mode=False):
 
     # Install Python dependencies
     if dev_mode:
-        return run_command(f"{sys.executable} -m pip install -r requirements.txt")
-    else:
-        return run_command(f"{sys.executable} -m pip install -r requirements.txt")
+        requirements = PROJECT_ROOT / "requirements-dev.txt"
+        if not run_command(f'"{sys.executable}" -m pip install -r "{requirements}"'):
+            return False
+    return run_command(f'"{sys.executable}" -m pip install -r requirements.txt')
 
 
 def setup_node_environment(dev_mode=False):
