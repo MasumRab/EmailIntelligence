@@ -1,0 +1,11 @@
+--- src/backend/python_backend/database.py
++++ src/backend/python_backend/database.py
+@@ -162,7 +162,7 @@
+                 self._dirty_data.add(DATA_TYPE_CATEGORIES)
+         logger.info("In-memory indexes built successfully.")
+ 
+-    @log_performance("load_data")
++    @log_performance(operation="load_data")
+     async def _load_data(self) -> None:
+         for data_type, file_path, data_list_attr in [
+             (DATA_TYPE_EMAILS, self.emails_file, "emails_data"),
