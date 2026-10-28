@@ -26,9 +26,9 @@ class TestMergeValidator(unittest.TestCase):
             mock_result = MagicMock()
             if cmd[1] == "merge-base":
                 mock_result.stdout = "abcdef123456"
-            elif cmd[1] == "diff" and "target" in cmd[3]:
+            elif cmd[1] == "diff" and "target" in cmd[4]:
                 mock_result.stdout = "file1.txt\nfile2.txt"
-            elif cmd[1] == "diff" and "source" in cmd[3]:
+            elif cmd[1] == "diff" and "source" in cmd[4]:
                 mock_result.stdout = "file3.txt\nfile4.txt"
             else:
                 mock_result.stdout = ""
@@ -47,9 +47,9 @@ class TestMergeValidator(unittest.TestCase):
             mock_result = MagicMock()
             if cmd[1] == "merge-base":
                 mock_result.stdout = "abcdef123456"
-            elif cmd[1] == "diff" and "target" in cmd[3]:
+            elif cmd[1] == "diff" and "target" in cmd[4]:
                 mock_result.stdout = "file1.txt\nfile2.txt\ncommon.txt"
-            elif cmd[1] == "diff" and "source" in cmd[3]:
+            elif cmd[1] == "diff" and "source" in cmd[4]:
                 mock_result.stdout = "file3.txt\ncommon.txt"
             else:
                 mock_result.stdout = ""
