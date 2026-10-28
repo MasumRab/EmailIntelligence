@@ -1,2 +1,7 @@
-1. **Understand the Vulnerability:** Wait, let's explore `src/core/plugin_base.py`. `exec(byte_code, globals_dict)` executes arbitrary python code but uses `RestrictedPython`. I already created a `test_sandbox.py` previously and confirmed `RestrictedPython` correctly blocked my simplistic sandbox escapes. `importlib.util.spec_from_file_location` and `spec.loader.exec_module(module)` can load arbitrary files, but `plugin_dir` is bounded to `self.plugins_dir` (e.g. `"plugins"`) because `plugin_dir` is iterated over children of `self.plugins_dir`, and dotted `..` aren't naturally discovered there unless symlinked. Wait, the user specifically told me to look at 'exec' sandbox escapes in `src/core/plugin_base.py`.
-2. **Look closer at execute_in_sandbox**: `RestrictedPython` relies on restricting `__builtins__`. But what if a user escapes the sandbox by exploiting the way `globals_dict` is passed, or if `exec` allows something unsafe? Let me double-check `execute_in_sandbox`.
+1. **Create the documentation file `docs/CI_REVIEW_AUTH_SETUP.md`**
+   - It will contain a short, clear explanation of how to configure the required secrets/variables for the `gemini-review.yml` workflow.
+   - It will explain that either `GEMINI_API_KEY`, `GOOGLE_API_KEY` (as Secrets), or `GCP_WIF_PROVIDER` (as a Variable) must be set in GitHub repository Settings > Secrets and variables > Actions.
+2. **Complete pre-commit steps**
+   - Complete pre-commit steps to ensure proper testing, verification, review, and reflection are done.
+3. **Submit the changes**
+   - Submit the PR with the new file and reply with the PR URL.
