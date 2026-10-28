@@ -3,6 +3,7 @@ import json
 import argparse
 import sys
 import subprocess
+import os
 from pathlib import Path
 from typing import Dict, List, Any
 
@@ -51,7 +52,14 @@ def get_git_status(branch: str, target: str) -> Dict[str, Any]:
         return {"status": "error", "error": str(e)}
 
 def process_manifest(manifest_path: str) -> List[Dict[str, Any]]:
-    with open(manifest_path, 'r') as f:
+    # Sanitize input path to prevent path traversal
+    safe_manifest_path = Path(manifest_path).resolve()
+    
+    # Ensure it's within the current working directory or a specific allowed directory
+    if not str(safe_manifest_path).startswith(str(Path.cwd())):
+        raise ValueError(f"Path must be within current directory: {manifest_path}")
+
+    with open(safe_manifest_path, 'r') as f:
         manifest = json.load(f)
         
     results = []
@@ -80,11 +88,16 @@ def main():
     
     args = parser.parse_args()
     
-    if not Path(args.manifest).exists():
+    manifest_file = Path(args.manifest).resolve()
+    if not str(manifest_file).startswith(str(Path.cwd())):
+        print(f"Error: Manifest file must be within current directory.", file=sys.stderr)
+        sys.exit(1)
+        
+    if not manifest_file.exists():
         print(f"Error: Manifest file '{args.manifest}' not found.", file=sys.stderr)
         sys.exit(1)
         
-    results = process_manifest(args.manifest)
+    results = process_manifest(str(manifest_file))
     
     output_data = {
         "summary": {
@@ -96,7 +109,12 @@ def main():
     }
     
     if args.output:
-        with open(args.output, 'w') as f:
+        output_file = Path(args.output).resolve()
+        if not str(output_file).startswith(str(Path.cwd())):
+            print(f"Error: Output file must be within current directory.", file=sys.stderr)
+            sys.exit(1)
+            
+        with open(output_file, 'w') as f:
             json.dump(output_data, f, indent=2)
         print(f"Results written to {args.output}")
     else:
