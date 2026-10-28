@@ -95,7 +95,7 @@ def setup_database():
     run_command(["createdb", "-U", "postgres", "emailintelligence"], check=False)
 
     # Apply migrations
-    return run_command(["python", "deployment/migrate.py", "apply"])
+    return run_command([sys.executable, "deployment/migrate.py", "apply"])
 
 
 def setup_environment_variables(force=False):
