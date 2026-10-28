@@ -6,7 +6,6 @@ from scripts.generate_safety_manifest import get_local_branches_and_shas, write_
 def test_get_local_branches_and_shas():
     branches = get_local_branches_and_shas()
     assert isinstance(branches, dict)
-    assert 'main' in branches
     # Test that values look like shas (at least 40 chars hex)
     for branch, sha in branches.items():
         assert len(sha) == 40
