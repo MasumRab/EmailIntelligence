@@ -4,19 +4,30 @@ import sys
 import re
 from typing import Set
 
-def is_safe_ref(ref: str) -> bool:
-    """Validate that a git reference contains only safe characters."""
-    return bool(re.match(r'^[a-zA-Z0-9_./-]+$', ref)) and not ref.startswith('-')
+def is_safe_ref(ref: str) -> str:
+    """Validate a git reference and return it, or exit.
+
+    Returning the regex-matched string rather than a boolean lets the caller
+    pass the sanitized value into subprocess argv, which is what the taint
+    analyzer needs to see in order to close the injection warning.
+    """
+    if not ref or ref.startswith("-"):
+        print("Error: Invalid reference provided", file=sys.stderr)
+        sys.exit(1)
+    match = re.match(r"^[a-zA-Z0-9_./-]+$", ref)
+    if not match:
+        print("Error: Invalid reference provided", file=sys.stderr)
+        sys.exit(1)
+    return match.group(0)
 
 def get_changed_files(base: str, head: str) -> Set[str]:
     """Get the set of changed files between two commits."""
-    if not is_safe_ref(base) or not is_safe_ref(head):
-        print(f"Error: Invalid reference provided ({base} or {head})", file=sys.stderr)
-        sys.exit(1)
+    safe_base = is_safe_ref(base)
+    safe_head = is_safe_ref(head)
         
     try:
         result = subprocess.run(
-            ["git", "diff", "--name-only", f"{base}..{head}"], # NOSONAR
+            ["git", "diff", "--name-only", "--", f"{safe_base}..{safe_head}"],
             capture_output=True,
             text=True,
             check=True
@@ -32,14 +43,13 @@ def check_concurrent_changes(source_branch: str, target_branch: str) -> bool:
     Check if there are any files changed in both the source and target branches
     since their common merge base. Returns True if conflicting files exist.
     """
-    if not is_safe_ref(source_branch) or not is_safe_ref(target_branch):
-        print("Error: Branch names contain invalid characters.", file=sys.stderr)
-        sys.exit(1)
+    source_branch = is_safe_ref(source_branch)
+    target_branch = is_safe_ref(target_branch)
         
     # 1. Find the merge base
     try:
         result = subprocess.run(
-            ["git", "merge-base", target_branch, source_branch], # NOSONAR
+            ["git", "merge-base", "--", target_branch, source_branch],
             capture_output=True,
             text=True,
             check=True

@@ -9,14 +9,17 @@ from merge_validator import check_concurrent_changes, is_safe_ref
 
 class TestMergeValidator(unittest.TestCase):
     def test_is_safe_ref(self):
-        self.assertTrue(is_safe_ref("main"))
-        self.assertTrue(is_safe_ref("feature/branch-123"))
-        self.assertTrue(is_safe_ref("refs/heads/main"))
-        self.assertTrue(is_safe_ref("abcdef123456"))
-        
-        self.assertFalse(is_safe_ref("-main"))
-        self.assertFalse(is_safe_ref("main; echo 'evil'"))
-        self.assertFalse(is_safe_ref("feature branch"))
+        # Valid refs are returned unchanged so the caller can pass the
+        # sanitized value to subprocess argv.
+        self.assertEqual(is_safe_ref("main"), "main")
+        self.assertEqual(is_safe_ref("feature/branch-123"), "feature/branch-123")
+        self.assertEqual(is_safe_ref("refs/heads/main"), "refs/heads/main")
+        self.assertEqual(is_safe_ref("abcdef123456"), "abcdef123456")
+
+        # Unsafe refs are rejected before any subprocess call.
+        for bad in ("-main", "main; echo 'evil'", "feature branch", ""):
+            with self.subTest(ref=bad), self.assertRaises(SystemExit):
+                is_safe_ref(bad)
 
     @patch('subprocess.run')
     def test_no_concurrent_changes(self, mock_subprocess_run):
@@ -26,9 +29,9 @@ class TestMergeValidator(unittest.TestCase):
             mock_result = MagicMock()
             if cmd[1] == "merge-base":
                 mock_result.stdout = "abcdef123456"
-            elif cmd[1] == "diff" and "target" in cmd[3]:
+            elif cmd[1] == "diff" and "target" in cmd[4]:
                 mock_result.stdout = "file1.txt\nfile2.txt"
-            elif cmd[1] == "diff" and "source" in cmd[3]:
+            elif cmd[1] == "diff" and "source" in cmd[4]:
                 mock_result.stdout = "file3.txt\nfile4.txt"
             else:
                 mock_result.stdout = ""
@@ -47,9 +50,9 @@ class TestMergeValidator(unittest.TestCase):
             mock_result = MagicMock()
             if cmd[1] == "merge-base":
                 mock_result.stdout = "abcdef123456"
-            elif cmd[1] == "diff" and "target" in cmd[3]:
+            elif cmd[1] == "diff" and "target" in cmd[4]:
                 mock_result.stdout = "file1.txt\nfile2.txt\ncommon.txt"
-            elif cmd[1] == "diff" and "source" in cmd[3]:
+            elif cmd[1] == "diff" and "source" in cmd[4]:
                 mock_result.stdout = "file3.txt\ncommon.txt"
             else:
                 mock_result.stdout = ""
