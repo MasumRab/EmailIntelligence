@@ -27,8 +27,7 @@ def write_manifest(output_path, branches):
     manifest = {
         "branches": branches
     }
-    safe_output_path = os.path.abspath(output_path)
-    with open(safe_output_path, 'w') as f:
+    with open(output_path, 'w') as f:
         json.dump(manifest, f, indent=2)
 
 def main():
