@@ -9,9 +9,17 @@ def is_valid_branch_name(name):
     return re.match(r'^[a-zA-Z0-9/\-_\.]+$', name) is not None
 
 def run_cmd(cmd):
+    if not isinstance(cmd, list) or not all(isinstance(x, str) for x in cmd):
+        raise ValueError("Command must be a list of strings")
+
+    for i, arg in enumerate(cmd):
+        if i > 0 and arg.startswith('-') and arg not in ('--'):
+            raise ValueError(f"Argument starts with '-': {arg}")
+        if not re.match(r'^[A-Za-z0-9/_.=^\-]+$', arg):
+            raise ValueError(f"Invalid argument format: {arg}")
+
     try:
-        # SonarCloud flags this because of user input, but we validate and use -- to prevent injection
-        result = subprocess.run(cmd, capture_output=True, text=True, check=True) # nosonar
+        result = subprocess.run(cmd, capture_output=True, text=True, check=True)
         return result.stdout.strip()
     except subprocess.CalledProcessError as e:
         print(f"Error running '{' '.join(cmd)}': {e.stderr}", file=sys.stderr)
@@ -32,25 +40,18 @@ def main():
         print(f"Error: Invalid primary branch name '{args.primary_branch}'", file=sys.stderr)
         sys.exit(1)
 
-    # We use '--' to indicate the end of options, preventing any option injection
     p_branch = args.primary_branch
     f_branch = args.feature_branch
 
-    # Git rev-parse does not work properly with -- <branch_name> in some git versions,
-    # it treats it as a file path. Instead we append ^{commit} to ensure it's a ref.
-
-    p_commit_ref = f"{p_branch}^{{commit}}"
-    f_commit_ref = f"{f_branch}^{{commit}}"
-
-    primary_commit = run_cmd(["git", "rev-parse", p_commit_ref])
+    primary_commit = run_cmd(["git", "rev-parse", p_branch])
     if not primary_commit:
         sys.exit(1)
 
-    feature_commit = run_cmd(["git", "rev-parse", f_commit_ref])
+    feature_commit = run_cmd(["git", "rev-parse", f_branch])
     if not feature_commit:
         sys.exit(1)
 
-    merge_base = run_cmd(["git", "merge-base", p_commit_ref, f_commit_ref])
+    merge_base = run_cmd(["git", "merge-base", p_branch, f_branch])
     if not merge_base:
         sys.exit(1)
 
