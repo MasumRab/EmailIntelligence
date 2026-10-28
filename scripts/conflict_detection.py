@@ -20,7 +20,7 @@ def check_conflicts(target_branch: str, source_branch: str = "HEAD") -> Dict[str
         # Run git merge-tree
         # exit code 0 means clean merge, 1 means conflicts
         proc = subprocess.run(
-            ["git", "merge-tree", "--write-tree", target_branch, source_branch],
+            ["git", "merge-tree", "--write-tree", "--", target_branch, source_branch],
             capture_output=True,
             text=True,
             check=False
