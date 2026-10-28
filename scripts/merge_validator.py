@@ -16,7 +16,7 @@ def get_changed_files(base: str, head: str) -> Set[str]:
         
     try:
         result = subprocess.run(
-            ["git", "diff", "--name-only", "--", f"{base}..{head}"], # NOSONAR
+            ["git", "diff", "--name-only", "--", f"{base}..{head}"],
             capture_output=True,
             text=True,
             check=True
@@ -39,7 +39,7 @@ def check_concurrent_changes(source_branch: str, target_branch: str) -> bool:
     # 1. Find the merge base
     try:
         result = subprocess.run(
-            ["git", "merge-base", "--", target_branch, source_branch], # NOSONAR
+            ["git", "merge-base", "--", target_branch, source_branch],
             capture_output=True,
             text=True,
             check=True
