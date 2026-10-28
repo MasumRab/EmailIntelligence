@@ -1,6 +1,7 @@
 import argparse
 import subprocess
 import sys
+import re
 
 def run_git_command(command, check=True):
     try:
@@ -34,7 +35,16 @@ def get_changed_files_count(branch, base):
     stdout, _ = run_git_command(["git", "diff", f"{base}...{branch}", "--name-only"])
     return len([line for line in stdout.split('\n') if line.strip()])
 
+def is_valid_git_ref(ref):
+    if not ref or ref.startswith('-'):
+        return False
+    return bool(re.match(r'^[a-zA-Z0-9_/\.-]+$', ref))
+
 def analyze_branch(branch, base, threshold_commits=50, threshold_files=100):
+    if not is_valid_git_ref(branch) or not is_valid_git_ref(base):
+        print("Error: Invalid branch name.", file=sys.stderr)
+        sys.exit(1)
+
     divergent = is_divergent(branch, base)
     merges = get_merge_commit_count(branch, base)
     commits = get_commit_count(branch, base)
