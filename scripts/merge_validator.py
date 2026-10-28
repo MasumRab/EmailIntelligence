@@ -4,19 +4,25 @@ import sys
 import re
 from typing import Set
 
-def is_safe_ref(ref: str) -> bool:
+def is_safe_ref(ref: str) -> str:
     """Validate that a git reference contains only safe characters."""
-    return bool(re.match(r'^[a-zA-Z0-9_./-]+$', ref)) and not ref.startswith('-')
+    if not ref or ref.startswith('-'):
+        print(f"Error: Invalid reference provided", file=sys.stderr)
+        sys.exit(1)
+    match = re.match(r'^[a-zA-Z0-9_./-]+$', ref)
+    if not match:
+        print(f"Error: Invalid reference provided", file=sys.stderr)
+        sys.exit(1)
+    return match.group(0)
 
 def get_changed_files(base: str, head: str) -> Set[str]:
     """Get the set of changed files between two commits."""
-    if not is_safe_ref(base) or not is_safe_ref(head):
-        print(f"Error: Invalid reference provided ({base} or {head})", file=sys.stderr)
-        sys.exit(1)
+    safe_base = is_safe_ref(base)
+    safe_head = is_safe_ref(head)
         
     try:
         result = subprocess.run(
-            ["git", "diff", "--name-only", "--", f"{base}..{head}"],
+            ["git", "diff", "--name-only", "--", f"{safe_base}..{safe_head}"],
             capture_output=True,
             text=True,
             check=True
@@ -32,9 +38,8 @@ def check_concurrent_changes(source_branch: str, target_branch: str) -> bool:
     Check if there are any files changed in both the source and target branches
     since their common merge base. Returns True if conflicting files exist.
     """
-    if not is_safe_ref(source_branch) or not is_safe_ref(target_branch):
-        print("Error: Branch names contain invalid characters.", file=sys.stderr)
-        sys.exit(1)
+    source_branch = is_safe_ref(source_branch)
+    target_branch = is_safe_ref(target_branch)
         
     # 1. Find the merge base
     try:

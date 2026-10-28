@@ -9,14 +9,17 @@ from merge_validator import check_concurrent_changes, is_safe_ref
 
 class TestMergeValidator(unittest.TestCase):
     def test_is_safe_ref(self):
-        self.assertTrue(is_safe_ref("main"))
-        self.assertTrue(is_safe_ref("feature/branch-123"))
-        self.assertTrue(is_safe_ref("refs/heads/main"))
-        self.assertTrue(is_safe_ref("abcdef123456"))
+        self.assertEqual(is_safe_ref("main"), "main")
+        self.assertEqual(is_safe_ref("feature/branch-123"), "feature/branch-123")
+        self.assertEqual(is_safe_ref("refs/heads/main"), "refs/heads/main")
+        self.assertEqual(is_safe_ref("abcdef123456"), "abcdef123456")
         
-        self.assertFalse(is_safe_ref("-main"))
-        self.assertFalse(is_safe_ref("main; echo 'evil'"))
-        self.assertFalse(is_safe_ref("feature branch"))
+        with self.assertRaises(SystemExit):
+            is_safe_ref("-main")
+        with self.assertRaises(SystemExit):
+            is_safe_ref("main; echo 'evil'")
+        with self.assertRaises(SystemExit):
+            is_safe_ref("feature branch")
 
     @patch('subprocess.run')
     def test_no_concurrent_changes(self, mock_subprocess_run):
