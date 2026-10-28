@@ -1,0 +1,20 @@
+--- src/backend/python_backend/tests/test_workflow_manager_security.py
++++ src/backend/python_backend/tests/test_workflow_manager_security.py
+@@ -37,3 +37,17 @@
+     manager.workflows_dir.mkdir(parents=True, exist_ok=True)
+     workflow = Workflow(name="Test Load Path Traversal Workflow", description="", steps=[])
+     assert manager.save_workflow(workflow) is True
++
++
++@pytest.mark.asyncio
++async def test_workflow_manager_path_traversal_etc_passwd():
++    """Test that path traversal attempts with ../../etc/passwd are blocked."""
++    manager = WorkflowManager()
++    # Create a dummy workflow to test saving
++    workflow = Workflow(name="Test Path Traversal Workflow", description="", steps=[])
++    
++    # Test save_workflow
++    assert manager.save_workflow(workflow, "../../etc/passwd") is False
++    
++    # Test load_workflow
++    assert manager.load_workflow("../../etc/passwd") is None

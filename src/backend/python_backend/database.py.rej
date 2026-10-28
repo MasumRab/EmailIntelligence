@@ -1,0 +1,11 @@
+--- database.py
++++ database.py
+@@ -160,7 +160,7 @@
+         )
+         return list(self.categories_by_name.values())
+ 
+-    @log_performance("load_data")
++    @log_performance(operation="load_data")
+     def _load_data(self) -> None:
+         """Load data from JSON files if they exist."""
+         try:
