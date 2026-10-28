@@ -3,6 +3,10 @@ import os
 import tempfile
 import sys
 from io import StringIO
+from contextlib import redirect_stdout
+
+# Add the scripts directory to sys.path to allow importing doc_generator
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from doc_generator import generate_usage_table, get_script_description
 
 class TestDocGenerator(unittest.TestCase):
@@ -31,14 +35,11 @@ class TestDocGenerator(unittest.TestCase):
             with open(os.path.join(d, "b.sh"), "w") as f:
                 f.write('#!/bin/bash\n# Doc B')
 
-            old_stdout = sys.stdout
-            sys.stdout = StringIO()
-            try:
+            f_out = StringIO()
+            with redirect_stdout(f_out):
                 generate_usage_table(d)
-                output = sys.stdout.getvalue()
-            finally:
-                sys.stdout = old_stdout
 
+            output = f_out.getvalue()
             self.assertIn("a.py", output)
             self.assertIn("Doc A", output)
             self.assertIn("b.sh", output)
