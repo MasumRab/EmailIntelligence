@@ -1,4 +1,5 @@
 import argparse
+import asyncio
 import subprocess
 from argparse import Namespace
 from typing import Any, Dict
@@ -35,37 +36,42 @@ class IdentifyCommand(Command):
         """
         return {}
 
+    @staticmethod
+    def _categorise(branch_name: str) -> str:
+        """Map a branch name to its category."""
+        if branch_name.startswith("hotfix"):
+            return "hotfix"
+        if branch_name.startswith(("maint", "fix")):
+            return "maintenance"
+        if branch_name.startswith("feature"):
+            return "feature"
+        if branch_name in ("main", "master"):
+            return "primary"
+        return "feature"
+
     async def execute(self, args: Namespace) -> int:
         """
         Execute the command.
         """
         try:
-            result = subprocess.run(
-                ["git", "branch", "--list"],
-                capture_output=True,
-                text=True,
-                check=True,
+            proc = await asyncio.create_subprocess_exec(
+                "git", "branch", "--list",
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE,
             )
+            stdout, stderr = await proc.communicate()
+            if proc.returncode != 0:
+                raise subprocess.CalledProcessError(
+                    proc.returncode, "git branch --list", stderr=stderr
+                )
             branches = []
-            for line in result.stdout.strip().split("\n"):
+            for line in stdout.decode().strip().split("\n"):
                 branch_name = line.replace("*", "").strip()
                 if not branch_name:
                     continue
-                category = "feature"
-                if branch_name.startswith("hotfix"):
-                    category = "hotfix"
-                elif branch_name.startswith("maint") or branch_name.startswith("fix"):
-                    category = "maintenance"
-                elif branch_name.startswith("feature"):
-                    category = "feature"
-                elif branch_name == "main" or branch_name == "master":
-                    category = "primary"
-                else:
-                    category = "feature" # Default based on issue context
-
                 branches.append({
                     "name": branch_name,
-                    "category": category
+                    "category": self._categorise(branch_name),
                 })
 
             if getattr(args, "json", False):

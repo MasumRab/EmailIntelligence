@@ -2,6 +2,26 @@ import pytest
 from argparse import Namespace
 from src.cli.commands.identify_command import IdentifyCommand
 
+class FakeProc:
+    """Stand-in for an asyncio subprocess created by create_subprocess_exec."""
+
+    def __init__(self, out: str):
+        self.returncode = 0
+        self._out = out.encode()
+
+    async def communicate(self):
+        return self._out, b""
+
+
+def _patch_async_exec(monkeypatch, out: str):
+    async def fake_exec(*args, **kwargs):
+        return FakeProc(out)
+
+    monkeypatch.setattr(
+        "src.cli.commands.identify_command.asyncio.create_subprocess_exec",
+        fake_exec,
+    )
+
 class TestIdentifyCommand:
     def test_command_properties(self):
         cmd = IdentifyCommand()
@@ -12,14 +32,10 @@ class TestIdentifyCommand:
     async def test_execute_basic(self, capsys, monkeypatch):
         cmd = IdentifyCommand()
         
-        # Mock subprocess.run
-        class MockProcess:
-            stdout = "  main\n* feature/test-1\n  hotfix/bug-1\n  fix/issue-2\n  unknown-branch"
-        
-        def mock_run(*args, **kwargs):
-            return MockProcess()
-            
-        monkeypatch.setattr("subprocess.run", mock_run)
+        _patch_async_exec(
+            monkeypatch,
+            "  main\n* feature/test-1\n  hotfix/bug-1\n  fix/issue-2\n  unknown-branch",
+        )
         
         args = Namespace(json=False)
         result = await cmd.execute(args)
@@ -37,14 +53,7 @@ class TestIdentifyCommand:
     async def test_execute_json(self, capsys, monkeypatch):
         cmd = IdentifyCommand()
         
-        # Mock subprocess.run
-        class MockProcess:
-            stdout = "  main\n* feature/test-1"
-        
-        def mock_run(*args, **kwargs):
-            return MockProcess()
-            
-        monkeypatch.setattr("subprocess.run", mock_run)
+        _patch_async_exec(monkeypatch, "  main\n* feature/test-1")
         
         args = Namespace(json=True)
         result = await cmd.execute(args)
