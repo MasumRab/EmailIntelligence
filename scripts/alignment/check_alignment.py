@@ -3,13 +3,13 @@ import argparse
 import sys
 import re
 
-def is_valid_branch_name(name):
+def is_plausible_branch_name(name):
     if not name or name.startswith('-'):
         return False
     return re.match(r'^[a-zA-Z0-9/\-_\.]+$', name) is not None
 
 
-_SAFE_ARG = re.compile(r"^[A-Za-z0-9/_.=^@:\-]+$")
+_SAFE_ARG = re.compile(r"^[A-Za-z0-9/_.=:\-]+$")
 
 def _clean_arg(argument: str) -> str:
     """Return the argument, or raise if any character falls outside the allowlist."""
@@ -42,11 +42,11 @@ def main():
 
     args = parser.parse_args()
 
-    if not is_valid_branch_name(args.feature_branch):
+    if not is_plausible_branch_name(args.feature_branch):
         print(f"Error: Invalid feature branch name '{args.feature_branch}'", file=sys.stderr)
         sys.exit(1)
 
-    if not is_valid_branch_name(args.primary_branch):
+    if not is_plausible_branch_name(args.primary_branch):
         print(f"Error: Invalid primary branch name '{args.primary_branch}'", file=sys.stderr)
         sys.exit(1)
 
