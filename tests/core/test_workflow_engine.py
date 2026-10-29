@@ -251,3 +251,94 @@ if __name__ == "__main__":
     print("✓ Metrics collection test passed")
 
     print("\nAll tests passed! 🎉")
+
+
+
+def test_calculate_cleanup_schedule_equivalence():
+    """Test that the optimized O(N) cleanup schedule matches the naive implementation."""
+    nodes = {
+        "A": Node("A", "source", lambda: "A", inputs=[], outputs=["out"]),
+        "B": Node("B", "process", lambda x: x, inputs=["in"], outputs=["out"]),
+        "C": Node("C", "sink", lambda x: x, inputs=["in"], outputs=[]),
+        "D": Node("D", "sink2", lambda x: x, inputs=["in"], outputs=[])
+    }
+    connections = [
+        {"from": {"node_id": "A", "output": "out"}, "to": {"node_id": "B", "input": "in"}},
+        {"from": {"node_id": "B", "output": "out"}, "to": {"node_id": "C", "input": "in"}},
+        {"from": {"node_id": "A", "output": "out"}, "to": {"node_id": "D", "input": "in"}}
+    ]
+    workflow = Workflow("test_cleanup_equiv", nodes, connections)
+    runner = WorkflowRunner(workflow)
+    execution_order = workflow.get_execution_order()
+    
+    optimized_schedule = runner._calculate_cleanup_schedule(execution_order)
+    
+    naive_schedule = {}
+    for i, node_id in enumerate(execution_order):
+        naive_schedule[node_id] = []
+        for prev_node_id in execution_order[:i]:
+            still_needed = False
+            for subsequent_node_id in execution_order[i + 1 :]:
+                for conn in runner.workflow.connections:
+                    if (
+                        conn["from"]["node_id"] == prev_node_id
+                        and conn["to"]["node_id"] == subsequent_node_id
+                    ):
+                        still_needed = True
+                        break
+                if still_needed:
+                    break
+            if not still_needed:
+                naive_schedule[node_id].append(prev_node_id)
+                
+    assert set(optimized_schedule.keys()) == set(naive_schedule.keys())
+    for k in optimized_schedule:
+        assert set(optimized_schedule[k]) == set(naive_schedule[k])
+
+
+def test_calculate_cleanup_schedule_equivalence_randomized():
+    import random
+    
+    # 200 random DAGs
+    random.seed(42)
+    for _ in range(200):
+        n = random.randint(1, 6)
+        
+        # Build random DAG without networkx
+        edges = []
+        for u in range(n):
+            for v in range(u + 1, n):
+                if random.random() < 0.35:
+                    edges.append((u, v))
+        
+        nodes = {str(i): Node(str(i), "dummy", lambda: None, inputs=["in"], outputs=["out"]) for i in range(n)}
+        connections = [{"from": {"node_id": str(u), "output": "out"}, "to": {"node_id": str(v), "input": "in"}} for u, v in edges]
+
+        
+        workflow = Workflow("rand_workflow", nodes, connections)
+        runner = WorkflowRunner(workflow)
+        execution_order = workflow.get_execution_order()
+        
+        optimized = runner._calculate_cleanup_schedule(execution_order)
+        
+        naive = {}
+        for i, node_id in enumerate(execution_order):
+            naive[node_id] = []
+            for prev_node_id in execution_order[:i]:
+                still_needed = False
+                for subsequent_node_id in execution_order[i + 1 :]:
+                    for conn in runner.workflow.connections:
+                        if (
+                            conn["from"]["node_id"] == prev_node_id
+                            and conn["to"]["node_id"] == subsequent_node_id
+                        ):
+                            still_needed = True
+                            break
+                    if still_needed:
+                        break
+                if not still_needed:
+                    naive[node_id].append(prev_node_id)
+                    
+        assert set(optimized.keys()) == set(naive.keys())
+        for k in optimized:
+            assert set(optimized[k]) == set(naive[k])
