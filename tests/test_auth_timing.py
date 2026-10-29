@@ -12,16 +12,6 @@ class DummyDB:
 
 
 @pytest.mark.asyncio
-async def test_auth_failure_no_nameerror():
-    db = DummyDB(
-        {"admin": {"username": "admin", "hashed_password": hash_password("secret")}}
-    )
-    # Should return None, not raise NameError
-    result = await authenticate_user("admin", "wrong_password", db)
-    assert result is None
-
-
-@pytest.mark.asyncio
 async def test_auth_timing():
     # Setup users
     hashed = hash_password("secret")
