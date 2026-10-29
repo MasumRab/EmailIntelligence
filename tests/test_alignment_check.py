@@ -6,7 +6,7 @@ import pytest
 import sys
 
 def run_cmd(cmd, cwd=None):
-    subprocess.run(cmd, cwd=cwd, check=True, capture_output=True, text=True)
+    subprocess.run(cmd, cwd=cwd, check=True, capture_output=True, text=True)  # NOSONAR
 
 @pytest.fixture
 def repo():
@@ -41,7 +41,7 @@ def test_alignment_up_to_date(repo):
 
     # At this point feature is branched off main and main hasn't moved
     # So feature is up-to-date with main
-    result = subprocess.run([sys.executable, script_path, "feature", "main"], cwd=repo, capture_output=True, text=True, check=True)
+    result = subprocess.run([sys.executable, script_path, "feature", "main"], cwd=repo, capture_output=True, text=True, check=True)  # NOSONAR
     assert "Status: UP-TO-DATE" in result.stdout
 
 def test_alignment_out_of_date(repo):
@@ -55,6 +55,6 @@ def test_alignment_out_of_date(repo):
     run_cmd(["git", "commit", "-m", "main change"], cwd=repo)
 
     # Now feature is out of date
-    result = subprocess.run([sys.executable, script_path, "feature", "main"], cwd=repo, capture_output=True, text=True)
+    result = subprocess.run([sys.executable, script_path, "feature", "main"], cwd=repo, capture_output=True, text=True)  # NOSONAR
     assert result.returncode == 1
     assert "Status: OUT-OF-DATE" in result.stdout
