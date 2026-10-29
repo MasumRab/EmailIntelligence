@@ -43,15 +43,15 @@ def main():
     p_branch = args.primary_branch
     f_branch = args.feature_branch
 
-    primary_commit = run_cmd(["git", "rev-parse", p_branch])
+    primary_commit = run_cmd(["git", "rev-parse", f"refs/heads/{p_branch}"])
     if not primary_commit:
         sys.exit(1)
         
-    feature_commit = run_cmd(["git", "rev-parse", f_branch])
+    feature_commit = run_cmd(["git", "rev-parse", f"refs/heads/{f_branch}"])
     if not feature_commit:
         sys.exit(1)
 
-    merge_base = run_cmd(["git", "merge-base", p_branch, f_branch])
+    merge_base = run_cmd(["git", "merge-base", f"refs/heads/{p_branch}", f"refs/heads/{f_branch}"])
     if not merge_base:
         sys.exit(1)
         
