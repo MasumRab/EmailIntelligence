@@ -7,7 +7,7 @@ import datetime
 
 BACKUP_FILE_DEFAULT = ".branch_backup.json"
 
-_SAFE_REF = re.compile(r"[A-Za-z0-9_./-]*")
+_SAFE_REF = re.compile(r"^(?!.*\.\.)[A-Za-z0-9_./-]*$")
 _SAFE_SHA = re.compile(r"[0-9a-f]*")
 
 
