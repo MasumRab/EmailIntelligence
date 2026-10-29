@@ -2,12 +2,22 @@
 import os
 import sys
 import ast
+from pathlib import Path
 
 def get_script_description(filepath: str) -> str:
     """Extract description from a script."""
+    
+    # Sanitize input path to prevent path traversal
+    try:
+        safe_path = Path(filepath).resolve()
+        if not str(safe_path).startswith(str(Path.cwd())):
+            return "Error: Path traversal blocked"
+    except Exception:
+        return "Error: Invalid path"
+
     if filepath.endswith('.py'):
         try:
-            with open(filepath, 'r', encoding='utf-8') as f:
+            with open(safe_path, 'r', encoding='utf-8') as f:
                 content = f.read()
             module = ast.parse(content)
             docstring = ast.get_docstring(module)
@@ -17,7 +27,7 @@ def get_script_description(filepath: str) -> str:
             pass
     elif filepath.endswith('.sh'):
         try:
-            with open(filepath, 'r', encoding='utf-8') as f:
+            with open(safe_path, 'r', encoding='utf-8') as f:
                 lines = f.readlines()
             for line in lines:
                 if line.startswith('#') and not line.startswith('#!'):
