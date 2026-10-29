@@ -4,11 +4,17 @@ import sys
 
 _SAFE_REF = re.compile(r'^[A-Za-z0-9][A-Za-z0-9/_.-]*$')
 
-def _is_safe_ref(name: str) -> bool:
-    return bool(name) and bool(_SAFE_REF.match(name))
+def _safe_ref(name: str) -> str:
+    """Return the regex-matched branch name. A bool check leaves the raw argv value tainted."""
+    match = _SAFE_REF.match(name or "")
+    if not match:
+        raise ValueError(name)
+    return match.group(0)
 
 def check_branch_status(branch):
-    if not _is_safe_ref(branch):
+    try:
+        branch = _safe_ref(branch)
+    except ValueError:
         return "error"
     try:
         # Try to merge main into branch in memory without modifying working tree
