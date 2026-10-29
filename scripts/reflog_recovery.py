@@ -2,14 +2,36 @@
 import subprocess
 import json
 import argparse
+import re
 import sys
+
+_SAFE_REF = re.compile(r'[a-zA-Z0-9_./-]+')
+
+def safe_ref(ref: str) -> str:
+    """Return the reference, or raise if it is malformed or could be read as an option.
+
+    The allowlist is matched, not merely tested: the matched text is what reaches
+    argv, so the value git receives is the value the regex accepted. A boolean
+    "reject if unsafe" helper leaves the original string in the taint graph and
+    SonarCloud's pythonsecurity:S8705 keeps reporting the sink.
+    """
+    match = _SAFE_REF.fullmatch(ref)
+    if not match or ref.startswith('-'):
+        raise ValueError(ref)
+    return match.group(0)
 
 def get_reflog_history(branch_name: str, count: int = 5):
     """Gets the recent reflog history for a specific branch."""
     try:
+        safe_branch = safe_ref(branch_name)
+    except ValueError:
+        print(f"Error: invalid branch name {branch_name!r}", file=sys.stderr)
+        return []
+
+    try:
         # Use git reflog show to get branch specific reflog
         result = subprocess.run(
-            ['git', 'reflog', 'show', branch_name, '-n', str(count), '--format=%h|%gs'],
+            ['git', 'reflog', 'show', safe_branch, '-n', str(count), '--format=%h|%gs'],
             capture_output=True,
             text=True,
             check=True

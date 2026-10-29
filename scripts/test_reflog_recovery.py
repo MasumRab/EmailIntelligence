@@ -64,7 +64,7 @@ class TestReflogRecovery(unittest.TestCase):
         
         self.assertEqual(result["branch"], "unknown-branch")
         self.assertEqual(result["status"], "error")
-        self.assertTrue("No reflog history found" in result["message"])
+        self.assertIn("No reflog history found", result["message"])
 
 if __name__ == '__main__':
     unittest.main()
