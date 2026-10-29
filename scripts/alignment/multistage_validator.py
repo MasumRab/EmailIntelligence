@@ -20,8 +20,8 @@ def run_validation(script_path):
             return False
         logging.info(f"Validation succeeded: {script_path}")
         return True
-    except Exception as e:
-        logging.error(f"Error running {script_path}: {e}")
+    except Exception:
+        logging.exception("Error running %s", script_path)
         return False
 
 def main():
