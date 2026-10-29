@@ -33,11 +33,9 @@ def write_manifest(output_path, branches):
     
     if os.path.commonpath([base, target]) != base:
         raise ValueError(f"refusing to write outside {base}: {target}")
-    
-    if '..' in str(output_path).split(os.path.sep):
-        raise ValueError("Path traversal detected")
         
-    with open(target, 'w') as f:
+    fd = os.open(target, os.O_WRONLY | os.O_CREAT | os.O_TRUNC | os.O_NOFOLLOW, 0o644)
+    with os.fdopen(fd, 'w') as f:
         json.dump(manifest, f, indent=2)
 
 def main():
