@@ -10,6 +10,7 @@ from typing import Optional, Dict, Any, List
 import time
 import secrets
 from argon2 import PasswordHasher
+from argon2.exceptions import VerifyMismatchError, InvalidHashError
 
 import jwt
 from fastapi import HTTPException, status, Depends
@@ -24,9 +25,15 @@ from .security import SecurityContext, Permission, SecurityLevel
 
 logger = logging.getLogger(__name__)
 
+# Valid Argon2 hash for preventing timing attacks
+DUMMY_HASH = (
+    "$argon2id$v=19$m=65536,t=3,p=4$DnF1/L/JzW/0QZ3r5Y/y0w$K7g/6Z5x4y3w2v1u0t9s8"
+)
+
 
 class TokenData(BaseModel):
     """Data structure for JWT token payload"""
+
     username: Optional[str] = None
     role: Optional[str] = "user"
 
@@ -36,6 +43,7 @@ from enum import Enum
 
 class UserRole(str, Enum):
     """User roles for role-based access control"""
+
     ADMIN = "admin"
     USER = "user"
     GUEST = "guest"
@@ -43,6 +51,7 @@ class UserRole(str, Enum):
 
 class User(BaseModel):
     """User model for authentication"""
+
     username: str
     hashed_password: str
     role: UserRole = UserRole.USER
@@ -70,7 +79,9 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -
     else:
         expire = datetime.utcnow() + timedelta(minutes=15)
     to_encode.update({"exp": expire})
-    encoded_jwt = jwt.encode(to_encode, settings.secret_key, algorithm=settings.algorithm)
+    encoded_jwt = jwt.encode(
+        to_encode, settings.secret_key, algorithm=settings.algorithm
+    )
     return encoded_jwt
 
 
@@ -102,10 +113,10 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     ph = PasswordHasher()
     try:
         return ph.verify(hashed_password, plain_password)
-    except argon2.exceptions.VerifyMismatchError:
+    except VerifyMismatchError:
         # Password verification failed
         return False
-    except argon2.exceptions.InvalidHashError:
+    except InvalidHashError:
         # Invalid hash format
         logger.warning("Invalid password hash format")
         return False
@@ -115,7 +126,9 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
         return False
 
 
-async def authenticate_user(username: str, password: str, db) -> Optional[Dict[str, Any]]:
+async def authenticate_user(
+    username: str, password: str, db
+) -> Optional[Dict[str, Any]]:
     """
     Authenticate a user by username and password.
 
@@ -139,7 +152,7 @@ async def authenticate_user(username: str, password: str, db) -> Optional[Dict[s
             # This is a valid Argon2 hash for "dummy" to prevent early exit
             # We calculate it once or use a fixed one. Using a fixed one is faster but consistent.
             # Ideally this should be pre-calculated.
-            stored_hash = "$argon2id$v=19$m=65536,t=3,p=4$DnF1/L/JzW/0QZ3r5Y/y0w$K7g/6Z5x4y3w2v1u0t9s8"
+            stored_hash = DUMMY_HASH
 
         is_valid = verify_password(password, stored_hash)
 
@@ -173,10 +186,7 @@ async def create_user(username: str, password: str, db) -> bool:
         hashed_password = hash_password(password)
 
         # Create user in database
-        user_data = {
-            "username": username,
-            "hashed_password": hashed_password
-        }
+        user_data = {"username": username, "hashed_password": hashed_password}
 
         await db.create_user(user_data)
         return True
@@ -186,7 +196,7 @@ async def create_user(username: str, password: str, db) -> bool:
 
 
 async def verify_token(
-    credentials: HTTPAuthorizationCredentials = Depends(security)
+    credentials: HTTPAuthorizationCredentials = Depends(security),
 ) -> TokenData:
     """
     Verify the JWT token from the Authorization header.
@@ -212,7 +222,7 @@ async def verify_token(
         payload = jwt.decode(
             credentials.credentials,
             settings.secret_key,
-            algorithms=[settings.algorithm]
+            algorithms=[settings.algorithm],
         )
         username: str = payload.get("sub")
         role: str = payload.get("role", "user")
@@ -261,15 +271,17 @@ def require_role(required_role: UserRole):
     Returns:
         A dependency function that checks the user's role
     """
+
     def role_checker(token_data: TokenData = Depends(verify_token)) -> TokenData:
         # In a real implementation, you would check the user's actual role from the database
         # For now, we'll check the role from the token
         if token_data.role != required_role.value:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail=f"Access denied. {required_role.value} role required."
+                detail=f"Access denied. {required_role.value} role required.",
             )
         return token_data
+
     return role_checker
 
 
@@ -283,15 +295,17 @@ def require_any_role(required_roles: List[UserRole]):
     Returns:
         A dependency function that checks the user's role
     """
+
     def role_checker(token_data: TokenData = Depends(verify_token)) -> TokenData:
         # In a real implementation, you would check the user's actual role from the database
         # For now, we'll check the role from the token
         if token_data.role not in [role.value for role in required_roles]:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail=f"Access denied. One of {[role.value for role in required_roles]} roles required."
+                detail=f"Access denied. One of {[role.value for role in required_roles]} roles required.",
             )
         return token_data
+
     return role_checker
 
 
