@@ -162,12 +162,36 @@ def sanitize_path(
     Returns:
         A resolved, safe Path object or None if the path is unsafe.
     """
-    if not validate_path_safety(path, base_dir):
+    try:
+        import urllib.parse
+        str_path = str(path)
+        decoded_path = urllib.parse.unquote(str_path)
+        if "\x00" in decoded_path:
+            return None
+        
+        path_obj = pathlib.Path(decoded_path)
+        base_path = (pathlib.Path(base_dir) if base_dir else pathlib.Path.cwd()).resolve()
+        
+        # Prevent absolute paths from replacing the base directory entirely
+        if path_obj.is_absolute():
+            # Only allow absolute paths if they're already within base_dir
+            resolved_path = path_obj.resolve()
+            if not str(resolved_path).startswith(str(base_path)):
+                return None
+        else:
+            # Drop leading slashes and drive letters for relative paths
+            safe_str = decoded_path.lstrip('/')
+            if ":" in safe_str:
+                return None
+            resolved_path = (base_path / safe_str).resolve()
+        
+        # Ensure the resolved path is within the base directory
+        if resolved_path != base_path and base_path not in resolved_path.parents:
+            return None
+            
+        return resolved_path
+    except Exception:
         return None
-
-    base_path = (pathlib.Path(base_dir) if base_dir else pathlib.Path.cwd()).resolve()
-    return (base_path / path).resolve()
-
 
 
 class DataSanitizer:
