@@ -28,12 +28,18 @@ def write_manifest(output_path, branches):
         "branches": branches
     }
     
-    # Allow saving into a designated folder structure by preventing relative traversal (..)
+    # Normalize the path and ensure it does not escape its intended base directory
     output_path_str = str(output_path)
-    if ".." in output_path_str.split(os.path.sep):
-        raise ValueError("Path traversal detected")
+    base_dir = os.path.dirname(os.path.abspath(output_path_str))
+    
+    # If a filename without directory is provided, default to current working directory
+    if not base_dir or base_dir == os.path.abspath('/'):
+        base_dir = os.getcwd()
         
-    safe_output_path = os.path.abspath(output_path_str)
+    safe_output_path = os.path.abspath(os.path.join(base_dir, os.path.basename(output_path_str)))
+    
+    if not safe_output_path.startswith(base_dir):
+        raise ValueError("Path traversal detected")
     
     with open(safe_output_path, 'w') as f:
         json.dump(manifest, f, indent=2)
