@@ -16,15 +16,15 @@ def check_branch_status(branch):
         branch = _safe_ref(branch)
     except ValueError:
         return "error"
-    try:
-        # Try to merge main into branch in memory without modifying working tree
-        base = subprocess.run(['git', 'merge-base', 'main', '--', branch], capture_output=True, text=True, check=True).stdout.strip()
-        result = subprocess.run(['git', 'merge-tree', base, 'main', '--', branch], capture_output=True, text=True, check=True)
-        if '<<<<<<<' in result.stdout:
-            return "conflicting"
+    
+    result = subprocess.run(
+        ["git", "merge-tree", "--write-tree", "--", branch, "main"],
+        capture_output=True, text=True)
+    if result.returncode == 0:
         return "clean"
-    except subprocess.CalledProcessError:
-        return "error"
+    if result.returncode == 1:
+        return "conflicting"
+    return "error"
 
 def process_branches(branches):
     results = {}
