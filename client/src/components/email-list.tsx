@@ -2,6 +2,7 @@
  * @file This file contains the EmailList component, which is responsible for
  *       rendering a list of emails, including their loading and empty states.
  */
+import React from "react";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
@@ -31,7 +32,18 @@ interface EmailListProps {
  * @param {EmailListProps} props - The props for the component.
  * @returns {JSX.Element} The rendered list of emails, or a loading/empty state.
  */
-export function EmailList({ emails, loading, onEmailSelect }: EmailListProps) {
+/**
+ * Normalizes email labels by splitting comma-separated strings and trimming each label.
+ * @param {string | string[] | undefined | null} labels - The labels to normalize.
+ * @returns {string[]} An array of trimmed label strings.
+ */
+const normalizeLabels = (labels?: string | string[] | null): string[] => {
+  if (!labels) return [];
+  if (Array.isArray(labels)) return labels;
+  return labels.split(',').map(label => label.trim()).filter(Boolean);
+};
+
+export const EmailList = React.memo(function EmailList({ emails, loading, onEmailSelect }: EmailListProps) {
   if (loading) {
     return (
       <div className="divide-y divide-gray-200">
@@ -147,19 +159,11 @@ export function EmailList({ emails, loading, onEmailSelect }: EmailListProps) {
                       {email.categoryData.name}
                     </Badge>
                   )}
-{(() => {
-                    let labels: string[] = [];
-                    if (typeof email.labels === "string") {
-                      labels = email.labels.split(",");
-                    } else if (Array.isArray(email.labels)) {
-                      labels = email.labels;
-                    }
-                    return labels.map((label: string, index: number) => (
+                  {normalizeLabels(email.labels).map((label: string, index: number) => (
                     <Badge key={index} variant="outline" className="text-xs">
                       {label}
                     </Badge>
-                  );
-                  })()}
+                  ))}
                   {email.confidence && (
                     <span className="text-xs text-gray-500 flex items-center">
                       <Brain className="h-3 w-3 mr-1" />
@@ -180,4 +184,4 @@ export function EmailList({ emails, loading, onEmailSelect }: EmailListProps) {
       </div>
     </>
   );
-}
+});
