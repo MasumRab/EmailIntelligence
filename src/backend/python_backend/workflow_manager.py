@@ -102,18 +102,10 @@ class WorkflowManager:
             if filename is None:
                 filename = f"{workflow.name.replace(' ', '_').lower()}_{int(datetime.now().timestamp())}.json"
 
-            # Prevent path traversal
-            filepath = (self.workflows_dir / filename).resolve()
-            if not str(filepath).startswith(str(self.workflows_dir.resolve())):
-                logger.error(f"Path traversal attempt blocked for filename: {filename}")
-                return False
-
-            # Security: Prevent path traversal by verifying the file is inside workflows_dir
-            try:
-                filepath.resolve().relative_to(self.workflows_dir.resolve())
-            except ValueError:
-                logger.error(f"Access to file outside workflow directory is not allowed: {filepath}")
-                return False
+            # Security: Prevent path traversal by extracting only the filename
+            # using Path(filename).name to ensure it cannot contain directory separators
+            safe_filename = Path(filename).name
+            filepath = self.workflows_dir / safe_filename
 
             with open(filepath, "w", encoding="utf-8") as f:
                 json.dump(workflow.to_dict(), f, indent=2, ensure_ascii=False)
@@ -133,18 +125,10 @@ class WorkflowManager:
     def load_workflow(self, filename: str) -> Optional[Workflow]:
         """Load a workflow from a JSON file"""
         try:
-            # Prevent path traversal
-            filepath = (self.workflows_dir / filename).resolve()
-            if not str(filepath).startswith(str(self.workflows_dir.resolve())):
-                logger.error(f"Path traversal attempt blocked for filename: {filename}")
-                return None
-
-            # Security: Prevent path traversal by verifying the file is inside workflows_dir
-            try:
-                filepath.resolve().relative_to(self.workflows_dir.resolve())
-            except ValueError:
-                logger.error(f"Access to file outside workflow directory is not allowed: {filepath}")
-                return None
+            # Security: Prevent path traversal by extracting only the filename
+            # using Path(filename).name to ensure it cannot contain directory separators
+            safe_filename = Path(filename).name
+            filepath = self.workflows_dir / safe_filename
 
             if not filepath.exists():
                 logger.error(f"Workflow file does not exist: {filepath}")
