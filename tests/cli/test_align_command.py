@@ -32,3 +32,37 @@ class TestAlignmentModels:
         assert report.branch_name == "feature/test"
         assert len(report.results) == 1
         assert report.results[0].passed is True
+
+    @pytest.mark.asyncio
+    async def test_execute_no_branch_argument(self, monkeypatch):
+        # When no branch is passed, it falls back to the current branch.
+        # We mock git rev-parse to return a valid branch name.
+        import subprocess
+        def mock_run(*args, **kwargs):
+            class MockResult:
+                stdout = "feature/current-branch"
+                returncode = 0
+            return MockResult()
+        
+        monkeypatch.setattr(subprocess, "run", mock_run)
+        
+        cmd = AlignCommand()
+        args = Namespace(branch=None)
+        result = await cmd.execute(args)
+        assert result == 0
+
+    @pytest.mark.asyncio
+    async def test_execute_no_branch_detached_head(self, monkeypatch):
+        import subprocess
+        def mock_run(*args, **kwargs):
+            class MockResult:
+                stdout = "HEAD"
+                returncode = 0
+            return MockResult()
+        
+        monkeypatch.setattr(subprocess, "run", mock_run)
+        
+        cmd = AlignCommand()
+        args = Namespace(branch=None)
+        result = await cmd.execute(args)
+        assert result == 1

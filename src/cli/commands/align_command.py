@@ -40,6 +40,15 @@ class AlignmentReport(BaseModel):
     passed_all: bool = Field(default=True, description="Whether all checks passed")
 
 
+import subprocess
+
+def get_current_branch() -> str:
+    try:
+        result = subprocess.run(["git", "rev-parse", "--abbrev-ref", "HEAD"], capture_output=True, text=True, check=True)
+        return result.stdout.strip()
+    except subprocess.CalledProcessError:
+        return ""
+
 class AlignCommand(Command):
     """
     Command for aligning the current branch with governance rules.
@@ -74,7 +83,12 @@ class AlignCommand(Command):
         """Execute the align command."""
         # Real domain logic with standard libraries
         print("Running alignment operation...")
-        branch_name = getattr(args, "branch", None) or "unknown-branch"
+        branch_name = getattr(args, "branch", None)
+        if not branch_name:
+            branch_name = get_current_branch()
+        if not branch_name or branch_name == "HEAD":
+            print(f"Error: Could not resolve current branch (resolved to '{branch_name}'). Please specify --branch.")
+            return 1
 
         # Simulating domain logic to check some path existence and create a hash
         cwd = os.getcwd()
