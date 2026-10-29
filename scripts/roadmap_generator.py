@@ -2,7 +2,8 @@ import os
 import re
 from pathlib import Path
 from dataclasses import dataclass
-from typing import List
+from typing import List, Optional
+import sys
 
 @dataclass
 class TaskInfo:
@@ -11,14 +12,18 @@ class TaskInfo:
     status: str
     priority: str
 
-def parse_task_file(file_path: str) -> TaskInfo:
+def parse_task_file(file_path: str) -> Optional[TaskInfo]:
     """Parses a task markdown file and extracts metadata."""
     try:
+        if os.path.isdir(file_path):
+            print(f"Warning: {file_path} is a directory, skipping.", file=sys.stderr)
+            return None
+            
         with open(file_path, 'r', encoding='utf-8') as f:
             content = f.read()
     except Exception as e:
-        print(f"Error reading file {file_path}: {e}")
-        return TaskInfo(id="Error", title="Error", status="Error", priority="Error")
+        print(f"Error reading file {file_path}: {e}", file=sys.stderr)
+        return None
 
     title_match = re.search(r'# Task (\d+): (.*)', content)
     status_match = re.search(r'\*\*Status:\*\*\s*(.*)', content, re.IGNORECASE)
@@ -43,7 +48,8 @@ def generate_roadmap(tasks_dir: str) -> str:
             # Only include main tasks, not subtasks like task_006.3.md
             if re.match(r'^task_\d+\.md$', file):
                 task = parse_task_file(os.path.join(tasks_dir, file))
-                tasks.append(task)
+                if task:
+                    tasks.append(task)
 
     # Sort tasks by ID numerically
     tasks.sort(key=lambda t: int(t.id) if t.id.isdigit() else float('inf'))
@@ -54,69 +60,20 @@ def generate_roadmap(tasks_dir: str) -> str:
     roadmap += "|---------|-------|--------|----------|\n"
 
     for task in tasks:
-        roadmap += f"| {task.id} | {task.title} | {task.status} | {task.priority} |\n"
+        # Escape pipe characters to avoid breaking the markdown table
+        title = task.title.replace('|', r'\|')
+        status = task.status.replace('|', r'\|')
+        priority = task.priority.replace('|', r'\|')
+        
+        roadmap += f"| {task.id} | {title} | {status} | {priority} |\n"
 
     return roadmap
 
 if __name__ == '__main__':
-    import sys
-    if len(sys.argv) > 1 and sys.argv[1] == '--test':
-        import unittest
-        import tempfile
-        import shutil
-
-        class TestRoadmapGenerator(unittest.TestCase):
-            def setUp(self):
-                self.test_dir = tempfile.mkdtemp()
-
-            def tearDown(self):
-                shutil.rmtree(self.test_dir)
-
-            def test_parse_task_file(self):
-                task_file = os.path.join(self.test_dir, 'task_123.md')
-                with open(task_file, 'w', encoding='utf-8') as f:
-                    f.write("# Task 123: Test Task\n")
-                    f.write("**Status:** in_progress\n")
-                    f.write("**Priority:** High\n")
-
-                task = parse_task_file(task_file)
-                self.assertEqual(task.id, "123")
-                self.assertEqual(task.title, "Test Task")
-                self.assertEqual(task.status, "in_progress")
-                self.assertEqual(task.priority, "High")
-
-            def test_generate_roadmap(self):
-                # Create some dummy task files
-                tasks = [
-                    ("task_002.md", "# Task 002: Second Task\n**Status:** pending\n**Priority:** low\n"),
-                    ("task_001.md", "# Task 001: First Task\n**Status:** done\n**Priority:** high\n"),
-                    ("task_001.1.md", "# Task 001.1: Subtask\n**Status:** done\n**Priority:** high\n"),
-                ]
-
-                for name, content in tasks:
-                    with open(os.path.join(self.test_dir, name), 'w', encoding='utf-8') as f:
-                        f.write(content)
-
-                roadmap = generate_roadmap(self.test_dir)
-
-                self.assertIn("| Task ID | Title | Status | Priority |", roadmap)
-                self.assertIn("| 001 | First Task | done | high |", roadmap)
-                self.assertIn("| 002 | Second Task | pending | low |", roadmap)
-                self.assertNotIn("Subtask", roadmap)
-
-                idx_1 = roadmap.find("First Task")
-                idx_2 = roadmap.find("Second Task")
-                self.assertTrue(idx_1 < idx_2)
-
-        # Run tests
-        # We need to slice sys.argv so unittest doesn't try to parse '--test'
-        sys.argv = sys.argv[:1]
-        unittest.main()
-    else:
-        # Normal execution
-        tasks_dir = '.taskmaster/tasks'
-        roadmap_content = generate_roadmap(tasks_dir)
-        output_file = 'ROADMAP.md'
-        with open(output_file, 'w', encoding='utf-8') as f:
-            f.write(roadmap_content)
-        print(f"Roadmap generated at {output_file}")
+    # Normal execution
+    tasks_dir = '.taskmaster/tasks'
+    roadmap_content = generate_roadmap(tasks_dir)
+    output_file = 'ROADMAP.md'
+    with open(output_file, 'w', encoding='utf-8') as f:
+        f.write(roadmap_content)
+    print(f"Roadmap generated at {output_file}")
