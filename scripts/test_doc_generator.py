@@ -1,7 +1,7 @@
 import unittest
 import os
 import tempfile
-import sys
+from contextlib import redirect_stdout
 from io import StringIO
 from doc_generator import generate_usage_table, get_script_description
 
@@ -31,13 +31,10 @@ class TestDocGenerator(unittest.TestCase):
             with open(os.path.join(d, "b.sh"), "w") as f:
                 f.write('#!/bin/bash\n# Doc B')
                 
-            old_stdout = sys.stdout
-            sys.stdout = StringIO()
-            try:
+            out = StringIO()
+            with redirect_stdout(out):
                 generate_usage_table(d)
-                output = sys.stdout.getvalue()
-            finally:
-                sys.stdout = old_stdout
+            output = out.getvalue()
                 
             self.assertIn("a.py", output)
             self.assertIn("Doc A", output)

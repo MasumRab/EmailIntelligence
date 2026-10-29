@@ -37,7 +37,7 @@ def generate_usage_table(scripts_dir: str):
         return
 
     for script in scripts:
-        if not (script.endswith('.py') or script.endswith('.sh')):
+        if not script.endswith(('.py', '.sh')):
             continue
         filepath = os.path.join(scripts_dir, script)
         if not os.path.isfile(filepath):
