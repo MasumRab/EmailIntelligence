@@ -12,7 +12,10 @@ def test_get_local_branches_and_shas():
         # Will raise ValueError if not hex
         int(sha, 16)
 
-def test_write_manifest(tmp_path):
+import pytest
+
+def test_write_manifest(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
     output_path = tmp_path / "manifest.json"
     branches = {"main": "0bd9b58f9878c8e8e6fdc3996fa3aa2db9501a6c"}
     write_manifest(output_path, branches)
@@ -24,3 +27,9 @@ def test_write_manifest(tmp_path):
 
     assert "branches" in data
     assert data["branches"] == branches
+
+def test_write_manifest_refuses_traversal(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    with pytest.raises(ValueError):
+        write_manifest(os.path.join('..', 'escaped.json'), {'main': 'deadbeef'})
+    assert not (tmp_path.parent / 'escaped.json').exists()

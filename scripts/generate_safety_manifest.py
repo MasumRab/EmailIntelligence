@@ -12,7 +12,7 @@ def get_local_branches_and_shas():
         )
     except subprocess.CalledProcessError as e:
         print(f"Error running git: {e}", file=sys.stderr)
-        return {}
+        sys.exit(1)
 
     branches = {}
     for line in result.stdout.strip().split('\n'):
@@ -28,20 +28,13 @@ def write_manifest(output_path, branches):
         "branches": branches
     }
     
-    # Normalize the path and ensure it does not escape its intended base directory
-    output_path_str = str(output_path)
-    base_dir = os.path.dirname(os.path.abspath(output_path_str))
+    base = os.path.realpath(os.getcwd())
+    target = os.path.realpath(os.path.join(base, str(output_path)))
     
-    # If a filename without directory is provided, default to current working directory
-    if not base_dir or base_dir == os.path.abspath('/'):
-        base_dir = os.getcwd()
-        
-    safe_output_path = os.path.abspath(os.path.join(base_dir, os.path.basename(output_path_str)))
+    if os.path.commonpath([base, target]) != base:
+        raise ValueError(f"refusing to write outside {base}: {target}")
     
-    if not safe_output_path.startswith(base_dir):
-        raise ValueError("Path traversal detected")
-    
-    with open(safe_output_path, 'w') as f:
+    with open(target, 'w') as f:
         json.dump(manifest, f, indent=2)
 
 def main():
