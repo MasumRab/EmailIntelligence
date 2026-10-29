@@ -151,3 +151,23 @@ async def test_batch_update_filter_usage(mock_db_manager):
 
     # Verify cache invalidation
     assert mock_db_manager.caching_manager.delete.call_count == 3
+
+def test_extract_keywords():
+    """Verify that _extract_keywords correctly uses the pre-compiled regex."""
+    manager = SmartFilterManager(db_path=":memory:")
+    
+    # Simple words > 3 chars
+    assert manager._extract_keywords("This is a simple test") == ["this", "simple", "test"]
+    
+    # Words exactly 3 chars are NOT included because `len(word) > 3` filter is applied
+    assert manager._extract_keywords("The cat sat on the mat") == []
+    
+    # Mixed lengths, uppercase, numbers
+    # "important" is 9, "123" is 3 (rejected), "urgent" is 6
+    # Note: re.findall(r"\b[a-zA-Z]{3,}\b") won't match "123" anyway
+    assert manager._extract_keywords("IMPORTANT issue 123 urgent") == ["important", "issue", "urgent"]
+    
+    # Empty or None
+    assert manager._extract_keywords("") == []
+    assert manager._extract_keywords(None) == []
+
