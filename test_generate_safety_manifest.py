@@ -31,3 +31,14 @@ def test_write_manifest_refuses_traversal(tmp_path, monkeypatch):
     with pytest.raises(ValueError):
         write_manifest(escaped_path, {'main': 'deadbeef'})
 
+def test_write_manifest_refuses_symlink_escape(tmp_path, monkeypatch):
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    work = tmp_path / "work"
+    work.mkdir()
+    (work / "link").symlink_to(outside)
+    monkeypatch.chdir(work)
+    with pytest.raises(ValueError):
+        write_manifest("link/out.json", {"main": "deadbeef"})
+    assert not (outside / "out.json").exists()
+
