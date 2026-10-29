@@ -13,12 +13,27 @@ def is_valid_branch_name(name):
     # This is a simplified regex; git check-ref-format is more thorough but this prevents basic injection
     return re.match(r'^[a-zA-Z0-9/\-_\.]+$', name) is not None
 
+_SAFE_ARG = re.compile(r"[A-Za-z0-9/_.=^@:+-]*")
+
+
+def _clean_arg(argument: str) -> str:
+    """Return the argument, or raise if any character falls outside the allowlist."""
+    match = _SAFE_ARG.fullmatch(argument)
+    if not match:
+        raise ValueError(f"Invalid argument format: {argument}")
+    return match.group(0)
+
+
 def run_cmd(cmd):
+    # Every element is passed through the allowlist and the matched text is what reaches
+    # subprocess.run; shlex.quote() does not help because the analyzer cannot see through
+    # it, and a boolean is_valid_branch_name() leaves the original string tainted.
+    safe_cmd = [_clean_arg(argument) for argument in cmd]
     try:
-        result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+        result = subprocess.run(safe_cmd, capture_output=True, text=True, check=True)
         return result.stdout.strip()
     except subprocess.CalledProcessError as e:
-        print(f"Error running '{' '.join(cmd)}': {e.stderr}", file=sys.stderr)
+        print(f"Error running '{' '.join(safe_cmd)}': {e.stderr}", file=sys.stderr)
         return None
 
 def main():
@@ -33,8 +48,8 @@ def main():
     # We'll use shlex.quote even though subprocess.run with shell=False is already safe,
     # because SonarCloud sometimes flags any user input reaching subprocess.run.
     
-    f_branch = shlex.quote(args.feature_branch)
-    p_branch = shlex.quote(args.primary_branch)
+    f_branch = args.feature_branch
+    p_branch = args.primary_branch
     
     # If they were quoted, they might have quotes around them which git will treat as part of the branch name.
     # If our regex passes, shlex.quote will actually NOT add quotes for alphanumeric, dashes, etc.
