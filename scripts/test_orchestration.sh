@@ -20,23 +20,23 @@ PASSED_TESTS=0
 
 # Logging functions
 log_info() {
-    local clean_msg=$(printf '%s' "$1" | tr -d '\000-\010\013\014\016-\037\177')
-    printf "%b[INFO]%b %s\n" "${BLUE}" "${NC}" "$clean_msg"
+    local clean_msg=$(printf '%q' "$1")
+    printf "%b[INFO]%b %s\n" "${BLUE}" "${NC}" "${clean_msg}"
 }
 
 log_success() {
-    local clean_msg=$(printf '%s' "$1" | tr -d '\000-\010\013\014\016-\037\177')
-    printf "%b[PASS]%b %s\n" "${GREEN}" "${NC}" "$clean_msg"
+    local clean_msg=$(printf '%q' "$1")
+    printf "%b[PASS]%b %s\n" "${GREEN}" "${NC}" "${clean_msg}"
 }
 
 log_warning() {
-    local clean_msg=$(printf '%s' "$1" | tr -d '\000-\010\013\014\016-\037\177')
-    printf "%b[WARN]%b %s\n" "${YELLOW}" "${NC}" "$clean_msg"
+    local clean_msg=$(printf '%q' "$1")
+    printf "%b[WARN]%b %s\n" "${YELLOW}" "${NC}" "${clean_msg}"
 }
 
 log_error() {
-    local clean_msg=$(printf '%s' "$1" | tr -d '\000-\010\013\014\016-\037\177')
-    printf "%b[FAIL]%b %s\n" "${RED}" "${NC}" "$clean_msg"
+    local clean_msg=$(printf '%q' "$1")
+    printf "%b[FAIL]%b %s\n" "${RED}" "${NC}" "${clean_msg}"
 }
 
 # Test runner

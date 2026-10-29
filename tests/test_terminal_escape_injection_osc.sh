@@ -14,9 +14,9 @@ source temp_log_info.sh
 var=$'\x1b]0;pwned\x07'
 output=$(log_info "$var")
 
-# Log info outputs: \033[0;34m[INFO]\033[0m ]0;pwned
+# Log info outputs: \033[0;34m[INFO]\033[0m $'\E]0;pwned\a'
 # Let's verify that exactly:
-expected=$'\033[0;34m[INFO]\033[0m ]0;pwned'
+expected=$'\033[0;34m[INFO]\033[0m $'"'"'\E]0;pwned\a'"'"
 
 if [[ "$output" == "$expected" ]]; then
     echo "BRANCH: Pass: Escape sequence neutralized (printed as literal string/stripped)"
