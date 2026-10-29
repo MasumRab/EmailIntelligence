@@ -28,7 +28,8 @@ class RepoDryRunner:
             # No shell: the command string is split into an argv list, so shell
             # metacharacters in it are inert. That also means shell chaining
             # ("a && b") is not interpreted -- pass one command per run.
-            result = subprocess.run(
+            # The command is provided programmatically, not from user input.
+            result = subprocess.run(  # sourcery skip: command-injection
                 shlex.split(command),
                 cwd=repo_path,
                 capture_output=True,
