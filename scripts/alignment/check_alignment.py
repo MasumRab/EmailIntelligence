@@ -13,7 +13,7 @@ def is_valid_branch_name(name):
     # This is a simplified regex; git check-ref-format is more thorough but this prevents basic injection
     return re.match(r'^[a-zA-Z0-9/\-_\.]+$', name) is not None
 
-_SAFE_ARG = re.compile(r"^(?!.*\.\.)[A-Za-z0-9/_.=^@:+-]*$")
+_SAFE_ARG = re.compile(r"^(?!-)(?!.*\.\.)[A-Za-z0-9/_.=+-]*$")
 
 
 def _clean_arg(argument: str) -> str:
@@ -64,17 +64,17 @@ def main():
         sys.exit(1)
     
     # Get the latest commit of the primary branch
-    primary_commit = run_cmd(["git", "rev-parse", p_branch])
+    primary_commit = run_cmd(["git", "rev-parse", "--", p_branch])
     if not primary_commit:
         sys.exit(1)
         
     # Get the latest commit of the feature branch
-    feature_commit = run_cmd(["git", "rev-parse", f_branch])
+    feature_commit = run_cmd(["git", "rev-parse", "--", f_branch])
     if not feature_commit:
         sys.exit(1)
 
     # Find the merge base
-    merge_base = run_cmd(["git", "merge-base", p_branch, f_branch])
+    merge_base = run_cmd(["git", "merge-base", "--", p_branch, f_branch])
     if not merge_base:
         sys.exit(1)
         
