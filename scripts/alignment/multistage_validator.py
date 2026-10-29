@@ -8,7 +8,8 @@ logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
 def run_validation(script_path):
     logging.info(f"Running validation: {script_path}")
     try:
-        result = subprocess.run(
+        # script_path comes from a hardcoded list in main()
+        result = subprocess.run(  # sourcery skip: command-injection
             [sys.executable, script_path],
             capture_output=True,
             text=True,
