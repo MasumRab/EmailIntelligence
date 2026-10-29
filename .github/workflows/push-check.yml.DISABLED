@@ -23,11 +23,12 @@ jobs:
   python-lint:
     name: Python Lint Check
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
+          submodules: recursive
           fetch-depth: 0
 
       - name: Set up Python
@@ -42,7 +43,7 @@ jobs:
           cache-dependency-glob: 'setup/pyproject.toml'
 
       - name: Install dependencies
-        run: uv sync --dev
+        run: uv sync --all-extras --dev
 
       - name: Ruff check
         run: uv run ruff check src/ modules/ setup/
@@ -54,11 +55,12 @@ jobs:
   python-compile:
     name: Python Compile Check
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
+          submodules: recursive
           fetch-depth: 0
 
       - name: Set up Python
@@ -73,7 +75,7 @@ jobs:
           cache-dependency-glob: 'setup/pyproject.toml'
 
       - name: Install dependencies
-        run: uv sync --dev
+        run: uv sync --all-extras --dev
 
       - name: Python compile check
         run: |

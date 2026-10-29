@@ -95,7 +95,11 @@ class TopicModel:
                 "method_used": "fallback_keyword_topic",
             }
         else:
-            return {"topic": "General", "confidence": 0.5, "method_used": "fallback_keyword_topic"}
+            return {
+                "topic": "General",
+                "confidence": 0.5,
+                "method_used": "fallback_keyword_topic",
+            }
 
     def analyze(self, text: str) -> Dict[str, Any]:
         """

@@ -121,5 +121,7 @@ class IntentModel:
         if analysis_result := self._analyze_model(text):
             self.logger.info("Intent analysis performed using ML model.")
             return analysis_result
-        self.logger.info("Intent analysis performed using regex matching as a fallback.")
+        self.logger.info(
+            "Intent analysis performed using regex matching as a fallback."
+        )
         return self._analyze_regex(text)
