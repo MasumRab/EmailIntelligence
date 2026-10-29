@@ -235,7 +235,11 @@ class NodeLibrary:
         return result
 
     def create_node(
-        self, node_type: str, config: Dict[str, Any] = None, node_id: str = None, name: str = None
+        self,
+        node_type: str,
+        config: Dict[str, Any] = None,
+        node_id: str = None,
+        name: str = None,
     ):
         """Create an instance of a node."""
         if node_type not in self._nodes:
@@ -258,13 +262,3 @@ def get_available_node_types() -> List[str]:
 def get_node_info(node_type: str) -> Dict[str, Any]:
     """Get detailed information about a specific node type."""
     return node_library.get_node_info(node_type)
-
-
-def get_nodes_by_category() -> Dict[str, List[Dict[str, Any]]]:
-    """Get all nodes grouped by category."""
-    return node_library.get_nodes_by_category()
-
-
-def get_all_node_info() -> List[Dict[str, Any]]:
-    """Get information about all available nodes."""
-    return node_library.get_all_node_info()

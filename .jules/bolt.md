@@ -1,0 +1,3 @@
+## 2024-03-24 - [Avoid Regex Recompilation in Text Utilities]
+**Learning:** High-frequency utility functions like `clean_text` are called repeatedly for every processed email. Using `re.sub` with string patterns inline causes the regex engine either compile the pattern on the fly or rely on its small internal cache. When multiple patterns are used across many calls, this introduces unnecessary overhead.
+**Action:** Pre-compiled regular expressions at the module level using `re.compile()` and utilized the `.sub()` method on the compiled objects. Next time I encounter high-frequency string processing, I should always check if regex patterns can be compiled once at initialization or module level.

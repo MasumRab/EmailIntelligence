@@ -1,8 +1,0 @@
-{
-    "name": "my_custom_workflow",
-    "description": "A custom workflow that uses the default models for analysis.",
-    "models": {
-        "sentiment": "sentiment-default",
-        "topic": "topic-default"
-    }
-}

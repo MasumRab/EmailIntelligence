@@ -37,7 +37,7 @@ class WorkflowExecutionResult:
 
 # Try to import security features from the new node-based system
 try:
-    from backend.node_engine.security_manager import SecurityLevel
+    from backend.node_engine.security_manager import SecurityLevel  # noqa: F401
 
     SecurityContext = None  # Use None as there isn't a direct equivalent yet
     security_available = True
