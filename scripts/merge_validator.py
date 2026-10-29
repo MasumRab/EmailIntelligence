@@ -4,19 +4,33 @@ import sys
 import re
 from typing import Set
 
-def is_safe_ref(ref: str) -> bool:
-    """Validate that a git reference contains only safe characters."""
-    return bool(re.match(r'^[a-zA-Z0-9_./-]+$', ref)) and not ref.startswith('-')
+_SAFE_REF = re.compile(r'[a-zA-Z0-9_./-]+')
+
+def safe_ref(ref: str) -> str:
+    """Return the reference, or raise if it is malformed or could be read as an option.
+
+    The allowlist is matched, not merely tested: the matched text is what reaches
+    argv, so the value git receives is the value the regex accepted. A boolean
+    "reject if unsafe" helper leaves the original string in the taint graph and
+    SonarCloud's pythonsecurity:S8705 keeps reporting the sink.
+    """
+    match = _SAFE_REF.fullmatch(ref)
+    if not match or ref.startswith('-'):
+        raise ValueError(ref)
+    return match.group(0)
 
 def get_changed_files(base: str, head: str) -> Set[str]:
     """Get the set of changed files between two commits."""
-    if not is_safe_ref(base) or not is_safe_ref(head):
-        print(f"Error: Invalid reference provided ({base} or {head})", file=sys.stderr)
+    try:
+        safe_base = safe_ref(base)
+        safe_head = safe_ref(head)
+    except ValueError as rejected:
+        print(f"Error: Invalid reference provided {rejected.args[0]!r}", file=sys.stderr)
         sys.exit(1)
-        
+
     try:
         result = subprocess.run(
-            ["git", "diff", "--name-only", f"{base}..{head}"], # NOSONAR
+            ["git", "diff", "--name-only", f"{safe_base}..{safe_head}"],
             capture_output=True,
             text=True,
             check=True
@@ -32,14 +46,17 @@ def check_concurrent_changes(source_branch: str, target_branch: str) -> bool:
     Check if there are any files changed in both the source and target branches
     since their common merge base. Returns True if conflicting files exist.
     """
-    if not is_safe_ref(source_branch) or not is_safe_ref(target_branch):
+    try:
+        safe_source = safe_ref(source_branch)
+        safe_target = safe_ref(target_branch)
+    except ValueError:
         print("Error: Branch names contain invalid characters.", file=sys.stderr)
         sys.exit(1)
-        
+
     # 1. Find the merge base
     try:
         result = subprocess.run(
-            ["git", "merge-base", target_branch, source_branch], # NOSONAR
+            ["git", "merge-base", safe_target, safe_source],
             capture_output=True,
             text=True,
             check=True
