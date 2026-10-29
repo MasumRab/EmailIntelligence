@@ -9,28 +9,30 @@ import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-class RepoDryRunner:
+class RepoFeasibilityRunner:
     """
-    Dry-runs a command across a list of repositories and reports feasibility.
+    Runs a command across a list of repositories and reports feasibility.
     """
     def __init__(self, max_workers: int = 4, timeout: int = 30):
         self.max_workers = max_workers
         self.timeout = timeout
 
-    def dry_run_repo(self, repo_path: str, command: str) -> Dict[str, Any]:
+    def run_feasibility_repo(self, repo_path: str, command: List[str]) -> Dict[str, Any]:
         """
-        Executes a dry-run command on a single repository.
+        Executes a real command on a single repository to determine feasibility.
+        Note: The command runs for real and any side effects (like file modifications)
+        will leave the repository modified.
         """
         start_time = time.time()
         try:
-            logger.info(f"Dry-running '{command}' on {repo_path}")
+            executable = command[0] if command else "unknown"
+            logger.info(f"Running feasibility check executable '{executable}' ({len(command)} args) on {repo_path}")
             
-            # No shell: the command string is split into an argv list, so shell
+            # No shell: the command string is already an argv list, so shell
             # metacharacters in it are inert. That also means shell chaining
             # ("a && b") is not interpreted -- pass one command per run.
-            # The command is provided programmatically, not from user input.
-            result = subprocess.run(  # sourcery skip: command-injection
-                shlex.split(command),
+            result = subprocess.run(
+                command,
                 cwd=repo_path,
                 capture_output=True,
                 text=True,
@@ -68,14 +70,16 @@ class RepoDryRunner:
                 "output": None
             }
 
-    def dry_run_all(self, repos: List[str], command: str) -> Dict[str, Any]:
+    def run_feasibility_all(self, repos: List[str], command_str: str) -> Dict[str, Any]:
         """
-        Dry-runs a command across all given repositories concurrently.
+        Runs a command across all given repositories concurrently.
+        Note: This is not a dry run; it executes the command for real.
         """
         results = []
+        command = shlex.split(command_str)
         with concurrent.futures.ThreadPoolExecutor(max_workers=self.max_workers) as executor:
             future_to_repo = {
-                executor.submit(self.dry_run_repo, repo, command): repo 
+                executor.submit(self.run_feasibility_repo, repo, command): repo 
                 for repo in repos
             }
             
@@ -107,5 +111,5 @@ class RepoDryRunner:
         }
 
 if __name__ == "__main__":
-    runner = RepoDryRunner()
-    print(json.dumps(runner.dry_run_all([".", "nonexistent_repo"], "git status"), indent=2))
+    runner = RepoFeasibilityRunner()
+    print(json.dumps(runner.run_feasibility_all([".", "nonexistent_repo"], "git status"), indent=2))
