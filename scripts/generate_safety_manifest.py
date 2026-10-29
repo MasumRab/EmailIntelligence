@@ -34,6 +34,9 @@ def write_manifest(output_path, branches):
     if os.path.commonpath([base, target]) != base:
         raise ValueError(f"refusing to write outside {base}: {target}")
         
+    if not target.startswith(base):
+        raise ValueError(f"refusing to write outside {base}: {target}")
+        
     fd = os.open(target, os.O_WRONLY | os.O_CREAT | os.O_TRUNC | os.O_NOFOLLOW, 0o644)
     with os.fdopen(fd, 'w') as f:
         json.dump(manifest, f, indent=2)
