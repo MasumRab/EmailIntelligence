@@ -64,15 +64,15 @@ class TestSecurityMiddleware:
     """Verify security middleware classes (not instances) are registered."""
 
     def test_security_middleware_present(self, app):
-        from src.core.middleware import SecurityMiddleware
+        from src.core.middleware import create_security_middleware
 
-        found = any(m.cls is SecurityMiddleware for m in app.user_middleware)
+        found = any(m.cls is create_security_middleware for m in app.user_middleware)
         assert found, "SecurityMiddleware not registered"
 
     def test_security_headers_middleware_present(self, app):
-        from src.core.middleware import SecurityHeadersMiddleware
+        from src.core.middleware import create_security_headers_middleware
 
-        found = any(m.cls is SecurityHeadersMiddleware for m in app.user_middleware)
+        found = any(m.cls is create_security_headers_middleware for m in app.user_middleware)
         assert found, "SecurityHeadersMiddleware not registered"
 
 
