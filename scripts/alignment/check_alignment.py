@@ -8,21 +8,34 @@ def is_valid_branch_name(name):
         return False
     return re.match(r'^[a-zA-Z0-9/\-_\.]+$', name) is not None
 
+_SAFE_ARG = re.compile(r"[A-Za-z0-9/_.=^@:+-]*")
+
+
+def _clean_arg(argument: str) -> str:
+    """Return the argument, or raise if any character falls outside the allowlist."""
+    match = _SAFE_ARG.fullmatch(argument)
+    if not match:
+        raise ValueError(f"Invalid argument format: {argument}")
+    return match.group(0)
+
+
 def run_cmd(cmd):
     if not isinstance(cmd, list) or not all(isinstance(x, str) for x in cmd):
         raise ValueError("Command must be a list of strings")
-        
+
     for i, arg in enumerate(cmd):
-        if i > 0 and arg.startswith('-') and arg not in ('--'):
+        if i > 0 and arg.startswith('-') and arg not in ('--',):
             raise ValueError(f"Argument starts with '-': {arg}")
-        if not re.match(r'^[A-Za-z0-9/_.=^\-]+$', arg):
-            raise ValueError(f"Invalid argument format: {arg}")
+
+    # Pass the regex-matched values, not the originals: SonarCloud drops the taint only
+    # when the value reaching subprocess.run is the one the regex produced.
+    safe_cmd = [_clean_arg(argument) for argument in cmd]
 
     try:
-        result = subprocess.run(cmd, capture_output=True, text=True, check=True)  # NOSONAR
+        result = subprocess.run(safe_cmd, capture_output=True, text=True, check=True)
         return result.stdout.strip()
     except subprocess.CalledProcessError as e:
-        print(f"Error running '{' '.join(cmd)}': {e.stderr}", file=sys.stderr)
+        print(f"Error running '{' '.join(safe_cmd)}': {e.stderr}", file=sys.stderr)
         return None
 
 def main():
