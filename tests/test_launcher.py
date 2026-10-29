@@ -9,7 +9,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 import pytest
 
-from setup.launch import ROOT_DIR, main, create_venv, setup_dependencies, download_nltk_data, check_python_version
+from setup.launch import ROOT_DIR, main, create_venv, setup_dependencies, check_python_version
+from setup.environment import download_nltk_data
 from setup.services import start_gradio_ui, start_backend
 from setup.utils import process_manager
 
@@ -103,7 +104,7 @@ class TestDependencyManagement:
         mock_subprocess_run.return_value = MagicMock(returncode=0, stdout="", stderr="")
         venv_path = ROOT_DIR / "venv"
         download_nltk_data(venv_path)
-        assert mock_subprocess_run.call_count == 2
+        assert mock_subprocess_run.call_count == 1
 
 
 class TestServiceStartup:

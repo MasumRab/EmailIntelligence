@@ -54,6 +54,7 @@ from setup.utils import print_system_info, process_manager
 from setup.test_stages import test_stages
 
 # Import command pattern components (with error handling for refactors)
+COMMAND_PATTERN_AVAILABLE = False
 try:
     from src.core.commands.command_factory import get_command_factory
     from src.core.container import get_container, initialize_all_services
@@ -83,7 +84,7 @@ logger = logging.getLogger("launcher")
 ROOT_DIR = get_project_config().root_dir
 
 # Import process manager from utils
-from setup.utils import get_python_executable
+from setup.environment import get_python_executable
 
 # --- Constants ---
 PYTHON_MIN_VERSION = (3, 12)
