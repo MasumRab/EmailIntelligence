@@ -14,6 +14,7 @@ def detect_merge_markers(files):
     for f in files:
         path = Path(f)
         if not path.is_file():
+            errors.append(f"READ ERROR: {f} - not found")
             continue
             
         try:
@@ -28,7 +29,7 @@ def detect_merge_markers(files):
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        print("Usage: pythonx scripts/detect_merge_markers.py <file1> <file2> ...")
+        print("Usage: python3 scripts/detect_merge_markers.py <file1> <file2> ...")
         sys.exit(2)
         
     files = sys.argv[1:]

@@ -37,13 +37,13 @@ class TestDetectMergeMarkers(unittest.TestCase):
     def test_latin1_file_with_marker(self):
         conflict_file = os.path.join(self.temp_dir.name, "latin1_conflict.txt")
         with open(conflict_file, "wb") as f:
-            f.write(`"caf\xe9\n")
+            f.write(b"caf\xe9\n")
             f.write(b"<<<<<<< HEAD\n")
             f.write(b"latin1 changes\n")
             f.write(b">>>>>>> branch\n")
             
         errors = detect_merge_markers([conflict_file])
-        self.assertEqual(len(errors), 2)
+        self.assertEqual(len(errors), 2 )
         self.assertIn(f"MERGE MARKER: {conflict_file}:2", errors)
         self.assertIn(f"MERGE MARKER: {conflict_file}:4", errors)
         
@@ -72,7 +72,8 @@ class TestDetectMergeMarkers(unittest.TestCase):
     def test_file_not_found(self):
         nonexistent_file = os.path.join(self.temp_dir.name, "nonexistent.txt")
         errors = detect_merge_markers([nonexistent_file])
-        self.assertEqual(len(errors), 0)
+        self.assertEqual(len(errors), 1)
+        self.assertIn(f"READ ERROR: {nonexistent_file} - not found", errors)
 
 if __name__ == '__main__':
     unittest.main()
