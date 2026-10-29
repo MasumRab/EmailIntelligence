@@ -40,21 +40,32 @@ jobs:
   npm-audit:
     name: Node.js Dependency Audit
     runs-on: ubuntu-latest
-    if: |
-      hashFiles('client/package.json') != '' ||
-      hashFiles('package.json') != ''
     steps:
       - name: Checkout code
         uses: actions/checkout@v7
 
+      - name: Check for a Node.js manifest
+        id: node_manifest
+        run: |
+          if [ -f client/package.json ] || [ -f package.json ]; then
+            echo "found=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "found=false" >> "$GITHUB_OUTPUT"
+            echo "No package.json found. Failing the job."
+            exit 1
+          fi
+
       - name: Setup Node.js
+        if: steps.node_manifest.outputs.found == 'true'
         uses: actions/setup-node@v7
         with:
           node-version: '20'
           cache: 'npm'
 
       - name: Install dependencies
+        if: steps.node_manifest.outputs.found == 'true'
         run: npm ci
 
       - name: Run npm audit
+        if: steps.node_manifest.outputs.found == 'true'
         run: npm audit --audit-level=high || true
