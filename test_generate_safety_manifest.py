@@ -2,17 +2,14 @@ import os
 import json
 import subprocess
 from scripts.generate_safety_manifest import get_local_branches_and_shas, write_manifest
+import pytest
 
 def test_get_local_branches_and_shas():
     branches = get_local_branches_and_shas()
     assert isinstance(branches, dict)
-    # Test that values look like shas (at least 40 chars hex)
     for branch, sha in branches.items():
         assert len(sha) == 40
-        # Will raise ValueError if not hex
         int(sha, 16)
-
-import pytest
 
 def test_write_manifest(tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
@@ -32,3 +29,4 @@ def test_write_manifest_refuses_traversal(tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
     with pytest.raises(ValueError):
         write_manifest(os.path.join('..', 'escaped.json'), {'main': 'deadbeef'})
+
