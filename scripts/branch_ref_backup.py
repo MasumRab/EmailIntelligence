@@ -76,7 +76,7 @@ def restore(backup_file=BACKUP_FILE_DEFAULT):
         raise ValueError(f"Invalid backup data in {resolved}")
 
     current_branch = get_current_branch()
-    if current_branch != target_branch and current_branch != "HEAD":
+    if current_branch != target_branch:
         print(f"Warning: Current branch '{current_branch}' differs from backed up branch '{target_branch}'.")
         print(f"Checking out '{target_branch}' before restoring.")
         run_cmd(["git", "checkout", target_branch])

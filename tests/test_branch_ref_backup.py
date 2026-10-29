@@ -82,3 +82,17 @@ def test_restore_invalid_data(tmp_path):
         json.dump({"branch": "../../etc", "sha": "1234", "timestamp": "2023-01-01T00:00:00"}, f)
     with pytest.raises(ValueError):
         restore(BACKUP_FILE_DEFAULT)
+
+def test_restore_detached_head(temp_git_repo):
+    initial_sha = run_cmd("git rev-parse HEAD")
+    snapshot(BACKUP_FILE_DEFAULT)
+
+    # Detach HEAD
+    run_cmd(f"git checkout {initial_sha}")
+    assert run_cmd("git rev-parse --abbrev-ref HEAD") == "HEAD"
+
+    # Restore
+    restore(BACKUP_FILE_DEFAULT)
+
+    assert run_cmd("git rev-parse --abbrev-ref HEAD") == "main"
+    assert run_cmd("git rev-parse HEAD") == initial_sha
