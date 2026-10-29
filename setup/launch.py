@@ -844,56 +844,13 @@ def print_system_info():
         print(f"{cf}: {'Found' if exists else 'Not found'}")
 
 
-def main():
-    # Initialize services if command pattern is available
-    if COMMAND_PATTERN_AVAILABLE and initialize_all_services and get_container:
-        initialize_all_services(get_container())
 
-    # Parse command line arguments
-    parser = argparse.ArgumentParser(description="EmailIntelligence Unified Launcher")
 
-    # Add subcommands
-    subparsers = parser.add_subparsers(dest="command", help="Available commands")
-
-    # Setup command
-    setup_parser = subparsers.add_parser("setup", help=HELP_SETUP)
-    _add_common_args(setup_parser)
-
-    # Run command
-    run_parser = subparsers.add_parser("run", help=HELP_RUN)
-    _add_common_args(run_parser)
-    run_parser.add_argument("--dev", action="store_true", help="Run in development mode")
-
-    # Test command
-    test_parser = subparsers.add_parser("test", help=HELP_TEST)
-    _add_common_args(test_parser)
-    test_parser.add_argument("--unit", action="store_true", help="Run unit tests")
-    test_parser.add_argument("--integration", action="store_true", help="Run integration tests")
-    test_parser.add_argument("--e2e", action="store_true", help="Run end-to-end tests")
-    test_parser.add_argument("--performance", action="store_true", help="Run performance tests")
-    test_parser.add_argument("--security", action="store_true", help="Run security tests")
-    test_parser.add_argument("--coverage", action="store_true", help="Generate coverage report")
-    test_parser.add_argument(
-        "--continue-on-error", action="store_true", help="Continue running tests even if some fail"
-    )
-
-    # Check command for orchestration-tools branch
-    check_parser = subparsers.add_parser("check", help="Run checks for orchestration environment")
-    _add_common_args(check_parser)
-    check_parser.add_argument("--critical-files", action="store_true", help="Check for critical orchestration files")
-    check_parser.add_argument("--env", action="store_true", help="Check orchestration environment")
-
-    # Legacy argument parsing for backward compatibility
-    parser.add_argument("--setup", action="store_true", help="Set up the environment (legacy)")
-    parser.add_argument(
-        "--stage", choices=["dev", "test"], default="dev", help="Application mode (legacy)"
-    )
-
-    # Environment Setup
+def _add_environment_setup_args(parser):
+    """Add environment setup arguments to parser."""
     parser.add_argument(
         "--force-recreate-venv", action="store_true", help="Force recreation of the venv."
     )
-
     parser.add_argument(
         "--use-conda", action="store_true", help="Use Conda environment instead of venv."
     )
@@ -924,6 +881,58 @@ def main():
     parser.add_argument(
         "--skip-prepare", action="store_true", help="Skip all environment preparation steps."
     )
+
+def _add_test_command_args(test_parser):
+    """Add standard test arguments to parser."""
+    test_parser.add_argument("--unit", action="store_true", help="Run unit tests")
+    test_parser.add_argument("--integration", action="store_true", help="Run integration tests")
+    test_parser.add_argument("--e2e", action="store_true", help="Run end-to-end tests")
+    test_parser.add_argument("--performance", action="store_true", help="Run performance tests")
+    test_parser.add_argument("--security", action="store_true", help="Run security tests")
+    test_parser.add_argument("--coverage", action="store_true", help="Generate coverage report")
+    test_parser.add_argument(
+        "--continue-on-error", action="store_true", help="Continue running tests even if some fail"
+    )
+
+def main():
+    # Initialize services if command pattern is available
+    if COMMAND_PATTERN_AVAILABLE and initialize_all_services and get_container:
+        initialize_all_services(get_container())
+
+    # Parse command line arguments
+    parser = argparse.ArgumentParser(description="EmailIntelligence Unified Launcher")
+
+    # Add subcommands
+    subparsers = parser.add_subparsers(dest="command", help="Available commands")
+
+    # Setup command
+    setup_parser = subparsers.add_parser("setup", help=HELP_SETUP)
+    _add_common_args(setup_parser)
+
+    # Run command
+    run_parser = subparsers.add_parser("run", help=HELP_RUN)
+    _add_common_args(run_parser)
+    run_parser.add_argument("--dev", action="store_true", help="Run in development mode")
+
+    # Test command
+    test_parser = subparsers.add_parser("test", help=HELP_TEST)
+    _add_common_args(test_parser)
+    _add_test_command_args(test_parser)
+
+    # Check command for orchestration-tools branch
+    check_parser = subparsers.add_parser("check", help="Run checks for orchestration environment")
+    _add_common_args(check_parser)
+    check_parser.add_argument("--critical-files", action="store_true", help="Check for critical orchestration files")
+    check_parser.add_argument("--env", action="store_true", help="Check orchestration environment")
+
+    # Legacy argument parsing for backward compatibility
+    parser.add_argument("--setup", action="store_true", help="Set up the environment (legacy)")
+    parser.add_argument(
+        "--stage", choices=["dev", "test"], default="dev", help="Application mode (legacy)"
+    )
+
+    # Environment Setup
+    _add_environment_setup_args(parser)
     parser.add_argument(
         "--loglevel",
         choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
@@ -973,39 +982,7 @@ def _add_common_args(parser):
 def _add_legacy_args(parser):
     """Add legacy arguments for backward compatibility."""
     # Environment Setup
-    parser.add_argument(
-        "--force-recreate-venv", action="store_true", help="Force recreation of the venv."
-    )
-    parser.add_argument(
-        "--use-conda", action="store_true", help="Use Conda environment instead of venv."
-    )
-    parser.add_argument(
-        "--conda-env",
-        type=str,
-        default="base",
-        help="Conda environment name to use (default: base).",
-    )
-    parser.add_argument(
-        "--no-venv", action="store_true", help="Don't create or use a virtual environment."
-    )
-    parser.add_argument(
-        "--update-deps", action="store_true", help="Update dependencies before launching."
-    )
-    parser.add_argument(
-        "--skip-torch-cuda-test",
-        action="store_true",
-        help="Skip CUDA availability test for PyTorch.",
-    )
-    parser.add_argument("--reinstall-torch", action="store_true", help="Reinstall PyTorch.")
-    parser.add_argument(
-        "--skip-python-version-check", action="store_true", help="Skip Python version check."
-    )
-    parser.add_argument(
-        "--no-download-nltk", action="store_true", help="Skip downloading NLTK data."
-    )
-    parser.add_argument(
-        "--skip-prepare", action="store_true", help="Skip all environment preparation steps."
-    )
+    _add_environment_setup_args(parser)
 
     # Application Configuration
     parser.add_argument("--port", type=int, default=8000, help="Specify the port to run on.")
