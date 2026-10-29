@@ -32,7 +32,10 @@ def write_manifest(output_path, branches):
 
 def main():
     if len(sys.argv) > 1:
-        output_path = sys.argv[1]
+        # The CLI argument is written to disk, so strip any directory component: an
+        # absolute path or a ../ segment would otherwise let the argument choose the
+        # destination file (SonarCloud pythonsecurity:S8707).
+        output_path = os.path.basename(sys.argv[1])
     else:
         output_path = "safety_manifest.json"
     
