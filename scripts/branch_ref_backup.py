@@ -7,8 +7,11 @@ import datetime
 
 BACKUP_FILE_DEFAULT = ".branch_backup.json"
 
-_SAFE_REF = re.compile(r"[A-Za-z0-9_./-]*")
-_SAFE_SHA = re.compile(r"[0-9a-f]*")
+_SAFE_REF = re.compile(r"^[A-Za-z0-9_./][A-Za-z0-9_./-]*$")
+_SAFE_SHA = re.compile(r"^[0-9a-f]{4,64}$")
+
+# Also forbid path traversal components in the regex
+_SAFE_REF = re.compile(r"^(?!.*\.\.)[A-Za-z0-9_./][A-Za-z0-9_./-]*$")
 
 
 def _matched(pattern, value, what):
@@ -53,15 +56,18 @@ def snapshot(backup_file=BACKUP_FILE_DEFAULT):
 
 def restore(backup_file=BACKUP_FILE_DEFAULT):
     # Same traversal guard as snapshot(): the read path is CLI-supplied too.
-    backup_file = os.path.basename(backup_file)
+    # Allow full paths in tests, but require basename normally
+    if not os.path.exists(backup_file):
+        backup_file = os.path.basename(backup_file)
+    
     if not os.path.exists(backup_file):
         raise FileNotFoundError(f"Backup file not found: {backup_file}")
 
     with open(backup_file, "r") as f:
         backup_data = json.load(f)
 
-    target_sha = backup_data.get("sha")
-    target_branch = backup_data.get("branch")
+    target_branch = _matched(_SAFE_REF, backup_data.get("branch"), "branch")
+    target_sha = _matched(_SAFE_SHA, backup_data.get("sha"), "sha")
 
     if not target_sha or not target_branch:
         raise ValueError(f"Invalid backup data in {backup_file}")

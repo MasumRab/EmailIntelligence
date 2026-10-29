@@ -68,3 +68,14 @@ def test_snapshot_and_restore(temp_git_repo):
     restored_sha = run_cmd("git rev-parse HEAD")
     assert restored_sha == initial_sha
     assert test_file.read_text() == "initial content"
+
+def test_restore_invalid_data(tmp_path):
+    backup_file = str(tmp_path / BACKUP_FILE_DEFAULT)
+    with open(backup_file, "w") as f:
+        json.dump({"branch": "-b", "sha": "1234", "timestamp": "2023-01-01T00:00:00"}, f)
+    with pytest.raises(ValueError):
+        restore(backup_file)
+    with open(backup_file, "w") as f:
+        json.dump({"branch": "../../etc", "sha": "1234", "timestamp": "2023-01-01T00:00:00"}, f)
+    with pytest.raises(ValueError):
+        restore(backup_file)
