@@ -1,81 +1,130 @@
-# Node.js
-node_modules/
+# =====================================================================
+# Unified .gitignore — canonical baseline for all EmailIntelligence branches
+# Generated from union of: main, scientific, orchestration-tools, taskmaster
+# =====================================================================
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
 dist/
-.DS_Store
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+*.whl
+MANIFEST
+*.manifest
+*.spec
+pip-log.txt
+pip-delete-this-directory.txt
+
+# --- Virtualenvs ---
+venv/
+.venv/
+env/
+.python-version
+
+# --- Test / coverage ---
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# --- Node / frontend ---
+node_modules/
+.pnpm-debug.log*
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.npm/
+.npm-*
+client/dist/
 server/public/
 vite.config.ts.*
+
+# --- OS / editor ---
+.DS_Store
+Thumbs.db
+*.swp
+*~
+
+# --- Backups ---
+*.bak
+backups/
+
+# --- Logs ---
+*.log
+logs/
+
+# --- Databases ---
+*.sqlite3
+*.db
+*.db-journal
+
+# --- Archives ---
 *.tar.gz
 
-# Python virtual environment
-venv/
+# --- Env files (CRITICAL: keep .env.example tracked) ---
 .env
 .env.*
 *.env
 !.env.example
 
-# Credentials and sensitive data
+# --- Credentials / secrets (CRITICAL — must be ignored everywhere) ---
 token.json
 credentials.json
 apikey.json
 jsons/
-jsons/*
-
-# Build / packaging artifacts
-build/
-*.egg-info/
-pip-wheel-metadata/
-*.egg
-*.whl
-
-# Databases
-*.sqlite3
-*.db
-*.db-journal
-
-# Test and coverage reports
-.coverage
-.coverage.*
-coverage.xml
-coverage/
-*.cover
-.pytest_cache/
-
-# IDEs / editor-specific
-.vscode/
-.idea/
-*.iml
-*.sublime-project
-*.sublime-workspace
-.history
-
-# Misc
-logs/
-
-# Ignore configuration and local environment files
-*.local.config
-*.local.json
-*.local.yaml
-*.local.yml
-config.local.*
 config/llm_guidelines.local.json
 
-# Hidden files/directories (exceptions below)
-.aider.tags.cache.v4/
+# --- Aider ---
 .aider.chat.history.md
-.aider.conf.yml
 .aider.input.history
-.curl/
-.npm/
-.npm-*
-.python-version
-.ruby-version
-.tool-versions
+.aider.tags.cache.v4/
+.aider.conf.yml.bak
 
-# Ignore hidden files and directories, with exceptions
-.*
-!docs/.gitkeep
-!.semgrep/
-!.gitignore
+# --- Worktrees / scratch ---
+worktrees/
+jules-scratch/
+jules_sessions/*_activities.json
+diagnosis_message.txt
+app_output.log
+isolated_ui.log
+
+# --- Test duplicates ---
+tests/modules/*_fixed.sh
+tests/modules/*_fixed*.sh
+tests/modules/*_final.sh
+
+# --- Branch-specific data (whitelist intentional configs) ---
+!docs/.branch-config.json
+!docs/.review-queue.json
+!docs/.merge-history.json
+
+# --- Tooling configs that ARE intentionally committed ---
 !.pre-commit-config.yaml
 !.prettierrc.json
 !.eslintrc.json
@@ -83,20 +132,173 @@ config/llm_guidelines.local.json
 !.github/workflows/
 !client/.eslintrc.json
 !/server/.eslintrc.json
+!.env.example
 
-# Python cache
-__pycache__/
+# === Branch-specific exceptions (Phase 14) ===
+# Document each entry: who added, why, when.
+# These patterns are specific to the main branch and not part of the unified baseline.
 
-# Miscellaneous
+# --- Hidden files blanket (main convention) ---
+# Main uses a catch-all for dot-dirs with explicit exceptions.
+# This MUST come after the unified baseline so baseline patterns take precedence.
+.*
+!.gitignore
+!.semgrep/
+!.flake8
+!.pylintrc
+!.mergify.yml
+!.gitattributes
+!.gitmodules
+!.pre-commit-config.yaml
+!.prettierrc.json
+!.eslintrc.json
+!.github/
+!.github/workflows/
+!client/.eslintrc.json
+!/server/.eslintrc.json
+!.env.example
+!.context-control/
+!docs/.gitkeep
+!docs/.branch-config.json
+!docs/.review-queue.json
+!docs/.merge-history.json
+
+# --- Local config files ---
+*.local.config
+*.local.json
+*.local.yaml
+*.local.yml
+config.local.*
+
+# --- Project-specific misc ---
 performance_metrics_log.jsonl
 models/*.pkl
-worktrees/
 .taskmaster/
+data/
 
-# Backup files
-*.bak
-*~
+# --- Agent scratch and analysis artifacts ---
 *.backup
 backlog/config.yml.bak
 original_readme.md
 scripts/hooks/
+CONFIG_ANALYSIS.md
+MERGIFY_BRANCH_ANALYSIS_FINAL.md
+PR_480_RESOLUTION.md
+taskmaster-worktree-config.yml
+
+# --- AI/IDE tool caches and commands (local only) ---
+.ck/
+.emailintelligence/
+.iflow/
+.gemini-flow/
+.gemini/commands/
+.qwen/commands/
+.cursor/commands/
+.claude/commands/
+.claude/agents/
+.claude/memories/
+.iflow/commands/
+.opencode/command/
+.continue/
+
+# --- Ruler-generated agent config files (synced from .ruler/AGENTS.md, not hand-edited) ---
+# START Ruler Generated Files
+/.agent/rules/ruler.md
+/.agent/rules/ruler.md.bak
+/.aiassistant/rules/AGENTS.md
+/.aiassistant/rules/AGENTS.md.bak
+/.aider.conf.yml
+/.aider.conf.yml.bak
+/.amazonq/mcp.json
+/.amazonq/mcp.json.bak
+/.amazonq/rules/ruler_q_rules.md
+/.amazonq/rules/ruler_q_rules.md.bak
+/.augment/rules/ruler_augment_instructions.md
+/.augment/rules/ruler_augment_instructions.md.bak
+/.clinerules/ruler_instructions.md
+/.clinerules/ruler_instructions.md.bak
+/.codex/config.toml
+/.codex/config.toml.bak
+/.crush.json
+/.crush.json.bak
+/.cursor/mcp.json
+/.cursor/mcp.json.bak
+/.factory/mcp.json
+/.factory/mcp.json.bak
+/.gemini/settings.json
+/.gemini/settings.json.bak
+/.goosehints
+/.goosehints.bak
+/.idx/airules.md
+/.idx/airules.md.bak
+/.idx/mcp.json
+/.idx/mcp.json.bak
+/.junie/guidelines.md
+/.junie/guidelines.md.bak
+/.junie/mcp/mcp.json
+/.junie/mcp/mcp.json.bak
+/.kilocode/mcp.json
+/.kilocode/mcp.json.bak
+/.kiro/settings/mcp.json
+/.kiro/settings/mcp.json.bak
+/.kiro/steering/ruler_kiro_instructions.md
+/.kiro/steering/ruler_kiro_instructions.md.bak
+/.mcp.json
+/.mcp.json.bak
+/.openhands/microagents/repo.md
+/.openhands/microagents/repo.md.bak
+/.qwen/settings.json
+/.qwen/settings.json.bak
+/.roo/mcp.json
+/.roo/mcp.json.bak
+/.trae/rules/project_rules.md
+/.trae/rules/project_rules.md.bak
+/.vibe/config.toml
+/.vibe/config.toml.bak
+/.vscode/mcp.json
+/.vscode/mcp.json.bak
+/.windsurf/mcp_config.json
+/.windsurf/mcp_config.json.bak
+/.zed/settings.json
+/.zed/settings.json.bak
+/AGENTS.md
+/AGENTS.md.bak
+/CLAUDE.md
+/CLAUDE.md.bak
+/CRUSH.md
+/CRUSH.md.bak
+/GEMINI.md
+/GEMINI.md.bak
+/IFLOW.md
+/IFLOW.md.bak
+/LLXPRT.md
+/LLXPRT.md.bak
+/QWEN.md
+/QWEN.md.bak
+/WARP.md
+/WARP.md.bak
+/config.toml
+/config.toml.bak
+/firebender.json
+/firebender.json.bak
+/opencode.json
+/opencode.json.bak
+# END Ruler Generated Files
+
+# --- Agent files tracked on main (synced from orchestration-tools) ---
+# These are Ruler-generated but intentionally tracked on main.
+# The Ruler section above ignores them, but these !exceptions override
+# so they remain tracked. Must come AFTER the Ruler section (last match wins).
+!/AGENTS.md
+!/GEMINI.md
+!/QWEN.md
+!/IFLOW.md
+!/CRUSH.md
+!/LLXPRT.md
+!/WARP.md
+!/.mcp.json
+
+# --- Version markers (uv/dependency tools) ---
+=*
+# Added by code-review-graph
+.code-review-graph/

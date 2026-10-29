@@ -74,7 +74,6 @@ async def create_category_v1(
 
     if result.success:
         # Create a successful response
-        from pydantic import BaseModel
 
         # Since CategoryResponse would be the proper model,
         # for now we'll use the returned data directly

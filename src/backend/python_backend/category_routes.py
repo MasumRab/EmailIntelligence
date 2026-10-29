@@ -2,7 +2,7 @@ import json
 import logging
 from typing import List
 
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, Request
 
 from src.core.auth import get_current_active_user
 
@@ -12,7 +12,7 @@ from .exceptions import DatabaseError
 from .models import CategoryCreate, CategoryResponse
 from .performance_monitor import log_performance
 from .services.category_service import CategoryService
-from .utils import create_log_data, handle_pydantic_validation
+from .utils import create_log_data
 
 logger = logging.getLogger(__name__)
 router = APIRouter()

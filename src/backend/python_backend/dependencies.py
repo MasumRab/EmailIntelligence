@@ -6,9 +6,8 @@ Dependency injection system for the Email Intelligence Platform
 Manages service dependencies and provides them to route handlers
 """
 
-from typing import Generator, AsyncGenerator
 import logging
-from typing import TYPE_CHECKING, Optional
+from typing import Optional
 from fastapi import Depends
 # Updated to use the new src architecture where available
 from backend.python_backend.services.email_service import EmailService
@@ -51,8 +50,8 @@ _gmail_service_instance: Optional["GmailAIService"] = None
 
 async def initialize_services():
     """Initialize all singleton services. This should be called on application startup."""
-    global _model_manager_instance, _ai_engine_instance, _filter_manager_instance, _workflow_engine_instance, _plugin_manager_instance, _gmail_service_instance
 
+    global _model_manager_instance, _ai_engine_instance, _filter_manager_instance, _workflow_engine_instance, _plugin_manager_instance, _gmail_service_instance
     db = await get_db()
 
     # Initialize core managers first
@@ -174,5 +173,6 @@ async def get_category_service() -> "CategoryService":
 
 async def get_database():
     """Provides database instance (for existing code that uses direct database access)"""
+    global _model_manager_instance, _ai_engine_instance, _filter_manager_instance, _workflow_engine_instance, _plugin_manager_instance, _gmail_service_instance
     db = await get_db()
     return db

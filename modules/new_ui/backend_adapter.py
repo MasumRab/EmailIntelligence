@@ -5,17 +5,13 @@ This module provides a unified interface for the UI to interact with the core ba
 It handles dependency injection, fallback mechanisms, and error handling.
 """
 
-import os
 import json
 import logging
-import asyncio
 from typing import Dict, Any, Optional, List
-from datetime import datetime
 from pathlib import Path
 
 # Core Imports
 from src.core.factory import get_ai_engine
-from src.core.workflow_engine import WorkflowRunner, Workflow
 from src.core.performance_monitor import performance_monitor
 
 logger = logging.getLogger(__name__)
@@ -67,7 +63,7 @@ class BackendClient:
         Payload expected to contain 'workflow_id' and 'email_data'.
         """
         workflow_id = payload.get("workflow_id")
-        email_data = payload.get("email_data", {})
+        payload.get("email_data", {})
 
         if not workflow_id:
             return {"error": "No workflow_id provided"}
@@ -167,7 +163,7 @@ class BackendClient:
                     with open(file_path, 'r') as f:
                         data = json.load(f)
                         workflows.append(data)
-                except:
+                except Exception:
                     continue
         except Exception as e:
             logger.error(f"Error listing workflows: {e}")

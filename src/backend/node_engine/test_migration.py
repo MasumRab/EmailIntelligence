@@ -5,7 +5,6 @@ It will be removed in a future release.
 Test module for workflow migration utilities.
 """
 
-import asyncio
 
 from backend.node_engine.migration_utils import (
     WorkflowMigrationManager,

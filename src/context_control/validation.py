@@ -1,6 +1,6 @@
 """Comprehensive validation for context control components."""
 
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any
 import re
 
 from .models import ContextProfile, AgentContext, ContextValidationResult, ProjectConfig

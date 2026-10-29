@@ -10,22 +10,15 @@ from datetime import datetime
 import pytest
 
 from backend.node_engine.email_nodes import (
-    ActionNode,
-    AIAnalysisNode,
     EmailSourceNode,
-    FilterNode,
     PreprocessingNode,
 )
 from backend.node_engine.node_base import Connection, Workflow
 from backend.node_engine.security_manager import (
-    ResourceLimits,
-    SecurityLevel,
-    audit_logger,
     resource_manager,
     security_manager,
 )
 from backend.node_engine.workflow_engine import workflow_engine
-from backend.node_engine.workflow_manager import workflow_manager
 
 # TODO(P1, 3h): Fix bare except clauses in test files per CODEREVIEW_REPORT.md
 # TODO(P2, 2h): Add missing type hints to all test functions
@@ -60,8 +53,8 @@ async def test_security_features():
     # TODO(P2, 2h): Implement negative test cases for security validation
 
     # Test that trusted nodes can execute
-    print(f"EmailSourceNode trusted: {security_manager.validate_node_execution('EmailSourceNode', {{}})}")
-    print(f"PreprocessingNode trusted: {security_manager.validate_node_execution('PreprocessingNode', {{}})}")
+    print(f"EmailSourceNode trusted: {security_manager.validate_node_execution('EmailSourceNode', {})}")
+    print(f"PreprocessingNode trusted: {security_manager.validate_node_execution('PreprocessingNode', {})}")
 
     # Execute workflow with security
     try:

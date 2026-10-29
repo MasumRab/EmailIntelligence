@@ -2,7 +2,6 @@ import logging
 
 from fastapi import APIRouter, Depends, HTTPException
 
-from . import models
 from .ai_engine import AdvancedAIEngine
 from .database import DatabaseManager
 from .dependencies import get_ai_engine, get_db

@@ -13,7 +13,7 @@ import statistics
 from collections import defaultdict, deque
 from dataclasses import asdict, dataclass
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 RETRIEVAL_LOG_FILE = "retrieval_metrics_log.jsonl"
 LOG_INTERVAL_SECONDS = 300
@@ -86,7 +86,11 @@ class RetrievalMonitor:
         self.log_interval_seconds = LOG_INTERVAL_SECONDS
         self.retrieval_log_file = RETRIEVAL_LOG_FILE
         self.strategy_performance = defaultdict(dict)
-        self.quota_tracker = {"daily_used": 0, "hourly_used": 0, "last_reset": datetime.now()}
+        self.quota_tracker = {
+            "daily_used": 0,
+            "hourly_used": 0,
+            "last_reset": datetime.now(),
+        }
         self.optimization_history = []
         self.performance_trends = defaultdict(list)
         asyncio.create_task(self._periodic_logger_task())
@@ -99,7 +103,9 @@ class RetrievalMonitor:
                     for metric in list(metrics_deque):
                         log_entry = asdict(metric)
                         log_entry["type"] = "retrieval_metric"
-                        f.write(json.dumps(log_entry, default=json_default_converter) + "\n")
+                        f.write(
+                            json.dumps(log_entry, default=json_default_converter) + "\n"
+                        )
                     metrics_deque.clear()
         except (IOError, Exception) as e:
             self.logger.error(f"Error logging retrieval metrics: {e}")
@@ -143,7 +149,10 @@ class RetrievalMonitor:
 
     def _update_performance_trends(self, metrics: RetrievalMetrics):
         """Updates the historical data for performance trend analysis."""
-        trend_data = {"timestamp": metrics.timestamp, "efficiency": metrics.api_efficiency}
+        trend_data = {
+            "timestamp": metrics.timestamp,
+            "efficiency": metrics.api_efficiency,
+        }
         trends = self.performance_trends[metrics.strategy_name]
         trends.append(trend_data)
         cutoff = datetime.now() - timedelta(hours=24)
@@ -174,13 +183,22 @@ class RetrievalMonitor:
         if not all_metrics:
             return {"status": "unknown", "message": "No recent data"}
         avg_efficiency = statistics.mean(m.api_efficiency for m in all_metrics)
-        status = "healthy" if avg_efficiency >= self.alert_thresholds.min_efficiency else "warning"
+        status = (
+            "healthy"
+            if avg_efficiency >= self.alert_thresholds.min_efficiency
+            else "warning"
+        )
         return {"status": status, "avg_efficiency": round(avg_efficiency, 2)}
 
     def _get_quota_status(self) -> Dict[str, Any]:
         """Returns the current status of API quota usage."""
         daily_limit = 1_000_000_000
-        return {"daily_usage": {"used": self.quota_tracker["daily_used"], "limit": daily_limit}}
+        return {
+            "daily_usage": {
+                "used": self.quota_tracker["daily_used"],
+                "limit": daily_limit,
+            }
+        }
 
     def _get_strategy_performance_summary(self) -> List[Dict[str, Any]]:
         """Returns a performance summary for each retrieval strategy."""
@@ -191,7 +209,9 @@ class RetrievalMonitor:
             summaries.append(
                 {
                     "strategy_name": name,
-                    "avg_efficiency": round(statistics.mean(m.api_efficiency for m in metrics), 2),
+                    "avg_efficiency": round(
+                        statistics.mean(m.api_efficiency for m in metrics), 2
+                    ),
                 }
             )
         return summaries
@@ -206,7 +226,11 @@ class RetrievalMonitor:
                 < self.alert_thresholds.min_efficiency
             ):
                 alerts.append(
-                    {"type": "low_efficiency", "strategy": name, "value": latest.api_efficiency}
+                    {
+                        "type": "low_efficiency",
+                        "strategy": name,
+                        "value": latest.api_efficiency,
+                    }
                 )
         return alerts
 
@@ -259,7 +283,9 @@ class RetrievalMonitor:
 async def main():
     """Demonstrates the usage of the RetrievalMonitor."""
     monitor = RetrievalMonitor()
-    metrics = RetrievalMetrics("critical_inbox", datetime.now(), 45, 3, 2.5, 15.0, 0, 850.0, 3.0)
+    metrics = RetrievalMetrics(
+        "critical_inbox", datetime.now(), 45, 3, 2.5, 15.0, 0, 850.0, 3.0
+    )
     monitor.record_retrieval_metrics(metrics)
     dashboard = monitor.get_real_time_dashboard()
     print("Dashboard Status:", dashboard.get("overall_status", {}).get("status"))
