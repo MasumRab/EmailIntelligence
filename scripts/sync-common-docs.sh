@@ -17,19 +17,23 @@ NC='\033[0m' # No Color
 
 # Function to print colored output
 print_status() {
-    echo -e "${BLUE}[INFO]${NC} $1"
+    local clean_msg=$(printf '%q' "$1")
+    printf "%b[INFO]%b %s\n" "${BLUE}" "${NC}" "${clean_msg}"
 }
 
 print_success() {
-    echo -e "${GREEN}[SUCCESS]${NC} $1"
+    local clean_msg=$(printf '%q' "$1")
+    printf "%b[SUCCESS]%b %s\n" "${GREEN}" "${NC}" "${clean_msg}"
 }
 
 print_warning() {
-    echo -e "${YELLOW}[WARNING]${NC} $1"
+    local clean_msg=$(printf '%q' "$1")
+    printf "%b[WARNING]%b %s\n" "${YELLOW}" "${NC}" "${clean_msg}"
 }
 
 print_error() {
-    echo -e "${RED}[ERROR]${NC} $1"
+    local clean_msg=$(printf '%q' "$1")
+    printf "%b[ERROR]%b %s\n" "${RED}" "${NC}" "${clean_msg}"
 }
 
 # Check if we're in the project root
@@ -141,7 +145,7 @@ check_worktree_status() {
     echo "Worktrees found:"
     git worktree list
 
-    echo -e "\nWorktree documentation status:"
+    printf "\\n%s\\n" "Worktree documentation status:"
 
     # Check main worktree
     if [[ -d "$PROJECT_ROOT/worktrees/docs-main" ]]; then
