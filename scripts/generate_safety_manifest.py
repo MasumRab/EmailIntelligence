@@ -28,16 +28,16 @@ def write_manifest(output_path, branches):
         "branches": branches
     }
     
-    # Strictly enforce that the resolved output path resides inside the current working directory
     base = os.path.realpath(os.getcwd())
     target = os.path.realpath(os.path.join(base, str(output_path)))
     
-    # Use commonpath to check if target is inside base without prefix matching vulnerabilities
     if os.path.commonpath([base, target]) != base:
         raise ValueError(f"refusing to write outside {base}: {target}")
+    
+    if '..' in str(output_path).split(os.path.sep):
+        raise ValueError("Path traversal detected")
         
-    fd = os.open(target, os.O_WRONLY | os.O_CREAT | os.O_TRUNC | os.O_NOFOLLOW, 0o644)
-    with os.fdopen(fd, 'w') as f:
+    with open(target, 'w') as f:
         json.dump(manifest, f, indent=2)
 
 def main():
