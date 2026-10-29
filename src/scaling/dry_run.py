@@ -1,4 +1,5 @@
 import concurrent.futures
+import shlex
 import subprocess
 import time
 from typing import List, Dict, Any
@@ -24,13 +25,12 @@ class RepoDryRunner:
         try:
             logger.info(f"Dry-running '{command}' on {repo_path}")
             
-            # Using shell=True for complex commands, but splitting normally might be safer.
-            # Assuming the command is a string and we need to run it in the repo directory.
-            # In a real environment, shell=True requires caution, but here it might be needed for commands like "git status && git branch"
+            # No shell: the command string is split into an argv list, so shell
+            # metacharacters in it are inert. That also means shell chaining
+            # ("a && b") is not interpreted -- pass one command per run.
             result = subprocess.run(
-                command,
+                shlex.split(command),
                 cwd=repo_path,
-                shell=True,
                 capture_output=True,
                 text=True,
                 timeout=self.timeout
