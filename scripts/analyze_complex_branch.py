@@ -3,7 +3,21 @@ import subprocess
 import sys
 import re
 
+_SAFE_ARG = re.compile(r"[A-Za-z0-9_./^~=:-]*")
+
+
+def _clean_arg(argument):
+    """Return the git argument, or raise. The matched text is what reaches argv."""
+    match = _SAFE_ARG.fullmatch(argument)
+    if not match:
+        raise ValueError(f"Invalid git argument: {argument!r}")
+    return match.group(0)
+
+
 def run_git_command(command, check=True):
+    # SonarCloud pythonsecurity:S8705 follows the caller-supplied strings into
+    # subprocess.run; only the regex-matched values drop the taint.
+    command = [_clean_arg(argument) for argument in command]
     try:
         result = subprocess.run(
             command,
