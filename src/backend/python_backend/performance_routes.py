@@ -9,10 +9,11 @@ import json
 import logging
 from typing import Any, Dict, List
 
-from fastapi import APIRouter, HTTPException
+from fastapi import Depends, APIRouter, HTTPException
+from src.core.auth import get_current_active_user
 
 logger = logging.getLogger(__name__)
-router = APIRouter()
+router = APIRouter(dependencies=[Depends(get_current_active_user)])
 
 LOG_FILE = "performance_metrics_log.jsonl"
 
