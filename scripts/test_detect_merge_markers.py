@@ -32,9 +32,9 @@ class TestDetectMergeMarkers(unittest.TestCase):
         errors = detect_merge_markers([conflict_file])
         self.assertEqual(len(errors), 3)
         self.assertTrue(any("<<<<<<<" in e or "=======" in e or ">>>>>>>" in e for e in errors) or len(errors) == 3)
-        self.assertTrue(f"MERGE MARKER: {conflict_file}:2" in errors)
-        self.assertTrue(f"MERGE MARKER: {conflict_file}:4" in errors)
-        self.assertTrue(f"MERGE MARKER: {conflict_file}:6" in errors)
+        self.assertIn(f"MERGE MARKER: {conflict_file}:2", errors)
+        self.assertIn(f"MERGE MARKER: {conflict_file}:4", errors)
+        self.assertIn(f"MERGE MARKER: {conflict_file}:6", errors)
 
     def test_file_not_found(self):
         nonexistent_file = os.path.join(self.temp_dir.name, "nonexistent.txt")
