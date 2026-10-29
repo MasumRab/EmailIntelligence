@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from .ai_engine import AdvancedAIEngine
 from .database import DatabaseManager
 from .dependencies import get_ai_engine, get_db
+from src.core.auth import get_current_active_user
 from .models import (
     AIAnalysisRequest,
     AIAnalysisResponse,
@@ -24,6 +25,7 @@ async def analyze_email(
     request: AIAnalysisRequest,
     ai_engine: AdvancedAIEngine = Depends(get_ai_engine),
     db: DatabaseManager = Depends(get_db),
+    current_user: dict = Depends(get_current_active_user),
 ):
     """
     Analyzes email content and returns AI-driven insights.
