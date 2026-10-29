@@ -16,6 +16,7 @@ def check_branch_status(branch):
         branch = _safe_ref(branch)
     except ValueError:
         return "error"
+<<<<<<< HEAD
 
     # merge-tree exits 1 both for a real conflict and for a ref it cannot resolve,
     # so settle existence first or a typo reads as a conflict.
@@ -23,6 +24,13 @@ def check_branch_status(branch):
         ["git", "rev-parse", "--verify", "--quiet", f"refs/heads/{branch}"],
         capture_output=True, text=True)
     if exists.returncode != 0:
+=======
+    
+    rev_parse = subprocess.run(
+        ["git", "rev-parse", "--verify", "--quiet", branch],
+        capture_output=True, text=True)
+    if rev_parse.returncode != 0:
+>>>>>>> 7ed9ddc4 (Properly distinguish between merge conflicts and missing branches)
         return "error"
 
     result = subprocess.run(

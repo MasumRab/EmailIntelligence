@@ -51,6 +51,9 @@ class TestBranchSequenceRealGit(unittest.TestCase):
     def test_real_git_conflict(self):
         self.assertEqual(check_branch_status("conflict_branch"), "conflicting")
 
+    def test_real_git_unknown_branch(self):
+        self.assertEqual(check_branch_status("no-such-branch-xyz"), "error")
+
 class TestBranchSequence(unittest.TestCase):
     @patch('subprocess.run')
     def test_clean_branch(self, mock_run):
@@ -61,14 +64,16 @@ class TestBranchSequence(unittest.TestCase):
 
     @patch('subprocess.run')
     def test_conflicting_branch(self, mock_run):
+        rev_mock = MagicMock(returncode=0)
         tree_mock = MagicMock(stdout='', returncode=1)
-        mock_run.side_effect = [tree_mock]
+        mock_run.side_effect = [rev_mock, tree_mock]
         self.assertEqual(check_branch_status('conflict_branch'), 'conflicting')
 
     @patch('subprocess.run')
     def test_error_branch(self, mock_run):
+        rev_mock = MagicMock(returncode=0)
         tree_mock = MagicMock(stdout='', returncode=2)
-        mock_run.side_effect = [tree_mock]
+        mock_run.side_effect = [rev_mock, tree_mock]
         self.assertEqual(check_branch_status('error_branch'), 'error')
 
     @patch('scripts.orchestration.branch_sequence.check_branch_status')
