@@ -1,0 +1,40 @@
+--- src/core/security.py
++++ src/core/security.py
+@@ -162,11 +151,33 @@
+     Returns:
+         A resolved, safe Path object or None if the path is unsafe.
+     """
+-    if not validate_path_safety(path, base_dir):
+-        return None
++    try:
++        if not validate_path_safety(path, base_dir):
++            return None
+ 
+-    base_path = (pathlib.Path(base_dir) if base_dir else pathlib.Path.cwd()).resolve()
+-    return (base_path / path).resolve()
++        import urllib.parse
++        str_path = str(path)
++        decoded_path = urllib.parse.unquote(str_path)
++        if "\x00" in decoded_path:
++            return None
++            
++        path_obj = pathlib.Path(decoded_path)
++        base_path = (pathlib.Path(base_dir) if base_dir else pathlib.Path.cwd()).resolve()
++        
++        # Prevent absolute paths from replacing the base directory entirely
++        if path_obj.is_absolute():
++            resolved_path = path_obj.resolve()
++        else:
++            safe_str = decoded_path.lstrip('/')
++            resolved_path = (base_path / safe_str).resolve()
++            
++        if resolved_path != base_path and base_path not in resolved_path.parents:
++            return None
++            
++        return resolved_path
++    except Exception as e:
++        logger.warning(f"Error sanitizing path '{path}': {e}")
++        return None
+ 
+ 
+ 
