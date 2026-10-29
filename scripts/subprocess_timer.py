@@ -10,8 +10,6 @@ def time_command(command: list[str]) -> float:
     for arg in command:
         if not isinstance(arg, str):
             raise ValueError(f"Argument {arg!r} is not a string")
-        if arg.startswith('-'):
-            raise ValueError(f"Argument {arg!r} starts with a hyphen (-)")
     if shutil.which(command[0]) is None:
         raise ValueError(f"Executable {command[0]!r} not found in PATH")
         
