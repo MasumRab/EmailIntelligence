@@ -27,9 +27,13 @@ def write_manifest(output_path, branches):
     manifest = {
         "branches": branches
     }
-    # Normalize the path to prevent directory traversal
-    import pathlib
-    safe_output_path = pathlib.Path(output_path).resolve()
+    
+    # Allow saving into a designated folder structure by preventing relative traversal (..)
+    output_path_str = str(output_path)
+    if ".." in output_path_str.split(os.path.sep):
+        raise ValueError("Path traversal detected")
+        
+    safe_output_path = os.path.abspath(output_path_str)
     
     with open(safe_output_path, 'w') as f:
         json.dump(manifest, f, indent=2)
