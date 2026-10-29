@@ -2,7 +2,17 @@ import unittest
 import os
 import tempfile
 import shutil
-from roadmap_generator import generate_roadmap, parse_task_file, TaskInfo
+import importlib.util
+from pathlib import Path
+
+# Load roadmap_generator by path since scripts is not a package
+script_path = Path(__file__).resolve().parents[2] / "scripts" / "roadmap_generator.py"
+spec = importlib.util.spec_from_file_location("roadmap_generator", script_path)
+roadmap_generator = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(roadmap_generator)
+
+generate_roadmap = roadmap_generator.generate_roadmap
+parse_task_file = roadmap_generator.parse_task_file
 
 class TestRoadmapGenerator(unittest.TestCase):
     def setUp(self):
