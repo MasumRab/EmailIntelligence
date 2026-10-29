@@ -28,9 +28,11 @@ def write_manifest(output_path, branches):
         "branches": branches
     }
     
+    # Strictly enforce that the resolved output path resides inside the current working directory
     base = os.path.realpath(os.getcwd())
     target = os.path.realpath(os.path.join(base, str(output_path)))
     
+    # Use commonpath to check if target is inside base without prefix matching vulnerabilities
     if os.path.commonpath([base, target]) != base:
         raise ValueError(f"refusing to write outside {base}: {target}")
     
