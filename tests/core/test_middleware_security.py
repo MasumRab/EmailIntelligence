@@ -89,3 +89,34 @@ async def test_trusted_proxy_logic():
     request_untrusted = Request(scope_untrusted, lambda: None)
     ip_untrusted = middleware._get_client_ip(request_untrusted)
     assert ip_untrusted == "6.6.6.6", f"Should IGNORE spoofed header from untrusted source. Got {ip_untrusted}"
+
+@pytest.mark.asyncio
+async def test_leftmost_entry_attack():
+    """
+    Test that X-Forwarded-For processing correctly handles the leftmost-entry attack.
+    The attacker passes a spoofed IP, and the trusted proxy appends the real untrusted IP.
+    The rightmost untrusted IP must be returned.
+    """
+    app = AsyncMock()
+    # Trust the load balancer
+    middleware = SecurityMiddleware(app, trusted_proxies=["10.0.0.1/32"])
+
+    scope_leftmost = {
+        "type": "http",
+        "headers": [
+            # 1.2.3.4 is the spoofed IP. 2.3.4.5 is the real untrusted client IP.
+            # And it's coming from 10.0.0.1 (trusted).
+            (b"x-forwarded-for", b"1.2.3.4, 2.3.4.5"),
+        ],
+        "client": ("10.0.0.1", 12345),
+        "method": "GET",
+        "path": "/api/test",
+        "scheme": "http",
+        "query_string": b"",
+        "app": app
+    }
+    request_leftmost = Request(scope_leftmost, lambda: None)
+    ip_leftmost = middleware._get_client_ip(request_leftmost)
+    
+    # 2.3.4.5 is the rightmost untrusted IP
+    assert ip_leftmost == "2.3.4.5", f"Leftmost-entry attack failed! Expected 2.3.4.5, got {ip_leftmost}"

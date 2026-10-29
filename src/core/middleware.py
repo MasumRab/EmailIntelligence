@@ -175,8 +175,19 @@ class SecurityMiddleware:
         # Check X-Forwarded-For header (standard for proxies)
         forwarded_for = request.headers.get("x-forwarded-for")
         if forwarded_for:
-            # Take the first IP in the chain
-            return forwarded_for.split(",")[0].strip()
+            # Parse right-to-left
+            hops = [hop.strip() for hop in forwarded_for.split(",")]
+            for hop in reversed(hops):
+                try:
+                    hop_ip = ipaddress.ip_address(hop)
+                    is_hop_trusted = any(
+                        hop_ip in ipaddress.ip_network(proxy) for proxy in self.trusted_proxies
+                    )
+                    if not is_hop_trusted:
+                        return hop
+                except ValueError:
+                    # Skip malformed IP addresses
+                    continue
 
         # Check X-Real-IP (used by some proxies like Nginx)
         real_ip = request.headers.get("x-real-ip")
