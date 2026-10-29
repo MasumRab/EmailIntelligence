@@ -84,7 +84,7 @@ class RepoDryRunner:
                     result = future.result()
                     results.append(result)
                 except Exception as e:
-                    logger.error(f"Unhandled exception processing {repo}: {e}")
+                    logger.exception("Unhandled exception processing %s", repo)
                     results.append({
                         "repository": repo,
                         "status": "unhandled_error",
