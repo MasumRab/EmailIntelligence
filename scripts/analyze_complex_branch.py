@@ -3,7 +3,7 @@ import subprocess
 import sys
 import re
 
-_SAFE_ARG = re.compile(r"^(?!-)(?!.*\.\.)[A-Za-z0-9_./~=:-]*$")
+_SAFE_ARG = re.compile(r"^(?!-)(?!.*\.\.)[A-Za-z0-9_./~=-]*$")
 
 
 def _clean_arg(argument):
