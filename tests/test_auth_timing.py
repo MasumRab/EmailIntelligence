@@ -48,3 +48,13 @@ async def test_auth_timing():
     print(f"Difference: {difference:.4f}s")
 
     assert difference < 0.2, f"Timing difference too large: {difference:.4f}s"
+    assert nonexistent_user_time > 0.05, "Nonexistent user path bypassed hashing"
+
+
+def test_dummy_hash_verify():
+    from src.core.auth import verify_password, DUMMY_HASH
+    start_time = time.time()
+    result = verify_password("x", DUMMY_HASH)
+    duration = time.time() - start_time
+    assert result is False
+    assert duration > 0.05, "Dummy hash verification bypassed hashing"

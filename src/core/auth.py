@@ -27,7 +27,9 @@ logger = logging.getLogger(__name__)
 
 # Valid Argon2 hash for preventing timing attacks
 DUMMY_HASH = (
-    "$argon2id$v=19$m=65536,t=3,p=4$DnF1/L/JzW/0QZ3r5Y/y0w$K7g/6Z5x4y3w2v1u0t9s8"
+    # NOSONAR - non-secret dummy hash, never a credential; it exists only to make
+    # the unknown-user path as expensive as the known-user path
+    "$argon2id$v=19$m=65536,t=3,p=4$ruwkMIkRCAuKQX9CafJeIw$EfqmQvRw2YsfuPkNPifuN2Hymk9mSu5JvZ8/Jia9FhI"
 )
 
 
@@ -148,6 +150,8 @@ async def authenticate_user(
         # If user not found, verify a dummy hash to equalize timing
         if user_data:
             stored_hash = user_data.get("hashed_password", "")
+            if not stored_hash:
+                stored_hash = DUMMY_HASH
         else:
             # This is a valid Argon2 hash for "dummy" to prevent early exit
             # We calculate it once or use a fixed one. Using a fixed one is faster but consistent.
