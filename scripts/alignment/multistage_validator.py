@@ -5,24 +5,23 @@ import logging
 
 logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
 
-def run_validation(script_path):
-    logging.info(f"Running validation: {script_path}")
+def run_validation(command):
+    logging.info(f"Running validation: {command}")
     try:
-        # script_path comes from a hardcoded list in main()
-        result = subprocess.run(  # sourcery skip: command-injection
-            [sys.executable, script_path],
+        result = subprocess.run(
+            command,
             capture_output=True,
             text=True,
             check=False
         )
         if result.returncode != 0:
-            logging.error(f"Validation failed: {script_path}")
+            logging.error(f"Validation failed: {command}")
             logging.error(f"Output:\n{result.stdout}\n{result.stderr}")
             return False
-        logging.info(f"Validation succeeded: {script_path}")
+        logging.info(f"Validation succeeded: {command}")
         return True
     except Exception:
-        logging.exception("Error running %s", script_path)
+        logging.exception("Error running %s", command)
         return False
 
 def main():
@@ -32,7 +31,8 @@ def main():
     ]
     
     for script in scripts_to_run:
-        if not run_validation(script):
+        command = [sys.executable, script]
+        if not run_validation(command):
             logging.error("Pipeline stopped due to validation failure.")
             sys.exit(1)
             
