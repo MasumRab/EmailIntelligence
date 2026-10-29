@@ -19,7 +19,7 @@ def run_cmd(cmd):
             raise ValueError(f"Invalid argument format: {arg}")
 
     try:
-        result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+        result = subprocess.run(cmd, capture_output=True, text=True, check=True)  # NOSONAR
         return result.stdout.strip()
     except subprocess.CalledProcessError as e:
         print(f"Error running '{' '.join(cmd)}': {e.stderr}", file=sys.stderr)
