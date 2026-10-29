@@ -25,8 +25,7 @@ def get_changed_files(base: str, head: str) -> Set[str]:
         safe_base = safe_ref(base)
         safe_head = safe_ref(head)
     except ValueError as rejected:
-        print(f"Error: Invalid reference provided {rejected.args[0]!r}", file=sys.stderr)
-        sys.exit(1)
+        raise ValueError(f"Invalid reference provided {rejected.args[0]!r}")
 
     try:
         result = subprocess.run(
@@ -38,8 +37,7 @@ def get_changed_files(base: str, head: str) -> Set[str]:
         output = result.stdout.strip()
         return set(output.split('\n')) if output else set()
     except subprocess.CalledProcessError as e:
-        print(f"Error running git diff: {e.stderr}", file=sys.stderr)
-        sys.exit(1)
+        raise ValueError(f"Error running git diff: {e.stderr}")
 
 def check_concurrent_changes(source_branch: str, target_branch: str) -> bool:
     """
@@ -50,8 +48,7 @@ def check_concurrent_changes(source_branch: str, target_branch: str) -> bool:
         safe_source = safe_ref(source_branch)
         safe_target = safe_ref(target_branch)
     except ValueError:
-        print("Error: Branch names contain invalid characters.", file=sys.stderr)
-        sys.exit(1)
+        raise ValueError("Branch names contain invalid characters.")
 
     # 1. Find the merge base
     try:
@@ -63,12 +60,10 @@ def check_concurrent_changes(source_branch: str, target_branch: str) -> bool:
         )
         merge_base = result.stdout.strip()
     except subprocess.CalledProcessError as e:
-        print(f"Error finding merge base: {e.stderr}", file=sys.stderr)
-        sys.exit(1)
+        raise ValueError(f"Error finding merge base: {e.stderr}")
 
     if not merge_base:
-         print("Error: Could not determine merge base.", file=sys.stderr)
-         sys.exit(1)
+         raise ValueError("Could not determine merge base.")
 
     print(f"Merge base: {merge_base}")
 
@@ -99,10 +94,14 @@ def main():
     
     args = parser.parse_args()
 
-    has_conflicts = check_concurrent_changes(args.source_branch, args.target_branch)
-    if has_conflicts:
+    try:
+        has_conflicts = check_concurrent_changes(args.source_branch, args.target_branch)
+        if has_conflicts:
+            sys.exit(1)
+        sys.exit(0)
+    except ValueError as e:
+        print(e, file=sys.stderr)
         sys.exit(1)
-    sys.exit(0)
 
 if __name__ == "__main__":
     main()
