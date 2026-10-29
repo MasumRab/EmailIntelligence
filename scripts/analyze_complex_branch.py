@@ -3,7 +3,7 @@ import subprocess
 import sys
 import re
 
-_SAFE_ARG = re.compile(r"^(?!.*\.\.)[A-Za-z0-9_./^~=:-]*$")
+_SAFE_ARG = re.compile(r"^(?!-)(?!.*\.\.)[A-Za-z0-9_./~=:-]*$")
 
 
 def _clean_arg(argument):
@@ -32,21 +32,21 @@ def run_git_command(command, check=True):
         sys.exit(1)
 
 def is_divergent(branch, base):
-    _, returncode = run_git_command(["git", "merge-base", "--is-ancestor", base, branch], check=False)
+    _, returncode = run_git_command(["git", "merge-base", "--is-ancestor", "--", base, branch], check=False)
     # If base is not an ancestor of branch, they are divergent
     return returncode != 0
 
 def get_merge_commit_count(branch, base):
-    stdout, _ = run_git_command(["git", "rev-list", "--merges", f"{base}..{branch}", "--count"])
+    stdout, _ = run_git_command(["git", "rev-list", "--merges", "--count", "--", f"{base}..{branch}"])
     return int(stdout) if stdout.isdigit() else 0
 
 def get_commit_count(branch, base):
-    stdout, _ = run_git_command(["git", "rev-list", f"{base}..{branch}", "--count"])
+    stdout, _ = run_git_command(["git", "rev-list", "--count", "--", f"{base}..{branch}"])
     return int(stdout) if stdout.isdigit() else 0
 
 def get_changed_files_count(branch, base):
     # Using ... to get changes in branch since it diverged from base
-    stdout, _ = run_git_command(["git", "diff", f"{base}...{branch}", "--name-only"])
+    stdout, _ = run_git_command(["git", "diff", "--name-only", "--", f"{base}...{branch}"])
     return len([line for line in stdout.split('\n') if line.strip()])
 
 def is_valid_git_ref(ref):
