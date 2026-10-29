@@ -7,7 +7,7 @@ import datetime
 
 BACKUP_FILE_DEFAULT = ".branch_backup.json"
 
-_SAFE_REF = re.compile(r"^(?!.*\.\.)[A-Za-z0-9_./-]*$")
+_SAFE_REF = re.compile(r"^(?!-)(?!.*\.\.)[A-Za-z0-9_./-]*$")
 _SAFE_SHA = re.compile(r"[0-9a-f]*")
 
 
@@ -26,10 +26,10 @@ def run_cmd(cmd):
     return result.stdout.strip()
 
 def get_current_branch():
-    return run_cmd(["git", "rev-parse", "--abbrev-ref", "HEAD"])
+    return run_cmd(["git", "rev-parse", "--abbrev-ref", "--", "HEAD"])
 
 def get_current_sha():
-    return run_cmd(["git", "rev-parse", "HEAD"])
+    return run_cmd(["git", "rev-parse", "--", "HEAD"])
 
 def snapshot(backup_file=BACKUP_FILE_DEFAULT):
     # The path comes from the CLI, so drop any directory component before writing it
@@ -70,9 +70,9 @@ def restore(backup_file=BACKUP_FILE_DEFAULT):
     if current_branch != target_branch and current_branch != "HEAD":
         print(f"Warning: Current branch '{current_branch}' differs from backed up branch '{target_branch}'.")
         print(f"Checking out '{target_branch}' before restoring.")
-        run_cmd(["git", "checkout", target_branch])
+        run_cmd(["git", "checkout", "--", target_branch])
         
-    run_cmd(["git", "reset", "--hard", target_sha])
+    run_cmd(["git", "reset", "--hard", "--", target_sha])
     print(f"Restored {target_branch} to {target_sha}")
     return backup_data
 
