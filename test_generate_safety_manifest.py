@@ -27,6 +27,7 @@ def test_write_manifest(tmp_path, monkeypatch):
 
 def test_write_manifest_refuses_traversal(tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
+    escaped_path = os.path.join('..', 'escaped.json')
     with pytest.raises(ValueError):
-        write_manifest(os.path.join('..', 'escaped.json'), {'main': 'deadbeef'})
+        write_manifest(escaped_path, {'main': 'deadbeef'})
 

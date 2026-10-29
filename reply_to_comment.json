@@ -1,0 +1,6 @@
+[
+  {
+    "comment_id": "4415637928",
+    "reply": "Removed `manifest.json` and `update.json`. Added `manifest.json` to `.gitignore`. Verified via `git diff --stat origin/main...HEAD`."
+  }
+]
