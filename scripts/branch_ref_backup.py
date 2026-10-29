@@ -4,13 +4,19 @@ import subprocess
 import os
 import re
 import datetime
+import pathlib
 
+BACKUP_DIR = pathlib.Path(".backups")
 BACKUP_FILE_DEFAULT = ".branch_backup.json"
 
-_SAFE_REF = re.compile(r"^[A-Za-z0-9_./][A-Za-z0-9_./-]*$")
-_SAFE_SHA = re.compile(r"^[0-9a-f]{4,64}$")
+def _resolve_backup_path(backup_file: str) -> pathlib.Path:
+    base = BACKUP_DIR.resolve()
+    candidate = (base / pathlib.Path(backup_file).name).resolve()
+    if candidate != base and base not in candidate.parents:
+        raise ValueError(f"backup_file escapes {BACKUP_DIR}: {backup_file}")
+    return candidate
 
-# Also forbid path traversal components in the regex
+_SAFE_SHA = re.compile(r"^[0-9a-f]{4,64}$")
 _SAFE_REF = re.compile(r"^(?!.*\.\.)[A-Za-z0-9_./][A-Za-z0-9_./-]*$")
 
 
@@ -35,9 +41,8 @@ def get_current_sha():
     return run_cmd(["git", "rev-parse", "HEAD"])
 
 def snapshot(backup_file=BACKUP_FILE_DEFAULT):
-    # The path comes from the CLI, so drop any directory component before writing it
-    # (SonarCloud pythonsecurity:S8707).
-    backup_file = os.path.basename(backup_file)
+    BACKUP_DIR.mkdir(parents=True, exist_ok=True)
+    resolved = _resolve_backup_path(backup_file)
     branch_name = get_current_branch()
     sha = get_current_sha()
 
@@ -48,29 +53,27 @@ def snapshot(backup_file=BACKUP_FILE_DEFAULT):
         "timestamp": timestamp
     }
 
-    with open(backup_file, "w") as f:
+    with open(resolved, "w") as f:
         json.dump(backup_data, f, indent=4)
 
-    print(f"Backup created: {branch_name} at {sha} saved to {backup_file}")
+    print(f"Backup created: {branch_name} at {sha} saved to {resolved}")
     return backup_data
 
 def restore(backup_file=BACKUP_FILE_DEFAULT):
-    # Same traversal guard as snapshot(): the read path is CLI-supplied too.
-    # Allow full paths in tests, but require basename normally
-    if not os.path.exists(backup_file):
-        backup_file = os.path.basename(backup_file)
+    BACKUP_DIR.mkdir(parents=True, exist_ok=True)
+    resolved = _resolve_backup_path(backup_file)
     
-    if not os.path.exists(backup_file):
-        raise FileNotFoundError(f"Backup file not found: {backup_file}")
+    if not resolved.exists():
+        raise FileNotFoundError(f"Backup file not found: {resolved}")
 
-    with open(backup_file, "r") as f:
+    with open(resolved, "r") as f:
         backup_data = json.load(f)
 
     target_branch = _matched(_SAFE_REF, backup_data.get("branch"), "branch")
     target_sha = _matched(_SAFE_SHA, backup_data.get("sha"), "sha")
 
     if not target_sha or not target_branch:
-        raise ValueError(f"Invalid backup data in {backup_file}")
+        raise ValueError(f"Invalid backup data in {resolved}")
 
     current_branch = get_current_branch()
     if current_branch != target_branch and current_branch != "HEAD":
