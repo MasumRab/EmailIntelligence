@@ -86,7 +86,6 @@ def client(mock_db_manager, mock_ai_engine, mock_filter_manager, mock_workflow_e
     app.dependency_overrides[get_filter_manager] = lambda: mock_filter_manager
     app.dependency_overrides[get_current_active_user] = lambda: "test_user"
     app.dependency_overrides[get_workflow_engine] = lambda: mock_workflow_engine
-    app.dependency_overrides[get_current_active_user] = lambda: "test_user"
 
     decorator_path = "backend.python_backend.performance_monitor.log_performance"
     with patch(decorator_path, lambda *args, **kwargs: (lambda func: func)):
