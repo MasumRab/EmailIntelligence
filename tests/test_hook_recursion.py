@@ -8,6 +8,14 @@ from pathlib import Path
 
 
 class TestHookRecursionPrevention:
+
+    def _get_hook_content(self, hook_name="post-checkout"):
+        """Helper to read hook content if it exists."""
+        hook_path = Path(f".git/hooks/{hook_name}")
+        if hook_path.exists():
+            return hook_path.read_text(), hook_path
+        return None, hook_path
+
     """Test that Git hooks prevent infinite loops and recursive calls."""
 
     def test_post_checkout_recursion_prevention(self):
@@ -70,32 +78,22 @@ class TestHookRecursionPrevention:
                 if "ORCHESTRATION_SYNC_ACTIVE" not in content:
                     pytest.fail(f"Hook has {checkout_count} checkout operations but no recursion prevention")
 
-    def test_environment_variable_protection(self):
+    def test_environment_variable_protection(self, monkeypatch):
         """Test that environment variable prevents hook execution."""
         hook_path = Path(".git/hooks/post-checkout")
 
         if hook_path.exists():
             # Test that hook respects the environment variable
-            env_backup = os.environ.get("ORCHESTRATION_SYNC_ACTIVE")
+            # Set the environment variable
+            monkeypatch.setenv("ORCHESTRATION_SYNC_ACTIVE", "1")
 
-            try:
-                # Set the environment variable
-                os.environ["ORCHESTRATION_SYNC_ACTIVE"] = "1"
+            # Run the hook - it should exit early
+            import subprocess
+            result = subprocess.run([str(hook_path)], capture_output=True, text=True)
 
-                # Run the hook - it should exit early
-                import subprocess
-                result = subprocess.run([str(hook_path)], capture_output=True, text=True)
-
-                # Should exit successfully without doing work
-                if result.returncode != 0:
-                    pytest.fail("Hook should exit cleanly when recursion prevention is active")
-
-            finally:
-                # Restore environment
-                if env_backup is not None:
-                    os.environ["ORCHESTRATION_SYNC_ACTIVE"] = env_backup
-                elif "ORCHESTRATION_SYNC_ACTIVE" in os.environ:
-                    del os.environ["ORCHESTRATION_SYNC_ACTIVE"]
+            # Should exit successfully without doing work
+            if result.returncode != 0:
+                pytest.fail("Hook should exit cleanly when recursion prevention is active")
 
     def test_hook_syntax_validation_with_recursion(self):
         """Test that hooks have valid syntax including recursion prevention."""
@@ -182,7 +180,7 @@ class TestHookRecursionPrevention:
                 if "has local changes in subtree" not in content:
                     pytest.fail("Should warn about subtree conflicts")
 
-    def test_disable_flag_functionality(self):
+    def test_disable_flag_functionality(self, monkeypatch):
         """Test that the DISABLE_ORCHESTRATION_CHECKS flag works."""
         hook_path = Path(".git/hooks/post-checkout")
 
@@ -199,28 +197,17 @@ class TestHookRecursionPrevention:
             import subprocess
             import os
 
-            # Save original env
-            original_env = os.environ.get("DISABLE_ORCHESTRATION_CHECKS")
+            # Set the disable flag
+            monkeypatch.setenv("DISABLE_ORCHESTRATION_CHECKS", "1")
 
-            try:
-                # Set the disable flag
-                os.environ["DISABLE_ORCHESTRATION_CHECKS"] = "1"
+            # Run hook - should exit early with disable message
+            result = subprocess.run([str(hook_path)], capture_output=True, text=True)
 
-                # Run hook - should exit early with disable message
-                result = subprocess.run([str(hook_path)], capture_output=True, text=True)
-
-                # Should exit cleanly without doing sync work
-                if result.returncode != 0:
-                    pytest.fail("Hook should exit cleanly when disabled")
-                if "Orchestration checks disabled" not in result.stdout:
-                    pytest.fail("Should show disable message")
-
-            finally:
-                # Restore environment
-                if original_env is not None:
-                    os.environ["DISABLE_ORCHESTRATION_CHECKS"] = original_env
-                elif "DISABLE_ORCHESTRATION_CHECKS" in os.environ:
-                    del os.environ["DISABLE_ORCHESTRATION_CHECKS"]
+            # Should exit cleanly without doing sync work
+            if result.returncode != 0:
+                pytest.fail("Hook should exit cleanly when disabled")
+            if "Orchestration checks disabled" not in result.stdout:
+                pytest.fail("Should show disable message")
 
     def test_infinite_loop_prevention_on_branch_switch(self):
         """Test that hook prevents infinite loops when switching branches with orchestration changes."""
