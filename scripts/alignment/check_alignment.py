@@ -13,7 +13,7 @@ def is_valid_branch_name(name):
     # This is a simplified regex; git check-ref-format is more thorough but this prevents basic injection
     return re.match(r'^[a-zA-Z0-9/\-_\.]+$', name) is not None
 
-_SAFE_ARG = re.compile(r"[A-Za-z0-9/_.=^@:+-]*")
+_SAFE_ARG = re.compile(r"^(?!.*\.\.)[A-Za-z0-9/_.=^@:+-]*$")
 
 
 def _clean_arg(argument: str) -> str:
