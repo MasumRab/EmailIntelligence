@@ -372,6 +372,19 @@ DO NOT RE-INITIALIZE. That will not do anything beyond re-adding the same Taskma
 
 ## Important Notes
 
+## 🚫 Disabled Workflow Rules (NON-NEGOTIABLE)
+Files ending in `.DISABLED` under `.github/workflows/` were deliberately disabled by the repository owner. The disabled state IS the intent — it is not an accident to "fix".
+- **NEVER re-enable**: do not rename `*.yml.DISABLED` → `*.yml`, do not delete `.DISABLED` files, do not "restore" active copies from PR branches
+- **NEVER edit contents**: `.DISABLED` files are frozen; their content must match `origin/main` exactly. Version bumps (e.g. `actions/setup-python@v7`) and step changes have zero effect on non-running workflows — they only create merge noise and regression risk
+- **Conflict handling**: if a merge/rebase conflict involves a `.DISABLED` file, keep the `.DISABLED` version exactly as it exists on current `origin/main`
+- **Reporting**: if a PR's diff touches any `*.DISABLED` path, that is a FINDING to report in review — not something to "fix" by re-enabling
+
+## 🧊 Stale-Snapshot Guards (your sandbox may be weeks old)
+Your codebase snapshot may be significantly older than current `origin/main`. These guards prevent the most common regressions:
+- **Fetch before any revert**: NEVER revert a path "to origin/main" from remembered state. Always `git fetch origin main` first and diff against the FETCHED state. API "stale commit OID" errors mean your reference is stale — re-fetch, don't retry
+- **Stale-paste guard**: if your "fix" would change >200 lines in a file NOT in the PR's original scope, STOP — you are likely pasting an older cached version. Re-read the current file from disk (`git show HEAD:<path>`) and apply only the minimal edit needed. Large intentional rewrites must use a `refactor:` prefix and justify the scope in the commit message
+- **Never trust remembered file state**: before editing any file, read its CURRENT version. Sibling sessions and main may have changed it since your snapshot was taken
+
 ### AI-Powered Operations
 
 These commands make AI calls and may take up to a minute:
@@ -462,3 +475,42 @@ Context contamination occurs when information from one task/conversation bleeds 
 ---
 
 _This guide ensures Claude Code has immediate access to Task Master's essential functionality for agentic development workflows._
+
+<!-- code-review-graph MCP tools -->
+## MCP Tools: code-review-graph
+
+**IMPORTANT: This project has a knowledge graph. ALWAYS use the
+code-review-graph MCP tools BEFORE using Grep/Glob/Read to explore
+the codebase.** The graph is faster, cheaper (fewer tokens), and gives
+you structural context (callers, dependents, test coverage) that file
+scanning cannot.
+
+### When to use graph tools FIRST
+
+- **Exploring code**: `semantic_search_nodes` or `query_graph` instead of Grep
+- **Understanding impact**: `get_impact_radius` instead of manually tracing imports
+- **Code review**: `detect_changes` + `get_review_context` instead of reading entire files
+- **Finding relationships**: `query_graph` with callers_of/callees_of/imports_of/tests_for
+- **Architecture questions**: `get_architecture_overview` + `list_communities`
+
+Fall back to Grep/Glob/Read **only** when the graph doesn't cover what you need.
+
+### Key Tools
+
+| Tool | Use when |
+| ------ | ---------- |
+| `detect_changes` | Reviewing code changes — gives risk-scored analysis |
+| `get_review_context` | Need source snippets for review — token-efficient |
+| `get_impact_radius` | Understanding blast radius of a change |
+| `get_affected_flows` | Finding which execution paths are impacted |
+| `query_graph` | Tracing callers, callees, imports, tests, dependencies |
+| `semantic_search_nodes` | Finding functions/classes by name or keyword |
+| `get_architecture_overview` | Understanding high-level codebase structure |
+| `refactor_tool` | Planning renames, finding dead code |
+
+### Workflow
+
+1. The graph auto-updates on file changes (via hooks).
+2. Use `detect_changes` for code review.
+3. Use `get_affected_flows` to understand impact.
+4. Use `query_graph` pattern="tests_for" to check coverage.

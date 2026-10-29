@@ -1,9 +1,6 @@
 import configparser
-configparser.SafeConfigParser = configparser.ConfigParser
-
 import argparse
 import logging
-
 import gradio as gr
 import uvicorn
 import psutil
@@ -15,9 +12,12 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, RedirectResponse
 from pydantic import ValidationError
 from .core.module_manager import ModuleManager
-from .core.middleware import create_security_middleware, create_security_headers_middleware
 from .core.audit_logger import audit_logger, AuditEventType, AuditSeverity
 from .core.performance_monitor import performance_monitor
+
+configparser.SafeConfigParser = configparser.ConfigParser
+
+
 
 # Configure logging
 logging.basicConfig(
@@ -582,9 +582,11 @@ def create_app():
         allow_headers=["*"],
     )
 
+    from .core.middleware import SecurityMiddleware, SecurityHeadersMiddleware
+
     # Add comprehensive security middleware
-    app.add_middleware(create_security_middleware(app))
-    app.add_middleware(create_security_headers_middleware(app))
+    app.add_middleware(SecurityMiddleware)
+    app.add_middleware(SecurityHeadersMiddleware)
 
     # Add security headers middleware (additional layer)
     @app.middleware("http")
@@ -593,8 +595,11 @@ def create_app():
         response.headers["X-Content-Type-Options"] = "nosniff"
         response.headers["X-Frame-Options"] = "DENY"
         response.headers["X-XSS-Protection"] = "1; mode=block"
-        response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
-        response.headers["Content-Security-Policy"] = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'"
+        response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains; preload"
+        response.headers["Content-Security-Policy"] = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; frame-ancestors 'none'; form-action 'self'"
+        if request.url.path.startswith("/api/"):
+            response.headers["Cache-Control"] = "no-store, max-age=0, must-revalidate"
+            response.headers["Pragma"] = "no-cache"
         return response
 
         # Add exception handlers for secure error responses

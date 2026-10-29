@@ -30,8 +30,14 @@ async def get_performance_metrics():
                     metrics.append(json.loads(line))
         return metrics
     except FileNotFoundError:
-        logger.warning(f"Performance log file not found at '{LOG_FILE}'. Returning empty list.")
+        logger.warning(
+            f"Performance log file not found at '{LOG_FILE}'. Returning empty list."
+        )
         return []
     except Exception as e:
-        logger.error(f"Failed to read or parse performance log file: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail="Failed to retrieve performance metrics.")
+        logger.error(
+            f"Failed to read or parse performance log file: {e}", exc_info=True
+        )
+        raise HTTPException(
+            status_code=500, detail="Failed to retrieve performance metrics."
+        )
