@@ -5,7 +5,8 @@ from scripts.detect_merge_markers import detect_merge_markers
 
 class TestDetectMergeMarkers(unittest.TestCase):
     def setUp(self):
-        self.temp_dir = tempfile.TemporaryDirectory()
+        # We need to create the temp dir in the current working directory to pass the traversal check
+        self.temp_dir = tempfile.TemporaryDirectory(dir=os.getcwd())
         
     def tearDown(self):
         self.temp_dir.cleanup()
@@ -40,6 +41,12 @@ class TestDetectMergeMarkers(unittest.TestCase):
         nonexistent_file = os.path.join(self.temp_dir.name, "nonexistent.txt")
         errors = detect_merge_markers([nonexistent_file])
         self.assertEqual(len(errors), 0)
+
+    def test_path_traversal(self):
+        traversal_file = "../../etc/passwd"
+        errors = detect_merge_markers([traversal_file])
+        self.assertEqual(len(errors), 1)
+        self.assertIn("PATH TRAVERSAL ERROR: Path must be within current directory: ../../etc/passwd", errors[0])
 
 if __name__ == '__main__':
     unittest.main()

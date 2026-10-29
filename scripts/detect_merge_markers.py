@@ -4,6 +4,7 @@ Detects merge conflict markers in given files.
 """
 
 import sys
+import os
 from pathlib import Path
 
 def detect_merge_markers(files):
@@ -11,7 +12,14 @@ def detect_merge_markers(files):
     patterns = ('<<<<<<<', '=======', '>>>>>>>')
     
     for f in files:
-        path = Path(f)
+        # Sanitize input path to prevent path traversal
+        path = Path(f).resolve()
+        
+        # Ensure it's within the current working directory
+        if not str(path).startswith(str(Path.cwd())):
+            errors.append(f"PATH TRAVERSAL ERROR: Path must be within current directory: {f}")
+            continue
+
         if not path.is_file():
             continue
             
