@@ -1,0 +1,45 @@
+import re
+import subprocess
+import sys
+
+_SAFE_REF = re.compile(r'^[A-Za-z0-9][A-Za-z0-9/_.-]*$')
+
+def _safe_ref(name: str) -> str:
+    """Return the regex-matched branch name. A bool check leaves the raw argv value tainted."""
+    match = _SAFE_REF.match(name or "")
+    if not match:
+        raise ValueError(name)
+    return match.group(0)
+
+def check_branch_status(branch):
+    try:
+        branch = _safe_ref(branch)
+    except ValueError:
+        return "error"
+
+    # merge-tree exits 1 both for a real conflict and for a ref it cannot resolve,
+    # so settle existence first or a typo reads as a conflict.
+    exists = subprocess.run(
+        ["git", "rev-parse", "--verify", "--quiet", f"refs/heads/{branch}"],
+        capture_output=True, text=True)
+    if exists.returncode != 0:
+        return "error"
+
+    result = subprocess.run(
+        ["git", "merge-tree", "--write-tree", "--", branch, "main"],
+        capture_output=True, text=True)
+    if result.returncode == 0:
+        return "clean"
+    if result.returncode == 1:
+        return "conflicting"
+    return "error"
+
+def process_branches(branches):
+    results = {}
+    for branch in branches:
+        results[branch] = check_branch_status(branch)
+        print(f"{branch}: {results[branch]}")
+    return results
+
+if __name__ == '__main__':
+    process_branches(sys.argv[1:])
