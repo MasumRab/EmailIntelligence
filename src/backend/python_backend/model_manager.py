@@ -19,3 +19,9 @@ class ModelManager:
     def check_health(self) -> bool:
         """Check model manager health. Stub implementation."""
         return True
+
+    def discover_models(self) -> None:
+        """Discover models. Stub implementation."""
+        pass
+
+model_manager = ModelManager()
