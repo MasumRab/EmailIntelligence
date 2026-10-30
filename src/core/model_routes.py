@@ -13,7 +13,7 @@ from pydantic import BaseModel, Field
 
 from .dynamic_model_manager import DynamicModelManager
 from .model_registry import ModelType
-from .auth import get_current_active_user
+from .auth import get_current_active_user, require_role, UserRole, TokenData
 
 logger = logging.getLogger(__name__)
 
@@ -140,8 +140,7 @@ async def get_model(model_id: str, manager: DynamicModelManager = Depends(get_mo
 async def load_model(
     model_id: str,
     background_tasks: BackgroundTasks,
-    manager: DynamicModelManager = Depends(get_model_manager),
-):
+    _admin: TokenData = Depends(require_role(UserRole.ADMIN)), manager: DynamicModelManager = Depends(get_model_manager)):
     """Load a model into memory."""
     try:
         # Load in background to avoid blocking
@@ -153,7 +152,7 @@ async def load_model(
 
 
 @router.post("/{model_id}/unload")
-async def unload_model(model_id: str, manager: DynamicModelManager = Depends(get_model_manager)):
+async def unload_model(model_id: str, _admin: TokenData = Depends(require_role(UserRole.ADMIN)), manager: DynamicModelManager = Depends(get_model_manager)):
     """Unload a model from memory."""
     try:
         success = await manager.unload_model(model_id)
@@ -168,7 +167,7 @@ async def unload_model(model_id: str, manager: DynamicModelManager = Depends(get
 
 
 @router.post("/{model_id}/reload")
-async def reload_model(model_id: str, manager: DynamicModelManager = Depends(get_model_manager)):
+async def reload_model(model_id: str, _admin: TokenData = Depends(require_role(UserRole.ADMIN)), manager: DynamicModelManager = Depends(get_model_manager)):
     """Reload a model from disk."""
     try:
         success = await manager.reload_model(model_id)
@@ -182,8 +181,8 @@ async def reload_model(model_id: str, manager: DynamicModelManager = Depends(get
 
 @router.post("/register")
 async def register_model(
-    registration: ModelRegistration, manager: DynamicModelManager = Depends(get_model_manager)
-):
+    registration: ModelRegistration,
+    _admin: TokenData = Depends(require_role(UserRole.ADMIN)), manager: DynamicModelManager = Depends(get_model_manager)):
     """Register a new model."""
     try:
         from pathlib import Path
@@ -216,8 +215,8 @@ async def register_model(
 
 @router.delete("/{model_id}")
 async def unregister_model(
-    model_id: str, manager: DynamicModelManager = Depends(get_model_manager)
-):
+    model_id: str,
+    _admin: TokenData = Depends(require_role(UserRole.ADMIN)), manager: DynamicModelManager = Depends(get_model_manager)):
     """Unregister a model."""
     try:
         success = await manager.unregister_model(model_id)

@@ -13,7 +13,7 @@ from pydantic import BaseModel, Field
 
 from .plugin_base import PluginSecurityLevel
 from .plugin_manager import PluginManager
-from .auth import get_current_active_user
+from .auth import get_current_active_user, require_role, UserRole, TokenData
 
 logger = logging.getLogger(__name__)
 
@@ -125,8 +125,7 @@ async def get_plugin(plugin_id: str, manager: PluginManager = Depends(get_plugin
 async def load_plugin(
     plugin_id: str,
     background_tasks: BackgroundTasks,
-    manager: PluginManager = Depends(get_plugin_manager),
-):
+    _admin: TokenData = Depends(require_role(UserRole.ADMIN)), manager: PluginManager = Depends(get_plugin_manager)):
     """Load a plugin into memory."""
     try:
         background_tasks.add_task(manager.load_plugin, plugin_id)
@@ -137,7 +136,7 @@ async def load_plugin(
 
 
 @router.post("/{plugin_id}/unload")
-async def unload_plugin(plugin_id: str, manager: PluginManager = Depends(get_plugin_manager)):
+async def unload_plugin(plugin_id: str, _admin: TokenData = Depends(require_role(UserRole.ADMIN)), manager: PluginManager = Depends(get_plugin_manager)):
     """Unload a plugin from memory."""
     try:
         success = await manager.unload_plugin(plugin_id)
@@ -152,7 +151,7 @@ async def unload_plugin(plugin_id: str, manager: PluginManager = Depends(get_plu
 
 
 @router.post("/{plugin_id}/enable")
-async def enable_plugin(plugin_id: str, manager: PluginManager = Depends(get_plugin_manager)):
+async def enable_plugin(plugin_id: str, _admin: TokenData = Depends(require_role(UserRole.ADMIN)), manager: PluginManager = Depends(get_plugin_manager)):
     """Enable a plugin."""
     try:
         success = await manager.enable_plugin(plugin_id)
@@ -167,7 +166,7 @@ async def enable_plugin(plugin_id: str, manager: PluginManager = Depends(get_plu
 
 
 @router.post("/{plugin_id}/disable")
-async def disable_plugin(plugin_id: str, manager: PluginManager = Depends(get_plugin_manager)):
+async def disable_plugin(plugin_id: str, _admin: TokenData = Depends(require_role(UserRole.ADMIN)), manager: PluginManager = Depends(get_plugin_manager)):
     """Disable a plugin."""
     try:
         success = await manager.disable_plugin(plugin_id)
@@ -203,7 +202,7 @@ async def install_plugin(
 
 
 @router.delete("/{plugin_id}")
-async def uninstall_plugin(plugin_id: str, manager: PluginManager = Depends(get_plugin_manager)):
+async def uninstall_plugin(plugin_id: str, _admin: TokenData = Depends(require_role(UserRole.ADMIN)), manager: PluginManager = Depends(get_plugin_manager)):
     """Uninstall a plugin completely."""
     try:
         success = await manager.uninstall_plugin(plugin_id)
