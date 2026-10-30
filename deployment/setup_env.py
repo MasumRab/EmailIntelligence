@@ -45,8 +45,12 @@ def run_command(command, cwd=None, check=True):
         logger.info(result.stdout)
         return True
     except subprocess.CalledProcessError as e:
-        logger.error(f"Command failed with exit code {e.returncode}")
-        logger.error(e.stderr)
+        logger.exception(
+            f"Command failed with exit code {e.returncode}: {e.stderr or ''}".rstrip()
+        )
+        return False
+    except FileNotFoundError as e:
+        logger.error(f"Command not found: {e.filename}")
         return False
 
 
@@ -56,9 +60,10 @@ def setup_python_environment(dev_mode=False):
 
     # Install Python dependencies
     if dev_mode:
-        return run_command(f"{sys.executable} -m pip install -r requirements.txt")
-    else:
-        return run_command(f"{sys.executable} -m pip install -r requirements.txt --no-dev")
+        requirements = PROJECT_ROOT / "requirements-dev.txt"
+        if not run_command(f'"{sys.executable}" -m pip install -r "{requirements}"'):
+            return False
+    return run_command(f'"{sys.executable}" -m pip install -r requirements.txt')
 
 
 def setup_node_environment(dev_mode=False):
@@ -90,7 +95,7 @@ def setup_database():
     run_command(["createdb", "-U", "postgres", "emailintelligence"], check=False)
 
     # Apply migrations
-    return run_command(["python", "deployment/migrate.py", "apply"])
+    return run_command([sys.executable, "deployment/migrate.py", "apply"])
 
 
 def setup_environment_variables(force=False):
