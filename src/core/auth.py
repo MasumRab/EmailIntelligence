@@ -143,14 +143,15 @@ async def authenticate_user(username: str, password: str, db) -> Optional[Dict[s
         if user_data:
             stored_hash = user_data.get("hashed_password", "")
             if not stored_hash:
-                stored_hash = DUMMY_HASH
+                verify_password(password, DUMMY_HASH)  # burn time, use nothing
+                is_valid = False
+            else:
+                is_valid = verify_password(password, stored_hash)
         else:
             # This is a valid Argon2 hash for "dummy" to prevent early exit
             # We calculate it once or use a fixed one. Using a fixed one is faster but consistent.
             # Ideally this should be pre-calculated.
-            stored_hash = DUMMY_HASH
-
-        is_valid = verify_password(password, stored_hash)
+            is_valid = verify_password(password, DUMMY_HASH)
 
         if user_data and is_valid:
             return user_data
