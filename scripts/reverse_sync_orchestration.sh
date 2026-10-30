@@ -39,33 +39,33 @@ NC='\033[0m'
 
 # Validate inputs
 if ! git show-ref --verify --quiet "refs/heads/$SOURCE_BRANCH"; then
-    echo -e "${RED}Error: Source branch '$SOURCE_BRANCH' does not exist${NC}"
+    printf "%b%s%b\n" "${RED}Error: Source branch '" "$SOURCE_BRANCH" "' does not exist${NC}"
     exit 1
 fi
 
 if ! git cat-file -e "$COMMIT_SHA" 2>/dev/null; then
-    echo -e "${RED}Error: Commit '$COMMIT_SHA' does not exist${NC}"
+    printf "%b%s%b\n" "${RED}Error: Commit '" "$COMMIT_SHA" "' does not exist${NC}"
     exit 1
 fi
 
 # Check if we're on orchestration-tools
 CURRENT_BRANCH="$(git rev-parse --abbrev-ref HEAD)"
 if [[ "$CURRENT_BRANCH" != "orchestration-tools" ]]; then
-    echo -e "${RED}Error: Must be on orchestration-tools branch to run reverse sync${NC}"
-    echo -e "${YELLOW}Run: git checkout orchestration-tools${NC}"
+    printf "%b\n" "${RED}Error: Must be on orchestration-tools branch to run reverse sync${NC}"
+    printf "%b\n" "${YELLOW}Run: git checkout orchestration-tools${NC}"
     exit 1
 fi
 
-echo -e "${BLUE}Reverse Sync: $SOURCE_BRANCH ($COMMIT_SHA) → orchestration-tools${NC}"
+printf "%b%s%b%s%b\n" "${BLUE}Reverse Sync: " "$SOURCE_BRANCH" " (" "$COMMIT_SHA" ") → orchestration-tools${NC}"
 echo ""
 
 # Show commit details
-echo -e "${YELLOW}Commit details:${NC}"
+printf "%b\n" "${YELLOW}Commit details:${NC}"
 git show --no-patch --format="Author: %an <%ae>%nDate: %ad%nSubject: %s%n" "$COMMIT_SHA"
 echo ""
 
 # Check what files are changed in this commit
-echo -e "${YELLOW}Files changed in commit:${NC}"
+printf "%b\n" "${YELLOW}Files changed in commit:${NC}"
 git show --name-only --format="" "$COMMIT_SHA"
 echo ""
 
@@ -99,32 +99,32 @@ ORCHESTRATION_CHANGES=false
 
 for file in "${MANAGED_FILES[@]}"; do
     if echo "$COMMIT_FILES" | grep -q "^${file}$"; then
-        echo -e "${GREEN}✓ Contains orchestration-managed file: $file${NC}"
+        printf "%b%s%b\n" "${GREEN}✓ Contains orchestration-managed file: " "$file" "${NC}"
         ORCHESTRATION_CHANGES=true
     fi
 done
 
 if [[ "$ORCHESTRATION_CHANGES" == false ]]; then
-    echo -e "${YELLOW}Warning: Commit does not contain any orchestration-managed files${NC}"
+    printf "%b\n" "${YELLOW}Warning: Commit does not contain any orchestration-managed files${NC}"
     echo "This reverse sync may not be necessary."
     echo ""
 fi
 
 # Show diff
-echo -e "${YELLOW}Changes in commit:${NC}"
+printf "%b\n" "${YELLOW}Changes in commit:${NC}"
 git show --stat "$COMMIT_SHA"
 echo ""
 
 if [[ "$DRY_RUN" == true ]]; then
-    echo -e "${BLUE}DRY RUN - Would execute:${NC}"
+    printf "%b\n" "${BLUE}DRY RUN - Would execute:${NC}"
     echo "git cherry-pick $COMMIT_SHA"
     echo ""
-    echo -e "${YELLOW}Review the changes above and run without --dry-run to apply.${NC}"
+    printf "%b\n" "${YELLOW}Review the changes above and run without --dry-run to apply.${NC}"
     exit 0
 fi
 
 # Confirm action
-echo -e "${RED}⚠️  WARNING: This will modify the orchestration-tools canonical source${NC}"
+printf "%b\n" "${RED}⚠️  WARNING: This will modify the orchestration-tools canonical source${NC}"
 echo "Make sure this change has been reviewed and approved."
 echo ""
 read -p "Continue with reverse sync? (yes/no): " -r
@@ -134,18 +134,18 @@ if [[ ! "$REPLY" =~ ^[Yy][Ee][Ss]$ ]]; then
 fi
 
 # Perform cherry-pick
-echo -e "${BLUE}Performing cherry-pick...${NC}"
+printf "%b\n" "${BLUE}Performing cherry-pick...${NC}"
 if git cherry-pick "$COMMIT_SHA"; then
-    echo -e "${GREEN}✓ Successfully applied changes to orchestration-tools${NC}"
+    printf "%b\n" "${GREEN}✓ Successfully applied changes to orchestration-tools${NC}"
     echo ""
-    echo -e "${YELLOW}Next steps:${NC}"
+    printf "%b\n" "${YELLOW}Next steps:${NC}"
     echo "1. Test the changes: python setup/launch.py --help"
     echo "2. Push to remote: git push origin orchestration-tools"
     echo "3. Changes will propagate to other branches on next pull/merge"
     echo ""
-    echo -e "${GREEN}Reverse sync completed successfully!${NC}"
+    printf "%b\n" "${GREEN}Reverse sync completed successfully!${NC}"
 else
-    echo -e "${RED}✗ Cherry-pick failed. Resolve conflicts and run:${NC}"
+    printf "%b\n" "${RED}✗ Cherry-pick failed. Resolve conflicts and run:${NC}"
     echo "git cherry-pick --continue  # or"
     echo "git cherry-pick --abort     # to cancel"
     exit 1
