@@ -24,6 +24,13 @@ from .security import SecurityContext, Permission, SecurityLevel
 
 logger = logging.getLogger(__name__)
 
+# Valid Argon2 hash for preventing timing attacks
+DUMMY_HASH = (
+    # NOSONAR - non-secret dummy hash, never a credential; it exists only to make
+    # the unknown-user path as expensive as the known-user path
+    "$argon2id$v=19$m=65536,t=3,p=4$ruwkMIkRCAuKQX9CafJeIw$EfqmQvRw2YsfuPkNPifuN2Hymk9mSu5JvZ8/Jia9FhI"
+)
+
 
 class TokenData(BaseModel):
     """Data structure for JWT token payload"""
@@ -135,13 +142,16 @@ async def authenticate_user(username: str, password: str, db) -> Optional[Dict[s
         # If user not found, verify a dummy hash to equalize timing
         if user_data:
             stored_hash = user_data.get("hashed_password", "")
+            if not stored_hash:
+                verify_password(password, DUMMY_HASH)  # burn time, use nothing
+                is_valid = False
+            else:
+                is_valid = verify_password(password, stored_hash)
         else:
             # This is a valid Argon2 hash for "dummy" to prevent early exit
             # We calculate it once or use a fixed one. Using a fixed one is faster but consistent.
             # Ideally this should be pre-calculated.
-            stored_hash = "$argon2id$v=19$m=65536,t=3,p=4$DnF1/L/JzW/0QZ3r5Y/y0w$K7g/6Z5x4y3w2v1u0t9s8"
-
-        is_valid = verify_password(password, stored_hash)
+            is_valid = verify_password(password, DUMMY_HASH)
 
         if user_data and is_valid:
             return user_data
