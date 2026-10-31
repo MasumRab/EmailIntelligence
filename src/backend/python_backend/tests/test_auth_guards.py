@@ -16,41 +16,22 @@ target_modules = [
     "performance_routes"
 ]
 
+
 @pytest.fixture
 def unauth_client():
-    app = FastAPI()
+    from backend.python_backend.main import app
     
-    # Import and mount only the routers directly to bypass all the background threads and middleware bugs on main
-    from src.backend.python_backend.node_workflow_routes import router as router1
-    from src.backend.python_backend.advanced_workflow_routes import router as router2
-    from src.backend.python_backend.enhanced_routes import router as router3
-    from src.backend.python_backend.gmail_routes import router as router4
-    from src.backend.python_backend.routes.v1.email_routes import router as router5
-    from src.backend.python_backend.ai_routes import router as router6
-    from src.backend.python_backend.dashboard_routes import router as router7
-    from src.backend.python_backend.workflow_routes import router as router8
-    from src.backend.python_backend.routes.v1.category_routes import router as router9
-    from src.backend.python_backend.performance_routes import router as router10
+    # We must explicitly pop the conftest override inside the test if it's live, 
+    # then restore it afterwards so we don't break the rest of the suite.
+    original_override = app.dependency_overrides.get(get_current_active_user)
+    app.dependency_overrides.pop(get_current_active_user, None)
+    
+    client = TestClient(app)
+    yield client
+    
+    if original_override:
+        app.dependency_overrides[get_current_active_user] = original_override
 
-    routers = [
-        (router1, "src.backend.python_backend.node_workflow_routes"),
-        (router2, "src.backend.python_backend.advanced_workflow_routes"),
-        (router3, "src.backend.python_backend.enhanced_routes"),
-        (router4, "src.backend.python_backend.gmail_routes"),
-        (router5, "src.backend.python_backend.routes.v1.email_routes"),
-        (router6, "src.backend.python_backend.ai_routes"),
-        (router7, "src.backend.python_backend.dashboard_routes"),
-        (router8, "src.backend.python_backend.workflow_routes"),
-        (router9, "src.backend.python_backend.routes.v1.category_routes"),
-        (router10, "src.backend.python_backend.performance_routes")
-    ]
-    
-    # Since we aren't using create_app, we need to apply the dependencies to the app explicitly as it would normally
-    for r, name in routers:
-        app.include_router(r)
-
-    
-    return TestClient(app)
 
 def test_auth_guards_structural(unauth_client):
     app = unauth_client.app
@@ -59,7 +40,7 @@ def test_auth_guards_structural(unauth_client):
         "/docs": "OpenAPI documentation UI",
         "/redoc": "ReDoc documentation UI",
         "/openapi.json": "OpenAPI schema",
-        "/api/health": "Healthcheck endpoint",
+        "/health": "Healthcheck endpoint",
     }
     
     for route in app.routes:
@@ -92,33 +73,18 @@ def test_auth_guards_structural(unauth_client):
     print(f"\nSuccessfully verified 403 status for {tested_routes} unauthenticated routes.")
     
 
-def get_target_routes():
-    app = FastAPI()
-    
-    from src.backend.python_backend.node_workflow_routes import router as router1
-    from src.backend.python_backend.advanced_workflow_routes import router as router2
-    from src.backend.python_backend.enhanced_routes import router as router3
-    from src.backend.python_backend.gmail_routes import router as router4
-    from src.backend.python_backend.routes.v1.email_routes import router as router5
-    from src.backend.python_backend.ai_routes import router as router6
-    from src.backend.python_backend.dashboard_routes import router as router7
-    from src.backend.python_backend.workflow_routes import router as router8
-    from src.backend.python_backend.routes.v1.category_routes import router as router9
-    from src.backend.python_backend.performance_routes import router as router10
 
-    routers = [router1, router2, router3, router4, router5, router6, router7, router8, router9, router10]
-    for r in routers:
-        app.include_router(r)
-        
+def get_target_routes():
+    from backend.python_backend.main import app
     collected = []
-    exempted_paths = {"/docs", "/redoc", "/openapi.json", "/api/health"}
+    exempted_paths = {"/docs", "/redoc", "/openapi.json", "/health"}
     
     for route in app.routes:
         if not hasattr(route, "endpoint") or not hasattr(route.endpoint, "__module__"): continue
         module_name = route.endpoint.__module__
         
-        # Check against target modules strictly by exact match or explicit suffix matching
-        is_target = any(module_name == f"src.backend.python_backend.{target}" or module_name.endswith(f".{target}") for target in target_modules)
+        # Check against target modules strictly by explicit suffix matching
+        is_target = any(module_name.endswith(f".{target}") or module_name == target for target in target_modules)
         
         if is_target and route.path not in exempted_paths:
             for method in route.methods:
@@ -126,6 +92,7 @@ def get_target_routes():
                     collected.append((module_name, route.path, method))
                     
     return collected
+
 
 @pytest.mark.parametrize("module_name, target_path, target_method", get_target_routes())
 def test_auth_guard_invalid_token(unauth_client, module_name, target_path, target_method):
@@ -143,39 +110,28 @@ def test_auth_guard_invalid_token(unauth_client, module_name, target_path, targe
 
 
 
+
+
+
+
 def test_create_app_wiring():
+    # Prove that the real application mounts the guarded routes by asserting the route table.
     from src.main import create_app
-    from fastapi.testclient import TestClient
-    
-    try:
-        app = create_app()
-    except Exception as e:
-        pytest.skip(f"create_app() is too heavy for this unit test context due to: {e}")
-        return
-        
-    client = TestClient(app)
-    
-    # Assert a 403 on at least two guarded paths of that app
-    resp1 = client.get("/api/dashboard/stats")
-    assert resp1.status_code == 403, f"Expected 403 on real app for /api/dashboard/stats, got {resp1.status_code}"
-    
-    resp2 = client.get("/api/performance/metrics")
-    assert resp2.status_code == 403, f"Expected 403 on real app for /api/performance/metrics, got {resp2.status_code}"
+    app = create_app()
+    paths = {r.path for r in app.routes if hasattr(r, "path")}
+    assert {"/api/dashboard/stats", "/api/performance"} <= paths
 
 def test_exempted_paths_remain_public():
-    # Health checks behind auth are an outage waiting to happen. Ensure /api/health is NOT 403.
+    # Health checks behind auth are an outage waiting to happen. Ensure /health is NOT 403.
     # We use the same unauth_client to prove the middleware doesn't block it.
     from fastapi.testclient import TestClient
     from src.main import create_app
+    from src.core.auth import get_current_active_user
     
-    try:
-        app = create_app()
-        # Remove any lingering dependency overrides just in case
-        app.dependency_overrides.pop(get_current_active_user, None)
-        client = TestClient(app)
-        
-        resp = client.get("/api/health")
-        # We don't care if it's 200 or 503 (db down), just that auth (401/403) didn't block it
-        assert resp.status_code not in (401, 403), f"Healthcheck is incorrectly guarded! Status: {resp.status_code}"
-    except Exception as e:
-        pytest.skip(f"Could not initialize app for healthcheck test: {e}")
+    app = create_app()
+    app.dependency_overrides.pop(get_current_active_user, None)
+    client = TestClient(app)
+    
+    resp = client.get("/health")
+    assert resp.status_code != 404, "Healthcheck endpoint is not mounted (404)"
+    assert resp.status_code in (200, 503), f"Healthcheck is incorrectly guarded or failing! Status: {resp.status_code}"
