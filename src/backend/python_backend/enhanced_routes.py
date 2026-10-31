@@ -7,7 +7,8 @@ API routes for enhanced features: model management, workflows, and performance m
 
 from typing import Any, Dict, List
 
-from fastapi import APIRouter, HTTPException
+from fastapi import Depends, APIRouter, HTTPException
+from src.core.auth import get_current_active_user
 from pydantic import BaseModel
 
 from backend.node_engine.workflow_manager import workflow_manager
@@ -16,7 +17,7 @@ from ..plugins.plugin_manager import plugin_manager
 from .model_manager import model_manager
 from .performance_monitor import performance_monitor
 
-router = APIRouter()
+router = APIRouter(dependencies=[Depends(get_current_active_user)])
 
 
 # Model Management Routes
