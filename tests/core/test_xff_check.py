@@ -53,3 +53,23 @@ def test_trusted_peer_xff_walk():
              "method": "GET", "path": "/", "scheme": "http", "query_string": b"", "app": app}
     req = Request(scope, lambda: None)
     assert mw._get_client_ip(req) == "9.9.9.9"
+
+def test_main_app_middleware_wiring():
+    import os
+    from unittest.mock import patch
+    with patch.dict(os.environ, {"TRUSTED_PROXIES": "10.0.0.1/32,192.168.1.0/24", "SECRET_KEY": "test"}):
+        from src.core.settings import settings
+        from src.main import create_app
+        
+        app = create_app()
+        
+        # Find SecurityMiddleware in the middleware stack
+        found_mw = None
+        for mw in app.user_middleware:
+            if mw.cls == SecurityMiddleware:
+                found_mw = mw
+                break
+                
+        assert found_mw is not None, "SecurityMiddleware not found in app middleware stack"
+        assert found_mw.kwargs.get("trusted_proxies") == ["10.0.0.1/32", "192.168.1.0/24"], \
+            "trusted_proxies not properly wired from settings to middleware"
