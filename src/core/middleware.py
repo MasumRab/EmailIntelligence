@@ -154,29 +154,54 @@ class SecurityMiddleware:
 
     def _get_client_ip(self, request: Request) -> str:
         """Extract real client IP, considering proxies."""
+        client_host = request.client.host if request.client else "unknown"
+
+        # If no trusted proxies configured, never trust headers
+        if not self.trusted_proxies:
+            return client_host
+
+        # Check if the immediate peer is trusted
+        try:
+            peer_ip = ipaddress.ip_address(client_host)
+            is_trusted = any(
+                peer_ip in ipaddress.ip_network(proxy) for proxy in self.trusted_proxies
+            )
+        except (ValueError, ipaddress.AddressValueError):
+            is_trusted = False
+
+        if not is_trusted:
+            return client_host
+
         # Check X-Forwarded-For header
         forwarded_for = request.headers.get("x-forwarded-for")
         if forwarded_for:
-            # Take the first IP in the chain
-            client_ip = forwarded_for.split(",")[0].strip()
-
-            # Validate the IP from proxy
-            real_ip = request.headers.get("x-real-ip")
-            if real_ip and real_ip != client_ip:
-                # Verify the proxy is trusted
+            # Take the IPs in the chain
+            ips = [ip.strip() for ip in forwarded_for.split(",")]
+            
+            # We traverse from right to left to find the first untrusted IP.
+            # We already know the immediate peer (client_host) is trusted.
+            for ip in reversed(ips):
                 try:
-                    proxy_ip = ipaddress.ip_address(request.client.host)
-                    if any(
-                        proxy_ip in ipaddress.ip_network(proxy) for proxy in self.trusted_proxies
-                    ):
-                        return real_ip
+                    current_ip = ipaddress.ip_address(ip)
+                    is_ip_trusted = any(
+                        current_ip in ipaddress.ip_network(proxy) for proxy in self.trusted_proxies
+                    )
+                    if not is_ip_trusted:
+                        return ip
                 except (ValueError, ipaddress.AddressValueError):
-                    pass
+                    # If we can't parse the IP, we treat it as untrusted and return it
+                    return ip
+            
+            # If all IPs in the X-Forwarded-For chain are trusted, return the leftmost one anyway
+            # as it's the furthest known client, even if it happens to be within a trusted network.
+            return ips[0]
 
-            return client_ip
+        # Check X-Real-IP
+        real_ip = request.headers.get("x-real-ip")
+        if real_ip:
+            return real_ip
 
-        # Fall back to direct client IP
-        return request.client.host if request.client else "unknown"
+        return client_host
 
     def _get_user_id(self, request: Request) -> Optional[str]:
         """Extract user ID from request (JWT token, session, etc.)."""
