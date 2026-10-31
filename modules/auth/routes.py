@@ -11,7 +11,7 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
 
-from src.core.auth import authenticate_user, create_access_token, create_user, get_current_active_user, hash_password, TokenData, require_role, UserRole
+from src.core.auth import authenticate_user, create_access_token, create_user, get_current_active_user, TokenData, require_role, UserRole
 from src.core.factory import get_data_source
 from src.core.data_source import DataSource
 from src.core.mfa import get_mfa_service
