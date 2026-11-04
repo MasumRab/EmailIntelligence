@@ -13,6 +13,7 @@ from pydantic import BaseModel, Field
 
 from .plugin_base import PluginSecurityLevel
 from .plugin_manager import PluginManager
+from .auth import get_current_active_user
 
 logger = logging.getLogger(__name__)
 
@@ -87,7 +88,11 @@ class SystemStatus(BaseModel):
 
 
 # Create router
-router = APIRouter(prefix="/api/plugins", tags=["Plugin Management"])
+router = APIRouter(
+    prefix="/api/plugins",
+    tags=["Plugin Management"],
+    dependencies=[Depends(get_current_active_user)],
+)
 
 
 @router.get("/", response_model=List[PluginInfo])
