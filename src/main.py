@@ -583,9 +583,10 @@ def create_app():
     )
 
     from .core.middleware import SecurityMiddleware, SecurityHeadersMiddleware
+    from .core.settings import settings
 
     # Add comprehensive security middleware
-    app.add_middleware(SecurityMiddleware)
+    app.add_middleware(SecurityMiddleware, trusted_proxies=settings.trusted_proxies)
     app.add_middleware(SecurityHeadersMiddleware)
 
     # Add security headers middleware (additional layer)
