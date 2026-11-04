@@ -235,5 +235,4 @@ case "${1:-deploy}" in
         echo "  stop    - Stop all services"
         exit 1
         ;;
-esac</content>
-</xai:function_call: <parameter name="path">/home/masum/github/EmailIntelligence/deploy.sh
+esac
