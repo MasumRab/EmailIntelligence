@@ -82,7 +82,11 @@ def client(mock_db_manager, mock_ai_engine, mock_filter_manager, mock_workflow_e
                 attr.side_effect = None
 
     # Set up dependency overrides
+    app.dependency_overrides[get_db] = lambda: mock_db_manager
+    app.dependency_overrides[get_ai_engine] = lambda: mock_ai_engine
+    app.dependency_overrides[get_filter_manager] = lambda: mock_filter_manager
     app.dependency_overrides[get_current_active_user] = lambda: "test_user"
+    app.dependency_overrides[get_workflow_engine] = lambda: mock_workflow_engine
 
     decorator_path = "src.backend.python_backend.performance_monitor.log_performance"
     with patch(decorator_path, lambda *args, **kwargs: (lambda func: func)):
@@ -115,6 +119,9 @@ def client_with_real_workflows(mock_db_manager, mock_ai_engine, mock_filter_mana
                 attr.side_effect = None
 
     # Override dependencies
+    app.dependency_overrides[get_db] = lambda: mock_db_manager
+    app.dependency_overrides[get_ai_engine] = lambda: mock_ai_engine
+    app.dependency_overrides[get_filter_manager] = lambda: mock_filter_manager
     app.dependency_overrides[get_current_active_user] = lambda: "test_user"
 
     # Manually run the startup events to initialize the real workflow engine

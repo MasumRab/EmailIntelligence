@@ -10,7 +10,8 @@ and enterprise workflow management
 # Define a simple execution result class for compatibility
 from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, HTTPException
+from fastapi import Depends, APIRouter, HTTPException
+from src.core.auth import get_current_active_user
 from pydantic import BaseModel
 
 # Use the new node-based workflow system instead of non-existent src.core module
@@ -46,7 +47,7 @@ except ImportError:
     SecurityContext = None
 
 
-router = APIRouter()
+router = APIRouter(dependencies=[Depends(get_current_active_user)])
 
 
 # Advanced Workflow Models
