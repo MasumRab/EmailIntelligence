@@ -66,10 +66,12 @@ class TestPathValidation:
 
     def test_sanitize_path_safe(self):
         """Test path sanitization for safe paths."""
-        with tempfile.TemporaryDirectory() as temp_dir:
-            safe_path = pathlib.Path(temp_dir) / "test.db"
-            result = sanitize_path(str(safe_path))
-            assert result == safe_path.resolve()
+        # Use a relative path to test confinement to CWD (default base_dir)
+        safe_path = "test.db"
+        result = sanitize_path(safe_path)
+        expected = (pathlib.Path.cwd() / safe_path).resolve()
+        assert result == expected
+
 
     def test_sanitize_path_unsafe(self):
         """Test path sanitization for unsafe paths."""
@@ -122,6 +124,14 @@ class TestPathValidation:
             result = secure_path_join(temp_dir, "", "file.db")
             assert result is not None
             assert str(result).endswith("file.db")
+
+    def test_sanitize_path_absolute_bypass(self):
+        """Test that absolute paths cannot bypass base_dir confinement."""
+        # Passing an absolute path should not allow escaping the CWD/base_dir
+        unsafe_path = "/etc/passwd"
+        # The previous implementation would return pathlib.Path.cwd() / "/etc/passwd"
+        # which resolves to "/etc/passwd" and bypasses confinement.
+        assert sanitize_path(unsafe_path) is None
 
 
 class TestDatabaseConfigSecurity:
