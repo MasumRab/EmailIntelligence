@@ -64,7 +64,7 @@ except ImportError:
 # --- Global state ---
 # --- Constants ---
 PYTHON_MIN_VERSION = (3, 11)
-PYTHON_MAX_VERSION = (3, 12)
+PYTHON_MAX_VERSION = (3, 13)
 VENV_DIR = "venv"
 CONDA_ENV_NAME = os.getenv("CONDA_ENV_NAME", "base")
 
@@ -103,15 +103,20 @@ def run_command(cmd: List[str], description: str, **kwargs) -> bool:
         executable = cmd[0]
         args = cmd[1:]
         if executable == "notmuch":
-            proc = subprocess.run(["notmuch", *args], check=True, text=True, capture_output=True, shell=False, **kwargs)  # NOSONAR  # sourcery skip: command-injection
+            # sourcery skip: command-injection
+            proc = subprocess.run(["notmuch", *args], check=True, text=True, capture_output=True, shell=False, **kwargs)  # NOSONAR
         elif executable == "npm":
-            proc = subprocess.run(["npm", *args], check=True, text=True, capture_output=True, shell=False, **kwargs)  # NOSONAR  # sourcery skip: command-injection
+            # sourcery skip: command-injection
+            proc = subprocess.run(["npm", *args], check=True, text=True, capture_output=True, shell=False, **kwargs)  # NOSONAR
         elif "python" in str(executable):
-            proc = subprocess.run(["python", *args], check=True, text=True, capture_output=True, shell=False, **kwargs)  # NOSONAR  # sourcery skip: command-injection
+            # sourcery skip: command-injection
+            proc = subprocess.run([sys.executable, *args], check=True, text=True, capture_output=True, shell=False, **kwargs)  # NOSONAR
         elif "pytest" in executable:
-            proc = subprocess.run(["pytest", *args], check=True, text=True, capture_output=True, shell=False, **kwargs)  # NOSONAR  # sourcery skip: command-injection
+            # sourcery skip: command-injection
+            proc = subprocess.run(["pytest", *args], check=True, text=True, capture_output=True, shell=False, **kwargs)  # NOSONAR
         elif "uv" in executable:
-            proc = subprocess.run(["uv", *args], check=True, text=True, capture_output=True, shell=False, **kwargs)  # NOSONAR  # sourcery skip: command-injection
+            # sourcery skip: command-injection
+            proc = subprocess.run(["uv", *args], check=True, text=True, capture_output=True, shell=False, **kwargs)  # NOSONAR
         else:
             raise ValueError(f"Unauthorized command executable: {executable}")
         if proc.stdout:
@@ -242,6 +247,7 @@ def start_server_ts():
 def start_backend(host: str, port: int, debug: bool = False):
     """Start the Python backend server."""
     python_exe = get_python_executable()
+    
     cmd = [
         python_exe,
         "-m",
@@ -260,7 +266,8 @@ def start_backend(host: str, port: int, debug: bool = False):
     if cmd[0] not in [get_python_executable(), str(get_python_executable()), 'npm', 'notmuch', 'pytest', 'uv', 'python', 'python3']:
         raise ValueError("Unauthorized backend executable")
     args = cmd[1:]
-    process = subprocess.Popen(["python", *args], cwd=ROOT_DIR, shell=False)  # NOSONAR  # sourcery skip: command-injection
+    # sourcery skip: command-injection
+    process = subprocess.Popen([sys.executable, *args], cwd=ROOT_DIR, shell=False)  # NOSONAR
     process_manager.add_process(process)
     return process
 
@@ -274,7 +281,8 @@ def start_node_service(service_path: Path, service_name: str, port: int, api_url
     env = os.environ.copy()
     env["PORT"] = str(port)
     env["VITE_API_URL"] = api_url
-    process = subprocess.Popen(["npm", "start"], cwd=service_path, env=env, shell=False)  # NOSONAR  # sourcery skip: command-injection
+    # sourcery skip: command-injection
+    process = subprocess.Popen(["npm", "start"], cwd=service_path, env=env, shell=False)  # NOSONAR
     process_manager.add_process(process)
     return process
 
@@ -294,7 +302,8 @@ def start_gradio_ui(host, port, share, debug):
     if cmd[0] not in [get_python_executable(), str(get_python_executable()), 'npm', 'notmuch', 'pytest', 'uv', 'python', 'python3']:
         raise ValueError("Unauthorized UI executable")
     args = cmd[1:]
-    process = subprocess.Popen(["python", *args], cwd=ROOT_DIR, env=env, shell=False)  # NOSONAR  # sourcery skip: command-injection
+    # sourcery skip: command-injection
+    process = subprocess.Popen([sys.executable, *args], cwd=ROOT_DIR, env=env, shell=False)  # NOSONAR
     process_manager.add_process(process)
     return process
 
@@ -604,7 +613,7 @@ def _handle_legacy_args(args) -> int:
         args.host = validate_host(args.host)
         if hasattr(args, "frontend_port"):
             args.frontend_port = validate_port(args.frontend_port)
-    except ValueError as e:
+    except Exception as e:  # pylint: disable=broad-except
         logger.error(f"Input validation failed: {e}")
         return 1
 
