@@ -64,7 +64,7 @@ jobs:
 
       - name: Install dependencies
         if: steps.node_manifest.outputs.found == 'true'
-        run: npm ci
+        run: npm install --legacy-peer-deps
 
       - name: Run npm audit
         if: steps.node_manifest.outputs.found == 'true'
