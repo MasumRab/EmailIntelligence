@@ -50,7 +50,7 @@ from setup.services import (
 )
 from setup.environment import (
     handle_setup, prepare_environment, setup_wsl_environment, check_wsl_requirements,
-    download_nltk_data, is_wsl
+    download_nltk_data, is_wsl, is_conda_available, get_conda_env_info, activate_conda_env
 )
 from setup.utils import print_system_info, process_manager
 
@@ -881,7 +881,6 @@ def _handle_legacy_args(args) -> int:
         return 0
 
     # Handle Conda environment if requested
-    from setup.environment import is_conda_available, get_conda_env_info, activate_conda_env
     if args.use_conda:
         if not is_conda_available():
             logger.error("Conda is not available. Please install Conda or use venv.")
