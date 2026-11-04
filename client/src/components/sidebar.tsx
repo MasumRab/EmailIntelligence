@@ -2,6 +2,7 @@
  * @file This file contains the Sidebar component, which serves as the main
  *       navigation panel for the application.
  */
+import React from "react";
 import { Link, useLocation } from "wouter";
 import {
   LayoutDashboard,
@@ -35,7 +36,7 @@ interface SidebarProps {
  * @param {SidebarProps} props - The props for the component.
  * @returns {JSX.Element} The rendered sidebar navigation panel.
  */
-export function Sidebar({ categories }: SidebarProps) {
+export const Sidebar = React.memo(function Sidebar({ categories }: SidebarProps) {
   const [location] = useLocation();
 
   const navigationItems = [
@@ -154,4 +155,4 @@ export function Sidebar({ categories }: SidebarProps) {
       </nav>
     </div>
   );
-}
+});
