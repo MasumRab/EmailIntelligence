@@ -4,7 +4,9 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from fastapi.testclient import TestClient
 
-from backend.python_backend.dependencies import initialize_services
+from src.backend.python_backend.dependencies import initialize_services
+import src.backend.python_backend.dependencies as deps
+from src.core.auth import get_current_active_user
 from src.main import create_app
 app = create_app()
 
@@ -58,8 +60,8 @@ def client(mock_db_manager, mock_ai_engine, mock_filter_manager, mock_workflow_e
     Provides a TestClient with all external services mocked.
     This fixture resets mocks for each test and handles dependency overrides.
     """
-    from backend.python_backend.database import get_db
-    from backend.python_backend.dependencies import (
+    from src.backend.python_backend.database import get_db
+    from src.backend.python_backend.dependencies import (
         get_ai_engine,
         get_filter_manager,
         get_workflow_engine,
@@ -80,12 +82,9 @@ def client(mock_db_manager, mock_ai_engine, mock_filter_manager, mock_workflow_e
                 attr.side_effect = None
 
     # Set up dependency overrides
-    app.dependency_overrides[get_db] = lambda: mock_db_manager
-    app.dependency_overrides[get_ai_engine] = lambda: mock_ai_engine
-    app.dependency_overrides[get_filter_manager] = lambda: mock_filter_manager
-    app.dependency_overrides[get_workflow_engine] = lambda: mock_workflow_engine
+    app.dependency_overrides[get_current_active_user] = lambda: "test_user"
 
-    decorator_path = "backend.python_backend.performance_monitor.log_performance"
+    decorator_path = "src.backend.python_backend.performance_monitor.log_performance"
     with patch(decorator_path, lambda *args, **kwargs: (lambda func: func)):
         yield TestClient(app)
 
@@ -99,8 +98,8 @@ def client_with_real_workflows(mock_db_manager, mock_ai_engine, mock_filter_mana
     Provides a TestClient with a REAL WorkflowEngine but mocks other services.
     This is for testing the workflow and plugin discovery process.
     """
-    from backend.python_backend.database import get_db
-    from backend.python_backend.dependencies import (
+    from src.backend.python_backend.database import get_db
+    from src.backend.python_backend.dependencies import (
         get_ai_engine,
         get_filter_manager,
     )
@@ -116,9 +115,7 @@ def client_with_real_workflows(mock_db_manager, mock_ai_engine, mock_filter_mana
                 attr.side_effect = None
 
     # Override dependencies
-    app.dependency_overrides[get_db] = lambda: mock_db_manager
-    app.dependency_overrides[get_ai_engine] = lambda: mock_ai_engine
-    app.dependency_overrides[get_filter_manager] = lambda: mock_filter_manager
+    app.dependency_overrides[get_current_active_user] = lambda: "test_user"
 
     # Manually run the startup events to initialize the real workflow engine
     # This is a bit of a hack, but necessary for this kind of integration test.
@@ -128,12 +125,11 @@ def client_with_real_workflows(mock_db_manager, mock_ai_engine, mock_filter_mana
     # We need to run the async startup event in a sync context for the test fixture
     asyncio.run(run_startup())
 
-    decorator_path = "backend.python_backend.performance_monitor.log_performance"
+    decorator_path = "src.backend.python_backend.performance_monitor.log_performance"
     with patch(decorator_path, lambda *args, **kwargs: (lambda func: func)):
         yield TestClient(app)
 
     # Clean up
     app.dependency_overrides.clear()
     # Reset the global instance so other tests are not affected
-    global _workflow_engine_instance
-    _workflow_engine_instance = None
+    deps.reset_workflow_engine()
