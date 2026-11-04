@@ -44,7 +44,7 @@ class NotmuchDataSource(DataSource):
     along with AI-powered analysis and smart filtering.
     """
 
-    def __init__(self, db_path: Optional[str] = None, db_manager: Optional['DatabaseManager'] = None):
+    def __init__(self, db_path: Optional[str] = None, db_manager: Optional[Any] = None):
         # Validate the database path for security if provided
         if db_path is not None:
             try:
