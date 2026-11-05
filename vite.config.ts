@@ -35,12 +35,10 @@ const testConfig = defineTestConfig({
   test: {
     root: '.', // Run Vitest from the project root
     globals: true,
-    // The client is React + DOM; the previous 'node' environment made every component
-    // test fail at the first document access. Override per-file with
-    // `// @vitest-environment node` for the pure-logic tests.
-    environment: 'jsdom',
-    include: ['client/src/**/*.test.{ts,tsx}'],
-    setupFiles: ['./client/src/test/setup.ts'],
+    environment: 'node', // Or 'jsdom' if testing browser-like environment
+    include: ['backend/**/*.test.ts'], // Adjust for backend tests
+    setupFiles: './backend/tests/setup.ts', // Optional: if you have a setup file
+    plugins: [tsconfigPaths()], // Add tsconfigPaths to Vitest plugins
     alias: {
       '@shared': path.resolve('.', 'shared'),
       '@': path.resolve('.', "client", "src"),
