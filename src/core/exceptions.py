@@ -57,3 +57,27 @@ class EmailNotFoundException(BaseAppException):
         else:
             detail = "Email not found"
         super().__init__(status_code=404, detail=detail)
+
+
+class GitOperationError(BaseAppException):
+    """Exception for a failed git operation.
+
+    Takes a single message rather than the ``(status_code, detail)`` pair
+    because the callers in :mod:`src.git` construct it as
+    ``GitOperationError(f"...")``.
+    """
+
+    def __init__(self, detail: str = "A git operation failed."):
+        super().__init__(status_code=500, detail=detail)
+
+
+class ConflictDetectionError(BaseAppException):
+    """Exception for a failure while detecting merge conflicts.
+
+    Takes a single message for the same reason as
+    :class:`GitOperationError`: :mod:`src.git.conflict_detector` constructs it
+    as ``ConflictDetectionError(f"...")``.
+    """
+
+    def __init__(self, detail: str = "Conflict detection failed."):
+        super().__init__(status_code=500, detail=detail)
