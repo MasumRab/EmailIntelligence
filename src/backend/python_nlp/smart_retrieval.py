@@ -8,6 +8,8 @@ from typing import Any, Dict, List, Optional
 from dotenv import load_dotenv
 from google.oauth2.credentials import Credentials
 
+from src.core.paths import project_root
+
 load_dotenv()
 SCOPES = ["https://www.googleapis.com/auth/gmail.readonly"]
 TOKEN_JSON_PATH = os.getenv("GMAIL_TOKEN_PATH", "token.json")
@@ -15,7 +17,7 @@ CREDENTIALS_PATH = "credentials.json"
 GMAIL_CREDENTIALS_ENV_VAR = "GMAIL_CREDENTIALS_JSON"
 
 # Define the project's root directory and default path for the checkpoint database
-PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+PROJECT_ROOT = str(project_root())
 DEFAULT_CHECKPOINT_DB_PATH = os.path.join(PROJECT_ROOT, "sync_checkpoints.db")
 
 

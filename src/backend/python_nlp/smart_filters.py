@@ -16,11 +16,12 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
+from src.core.paths import project_root
 from src.core.security import PathValidator
 
 # Define paths for data storage
 # Use the project's data directory for database files to avoid cluttering the root
-PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+PROJECT_ROOT = str(project_root())
 DATA_DIR = os.path.join(PROJECT_ROOT, "data")
 DEFAULT_DB_PATH = os.path.join(DATA_DIR, "smart_filters.db")
 
@@ -129,6 +130,10 @@ class SmartFilterManager:
         """Establishes and returns a database connection."""
         if self.conn:
             return self.conn
+        # PathValidator validates and resolves the path but deliberately creates
+        # nothing; DATA_DIR is gitignored, so it may be missing on a fresh clone.
+        if self.db_path != ":memory:":
+            os.makedirs(os.path.dirname(self.db_path) or ".", exist_ok=True)
         conn = sqlite3.connect(self.db_path)
         conn.row_factory = sqlite3.Row
         return conn
