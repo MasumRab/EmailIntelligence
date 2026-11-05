@@ -6,6 +6,7 @@ execution sandboxing, and resource management.
 """
 
 import asyncio
+import html
 import json
 import logging
 import os
@@ -276,17 +277,12 @@ class InputSanitizer:
                 strip=policy.strip
             )
         else:
-            # Fallback to basic implementation if bleach is not available
-            # Remove potentially dangerous characters/patterns
-            sanitized = value.replace("<script", "&lt;script").replace(
-                "javascript:", "javascript&#58;"
-            )
-            sanitized = sanitized.replace("onerror", "onerror&#58;").replace(
-                "onload", "onload&#58;"
-            )
-
-            sanitized = sanitized.replace("<iframe", "&lt;iframe").replace("<object", "&lt;object")
-            sanitized = sanitized.replace("<embed", "&lt;embed").replace("<form", "&lt;form")
+            # Fallback when bleach is unavailable: escape every HTML-significant
+            # character. A hand-written blacklist cannot be made safe here — it
+            # missed case variants (<SCRIPT>), and its "neutralising" replacements
+            # used character references that an HTML parser decodes straight back
+            # to the dangerous form ("javascript&#58;" renders as "javascript:").
+            sanitized = html.escape(value)
 
         return sanitized
 
