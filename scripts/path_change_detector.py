@@ -30,9 +30,14 @@ class PathChange:
         self.new_path = self.new_path or ""
 
 
-def run_command(cmd: str) -> str:
-    """Run shell command and return output"""
-    result = subprocess.run(cmd, shell=False, capture_output=True, text=True)
+def run_command(args: List[str]) -> str:
+    """Run a git command and return its stdout.
+
+    `args` must be a list. With `shell=False`, a string is treated as the
+    program name, so the old `run_command("git ls-tree ...")` form raised
+    FileNotFoundError instead of listing anything.
+    """
+    result = subprocess.run(args, shell=False, capture_output=True, text=True, check=False)
     return result.stdout
 
 
@@ -48,11 +53,11 @@ class PathChangeDetector:
         """Scan both branches for file paths"""
 
         # Get local files
-        result = run_command(f"git ls-tree -r --name-only {self.local_branch}")
+        result = run_command(["git", "ls-tree", "-r", "--name-only", self.local_branch])
         self.local_files = set(filter(None, result.strip().split("\n")))
 
         # Get remote files
-        result = run_command(f"git ls-tree -r --name-only {self.remote_branch}")
+        result = run_command(["git", "ls-tree", "-r", "--name-only", self.remote_branch])
         self.remote_files = set(filter(None, result.strip().split("\n")))
 
     def detect_changes(self):

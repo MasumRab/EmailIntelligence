@@ -27,16 +27,22 @@ class OverlapAnalysis:
     recommendation: str
 
 
-def run_command(cmd: str) -> str:
-    """Run shell command and return output"""
-    result = subprocess.run(cmd, shell=False, capture_output=True, text=True)
+def run_command(args: List[str]) -> str:
+    """Run a git command and return its stdout.
+
+    `args` must be a list. With `shell=False`, a string is treated as the
+    program name, so the old `run_command("git diff ...")` form never ran git
+    at all — it raised FileNotFoundError, which `get_changed_lines` swallowed
+    and turned into an empty line set.
+    """
+    result = subprocess.run(args, shell=False, capture_output=True, text=True, check=False)
     return result.stdout
 
 
 def get_changed_lines(file_path: str, commit_range: str) -> Set[int]:
     """Get line numbers that changed in a commit range"""
     try:
-        diff = run_command(f"git diff {commit_range} -- {file_path}")
+        diff = run_command(["git", "diff", commit_range, "--", file_path])
         changed_lines = set()
 
         for line in diff.split("\n"):
