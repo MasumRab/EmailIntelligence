@@ -61,13 +61,15 @@ class RateLimiter:
             if state is None:
                 # First request for this key
                 state = RateLimitState(tokens=self.config.burst_limit, last_refill=now)
-                self._limits[key] = state
-                # Enforce capacity limit
-                if len(self._limits) > self.config.max_clients:
-                    self._limits.popitem(last=False)
+                if self.config.max_clients > 0:
+                    self._limits[key] = state
+                    # Enforce capacity limit
+                    if len(self._limits) > self.config.max_clients:
+                        self._limits.popitem(last=False)
             else:
                 # Move to end to mark as recently used
-                self._limits.move_to_end(key)
+                if self.config.max_clients > 0:
+                    self._limits.move_to_end(key)
 
             # Refill tokens based on time passed
             time_passed = now - state.last_refill
