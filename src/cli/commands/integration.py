@@ -127,6 +127,7 @@ def create_registry(factory: Optional[CommandFactory] = None) -> CommandRegistry
     from .analyze_history_command import AnalyzeHistoryCommand
     from .plan_rebase_command import PlanRebaseCommand
     from .identify_command import IdentifyCommand
+    from .sonar_issues_command import SonarIssuesCommand
 
     cmd_factory = factory or create_command_factory()
     registry = CommandRegistry(cmd_factory)
@@ -138,6 +139,7 @@ def create_registry(factory: Optional[CommandFactory] = None) -> CommandRegistry
     registry.register_command(AnalyzeHistoryCommand, "agent-5")
     registry.register_command(PlanRebaseCommand, "agent-5")
     registry.register_command(IdentifyCommand, "agent-5")
+    registry.register_command(SonarIssuesCommand, "agent-1")
 
     return registry
 
