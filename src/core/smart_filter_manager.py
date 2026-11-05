@@ -125,12 +125,12 @@ class _EmailContext:
     during filter application loop. Uses lazy evaluation for large text fields
     to save CPU cycles and memory allocations when filters fail early.
     """
-    def __init__(self, email: Dict[str, Any], sender_domain: str, sender_lower: str):
+    def __init__(self, email: Dict[str, Any], sender_domain: str):
         self.email = email
         self.sender_domain = sender_domain
-        self.sender_lower = sender_lower
         self._subject_lower: Optional[str] = None
         self._content_lower: Optional[str] = None
+        self._sender_lower: Optional[str] = None
 
     @property
     def subject_lower(self) -> str:
@@ -143,6 +143,13 @@ class _EmailContext:
         if self._content_lower is None:
             self._content_lower = self.email.get("content", self.email.get("body", "")).lower()
         return self._content_lower
+
+    @property
+    def sender_lower(self) -> str:
+        if self._sender_lower is None:
+            sender_email = self.email.get("sender_email", self.email.get("sender", ""))
+            self._sender_lower = sender_email.lower()
+        return self._sender_lower
 
 
 class SmartFilterManager:
@@ -656,8 +663,7 @@ class SmartFilterManager:
             sender_email = context.get("sender_email", context.get("sender", ""))
             ctx = _EmailContext(
                 email=context,
-                sender_domain=self._extract_domain(sender_email),
-                sender_lower=sender_email.lower()
+                sender_domain=self._extract_domain(sender_email)
             )
         else:
             ctx = context
@@ -782,8 +788,7 @@ class SmartFilterManager:
         sender_email = email_data.get("sender_email", email_data.get("sender", ""))
         email_context = _EmailContext(
             email=email_data,
-            sender_domain=self._extract_domain(sender_email),
-            sender_lower=sender_email.lower()
+            sender_domain=self._extract_domain(sender_email)
         )
 
         # Get active filters sorted by priority
