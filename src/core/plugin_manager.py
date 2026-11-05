@@ -444,7 +444,19 @@ class PluginManager:
     def _validate_method_execution(
         self, plugin_object: Any, method_name: str, security_level: PluginSecurityLevel
     ) -> bool:
-        """Validate if a method execution is allowed."""
+        """Validate if a method execution is allowed.
+
+        ``method_name`` reaches here from the request path of
+        ``POST /{plugin_id}/execute/{method_name}`` and is resolved with
+        ``getattr(plugin_object, method_name)``, so any name this function
+        allows is a name a caller can invoke. A denylist cannot cover that
+        space — it never lists ``__init__``, ``__class__`` or ``__dict__``,
+        all of which are attributes of every plugin object. Private and magic
+        names are therefore refused outright.
+        """
+        if method_name.startswith("_"):
+            return False
+
         # Basic validation - could be enhanced
         dangerous_methods = ["__del__", "system", "exec", "eval", "__import__"]
 
