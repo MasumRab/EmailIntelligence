@@ -18,21 +18,30 @@ TEST_RESULTS=()
 FAILED_TESTS=0
 PASSED_TESTS=0
 
+# Strip control bytes from the message before printing it.
+#
+# The message is passed to printf as a %s argument, never as part of the %b
+# format, so a backslash escape a caller writes stays literal. That is not
+# enough on its own: a message carrying a RAW escape byte (a git branch name,
+# a filename) still reaches the terminal and can drive an OSC sequence. Control
+# characters have no place in a one-line status message, so they are removed.
+# Removing beats %q-quoting: quoting turns "Backup complete" into
+# "Backup\ complete" and makes every log line unreadable.
 # Logging functions
 log_info() {
-    printf "%b%s\n" "${BLUE}[INFO]${NC} " "$1"
+    printf "%b%s\n" "${BLUE}[INFO]${NC} " "${1//[[:cntrl:]]/}"
 }
 
 log_success() {
-    printf "%b%s\n" "${GREEN}[PASS]${NC} " "$1"
+    printf "%b%s\n" "${GREEN}[PASS]${NC} " "${1//[[:cntrl:]]/}"
 }
 
 log_warning() {
-    printf "%b%s\n" "${YELLOW}[WARN]${NC} " "$1"
+    printf "%b%s\n" "${YELLOW}[WARN]${NC} " "${1//[[:cntrl:]]/}"
 }
 
 log_error() {
-    printf "%b%s\n" "${RED}[FAIL]${NC} " "$1"
+    printf "%b%s\n" "${RED}[FAIL]${NC} " "${1//[[:cntrl:]]/}"
 }
 
 # Test runner
