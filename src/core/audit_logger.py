@@ -9,14 +9,14 @@ import atexit
 import json
 import logging
 import threading
+import time
 import asyncio
-import queue
 from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from enum import Enum
 from pathlib import Path
 from queue import Queue, Full, Empty
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -106,11 +106,13 @@ class AuditLogger:
         json_file: str = "logs/audit.jsonl",
         max_queue_size: int = 1000,
         flush_interval: int = 5,
+        batch_size: int = 50,
     ):
         self.log_file = Path(log_file)
         self.json_file = Path(json_file)
         self.max_queue_size = max_queue_size
         self.flush_interval = flush_interval
+        self.batch_size = batch_size
 
         # Create log directories
         self.log_file.parent.mkdir(parents=True, exist_ok=True)
@@ -247,33 +249,63 @@ class AuditLogger:
 
             # Collect events from queue
             try:
-                while len(events_to_process) < 10:  # Process in batches
-                    event = self._event_queue.get(timeout=1.0)
+                # Optimized batch processing
+                while len(events_to_process) < self.batch_size:
+                    # Use a smaller timeout for subsequent items to avoid stalling on partial batches
+                    timeout = 1.0 if not events_to_process else 0.1
+                    event = self._event_queue.get(timeout=timeout)
                     events_to_process.append(event)
-                    self._event_queue.task_done()
             except Empty:
                 pass  # No events available
 
             # Write events
-            for event in events_to_process:
-                self._write_event_immediate(event)
+            if events_to_process:
+                self._write_batch(events_to_process)
+                # Mark tasks as done only after successful batch processing (or attempt)
+                # This ensures queue.join() waits for actual persistence
+                for _ in events_to_process:
+                    self._event_queue.task_done()
+
+    def _format_text_log_line(self, event: AuditEvent) -> str:
+        """Format a single AuditEvent as a text log line."""
+        log_line = (
+            f"[{event.timestamp}] {event.severity.value.upper()} "
+            f"{event.event_type.value} user={event.user_id or 'anonymous'} "
+            f"resource={event.resource or 'unknown'} action='{event.action}' "
+            f"result={event.result}"
+        )
+
+        if event.details:
+            log_line += f" details={event.details}"
+
+        return log_line
+
+    def _write_batch(self, events: List[AuditEvent]):
+        """Write a batch of events efficiently."""
+        if not events:
+            return
+
+        try:
+            # Write to text log
+            with open(self.log_file, "a", encoding="utf-8") as f:
+                for event in events:
+                    f.write(self._format_text_log_line(event) + "\n")
+
+            # Write to JSON log
+            with open(self.json_file, "a", encoding="utf-8") as f:
+                for event in events:
+                    json.dump(event.to_dict(), f, ensure_ascii=False)
+                    f.write("\n")
+
+        except Exception as e:
+            logger.error(f"Failed to write audit batch of {len(events)} events: {e}")
 
     def _write_event_immediate(self, event: AuditEvent):
         """Write a single event immediately."""
         try:
             # Write to text log
-            log_line = (
-                f"[{event.timestamp}] {event.severity.value.upper()} "
-                f"{event.event_type.value} user={event.user_id or 'anonymous'} "
-                f"resource={event.resource or 'unknown'} action='{event.action}' "
-                f"result={event.result}"
-            )
-
-            if event.details:
-                log_line += f" details={event.details}"
-
             with open(self.log_file, "a", encoding="utf-8") as f:
-                f.write(log_line + "\n")
+                f.write(self._format_text_log_line(event) + "\n")
 
             # Write to JSON log
             with open(self.json_file, "a", encoding="utf-8") as f:
