@@ -1,12 +1,12 @@
 import logging
 
 from fastapi import APIRouter, Depends, HTTPException
+
 from src.core.auth import get_current_active_user
 
 from .ai_engine import AdvancedAIEngine
 from .database import DatabaseManager
 from .dependencies import get_ai_engine, get_db
-from src.core.auth import get_current_active_user
 from .models import (
     AIAnalysisRequest,
     AIAnalysisResponse,
