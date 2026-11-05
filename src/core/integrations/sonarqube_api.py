@@ -5,9 +5,10 @@ This module provides a client to interact with the SonarQube/SonarCloud REST API
 It allows fetching, searching, and managing code quality issues.
 """
 
-import os
 import logging
-from typing import Dict, Any, List, Optional
+import os
+from typing import Any
+
 import requests
 
 logger = logging.getLogger(__name__)
@@ -19,9 +20,9 @@ class SonarQubeClient:
 
     def __init__(
         self,
-        host_url: Optional[str] = None,
-        project_key: Optional[str] = None,
-        token: Optional[str] = None,
+        host_url: str | None = None,
+        project_key: str | None = None,
+        token: str | None = None,
     ):
         """
         Initialize the SonarQube client.
@@ -45,7 +46,7 @@ class SonarQubeClient:
         # Ensure we always get JSON responses
         self.session.headers.update({"Accept": "application/json"})
 
-    def _make_request(self, method: str, endpoint: str, params: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    def _make_request(self, method: str, endpoint: str, params: dict[str, Any] | None = None) -> dict[str, Any]:
         """
         Helper method to make API requests.
 
@@ -64,7 +65,7 @@ class SonarQubeClient:
             response.raise_for_status()
             return response.json()
         except requests.exceptions.RequestException as e:
-            logger.error(f"SonarQube API request failed: {method} {url} - {str(e)}")
+            logger.error(f"SonarQube API request failed: {method} {url} - {e!s}")
             if hasattr(e, 'response') and e.response is not None:
                 try:
                     error_data = e.response.json()
@@ -75,13 +76,13 @@ class SonarQubeClient:
 
     def search_issues(
         self,
-        severities: Optional[str] = None,
-        types: Optional[str] = None,
-        statuses: Optional[str] = None,
+        severities: str | None = None,
+        types: str | None = None,
+        statuses: str | None = None,
         paged: bool = False,
         page_size: int = 100,
         page_index: int = 1
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Search for issues in the configured project.
 
@@ -119,10 +120,10 @@ class SonarQubeClient:
 
     def get_issues(
         self,
-        severities: Optional[str] = None,
-        types: Optional[str] = None,
+        severities: str | None = None,
+        types: str | None = None,
         limit: int = 100
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """
         Get a flat list of issues up to the specified limit.
         Handles pagination automatically.
@@ -164,7 +165,7 @@ class SonarQubeClient:
 
         return all_issues[:limit]
 
-    def get_issue_details(self, issue_key: str) -> Dict[str, Any]:
+    def get_issue_details(self, issue_key: str) -> dict[str, Any]:
         """
         Get detailed information about a specific issue.
 

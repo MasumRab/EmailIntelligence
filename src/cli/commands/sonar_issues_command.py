@@ -4,11 +4,12 @@ Sonar Issues Command Module
 Provides a CLI command to interact with SonarQube / SonarCloud issues.
 """
 
-from argparse import Namespace
-from typing import Any, Dict
 import json
+from argparse import Namespace
+from typing import Any
 
 from .interface import Command
+
 
 class SonarIssuesCommand(Command):
     """
@@ -58,7 +59,7 @@ class SonarIssuesCommand(Command):
             help="Output format (default: text)"
         )
 
-    def get_dependencies(self) -> Dict[str, Any]:
+    def get_dependencies(self) -> dict[str, Any]:
         """
         Get required dependencies for this command.
         Loads the SonarQubeClient dynamically to prevent import errors if requirements aren't met.
@@ -73,7 +74,7 @@ class SonarIssuesCommand(Command):
 
         return dependencies
 
-    def set_dependencies(self, dependencies: Dict[str, Any]) -> None:
+    def set_dependencies(self, dependencies: dict[str, Any]) -> None:
         self._sonar_client = dependencies.get("sonar_client")
         self._init_error = dependencies.get("sonar_client_error")
 

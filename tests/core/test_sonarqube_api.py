@@ -1,8 +1,10 @@
-import pytest
 import os
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
+
+import pytest
+
 from src.core.integrations.sonarqube_api import SonarQubeClient
-import requests
+
 
 @pytest.fixture
 def mock_env(monkeypatch):
