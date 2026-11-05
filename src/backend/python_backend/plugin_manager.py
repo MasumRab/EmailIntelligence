@@ -1,4 +1,3 @@
-import importlib.util  # noqa: E402
 """
 Plugin Manager for the Email Intelligence Platform
 
@@ -6,9 +5,9 @@ This module provides a system for discovering, loading, and managing
 external plugins.
 """
 
-import logging  # noqa: E402
-import os  # noqa: E402
-from typing import List  # noqa: E402
+import logging
+import os
+from typing import List
 
 logger = logging.getLogger(__name__)
 
