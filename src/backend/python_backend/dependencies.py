@@ -15,7 +15,7 @@ from backend.python_backend.services.category_service import CategoryService
 from src.core.database import get_db, DatabaseManager
 from .model_manager import ModelManager
 from .ai_engine import AdvancedAIEngine
-from .smart_filters import SmartFilterManager
+from src.backend.python_nlp.smart_filters import SmartFilterManager
 from .workflow_engine import WorkflowEngine
 
 try:
@@ -176,3 +176,8 @@ async def get_database():
     global _model_manager_instance, _ai_engine_instance, _filter_manager_instance, _workflow_engine_instance, _plugin_manager_instance, _gmail_service_instance
     db = await get_db()
     return db
+
+
+def reset_workflow_engine() -> None:
+    global _workflow_engine_instance
+    _workflow_engine_instance = None

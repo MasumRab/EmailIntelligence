@@ -109,8 +109,8 @@ class NodePort:
             raise ValueError(f"required port '{self.name}' cannot declare a default_value; set required=False or remove the default")
 
     def __repr__(self):
-        def_val_str = "<unset>" if getattr(self, "default_value", _UNSET) is _UNSET else repr(self.default_value)
-        return f"NodePort(name='{self.name}', data_type={self.data_type}, required={self.required}, default_value={def_val_str})" 
+        def_val_str = "<unset>" if self.default_value is _UNSET else repr(self.default_value)
+        return f"NodePort(name='{self.name}', data_type={self.data_type}, required={self.required}, default_value={def_val_str})"
 
 
 class Connection:
@@ -213,7 +213,7 @@ class BaseNode(ABC):
     def _apply_input_defaults(self):
         """Apply default values to optional input ports if they are not already set."""
         for port in self.input_ports:
-            if getattr(port, 'default_value', _UNSET) is not _UNSET and port.name not in self.inputs:
+            if port.default_value is not _UNSET and port.name not in self.inputs:
                 self.inputs[port.name] = port.default_value
 
     def set_input(self, port_name: str, value: Any):
