@@ -15,7 +15,12 @@ def safe_ref(ref: str) -> str:
     The allowlist is matched, not merely tested: the matched text is what reaches
     argv, so the value git receives is the value the regex accepted. A boolean
     "reject if unsafe" helper leaves the original string in the taint graph and
+<<<<<<< HEAD
+    SonarCloud's pythonsecurity:S8705 keeps reporting the sink. The `--` separator
+    below is belt and braces for the same concern.
+=======
     SonarCloud's pythonsecurity:S8705 keeps reporting the sink.
+>>>>>>> origin/main
     """
     match = _SAFE_REF.fullmatch(ref)
     if not match or ref.startswith("-"):
@@ -75,7 +80,7 @@ def check_conflicts(target_branch: str, source_branch: str = "HEAD") -> Dict[str
         # Run git merge-tree
         # exit code 0 means clean merge, 1 means conflicts
         proc = subprocess.run(
-            ["git", "merge-tree", "--write-tree", safe_target, safe_source],
+            ["git", "merge-tree", "--write-tree", "--", safe_target, safe_source],
             capture_output=True,
             text=True,
             check=False
