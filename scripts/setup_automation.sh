@@ -14,19 +14,19 @@ RED='\033[0;31m'
 NC='\033[0m'
 
 print_status() {
-    echo -e "${BLUE}[INFO]${NC} $1"
+    printf "%b%s\n" "${BLUE}[INFO]${NC} " "$1"
 }
 
 print_success() {
-    echo -e "${GREEN}[SUCCESS]${NC} $1"
+    printf "%b%s\n" "${GREEN}[SUCCESS]${NC} " "$1"
 }
 
 print_warning() {
-    echo -e "${YELLOW}[WARNING]${NC} $1"
+    printf "%b%s\n" "${YELLOW}[WARNING]${NC} " "$1"
 }
 
 print_error() {
-    echo -e "${RED}[ERROR]${NC} $1"
+    printf "%b%s\n" "${RED}[ERROR]${NC} " "$1"
 }
 
 # Check if we're in the project root
