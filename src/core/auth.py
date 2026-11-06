@@ -5,7 +5,7 @@ This module implements JWT-based authentication for API endpoints using the new
 core architecture and database management system.
 """
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional
 
 
@@ -99,9 +99,9 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
 
     to_encode = data.copy()
     if expires_delta:
-        expire = datetime.utcnow() + expires_delta
+        expire = datetime.now(timezone.utc) + expires_delta
     else:
-        expire = datetime.utcnow() + timedelta(minutes=expire_minutes)
+        expire = datetime.now(timezone.utc) + timedelta(minutes=expire_minutes)
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, secret_key, algorithm=algorithm)
     return encoded_jwt
