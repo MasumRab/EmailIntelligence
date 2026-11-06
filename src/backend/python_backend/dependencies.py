@@ -176,3 +176,8 @@ async def get_database():
     global _model_manager_instance, _ai_engine_instance, _filter_manager_instance, _workflow_engine_instance, _plugin_manager_instance, _gmail_service_instance
     db = await get_db()
     return db
+
+
+def reset_workflow_engine() -> None:
+    global _workflow_engine_instance
+    _workflow_engine_instance = None

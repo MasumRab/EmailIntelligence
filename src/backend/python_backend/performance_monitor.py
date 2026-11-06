@@ -6,6 +6,7 @@ model usage, memory consumption, and error rates.
 """
 
 import asyncio
+import json
 import logging
 import threading
 import time
