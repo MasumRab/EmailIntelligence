@@ -80,8 +80,6 @@ class CustomEmailNode(BaseNode):
         self.config = config or {}
         self.input_ports = [
             NodePort("emails", DataType.EMAIL_LIST, required=True),
-            NodePort("config_override", DataType.JSON, required=False, default_value={}),
-            NodePort("config_override", DataType.JSON, required=False, default_value={}),
             NodePort("config_override", DataType.JSON, required=False, default_value={})
         ]
         self.output_ports = [

@@ -25,8 +25,6 @@ except ImportError:
 
 _UNSET = object()
 
-_UNSET = object()
-
 class DataType(Enum):
     """Enum for supported data types in node connections."""
 
@@ -107,7 +105,6 @@ class NodePort:
         self.required = required
         self.description = description
         self.default_value = default_value
-        
         if self.required and self.default_value is not _UNSET:
             raise ValueError(f"required port '{self.name}' cannot declare a default_value; set required=False or remove the default")
 
@@ -212,12 +209,6 @@ class BaseNode(ABC):
         # For now, we rely on run-time type checking
 
         return {"valid": len(errors) == 0, "errors": errors}
-
-    def _apply_input_defaults(self):
-        """Apply default values to optional input ports if they are not already set."""
-        for port in self.input_ports:
-            if port.default_value is not _UNSET and port.name not in self.inputs:
-                self.inputs[port.name] = port.default_value
 
     def _apply_input_defaults(self):
         """Apply default values to optional input ports if they are not already set."""
