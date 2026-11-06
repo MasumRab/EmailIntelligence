@@ -1,4 +1,39 @@
 pull_request_rules:
+
+  # Rule 1: Dependabot PRs — auto-merge when real CI passes + SonarQube clean
+  - name: Automatically merge Dependabot PRs when CI and quality gates pass
+    conditions:
+      - author=dependabot[bot]
+      - check-success=test
+      - check-success=sonarcloud
+      - -label=do-not-merge
+    actions:
+      merge:
+        method: merge
+
+  # Rule 2: Agent PRs (Jules/Sentinel/Bolt) — require human label
+  - name: Auto-merge agent PRs only when explicitly approved
+    conditions:
+      - label=auto-merge-approved
+      - check-success=test
+      - check-success=sonarcloud
+      - -label=do-not-merge
+      - -label=review-finding-open
+    actions:
+      merge:
+        method: squash
+
+  # Rule 3: Block PRs with unresolved review findings
+  - name: Block PRs with open review findings
+    conditions:
+      - label=review-finding-open
+    actions:
+      post_check:
+        title: "Blocked: unresolved Critical/High review findings"
+        summary: |
+          This PR has unresolved findings from Qodo or SonarQube.
+          Remove the 'review-finding-open' label after addressing them.
+
   - name: Ping PR author when conflicting
     description: Warn the pull request author when their PR is conflicting. Tag @jules if they're an author.
     conditions:
@@ -11,7 +46,7 @@ pull_request_rules:
           merged.
           {# NOTE: GitHub username is google-labs-jules[bot], not "jules" #}
           {% if author == "google-labs-jules[bot]" or "google-labs-jules[bot]" in assignees %}
-          
+
           **Note for @jules:** This PR requires conflict resolution. Consider rebasing on latest main or using interactive merge.
           {% endif %}
 
@@ -26,55 +61,13 @@ pull_request_rules:
       comment:
         message: >
           ⚠️ **@jules** - This PR has merge conflicts that need resolution:
-          
+
           **Quick Fix Options:**
           1. **Rebase on main:** `git fetch origin && git rebase origin/main`
           2. **Merge main:** `git fetch origin && git merge origin/main`
           3. **Use GitHub UI:** Click "Resolve conflicts" button on this PR
-          
+
           After resolving: `git push --force-with-lease` (if rebased) or `git push` (if merged)
-
-  - name: Auto-merge Dependabot PRs (no approval required)
-    description: Automatically merge Dependabot PRs when CI passes. No human approval required for dependency updates.
-    conditions:
-      - author=dependabot[bot]
-      - check-success=test
-      - -conflict
-      - -draft
-    actions:
-      merge:
-        method: merge
-        commit_message_template: |
-          {{ title }} (#{{ number }})
-          {{ body }}
-
-  - name: Auto-merge with label (no approval required)
-    description: Automatically merge PRs with 'automerge' label when CI passes
-    conditions:
-      - label=automerge
-      - or:
-          - check-success=test
-          - check-success=lint-only
-      - -conflict
-      - -draft
-    actions:
-      merge:
-        method: merge
-
-  - name: Automatic merge for human PRs (approval required)
-    description: Merge human PRs during office hours with approval. Hotfixes merge anytime.
-    conditions:
-      - -author=dependabot[bot]
-      - or:
-          - schedule=Mon-Fri 09:00-17:00[America/Los_Angeles]
-          - label=hotfix
-      - check-success=test
-      - "#approved-reviews-by>=1"
-      - -conflict
-      - -draft
-    actions:
-      merge:
-        method: merge
 
   - name: Label conflicting pull requests
     description: Add a label to a pull request with conflict to spot it easily

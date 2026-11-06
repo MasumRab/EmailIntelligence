@@ -22,9 +22,7 @@ performance_monitor = PerformanceMonitor()
 
 @router.get("/api/filters")
 @log_performance
-async def get_filters(
-    request: Request, current_user: str = Depends(get_current_active_user)
-):
+async def get_filters(request: Request, current_user: str = Depends(get_current_active_user)):
     """Get all active email filters
 
     Requires authentication.
@@ -81,9 +79,7 @@ async def generate_intelligent_filters(
 
 @router.post("/api/filters/prune")
 @log_performance
-async def prune_filters(
-    request: Request, current_user: str = Depends(get_current_active_user)
-):
+async def prune_filters(request: Request, current_user: str = Depends(get_current_active_user)):
     """Prune ineffective filters
 
     Requires authentication.

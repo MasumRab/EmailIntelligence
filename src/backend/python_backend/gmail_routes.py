@@ -9,10 +9,7 @@ from googleapiclient.errors import HttpError as GoogleApiHttpError
 from ..python_nlp.gmail_service import GmailAIService
 from .dependencies import get_gmail_service
 from .exceptions import GmailServiceError
-from .models import (
-    GmailSyncRequest,
-    SmartRetrievalRequest,
-)  # Changed from .main to .models
+from .models import GmailSyncRequest, SmartRetrievalRequest  # Changed from .main to .models
 from .performance_monitor import log_performance
 
 logger = logging.getLogger(__name__)

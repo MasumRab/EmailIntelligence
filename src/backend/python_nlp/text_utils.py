@@ -5,9 +5,6 @@ Text utility functions for NLP processing.
 import re
 from typing import Optional
 
-_WHITESPACE_RE = re.compile(r"\s+")
-_SPECIAL_CHARS_RE = re.compile(r"[^\ws.,!?-]")
-
 
 def clean_text(text: Optional[str]) -> str:
     """
@@ -26,9 +23,9 @@ def clean_text(text: Optional[str]) -> str:
     text = text.lower()
 
     # Remove extra whitespace
-    text = _WHITESPACE_RE.sub(" ", text.strip())
+    text = re.sub(r"\s+", " ", text.strip())
 
     # Remove special characters but keep basic punctuation
-    text = _SPECIAL_CHARS_RE.sub("", text)
+    text = re.sub(r"[^\w\s.,!?-]", "", text)
 
     return text
