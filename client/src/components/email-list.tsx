@@ -6,8 +6,8 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Brain, Star } from "lucide-react";
-import type { EmailWithCategory } from "@shared/schema";
-
+import React from "react";
+ import type { EmailWithCategory } from "@shared/schema";
 /**
  * @interface EmailListProps
  * @description Defines the props for the EmailList component.
@@ -31,7 +31,7 @@ interface EmailListProps {
  * @param {EmailListProps} props - The props for the component.
  * @returns {JSX.Element} The rendered list of emails, or a loading/empty state.
  */
-export function EmailList({ emails, loading, onEmailSelect }: EmailListProps) {
+export const EmailList = React.memo(function EmailList({ emails, loading, onEmailSelect }: EmailListProps) {
   if (loading) {
     return (
       <div className="divide-y divide-gray-200">
@@ -58,7 +58,6 @@ export function EmailList({ emails, loading, onEmailSelect }: EmailListProps) {
       </div>
     );
   }
-
   /**
    * Generates initials from a given name.
    * @param {string} name - The full name of the sender.
@@ -172,4 +171,4 @@ export function EmailList({ emails, loading, onEmailSelect }: EmailListProps) {
       </div>
     </>
   );
-}
+});
