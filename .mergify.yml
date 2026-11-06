@@ -44,9 +44,7 @@ pull_request_rules:
     actions:
       merge:
         method: merge
-        commit_message_format: |
-          {{ title }} (#{{ number }})
-          {{ body }}
+        commit_message: default
 
   - name: Auto-merge with label (no approval required)
     description: Automatically merge PRs with 'automerge' label when CI passes
