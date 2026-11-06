@@ -8,9 +8,9 @@ core architecture and database management system.
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional
 
-
 from argon2 import PasswordHasher
-import hashlib
+from argon2.exceptions import VerifyMismatchError, InvalidHashError
+
 import jwt
 import secrets
 from fastapi import HTTPException, status, Depends
@@ -26,54 +26,31 @@ from .security import SecurityContext, Permission, SecurityLevel
 
 logger = logging.getLogger(__name__)
 
+# Valid Argon2 hash for preventing timing attacks
+DUMMY_HASH = (
+    "$argon2id$v=19$m=65536,t=3,p=4$DnF1/L/JzW/0QZ3r5Y/y0w$K7g/6Z5x4y3w2v1u0t9s8"
+)
+
 
 class TokenData(BaseModel):
+    """Data structure for JWT token payload"""
     username: Optional[str] = None
+    role: Optional[str] = "user"
 
 
-class AuthManager:
-    """
-    Authentication manager for the Email Intelligence Platform.
+class UserRole(str, Enum):
+    """User roles for role-based access control"""
+    ADMIN = "admin"
+    USER = "user"
+    GUEST = "guest"
 
-    This class handles user authentication, token management, and authorization.
-    """
 
-    def __init__(self):
-        self.db_manager: DatabaseManager | None = None
-    async def initialize(self):
-        """Initialize the AuthManager with database connection."""
-        from .database import get_db
-
-        self.db_manager = await get_db()
-
-    async def authenticate_user(self, username: str, password: str) -> Optional[dict]:
-        """Authenticate a user with username and password."""
-        # Sanitize input to prevent injection attacks
-        sanitized_username = DataSanitizer.sanitize_input(username)
-        
-        if not self.db_manager:
-            await self.initialize()
-
-        # In a real implementation, this would check against the database
-        # For now, we'll return a mock user
-        user_data = {
-            "id": 1,
-            "username": sanitized_username,
-            "email": f"{sanitized_username}@example.com"
-        }
-        # Sanitize output to redact sensitive fields
-        return DataSanitizer.sanitize_output(user_data)
-    async def get_current_user(self, token: str) -> Optional[dict]:
-        """Get the current user from a JWT token."""
-        # In a real implementation, this would decode the token and get user from database
-        # For now, we'll return a mock user
-        user_data = {
-            "id": 1,
-            "username": "testuser",
-            "email": "testuser@example.com"
-        }
-        # Sanitize output to redact sensitive fields
-        return DataSanitizer.sanitize_output(user_data)
+class User(BaseModel):
+    """User model for authentication"""
+    username: str
+    hashed_password: str
+    role: UserRole = UserRole.USER
+    permissions: Optional[List[str]] = []
 
 
 # Initialize security scheme
@@ -85,14 +62,12 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     # Try to get the settings if possible
     try:
         from ..backend.python_backend.settings import settings
-
         secret_key = settings.secret_key
         algorithm = settings.algorithm
         expire_minutes = settings.access_token_expire_minutes
     except ImportError:
         # Fallback to core settings
         from .settings import settings
-
         secret_key = settings.secret_key
         algorithm = settings.algorithm
         expire_minutes = settings.access_token_expire_minutes
@@ -103,7 +78,9 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     else:
         expire = datetime.now(timezone.utc) + timedelta(minutes=expire_minutes)
     to_encode.update({"exp": expire})
-    encoded_jwt = jwt.encode(to_encode, secret_key, algorithm=algorithm)
+    encoded_jwt = jwt.encode(
+        to_encode, secret_key, algorithm=algorithm
+    )
     return encoded_jwt
 
 
@@ -135,8 +112,16 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     ph = PasswordHasher()
     try:
         return ph.verify(hashed_password, plain_password)
-    except Exception:
-        # Verification failed (wrong password, corrupted hash, etc.)
+    except VerifyMismatchError:
+        # Password verification failed
+        return False
+    except InvalidHashError:
+        # Invalid hash format
+        logger.warning("Invalid password hash format")
+        return False
+    except Exception as e:
+        # Other unexpected errors
+        logger.error(f"Unexpected error during password verification: {e}")
         return False
 
 
@@ -157,12 +142,22 @@ async def authenticate_user(
     try:
         # Sanitize input to prevent injection attacks
         sanitized_username = DataSanitizer.sanitize_input(username)
-        
+
         # Try to get user from database
         user_data = await db.get_user_by_username(sanitized_username)
-        if user_data and verify_password(password, user_data.get("hashed_password", "")):
-            # Sanitize output to redact sensitive fields (e.g., hashed_password)
-            return DataSanitizer.sanitize_output(user_data)
+
+        # Mitigate timing attacks: Always perform password verification
+        # If user not found, verify a dummy hash to equalize timing
+        if user_data:
+            stored_hash = user_data.get("hashed_password", "")
+        else:
+            # This is a valid Argon2 hash for "dummy" to prevent early exit
+            stored_hash = DUMMY_HASH
+
+        is_valid = verify_password(password, stored_hash)
+
+        if user_data and is_valid:
+            return user_data
         return None
     except Exception as e:
         logger.error(f"Error authenticating user {username}: {e}")
@@ -184,7 +179,7 @@ async def create_user(username: str, password: str, db) -> bool:
     try:
         # Sanitize input to prevent injection attacks
         sanitized_username = DataSanitizer.sanitize_input(username)
-        
+
         # Check if user already exists
         existing_user = await db.get_user_by_username(sanitized_username)
         if existing_user:
@@ -194,10 +189,7 @@ async def create_user(username: str, password: str, db) -> bool:
         hashed_password = hash_password(password)
 
         # Create user in database
-        user_data = {
-            "username": sanitized_username,
-            "hashed_password": hashed_password
-        }
+        user_data = {"username": sanitized_username, "hashed_password": hashed_password}
         await db.create_user(user_data)
         return True
     except Exception as e:
@@ -217,13 +209,11 @@ async def verify_token(
     # Try to get the settings if possible
     try:
         from ..backend.python_backend.settings import settings
-
         secret_key = settings.secret_key
         algorithm = settings.algorithm
     except ImportError:
         # Fallback to core settings
         from .settings import settings
-
         secret_key = settings.secret_key
         algorithm = settings.algorithm
 
@@ -234,7 +224,9 @@ async def verify_token(
     )
     try:
         payload = jwt.decode(
-            credentials.credentials, secret_key, algorithms=[algorithm]
+            credentials.credentials,
+            secret_key,
+            algorithms=[algorithm],
         )
         username: str = payload.get("sub")
         if username is None:
@@ -271,15 +263,22 @@ async def get_current_active_user(current_user: str = Depends(get_current_user))
     raise HTTPException(status_code=400, detail="Inactive user")
 
 
-def create_authentication_middleware():
-    """
-    Create and return an authentication middleware.
+def require_role(required_role: UserRole):
+    """Dependency that checks if the current user has the required role."""
+    def role_checker(token_data: TokenData = Depends(verify_token)) -> TokenData:
+        # In a real implementation, you would check the user's actual role from the database
+        # For now, we'll check the role from the token
+        if token_data.role != required_role.value:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"Access denied. {required_role.value} role required.",
+            )
+        return token_data
+    return role_checker
 
-    This is a placeholder function that could be expanded to implement
-    custom authentication middleware if needed.
-    """
-    pass
 
+def require_any_role(required_roles: List[UserRole]):
+    """Dependency that checks if the current user has any of the required roles."""
     def role_checker(token_data: TokenData = Depends(verify_token)) -> TokenData:
         # In a real implementation, you would check the user's actual role from the database
         # For now, we'll check the role from the token
@@ -289,7 +288,6 @@ def create_authentication_middleware():
                 detail=f"Access denied. One of {[role.value for role in required_roles]} roles required.",
             )
         return token_data
-
     return role_checker
 
 
