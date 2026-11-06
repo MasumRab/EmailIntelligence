@@ -31,7 +31,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v7
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
 
       - name: Install dependencies
@@ -43,10 +43,31 @@ jobs:
 
       - name: TypeScript check
         working-directory: ./client
-        run: ./node_modules/.bin/tsc --noEmit || echo "TypeScript errors ignored — Vite build handles type resolution"
+        run: |
+          # Syntax errors (TS1xxx) mean a file cannot be parsed at all, so they fail the job.
+          # Type errors (TS2xxx/TS6xxx) are pre-existing and are reported, not fatal, until they
+          # are cleared — 5 remain on `main`.
+          #
+          # This step used to end in `|| echo "TypeScript errors ignored — Vite build handles type
+          # resolution"`, which made every TS error non-fatal. A bracket imbalance in
+          # `email-list.tsx` reached `main` through a green "Frontend Check"; this is the step
+          # that saw it and discarded it.
+          set +e
+          ./node_modules/.bin/tsc --noEmit > tsc.log 2>&1
+          status=$?
+          set -e
+          cat tsc.log
+          if grep -qE 'error TS1[0-9]{3}' tsc.log; then
+            echo "::error::TypeScript syntax errors — the listed files cannot be parsed"
+            exit 1
+          fi
+          if [ "$status" -ne 0 ]; then
+            echo "::notice::$(grep -c 'error TS' tsc.log) non-syntax type errors (not fatal yet)"
+          fi
 
       - name: Test
-        run: npm run test --if-present || echo "No tests configured"
+        working-directory: ./client
+        run: npm test
 
       - name: Upload coverage
         if: always()
