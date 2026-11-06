@@ -3,6 +3,7 @@
  *       rendering a list of emails, including their loading and empty states.
  */
 import { Badge } from "@/components/ui/badge";
+import React from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Brain, Star } from "lucide-react";
@@ -19,7 +20,7 @@ interface EmailListProps {
   emails: EmailWithCategory[];
   loading: boolean;
   onEmailSelect: (email: EmailWithCategory) => void;
-}
+});
 
 /**
  * Renders a list of emails with sender details, subject, preview, and associated badges.
@@ -31,7 +32,7 @@ interface EmailListProps {
  * @param {EmailListProps} props - The props for the component.
  * @returns {JSX.Element} The rendered list of emails, or a loading/empty state.
  */
-export function EmailList({ emails, loading, onEmailSelect }: EmailListProps) {
+export const EmailList = React.memo(function EmailList({ emails, loading, onEmailSelect }: EmailListProps) {
   if (loading) {
     return (
       <div className="divide-y divide-gray-200">
@@ -180,4 +181,4 @@ export function EmailList({ emails, loading, onEmailSelect }: EmailListProps) {
       </div>
     </>
   );
-}
+});
