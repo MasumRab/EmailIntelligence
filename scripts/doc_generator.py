@@ -2,22 +2,15 @@
 import os
 import sys
 import ast
-from pathlib import Path
 
 def get_script_description(filepath: str) -> str:
     """Extract description from a script."""
-    
-    # Sanitize input path to prevent path traversal
-    try:
-        safe_path = Path(filepath).resolve()
-        if not str(safe_path).startswith(str(Path.cwd())):
-            return "Error: Path traversal blocked"
-    except Exception:
-        return "Error: Invalid path"
+    if not os.path.isabs(filepath):
+        filepath = os.path.abspath(filepath)
 
     if filepath.endswith('.py'):
         try:
-            with open(safe_path, 'r', encoding='utf-8') as f:
+            with open(filepath, 'r', encoding='utf-8') as f:
                 content = f.read()
             module = ast.parse(content)
             docstring = ast.get_docstring(module)
@@ -27,7 +20,7 @@ def get_script_description(filepath: str) -> str:
             pass
     elif filepath.endswith('.sh'):
         try:
-            with open(safe_path, 'r', encoding='utf-8') as f:
+            with open(filepath, 'r', encoding='utf-8') as f:
                 lines = f.readlines()
             for line in lines:
                 if line.startswith('#') and not line.startswith('#!'):
@@ -39,9 +32,10 @@ def get_script_description(filepath: str) -> str:
 def generate_usage_table(scripts_dir: str):
     print("| Script | Description |")
     print("|--------|-------------|")
-    
+
+    abs_scripts_dir = os.path.abspath(scripts_dir)
     try:
-        scripts = sorted(os.listdir(scripts_dir))
+        scripts = sorted(os.listdir(abs_scripts_dir))
     except FileNotFoundError:
         print(f"Directory not found: {scripts_dir}")
         return
@@ -49,13 +43,18 @@ def generate_usage_table(scripts_dir: str):
     for script in scripts:
         if not script.endswith(('.py', '.sh')):
             continue
-        filepath = os.path.join(scripts_dir, script)
+        filepath = os.path.join(abs_scripts_dir, script)
+        # Basic path traversal protection
+        if not os.path.abspath(filepath).startswith(abs_scripts_dir):
+            continue
         if not os.path.isfile(filepath):
             continue
-            
+
         desc = get_script_description(filepath)
         print(f"| {script} | {desc} |")
 
 if __name__ == '__main__':
     target_dir = sys.argv[1] if len(sys.argv) > 1 else 'scripts'
+    # Basic path traversal protection for CLI input
+    target_dir = os.path.abspath(os.path.normpath(target_dir))
     generate_usage_table(target_dir)
