@@ -7,7 +7,7 @@ def get_script_description(filepath: str) -> str:
     """Extract description from a script."""
     if not os.path.isabs(filepath):
         filepath = os.path.abspath(filepath)
-    
+
     if filepath.endswith('.py'):
         try:
             with open(filepath, 'r', encoding='utf-8') as f:
@@ -32,7 +32,7 @@ def get_script_description(filepath: str) -> str:
 def generate_usage_table(scripts_dir: str):
     print("| Script | Description |")
     print("|--------|-------------|")
-    
+
     abs_scripts_dir = os.path.abspath(scripts_dir)
     try:
         scripts = sorted(os.listdir(abs_scripts_dir))
@@ -49,7 +49,7 @@ def generate_usage_table(scripts_dir: str):
             continue
         if not os.path.isfile(filepath):
             continue
-            
+
         desc = get_script_description(filepath)
         print(f"| {script} | {desc} |")
 

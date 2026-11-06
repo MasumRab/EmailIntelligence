@@ -34,11 +34,11 @@ class TestDocGenerator(unittest.TestCase):
                 f.write('"""Doc A"""')
             with open(os.path.join(d, "b.sh"), "w") as f:
                 f.write('#!/bin/bash\n# Doc B')
-                
+
             f_out = StringIO()
             with redirect_stdout(f_out):
                 generate_usage_table(d)
-                
+
             output = f_out.getvalue()
             self.assertIn("a.py", output)
             self.assertIn("Doc A", output)
