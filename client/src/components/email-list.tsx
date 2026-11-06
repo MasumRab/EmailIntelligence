@@ -155,10 +155,10 @@ export function EmailList({ emails, loading, onEmailSelect }: EmailListProps) {
                       labels = email.labels;
                     }
                     return labels.map((label: string, index: number) => (
-                    <Badge key={index} variant="outline" className="text-xs">
-                      {label}
-                    </Badge>
-                  );
+                      <Badge key={index} variant="outline" className="text-xs">
+                        {label}
+                      </Badge>
+                    ));
                   })()}
                   {email.confidence && (
                     <span className="text-xs text-gray-500 flex items-center">
