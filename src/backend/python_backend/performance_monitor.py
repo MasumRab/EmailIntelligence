@@ -300,6 +300,9 @@ def log_performance(operation_or_func=None, *, operation: str = ""):
         # Used as @log_performance("custom_name")
         op_name = operation
 
+        def decorator(func):
+            return _create_decorator(func, op_name)
+
         return decorator
     else:
         # Used as @log_performance(operation="custom_name")

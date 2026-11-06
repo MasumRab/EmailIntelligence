@@ -15,7 +15,7 @@ from backend.python_backend.services.category_service import CategoryService
 from src.core.database import get_db, DatabaseManager
 from .model_manager import ModelManager
 from .ai_engine import AdvancedAIEngine
-from .smart_filters import SmartFilterManager
+from src.backend.python_nlp.smart_filters import SmartFilterManager
 from .workflow_engine import WorkflowEngine
 
 try:
