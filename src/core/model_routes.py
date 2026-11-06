@@ -103,14 +103,13 @@ class SystemMetrics(BaseModel):
 router = APIRouter(
     prefix="/api/models",
     tags=["Model Management"],
-    dependencies=[Depends(get_current_active_user)],
 )
 
 
 @router.get("/", response_model=List[ModelInfo])
 async def list_models(
     include_loaded: bool = Query(True, description="Include loaded model details"),
-    manager: DynamicModelManager = Depends(get_model_manager),
+    _auth: TokenData = Depends(get_current_active_user), manager: DynamicModelManager = Depends(get_model_manager),
 ):
     """List all registered models with their status."""
     try:
@@ -122,7 +121,7 @@ async def list_models(
 
 
 @router.get("/{model_id}", response_model=ModelInfo)
-async def get_model(model_id: str, manager: DynamicModelManager = Depends(get_model_manager)):
+async def get_model(model_id: str, _auth: TokenData = Depends(get_current_active_user), manager: DynamicModelManager = Depends(get_model_manager)):
     """Get detailed information about a specific model."""
     try:
         model_info = await manager.get_model_info(model_id)
@@ -232,7 +231,7 @@ async def unregister_model(
 
 @router.get("/{model_id}/performance", response_model=ModelPerformance)
 async def get_model_performance(
-    model_id: str, manager: DynamicModelManager = Depends(get_model_manager)
+    model_id: str, _auth: TokenData = Depends(get_current_active_user), manager: DynamicModelManager = Depends(get_model_manager)
 ):
     """Get performance metrics for a model."""
     try:
@@ -248,7 +247,7 @@ async def get_model_performance(
 
 
 @router.post("/{model_id}/validate")
-async def validate_model(model_id: str, manager: DynamicModelManager = Depends(get_model_manager)):
+async def validate_model(model_id: str, _auth: TokenData = Depends(get_current_active_user), manager: DynamicModelManager = Depends(get_model_manager)):
     """Validate a model's integrity and functionality."""
     try:
         validation = await manager.validate_model(model_id)
@@ -259,7 +258,7 @@ async def validate_model(model_id: str, manager: DynamicModelManager = Depends(g
 
 
 @router.post("/optimize-memory")
-async def optimize_memory(manager: DynamicModelManager = Depends(get_model_manager)):
+async def optimize_memory(_auth: TokenData = Depends(get_current_active_user), manager: DynamicModelManager = Depends(get_model_manager)):
     """Trigger memory optimization."""
     try:
         result = await manager.optimize_memory()
@@ -292,7 +291,7 @@ async def get_system_metrics(manager: DynamicModelManager = Depends(get_model_ma
 
 @router.post("/{model_id}/config")
 async def update_model_config(
-    model_id: str, config_updates: dict, manager: DynamicModelManager = Depends(get_model_manager)
+    model_id: str, config_updates: dict, _auth: TokenData = Depends(get_current_active_user), manager: DynamicModelManager = Depends(get_model_manager)
 ):
     """Update configuration for a model."""
     try:
@@ -311,7 +310,7 @@ async def update_model_config(
 
 @router.post("/{model_id}/version/{version}")
 async def create_model_version(
-    model_id: str, version: str, manager: DynamicModelManager = Depends(get_model_manager)
+    model_id: str, version: str, _auth: TokenData = Depends(get_current_active_user), manager: DynamicModelManager = Depends(get_model_manager)
 ):
     """Create a new version of a model."""
     # This would require the actual model object to be passed
@@ -321,7 +320,7 @@ async def create_model_version(
 
 @router.post("/{model_id}/rollback/{version}")
 async def rollback_model_version(
-    model_id: str, version: str, manager: DynamicModelManager = Depends(get_model_manager)
+    model_id: str, version: str, _auth: TokenData = Depends(get_current_active_user), manager: DynamicModelManager = Depends(get_model_manager)
 ):
     """Rollback a model to a specific version."""
     try:
@@ -340,7 +339,7 @@ async def rollback_model_version(
 
 # Specialized endpoints for AI engine integration
 @router.get("/available", response_model=List[dict])
-async def get_available_models(manager: DynamicModelManager = Depends(get_model_manager)):
+async def get_available_models(_auth: TokenData = Depends(get_current_active_user), manager: DynamicModelManager = Depends(get_model_manager)):
     """Get list of available models for AI engine integration."""
     try:
         models = await manager.get_available_models()
@@ -351,7 +350,7 @@ async def get_available_models(manager: DynamicModelManager = Depends(get_model_
 
 
 @router.get("/sentiment/model")
-async def get_sentiment_model(manager: DynamicModelManager = Depends(get_model_manager)):
+async def get_sentiment_model(_auth: TokenData = Depends(get_current_active_user), manager: DynamicModelManager = Depends(get_model_manager)):
     """Get the best available sentiment analysis model."""
     try:
         model = await manager.get_sentiment_model()
@@ -365,7 +364,7 @@ async def get_sentiment_model(manager: DynamicModelManager = Depends(get_model_m
 
 
 @router.get("/topic/model")
-async def get_topic_model(manager: DynamicModelManager = Depends(get_model_manager)):
+async def get_topic_model(_auth: TokenData = Depends(get_current_active_user), manager: DynamicModelManager = Depends(get_model_manager)):
     """Get the best available topic classification model."""
     try:
         model = await manager.get_topic_model()
@@ -379,7 +378,7 @@ async def get_topic_model(manager: DynamicModelManager = Depends(get_model_manag
 
 
 @router.get("/intent/model")
-async def get_intent_model(manager: DynamicModelManager = Depends(get_model_manager)):
+async def get_intent_model(_auth: TokenData = Depends(get_current_active_user), manager: DynamicModelManager = Depends(get_model_manager)):
     """Get the best available intent recognition model."""
     try:
         model = await manager.get_intent_model()
@@ -393,7 +392,7 @@ async def get_intent_model(manager: DynamicModelManager = Depends(get_model_mana
 
 
 @router.get("/urgency/model")
-async def get_urgency_model(manager: DynamicModelManager = Depends(get_model_manager)):
+async def get_urgency_model(_auth: TokenData = Depends(get_current_active_user), manager: DynamicModelManager = Depends(get_model_manager)):
     """Get the best available urgency detection model."""
     try:
         model = await manager.get_urgency_model()
