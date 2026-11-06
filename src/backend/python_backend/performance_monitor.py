@@ -6,8 +6,10 @@ model usage, memory consumption, and error rates.
 """
 
 import asyncio
+import json
 import logging
 import threading
+import json
 import time
 from dataclasses import dataclass
 from datetime import datetime, timezone
@@ -298,7 +300,10 @@ def log_performance(operation_or_func=None, *, operation: str = ""):
         return _create_decorator(func, op_name)
     elif operation_or_func is not None and operation == "":
         # Used as @log_performance("custom_name")
-        op_name = operation
+        op_name = operation_or_func
+
+        def decorator(func):
+            return _create_decorator(func, op_name)
 
         return decorator
     else:

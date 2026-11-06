@@ -15,8 +15,12 @@ def safe_ref(ref: str) -> str:
     The allowlist is matched, not merely tested: the matched text is what reaches
     argv, so the value git receives is the value the regex accepted. A boolean
     "reject if unsafe" helper leaves the original string in the taint graph and
+<<<<<<< HEAD
     SonarCloud's pythonsecurity:S8705 keeps reporting the sink. The `--` separator
     below is belt and braces for the same concern.
+=======
+    SonarCloud's pythonsecurity:S8705 keeps reporting the sink.
+>>>>>>> origin/main
     """
     match = _SAFE_REF.fullmatch(ref)
     if not match or ref.startswith("-"):
