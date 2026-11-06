@@ -36,13 +36,13 @@ STATUS_FAILED=0
 
 # Logging functions
 log_header() {
-    echo -e "\n${BLUE}╔══════════════════════════════════════════════════════════════════════════════╗${NC}"
-    echo -e "${BLUE}║${WHITE} $1 ${BLUE}$(printf '%*s' $((78-${#1})) '')║${NC}"
-    echo -e "${BLUE}╚══════════════════════════════════════════════════════════════════════════════╝${NC}\n"
+    printf "%b\n" "\n${BLUE}╔══════════════════════════════════════════════════════════════════════════════╗${NC}"
+    printf "%b%s%b\n" "${BLUE}║${WHITE} " "$1" " ${BLUE}$(printf '%*s' $((78-${#1})) '')║${NC}"
+    printf "%b\n" "${BLUE}╚══════════════════════════════════════════════════════════════════════════════╝${NC}\n"
 }
 
 log_section() {
-    echo -e "\n${CYAN}┌─ $1 ${CYAN}$(printf '%.0s─' $(seq 1 $((75-${#1}))))┐${NC}"
+    printf "%b%s%b\n" "\n${CYAN}┌─ " "$1" " ${CYAN}$(printf '%.0s─' $(seq 1 $((75-${#1}))))┐${NC}"
 }
 
 log_item() {
@@ -52,27 +52,27 @@ log_item() {
 
     case "$status" in
         "PASS")
-            echo -e "${GREEN}${CHECK} ${message}${NC}"
+            printf "%b%s%b\n" "${GREEN}${CHECK} " "${message}" "${NC}"
             ((STATUS_PASSED++))
             ;;
         "FAIL")
-            echo -e "${RED}${CROSS} ${message}${NC}"
+            printf "%b%s%b\n" "${RED}${CROSS} " "${message}" "${NC}"
             ((STATUS_FAILED++))
             ;;
         "WARN")
-            echo -e "${YELLOW}${WARNING} ${message}${NC}"
+            printf "%b%s%b\n" "${YELLOW}${WARNING} " "${message}" "${NC}"
             ((STATUS_WARNINGS++))
             ;;
         "INFO")
-            echo -e "${BLUE}${INFO} ${message}${NC}"
+            printf "%b%s%b\n" "${BLUE}${INFO} " "${message}" "${NC}"
             ;;
         *)
-            echo -e "  ${message}"
+            printf "  %s\n" "${message}"
             ;;
     esac
 
     if [[ -n "$details" ]]; then
-        echo -e "    ${details}"
+        printf "    %s\n" "${details}"
     fi
 }
 
@@ -292,48 +292,48 @@ check_system_health() {
 generate_summary() {
     log_header "ORCHESTRATION STATUS SUMMARY"
 
-    echo -e "${WHITE}Status Overview:${NC}"
-    echo -e "  ${GREEN}${CHECK} Passed: $STATUS_PASSED${NC}"
+    printf "%b\n" "${WHITE}Status Overview:${NC}"
+    printf "%b%s%b\n" "  ${GREEN}${CHECK} Passed: " "$STATUS_PASSED" "${NC}"
     if [[ $STATUS_WARNINGS -gt 0 ]]; then
-        echo -e "  ${YELLOW}${WARNING} Warnings: $STATUS_WARNINGS${NC}"
+        printf "%b%s%b\n" "  ${YELLOW}${WARNING} Warnings: " "$STATUS_WARNINGS" "${NC}"
     fi
     if [[ $STATUS_FAILED -gt 0 ]]; then
-        echo -e "  ${RED}${CROSS} Failed: $STATUS_FAILED${NC}"
+        printf "%b%s%b\n" "  ${RED}${CROSS} Failed: " "$STATUS_FAILED" "${NC}"
     fi
 
-    echo -e "\n${WHITE}System Health:${NC}"
+    printf "%b\n" "\n${WHITE}System Health:${NC}"
     if [[ $STATUS_FAILED -eq 0 && $STATUS_WARNINGS -eq 0 ]]; then
-        echo -e "  ${GREEN}${GEAR} Orchestration system is HEALTHY${NC}"
-        echo -e "  ${GREEN}${SYNC} All components functioning optimally${NC}"
+        printf "%b\n" "  ${GREEN}${GEAR} Orchestration system is HEALTHY${NC}"
+        printf "%b\n" "  ${GREEN}${SYNC} All components functioning optimally${NC}"
     elif [[ $STATUS_FAILED -eq 0 ]]; then
-        echo -e "  ${YELLOW}${WARNING} Orchestration system has minor issues${NC}"
-        echo -e "  ${YELLOW}${INFO} Review warnings above for optimization opportunities${NC}"
+        printf "%b\n" "  ${YELLOW}${WARNING} Orchestration system has minor issues${NC}"
+        printf "%b\n" "  ${YELLOW}${INFO} Review warnings above for optimization opportunities${NC}"
     else
-        echo -e "  ${RED}${CROSS} Orchestration system has critical issues${NC}"
-        echo -e "  ${RED}${INFO} Address failed checks immediately${NC}"
+        printf "%b\n" "  ${RED}${CROSS} Orchestration system has critical issues${NC}"
+        printf "%b\n" "  ${RED}${INFO} Address failed checks immediately${NC}"
     fi
 
-    echo -e "\n${WHITE}Next Steps:${NC}"
+    printf "%b\n" "\n${WHITE}Next Steps:${NC}"
     if [[ $STATUS_FAILED -gt 0 ]]; then
-        echo -e "  1. ${RED}Fix critical issues listed above${NC}"
-        echo -e "  2. ${YELLOW}Run: bash scripts/test_orchestration.sh${NC}"
-        echo -e "  3. ${BLUE}Verify fixes with: bash scripts/orchestration_status.sh${NC}"
+        printf "%b\n" "  1. ${RED}Fix critical issues listed above${NC}"
+        printf "%b\n" "  2. ${YELLOW}Run: bash scripts/test_orchestration.sh${NC}"
+        printf "%b\n" "  3. ${BLUE}Verify fixes with: bash scripts/orchestration_status.sh${NC}"
     elif [[ $STATUS_WARNINGS -gt 0 ]]; then
-        echo -e "  1. ${YELLOW}Review warnings and optimize as needed${NC}"
-        echo -e "  2. ${BLUE}Monitor system health regularly${NC}"
+        printf "%b\n" "  1. ${YELLOW}Review warnings and optimize as needed${NC}"
+        printf "%b\n" "  2. ${BLUE}Monitor system health regularly${NC}"
     else
-        echo -e "  1. ${GREEN}System is fully operational${NC}"
-        echo -e "  2. ${BLUE}Continue monitoring for optimal performance${NC}"
+        printf "%b\n" "  1. ${GREEN}System is fully operational${NC}"
+        printf "%b\n" "  2. ${BLUE}Continue monitoring for optimal performance${NC}"
     fi
 
-    echo -e "\n${PURPLE}Report generated on: $(date)${NC}"
-    echo -e "${PURPLE}Orchestration branch: $ORCHESTRATION_BRANCH${NC}"
+    printf "%b%s%b\n" "\n${PURPLE}Report generated on: " "$(date)" "${NC}"
+    printf "%b%s%b\n" "${PURPLE}Orchestration branch: " "$ORCHESTRATION_BRANCH" "${NC}"
 }
 
 main() {
     log_header "ORCHESTRATION SYSTEM STATUS DASHBOARD"
 
-    echo -e "${WHITE}Monitoring orchestration system health and synchronization status...${NC}\n"
+    printf "%b\n" "${WHITE}Monitoring orchestration system health and synchronization status...${NC}\n"
 
     check_git_repository
     check_orchestration_files

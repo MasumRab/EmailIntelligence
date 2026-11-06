@@ -79,7 +79,10 @@ class CustomEmailNode(BaseNode):
         super().__init__(node_id, name or "Custom Email Node", "Description")
         self.config = config or {}
         self.input_ports = [
-            NodePort("emails", DataType.EMAIL_LIST, required=True)
+            NodePort("emails", DataType.EMAIL_LIST, required=True),
+            NodePort("config_override", DataType.JSON, required=False, default_value={}),
+            NodePort("config_override", DataType.JSON, required=False, default_value={}),
+            NodePort("config_override", DataType.JSON, required=False, default_value={})
         ]
         self.output_ports = [
             NodePort("processed_emails", DataType.EMAIL_LIST, required=True),
