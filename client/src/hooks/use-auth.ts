@@ -43,8 +43,8 @@ export function useAuth() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ 
-          username, 
+        body: JSON.stringify({
+          username,
           password,
           mfa_token: mfaToken
         }),
@@ -64,7 +64,7 @@ export function useAuth() {
           return { success: false, mfaRequired: true };
         }
       }
-      
+
       const errorData = await response.json();
       return { success: false, error: errorData.detail || 'Login failed' };
     } catch (error) {
