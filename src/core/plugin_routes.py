@@ -13,6 +13,7 @@ from pydantic import BaseModel, Field
 
 from .plugin_base import PluginSecurityLevel
 from .plugin_manager import PluginManager
+from .auth import get_current_active_user, require_role, UserRole, TokenData
 
 logger = logging.getLogger(__name__)
 
@@ -91,7 +92,7 @@ router = APIRouter(prefix="/api/plugins", tags=["Plugin Management"])
 
 
 @router.get("/", response_model=List[PluginInfo])
-async def list_plugins(manager: PluginManager = Depends(get_plugin_manager)):
+async def list_plugins(_auth: TokenData = Depends(get_current_active_user), manager: PluginManager = Depends(get_plugin_manager)):
     """List all installed plugins with their status."""
     try:
         plugins = manager.list_plugins()
@@ -103,7 +104,7 @@ async def list_plugins(manager: PluginManager = Depends(get_plugin_manager)):
 
 @router.get("/{plugin_id}", response_model=PluginInfo)
 async def get_plugin(
-    plugin_id: str, manager: PluginManager = Depends(get_plugin_manager)
+    plugin_id: str, _auth: TokenData = Depends(get_current_active_user), manager: PluginManager = Depends(get_plugin_manager)
 ):
     """Get detailed information about a specific plugin."""
     try:
@@ -122,7 +123,7 @@ async def get_plugin(
 async def load_plugin(
     plugin_id: str,
     background_tasks: BackgroundTasks,
-    manager: PluginManager = Depends(get_plugin_manager),
+    _auth: TokenData = Depends(get_current_active_user), manager: PluginManager = Depends(get_plugin_manager),
 ):
     """Load a plugin into memory."""
     try:
@@ -135,7 +136,7 @@ async def load_plugin(
 
 @router.post("/{plugin_id}/unload")
 async def unload_plugin(
-    plugin_id: str, manager: PluginManager = Depends(get_plugin_manager)
+    plugin_id: str, _auth: TokenData = Depends(get_current_active_user), manager: PluginManager = Depends(get_plugin_manager)
 ):
     """Unload a plugin from memory."""
     try:
@@ -154,7 +155,7 @@ async def unload_plugin(
 
 @router.post("/{plugin_id}/enable")
 async def enable_plugin(
-    plugin_id: str, manager: PluginManager = Depends(get_plugin_manager)
+    plugin_id: str, _auth: TokenData = Depends(get_current_active_user), manager: PluginManager = Depends(get_plugin_manager)
 ):
     """Enable a plugin."""
     try:
@@ -173,7 +174,7 @@ async def enable_plugin(
 
 @router.post("/{plugin_id}/disable")
 async def disable_plugin(
-    plugin_id: str, manager: PluginManager = Depends(get_plugin_manager)
+    plugin_id: str, _auth: TokenData = Depends(get_current_active_user), manager: PluginManager = Depends(get_plugin_manager)
 ):
     """Disable a plugin."""
     try:
@@ -194,7 +195,7 @@ async def disable_plugin(
 async def install_plugin(
     installation: PluginInstallation,
     background_tasks: BackgroundTasks,
-    manager: PluginManager = Depends(get_plugin_manager),
+    _auth: TokenData = Depends(get_current_active_user), manager: PluginManager = Depends(get_plugin_manager),
 ):
     """Install a plugin from the marketplace."""
     try:
@@ -217,7 +218,7 @@ async def install_plugin(
 
 @router.delete("/{plugin_id}")
 async def uninstall_plugin(
-    plugin_id: str, manager: PluginManager = Depends(get_plugin_manager)
+    plugin_id: str, _auth: TokenData = Depends(get_current_active_user), manager: PluginManager = Depends(get_plugin_manager)
 ):
     """Uninstall a plugin completely."""
     try:
@@ -238,7 +239,7 @@ async def uninstall_plugin(
 async def update_plugin(
     plugin_id: str,
     background_tasks: BackgroundTasks,
-    manager: PluginManager = Depends(get_plugin_manager),
+    _auth: TokenData = Depends(get_current_active_user), manager: PluginManager = Depends(get_plugin_manager),
 ):
     """Update a plugin to the latest version."""
     try:
@@ -251,7 +252,7 @@ async def update_plugin(
 
 @router.get("/{plugin_id}/validate")
 async def validate_plugin(
-    plugin_id: str, manager: PluginManager = Depends(get_plugin_manager)
+    plugin_id: str, _auth: TokenData = Depends(get_current_active_user), manager: PluginManager = Depends(get_plugin_manager)
 ):
     """Validate a plugin's integrity and security."""
     try:
@@ -266,7 +267,7 @@ async def validate_plugin(
 async def update_plugin_config(
     plugin_id: str,
     config_update: PluginConfiguration,
-    manager: PluginManager = Depends(get_plugin_manager),
+    _auth: TokenData = Depends(get_current_active_user), manager: PluginManager = Depends(get_plugin_manager),
 ):
     """Update configuration for a plugin."""
     # This would need implementation in the plugin manager
@@ -278,7 +279,7 @@ async def update_plugin_config(
 @router.get("/marketplace/", response_model=List[MarketplacePlugin])
 async def get_marketplace_plugins(
     refresh: bool = Query(False, description="Force refresh marketplace cache"),
-    manager: PluginManager = Depends(get_plugin_manager),
+    _auth: TokenData = Depends(get_current_active_user), manager: PluginManager = Depends(get_plugin_manager),
 ):
     """Get available plugins from the marketplace."""
     try:
@@ -306,7 +307,7 @@ async def execute_plugin_method(
     plugin_id: str,
     method_name: str,
     params: dict = None,
-    manager: PluginManager = Depends(get_plugin_manager),
+    _auth: TokenData = Depends(get_current_active_user), manager: PluginManager = Depends(get_plugin_manager),
 ):
     """Execute a method on a loaded plugin (advanced feature)."""
     try:
@@ -328,7 +329,7 @@ async def execute_plugin_method(
 
 # Hook system endpoints
 @router.get("/hooks/registered")
-async def get_registered_hooks(manager: PluginManager = Depends(get_plugin_manager)):
+async def get_registered_hooks(_auth: TokenData = Depends(get_current_active_user), manager: PluginManager = Depends(get_plugin_manager)):
     """Get information about registered hooks."""
     try:
         hook_system = manager.get_hook_system()
@@ -343,7 +344,7 @@ async def get_registered_hooks(manager: PluginManager = Depends(get_plugin_manag
 async def trigger_hook(
     hook_name: str,
     data: dict = None,
-    manager: PluginManager = Depends(get_plugin_manager),
+    _auth: TokenData = Depends(get_current_active_user), manager: PluginManager = Depends(get_plugin_manager),
 ):
     """Trigger a hook manually (for testing/debugging)."""
     try:
@@ -371,7 +372,7 @@ async def check_security_sandbox(
     security_level: PluginSecurityLevel = Query(
         PluginSecurityLevel.STANDARD, description="Security level"
     ),
-    manager: PluginManager = Depends(get_plugin_manager),
+    _auth: TokenData = Depends(get_current_active_user), manager: PluginManager = Depends(get_plugin_manager),
 ):
     """Check if a module import is allowed for a security level."""
     try:
