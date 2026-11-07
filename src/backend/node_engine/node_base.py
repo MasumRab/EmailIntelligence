@@ -23,6 +23,8 @@ except ImportError:
     nx = None
 
 
+_UNSET = object()
+
 class DataType(Enum):
     """Enum for supported data types in node connections."""
 
@@ -84,7 +86,10 @@ class SecurityContext:
 
 
 class NodePort:
-    """Defines an input or output port for a node."""
+    """Defines an input or output port for a node.
+
+    If `required=False`, `default_value` can optionally provide a default when omitted.
+    """
 
     def __init__(
         self,
@@ -92,14 +97,20 @@ class NodePort:
         data_type: Union[DataType, GenericType],
         required: bool = True,
         description: str = "",
+        *,
+        default_value: Any = _UNSET,
     ):
         self.name = name
         self.data_type = data_type
         self.required = required
         self.description = description
+        self.default_value = default_value
+        if self.required and self.default_value is not _UNSET:
+            raise ValueError(f"required port '{self.name}' cannot declare a default_value; set required=False or remove the default")
 
     def __repr__(self):
-        return f"NodePort(name='{self.name}', data_type={self.data_type}, required={self.required})"
+        def_val_str = "<unset>" if self.default_value is _UNSET else repr(self.default_value)
+        return f"NodePort(name='{self.name}', data_type={self.data_type}, required={self.required}, default_value={def_val_str})"
 
 
 class Connection:
@@ -199,12 +210,19 @@ class BaseNode(ABC):
 
         return {"valid": len(errors) == 0, "errors": errors}
 
+    def _apply_input_defaults(self):
+        """Apply default values to optional input ports if they are not already set."""
+        for port in self.input_ports:
+            if port.default_value is not _UNSET and port.name not in self.inputs:
+                self.inputs[port.name] = port.default_value
+
     def set_input(self, port_name: str, value: Any):
         """Set an input value for the node."""
         self.inputs[port_name] = value
 
     def set_inputs(self, inputs: Dict[str, Any]):
         """Set multiple input values at once."""
+        self._apply_input_defaults()
         self.inputs.update(inputs)
 
     def get_node_info(self) -> Dict[str, Any]:

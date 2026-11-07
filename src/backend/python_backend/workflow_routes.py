@@ -20,7 +20,7 @@ from src.core.auth import get_current_active_user
 from .dependencies import get_workflow_engine
 
 logger = logging.getLogger(__name__)
-router = APIRouter()
+router = APIRouter(dependencies=[Depends(get_current_active_user)])
 
 
 class WorkflowType:
