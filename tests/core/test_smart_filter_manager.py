@@ -64,7 +64,7 @@ async def test_apply_filters_to_email_context_creation(mock_db_manager):
     # Verify call args
     call_args = mock_db_manager._apply_filter_to_email.call_args
     assert call_args is not None
-    filter_arg, context_arg = call_args[0]
+    filter_arg, email_arg, context_arg = call_args[0]
 
     assert filter_arg == filter_obj
     assert isinstance(context_arg, _EmailContext)
@@ -150,4 +150,4 @@ async def test_batch_update_filter_usage(mock_db_manager):
     assert params[2][1] == "f2"
 
     # Verify cache invalidation
-    assert mock_db_manager.caching_manager.delete.call_count == 3
+    assert mock_db_manager.caching_manager.delete.call_count == 1

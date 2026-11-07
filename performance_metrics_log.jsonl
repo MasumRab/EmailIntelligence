@@ -1,0 +1,4 @@
+{"timestamp": "2026-11-07T19:14:38.261435+00:00", "operation": "", "duration_seconds": 0.004137009998885333}
+{"timestamp": "2026-11-07T19:14:38.261884+00:00", "operation": "build_indexes", "duration_seconds": 1.521600097476039e-05}
+{"timestamp": "2026-11-07T19:15:34.217881+00:00", "operation": "", "duration_seconds": 0.0037364270010584733}
+{"timestamp": "2026-11-07T19:15:34.218400+00:00", "operation": "build_indexes", "duration_seconds": 1.732500095386058e-05}

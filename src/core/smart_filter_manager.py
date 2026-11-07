@@ -100,6 +100,21 @@ class FilterPerformance:
     false_negatives: int
 
 
+@dataclass
+class _EmailContext:
+    """Internal context object for email filtering operations."""
+    subject_lower: str
+    sender_domain: str
+    sender_email: str = ""
+    content_lower: str = ""
+    timestamp: datetime = None
+    
+    def __post_init__(self):
+        if self.timestamp is None:
+            self.timestamp = datetime.now(timezone.utc)
+
+
+
 class SmartFilterManager:
     """
     Advanced manager for the lifecycle of smart email filters.
@@ -548,7 +563,7 @@ class SmartFilterManager:
         
         return "keep"
 
-    async def _apply_filter_to_email(self, filter_obj: EmailFilter, email: Dict[str, Any]) -> bool:
+    async def _apply_filter_to_email(self, filter_obj: EmailFilter, email: Dict[str, Any], context: Optional["_EmailContext"] = None) -> bool:
         """Applies a single filter's criteria to an email."""
         criteria = filter_obj.criteria
         
@@ -663,7 +678,21 @@ class SmartFilterManager:
         
         for filter_obj in active_filters:
             try:
-                if await self._apply_filter_to_email(filter_obj, email_data):
+                # Create _EmailContext for this email
+                subject = email_data.get("subject", "")
+                sender = email_data.get("sender_email", email_data.get("sender", ""))
+                sender_domain = self._extract_domain(sender) if sender else ""
+                content = email_data.get("content", email_data.get("body", ""))
+                
+                context = _EmailContext(
+                    subject_lower=subject.lower() if subject else "",
+                    sender_domain=sender_domain,
+                    sender_email=sender,
+                    content_lower=content.lower() if content else "",
+                    timestamp=datetime.now(timezone.utc)
+                )
+                
+                if await self._apply_filter_to_email(filter_obj, email_data, context):
                     # Record that this filter matched
                     summary["filters_matched"].append({
                         "filter_id": filter_obj.filter_id,
@@ -718,6 +747,26 @@ class SmartFilterManager:
         
         # Invalidate cache for active filters
         await self.caching_manager.delete("active_filters_sorted")
+    @log_performance(operation="batch_update_filter_usage")
+    async def _batch_update_filter_usage(self, filters: List[EmailFilter]):
+        """Batch update filter usage statistics."""
+        if not filters:
+            return
+        
+        update_query = """
+            UPDATE email_filters 
+            SET usage_count = usage_count + 1, last_used = ? 
+            WHERE filter_id = ?
+        """
+        current_time = datetime.now(timezone.utc).isoformat()
+        params = [(datetime.now(timezone.utc).isoformat(), f.filter_id) for f in filters]
+        
+        self._db_executemany(update_query, params)
+        
+        # Invalidate cache
+        await self.caching_manager.delete("active_filters_sorted")
+
+
 
     @log_performance(operation="get_filter_by_id")
     async def get_filter_by_id(self, filter_id: str) -> Optional[EmailFilter]:

@@ -21,13 +21,6 @@ def create_default_dependencies() -> Dict[str, Any]:
     """
     dependencies = {}
 
-    try:
-        from ...core.security import SecurityValidator
-
-        dependencies["security_validator"] = SecurityValidator()
-    except ImportError:
-        dependencies["security_validator"] = None
-
     # Import dependencies lazily to avoid circular imports and handle missing modules
     try:
         from ..git.worktree import WorktreeManager
@@ -133,6 +126,7 @@ def create_registry(factory: Optional[CommandFactory] = None) -> CommandRegistry
     from .validate_command import ValidateCommand
     from .analyze_history_command import AnalyzeHistoryCommand
     from .plan_rebase_command import PlanRebaseCommand
+    from .identify_command import IdentifyCommand
 
     cmd_factory = factory or create_command_factory()
     registry = CommandRegistry(cmd_factory)
@@ -143,6 +137,7 @@ def create_registry(factory: Optional[CommandFactory] = None) -> CommandRegistry
     registry.register_command(ValidateCommand, "agent-4")
     registry.register_command(AnalyzeHistoryCommand, "agent-5")
     registry.register_command(PlanRebaseCommand, "agent-5")
+    registry.register_command(IdentifyCommand, "agent-5")
 
     return registry
 
