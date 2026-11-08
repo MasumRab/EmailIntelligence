@@ -600,14 +600,20 @@ class SmartFilterManager:
 
         # Check sender domain criteria
         if "sender_domain" in criteria:
-            sender_email = email.get("sender_email", email.get("sender", ""))
-            domain = self._extract_domain(sender_email)
+            if context and context.sender_domain:
+                domain = context.sender_domain
+            else:
+                sender_email = email.get("sender_email", email.get("sender", ""))
+                domain = self._extract_domain(sender_email)
             if domain != criteria["sender_domain"]:
                 return False
 
         # Check subject keywords
         if "subject_keywords" in criteria:
-            subject = email.get("subject", "").lower()
+            if context and context.subject_lower:
+                subject = context.subject_lower
+            else:
+                subject = email.get("subject", "").lower()
             if not any(
                 keyword.lower() in subject for keyword in criteria["subject_keywords"]
             ):
@@ -615,7 +621,10 @@ class SmartFilterManager:
 
         # Check content keywords
         if "content_keywords" in criteria:
-            content = email.get("content", email.get("body", "")).lower()
+            if context and context.content_lower:
+                content = context.content_lower
+            else:
+                content = email.get("content", email.get("body", "")).lower()
             if not any(
                 keyword.lower() in content for keyword in criteria["content_keywords"]
             ):
@@ -623,7 +632,10 @@ class SmartFilterManager:
 
         # Check from patterns
         if "from_patterns" in criteria:
-            sender_email = email.get("sender_email", email.get("sender", "")).lower()
+            if context and context.sender_email:
+                sender_email = context.sender_email.lower()
+            else:
+                sender_email = email.get("sender_email", email.get("sender", "")).lower()
             if not any(
                 re.search(p, sender_email, re.IGNORECASE)
                 for p in criteria["from_patterns"]
@@ -716,7 +728,21 @@ class SmartFilterManager:
 
         for filter_obj in active_filters:
             try:
-                if await self._apply_filter_to_email(filter_obj, email_data):
+                # Create _EmailContext for this email
+                subject = email_data.get("subject", "")
+                sender = email_data.get("sender_email", email_data.get("sender", ""))
+                sender_domain = self._extract_domain(sender) if sender else ""
+                content = email_data.get("content", email_data.get("body", ""))
+                
+                context = _EmailContext(
+                    subject_lower=subject.lower() if subject else "",
+                    sender_domain=sender_domain,
+                    sender_email=sender,
+                    content_lower=content.lower() if content else "",
+                    timestamp=datetime.now(timezone.utc)
+                )
+                
+                if await self._apply_filter_to_email(filter_obj, email_data, context):
                     # Record that this filter matched
                     summary["filters_matched"].append(
                         {

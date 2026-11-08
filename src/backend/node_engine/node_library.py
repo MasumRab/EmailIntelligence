@@ -10,13 +10,15 @@ by the Gradio UI to allow users to build node-based workflows.
 
 from typing import Any, Dict, List
 
-from backend.node_engine.email_nodes import (
+from src.backend.node_engine.email_nodes import (
     ActionNode,
     AIAnalysisNode,
     EmailSourceNode,
     FilterNode,
     PreprocessingNode,
 )
+from src.backend.node_engine.smart_filter_node import SmartFilterNode
+from src.backend.node_engine.node_base import DataType, NodePort
 
 
 class NodeLibrary:
@@ -77,6 +79,48 @@ class NodeLibrary:
                     "type": "JSON",
                     "required": True,
                     "description": "Statistics about preprocessing",
+                },
+            ],
+        }
+
+        # Register SmartFilterNode
+        self._nodes["SmartFilterNode"] = {
+            "class": SmartFilterNode,
+            "name": "Smart Filter",
+            "category": "Filtering",
+            "description": "Applies intelligent filtering to emails using learned patterns",
+            "input_ports": [
+                {
+                    "name": "emails",
+                    "type": "EMAIL_LIST",
+                    "required": True,
+                    "description": "List of emails to filter",
+                },
+                {
+                    "name": "filter_criteria",
+                    "type": "JSON",
+                    "required": False,
+                    "description": "Optional filter criteria to customize filtering behavior",
+                },
+            ],
+            "output_ports": [
+                {
+                    "name": "filtered_emails",
+                    "type": "EMAIL_LIST",
+                    "required": True,
+                    "description": "Filtered emails",
+                },
+                {
+                    "name": "filter_stats",
+                    "type": "JSON",
+                    "required": True,
+                    "description": "Statistics about the filtering process",
+                },
+                {
+                    "name": "matched_filters",
+                    "type": "JSON",
+                    "required": True,
+                    "description": "Filters that matched the emails",
                 },
             ],
         }
@@ -235,11 +279,7 @@ class NodeLibrary:
         return result
 
     def create_node(
-        self,
-        node_type: str,
-        config: Dict[str, Any] = None,
-        node_id: str = None,
-        name: str = None,
+        self, node_type: str, config: Dict[str, Any] = None, node_id: str = None, name: str = None
     ):
         """Create an instance of a node."""
         if node_type not in self._nodes:
@@ -262,3 +302,13 @@ def get_available_node_types() -> List[str]:
 def get_node_info(node_type: str) -> Dict[str, Any]:
     """Get detailed information about a specific node type."""
     return node_library.get_node_info(node_type)
+
+
+def get_nodes_by_category() -> Dict[str, List[Dict[str, Any]]]:
+    """Get all nodes grouped by category."""
+    return node_library.get_nodes_by_category()
+
+
+def get_all_node_info() -> List[Dict[str, Any]]:
+    """Get information about all available nodes."""
+    return node_library.get_all_node_info()

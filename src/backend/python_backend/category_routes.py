@@ -2,7 +2,7 @@ import json
 import logging
 from typing import List
 
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, HTTPException, Request
 
 from src.core.auth import get_current_active_user
 
@@ -12,7 +12,7 @@ from .exceptions import DatabaseError
 from .models import CategoryCreate, CategoryResponse
 from .performance_monitor import log_performance
 from .services.category_service import CategoryService
-from .utils import create_log_data
+from .utils import create_log_data, handle_pydantic_validation
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -27,6 +27,7 @@ async def get_categories(
 ):
     """
     Retrieves all categories from the database.
+
     Requires authentication.
     """
     try:
@@ -54,11 +55,11 @@ async def create_category(
 ):
     """
     Creates a new category in the database.
-    Requires authentication.
 
     Args:
         request (Request): The incoming request object.
         category (CategoryCreate): The category data for creation.
+        current_user: The authenticated user making the request.
         db (DatabaseManager): The database manager dependency.
 
     Returns:

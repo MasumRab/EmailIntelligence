@@ -5,6 +5,8 @@ It will be removed in a future release.
 Test module for workflow migration utilities.
 """
 
+import asyncio
+
 from backend.node_engine.migration_utils import (
     WorkflowMigrationManager,
     generate_migration_plan,
@@ -77,9 +79,7 @@ def test_migration_manager():
 
     try:
         plan = manager.generate_migration_plan(legacy_config)
-        print(
-            f"[PASS] Migration manager test passed! Plan has keys: {list(plan.keys())}"
-        )
+        print(f"[PASS] Migration manager test passed! Plan has keys: {list(plan.keys())}")
         return True
     except Exception as e:
         print(f"[FAIL] Migration manager test failed: {e}")

@@ -1,24 +1,22 @@
 """
-Authentication and authorization system for the Email Intelligence Platform.
+Authentication module for the Email Intelligence Platform.
 
-This module implements JWT-based authentication for API endpoints using the new
-core architecture and database management system.
+This module implements JWT-based authentication for API endpoints and integrates with the existing security framework.
 """
 
-from datetime import datetime, timedelta, timezone
-from typing import Any, Dict, List, Optional
-
+import logging
+from datetime import datetime, timedelta
+from typing import Optional, Dict, Any, List
+import time
+import secrets
 from argon2 import PasswordHasher
-from argon2.exceptions import VerifyMismatchError, InvalidHashError
 
 import jwt
-import secrets
 from fastapi import HTTPException, status, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel
 
-from .database import DatabaseManager, get_db
-from .security import DataSanitizer
+# Database imports removed - use dependency injection with create_database_manager
 from .settings import settings
 
 # Import the security framework components
@@ -26,16 +24,14 @@ from .security import SecurityContext, Permission, SecurityLevel
 
 logger = logging.getLogger(__name__)
 
-# Valid Argon2 hash for preventing timing attacks
-DUMMY_HASH = (
-    "$argon2id$v=19$m=65536,t=3,p=4$DnF1/L/JzW/0QZ3r5Y/y0w$K7g/6Z5x4y3w2v1u0t9s8"
-)
-
 
 class TokenData(BaseModel):
     """Data structure for JWT token payload"""
     username: Optional[str] = None
     role: Optional[str] = "user"
+
+
+from enum import Enum
 
 
 class UserRole(str, Enum):
@@ -57,30 +53,24 @@ class User(BaseModel):
 security = HTTPBearer()
 
 
-def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
-    """Create a JWT access token with the provided data."""
-    # Try to get the settings if possible
-    try:
-        from ..backend.python_backend.settings import settings
-        secret_key = settings.secret_key
-        algorithm = settings.algorithm
-        expire_minutes = settings.access_token_expire_minutes
-    except ImportError:
-        # Fallback to core settings
-        from .settings import settings
-        secret_key = settings.secret_key
-        algorithm = settings.algorithm
-        expire_minutes = settings.access_token_expire_minutes
+def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
+    """
+    Create a JWT access token with the provided data.
 
+    Args:
+        data: Dictionary containing the data to encode in the token
+        expires_delta: Optional timedelta for token expiration
+
+    Returns:
+        Encoded JWT token as a string
+    """
     to_encode = data.copy()
     if expires_delta:
-        expire = datetime.now(timezone.utc) + expires_delta
+        expire = datetime.utcnow() + expires_delta
     else:
-        expire = datetime.now(timezone.utc) + timedelta(minutes=expire_minutes)
+        expire = datetime.utcnow() + timedelta(minutes=15)
     to_encode.update({"exp": expire})
-    encoded_jwt = jwt.encode(
-        to_encode, secret_key, algorithm=algorithm
-    )
+    encoded_jwt = jwt.encode(to_encode, settings.secret_key, algorithm=settings.algorithm)
     return encoded_jwt
 
 
@@ -112,10 +102,10 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     ph = PasswordHasher()
     try:
         return ph.verify(hashed_password, plain_password)
-    except VerifyMismatchError:
+    except argon2.exceptions.VerifyMismatchError:
         # Password verification failed
         return False
-    except InvalidHashError:
+    except argon2.exceptions.InvalidHashError:
         # Invalid hash format
         logger.warning("Invalid password hash format")
         return False
@@ -125,9 +115,7 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
         return False
 
 
-async def authenticate_user(
-    username: str, password: str, db
-) -> Optional[Dict[str, Any]]:
+async def authenticate_user(username: str, password: str, db) -> Optional[Dict[str, Any]]:
     """
     Authenticate a user by username and password.
 
@@ -140,11 +128,8 @@ async def authenticate_user(
         User data if authentication is successful, None otherwise
     """
     try:
-        # Sanitize input to prevent injection attacks
-        sanitized_username = DataSanitizer.sanitize_input(username)
-
         # Try to get user from database
-        user_data = await db.get_user_by_username(sanitized_username)
+        user_data = await db.get_user_by_username(username)
 
         # Mitigate timing attacks: Always perform password verification
         # If user not found, verify a dummy hash to equalize timing
@@ -152,7 +137,9 @@ async def authenticate_user(
             stored_hash = user_data.get("hashed_password", "")
         else:
             # This is a valid Argon2 hash for "dummy" to prevent early exit
-            stored_hash = DUMMY_HASH
+            # We calculate it once or use a fixed one. Using a fixed one is faster but consistent.
+            # Ideally this should be pre-calculated.
+            stored_hash = "$argon2id$v=19$m=65536,t=3,p=4$DnF1/L/JzW/0QZ3r5Y/y0w$K7g/6Z5x4y3w2v1u0t9s8"
 
         is_valid = verify_password(password, stored_hash)
 
@@ -177,11 +164,8 @@ async def create_user(username: str, password: str, db) -> bool:
         True if user was created successfully, False if user already exists or on error
     """
     try:
-        # Sanitize input to prevent injection attacks
-        sanitized_username = DataSanitizer.sanitize_input(username)
-
         # Check if user already exists
-        existing_user = await db.get_user_by_username(sanitized_username)
+        existing_user = await db.get_user_by_username(username)
         if existing_user:
             return False
 
@@ -189,7 +173,11 @@ async def create_user(username: str, password: str, db) -> bool:
         hashed_password = hash_password(password)
 
         # Create user in database
-        user_data = {"username": sanitized_username, "hashed_password": hashed_password}
+        user_data = {
+            "username": username,
+            "hashed_password": hashed_password
+        }
+
         await db.create_user(user_data)
         return True
     except Exception as e:
@@ -198,25 +186,23 @@ async def create_user(username: str, password: str, db) -> bool:
 
 
 async def verify_token(
-    credentials: HTTPAuthorizationCredentials = Depends(security),
+    credentials: HTTPAuthorizationCredentials = Depends(security)
 ) -> TokenData:
     """
     Verify the JWT token from the Authorization header.
 
     This function checks if the provided token is valid and returns the token data.
     If the token is invalid or expired, it raises an HTTPException.
-    """
-    # Try to get the settings if possible
-    try:
-        from ..backend.python_backend.settings import settings
-        secret_key = settings.secret_key
-        algorithm = settings.algorithm
-    except ImportError:
-        # Fallback to core settings
-        from .settings import settings
-        secret_key = settings.secret_key
-        algorithm = settings.algorithm
 
+    Args:
+        credentials: HTTP authorization credentials containing the bearer token
+
+    Returns:
+        TokenData containing the username and role from the token
+
+    Raises:
+        HTTPException: If token is invalid or expired
+    """
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
@@ -225,67 +211,85 @@ async def verify_token(
     try:
         payload = jwt.decode(
             credentials.credentials,
-            secret_key,
-            algorithms=[algorithm],
+            settings.secret_key,
+            algorithms=[settings.algorithm]
         )
         username: str = payload.get("sub")
+        role: str = payload.get("role", "user")
         if username is None:
             raise credentials_exception
-        token_data = TokenData(username=username)
+        token_data = TokenData(username=username, role=role)
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token has expired",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
     except jwt.PyJWTError:
         raise credentials_exception
-    except Exception:
+    except Exception as e:
+        logger.error(f"Unexpected error during token verification: {e}")
         raise credentials_exception
 
     return token_data
 
 
-async def get_current_user(token_data: TokenData = Depends(verify_token)) -> str:
+def get_current_active_user(token_data: TokenData = Depends(verify_token)) -> TokenData:
     """
     Get the current authenticated user from the token.
 
     This function can be used as a dependency to protect endpoints.
+
+    Args:
+        token_data: Token data from verified JWT token
+
+    Returns:
+        TokenData containing username and role of the authenticated user
     """
-    return token_data.username
-
-
-async def get_current_active_user(current_user: str = Depends(get_current_user)) -> str:
-    """
-    Get the current active user, ensuring they are active.
-    """
-    db = await get_db()
-    users = db.users_data
-
-    for user in users:
-        if user.get("username") == current_user and user.get("is_active", True):
-            return current_user
-
-    raise HTTPException(status_code=400, detail="Inactive user")
+    # In a real implementation, you would fetch user details from a database
+    # For now, we just return the token data
+    return token_data
 
 
 def require_role(required_role: UserRole):
-    """Dependency that checks if the current user has the required role."""
+    """
+    Dependency to require a specific role for accessing an endpoint.
+
+    Args:
+        required_role: The role required to access the endpoint
+
+    Returns:
+        A dependency function that checks the user's role
+    """
     def role_checker(token_data: TokenData = Depends(verify_token)) -> TokenData:
         # In a real implementation, you would check the user's actual role from the database
         # For now, we'll check the role from the token
         if token_data.role != required_role.value:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail=f"Access denied. {required_role.value} role required.",
+                detail=f"Access denied. {required_role.value} role required."
             )
         return token_data
     return role_checker
 
 
 def require_any_role(required_roles: List[UserRole]):
-    """Dependency that checks if the current user has any of the required roles."""
+    """
+    Dependency to require any of the specified roles for accessing an endpoint.
+
+    Args:
+        required_roles: List of roles that can access the endpoint
+
+    Returns:
+        A dependency function that checks the user's role
+    """
     def role_checker(token_data: TokenData = Depends(verify_token)) -> TokenData:
         # In a real implementation, you would check the user's actual role from the database
         # For now, we'll check the role from the token
         if token_data.role not in [role.value for role in required_roles]:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail=f"Access denied. One of {[role.value for role in required_roles]} roles required.",
+                detail=f"Access denied. One of {[role.value for role in required_roles]} roles required."
             )
         return token_data
     return role_checker
@@ -314,7 +318,9 @@ def create_security_context_for_user(username: str) -> SecurityContext:
         user_id=username,
         permissions=permissions,
         security_level=SecurityLevel.INTERNAL,
-        session_id=session_token,
+        session_token=session_token,
+        created_at=time.time(),
+        expires_at=time.time() + 3600,  # 1 hour expiration
         allowed_resources=["*"],  # All resources allowed for now
     )
 
