@@ -24,7 +24,7 @@ export function UserProfile() {
               <p className="text-gray-600">Username: user@example.com</p>
               <p className="text-gray-600">Role: User</p>
             </div>
-            
+
             <div>
               <h3 className="text-lg font-medium">Security Settings</h3>
               {mfaEnabled ? (
@@ -46,11 +46,11 @@ export function UserProfile() {
           </div>
         </CardContent>
       </Card>
-      
+
       {showMfaSetup && (
         <MFASetup />
       )}
-      
+
       {showMfaDisable && (
         <MFADisable />
       )}

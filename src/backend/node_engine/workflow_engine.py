@@ -8,7 +8,6 @@ This module manages the execution of node-based workflows, handling
 dependencies, execution order, and error management.
 """
 
-import asyncio
 import logging
 import time
 from datetime import datetime
@@ -16,9 +15,9 @@ from typing import Any, Dict, List, Optional
 
 from backend.node_engine.node_base import (
     BaseNode,
-    Connection,
     DataType,
     ExecutionContext,
+    GenericType,
     SecurityContext,
     Workflow,
 )
@@ -317,18 +316,15 @@ class WorkflowEngine:
 
                 node.set_input(conn.target_port, source_output)
 
+        # Apply default values for optional ports not fulfilled by connections
+        node._apply_input_defaults()
+
     # TODO(P2, 2h): Enhance type validation to support more complex type relationships
     # Pseudo code for complex type relationships:
     # - Support union types (e.g., EMAIL | EMAIL_LIST)
     # - Handle inheritance relationships
     # - Support generic types with constraints
     # - Add type aliases and custom type definitions
-
-    # TODO(P2, 3h): Add support for optional input ports with default values
-    # Pseudo code for optional ports:
-    # - Modify NodePort to include default_value parameter
-    # - Update validate_inputs to skip validation for optional ports without values
-    # - Modify set_inputs to use default values when not provided
 
     # TODO(P3, 4h): Implement input transformation pipeline for incompatible but convertible types
     # Pseudo code for transformation pipeline:
@@ -341,6 +337,10 @@ class WorkflowEngine:
         self, source_type: "DataType", target_type: "DataType"
     ) -> bool:
         """Validate if source and target types are compatible."""
+        # Handle GenericType comparisons
+        if isinstance(source_type, GenericType) or isinstance(target_type, GenericType):
+            return self._validate_generic_compatibility(source_type, target_type)
+
         if target_type == DataType.ANY:
             return True
         if source_type == target_type:
@@ -357,6 +357,49 @@ class WorkflowEngine:
             return True  # Primitive types can be serialized to JSON
 
         # Add more type compatibility rules as needed
+        return False
+
+    def _validate_generic_compatibility(
+        self,
+        source_type: "DataType | GenericType",
+        target_type: "DataType | GenericType",
+    ) -> bool:
+        """Helper to validate compatibility involving generic types."""
+        # If target is ANY, it accepts anything
+        if target_type == DataType.ANY:
+            return True
+
+        # If both are GenericType
+        if isinstance(source_type, GenericType) and isinstance(target_type, GenericType):
+            if source_type.base_type != target_type.base_type:
+                return False
+
+            if len(source_type.type_parameters) != len(target_type.type_parameters):
+                return False
+
+            # Recursively check parameters
+            for src_param, tgt_param in zip(
+                source_type.type_parameters, target_type.type_parameters
+            ):
+                if not self._validate_type_compatibility(src_param, tgt_param):
+                    return False
+            return True
+
+        # Handle backward compatibility: EMAIL_LIST is equivalent to List[Email]
+        if source_type == DataType.EMAIL_LIST:
+             if isinstance(target_type, GenericType) and target_type.base_type == DataType.LIST:
+                 if len(target_type.type_parameters) > 0 and target_type.type_parameters[0] == DataType.EMAIL:
+                     return True
+
+        if target_type == DataType.EMAIL_LIST:
+             if isinstance(source_type, GenericType) and source_type.base_type == DataType.LIST:
+                 if len(source_type.type_parameters) > 0 and source_type.type_parameters[0] == DataType.EMAIL:
+                     return True
+
+        # Direct match check (though should be handled by earlier checks if not generic)
+        if source_type == target_type:
+            return True
+
         return False
 
     # TODO(P1, 4h): Expand type compatibility rules to support all defined DataType combinations

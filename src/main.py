@@ -1,9 +1,6 @@
 import configparser
-configparser.SafeConfigParser = configparser.ConfigParser
-
 import argparse
 import logging
-
 import gradio as gr
 import uvicorn
 import psutil
@@ -15,9 +12,12 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, RedirectResponse
 from pydantic import ValidationError
 from .core.module_manager import ModuleManager
-from .core.middleware import create_security_middleware, create_security_headers_middleware
 from .core.audit_logger import audit_logger, AuditEventType, AuditSeverity
 from .core.performance_monitor import performance_monitor
+
+configparser.SafeConfigParser = configparser.ConfigParser
+
+
 
 # Configure logging
 logging.basicConfig(
@@ -94,7 +94,7 @@ def create_system_status_tab():
         with gr.TabItem("Overview"):
             with gr.Row():
                 with gr.Column():
-                    status_indicator = gr.Textbox(
+                    gr.Textbox(
                         label="System Status",
                         value="🟢 Online",
                         interactive=False
@@ -335,9 +335,9 @@ def create_ai_lab_tab():
 
                 with gr.Column():
                     gr.Markdown("### Model Testing")
-                    test_input = gr.Textbox(label="Test Input", placeholder="Enter text to test model...")
-                    test_model_btn = gr.Button("🧪 Test Model", variant="secondary")
-                    test_output = gr.JSON(label="Test Results")
+                    gr.Textbox(label="Test Input", placeholder="Enter text to test model...")
+                    gr.Button("🧪 Test Model", variant="secondary")
+                    gr.JSON(label="Test Results")
 
             def refresh_model_status():
                 """Get current model status."""
@@ -511,16 +511,16 @@ def create_gmail_integration_tab():
             with gr.Row():
                 with gr.Column():
                     gr.Markdown("### Account Information")
-                    account_status = gr.Textbox(
+                    gr.Textbox(
                         label="Connection Status",
                         value="🔄 Checking...",
                         interactive=False
                     )
-                    last_sync = gr.Textbox(
+                    gr.Textbox(
                         label="Last Sync",
                         interactive=False
                     )
-                    api_quota = gr.Textbox(
+                    gr.Textbox(
                         label="API Quota Status",
                         interactive=False
                     )
@@ -562,17 +562,31 @@ def create_app():
     )
 
     # Add CORS middleware
+    # Define allowed origins to prevent security risks with allow_credentials=True
+    allowed_origins = [
+        "http://localhost:5173",    # Frontend dev
+        "http://127.0.0.1:5173",
+        "http://localhost:8001",    # Node server
+        "http://127.0.0.1:8001",
+        "http://localhost:7860",    # Self (Gradio)
+        "http://127.0.0.1:7860",
+        "http://localhost:8000",    # Backend alias
+        "http://127.0.0.1:8000",
+    ]
+
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=["*"],  # In production, specify allowed origins
+        allow_origins=allowed_origins,
         allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
+        allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+        allow_headers=["Content-Type", "Authorization", "Accept", "X-Requested-With"],
     )
 
+    from .core.middleware import SecurityMiddleware, SecurityHeadersMiddleware
+
     # Add comprehensive security middleware
-    app.add_middleware(create_security_middleware(app))
-    app.add_middleware(create_security_headers_middleware(app))
+    app.add_middleware(SecurityMiddleware)
+    app.add_middleware(SecurityHeadersMiddleware)
 
     # Add security headers middleware (additional layer)
     @app.middleware("http")
@@ -581,8 +595,11 @@ def create_app():
         response.headers["X-Content-Type-Options"] = "nosniff"
         response.headers["X-Frame-Options"] = "DENY"
         response.headers["X-XSS-Protection"] = "1; mode=block"
-        response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
-        response.headers["Content-Security-Policy"] = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'"
+        response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains; preload"
+        response.headers["Content-Security-Policy"] = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; frame-ancestors 'none'; form-action 'self'"
+        if request.url.path.startswith("/api/"):
+            response.headers["Cache-Control"] = "no-store, max-age=0, must-revalidate"
+            response.headers["Pragma"] = "no-cache"
         return response
 
         # Add exception handlers for secure error responses
@@ -698,7 +715,7 @@ def main():
     parser.add_argument("--reload", action="store_true", help="Enable auto-reloading.")
     args = parser.parse_args()
 
-    app = create_app()
+    create_app()
 
     uvicorn.run(
         "src.main:create_app",

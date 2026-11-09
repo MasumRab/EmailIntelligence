@@ -72,24 +72,25 @@ To create a custom node, inherit from `BaseNode` and implement:
 
 Example:
 ```python
-from src.backend.node_engine.node_base import BaseNode, NodePort, DataType
+from backend.node_engine.node_base import BaseNode, NodePort, DataType
 
 class CustomEmailNode(BaseNode):
     def __init__(self, config=None, node_id=None, name=None):
         super().__init__(node_id, name or "Custom Email Node", "Description")
         self.config = config or {}
         self.input_ports = [
-            NodePort("emails", DataType.EMAIL_LIST, required=True)
+            NodePort("emails", DataType.EMAIL_LIST, required=True),
+            NodePort("config_override", DataType.JSON, required=False, default_value={})
         ]
         self.output_ports = [
             NodePort("processed_emails", DataType.EMAIL_LIST, required=True),
             NodePort("stats", DataType.JSON, required=True)
         ]
-    
+
     async def execute(self, context):
         # Implement node logic here
         input_emails = self.inputs.get("emails", [])
-        
+
         # Process emails
         processed_emails = []
         for email in input_emails:
@@ -97,14 +98,13 @@ class CustomEmailNode(BaseNode):
             processed_email = email.copy()
             processed_email["custom_processed"] = True
             processed_emails.append(processed_email)
-        
         return {
             "processed_emails": processed_emails,
             "stats": {"processed_count": len(processed_emails)}
         }
 
 # Register the node
-from src.backend.node_engine.workflow_engine import workflow_engine
+from backend.node_engine.workflow_engine import workflow_engine
 workflow_engine.register_node_type(CustomEmailNode)
 ```
 
@@ -120,7 +120,7 @@ The node-based workflow system can be integrated with existing APIs:
 
 ### Creating Workflows
 ```python
-from src.backend.node_engine.node_base import Workflow, Connection
+from backend.node_engine.node_base import Workflow, Connection
 
 workflow = Workflow(name="My Email Processing Pipeline")
 
@@ -151,14 +151,14 @@ workflow.add_connection(Connection(
 
 ### Executing Workflows
 ```python
-from src.backend.node_engine.workflow_engine import workflow_engine
+from backend.node_engine.workflow_engine import workflow_engine
 
 context = await workflow_engine.execute_workflow(workflow, user_id="example_user")
 ```
 
 ### Saving and Loading Workflows
 ```python
-from src.backend.node_engine.workflow_manager import workflow_manager
+from backend.node_engine.workflow_manager import workflow_manager
 
 # Save workflow
 file_path = workflow_manager.save_workflow(workflow)
@@ -172,7 +172,7 @@ loaded_workflow = workflow_manager.load_workflow(workflow.workflow_id)
 The node-based system includes comprehensive testing:
 
 - `test_nodes.py`: Basic node functionality
-- `test_security.py`: Security and scalability features  
+- `test_security.py`: Security and scalability features
 - `test_integration.py`: Complete system integration
 
 Run tests with:

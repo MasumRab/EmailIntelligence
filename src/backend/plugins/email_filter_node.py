@@ -51,7 +51,9 @@ class EmailFilterNode(ProcessingNode):
         """Process the input data."""
         # For this sample, we'll just pass through the run method
         if isinstance(data, dict) and "emails" in data and "filter_criteria" in data:
-            return self.run(emails=data["emails"], filter_criteria=data["filter_criteria"])
+            return self.run(
+                emails=data["emails"], filter_criteria=data["filter_criteria"]
+            )
         return {"filtered_emails": [], "stats": {}}
 
     def run(self, **kwargs) -> Dict[str, Any]:
@@ -70,7 +72,10 @@ class EmailFilterNode(ProcessingNode):
             # Example: filter by sender
             if "sender" in criteria:
                 sender_filter = criteria["sender"]
-                if sender_filter and email.get("sender", "").lower() != sender_filter.lower():
+                if (
+                    sender_filter
+                    and email.get("sender", "").lower() != sender_filter.lower()
+                ):
                     include = False
 
             # Example: filter by subject contains

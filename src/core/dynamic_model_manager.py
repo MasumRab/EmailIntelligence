@@ -11,10 +11,8 @@ import logging
 import time
 from contextlib import asynccontextmanager
 from typing import Any, Dict, List, Optional, AsyncGenerator
-from pathlib import Path
 
 from .model_registry import ModelRegistry, ModelMetadata, ModelType, ModelInstance
-from .performance_monitor import log_performance
 
 logger = logging.getLogger(__name__)
 
@@ -32,15 +30,15 @@ class DynamicModelManager:
     - API endpoints for model operations
     """
 
-    def __init__(self, models_dir: Path = None):
-        self.registry = ModelRegistry(models_dir)
+    def __init__(self, registry: ModelRegistry):
+        self.registry = registry
         self._health_check_interval = 300  # 5 minutes
         self._memory_optimization_interval = 600  # 10 minutes
         self._health_monitor_task: Optional[asyncio.Task] = None
         self._memory_optimizer_task: Optional[asyncio.Task] = None
         self._initialized = False
 
-        logger.info("DynamicModelManager initialized")
+        logger.info("DynamicModelManager initialized with a ModelRegistry")
 
     async def initialize(self):
         """Initialize the model manager and start background tasks."""
