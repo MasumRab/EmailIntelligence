@@ -4,7 +4,6 @@ import gradio as gr
 from fastapi import FastAPI
 
 from src.core.ai_engine import set_active_ai_engine
-from src.core.ai_routes import router as ai_router
 
 from .engine import DefaultAIEngine
 
@@ -17,9 +16,6 @@ def register(app: FastAPI, gradio_app: gr.Blocks):
     This function instantiates and sets the active AI engine.
     """
     logger.info("Registering the Default AI Engine module.")
-
-    # Add API routes
-    app.include_router(ai_router, prefix="/api/ai", tags=["AI Engine"])
 
     # Create an instance of our default AI engine
     default_engine = DefaultAIEngine()

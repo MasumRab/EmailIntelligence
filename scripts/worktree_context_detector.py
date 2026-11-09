@@ -36,7 +36,7 @@ def get_worktree_path():
         )
         if result.returncode != 0:
             return ""
-            
+
         # Get the worktree root
         result = subprocess.run(
             ['git', 'rev-parse', '--show-toplevel'],

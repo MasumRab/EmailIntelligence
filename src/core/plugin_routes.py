@@ -13,6 +13,7 @@ from pydantic import BaseModel, Field
 
 from .plugin_base import PluginSecurityLevel
 from .plugin_manager import PluginManager
+from .auth import get_current_active_user, require_role, UserRole, TokenData
 
 logger = logging.getLogger(__name__)
 
@@ -87,11 +88,14 @@ class SystemStatus(BaseModel):
 
 
 # Create router
-router = APIRouter(prefix="/api/plugins", tags=["Plugin Management"])
+router = APIRouter(
+    prefix="/api/plugins",
+    tags=["Plugin Management"],
+)
 
 
 @router.get("/", response_model=List[PluginInfo])
-async def list_plugins(manager: PluginManager = Depends(get_plugin_manager)):
+async def list_plugins(_auth: TokenData = Depends(get_current_active_user), manager: PluginManager = Depends(get_plugin_manager)):
     """List all installed plugins with their status."""
     try:
         plugins = manager.list_plugins()
@@ -102,9 +106,7 @@ async def list_plugins(manager: PluginManager = Depends(get_plugin_manager)):
 
 
 @router.get("/{plugin_id}", response_model=PluginInfo)
-async def get_plugin(
-    plugin_id: str, manager: PluginManager = Depends(get_plugin_manager)
-):
+async def get_plugin(plugin_id: str, _auth: TokenData = Depends(get_current_active_user), manager: PluginManager = Depends(get_plugin_manager)):
     """Get detailed information about a specific plugin."""
     try:
         plugin_info = await manager.get_plugin_info(plugin_id)
@@ -122,8 +124,7 @@ async def get_plugin(
 async def load_plugin(
     plugin_id: str,
     background_tasks: BackgroundTasks,
-    manager: PluginManager = Depends(get_plugin_manager),
-):
+    _admin: TokenData = Depends(require_role(UserRole.ADMIN)), manager: PluginManager = Depends(get_plugin_manager)):
     """Load a plugin into memory."""
     try:
         background_tasks.add_task(manager.load_plugin, plugin_id)
@@ -134,16 +135,12 @@ async def load_plugin(
 
 
 @router.post("/{plugin_id}/unload")
-async def unload_plugin(
-    plugin_id: str, manager: PluginManager = Depends(get_plugin_manager)
-):
+async def unload_plugin(plugin_id: str, _admin: TokenData = Depends(require_role(UserRole.ADMIN)), manager: PluginManager = Depends(get_plugin_manager)):
     """Unload a plugin from memory."""
     try:
         success = await manager.unload_plugin(plugin_id)
         if not success:
-            raise HTTPException(
-                status_code=400, detail=f"Failed to unload plugin {plugin_id}"
-            )
+            raise HTTPException(status_code=400, detail=f"Failed to unload plugin {plugin_id}")
         return {"message": f"Plugin {plugin_id} unloaded successfully"}
     except HTTPException:
         raise
@@ -153,16 +150,12 @@ async def unload_plugin(
 
 
 @router.post("/{plugin_id}/enable")
-async def enable_plugin(
-    plugin_id: str, manager: PluginManager = Depends(get_plugin_manager)
-):
+async def enable_plugin(plugin_id: str, _admin: TokenData = Depends(require_role(UserRole.ADMIN)), manager: PluginManager = Depends(get_plugin_manager)):
     """Enable a plugin."""
     try:
         success = await manager.enable_plugin(plugin_id)
         if not success:
-            raise HTTPException(
-                status_code=400, detail=f"Failed to enable plugin {plugin_id}"
-            )
+            raise HTTPException(status_code=400, detail=f"Failed to enable plugin {plugin_id}")
         return {"message": f"Plugin {plugin_id} enabled successfully"}
     except HTTPException:
         raise
@@ -172,16 +165,12 @@ async def enable_plugin(
 
 
 @router.post("/{plugin_id}/disable")
-async def disable_plugin(
-    plugin_id: str, manager: PluginManager = Depends(get_plugin_manager)
-):
+async def disable_plugin(plugin_id: str, _admin: TokenData = Depends(require_role(UserRole.ADMIN)), manager: PluginManager = Depends(get_plugin_manager)):
     """Disable a plugin."""
     try:
         success = await manager.disable_plugin(plugin_id)
         if not success:
-            raise HTTPException(
-                status_code=400, detail=f"Failed to disable plugin {plugin_id}"
-            )
+            raise HTTPException(status_code=400, detail=f"Failed to disable plugin {plugin_id}")
         return {"message": f"Plugin {plugin_id} disabled successfully"}
     except HTTPException:
         raise
@@ -194,7 +183,7 @@ async def disable_plugin(
 async def install_plugin(
     installation: PluginInstallation,
     background_tasks: BackgroundTasks,
-    manager: PluginManager = Depends(get_plugin_manager),
+    _auth: TokenData = Depends(get_current_active_user), manager: PluginManager = Depends(get_plugin_manager),
 ):
     """Install a plugin from the marketplace."""
     try:
@@ -207,25 +196,17 @@ async def install_plugin(
             "status": "initiated",
         }
     except Exception as e:
-        logger.error(
-            f"Error initiating install for plugin {installation.plugin_id}: {e}"
-        )
-        raise HTTPException(
-            status_code=500, detail="Failed to initiate plugin installation"
-        )
+        logger.error(f"Error initiating install for plugin {installation.plugin_id}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to initiate plugin installation")
 
 
 @router.delete("/{plugin_id}")
-async def uninstall_plugin(
-    plugin_id: str, manager: PluginManager = Depends(get_plugin_manager)
-):
+async def uninstall_plugin(plugin_id: str, _admin: TokenData = Depends(require_role(UserRole.ADMIN)), manager: PluginManager = Depends(get_plugin_manager)):
     """Uninstall a plugin completely."""
     try:
         success = await manager.uninstall_plugin(plugin_id)
         if not success:
-            raise HTTPException(
-                status_code=400, detail=f"Failed to uninstall plugin {plugin_id}"
-            )
+            raise HTTPException(status_code=400, detail=f"Failed to uninstall plugin {plugin_id}")
         return {"message": f"Plugin {plugin_id} uninstalled successfully"}
     except HTTPException:
         raise
@@ -238,7 +219,7 @@ async def uninstall_plugin(
 async def update_plugin(
     plugin_id: str,
     background_tasks: BackgroundTasks,
-    manager: PluginManager = Depends(get_plugin_manager),
+    _auth: TokenData = Depends(get_current_active_user), manager: PluginManager = Depends(get_plugin_manager),
 ):
     """Update a plugin to the latest version."""
     try:
@@ -250,9 +231,7 @@ async def update_plugin(
 
 
 @router.get("/{plugin_id}/validate")
-async def validate_plugin(
-    plugin_id: str, manager: PluginManager = Depends(get_plugin_manager)
-):
+async def validate_plugin(plugin_id: str, _auth: TokenData = Depends(get_current_active_user), manager: PluginManager = Depends(get_plugin_manager)):
     """Validate a plugin's integrity and security."""
     try:
         validation = await manager.validate_plugin(plugin_id)
@@ -266,19 +245,17 @@ async def validate_plugin(
 async def update_plugin_config(
     plugin_id: str,
     config_update: PluginConfiguration,
-    manager: PluginManager = Depends(get_plugin_manager),
+    _auth: TokenData = Depends(get_current_active_user), manager: PluginManager = Depends(get_plugin_manager),
 ):
     """Update configuration for a plugin."""
     # This would need implementation in the plugin manager
-    raise HTTPException(
-        status_code=501, detail="Plugin configuration update not yet implemented"
-    )
+    raise HTTPException(status_code=501, detail="Plugin configuration update not yet implemented")
 
 
 @router.get("/marketplace/", response_model=List[MarketplacePlugin])
 async def get_marketplace_plugins(
     refresh: bool = Query(False, description="Force refresh marketplace cache"),
-    manager: PluginManager = Depends(get_plugin_manager),
+    _auth: TokenData = Depends(get_current_active_user), manager: PluginManager = Depends(get_plugin_manager),
 ):
     """Get available plugins from the marketplace."""
     try:
@@ -290,9 +267,7 @@ async def get_marketplace_plugins(
 
 
 @router.get("/status", response_model=SystemStatus)
-async def get_plugin_system_status(
-    manager: PluginManager = Depends(get_plugin_manager),
-):
+async def get_plugin_system_status(manager: PluginManager = Depends(get_plugin_manager)):
     """Get comprehensive plugin system status."""
     try:
         return SystemStatus(**manager.get_system_status())
@@ -306,7 +281,7 @@ async def execute_plugin_method(
     plugin_id: str,
     method_name: str,
     params: dict = None,
-    manager: PluginManager = Depends(get_plugin_manager),
+    _auth: TokenData = Depends(get_current_active_user), manager: PluginManager = Depends(get_plugin_manager),
 ):
     """Execute a method on a loaded plugin (advanced feature)."""
     try:
@@ -328,7 +303,7 @@ async def execute_plugin_method(
 
 # Hook system endpoints
 @router.get("/hooks/registered")
-async def get_registered_hooks(manager: PluginManager = Depends(get_plugin_manager)):
+async def get_registered_hooks(_auth: TokenData = Depends(get_current_active_user), manager: PluginManager = Depends(get_plugin_manager)):
     """Get information about registered hooks."""
     try:
         hook_system = manager.get_hook_system()
@@ -341,9 +316,7 @@ async def get_registered_hooks(manager: PluginManager = Depends(get_plugin_manag
 
 @router.post("/hooks/trigger")
 async def trigger_hook(
-    hook_name: str,
-    data: dict = None,
-    manager: PluginManager = Depends(get_plugin_manager),
+    hook_name: str, data: dict = None, _auth: TokenData = Depends(get_current_active_user), manager: PluginManager = Depends(get_plugin_manager)
 ):
     """Trigger a hook manually (for testing/debugging)."""
     try:
@@ -353,11 +326,7 @@ async def trigger_hook(
         hook_system = manager.get_hook_system()
         results = await hook_system.trigger_hook(hook_name, **data)
 
-        return {
-            "hook_name": hook_name,
-            "results_count": len(results),
-            "results": results,
-        }
+        return {"hook_name": hook_name, "results_count": len(results), "results": results}
 
     except Exception as e:
         logger.error(f"Error triggering hook {hook_name}: {e}")
@@ -371,18 +340,14 @@ async def check_security_sandbox(
     security_level: PluginSecurityLevel = Query(
         PluginSecurityLevel.STANDARD, description="Security level"
     ),
-    manager: PluginManager = Depends(get_plugin_manager),
+    _auth: TokenData = Depends(get_current_active_user), manager: PluginManager = Depends(get_plugin_manager),
 ):
     """Check if a module import is allowed for a security level."""
     try:
         sandbox = manager.get_security_sandbox()
         allowed = sandbox.validate_import(module_name, security_level)
 
-        return {
-            "module": module_name,
-            "security_level": security_level.value,
-            "allowed": allowed,
-        }
+        return {"module": module_name, "security_level": security_level.value, "allowed": allowed}
 
     except Exception as e:
         logger.error(f"Error checking security sandbox: {e}")

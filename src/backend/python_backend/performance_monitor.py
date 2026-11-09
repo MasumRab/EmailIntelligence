@@ -6,8 +6,10 @@ model usage, memory consumption, and error rates.
 """
 
 import asyncio
+import json
 import logging
 import threading
+import json
 import time
 from dataclasses import dataclass
 from datetime import datetime, timezone
@@ -298,7 +300,10 @@ def log_performance(operation_or_func=None, *, operation: str = ""):
         return _create_decorator(func, op_name)
     elif operation_or_func is not None and operation == "":
         # Used as @log_performance("custom_name")
-        op_name = operation
+        op_name = operation_or_func
+
+        def decorator(func):
+            return _create_decorator(func, op_name)
 
         return decorator
     else:
@@ -329,9 +334,10 @@ def _create_decorator(func, op_name):
             }
 
             try:
-                performance_monitor.log_performance(log_entry)
-            except Exception as e:
-                logger.warning(f"Failed to log performance: {e}")
+                with open(LOG_FILE, "a") as f:
+                    f.write(json.dumps(log_entry) + "\n")
+            except IOError as e:
+                logger.error(f"Failed to write performance log: {e}")
 
             return result
 
@@ -352,9 +358,10 @@ def _create_decorator(func, op_name):
             }
 
             try:
-                performance_monitor.log_performance(log_entry)
-            except Exception as e:
-                logger.warning(f"Failed to log performance: {e}")
+                with open(LOG_FILE, "a") as f:
+                    f.write(json.dumps(log_entry) + "\n")
+            except IOError as e:
+                logger.error(f"Failed to write performance log: {e}")
 
             return result
 

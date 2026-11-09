@@ -14,7 +14,7 @@ This module provides:
 import json
 import logging
 import time
-from abc import ABC
+from abc import ABC, abstractmethod
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from enum import Enum
@@ -28,23 +28,13 @@ logger = logging.getLogger(__name__)
 
 # Import security features if available
 try:
-    from .security import (
-        DataSanitizer,
-        Permission,
-        SecurityContext,
-        SecurityLevel,
-        SecurityManager,
-        security_manager,
-    )
+    from .security import DataSanitizer, Permission, SecurityContext, SecurityLevel, SecurityManager
 
     security_available = True
 except ImportError:
     SecurityContext = None
     security_available = False
-    security_manager = None
-    print(
-        "Security module not available, proceeding without advanced security features"
-    )
+    print("Security module not available, proceeding without advanced security features")
 
 
 class NodeExecutionStatus(Enum):
@@ -85,6 +75,16 @@ class BaseNode(ABC):
         self._status: NodeExecutionStatus = NodeExecutionStatus.PENDING
         self._last_executed: Optional[float] = None
 
+    @abstractmethod
+    def get_metadata(self) -> NodeMetadata:
+        """Return metadata about the node"""
+        pass
+
+    @abstractmethod
+    async def process(self, inputs: Dict[str, Any]) -> Dict[str, Any]:
+        """Process the input data and return outputs"""
+        pass
+
     def set_security_context(self, context: Optional[SecurityContext]):
         """Set the security context for this node"""
         self._security_context = context
@@ -103,26 +103,16 @@ class BaseNode(ABC):
         - Error handling
         - Status tracking
         """
-        logger.info(
-            f"Executing node {self.name} ({self.node_id}) in workflow {self.workflow_id}"
-        )
+        logger.info(f"Executing node {self.name} ({self.node_id}) in workflow {self.workflow_id}")
 
         start_time = time.time()
         self._status = NodeExecutionStatus.RUNNING
 
         # If security is available, validate and sanitize inputs
         if security_available and self._security_context:
+
             # Validate access and sanitize inputs
             sanitized_inputs = DataSanitizer.sanitize_input(inputs)
-
-            # Log execution for audit purposes
-            if security_manager:
-                security_manager.audit_logger.log_execution(
-                    context=self._security_context,
-                    node_type=self.__class__.__name__,
-                    inputs=inputs,
-                    outputs={},
-                )
         else:
             sanitized_inputs = inputs
 
@@ -135,39 +125,19 @@ class BaseNode(ABC):
             # If security is available, sanitize outputs
             if security_available and self._security_context:
                 final_output = DataSanitizer.sanitize_output(output)
-
-                # Log successful execution
-                if security_manager:
-                    security_manager.audit_logger.log_execution(
-                        context=self._security_context,
-                        node_type=self.__class__.__name__,
-                        inputs=inputs,
-                        outputs=final_output,
-                    )
             else:
                 final_output = output
 
             self._status = NodeExecutionStatus.SUCCESS
             self._last_executed = time.time()
 
-            logger.info(
-                f"Node {self.name} executed successfully in {execution_time:.2f}s"
-            )
+            logger.info(f"Node {self.name} executed successfully in {execution_time:.2f}s")
             return final_output
 
         except Exception as e:
             execution_time = time.time() - start_time
             self._status = NodeExecutionStatus.FAILED
             logger.error(f"Node {self.name} failed: {str(e)}", exc_info=True)
-
-            # Log security violation if security is available
-            if security_available and self._security_context and security_manager:
-                security_manager.audit_logger.log_security_violation(
-                    context=self._security_context,
-                    violation_type="EXECUTION_ERROR",
-                    details=f"Node {self.name} failed with error: {str(e)}",
-                )
-
             raise
 
     def get_status(self) -> NodeExecutionStatus:
@@ -201,6 +171,17 @@ class Connection:
             "target_node_id": self.target_node_id,
             "target_input": self.target_input,
         }
+
+    @classmethod
+    def from_dict(cls, data: Dict[str, str]) -> "Connection":
+        """Create connection from dictionary"""
+        return cls(
+            connection_id=data.get("connection_id"),
+            source_node_id=data["source_node_id"],
+            source_output=data["source_output"],
+            target_node_id=data["target_node_id"],
+            target_input=data["target_input"],
+        )
 
 
 class Workflow:
@@ -241,11 +222,7 @@ class Workflow:
         return node_id
 
     def add_connection(
-        self,
-        source_node_id: str,
-        source_output: str,
-        target_node_id: str,
-        target_input: str,
+        self, source_node_id: str, source_output: str, target_node_id: str, target_input: str
     ):
         """Add a connection between nodes"""
         connection = {
@@ -309,10 +286,7 @@ class Workflow:
                 if output_key not in outputs:
                     outputs[output_key] = []
                 outputs[output_key].append(
-                    {
-                        "target_node_id": conn["target_node_id"],
-                        "target_input": conn["target_input"],
-                    }
+                    {"target_node_id": conn["target_node_id"], "target_input": conn["target_input"]}
                 )
         return outputs
 
@@ -335,8 +309,7 @@ class Workflow:
     def from_dict(cls, data: Dict[str, Any]) -> "Workflow":
         """Create workflow from dictionary"""
         workflow = cls(
-            name=data.get("name", "Unnamed Workflow"),
-            description=data.get("description", ""),
+            name=data.get("name", "Unnamed Workflow"), description=data.get("description", "")
         )
         workflow.workflow_id = data.get("workflow_id", str(uuid4()))
         workflow.version = data.get("version", "1.0.0")
@@ -403,9 +376,7 @@ class WorkflowRunner:
         - Performance monitoring
         - Error handling and recovery
         """
-        logger.info(
-            f"Starting execution of workflow: {workflow.name} ({workflow.workflow_id})"
-        )
+        logger.info(f"Starting execution of workflow: {workflow.name} ({workflow.workflow_id})")
         start_time = time.time()
 
         workflow_id = workflow.workflow_id
@@ -439,10 +410,7 @@ class WorkflowRunner:
 
                 # Execute the node
                 result = await self._execute_node(
-                    workflow=workflow,
-                    node_data=node_data,
-                    inputs=node_inputs,
-                    context=context,
+                    workflow=workflow, node_data=node_data, inputs=node_inputs, context=context
                 )
 
                 # Store the result
@@ -450,9 +418,7 @@ class WorkflowRunner:
 
             execution_time = time.time() - start_time
 
-            logger.info(
-                f"Workflow {workflow.name} completed successfully in {execution_time:.2f}s"
-            )
+            logger.info(f"Workflow {workflow.name} completed successfully in {execution_time:.2f}s")
 
             return WorkflowExecutionResult(
                 workflow_id=workflow_id,
@@ -502,18 +468,8 @@ class WorkflowRunner:
             node.set_security_context(self.security_context)
 
         # Execute the node
-        try:
-            result = await node.execute(inputs)
-            return result
-        except Exception as e:
-            # Log the error with security context if available
-            if security_available and self.security_context and security_manager:
-                security_manager.audit_logger.log_security_violation(
-                    context=self.security_context,
-                    violation_type="NODE_EXECUTION_ERROR",
-                    details=f"Node {node_type} ({node_data['id']}) failed: {str(e)}",
-                )
-            raise
+        result = await node.execute(inputs)
+        return result
 
     def _build_node_inputs(
         self, workflow: Workflow, node_id: str, context: Dict[str, Any]
@@ -548,9 +504,7 @@ class WorkflowRunner:
 
         return inputs
 
-    def _find_node_by_id(
-        self, workflow: Workflow, node_id: str
-    ) -> Optional[Dict[str, Any]]:
+    def _find_node_by_id(self, workflow: Workflow, node_id: str) -> Optional[Dict[str, Any]]:
         """Find a node in the workflow by its ID"""
         for node in workflow.nodes:
             if node["id"] == node_id:
@@ -730,36 +684,25 @@ class NLPProcessorNode(BaseNode):
             description="Performs NLP analysis on email content",
             version="1.0.0",
             input_types={"content": str, "subject": str},
-            output_types={
-                "analysis": dict,
-                "sentiment": str,
-                "topic": str,
-                "keywords": list,
-            },
+            output_types={"analysis": dict, "sentiment": str, "topic": str, "keywords": list},
         )
 
     async def process(self, inputs: Dict[str, Any]) -> Dict[str, Any]:
         # Mock NLP processing - in real implementation, this would call the AI engine
         content = inputs.get("content", "")
-        subject = inputs.get("subject", "")
+        inputs.get("subject", "")
 
         # Mock analysis results
         analysis = {
             "sentiment": (
-                "positive"
-                if "good" in content.lower() or "great" in content.lower()
-                else "neutral"
+                "positive" if "good" in content.lower() or "great" in content.lower() else "neutral"
             ),
             "topic": (
                 "business"
                 if "meeting" in content.lower() or "work" in content.lower()
                 else "personal"
             ),
-            "keywords": [
-                "email",
-                "content",
-                "analysis",
-            ],  # Extract keywords from content
+            "keywords": ["email", "content", "analysis"],  # Extract keywords from content
         }
 
         return {
@@ -810,14 +753,6 @@ def initialize_workflow_system() -> WorkflowManager:
     workflow_manager.register_node_type("email_input", EmailInputNode)
     workflow_manager.register_node_type("nlp_processor", NLPProcessorNode)
     workflow_manager.register_node_type("email_output", EmailOutputNode)
-
-    # Register smart filter node types
-    try:
-        from .smart_filter_nodes import register_smart_filter_nodes
-
-        register_smart_filter_nodes(workflow_manager)
-    except ImportError as e:
-        logger.warning(f"Could not import smart filter nodes: {e}")
 
     return workflow_manager
 
