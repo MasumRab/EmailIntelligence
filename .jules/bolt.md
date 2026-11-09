@@ -1,0 +1,2 @@
+**Learning:** `asyncio.TimeoutError` or `asyncio.QueueFull` were incorrectly used for synchronous `queue.Queue` operations in `src/core/audit_logger.py`, which caused errors to escape because `queue.Empty` and `queue.Full` are the correct exceptions for thread-safe queues. This resulted in background threads crashing or graceful shutdowns failing.
+**Action:** Replaced `asyncio` exceptions with `queue` exceptions in `src/core/audit_logger.py`. Added a test to verify proper shutdown when the event queue is empty.
