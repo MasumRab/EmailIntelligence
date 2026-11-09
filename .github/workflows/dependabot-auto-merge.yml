@@ -31,12 +31,20 @@ jobs:
             echo "Checking CI status... (attempt $i/$MAX_ATTEMPTS)"
             
             # Get the status of all checks for this PR
-            STATUS=$(gh pr checks "${{ github.event.pull_request.number }}" --state pending --json status -q '. | length' 2>/dev/null || echo "0")
+            if ! OUTPUT=$(gh pr checks "${{ github.event.pull_request.number }}" --json bucket 2>/dev/null); then
+              echo "Failed to fetch PR checks."
+              exit 1
+            fi
+            STATUS=$(echo "$OUTPUT" | jq -r '[.[] | select(.bucket | ascii_upcase == "PENDING")] | length')
             echo "Pending checks: $STATUS"
             
             if [ "$STATUS" -eq "0" ]; then
               # No more pending checks, verify all passed
-              FAILURES=$(gh pr checks "${{ github.event.pull_request.number }}" --state failure -q '. | length' 2>/dev/null || echo "0")
+              if ! OUTPUT=$(gh pr checks "${{ github.event.pull_request.number }}" --json bucket 2>/dev/null); then
+                echo "Failed to fetch PR checks."
+                exit 1
+              fi
+              FAILURES=$(echo "$OUTPUT" | jq -r '[.[] | select(.bucket | ascii_upcase == "FAILURE" or ( .bucket | ascii_upcase == "CANCELLED" ))] | length')
               if [ "$FAILURES" -eq "0" ]; then
                 echo "All CI checks passed!"
                 exit 0
@@ -51,6 +59,8 @@ jobs:
           
           echo "Timeout waiting for CI checks"
           exit 1
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         
       - name: Auto-merge Dependabot PR
         run: |
@@ -77,4 +87,4 @@ jobs:
           
           echo "Auto-merge successfully enabled for PR #${{ github.event.pull_request.number }}"
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
