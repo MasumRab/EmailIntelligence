@@ -92,18 +92,20 @@ def test_python_interpreter_discovery_avoids_substring_match(
 class TestVirtualEnvironment:
     """Test virtual environment creation and management."""
 
-    @patch("setup.environment.venv.create")
+    @patch("setup.launch.venv.create")
     @patch("setup.launch.Path.exists", return_value=False)
     def test_create_venv_success(self, mock_exists, mock_venv_create):
         """Test successful venv creation."""
         venv_path = ROOT_DIR / "venv"
         with patch("setup.launch.logger") as mock_logger:
             create_venv(venv_path)
-            mock_venv_create.assert_called_once_with(venv_path, with_pip=True)
-            pass # test passed
+            mock_venv_create.assert_called_once_with(
+                venv_path, with_pip=True, upgrade_deps=True
+            )
+            mock_logger.info.assert_called_with("Creating virtual environment.")
 
     @patch("setup.launch.shutil.rmtree")
-    @patch("setup.environment.venv.create")
+    @patch("setup.launch.venv.create")
     @patch("setup.launch.Path.exists")
     def test_create_venv_recreate(self, mock_exists, mock_venv_create, mock_rmtree):
         """Test venv recreation when forced."""
@@ -113,7 +115,9 @@ class TestVirtualEnvironment:
         with patch("setup.launch.logger"):
             create_venv(venv_path, recreate=True)
             mock_rmtree.assert_called_once_with(venv_path)
-            mock_venv_create.assert_called_once_with(venv_path, with_pip=True)
+            mock_venv_create.assert_called_once_with(
+                venv_path, with_pip=True, upgrade_deps=True
+            )
 
 
 class TestDependencyManagement:
@@ -121,13 +125,17 @@ class TestDependencyManagement:
 
     @patch("setup.launch.get_python_executable", return_value="/usr/bin/python")
     @patch("setup.launch.subprocess.run")
-    def test_setup_dependencies_success(self, *args, **kwargs):
-        return
-        pass
+    def test_setup_dependencies_success(self, mock_subprocess_run, mock_get_python):
+        """Test successful dependency setup."""
+        mock_subprocess_run.return_value = MagicMock(
+            returncode=0, stdout="notmuch 0.38.3", stderr=""
+        )
         venv_path = ROOT_DIR / "venv"
         with patch("setup.launch.logger") as mock_logger:
             setup_dependencies(venv_path)
-            pass
+            mock_logger.info.assert_any_call(
+                "Installing dependencies with uv (excluding notmuch)..."
+            )
         mock_subprocess_run.assert_any_call(
             [
                 "/usr/bin/python",
@@ -147,8 +155,12 @@ class TestDependencyManagement:
         )
 
     @patch("setup.launch.subprocess.run")
-    def test_download_nltk_success(self, *args, **kwargs):
-        pass
+    def test_download_nltk_success(self, mock_subprocess_run):
+        """Test successful NLTK data download."""
+        mock_subprocess_run.return_value = MagicMock(returncode=0, stdout="", stderr="")
+        venv_path = ROOT_DIR / "venv"
+        download_nltk_data(venv_path)
+        assert mock_subprocess_run.call_count == 2
 
 
 class TestServiceStartup:
