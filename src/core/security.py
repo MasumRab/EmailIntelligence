@@ -9,9 +9,11 @@ Also includes security utilities for path validation and sanitization.
 
 import pathlib
 import hashlib
+import html
 import hmac
 import json
 import logging
+from typing import Union, Optional
 import re
 import secrets
 import time
@@ -111,41 +113,61 @@ def validate_path_safety(
     Returns:
         True if path is safe, False otherwise
     """
-    import pathlib
+    if base_dir is None:
+        # Without a base_dir, perform strict validation of the path structure
+        str_path = str(path).replace('\\', '/')
 
-    try:
-        path_obj = pathlib.Path(path).resolve()
-
-        # Check for directory traversal patterns
-        path_str = str(path_obj)
-
-        # Common directory traversal patterns
-        # Check for directory traversal attempts by looking for '..' as a path segment
-        if any(part == ".." for part in path_obj.parts):
-            logger.warning(f"Potential directory traversal detected in path: {path}")
+        # Check for dangerous characters (cross-platform)
+        if re.search(r'[<>"|?*]', str_path):
             return False
 
-        # If base_dir is specified, ensure path is within base_dir
-        if base_dir:
-            base_obj = pathlib.Path(base_dir).resolve()
-            try:
-                # Check if path is within base_dir
-                path_obj.relative_to(base_obj)
-            except ValueError:
-                logger.warning(
-                    f"Path {path} is outside allowed base directory {base_dir}"
-                )
-                return False
+        # Reject UNC-like paths (starting with //)
+        if str_path.startswith('//'):
+             return False
 
-        # Additional safety checks
-        if any(char in path_str for char in ["<", ">", "|", "?", "*"]):
-            logger.warning(f"Potentially dangerous characters detected in path: {path}")
+        # Split path into components to check for traversal and dot segments
+        parts = str_path.split('/')
+
+        # Check for traversal components
+        if '..' in parts:
+            return False
+
+        # Reject absolute paths containing '.' segments (e.g. /./etc/passwd)
+        # This is often used for obfuscation.
+        if str_path.startswith('/') and '.' in parts:
             return False
 
         return True
-    except Exception as e:
-        logger.warning(f"Error during path validation: {e}")
+
+    try:
+        base_path = pathlib.Path(base_dir).resolve()
+        # Ensure we don't accidentally resolve relative paths against CWD implicitly if not intended,
+        # but here we join with base_path, so relative paths are resolved against base_path.
+        requested_path = (base_path / path).resolve()
+        return requested_path.is_relative_to(base_path)
+    except (ValueError, TypeError):
         return False
+
+
+def sanitize_path(
+    path: Union[str, pathlib.Path], base_dir: Optional[Union[str, pathlib.Path]] = None
+) -> Optional[pathlib.Path]:
+    """
+    Sanitize a path by resolving it and ensuring it's within a base directory.
+
+    Args:
+        path: The path to sanitize
+        base_dir: The base directory to confine the path to. If None, the CWD is used.
+
+    Returns:
+        A resolved, safe Path object or None if the path is unsafe.
+    """
+    if not validate_path_safety(path, base_dir):
+        return None
+
+    base_path = (pathlib.Path(base_dir) if base_dir else pathlib.Path.cwd()).resolve()
+    return (base_path / path).resolve()
+
 
 
 class DataSanitizer:
@@ -157,11 +179,8 @@ class DataSanitizer:
         Sanitize input data to prevent injection attacks
         """
         if isinstance(data, str):
-            # Basic sanitization - in production, use a library like bleach
-            sanitized = data.replace("<script", "&lt;script").replace(
-                "javascript:", "javascript-"
-            )
-            return sanitized
+            # Use html.escape to prevent XSS by escaping all HTML characters
+            return html.escape(data)
         elif isinstance(data, dict):
             sanitized_dict = {}
             for key, value in data.items():
@@ -184,16 +203,21 @@ class DataSanitizer:
             # This regex looks for common sensitive keys followed by a colon and captures the value.
             sensitive_keys = ["password", "token", "key", "secret", "auth"]
             for key in sensitive_keys:
-                # This regex will find 'key: value' and replace it with 'key: [REDACTED]'
-                # It handles optional whitespace and stops at the next comma or end of string.
-                data = re.sub(
-                    rf"(\b{re.escape(key)}\b\s*:\s*)[^\s,]+",
-                    r"\1[REDACTED]",
-                    data,
-                    flags=re.IGNORECASE,
+                # Improved regex:
+                # 1. Key part: Matches optional quotes, then any word characters surrounding the sensitive key
+                #    e.g. "api_key", 'auth_token', password
+                # 2. Value part: Matches either quoted string (simple) or unquoted characters until separator
+                pattern = (
+                    rf'((?:["\']?[\w-]*{re.escape(key)}[\w-]*["\']?)\s*:\s*)'  # Capture group 1: Key + colon
+                    r'(?:'
+                    r'(?:"[^"]*")|'      # Double quoted value
+                    r"(?:'[^']*')|"      # Single quoted value
+                    r'[^,\s}]+'          # Unquoted value
+                    r')'
                 )
+
                 data = re.sub(
-                    rf"(\b{re.escape(key)}\b\s*:\s*)[^\s,]+",
+                    pattern,
                     r"\1[REDACTED]",
                     data,
                     flags=re.IGNORECASE,
@@ -584,46 +608,6 @@ class PathValidator:
         return sanitized
 
 
-def sanitize_path(
-    path: Union[str, pathlib.Path], base_dir: Optional[Union[str, pathlib.Path]] = None
-) -> Optional[str]:
-    """
-    Sanitize a path by removing or encoding potentially dangerous characters.
-
-    Args:
-        path: The path to sanitize
-
-    Returns:
-        Sanitized path string or None if path is invalid
-    """
-
-    try:
-        # Convert to string if it's a Path object
-        path_str = str(path)
-
-        # Basic sanitization - remove dangerous sequences
-        path_str = path_str.replace("../", "").replace("..\\", "")
-        path_str = path_str.replace("<!--", "").replace(
-            "-->", ""
-        )  # Prevent comment injection
-        path_str = path_str.replace("<script", "").replace(
-            "script>", ""
-        )  # Prevent script injection
-
-        # Normalize path separators
-        path_str = path_str.replace("\\", "/")
-
-        # Additional checks to ensure validity
-        if any(char in path_str for char in ["<", ">", "|", "?", "*"]):
-            logger.warning(f"Invalid characters in path after sanitization: {path_str}")
-            return None
-
-        return path_str
-    except Exception as e:
-        logger.warning(f"Error during path sanitization: {e}")
-        return None
-
-
 def secure_path_join(
     base_dir: Union[str, pathlib.Path], *paths: Union[str, pathlib.Path]
 ) -> Optional[pathlib.Path]:
@@ -641,26 +625,64 @@ def secure_path_join(
 
     try:
         # Start with base directory
-        result_path = pathlib.Path(base_dir)
+        result_path = pathlib.Path(base_dir).resolve()
 
         # Join each path component securely
         for path_component in paths:
-            component_path = pathlib.Path(path_component)
-
-            # Check each component for traversal
-            if not validate_path_safety(component_path):
+            if not validate_path_safety(path_component, result_path):
                 return None
+            result_path = (result_path / path_component).resolve()
 
-            # Only allow simple filenames/directories (no absolute paths or traversal)
-            if component_path.is_absolute() or ".." in str(component_path):
-                logger.warning(f"Unsafe path component: {path_component}")
-                return None
-
-            result_path = result_path / component_path
-
-        # Final validation
-        return result_path if validate_path_safety(result_path, base_dir) else None
+        return result_path
 
     except Exception as e:
         logger.error(f"Error joining paths: {e}")
         return None
+
+
+
+def verify_model_safety(model_path: Union[str, pathlib.Path], expected_hash: Optional[str] = None) -> bool:
+    """
+    Verify that a model file is safe to load using an allowlist or signature verification.
+
+    1. Allowlist: Accepts model paths from approved directories (models, artifacts, checkpoints).
+    2. Signature verification: For paths outside allowlist, requires SHA256 hash verification.
+    """
+    try:
+        path = pathlib.Path(model_path).resolve()
+
+        # 1. Allowlist check
+        allowed_dir_names = ['models', 'artifacts', 'checkpoints']
+
+        # We assume the app is run from a root directory or has a known base.
+        # Let's derive a reasonable root base based on the current file or CWD
+        repo_root = pathlib.Path(__file__).parent.parent.parent.resolve()
+
+        for allowed_name in allowed_dir_names:
+            allowed_base = (repo_root / allowed_name).resolve()
+            if path.is_relative_to(allowed_base):
+                return True
+
+        # Also allow CWD relative paths if CWD is not repo root
+        cwd_root = pathlib.Path.cwd().resolve()
+        if cwd_root != repo_root:
+            for allowed_name in allowed_dir_names:
+                allowed_base = (cwd_root / allowed_name).resolve()
+                if path.is_relative_to(allowed_base):
+                    return True
+
+        # 2. Signature verification for paths outside allowlist
+        if expected_hash is None:
+            return False
+
+        if not path.exists():
+            return False
+
+        sha256_hash = hashlib.sha256()
+        with open(path, "rb") as f:
+            for byte_block in iter(lambda: f.read(4096), b""):
+                sha256_hash.update(byte_block)
+
+        return sha256_hash.hexdigest() == expected_hash
+    except Exception:
+        return False

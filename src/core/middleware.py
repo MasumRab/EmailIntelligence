@@ -55,8 +55,7 @@ class SecurityMiddleware:
         # Rate limiting check
         if self.enable_rate_limiting:
             allowed, headers = await api_rate_limiter.check_rate_limit(
-                request.url.path,
-                client_ip,  # Use IP as client key, could be enhanced with user_id
+                request.url.path, client_ip  # Use IP as client key, could be enhanced with user_id
             )
 
             if not allowed:
@@ -168,8 +167,7 @@ class SecurityMiddleware:
                 try:
                     proxy_ip = ipaddress.ip_address(request.client.host)
                     if any(
-                        proxy_ip in ipaddress.ip_network(proxy)
-                        for proxy in self.trusted_proxies
+                        proxy_ip in ipaddress.ip_network(proxy) for proxy in self.trusted_proxies
                     ):
                         return real_ip
                 except (ValueError, ipaddress.AddressValueError):
@@ -186,9 +184,7 @@ class SecurityMiddleware:
         # the user ID from JWT tokens, session cookies, etc.
         # For now, we'll look for a simple header or query param
 
-        user_id = request.headers.get("X-User-ID") or request.query_params.get(
-            "user_id"
-        )
+        user_id = request.headers.get("X-User-ID") or request.query_params.get("user_id")
         return user_id
 
 
@@ -203,13 +199,37 @@ class SecurityHeadersMiddleware:
             "X-Content-Type-Options": "nosniff",
             "X-Frame-Options": "DENY",
             "X-XSS-Protection": "1; mode=block",
-            "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
-            "Content-Security-Policy": "default-src 'self'",
+            "Strict-Transport-Security": "max-age=31536000; includeSubDomains; preload",
+            "Content-Security-Policy": "default-src 'self'; frame-ancestors 'none'; form-action 'self'",
             "Referrer-Policy": "strict-origin-when-cross-origin",
             "Permissions-Policy": "geolocation=(), microphone=(), camera=()",
         }
 
+    async def __call__(self, scope, receive, send):
+        if scope["type"] != "http":
+            await self.app(scope, receive, send)
+            return
 
+        async def send_wrapper(message):
+            if message["type"] == "http.response.start":
+                headers = message.get("headers", [])
+                # Add security headers
+                for header_name, header_value in self.security_headers.items():
+                    headers.append([header_name.encode(), header_value.encode()])
+
+                # Add cache control for sensitive endpoints (API routes)
+                if scope.get("path", "").startswith("/api/"):
+                    headers.append([b"Cache-Control", b"no-store, max-age=0, must-revalidate"])
+                    headers.append([b"Pragma", b"no-cache"])
+
+                message["headers"] = headers
+
+            await send(message)
+
+        await self.app(scope, receive, send_wrapper)
+
+
+# Convenience functions for creating middleware
 def create_security_middleware(
     app,
     enable_rate_limiting: bool = True,
