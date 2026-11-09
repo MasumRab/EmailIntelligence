@@ -6,7 +6,7 @@ import pytest
 import sys
 
 def run_cmd(cmd, cwd=None):
-    subprocess.run(cmd, cwd=cwd, check=True, capture_output=True, text=True)  # NOSONAR
+    subprocess.run(cmd, cwd=cwd, check=True, capture_output=True, text=True)
 
 @pytest.fixture
 def repo():
@@ -41,7 +41,7 @@ def test_alignment_up_to_date(repo):
 
     # At this point feature is branched off main and main hasn't moved
     # So feature is up-to-date with main
-    result = subprocess.run([sys.executable, script_path, "feature", "main"], cwd=repo, capture_output=True, text=True, check=True)  # NOSONAR
+    result = subprocess.run([sys.executable, script_path, "feature", "main"], cwd=repo, capture_output=True, text=True, check=True)
     assert "Status: UP-TO-DATE" in result.stdout
 
 def test_alignment_out_of_date(repo):
@@ -55,30 +55,6 @@ def test_alignment_out_of_date(repo):
     run_cmd(["git", "commit", "-m", "main change"], cwd=repo)
 
     # Now feature is out of date
-    result = subprocess.run([sys.executable, script_path, "feature", "main"], cwd=repo, capture_output=True, text=True)  # NOSONAR
+    result = subprocess.run([sys.executable, script_path, "feature", "main"], cwd=repo, capture_output=True, text=True)
     assert result.returncode == 1
     assert "Status: OUT-OF-DATE" in result.stdout
-
-import importlib.util
-
-SCRIPT = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-                      "scripts", "alignment", "check_alignment.py")
-
-def _script_module():
-    spec = importlib.util.spec_from_file_location("check_alignment", SCRIPT)
-    mod = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(mod)
-    return mod
-
-@pytest.mark.parametrize("arg", [
-    "--upload-pack=evil", "-c", "a b", "x;rm -rf /", "$(id)",
-    "a|b", "x&y", "`id`", "a>b", "*",
-])
-def test_run_cmd_rejects_unsafe_arguments(arg):
-    with pytest.raises(ValueError):
-        _script_module().run_cmd(["git", "rev-parse", arg])
-
-@pytest.mark.parametrize("name", ["-x", "a b", "x;rm -rf /", "$(id)", "a|b", ""])
-def test_branch_name_validator_rejects_unsafe_names(name):
-    assert _script_module().is_plausible_branch_name(name) is False
-

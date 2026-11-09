@@ -18,7 +18,6 @@ def get_local_branches():
     """Get list of local branches."""
     try:
         result = subprocess.run(  # nosec B603 B607 B608
-        # nosec B603 B607 B608
             ["git", "branch"], shell=False, capture_output=True, text=True, check=True
         )
         output = result.stdout.strip()
@@ -42,7 +41,6 @@ def get_remote_branches():
     """Get list of remote branches."""
     try:
         result = subprocess.run(  # nosec B603 B607 B608
-        # nosec B603 B607 B608
             ["git", "branch", "-r"], shell=False, capture_output=True, text=True, check=True
         )
         output = result.stdout.strip()
@@ -166,8 +164,14 @@ def rename_local_branch(old_name, new_name):
     """Rename a local branch."""
     print(f"Renaming local branch '{old_name}' to '{new_name}'")
     try:
+        subprocess.run(
+            ["git", "check-ref-format", "--branch", new_name], shell=False, capture_output=True, text=True, check=True
+        )
+    except subprocess.CalledProcessError as e:
+        print(f"Error: Invalid branch name '{new_name}': {e.stderr}")
+        return False
+    try:
         subprocess.run(  # nosec B603 B607 B608
-        # nosec B603 B607 B608
             ["git", "branch", "-m", old_name, new_name], shell=False, capture_output=True, text=True, check=True
         )
         return True
@@ -183,8 +187,7 @@ def delete_remote_branch(branch_name):
     clean_branch = branch_name.replace('origin/', '')
     try:
         subprocess.run(  # nosec B603 B607 B608
-        # nosec B603 B607 B608
-            ["git", "push", "origin", "--delete", clean_branch], shell=False, capture_output=True, text=True, check=True
+            ["git", "push", "origin", "--delete", f"refs/heads/{clean_branch}"], shell=False, capture_output=True, text=True, check=True
         )
         return True
     except subprocess.CalledProcessError as e:
@@ -198,8 +201,7 @@ def push_new_branch(branch_name):
     print(f"Pushing new branch '{branch_name}'")
     try:
         subprocess.run(  # nosec B603 B607 B608
-        # nosec B603 B607 B608
-            ["git", "push", "-u", "origin", branch_name], shell=False, capture_output=True, text=True, check=True
+            ["git", "push", "-u", "origin", f"refs/heads/{branch_name}"], shell=False, capture_output=True, text=True, check=True
         )
         return True
     except subprocess.CalledProcessError as e:
@@ -270,7 +272,6 @@ def main():
             try:
                 subprocess.run(  # nosec B603 B607 B608
             ["git", "branch", "-d", branch], shell=False, capture_output=True, text=True, check=True)
-        # nosec B603 B607 B608
                 print(f"✓ Deleted local branch '{branch}'")
             except subprocess.CalledProcessError as e:
                 print(f"✗ Failed to delete local branch '{branch}'")
