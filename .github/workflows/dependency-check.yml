@@ -54,7 +54,12 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        run: npm ci
+<<<<<<< HEAD
+        run: npm install --legacy-peer-deps
+=======
+        if: steps.node_manifest.outputs.found == 'true'
+        run: npm install --legacy-peer-deps
+>>>>>>> d90ea0c6 (fix(ci): fix npm ci failure by using npm install --legacy-peer-deps)
 
       - name: Run npm audit
         run: npm audit --audit-level=high || true
