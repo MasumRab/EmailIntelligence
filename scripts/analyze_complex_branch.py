@@ -3,21 +3,11 @@ import subprocess
 import sys
 import re
 
-_SAFE_ARG = re.compile(r"[A-Za-z0-9_./^~=:-]*")
-
-
-def _clean_arg(argument):
-    """Return the git argument, or raise. The matched text is what reaches argv."""
-    match = _SAFE_ARG.fullmatch(argument)
-    if not match:
-        raise ValueError(f"Invalid git argument: {argument!r}")
-    return match.group(0)
-
-
 def run_git_command(command, check=True):
-    # SonarCloud pythonsecurity:S8705 follows the caller-supplied strings into
-    # subprocess.run; only the regex-matched values drop the taint.
-    command = [_clean_arg(argument) for argument in command]
+    if not command or command[0] != "git":
+        print("Error: Invalid command executable.", file=sys.stderr)
+        sys.exit(1)
+
     try:
         result = subprocess.run(
             command,
@@ -32,30 +22,30 @@ def run_git_command(command, check=True):
         sys.exit(1)
 
 def is_divergent(branch, base):
-    _, returncode = run_git_command(["git", "merge-base", "--is-ancestor", base, branch], check=False)
+    _, returncode = run_git_command(["git", "merge-base", "--is-ancestor", "--", base, branch], check=False)
     # If base is not an ancestor of branch, they are divergent
     return returncode != 0
 
 def get_merge_commit_count(branch, base):
-    stdout, _ = run_git_command(["git", "rev-list", "--merges", f"{base}..{branch}", "--count"])
+    stdout, _ = run_git_command(["git", "rev-list", "--merges", "--count", "--", f"{base}..{branch}"])
     return int(stdout) if stdout.isdigit() else 0
 
 def get_commit_count(branch, base):
-    stdout, _ = run_git_command(["git", "rev-list", f"{base}..{branch}", "--count"])
+    stdout, _ = run_git_command(["git", "rev-list", "--count", "--", f"{base}..{branch}"])
     return int(stdout) if stdout.isdigit() else 0
 
 def get_changed_files_count(branch, base):
     # Using ... to get changes in branch since it diverged from base
-    stdout, _ = run_git_command(["git", "diff", f"{base}...{branch}", "--name-only"])
+    stdout, _ = run_git_command(["git", "diff", "--name-only", "--", f"{base}...{branch}"])
     return len([line for line in stdout.split('\n') if line.strip()])
 
-def is_valid_git_ref(ref):
+def is_safe_ref(ref):
     if not ref or ref.startswith('-'):
         return False
-    return bool(re.match(r'^[a-zA-Z0-9_/\.-]+$', ref))
+    return bool(re.match(r'^[A-Za-z0-9_/\.-]+$', ref))
 
 def analyze_branch(branch, base, threshold_commits=50, threshold_files=100):
-    if not is_valid_git_ref(branch) or not is_valid_git_ref(base):
+    if not is_safe_ref(branch) or not is_safe_ref(base):
         print("Error: Invalid branch name.", file=sys.stderr)
         sys.exit(1)
 
