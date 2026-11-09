@@ -52,7 +52,7 @@ class BottleneckDetector:
         self.step_queue_sizes: Dict[str, List[int]] = defaultdict(list)
         self._lock = threading.RLock()
         self.load_detection_data()
-        
+
     def start_workflow_step(self, step_id: str, step_name: str, agent_id: str = "",
                           dependencies: List[str] = None, metadata: Dict[str, Any] = None) -> WorkflowStep:
         """Start tracking a workflow step."""
@@ -60,7 +60,7 @@ class BottleneckDetector:
             dependencies = []
         if metadata is None:
             metadata = {}
-            
+
         step = WorkflowStep(
             step_id=step_id,
             step_name=step_name,
@@ -69,47 +69,47 @@ class BottleneckDetector:
             dependencies=dependencies,
             metadata=metadata
         )
-        
+
         with self._lock:
             self.workflow_steps[step_id] = step
             self.agent_workloads[agent_id] += 1
             self._save_detection_data()
-            
+
         return step
-        
-    def complete_workflow_step(self, step_id: str, success: bool = True, 
+
+    def complete_workflow_step(self, step_id: str, success: bool = True,
                              error_message: str = "") -> Optional[WorkflowStep]:
         """Mark a workflow step as completed."""
         with self._lock:
             if step_id not in self.workflow_steps:
                 return None
-                
+
             step = self.workflow_steps[step_id]
             step.end_time = time.time()
             step.duration = step.end_time - step.start_time
             step.status = "completed" if success else "failed"
             if not success:
                 step.metadata['error_message'] = error_message
-                
+
             # Update step durations for historical analysis
             self.step_durations[step.step_name].append(step.duration)
-            
+
             # Update agent workload
             if step.agent_id in self.agent_workloads:
                 self.agent_workloads[step.agent_id] -= 1
                 if self.agent_workloads[step.agent_id] < 0:
                     self.agent_workloads[step.agent_id] = 0
-                    
+
             self._save_detection_data()
             return step
-            
+
     def get_step_duration_stats(self, step_name: str) -> Dict[str, float]:
         """Get duration statistics for a step type."""
         with self._lock:
             durations = self.step_durations.get(step_name, [])
             if not durations:
                 return {}
-                
+
             return {
                 'count': len(durations),
                 'mean': statistics.mean(durations),
@@ -120,37 +120,37 @@ class BottleneckDetector:
                 'percentile_95': self._percentile(durations, 95),
                 'percentile_99': self._percentile(durations, 99)
             }
-            
+
     def _percentile(self, data: List[float], percentile: float) -> float:
         """Calculate percentile of a list of numbers."""
         if not data:
             return 0.0
-            
+
         sorted_data = sorted(data)
         index = (percentile / 100) * (len(sorted_data) - 1)
-        
+
         if index.is_integer():
             return sorted_data[int(index)]
         else:
             lower = sorted_data[int(index)]
             upper = sorted_data[min(int(index) + 1, len(sorted_data) - 1)]
             return lower + (upper - lower) * (index - int(index))
-            
+
     def detect_long_running_steps(self, duration_threshold_percentile: float = 95,
                                 min_duration: float = 60.0) -> List[BottleneckAlert]:
         """Detect steps that are taking longer than expected."""
         alerts = []
-        
+
         with self._lock:
             # Get currently running steps
             running_steps = [
                 step for step in self.workflow_steps.values()
                 if step.status == "running"
             ]
-            
+
             for step in running_steps:
                 current_duration = time.time() - step.start_time
-                
+
                 # Check if step is taking too long
                 stats = self.get_step_duration_stats(step.step_name)
                 if stats:
@@ -159,7 +159,7 @@ class BottleneckDetector:
                         stats.get('percentile_95', min_duration),
                         min_duration
                     )
-                    
+
                     if current_duration > threshold:
                         alert = BottleneckAlert(
                             alert_id=f"long_running_{step.step_id}",
@@ -191,13 +191,13 @@ class BottleneckDetector:
                                             f"is functioning correctly"
                     )
                     alerts.append(alert)
-                    
+
         return alerts
-        
+
     def detect_queue_backlogs(self, backlog_threshold: int = 10) -> List[BottleneckAlert]:
         """Detect steps with large queue backlogs."""
         alerts = []
-        
+
         with self._lock:
             # For this simplified implementation, we'll check agent workloads
             # In a real system, this would check actual queue sizes
@@ -205,7 +205,7 @@ class BottleneckDetector:
                 agent_id for agent_id, workload in self.agent_workloads.items()
                 if workload > backlog_threshold
             ]
-            
+
             if overloaded_agents:
                 alert = BottleneckAlert(
                     alert_id=f"queue_backlog_{int(time.time())}",
@@ -219,15 +219,15 @@ class BottleneckDetector:
                     resolution_suggestion="Consider adding more agents or redistributing workload"
                 )
                 alerts.append(alert)
-                
+
         return alerts
-        
+
     def detect_resource_contention(self, resource_threshold: float = 80.0) -> List[BottleneckAlert]:
         """Detect resource contention issues (placeholder implementation)."""
         # In a real implementation, this would check actual system resources
         # For now, we'll create a placeholder that could be extended
         alerts = []
-        
+
         # This is a simplified check - in reality, you'd monitor actual CPU, memory, disk, network
         with self._lock:
             high_duration_steps = []
@@ -237,11 +237,11 @@ class BottleneckDetector:
                     avg_recent = statistics.mean(recent_durations)
                     stats = self.get_step_duration_stats(step_name)
                     historical_avg = stats.get('mean', 0)
-                    
+
                     # If recent durations are significantly higher than historical average
                     if historical_avg > 0 and avg_recent > historical_avg * 1.5:
                         high_duration_steps.append(step_name)
-                        
+
             if high_duration_steps:
                 alert = BottleneckAlert(
                     alert_id=f"resource_contention_{int(time.time())}",
@@ -256,13 +256,13 @@ class BottleneckDetector:
                                         "consider resource allocation optimization"
                 )
                 alerts.append(alert)
-                
+
         return alerts
-        
+
     def detect_dependency_blocks(self) -> List[BottleneckAlert]:
         """Detect steps blocked by dependencies."""
         alerts = []
-        
+
         with self._lock:
             # Find steps that are waiting for dependencies
             blocked_steps = []
@@ -271,20 +271,20 @@ class BottleneckDetector:
                     # Check if dependencies are completed
                     unmet_dependencies = [
                         dep_id for dep_id in step.dependencies
-                        if dep_id not in self.workflow_steps or 
+                        if dep_id not in self.workflow_steps or
                         self.workflow_steps[dep_id].status not in ["completed", "failed"]
                     ]
-                    
+
                     if unmet_dependencies:
                         # Check how long we've been waiting
                         wait_time = time.time() - step.start_time
                         if wait_time > 300:  # 5 minutes
                             blocked_steps.append((step, unmet_dependencies, wait_time))
-                            
+
             if blocked_steps:
                 affected_step_ids = [step.step_id for step, _, _ in blocked_steps]
                 affected_agent_ids = [step.agent_id for step, _, _ in blocked_steps]
-                
+
                 alert = BottleneckAlert(
                     alert_id=f"dependency_block_{int(time.time())}",
                     alert_type="dependency_block",
@@ -298,40 +298,40 @@ class BottleneckDetector:
                                         "are progressing or failed appropriately"
                 )
                 alerts.append(alert)
-                
+
         return alerts
-        
+
     def detect_all_bottlenecks(self, duration_threshold_percentile: float = 95,
                              min_duration: float = 60.0,
                              backlog_threshold: int = 10,
                              resource_threshold: float = 80.0) -> List[BottleneckAlert]:
         """Detect all types of bottlenecks."""
         all_alerts = []
-        
+
         # Detect different types of bottlenecks
         all_alerts.extend(self.detect_long_running_steps(duration_threshold_percentile, min_duration))
         all_alerts.extend(self.detect_queue_backlogs(backlog_threshold))
         all_alerts.extend(self.detect_resource_contention(resource_threshold))
         all_alerts.extend(self.detect_dependency_blocks())
-        
+
         return all_alerts
-        
+
     def add_bottleneck_alert(self, alert: BottleneckAlert):
         """Add a bottleneck alert to the history."""
         with self._lock:
             self.bottleneck_alerts.append(alert)
             self._save_detection_data()
-            
+
     def get_recent_alerts(self, hours: int = 24) -> List[BottleneckAlert]:
         """Get recent bottleneck alerts."""
         cutoff_time = time.time() - (hours * 3600)
-        
+
         with self._lock:
             return [
                 alert for alert in self.bottleneck_alerts
                 if alert.timestamp >= cutoff_time
             ]
-            
+
     def get_alerts_by_type(self, alert_type: str) -> List[BottleneckAlert]:
         """Get bottleneck alerts by type."""
         with self._lock:
@@ -339,7 +339,7 @@ class BottleneckDetector:
                 alert for alert in self.bottleneck_alerts
                 if alert.alert_type == alert_type
             ]
-            
+
     def get_alerts_by_severity(self, severity: str) -> List[BottleneckAlert]:
         """Get bottleneck alerts by severity."""
         with self._lock:
@@ -347,7 +347,7 @@ class BottleneckDetector:
                 alert for alert in self.bottleneck_alerts
                 if alert.severity == severity
             ]
-            
+
     def get_bottleneck_summary(self) -> Dict[str, Any]:
         """Get a summary of current bottleneck detection status."""
         with self._lock:
@@ -355,20 +355,20 @@ class BottleneckDetector:
                 step for step in self.workflow_steps.values()
                 if step.status == "running"
             ]
-            
+
             completed_steps = [
                 step for step in self.workflow_steps.values()
                 if step.status == "completed"
             ]
-            
+
             failed_steps = [
                 step for step in self.workflow_steps.values()
                 if step.status == "failed"
             ]
-            
+
             # Get recent alerts
             recent_alerts = self.get_recent_alerts(1)  # Last hour
-            
+
             return {
                 'timestamp': time.time(),
                 'total_steps': len(self.workflow_steps),
@@ -391,7 +391,7 @@ class BottleneckDetector:
                     'dependency_block': len(self.get_alerts_by_type('dependency_block'))
                 }
             }
-            
+
     def _save_detection_data(self):
         """Save detection data to file."""
         try:
@@ -426,27 +426,27 @@ class BottleneckDetector:
                     for alert in self.bottleneck_alerts
                 ],
                 'step_durations': {
-                    step_name: durations 
+                    step_name: durations
                     for step_name, durations in self.step_durations.items()
                 },
                 'agent_workloads': dict(self.agent_workloads)
             }
-            
+
             with open(self.detection_file, 'w') as f:
                 json.dump(data, f, indent=2)
-                
+
         except Exception as e:
             print(f"Error saving detection data: {e}")
-            
+
     def load_detection_data(self):
         """Load detection data from file."""
         try:
             if not self.detection_file.exists():
                 return
-                
+
             with open(self.detection_file, 'r') as f:
                 data = json.load(f)
-                
+
             # Restore workflow steps
             self.workflow_steps.clear()
             for step_id, step_data in data.get('workflow_steps', {}).items():
@@ -462,7 +462,7 @@ class BottleneckDetector:
                     metadata=step_data['metadata']
                 )
                 self.workflow_steps[step_id] = step
-                
+
             # Restore bottleneck alerts
             self.bottleneck_alerts.clear()
             for alert_data in data.get('bottleneck_alerts', []):
@@ -478,17 +478,17 @@ class BottleneckDetector:
                     metadata=alert_data.get('metadata', {})
                 )
                 self.bottleneck_alerts.append(alert)
-                
+
             # Restore step durations
             self.step_durations.clear()
             for step_name, durations in data.get('step_durations', {}).items():
                 self.step_durations[step_name] = durations
-                
+
             # Restore agent workloads
             self.agent_workloads.clear()
             for agent_id, workload in data.get('agent_workloads', {}).items():
                 self.agent_workloads[agent_id] = workload
-                
+
         except Exception as e:
             print(f"Error loading detection data: {e}")
 
@@ -496,11 +496,11 @@ class BottleneckDetector:
 class BottleneckDashboard:
     def __init__(self, detector: BottleneckDetector):
         self.detector = detector
-        
+
     def display_bottleneck_summary(self):
         """Display bottleneck detection summary."""
         summary = self.detector.get_bottleneck_summary()
-        
+
         print(f"\nBottleneck Detection Summary")
         print("=" * 35)
         print(f"Total Steps: {summary['total_steps']}")
@@ -509,23 +509,23 @@ class BottleneckDashboard:
         print(f"Failed Steps: {summary['failed_steps']}")
         print(f"Active Agents: {summary['active_agents']}/{summary['total_agents']}")
         print(f"Recent Alerts (1h): {summary['recent_alerts']}")
-        
+
         print("\nAlerts by Severity:")
         for severity, count in summary['alerts_by_severity'].items():
             print(f"  {severity.capitalize()}: {count}")
-            
+
         print("\nAlerts by Type:")
         for alert_type, count in summary['alerts_by_type'].items():
             print(f"  {alert_type.replace('_', ' ').title()}: {count}")
-            
+
     def display_recent_alerts(self, hours: int = 1):
         """Display recent bottleneck alerts."""
         alerts = self.detector.get_recent_alerts(hours)
-        
+
         if not alerts:
             print(f"\nNo recent alerts (last {hours} hour(s))")
             return
-            
+
         print(f"\nRecent Bottleneck Alerts (last {hours} hour(s))")
         print("=" * 50)
         for alert in sorted(alerts, key=lambda x: x.timestamp, reverse=True):
@@ -533,19 +533,19 @@ class BottleneckDashboard:
             print(f"\n[{timestamp}] {alert.severity.upper()}: {alert.description}")
             if alert.resolution_suggestion:
                 print(f"  Suggestion: {alert.resolution_suggestion}")
-                
+
     def display_detailed_analysis(self):
         """Display detailed bottleneck analysis."""
         print(f"\nDetailed Bottleneck Analysis")
         print("=" * 30)
-        
+
         # Check for all types of bottlenecks
         alerts = self.detector.detect_all_bottlenecks()
-        
+
         if not alerts:
             print("No active bottlenecks detected")
             return
-            
+
         print(f"Detected {len(alerts)} active bottlenecks:")
         for alert in alerts:
             print(f"\n⚠️  [{alert.severity.upper()}] {alert.alert_type.replace('_', ' ').title()}")
@@ -562,14 +562,14 @@ def main():
     # Example usage
     print("Automated Bottleneck Detection System")
     print("=" * 40)
-    
+
     # Create detector and dashboard
     detector = BottleneckDetector()
     dashboard = BottleneckDashboard(detector)
-    
+
     print("Bottleneck detection system initialized")
     print("System ready to automatically identify and alert on workflow bottlenecks")
-    
+
     # Example of what the workflow would look like:
     print("\nExample workflow:")
     print("  1. Track workflow steps as they start and complete")

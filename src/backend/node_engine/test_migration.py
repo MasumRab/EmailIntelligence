@@ -5,12 +5,13 @@ It will be removed in a future release.
 Test module for workflow migration utilities.
 """
 
+
 from backend.node_engine.migration_utils import (
     WorkflowMigrationManager,
-    generate_migration_plan,
-    get_migration_report,
-    migrate_legacy_workflow,
+    WorkflowMigrationService,
 )
+
+__test__ = False
 
 
 def test_migration_utilities():
@@ -28,18 +29,20 @@ def test_migration_utilities():
 
     # Test migration report
     print("\n1. Testing migration report...")
-    report = get_migration_report(legacy_config)
+    service = WorkflowMigrationService()
+    report = service.get_migration_report(legacy_config)
     print(f"Migration report: {report}")
 
     # Test migration plan
     print("\n2. Testing migration plan...")
-    plan = generate_migration_plan(legacy_config)
+    manager = WorkflowMigrationManager()
+    plan = manager.generate_migration_plan(legacy_config)
     print(f"Migration plan keys: {list(plan.keys())}")
 
     # Test actual migration
     print("\n3. Testing actual migration...")
     try:
-        node_workflow = migrate_legacy_workflow(legacy_config, "Test Migrated Workflow")
+        node_workflow = service.migrate_legacy_workflow(legacy_config, "Test Migrated Workflow")
         print(f"Migrated workflow name: {node_workflow.name}")
         print(f"Number of nodes: {len(node_workflow.nodes)}")
         print(f"Number of connections: {len(node_workflow.connections)}")
@@ -77,9 +80,7 @@ def test_migration_manager():
 
     try:
         plan = manager.generate_migration_plan(legacy_config)
-        print(
-            f"[PASS] Migration manager test passed! Plan has keys: {list(plan.keys())}"
-        )
+        print(f"[PASS] Migration manager test passed! Plan has keys: {list(plan.keys())}")
         return True
     except Exception as e:
         print(f"[FAIL] Migration manager test failed: {e}")

@@ -42,7 +42,7 @@ class Task:
     created_at: str = None
     assigned_at: Optional[str] = None
     completed_at: Optional[str] = None
-    
+
     def __post_init__(self):
         if self.dependencies is None:
             self.dependencies = []
@@ -62,15 +62,15 @@ class Agent:
         self.current_load = 0
         self.performance_history = []
         self.last_heartbeat = datetime.now()
-        
+
     def can_handle_task(self, task: Task) -> bool:
         """Check if agent can handle a specific task type."""
         return task.type in self.capabilities or "general" in self.capabilities
-    
+
     def has_capacity(self) -> bool:
         """Check if agent has capacity for more tasks."""
         return self.current_load < self.max_concurrent_tasks
-    
+
     def assign_task(self, task: Task) -> bool:
         """Assign a task to this agent."""
         if self.can_handle_task(task) and self.has_capacity():
@@ -78,7 +78,7 @@ class Agent:
             self.last_heartbeat = datetime.now()
             return True
         return False
-    
+
     def complete_task(self):
         """Mark a task as completed by this agent."""
         if self.current_load > 0:
@@ -87,7 +87,7 @@ class Agent:
                 "completed_at": datetime.now().isoformat(),
                 "task_time": 10  # Placeholder
             })
-    
+
     def get_utilization_rate(self) -> float:
         """Get agent utilization rate."""
         return self.current_load / self.max_concurrent_tasks
@@ -98,11 +98,11 @@ class TaskQueue:
         self.name = name
         self.tasks: List[Task] = []
         self.completed_tasks: List[Task] = []
-        
+
     def add_task(self, task: Task):
         """Add a task to the queue."""
         self.tasks.append(task)
-        
+
     def get_next_task(self, agent: Agent) -> Optional[Task]:
         """Get the next suitable task for an agent."""
         # Sort tasks by priority and dependencies
@@ -110,34 +110,34 @@ class TaskQueue:
             t.priority.value,
             len([d for d in t.dependencies if not self._is_dependency_completed(d)])
         ))
-        
+
         for task in sorted_tasks:
-            if (task.status == TaskStatus.PENDING and 
-                agent.can_handle_task(task) and 
+            if (task.status == TaskStatus.PENDING and
+                agent.can_handle_task(task) and
                 self._are_dependencies_met(task)):
                 return task
         return None
-    
+
     def _is_dependency_completed(self, task_id: str) -> bool:
         """Check if a dependency task is completed."""
         for task in self.completed_tasks:
             if task.id == task_id:
                 return True
         return False
-    
+
     def _are_dependencies_met(self, task: Task) -> bool:
         """Check if all dependencies for a task are met."""
         for dep_id in task.dependencies:
             if not self._is_dependency_completed(dep_id):
                 return False
         return True
-    
+
     def mark_task_assigned(self, task: Task, agent_name: str):
         """Mark a task as assigned to an agent."""
         task.status = TaskStatus.ASSIGNED
         task.assigned_agent = agent_name
         task.assigned_at = datetime.now().isoformat()
-    
+
     def mark_task_completed(self, task: Task):
         """Mark a task as completed."""
         task.status = TaskStatus.COMPLETED
@@ -150,15 +150,15 @@ class TaskRouter:
     def __init__(self):
         self.queues: Dict[str, TaskQueue] = {}
         self.agents: List[Agent] = []
-        
+
     def add_queue(self, queue: TaskQueue):
         """Add a task queue."""
         self.queues[queue.name] = queue
-        
+
     def add_agent(self, agent: Agent):
         """Add an agent."""
         self.agents.append(agent)
-        
+
     def route_task(self, task: Task) -> bool:
         """Route a task to the appropriate queue."""
         # Determine queue based on task type
@@ -170,12 +170,12 @@ class TaskRouter:
             queue_name = 'architecture'
         else:
             queue_name = 'general'
-            
+
         if queue_name in self.queues:
             self.queues[queue_name].add_task(task)
             return True
         return False
-    
+
     def assign_tasks(self):
         """Assign tasks to available agents."""
         for agent in self.agents:
@@ -184,7 +184,7 @@ class TaskRouter:
                 task = self._find_task_for_agent(agent)
                 if task:
                     self._assign_task_to_agent(task, agent)
-    
+
     def _find_task_for_agent(self, agent: Agent) -> Optional[Task]:
         """Find the best task for an agent."""
         # Check each queue for tasks the agent can handle
@@ -193,7 +193,7 @@ class TaskRouter:
             if task:
                 return task
         return None
-    
+
     def _assign_task_to_agent(self, task: Task, agent: Agent):
         """Assign a task to an agent."""
         # Find the queue that contains this task
@@ -202,7 +202,7 @@ class TaskRouter:
                 queue.mark_task_assigned(task, agent.name)
                 agent.assign_task(task)
                 break
-    
+
     def get_queue_stats(self) -> Dict:
         """Get statistics for all queues."""
         stats = {}
@@ -214,7 +214,7 @@ class TaskRouter:
                 'completed': len(queue.completed_tasks)
             }
         return stats
-    
+
     def get_agent_stats(self) -> Dict:
         """Get statistics for all agents."""
         stats = {}
@@ -231,20 +231,20 @@ class TaskRouter:
 def main():
     # Create task router
     router = TaskRouter()
-    
+
     # Create queues
     router.add_queue(TaskQueue('api_docs'))
     router.add_queue(TaskQueue('user_guides'))
     router.add_queue(TaskQueue('architecture'))
     router.add_queue(TaskQueue('general'))
-    
+
     # Create agents
     router.add_agent(Agent('api-writer', ['api', 'general'], 5))
     router.add_agent(Agent('guide-writer', ['guide', 'general'], 3))
     router.add_agent(Agent('architect', ['arch', 'general'], 2))
-    
+
     # Example usage would go here
-    
+
     print("Task queue system initialized")
     print(f"Queues: {list(router.queues.keys())}")
     print(f"Agents: {[a.name for a in router.agents]}")

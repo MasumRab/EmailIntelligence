@@ -58,14 +58,14 @@ class ValidationWorker:
         self.is_active = False
         self.tasks_processed = 0
         self.errors_found = 0
-        
+
     def validate_syntax(self, file_path: Path) -> List[ValidationError]:
         """Validate syntax of a file."""
         errors = []
         try:
             with open(file_path, 'r', encoding='utf-8') as f:
                 content = f.read()
-                
+
             # Check for basic syntax issues
             lines = content.split('\n')
             for i, line in enumerate(lines, 1):
@@ -78,7 +78,7 @@ class ValidationWorker:
                         message=f"Unbalanced parentheses on line {i}",
                         severity="error"
                     ))
-                    
+
                 if line.count('[') != line.count(']'):
                     errors.append(ValidationError(
                         file_path=str(file_path),
@@ -87,7 +87,7 @@ class ValidationWorker:
                         message=f"Unbalanced brackets on line {i}",
                         severity="error"
                     ))
-                    
+
                 if line.count('{') != line.count('}'):
                     errors.append(ValidationError(
                         file_path=str(file_path),
@@ -96,7 +96,7 @@ class ValidationWorker:
                         message=f"Unbalanced braces on line {i}",
                         severity="error"
                     ))
-                    
+
         except Exception as e:
             errors.append(ValidationError(
                 file_path=str(file_path),
@@ -105,20 +105,20 @@ class ValidationWorker:
                 message=f"Could not read file: {str(e)}",
                 severity="error"
             ))
-            
+
         return errors
-        
+
     def validate_links(self, file_path: Path) -> List[ValidationError]:
         """Validate links in a file."""
         errors = []
         try:
             with open(file_path, 'r', encoding='utf-8') as f:
                 content = f.read()
-                
+
             # Find markdown links
             link_pattern = r'\[([^\]]+)\]\(([^)]+)\)'
             links = re.findall(link_pattern, content)
-            
+
             for text, url in links:
                 # Check for broken URLs (simplified check)
                 if url.startswith('http'):
@@ -146,7 +146,7 @@ class ValidationWorker:
                             message=f"Broken link to file: {url}",
                             severity="error"
                         ))
-                        
+
         except Exception as e:
             errors.append(ValidationError(
                 file_path=str(file_path),
@@ -155,16 +155,16 @@ class ValidationWorker:
                 message=f"Could not read file for link validation: {str(e)}",
                 severity="error"
             ))
-            
+
         return errors
-        
+
     def validate_content(self, file_path: Path) -> List[ValidationError]:
         """Validate content quality."""
         errors = []
         try:
             with open(file_path, 'r', encoding='utf-8') as f:
                 content = f.read()
-                
+
             # Check for content issues
             if len(content.strip()) == 0:
                 errors.append(ValidationError(
@@ -174,7 +174,7 @@ class ValidationWorker:
                     message="File is empty",
                     severity="warning"
                 ))
-                
+
             # Check for very short content
             word_count = len(content.split())
             if word_count < 10:
@@ -185,14 +185,14 @@ class ValidationWorker:
                     message=f"Content is very short ({word_count} words)",
                     severity="warning"
                 ))
-                
+
             # Check for placeholder text
             placeholder_patterns = [
                 r'\{\{.*?\}\}',  # {{placeholder}}
                 r'\[.*?\]\(.*?\)',  # [text](url) - but not markdown links
                 r'TODO:', r'FIXME:', r'XXX:'
             ]
-            
+
             for pattern in placeholder_patterns:
                 matches = re.findall(pattern, content, re.IGNORECASE)
                 for match in matches:
@@ -203,7 +203,7 @@ class ValidationWorker:
                         message=f"Found placeholder content: {match}",
                         severity="warning"
                     ))
-                    
+
         except Exception as e:
             errors.append(ValidationError(
                 file_path=str(file_path),
@@ -212,20 +212,20 @@ class ValidationWorker:
                 message=f"Could not read file for content validation: {str(e)}",
                 severity="error"
             ))
-            
+
         return errors
-        
+
     def run_validation_task(self, task: ValidationTask) -> ValidationTask:
         """Run a validation task."""
         self.is_active = True
         start_time = time.time()
-        
+
         try:
             all_errors = []
-            
+
             for file_path in task.files:
                 file_errors = []
-                
+
                 if task.validation_type == ValidationType.SYNTAX:
                     file_errors = self.validate_syntax(Path(file_path))
                 elif task.validation_type == ValidationType.LINKS:
@@ -238,13 +238,13 @@ class ValidationWorker:
                 elif task.validation_type == ValidationType.COMPLETENESS:
                     # Completeness validation would check for required sections
                     file_errors = []
-                    
+
                 all_errors.extend(file_errors)
-                
+
             task.errors = all_errors
             task.result = ValidationResult.FAIL if all_errors else ValidationResult.PASS
             self.errors_found += len(all_errors)
-            
+
         except Exception as e:
             task.result = ValidationResult.FAIL
             task.errors.append(ValidationError(
@@ -254,13 +254,13 @@ class ValidationWorker:
                 message=f"Validation task failed: {str(e)}",
                 severity="error"
             ))
-            
+
         finally:
             self.is_active = False
             self.tasks_processed += 1
             task.completed_at = time.time()
             task.duration = task.completed_at - start_time
-            
+
         return task
 
 
@@ -271,7 +271,7 @@ class ParallelValidationManager:
         self.validation_history: List[ValidationTask] = []
         self.validation_log_file = Path("validation_log.json")
         self.load_validation_log()
-        
+
     def load_validation_log(self):
         """Load validation log from file."""
         if self.validation_log_file.exists():
@@ -282,7 +282,7 @@ class ParallelValidationManager:
                     self.validation_history = data
             except Exception as e:
                 print(f"Error loading validation log: {e}")
-                
+
     def save_validation_log(self):
         """Save validation log to file."""
         try:
@@ -311,21 +311,21 @@ class ParallelValidationManager:
                     'duration': task.duration
                 }
                 serializable_history.append(task_data)
-                
+
             with open(self.validation_log_file, 'w') as f:
                 json.dump(serializable_history, f, indent=2)
         except Exception as e:
             print(f"Error saving validation log: {e}")
-            
+
     def add_worker(self, worker_id: str) -> bool:
         """Add a validation worker."""
         if worker_id in self.workers:
             return False
-            
+
         worker = ValidationWorker(worker_id)
         self.workers[worker_id] = worker
         return True
-        
+
     def remove_worker(self, worker_id: str) -> bool:
         """Remove a validation worker."""
         if worker_id in self.workers:
@@ -335,12 +335,12 @@ class ParallelValidationManager:
             del self.workers[worker_id]
             return True
         return False
-        
-    def create_validation_task(self, validation_type: ValidationType, 
+
+    def create_validation_task(self, validation_type: ValidationType,
                              files: List[str], worker_id: str) -> ValidationTask:
         """Create a validation task."""
         task_id = f"val_{validation_type.value}_{worker_id}_{int(time.time())}"
-        
+
         task = ValidationTask(
             task_id=task_id,
             validation_type=validation_type,
@@ -348,9 +348,9 @@ class ParallelValidationManager:
             worker_id=worker_id,
             created_at=time.time()
         )
-        
+
         return task
-        
+
     def run_validation_task(self, task: ValidationTask) -> ValidationTask:
         """Run a validation task on a specific worker."""
         if task.worker_id not in self.workers:
@@ -369,20 +369,20 @@ class ParallelValidationManager:
                     severity="error"
                 ))
                 return task
-                
+
         worker = self.workers[task.worker_id]
         result = worker.run_validation_task(task)
         self.validation_history.append(result)
         self.save_validation_log()
         return result
-        
+
     def run_parallel_validation(self, tasks: List[ValidationTask]) -> Dict[str, ValidationTask]:
         """Run multiple validation tasks in parallel."""
         if not self.workers:
             return {}
-            
+
         results = {}
-        
+
         # Use ThreadPoolExecutor for parallel validation
         with ThreadPoolExecutor(max_workers=self.max_workers) as executor:
             # Submit all validation tasks
@@ -390,7 +390,7 @@ class ParallelValidationManager:
                 executor.submit(self.run_validation_task, task): task
                 for task in tasks
             }
-            
+
             # Collect results as they complete
             for future in as_completed(future_to_task):
                 task = future_to_task[future]
@@ -417,9 +417,9 @@ class ParallelValidationManager:
                         duration=time.time() - task.created_at
                     )
                     results[task.task_id] = failed_task
-                    
+
         return results
-        
+
     def get_worker_status(self, worker_id: str) -> Optional[Dict]:
         """Get status of a specific worker."""
         if worker_id in self.workers:
@@ -431,23 +431,23 @@ class ParallelValidationManager:
                 'errors_found': worker.errors_found
             }
         return None
-        
+
     def get_all_workers_status(self) -> Dict[str, Dict]:
         """Get status of all workers."""
         return {
             worker_id: self.get_worker_status(worker_id)
             for worker_id in self.workers
         }
-        
+
     def get_validation_summary(self) -> Dict:
         """Get summary of all validation operations."""
         total_tasks = len(self.validation_history)
         passed_tasks = len([t for t in self.validation_history if t.result == ValidationResult.PASS])
         failed_tasks = len([t for t in self.validation_history if t.result == ValidationResult.FAIL])
         warning_tasks = len([t for t in self.validation_history if t.result == ValidationResult.WARNING])
-        
+
         total_errors = sum(len(task.errors) for task in self.validation_history)
-        
+
         # Group errors by type
         error_types = {}
         for task in self.validation_history:
@@ -456,7 +456,7 @@ class ParallelValidationManager:
                 if error_type not in error_types:
                     error_types[error_type] = 0
                 error_types[error_type] += 1
-                
+
         return {
             'total_tasks': total_tasks,
             'passed_tasks': passed_tasks,
@@ -473,18 +473,18 @@ def main():
     # Example usage
     print("Parallel Validation Workers System")
     print("=" * 35)
-    
+
     # Create validation manager
     manager = ParallelValidationManager(max_workers=4)
-    
+
     # Add some workers
     manager.add_worker("validator1")
     manager.add_worker("validator2")
     manager.add_worker("validator3")
-    
+
     print("Parallel validation manager initialized with 3 workers")
     print("System ready to run multiple validation processes simultaneously")
-    
+
     # Example of what the workflow would look like:
     print("\nExample workflow:")
     print("  1. Create validation tasks for different file types")

@@ -10,7 +10,8 @@ that were implemented in the new node engine architecture.
 
 from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, HTTPException
+from fastapi import Depends, APIRouter, HTTPException
+from src.core.auth import get_current_active_user
 from pydantic import BaseModel
 
 from backend.node_engine.email_nodes import (
@@ -29,7 +30,7 @@ from backend.node_engine.workflow_manager import (
 )
 
 
-router = APIRouter()
+router = APIRouter(dependencies=[Depends(get_current_active_user)])
 
 
 class NodeWorkflowCreateRequest(BaseModel):
@@ -117,7 +118,7 @@ async def create_node_workflow(request: NodeWorkflowCreateRequest):
             workflow.add_connection(connection)
 
         # Save the workflow
-        file_path = node_workflow_manager.save_workflow(workflow)
+        node_workflow_manager.save_workflow(workflow)
 
         return NodeWorkflowResponse(
             workflow_id=workflow.workflow_id,
@@ -245,7 +246,7 @@ async def update_node_workflow(workflow_id: str, request: NodeWorkflowCreateRequ
             updated_workflow.add_connection(connection)
 
         # Save the updated workflow
-        file_path = node_workflow_manager.save_workflow(updated_workflow)
+        node_workflow_manager.save_workflow(updated_workflow)
 
         return NodeWorkflowResponse(
             workflow_id=updated_workflow.workflow_id,
