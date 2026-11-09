@@ -280,11 +280,91 @@ def handle_setup(args, venv_path):
     logger.info("Setup complete.")
 
 
+def is_conda_available() -> bool:
+    """Check if conda is available on the system."""
+    try:
+        result = subprocess.run(
+            ["conda", "--version"],
+            capture_output=True,
+            text=True,
+            timeout=5
+        )
+        return result.returncode == 0
+    except (subprocess.CalledProcessError, FileNotFoundError, subprocess.TimeoutExpired):
+        return False
+
+
+def get_conda_env_info():
+    """Get information about the current conda environment."""
+    try:
+        # Check if we're in a conda environment
+        env_name = os.environ.get("CONDA_DEFAULT_ENV")
+        if env_name:
+            logger.info(f"Currently in conda environment: {env_name}")
+            return {"env_name": env_name, "active": True}
+
+        # Check conda info
+        result = subprocess.run(
+            ["conda", "info", "--json"],
+            capture_output=True,
+            text=True,
+            timeout=10
+        )
+
+        if result.returncode == 0:
+            import json
+            info = json.loads(result.stdout)
+            return {
+                "active": info.get("active_prefix") is not None,
+                "prefix": info.get("active_prefix"),
+                "envs": info.get("envs", [])
+            }
+    except Exception as e:
+        logger.debug(f"Could not get conda info: {e}")
+
+    return {"active": False}
+
+
+def activate_conda_env(env_name: str = None) -> bool:
+    """Try to activate a conda environment."""
+    if not is_conda_available():
+        logger.debug("Conda not available")
+        return False
+
+    try:
+        # If no env name specified, try to detect
+        if not env_name:
+            env_info = get_conda_env_info()
+            if env_info.get("active"):
+                logger.info("Conda environment already active")
+                return True
+
+            # Try common environment names
+            common_envs = ["emailintelligence", "ei", "venv"]
+            for env in common_envs:
+                if env in env_info.get("envs", []):
+                    env_name = env
+                    break
+
+        if env_name:
+            logger.info(f"Activating conda environment: {env_name}")
+            # Note: This won't actually activate in the current process
+            # It's mainly for informational purposes
+            os.environ["CONDA_DEFAULT_ENV"] = env_name
+            return True
+        else:
+            logger.debug("No suitable conda environment found")
+            return False
+
+    except Exception as e:
+        logger.debug(f"Could not activate conda environment: {e}")
+        return False
+
+
 def prepare_environment(args):
     """Prepare the environment for running the application."""
     if not args.no_venv:
         # Try conda first
-        from setup.utils import activate_conda_env
         if not activate_conda_env():
             # Fall back to venv setup
             handle_setup(args, ROOT_DIR / "venv")

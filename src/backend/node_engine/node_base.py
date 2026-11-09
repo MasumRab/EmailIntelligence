@@ -43,7 +43,7 @@ class SecurityContext:
     def __init__(
         self,
         user_id: Optional[str] = None,
-        permissions: List[str] = None,
+        permissions: Optional[List[str]] = None,
         resource_limits: Optional[Dict[str, Any]] = None,
     ):
         self.user_id = user_id
@@ -57,11 +57,7 @@ class NodePort:
     """Defines an input or output port for a node."""
 
     def __init__(
-        self,
-        name: str,
-        data_type: DataType,
-        required: bool = True,
-        description: str = "",
+        self, name: str, data_type: DataType, required: bool = True, description: str = ""
     ):
         self.name = name
         self.data_type = data_type
@@ -76,11 +72,7 @@ class Connection:
     """Represents a connection between two nodes."""
 
     def __init__(
-        self,
-        source_node_id: str,
-        source_port: str,
-        target_node_id: str,
-        target_port: str,
+        self, source_node_id: str, source_port: str, target_node_id: str, target_port: str
     ):
         self.source_node_id = source_node_id
         self.source_port = source_port
@@ -97,12 +89,13 @@ class Connection:
 class ExecutionContext:
     """Maintains execution context during workflow execution."""
 
-    def __init__(self):
+    def __init__(self, security_context: Optional[SecurityContext] = None):
         self.node_outputs: Dict[str, Dict[str, Any]] = {}
         self.shared_state: Dict[str, Any] = {}
         self.execution_path: List[str] = []
         self.errors: List[Dict[str, Any]] = []
         self.metadata: Dict[str, Any] = {}
+        self.security_context = security_context
 
     def set_node_output(self, node_id: str, output: Dict[str, Any]):
         """Store the output of a node."""
@@ -115,7 +108,7 @@ class ExecutionContext:
             return node_output.get(port_name)
         return None
 
-    def add_error(self, node_id: str, error: str, details: Dict[str, Any] = None):
+    def add_error(self, node_id: str, error: str, details: Optional[Dict[str, Any]] = None):
         """Add an error to the execution context."""
         error_info = {
             "node_id": node_id,
@@ -129,7 +122,7 @@ class ExecutionContext:
 class BaseNode(ABC):
     """Abstract base class for all nodes in the workflow system."""
 
-    def __init__(self, node_id: str = None, name: str = None, description: str = ""):
+    def __init__(self, node_id: Optional[str] = None, name: Optional[str] = None, description: str = ""):
         self.node_id = node_id or str(uuid.uuid4())
         self.name = name or self.__class__.__name__
         self.description = description
@@ -137,9 +130,7 @@ class BaseNode(ABC):
         self.output_ports: List[NodePort] = []
         self.inputs: Dict[str, Any] = {}
         self.outputs: Dict[str, Any] = {}
-        self.logger = logging.getLogger(
-            f"{self.__class__.__module__}.{self.__class__.__name__}"
-        )
+        self.logger = logging.getLogger(f"{self.__class__.__module__}.{self.__class__.__name__}")
         self._parent_workflow_id: Optional[str] = None
 
     @abstractmethod
@@ -155,7 +146,7 @@ class BaseNode(ABC):
         """
         pass
 
-    def validate_inputs(self) -> Dict[str, List[str]]:
+    def validate_inputs(self) -> Dict[str, Any]:
         """
         Validate that all required inputs are present and correct type.
 
@@ -220,15 +211,13 @@ class BaseNode(ABC):
 class Workflow:
     """Represents a complete workflow of connected nodes."""
 
-    def __init__(self, workflow_id: str = None, name: str = "", description: str = ""):
+    def __init__(self, workflow_id: Optional[str] = None, name: str = "", description: str = ""):
         self.workflow_id = workflow_id or str(uuid.uuid4())
         self.name = name
         self.description = description
         self.nodes: Dict[str, BaseNode] = {}
         self.connections: List[Connection] = []
-        self.logger = logging.getLogger(
-            f"{self.__class__.__module__}.{self.__class__.__name__}"
-        )
+        self.logger = logging.getLogger(f"{self.__class__.__module__}.{self.__class__.__name__}")
 
     def add_node(self, node: BaseNode):
         """Add a node to the workflow."""
@@ -250,30 +239,22 @@ class Workflow:
         """Add a connection between nodes."""
         # Validate that the nodes exist in the workflow
         if connection.source_node_id not in self.nodes:
-            raise ValueError(
-                f"Source node {connection.source_node_id} does not exist in workflow"
-            )
+            raise ValueError(f"Source node {connection.source_node_id} does not exist in workflow")
         if connection.target_node_id not in self.nodes:
-            raise ValueError(
-                f"Target node {connection.target_node_id} does not exist in workflow"
-            )
+            raise ValueError(f"Target node {connection.target_node_id} does not exist in workflow")
 
         # Validate the ports exist on the respective nodes
         source_node = self.nodes[connection.source_node_id]
         target_node = self.nodes[connection.target_node_id]
 
-        source_port_exists = any(
-            p.name == connection.source_port for p in source_node.output_ports
-        )
+        source_port_exists = any(p.name == connection.source_port for p in source_node.output_ports)
         if not source_port_exists:
             raise ValueError(
                 f"Source port {connection.source_port} does not exist on node "
                 f"{connection.source_node_id}"
             )
 
-        target_port_exists = any(
-            p.name == connection.target_port for p in target_node.input_ports
-        )
+        target_port_exists = any(p.name == connection.target_port for p in target_node.input_ports)
         if not target_port_exists:
             raise ValueError(
                 f"Target port {connection.target_port} does not exist on node "
@@ -307,9 +288,38 @@ class Workflow:
         return downstream
 
     def get_execution_order(self) -> List[str]:
-        """Calculate the execution order of nodes using topological sort."""
+        """Calculate the execution order of nodes using NetworkX topological sort."""
+        if NETWORKX_AVAILABLE and nx:
+            return self._get_execution_order_networkx()
+        else:
+            return self._get_execution_order_manual()
+
+    def _get_execution_order_networkx(self) -> List[str]:
+        """Calculate execution order using NetworkX for better performance and cycle detection."""
+        # Create directed graph
+        graph = nx.DiGraph()
+
+        # Add all nodes
+        for node_id in self.nodes.keys():
+            graph.add_node(node_id)
+
+        # Add edges (dependencies: target depends on source)
+        for conn in self.connections:
+            graph.add_edge(conn.source_node_id, conn.target_node_id)
+
+        try:
+            # Perform topological sort
+            return list(nx.topological_sort(graph))
+        except nx.NetworkXError as e:
+            if "cycle" in str(e).lower():
+                raise ValueError("Workflow has circular dependencies") from e
+            else:
+                raise
+
+    def _get_execution_order_manual(self) -> List[str]:
+        """Fallback manual topological sort implementation."""
         # Build adjacency list of dependencies
-        dependencies = {node_id: [] for node_id in self.nodes.keys()}
+        dependencies: Dict[str, List[str]] = {node_id: [] for node_id in self.nodes.keys()}
 
         for conn in self.connections:
             dependencies[conn.target_node_id].append(conn.source_node_id)

@@ -18,6 +18,7 @@ from typing import Any, Dict, List, Optional
 from transformers import AutoModelForSequenceClassification, AutoTokenizer, pipeline
 
 from backend.python_nlp.text_utils import clean_text
+from core.security import secure_load_joblib
 
 from .analysis_components.importance_model import ImportanceModel
 
@@ -28,9 +29,9 @@ logger = logging.getLogger(__name__)
 
 # Try to import optional dependencies
 try:
-    import nltk
+    import nltk  # noqa: F401
     from textblob import TextBlob
-    from transformers import AutoModelForSequenceClassification, AutoTokenizer
+    from transformers import AutoModelForSequenceClassification, AutoTokenizer  # noqa: F401
 
     HAS_NLTK = True
     HAS_SKLEARN_AND_JOBLIB = True
@@ -53,7 +54,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-def clean_text(text: str) -> str:
+def clean_text(text: str) -> str:  # noqa: F811
     """Basic text cleaning utility."""
     return text.lower().strip()
 
@@ -180,17 +181,14 @@ class NLPEngine:
             Loaded model object or None if loading fails
         """
         try:
-            if os.path.exists(model_path):
-                import joblib
-
-                model = joblib.load(model_path)
+            model = secure_load_joblib(model_path)
+            if model is not None:
                 logger.info(f"Successfully loaded model from {model_path}")
-                return model
-
-            logger.warning(
-                f"Model file not found at {model_path}. This model will be unavailable."
-            )
-            return None
+            else:
+                logger.warning(
+                    f"Model file not found or failed validation at {model_path}. This model will be unavailable."
+                )
+            return model
         except Exception as e:
             logger.error(f"Error loading model from {model_path}: {e}")
             return None

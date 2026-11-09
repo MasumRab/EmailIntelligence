@@ -8,8 +8,7 @@ Ported from orchestration-tools:scripts/handle_stashes.sh.
 import re
 import subprocess
 from argparse import Namespace
-from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Tuple
 
 from ..interface import Command
 
