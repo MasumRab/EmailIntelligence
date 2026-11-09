@@ -31,6 +31,9 @@ logger = logging.getLogger(__name__)
 # Define paths for data storage
 DEFAULT_DB_PATH = os.path.join(DATA_DIR, "smart_filters.db")
 
+# Pre-compile regex to avoid cache lookup overhead during batch email processing
+_KEYWORD_PATTERN = re.compile(r"\b[a-zA-Z]{3,}\b")
+
 
 @dataclass
 class EmailFilter:
@@ -432,7 +435,7 @@ class SmartFilterManager:
         """Extracts meaningful keywords from a string of text."""
         if not text:
             return []
-        return [word for word in re.findall(r"\b[a-zA-Z]{3,}\b", text.lower()) if len(word) > 3]
+        return [word for word in _KEYWORD_PATTERN.findall(text.lower()) if len(word) > 3]
 
     def _is_automated_email(self, email: Dict[str, Any]) -> bool:
         """Determines if an email is likely automated."""
@@ -808,8 +811,13 @@ class SmartFilterManager:
         current_time = datetime.now(timezone.utc).isoformat()
         self._db_execute(update_query, (current_time, filter_id))
 
-        # Invalidate cache for active filters
-        await self.caching_manager.delete("active_filters_sorted")
+        # OPTIMIZATION: Removed redundant cache invalidation for "active_filters_sorted".
+        # Why: Invalidating this cache on every filter match causes a "thundering herd"
+        # effect where the entire filter list is re-fetched from DB for every matched email.
+        # Impact: Turns O(N) DB reads into O(1) cache hits during batch processing.
+        # Trade-off: Usage counts in the cached list will be slightly stale until TTL expires,
+        # which is acceptable as they are not used for filter logic (priority/criteria).
+        # await self.caching_manager.delete("active_filters_sorted")
 
     async def _batch_update_filter_usage(self, filters: List[EmailFilter]):
         """

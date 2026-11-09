@@ -1,13 +1,14 @@
-"""
-Constitutional Engine
-
-Implements constitutional analysis for code compliance and standards.
-"""
 from typing import List, Dict, Any, Optional
 from dataclasses import dataclass
 import json
 import yaml
 from pathlib import Path
+from enum import Enum
+"""
+Constitutional Engine
+
+Implements constitutional analysis for code compliance and standards.
+"""
 
 
 @dataclass
@@ -21,7 +22,6 @@ class ConstitutionalRequirement:
     compliance_threshold: float  # 0.0 to 1.0
 
 
-from enum import Enum
 
 class ComplianceLevel(Enum):
     """Levels of compliance"""

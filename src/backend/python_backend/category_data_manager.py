@@ -48,7 +48,9 @@ class CategoryDataManager:
         logger = logging.getLogger(__name__)
         logger.info("Building category indexes...")
         self.categories_by_id = {cat[FIELD_ID]: cat for cat in self.categories_data}
-        self.categories_by_name = {cat[FIELD_NAME].lower(): cat for cat in self.categories_data}
+        self.categories_by_name = {
+            cat[FIELD_NAME].lower(): cat for cat in self.categories_data
+        }
         self.category_counts = {cat_id: 0 for cat_id in self.categories_by_id}
         logger.info("Category indexes built successfully.")
 
@@ -57,9 +59,13 @@ class CategoryDataManager:
         for cat_id, count in self.category_counts.items():
             if cat_id in self.categories_by_id:
                 self.categories_by_id[cat_id][FIELD_COUNT] = count
-        return sorted(self.categories_by_id.values(), key=lambda c: c.get(FIELD_NAME, ""))
+        return sorted(
+            self.categories_by_id.values(), key=lambda c: c.get(FIELD_NAME, "")
+        )
 
-    async def create_category(self, category_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    async def create_category(
+        self, category_data: Dict[str, Any]
+    ) -> Optional[Dict[str, Any]]:
         """Create a new category and update indexes."""
         logger = logging.getLogger(__name__)
 
@@ -92,7 +98,9 @@ class CategoryDataManager:
         logger = logging.getLogger(__name__)
 
         if category_id not in self.category_counts:
-            logger.warning(f"Attempted to update count for non-existent category ID: {category_id}")
+            logger.warning(
+                f"Attempted to update count for non-existent category ID: {category_id}"
+            )
             return
         if increment:
             self.category_counts[category_id] += 1

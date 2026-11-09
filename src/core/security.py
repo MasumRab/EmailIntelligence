@@ -13,6 +13,7 @@ import html
 import hmac
 import json
 import logging
+from typing import Union, Optional
 import re
 import secrets
 import time
@@ -637,3 +638,51 @@ def secure_path_join(
     except Exception as e:
         logger.error(f"Error joining paths: {e}")
         return None
+
+
+
+def verify_model_safety(model_path: Union[str, pathlib.Path], expected_hash: Optional[str] = None) -> bool:
+    """
+    Verify that a model file is safe to load using an allowlist or signature verification.
+
+    1. Allowlist: Accepts model paths from approved directories (models, artifacts, checkpoints).
+    2. Signature verification: For paths outside allowlist, requires SHA256 hash verification.
+    """
+    try:
+        path = pathlib.Path(model_path).resolve()
+
+        # 1. Allowlist check
+        allowed_dir_names = ['models', 'artifacts', 'checkpoints']
+
+        # We assume the app is run from a root directory or has a known base.
+        # Let's derive a reasonable root base based on the current file or CWD
+        repo_root = pathlib.Path(__file__).parent.parent.parent.resolve()
+
+        for allowed_name in allowed_dir_names:
+            allowed_base = (repo_root / allowed_name).resolve()
+            if path.is_relative_to(allowed_base):
+                return True
+
+        # Also allow CWD relative paths if CWD is not repo root
+        cwd_root = pathlib.Path.cwd().resolve()
+        if cwd_root != repo_root:
+            for allowed_name in allowed_dir_names:
+                allowed_base = (cwd_root / allowed_name).resolve()
+                if path.is_relative_to(allowed_base):
+                    return True
+
+        # 2. Signature verification for paths outside allowlist
+        if expected_hash is None:
+            return False
+
+        if not path.exists():
+            return False
+
+        sha256_hash = hashlib.sha256()
+        with open(path, "rb") as f:
+            for byte_block in iter(lambda: f.read(4096), b""):
+                sha256_hash.update(byte_block)
+
+        return sha256_hash.hexdigest() == expected_hash
+    except Exception:
+        return False
