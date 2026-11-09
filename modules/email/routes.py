@@ -3,6 +3,7 @@ from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 
+from src.core.auth import get_current_active_user
 from src.core.data_source import DataSource
 from src.core.exceptions import DatabaseError
 from src.core.factory import get_data_source
@@ -12,7 +13,6 @@ from src.core.models import (
     EmailUpdate,
 )
 from src.core.performance_monitor import log_performance
-from src.core.auth import get_current_active_user
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -21,14 +21,13 @@ router = APIRouter()
 @router.get("/", response_model=List[EmailResponse])
 @log_performance
 async def get_emails(
-    current_user: str = Depends(get_current_active_user),
-    db: DataSource = Depends(get_data_source),
-    category: str = Query(None),
+current_user: str = Depends(get_current_active_user),
+db: DataSource = Depends(get_data_source),
+category: str = Query(None),
     search: str = Query(None),
 ):
     """
     Retrieve all emails, optionally filtered by category or search query.
-    Requires authentication.
     """
     try:
         if search:
@@ -45,14 +44,9 @@ async def get_emails(
 
 @router.get("/{email_id}", response_model=EmailResponse)
 @log_performance
-async def get_email(
-    email_id: int,
-    current_user: str = Depends(get_current_active_user),
-    db: DataSource = Depends(get_data_source),
-):
+async def get_email(email_id: int, current_user: str = Depends(get_current_active_user), db: DataSource = Depends(get_data_source)):
     """
     Retrieve a single email by its ID.
-    Requires authentication.
     """
     try:
         email = await db.get_email_by_id(email_id)
@@ -60,22 +54,15 @@ async def get_email(
             return email
         raise HTTPException(status_code=404, detail="Email not found")
     except DatabaseError as e:
-        logger.error(
-            f"Database error while fetching email {email_id}: {e}", exc_info=True
-        )
+        logger.error(f"Database error while fetching email {email_id}: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail="Database error occurred.")
 
 
 @router.post("/", response_model=EmailResponse)
 @log_performance
-async def create_email(
-    email: EmailCreate,
-    current_user: str = Depends(get_current_active_user),
-    db: DataSource = Depends(get_data_source),
-):
+async def create_email(email: EmailCreate, current_user: str = Depends(get_current_active_user), db: DataSource = Depends(get_data_source)):
     """
     Create a new email.
-    Requires authentication.
     """
     try:
         email_data = email.model_dump()
@@ -89,14 +76,10 @@ async def create_email(
 @router.put("/{email_id}", response_model=EmailResponse)
 @log_performance
 async def update_email(
-    email_id: int,
-    email_update: EmailUpdate,
-    current_user: str = Depends(get_current_active_user),
-    db: DataSource = Depends(get_data_source),
+email_id: int, email_update: EmailUpdate, current_user: str = Depends(get_current_active_user), db: DataSource = Depends(get_data_source)
 ):
     """
     Update an existing email.
-    Requires authentication.
     """
     try:
         updated_email = await db.update_email(email_id, email_update.model_dump())
@@ -104,7 +87,5 @@ async def update_email(
             return updated_email
         raise HTTPException(status_code=404, detail="Email not found")
     except DatabaseError as e:
-        logger.error(
-            f"Database error while updating email {email_id}: {e}", exc_info=True
-        )
+        logger.error(f"Database error while updating email {email_id}: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail="Database error occurred.")

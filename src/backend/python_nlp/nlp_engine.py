@@ -18,6 +18,7 @@ from typing import Any, Dict, List, Optional
 from transformers import AutoModelForSequenceClassification, AutoTokenizer, pipeline
 
 from backend.python_nlp.text_utils import clean_text
+from core.security import verify_model_safety
 
 from .analysis_components.importance_model import ImportanceModel
 
@@ -169,7 +170,7 @@ class NLPEngine:
         }
         logger.info("Regex patterns compiled successfully.")
 
-    def _load_model(self, model_path: str):
+    def _load_model(self, model_path: str, expected_hash: Optional[str] = None):
         """
         Load a model from the specified path.
 
@@ -181,6 +182,34 @@ class NLPEngine:
         """
         try:
             if os.path.exists(model_path):
+                import pathlib
+                path_obj = pathlib.Path(model_path).resolve()
+                try:
+                    repo_root = pathlib.Path(__file__).parent.parent.parent.parent.resolve()
+                    is_in_models = path_obj.is_relative_to(repo_root / "models")
+                except Exception:
+                    is_in_models = False
+
+                if is_in_models:
+                    import hashlib
+                    hash_path = path_obj.with_suffix(path_obj.suffix + ".sha256")
+                    if not hash_path.exists():
+                        logger.error(f"Security: Missing hash file for {model_path}")
+                        return None
+                    with open(hash_path, "r") as f:
+                        expected_hash = f.read().strip()
+
+                    sha256_hash = hashlib.sha256()
+                    with open(model_path, "rb") as f:
+                        for byte_block in iter(lambda: f.read(4096), b""):
+                            sha256_hash.update(byte_block)
+                    if sha256_hash.hexdigest() != expected_hash:
+                        logger.error(f"Security: Hash mismatch for {model_path}")
+                        return None
+
+                if not verify_model_safety(model_path, expected_hash):
+                    logger.error(f"Security: Model path or signature validation failed for {model_path}")
+                    return None
                 import joblib
 
                 model = joblib.load(model_path)
