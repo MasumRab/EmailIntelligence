@@ -77,7 +77,7 @@ class Command(ABC):
     def set_dependencies(self, dependencies: Dict[str, Any]) -> None:
         """
         Set the dependencies for this command.
-        
+
         Args:
             dependencies: Dictionary of dependency names to instances
         """
@@ -85,18 +85,18 @@ class Command(ABC):
         for name in self.get_dependencies():
             if name in dependencies and isinstance(dependencies[name], str):
                 self._missing_deps.append((name, dependencies[name]))
-        
+
         # Store for subclasses
         self._injected_dependencies = dependencies
 
     def check_dependencies(self) -> int:
         """
         Check if all dependencies were successfully injected.
-        
+
         Returns:
             int: 0 if all dependencies are present, 1 otherwise
         """
-        if hasattr(self, '_missing_deps') and self._missing_deps:
+        if hasattr(self, "_missing_deps") and self._missing_deps:
             print(f"Error: Command '{self.name}' is missing required dependencies:")
             for name, reason in self._missing_deps:
                 print(f"  - {name}: {reason}")

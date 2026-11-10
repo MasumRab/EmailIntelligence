@@ -31,52 +31,72 @@ def create_default_dependencies() -> Dict[str, Any]:
 
     def _create_worktree():
         from .git.worktree import WorktreeManager
+
         return WorktreeManager()
+
     try_import("worktree_manager", _create_worktree)
 
     def _create_conflict():
         from .git.conflict_detector import GitConflictDetector
+
         return GitConflictDetector()
+
     try_import("conflict_detector", _create_conflict)
 
     def _create_repo():
         from .git.repository import RepositoryOperations
+
         return RepositoryOperations
+
     try_import("repository_ops", _create_repo)
 
     def _create_analyzer():
         from ...analysis.constitutional.analyzer import ConstitutionalAnalyzer
+
         return ConstitutionalAnalyzer()
+
     try_import("analyzer", _create_analyzer)
 
     def _create_strategy():
         from ...strategy.generator import StrategyGenerator
+
         return StrategyGenerator()
+
     try_import("strategy_generator", _create_strategy)
 
     def _create_resolver():
         from ...resolution.auto_resolver import AutoResolver
+
         return AutoResolver()
+
     try_import("resolver", _create_resolver)
 
     def _create_validator():
         from ...validation.validator import Validator
+
         return Validator()
+
     try_import("validator", _create_validator)
 
     def _create_history():
         from .git.history import GitHistory
+
         return GitHistory()
+
     try_import("history", _create_history)
 
     def _create_classifier():
         from ...analysis.commits import CommitClassifier
+
         return CommitClassifier()
+
     try_import("classifier", _create_classifier)
 
     def _create_planner():
         from ...strategy.reordering import RebasePlanner
+
         return RebasePlanner()
+
     try_import("planner", _create_planner)
 
     return dependencies
@@ -158,6 +178,7 @@ def get_command_dispatcher(registry: Optional[CommandRegistry] = None):
         Dispatcher function that takes command_name and args, returns exit code
     """
     active_registry = registry or create_registry()
+    deps_state = create_default_dependencies()
 
     def dispatch(command_name: str, args) -> int:
         """
@@ -172,18 +193,30 @@ def get_command_dispatcher(registry: Optional[CommandRegistry] = None):
         """
         try:
             command = active_registry.get_command(command_name)
-            if hasattr(command, 'check_dependencies'):
-                if command.check_dependencies() != 0:
-                    return 1
+
+            missing = [
+                (n, deps_state[n])
+                for n in command.get_dependencies()
+                if isinstance(deps_state.get(n), str)
+            ]
+            if missing:
+                print(
+                    f"Error: '{command_name}' cannot run — required dependencies are unavailable:"
+                )
+                for name, reason in missing:
+                    print(f"  - {name}: {reason}")
+                return 2
 
             # Check if command's execute method is a coroutine function
             import inspect
+
             if inspect.iscoroutinefunction(command.execute):
                 return asyncio.run(command.execute(args))
             else:
                 return command.execute(args)
         except Exception as e:
             import logging
+
             logger = logging.getLogger(__name__)
             logger.error(f"Error executing command '{command_name}': {str(e)}")
             return 1
