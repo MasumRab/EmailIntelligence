@@ -65,9 +65,13 @@ class TestNotmuchDataSource:
         """Test create_email method."""
         email_data = {"subject": "Test", "content": "Test content"}
         result = await notmuch_ds.create_email(email_data)
+<<<<<<< HEAD
         assert isinstance(result, dict)
         assert "id" in result
         assert result["subject"] == "Test"
+=======
+        assert result is not None  # Mock implementation returns dict
+>>>>>>> align-pr-494-head
 
     @pytest.mark.asyncio
     async def test_get_email_by_id(self, notmuch_ds):
@@ -131,8 +135,12 @@ class TestNotmuchDataSource:
         """Test update_email method."""
         update_data = {"is_read": True}
         result = await notmuch_ds.update_email(1, update_data)
+<<<<<<< HEAD
         assert isinstance(result, dict)
         assert result["id"] == 1
+=======
+        assert result is not None
+>>>>>>> align-pr-494-head
 
     @pytest.mark.asyncio
     async def test_delete_email(self, notmuch_ds):

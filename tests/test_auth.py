@@ -7,6 +7,10 @@ from fastapi import FastAPI
 from fastapi.security import HTTPAuthorizationCredentials
 from src.core.auth import get_current_active_user, verify_token
 from src.main import create_app
+<<<<<<< HEAD
+=======
+app = create_app()
+>>>>>>> align-pr-494-head
 
 # Create the app instance for testing
 app = create_app()

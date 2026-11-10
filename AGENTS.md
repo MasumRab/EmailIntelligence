@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Task Master AI - Agent Integration Guide
 
 ## Essential Commands
@@ -405,6 +406,11 @@ These commands make AI calls and may take up to a minute:
 - Use `update-task --id=<id>` for single task updates
 - Use `update-subtask --id=<id>` for implementation logging
 
+=======
+
+## Essential Commands
+
+>>>>>>> align-pr-494-head
 ### Research Mode
 
 - Add `--research` flag for research-based AI enhancement
@@ -412,6 +418,7 @@ These commands make AI calls and may take up to a minute:
 - Provides more informed task creation and updates
 - Recommended for complex technical tasks
 
+<<<<<<< HEAD
 ## Context Contamination Prevention
 
 ### Definition
@@ -462,3 +469,6 @@ Context contamination occurs when information from one task/conversation bleeds 
 ---
 
 _This guide ensures Claude Code has immediate access to Task Master's essential functionality for agentic development workflows._
+=======
+>>>>>>> a7da61cf1f697de3c8c81f536bf579d36d88e613
+>>>>>>> align-pr-494-head

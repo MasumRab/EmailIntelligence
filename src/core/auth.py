@@ -7,10 +7,18 @@ This module implements JWT-based authentication for API endpoints and integrates
 import logging
 from datetime import datetime, timedelta, timezone
 from typing import Optional, Dict, Any, List
+<<<<<<< HEAD
 import time
+=======
+>>>>>>> align-pr-494-head
 import secrets
+import argon2
 from argon2 import PasswordHasher
+<<<<<<< HEAD
 from argon2.exceptions import VerifyMismatchError, InvalidHashError
+=======
+from enum import Enum
+>>>>>>> align-pr-494-head
 
 import jwt
 from fastapi import HTTPException, status, Depends
@@ -36,9 +44,6 @@ class TokenData(BaseModel):
 
     username: Optional[str] = None
     role: Optional[str] = "user"
-
-
-from enum import Enum
 
 
 class UserRole(str, Enum):
@@ -143,6 +148,7 @@ async def authenticate_user(
     try:
         # Try to get user from database
         user_data = await db.get_user_by_username(username)
+<<<<<<< HEAD
 
         # Mitigate timing attacks: Always perform password verification
         # If user not found, verify a dummy hash to equalize timing
@@ -157,6 +163,11 @@ async def authenticate_user(
         is_valid = verify_password(password, stored_hash)
 
         if user_data and is_valid:
+=======
+        if user_data and verify_password(
+            password, user_data.get("hashed_password", "")
+        ):
+>>>>>>> align-pr-494-head
             return user_data
         return None
     except Exception as e:
@@ -269,13 +280,25 @@ def require_role(required_role: UserRole):
     Returns:
         A dependency function that checks the user's role
     """
+<<<<<<< HEAD
     async def role_checker(token_data: TokenData = Depends(get_current_active_user)):
         if token_data.role != required_role.value:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail=f"Required role: {required_role.value}"
+=======
+
+    def role_checker(token_data: TokenData = Depends(verify_token)) -> TokenData:
+        # In a real implementation, you would check the user's actual role from the database
+        # For now, we'll check the role from the token
+        if token_data.role != required_role.value:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"Access denied. {required_role.value} role required.",
+>>>>>>> align-pr-494-head
             )
         return token_data
+
     return role_checker
 
 
@@ -289,13 +312,25 @@ def require_any_role(required_roles: List[UserRole]):
     Returns:
         A dependency function that checks the user's role
     """
+<<<<<<< HEAD
     async def role_checker(token_data: TokenData = Depends(get_current_active_user)):
         if token_data.role not in [r.value for r in required_roles]:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail=f"Required roles: {[r.value for r in required_roles]}"
+=======
+
+    def role_checker(token_data: TokenData = Depends(verify_token)) -> TokenData:
+        # In a real implementation, you would check the user's actual role from the database
+        # For now, we'll check the role from the token
+        if token_data.role not in [role.value for role in required_roles]:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"Access denied. One of {[role.value for role in required_roles]} roles required.",
+>>>>>>> align-pr-494-head
             )
         return token_data
+
     return role_checker
 
 

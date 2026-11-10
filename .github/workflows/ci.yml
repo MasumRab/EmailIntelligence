@@ -25,20 +25,35 @@ jobs:
       !contains(github.event.head_commit.message, '[ci:lint-only]') &&
       !contains(github.event.pull_request.labels.*.name, 'ci:skip-tests')
     runs-on: ubuntu-latest
+<<<<<<< HEAD
+=======
+    
+    strategy:
+      matrix:
+        python-version: ["3.11", "3.12", "3.13"]
+    
+>>>>>>> align-pr-494-head
     steps:
       - uses: actions/checkout@v7
         with:
           submodules: recursive
       - uses: actions/setup-python@v7
         with:
+<<<<<<< HEAD
           python-version: '3.12'
       - uses: astral-sh/setup-uv@v5
         with:
           enable-cache: true
+=======
+          python-version: ${{ matrix.python-version }}
+          cache: 'pip'
+      
+>>>>>>> align-pr-494-head
       - name: Install dependencies
         run: uv sync --all-extras --dev  # NOSONAR - controlled CI environment
       - name: Run tests
         run: |
+<<<<<<< HEAD
           uv run pytest tests/ src/ modules/ -v --tb=short \
             --cov=src --cov=modules --cov-report=xml --cov-report=term-missing \
             --cov-fail-under=70 || true
@@ -52,6 +67,76 @@ jobs:
       - name: Type checking
         run: uv run mypy src/ modules/ --show-error-codes --no-strict-optional
         continue-on-error: true
+=======
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -r requirements-dev.txt
+          pip install flake8 pylint black isort pytest-cov
+      
+      - name: Verify dependencies
+        run: |
+          # Install packaging for the verification script
+          pip install packaging
+          # Run verification with minimal check first to avoid import errors if deps failed
+          python scripts/verify-dependencies.py --minimal
+
+      - name: Code Quality Checks
+        run: |
+          echo "Running code quality checks..."
+          export PYTHONPATH=$PYTHONPATH:$(pwd)/src
+          
+          # Check code formatting with black
+          echo "Checking code formatting with black..."
+          black --check src/ tests/ || true
+          
+          # Check import sorting with isort
+          echo "Checking import sorting with isort..."
+          isort --check-only src/ tests/ || true
+          
+          # Run flake8 linting
+          echo "Running flake8 linting..."
+          flake8 src/ tests/ --max-line-length=120 --extend-ignore=E203,W503 || true
+          
+          # Run pylint
+          echo "Running pylint analysis..."
+          pylint src/ --disable=C0111,C0103,R0913,R0914 || true
+      
+      - name: Run tests with coverage
+        run: |
+          echo "Running test suite..."
+          export PYTHONPATH=$PYTHONPATH:$(pwd)/src
+          pytest tests/ -v --cov=src --cov-report=xml --cov-report=term-missing --cov-fail-under=80
+      
+      - name: Upload coverage to Codecov
+        if: matrix.python-version == '3.11'
+        uses: codecov/codecov-action@v3
+        with:
+          files: ./coverage.xml
+          flags: unittests
+          name: codecov-umbrella
+          fail_ci_if_error: false
+          token: ${{ secrets.CODECOV_TOKEN }}
+      
+      - name: Security check
+        run: |
+          echo "Running security checks..."
+          pip install safety bandit
+          safety check --json || true
+          bandit -r src/ -f json || true
+      
+      - name: Build documentation
+        run: |
+          echo "Building documentation..."
+          pip install sphinx sphinx-rtd-theme || true
+          # Add documentation build commands here if needed
+          # sphinx-build docs/ docs/_build/ || true
+      
+      - name: Performance tests
+        if: matrix.python-version == '3.11'
+        run: |
+          echo "Running performance tests..."
+          python scripts/performance-test.py || true
+>>>>>>> align-pr-494-head
 
   lint-only:
     if: |
