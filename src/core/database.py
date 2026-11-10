@@ -272,6 +272,9 @@ class DatabaseManager(DataSource):
                 )
                 setattr(self, data_list_attr, [])
 
+        # Clear query cache after loading new data
+        self.caching_manager.clear_query_cache()
+
     @log_performance(operation="save_data_to_file")
     async def _save_data_to_file(self, data_type: Literal["emails", "categories", "users"]) -> None:
         """Saves the specified in-memory data list to its JSON file."""
@@ -441,6 +444,9 @@ class DatabaseManager(DataSource):
         self.caching_manager.put_email_record(new_id, light_email_record)
         if heavy_data:
             self.caching_manager.put_email_content(new_id, heavy_data)
+
+        # Clear query cache as data has changed
+        self.caching_manager.clear_query_cache()
 
         return self._add_category_details(light_email_record)
 
@@ -621,6 +627,9 @@ class DatabaseManager(DataSource):
             # Invalidate cache for this email
             self.caching_manager.invalidate_email_record(email_id)
             
+            # Clear query cache as data has changed
+            self.caching_manager.clear_query_cache()
+
         return self._add_category_details(email_to_update)
 
     async def get_email_by_message_id(
@@ -663,36 +672,78 @@ class DatabaseManager(DataSource):
         """Searches for emails matching a query."""
         return await self.search_emails_with_limit(query, limit=50)
 
+    def _scan_content_for_term(self, email_id: int, search_term_lower: str) -> bool:
+        """Synchronously check if search term exists in email content."""
+        content_path = self._get_email_content_path(email_id)
+        if not os.path.exists(content_path):
+            return False
+
+        try:
+            with gzip.open(content_path, "rt", encoding="utf-8") as f:
+                heavy_data = json.load(f)
+                content = heavy_data.get(FIELD_CONTENT, "")
+                if isinstance(content, str) and search_term_lower in content.lower():
+                    return True
+                return False
+        except (IOError, json.JSONDecodeError, ValueError):
+            return False
+
     async def search_emails_with_limit(self, search_term: str, limit: int = 50) -> List[Dict[str, Any]]:
         """Search emails with limit parameter. Searches subject/sender in-memory, and content on-disk."""
         if not search_term:
             return await self.get_emails(limit=limit, offset=0)
+
+        # Check cache
+        cache_key = f"search_{search_term}_{limit}"
+        cached_result = self.caching_manager.get_query_result(cache_key)
+        if cached_result is not None:
+            return cached_result
+
         search_term_lower = search_term.lower()
         filtered_emails = []
         logger.info(
-            f"Starting email search for term: '{search_term_lower}'. This may be slow if searching content."
+            f"Starting email search for term: '{search_term_lower}'. Using Sort-First Early-Exit strategy."
         )
-        for email_light in self.emails_data:
+
+        # Sort candidates by date descending to find most recent matches first
+        sorted_candidates = sorted(
+            self.emails_data,
+            key=lambda e: e.get(FIELD_TIME, e.get(FIELD_CREATED_AT, "")),
+            reverse=True
+        )
+
+        count = 0
+        for i, email_light in enumerate(sorted_candidates):
+            # Check light fields first (fast)
             found_in_light = (
                 search_term_lower in email_light.get(FIELD_SUBJECT, "").lower()
                 or search_term_lower in email_light.get(FIELD_SENDER, "").lower()
                 or search_term_lower in email_light.get(FIELD_SENDER_EMAIL, "").lower()
             )
+
             if found_in_light:
                 filtered_emails.append(email_light)
-                continue
-            email_id = email_light.get(FIELD_ID)
-            content_path = self._get_email_content_path(email_id)
-            if os.path.exists(content_path):
-                try:
-                    with gzip.open(content_path, "rt", encoding="utf-8") as f:
-                        heavy_data = json.load(f)
-                        content = heavy_data.get(FIELD_CONTENT, "")
-                        if isinstance(content, str) and search_term_lower in content.lower():
-                            filtered_emails.append(email_light)
-                except (IOError, json.JSONDecodeError) as e:
-                    logger.error(f"Could not search content for email {email_id}: {e}")
-        return await self._sort_and_paginate_emails(filtered_emails, limit=limit)
+                count += 1
+            else:
+                # Check heavy content (slow)
+                # Yield to event loop periodically to prevent blocking
+                if i % 10 == 0:
+                    await asyncio.sleep(0)
+
+                email_id = email_light.get(FIELD_ID)
+                if self._scan_content_for_term(email_id, search_term_lower):
+                    filtered_emails.append(email_light)
+                    count += 1
+
+            if count >= limit:
+                break
+
+        # Result is already sorted and limited
+        result = [self._add_category_details(email) for email in filtered_emails]
+
+        # Cache result
+        self.caching_manager.put_query_result(cache_key, result)
+        return result
 
     # TODO(P1, 6h): Optimize search performance to avoid disk I/O per STATIC_ANALYSIS_REPORT.md
     # TODO(P2, 4h): Implement search indexing to improve query performance
@@ -766,6 +817,10 @@ class DatabaseManager(DataSource):
                 await self._update_category_count(new_category_id, increment=True)
 
         self.caching_manager.invalidate_email_record(email_id)
+
+        # Clear query cache as data has changed
+        self.caching_manager.clear_query_cache()
+
         return self._add_category_details(email_to_update)
 
     async def add_tags(self, email_id: Any, tags: List[str]) -> bool:
