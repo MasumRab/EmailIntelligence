@@ -226,4 +226,11 @@ Or check the system information:
 
 ```
 python launch.py --system-info
+<<<<<<< HEAD
 ```
+=======
+```
+=======
+>>>>>>>> a7da61cf1f697de3c8c81f536bf579d36d88e613:docs/old_workflow_docs/launcher_guide.md
+>>>>>>> a7da61cf1f697de3c8c81f536bf579d36d88e613
+>>>>>>> align-pr-487-head

@@ -110,8 +110,8 @@ class RollbackManager:
                 )
                 
                 self.checkpoints[checkpoint.checkpoint_id] = checkpoint
-            except (json.JSONDecodeError, KeyError, ValueError) as e:
-                print(f"Warning: Failed to load checkpoint {checkpoint_file}: {e}")
+            except (json.JSONDecodeError, KeyError, ValueError) as json_err:
+                print(f"Warning: Failed to load checkpoint {checkpoint_file}: {json_err}")
     
     def create_checkpoint(self, name: str, description: str = "") -> str:
         """Create a complete rollback checkpoint."""

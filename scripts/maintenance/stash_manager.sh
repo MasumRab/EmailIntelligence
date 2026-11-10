@@ -150,10 +150,10 @@ save_stash() {
     local message="$1"
     if [[ -z "$message" ]]; then
         echo -e "${BLUE}Saving current changes to stash...${NC}"
-        git stash save
+        git stash push
     else
         echo -e "${BLUE}Saving current changes to stash with message: $message${NC}"
-        git stash save "$message"
+        git stash push -m "$message"
     fi
     
     echo -e "${GREEN}Changes saved to stash${NC}"

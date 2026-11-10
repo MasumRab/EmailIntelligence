@@ -479,17 +479,15 @@ class ValidationReportingEngine:
                     )
 
         elif report_data.validation_level == "standard":
-            md_content += "### Constitutional Compliance\n\n"
-            for issue in report_data.detailed_results.get("compliance_issues", []):
-                severity = issue.get("severity", "unknown")
-                description = issue.get("description", "No description")
-                md_content += f"- **{severity.upper()}**: {description}\n"
-
-            md_content += "\n### Feature Preservation\n\n"
-            for issue in report_data.detailed_results.get("preservation_issues", []):
-                severity = issue.get("severity", "unknown")
-                description = issue.get("description", "No description")
-                md_content += f"- **{severity.upper()}**: {description}\n"
+            for section_title, issue_key in [
+                ("Constitutional Compliance", "compliance_issues"),
+                ("Feature Preservation", "preservation_issues")
+            ]:
+                md_content += f"\n### {section_title}\n\n"
+                for issue in report_data.detailed_results.get(issue_key, []):
+                    severity = issue.get("severity", "unknown")
+                    description = issue.get("description", "No description")
+                    md_content += f"- **{severity.upper()}**: {description}\n"
 
         elif report_data.validation_level == "comprehensive":
             md_content += "### Critical Issues\n\n"

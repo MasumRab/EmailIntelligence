@@ -347,6 +347,12 @@ def start_services(args):
             start_node_service(frontend_path, "Frontend Client", args.frontend_port, api_url), host):
         logger.error(f"Invalid host parameter: {host}")
         return
+<<<<<<< HEAD:scripts/automation/setup/services.py
+=======
+
+=======
+from pathlib import Path
+>>>>>>> align-pr-487-head:setup/services.py
 
     cmd = [
         python_exe,
