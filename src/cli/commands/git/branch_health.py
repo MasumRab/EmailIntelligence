@@ -125,7 +125,10 @@ class BranchHealthCommand(Command):
             target = args.target
             repo_path = Path.cwd()
 
-            repo_ops = self._repo_ops or RepositoryOperations(repo_path)
+            repo_ops = self._repo_ops
+            if isinstance(repo_ops, type):  # injected as a factory, not an instance
+                repo_ops = repo_ops(repo_path)
+            repo_ops = repo_ops or RepositoryOperations(repo_path)
 
             if not branch:
                 branch = repo_ops.get_current_branch_sync()
