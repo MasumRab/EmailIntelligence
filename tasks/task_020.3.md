@@ -43,7 +43,7 @@
 ### Requirements
 1. User guides are authored in `docs/guides/` and include a `getting_started.md` and `configuration.md`.
 2. The `getting_started.md` guide explicitly lists the required Python version (>=3.8) and the steps to install dependencies using `uv`.
-3. The `configuration.md` guide documents all available settings in the `config/` YAML files, describing their types and default values.
+3. The `configuration.md` guide documents all available settings in the `config/` JSON files (such as `llm_guidelines.json`), describing their types and default values.
 
 ## Implementation Guide
 
