@@ -1,6 +1,6 @@
 # Task 012.3: Develop Interactive Branch Selection & Prioritization UI
 
-**Status:** pending
+**Status:** specified
 **Priority:** high
 **Effort:** TBD
 **Complexity:** TBD
@@ -35,17 +35,33 @@
 ### Task Interface
 - **ID**: 012.3
 - **Title**: Develop Interactive Branch Selection & Prioritization UI
-- **Status**: pending
+- **Status**: specified
 - **Priority**: high
 - **Effort**: TBD
 - **Complexity**: TBD
 
 ### Requirements
-Requirements to be specified
+1. The interactive selection is a numbered list on stdout with a `readline` prompt, and it works
+   when stdin is not a TTY by accepting `--select <ids>` instead. A workflow that requires a
+   terminal cannot run in CI or in a background step.
+2. The default selection is the priority order from task 012.5, and pressing Enter accepts it; an
+   operator who does not care still gets a correct order.
+3. Selecting a branch that does not exist in the categorised list is refused with the list of valid
+   ids, not silently ignored.
+4. The UI never prints a branch name without its `commits_ahead` and category, because the decision
+   to align a branch depends on both.
 
 ## Implementation Guide
 
-Implementation guide to be defined
+Use `argparse` plus one `input()` loop in `scripts/alignment/orchestrator.py select`. Keep the
+non-interactive flag first-class in the tests.
+
+```bash
+printf '\n' | python scripts/alignment/orchestrator.py select --plan docs/alignment-run.json
+python scripts/alignment/orchestrator.py select --plan docs/alignment-run.json --select 3,1
+```
+
+Both invocations must produce the same order for the same priorities; assert it.
 
 
 ### 012.3. Develop Interactive Branch Selection & Prioritization UI

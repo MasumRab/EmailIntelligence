@@ -1,6 +1,6 @@
 # Task 012.10: Integrate Validation Framework (Task 011) into Workflow
 
-**Status:** pending
+**Status:** specified
 **Priority:** high
 **Effort:** TBD
 **Complexity:** TBD
@@ -35,17 +35,31 @@
 ### Task Interface
 - **ID**: 012.10
 - **Title**: Integrate Validation Framework (Task 011) into Workflow
-- **Status**: pending
+- **Status**: specified
 - **Priority**: high
 - **Effort**: TBD
 - **Complexity**: TBD
 
 ### Requirements
-Requirements to be specified
+1. The validation stage invokes task 011's integrated validation and consumes its machine-readable
+   report; it does not scrape stdout for the word "pass".
+2. A validation exit code of 0 with an empty report is a failure of the stage, because the two
+   disagree.
+3. The stage records the validation report path in the run state so a reviewer can open it after the
+   run.
+4. If validation is advisory for the branch's category, the run state says `advisory` rather than
+   `pass`; conflating the two loses the distinction the operator needs.
 
 ## Implementation Guide
 
-Implementation guide to be defined
+Wire `scripts/alignment/orchestrator.py validate` to the task 011 entry point, reusing
+`scripts/parallel_validator.py` and `scripts/validation_cache.py` where they fit.
+
+```bash
+python scripts/alignment/orchestrator.py validate --plan docs/alignment-run.json --branch <name>
+```
+
+Test the empty-report path with a stub that exits 0 and writes nothing.
 
 
 ### 012.10. Integrate Validation Framework (Task 011) into Workflow

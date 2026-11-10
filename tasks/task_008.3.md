@@ -1,6 +1,6 @@
 # Task 008.3: Implement Architectural Enforcement Checks
 
-**Status:** pending
+**Status:** specified
 **Priority:** high
 **Effort:** 4-5 hours
 **Complexity:** 6/10
@@ -38,17 +38,34 @@ Integrate static analysis tools to enforce architectural rules.
 ### Task Interface
 - **ID**: 008.3
 - **Title**: Implement Architectural Enforcement Checks
-- **Status**: pending
+- **Status**: specified
 - **Priority**: high
 - **Effort**: 4-5 hours
 - **Complexity**: 6/10
 
 ### Requirements
-Requirements to be specified
+1. The architectural rule checked is stated in one sentence and is enforceable from file paths
+   alone, for example "nothing under `src/backend/` imports from `src/core/`" or the reverse --
+   the requirement must name the direction, not just "enforce boundaries".
+2. The check is implemented as a script with a non-zero exit code on violation and a machine-readable
+   report (JSON with `path`, `line`, `rule`), because a human-readable warning cannot gate a merge.
+3. The rule set lives in a checked-in file (`docs/architecture-rules.md` or a YAML beside it), so
+   adding a rule is a reviewable change rather than a code edit.
+4. The check reports the count of files it examined, so a run that inspected nothing cannot be read
+   as a pass.
 
 ## Implementation Guide
 
-Implementation guide to be defined
+Extend `scripts/merge_validator.py`, which already provides `is_safe_ref()` for sanitising a ref
+before it reaches `git`. Note its `get_changed_files()` builds the argv as
+`["git", "diff", "--name-only", "--", f"{base}..{head}"]`; the `--` before the range makes git read
+`base..head` as a *path*, so the function returns nothing. Fix that call to
+`["git", "diff", "--name-only", base, head]` and prove it with a two-commit range before building
+the rule check on top of it.
+
+```bash
+python scripts/merge_validator.py --base origin/main --head HEAD
+```
 
 
 

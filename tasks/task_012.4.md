@@ -1,6 +1,6 @@
 # Task 012.4: Implement Branch Processing Queue Management System
 
-**Status:** pending
+**Status:** specified
 **Priority:** high
 **Effort:** TBD
 **Complexity:** TBD
@@ -35,17 +35,33 @@
 ### Task Interface
 - **ID**: 012.4
 - **Title**: Implement Branch Processing Queue Management System
-- **Status**: pending
+- **Status**: specified
 - **Priority**: high
 - **Effort**: TBD
 - **Complexity**: TBD
 
 ### Requirements
-Requirements to be specified
+1. The queue is a list in the run-state JSON with a per-item `status` of
+   `queued|running|done|failed|skipped`; the queue on disk is the source of truth and memory is a
+   cache.
+2. Advancing the queue is a single function that writes the state before and after each transition,
+   so an interrupted run leaves an item either `queued` or `running`, never lost.
+3. `skipped` and `failed` are distinct: skipped items do not block the next item, failed items do
+   unless `--continue-on-error` is passed.
+4. The queue records `attempts` and `last_error` per item, which is what makes a resume possible
+   without re-reading logs.
 
 ## Implementation Guide
 
-Implementation guide to be defined
+Implement in `scripts/alignment/orchestrator.py` over `docs/alignment-run.json`. Write the state file
+atomically -- write a temp file and `os.replace` -- so a crash mid-write cannot corrupt the queue.
+
+```bash
+python -c "import json;print([b['status'] for b in json.load(open('docs/alignment-run.json'))['branches']])"
+```
+
+Kill the process mid-item and run again; the item must be `running`, and the orchestrator must offer
+to retry or mark it failed.
 
 
 ### 012.4. Implement Branch Processing Queue Management System

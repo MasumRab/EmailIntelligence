@@ -1,6 +1,6 @@
 # Task 008.2: Configure GitHub Actions Workflow and Triggers
 
-**Status:** pending
+**Status:** specified
 **Priority:** high
 **Effort:** 2-3 hours
 **Complexity:** 4/10
@@ -38,17 +38,38 @@ Set up GitHub Actions workflow to trigger validation on PRs.
 ### Task Interface
 - **ID**: 008.2
 - **Title**: Configure GitHub Actions Workflow and Triggers
-- **Status**: pending
+- **Status**: specified
 - **Priority**: high
 - **Effort**: 2-3 hours
 - **Complexity**: 4/10
 
 ### Requirements
-Requirements to be specified
+1. The validation workflow file is `.github/workflows/merge-validation.yml`, and it runs on
+   `pull_request` (opened, synchronize, reopened) and on `workflow_dispatch`, so it can be triggered
+   by hand for a branch with no PR.
+2. The workflow states its trigger branches explicitly. A `pull_request` trigger with no branch
+   filter fires for PRs into every base, including the `scientific` and `orchestration-tools` bases
+   this repository actually uses.
+3. `permissions:` is declared at the top with the minimum needed (`contents: read`); a validation
+   workflow that inherits the default token scope can write to the repository.
+4. Concurrency is declared with a group keyed on the PR number and `cancel-in-progress: true`, so a
+   force-push cancels the stale run instead of racing it.
+5. The workflow's job names are stable, because branch protection (task 008.9) requires status check
+   names to exist before they can be required.
 
 ## Implementation Guide
 
-Implementation guide to be defined
+Add `.github/workflows/merge-validation.yml`. Model the setup steps on `ci.yml` lines 30-40
+(checkout with `submodules: recursive`, `actions/setup-python@v7` at `3.12`,
+`astral-sh/setup-uv@v5`, `uv sync --all-extras --dev`).
+
+```bash
+uv run python -c "import yaml,sys; yaml.safe_load(open('.github/workflows/merge-validation.yml'))"
+gh workflow list --repo MasumRab/EmailIntelligence
+```
+
+The first command catches the class of failure that leaves a workflow registered with zero jobs: a
+YAML error makes GitHub report "workflow file issue" and run nothing.
 
 
 

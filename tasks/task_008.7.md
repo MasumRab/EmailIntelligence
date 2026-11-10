@@ -1,6 +1,6 @@
 # Task 008.7: Integrate Security Scans (SAST and Dependency)
 
-**Status:** pending
+**Status:** specified
 **Priority:** high
 **Effort:** 3-4 hours
 **Complexity:** 5/10
@@ -38,17 +38,34 @@ Add security scanning to CI pipeline.
 ### Task Interface
 - **ID**: 008.7
 - **Title**: Integrate Security Scans (SAST and Dependency)
-- **Status**: pending
+- **Status**: specified
 - **Priority**: high
 - **Effort**: 3-4 hours
 - **Complexity**: 5/10
 
 ### Requirements
-Requirements to be specified
+1. The gate runs `bandit` for Python and a dependency audit, and both exit codes are honoured. The
+   existing `ci.yml` line is `uv run bandit -r src/ modules/ || true`, which makes every finding
+   non-blocking; the new gate must not copy that suffix.
+2. The bandit severity and confidence thresholds are stated (`--severity-level high` is the level
+   the repository has actually been measured at), and the gate fails on findings at or above them.
+3. The dependency audit covers the lockfile (`uv.lock`) and fails on a new advisory, comparing
+   against a checked-in accepted-advisory list rather than an inline ignore.
+4. Every suppression is a `# nosec B<id>` with a one-line reason; a bare `# nosec` is rejected by
+   the requirement.
 
 ## Implementation Guide
 
-Implementation guide to be defined
+Add the steps to `.github/workflows/merge-validation.yml`. Measure the current count first so the
+gate can be set at a level that is red for new findings and not for the backlog.
+
+```bash
+uv run bandit -r src/ modules/ -f json -o reports/bandit.json --severity-level high
+grep -n 'bandit' .github/workflows/ci.yml
+```
+
+Per [[ei-ci-gates-are-advisory-measured]], `--severity-level high` is the only threshold the codebase
+currently passes.
 
 
 ## Purpose

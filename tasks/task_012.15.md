@@ -1,6 +1,6 @@
 # Task 012.15: Integrate Architectural Migration (Task 022) into Workflow
 
-**Status:** pending
+**Status:** specified
 **Priority:** high
 **Effort:** TBD
 **Complexity:** TBD
@@ -35,17 +35,33 @@
 ### Task Interface
 - **ID**: 012.15
 - **Title**: Integrate Architectural Migration (Task 022) into Workflow
-- **Status**: pending
+- **Status**: specified
 - **Priority**: high
 - **Effort**: TBD
 - **Complexity**: TBD
 
 ### Requirements
-Requirements to be specified
+1. The migration stage calls task 022's `backend` -> `src` migration before alignment, and the run
+   state records whether the branch needed migration and what it changed.
+2. The stage refuses to migrate a branch whose working tree is dirty, and refuses to run twice on the
+   same branch without `--force`, because a migration applied twice moves files that are already
+   moved.
+3. Files the migration cannot classify are reported and left in place, never deleted; an unclassified
+   file is a decision for a human.
+4. The stage verifies the result with a compile of every moved module before declaring success.
 
 ## Implementation Guide
 
-Implementation guide to be defined
+Implement `scripts/alignment/orchestrator.py migrate`. Task 022 is the migration design; there is no
+checked-in migration entry point today, so the stage must fail with a clear message until it exists
+rather than silently doing nothing.
+
+```bash
+python scripts/alignment/orchestrator.py migrate --plan docs/alignment-run.json --branch <name>
+python -m compileall -q src/ ; echo "exit=$?"
+```
+
+`compile()` is the check that catches `await` outside `async def`; `ast.parse` does not.
 
 
 ### 012.15. Integrate Architectural Migration (Task 022) into Workflow

@@ -1,6 +1,6 @@
 # Task 012.9: Integrate Error Detection & Handling (Task 005) into Workflow
 
-**Status:** pending
+**Status:** specified
 **Priority:** high
 **Effort:** TBD
 **Complexity:** TBD
@@ -35,17 +35,33 @@
 ### Task Interface
 - **ID**: 012.9
 - **Title**: Integrate Error Detection & Handling (Task 005) into Workflow
-- **Status**: pending
+- **Status**: specified
 - **Priority**: high
 - **Effort**: TBD
 - **Complexity**: TBD
 
 ### Requirements
-Requirements to be specified
+1. The error-detection stage runs `scripts/detect_merge_markers.py` and the task 005 detection suite
+   against the branch's working tree, and its findings are a stage result, not a printed warning.
+2. Conflict markers, `<<<<<<<`, `=======` and `>>>>>>>`, are a hard failure of the stage; the source
+   is parsed, not grepped, because a marker inside a string literal is still a marker and a marker
+   inside a fixture is not.
+3. The stage treats a detection script that exits 0 while printing "0 files checked" as a failure,
+   since a detector that examined nothing did not pass.
+4. Findings are appended to the run state with file and line, so the documentation stage can cite
+   them.
 
 ## Implementation Guide
 
-Implementation guide to be defined
+Call `scripts/detect_merge_markers.py` from `scripts/alignment/orchestrator.py errors`.
+
+```bash
+python scripts/detect_merge_markers.py --root . ; echo "exit=$?"
+python -c "import ast,sys; [ast.parse(open(p).read()) for p in sys.argv[1:]]" <changed files>
+```
+
+Note that `ast.parse` alone is not a syntax check -- `await` outside `async def` parses fine; use
+`compile()` when the task means "valid Python".
 
 
 ### 012.9. Integrate Error Detection & Handling (Task 005) into Workflow

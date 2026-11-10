@@ -1,6 +1,6 @@
 # Task 012.6: Implement Sequential Execution Control Flow for Branches
 
-**Status:** pending
+**Status:** specified
 **Priority:** high
 **Effort:** TBD
 **Complexity:** TBD
@@ -35,17 +35,34 @@
 ### Task Interface
 - **ID**: 012.6
 - **Title**: Implement Sequential Execution Control Flow for Branches
-- **Status**: pending
+- **Status**: specified
 - **Priority**: high
 - **Effort**: TBD
 - **Complexity**: TBD
 
 ### Requirements
-Requirements to be specified
+1. The control flow is a loop over the queue with explicit pre/post hooks per stage, not nested
+   conditionals; each stage's failure policy comes from the design (task 012.1).
+2. Before each branch is processed the orchestrator records `before_sha` via `git rev-parse`; after
+   the branch's stages it records `after_sha`. An unchanged sha with `status: done` is an error,
+   because it means the stages were no-ops.
+3. A stage that changes the working tree must fail if the tree was dirty on entry; the orchestrator
+   checks `git status --porcelain` and refuses rather than mixing the operator's edits into the
+   result.
+4. Nothing in the loop calls `git reset --hard` or `git clean -xfd`; recovery uses the backup from
+   task 006.
 
 ## Implementation Guide
 
-Implementation guide to be defined
+Implement `scripts/alignment/orchestrator.py run`. Reuse `scripts/atomic_commit_manager.py` when the
+run needs to commit intermediate results, so a failure part-way leaves a coherent history.
+
+```bash
+python scripts/alignment/orchestrator.py run --plan docs/alignment-run.json --dry-run
+```
+
+`--dry-run` must print every command it would run and execute none; that output is also the fixture
+for the tests.
 
 
 ### 012.6. Implement Sequential Execution Control Flow for Branches

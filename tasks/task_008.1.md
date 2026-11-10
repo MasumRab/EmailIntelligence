@@ -1,6 +1,6 @@
 # Task 008.1: Define Validation Scope and Tooling
 
-**Status:** pending
+**Status:** specified
 **Priority:** high
 **Effort:** 3-4 hours
 **Complexity:** 5/10
@@ -38,17 +38,37 @@ Define validation layers and select appropriate tools for the merge validation f
 ### Task Interface
 - **ID**: 008.1
 - **Title**: Define Validation Scope and Tooling
-- **Status**: pending
+- **Status**: specified
 - **Priority**: high
 - **Effort**: 3-4 hours
 - **Complexity**: 5/10
 
 ### Requirements
-Requirements to be specified
+1. The framework's scope is written down before code: which checks run on every PR, which run only
+   on a release branch, and which are advisory. The existing `.github/workflows/ci.yml` already runs
+   `uv run pytest tests/ src/ modules/ -v --cov-fail-under=70 || true`, so the framework must say
+   explicitly which gates it adds *on top of* that step and which of them it intends to be blocking.
+2. Each check names the tool that implements it and the exit code that means failure. A check with no
+   defined failure exit code cannot be a gate.
+3. The framework reuses `scripts/merge_validator.py`, `scripts/parallel_validator.py` and
+   `scripts/validation_cache.py` rather than adding a fourth validator; where one of them is
+   unsuitable, the requirement says why in one line.
+4. The scope document names the Python version the checks assume (`3.12`, matching `ci.yml`) and the
+   dependency manager (`uv`), so a check cannot pass locally for a reason CI does not share.
 
 ## Implementation Guide
 
-Implementation guide to be defined
+Write `docs/merge_validation_framework.md` and link it from `docs/README.md`. Read `ci.yml` in full
+first: its security step (`uv run bandit -r src/ modules/ || true`) and its test step both discard
+the exit code, so neither can be cited as an existing gate.
+
+```bash
+grep -n 'run:' .github/workflows/ci.yml
+python -c "import sys; print(sys.version)"
+```
+
+Use the grep output as the table of what already runs; anything not in it is new work this task
+must account for.
 
 
 

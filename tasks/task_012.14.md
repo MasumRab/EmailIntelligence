@@ -1,6 +1,6 @@
 # Task 012.14: Document the Orchestration System for Maintenance
 
-**Status:** pending
+**Status:** specified
 **Priority:** high
 **Effort:** TBD
 **Complexity:** TBD
@@ -35,17 +35,31 @@
 ### Task Interface
 - **ID**: 012.14
 - **Title**: Document the Orchestration System for Maintenance
-- **Status**: pending
+- **Status**: specified
 - **Priority**: high
 - **Effort**: TBD
 - **Complexity**: TBD
 
 ### Requirements
-Requirements to be specified
+1. `docs/alignment-orchestrator.md` documents, per command, the arguments, the state it reads and
+   writes, and the exit codes.
+2. Each stage has a worked example with real output captured from a run, not a paraphrase.
+3. The document names the scripts each stage delegates to, and marks any that do not exist yet.
+4. A "recovering a failed run" section gives the exact commands, including the backup restore from
+   task 006.
 
 ## Implementation Guide
 
-Implementation guide to be defined
+Write `docs/alignment-orchestrator.md` and link it from `docs/README.md`. Capture the examples by
+running the orchestrator in `--dry-run` and pasting its real output.
+
+```bash
+python scripts/alignment/orchestrator.py --help
+python scripts/alignment/orchestrator.py run --help
+```
+
+Check the `--help` output against the document; a documented flag that does not exist is worse than
+an undocumented one.
 
 
 ### 012.14. Document the Orchestration System for Maintenance
