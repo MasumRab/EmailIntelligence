@@ -5,13 +5,12 @@ Implements a sophisticated command for comparing logic DNA and functional patter
 Uses AST normalization, logic hashing, and high-level aspect detection.
 """
 
-import ast
 import hashlib
 import json
 from argparse import Namespace
 from difflib import SequenceMatcher
 from pathlib import Path
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List
 
 from ..interface import Command
 

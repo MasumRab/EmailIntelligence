@@ -2,9 +2,7 @@ import subprocess
 import ast
 import hashlib
 import re
-from typing import Dict, List, Any, Set, Tuple
-from collections import defaultdict
-from datetime import datetime
+from typing import Dict, List, Any
 
 # Optional scientific dependencies with lazy imports and fallbacks
 try:

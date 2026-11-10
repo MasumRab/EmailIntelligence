@@ -5,7 +5,7 @@ Implements the branch-health command for pre-rebase health analysis.
 """
 
 from argparse import Namespace
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 from pathlib import Path
 
 from ..interface import Command

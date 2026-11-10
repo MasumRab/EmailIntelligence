@@ -105,7 +105,6 @@ class AnalyzeCommand(Command):
 
     async def _execute_full_report(self, args: Namespace, repo_path: Path) -> int:
         """Execute full IntentReport generation (legacy main_old.py feature)."""
-        import asyncio
         import json
         from datetime import datetime
 

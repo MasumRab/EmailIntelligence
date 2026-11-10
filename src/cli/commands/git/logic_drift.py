@@ -5,13 +5,10 @@ Implements a command for comparing logic DNA between branches to detect function
 drift or regressions during merge conflict resolution.
 """
 
-import ast
-import hashlib
 import json
 import subprocess
 from argparse import Namespace
-from difflib import SequenceMatcher
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict
 
 from ..interface import Command
 

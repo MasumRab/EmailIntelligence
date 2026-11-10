@@ -9,7 +9,7 @@ import logging
 import re
 import collections
 from abc import ABC, abstractmethod
-from typing import Any, Dict, List, Optional, Set
+from typing import List, Optional
 from difflib import SequenceMatcher, get_close_matches
 
 # Optional scientific dependencies

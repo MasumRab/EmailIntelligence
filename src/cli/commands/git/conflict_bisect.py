@@ -11,8 +11,7 @@ Implements the git-conflict-bisect command for:
 import subprocess
 from argparse import Namespace
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Set, Tuple
-from datetime import datetime
+from typing import Any, Dict, List
 
 from ..interface import Command
 

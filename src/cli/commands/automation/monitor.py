@@ -8,12 +8,11 @@ Achieves 100 percent functional parity with legacy scripts/resource_monitor.py.
 import asyncio
 import collections
 import json
-import re
 import statistics
 import threading
 import time
 from argparse import Namespace
-from datetime import datetime, timedelta
+from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 

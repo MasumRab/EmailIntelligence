@@ -13,11 +13,9 @@ import logging
 from typing import List, Optional
 
 from .commands import (
-    CommandFactory,
-    CommandRegistry
+    CommandFactory
 )
 from .commands.integration import create_registry, create_default_dependencies
-from .services.nlp import NLPService
 
 # Configure logging
 logging.basicConfig(

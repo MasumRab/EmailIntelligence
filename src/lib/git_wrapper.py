@@ -1,5 +1,4 @@
 import git
-from datetime import datetime
 
 class GitWrapper:
     def __init__(self, repo_path):

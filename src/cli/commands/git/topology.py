@@ -9,8 +9,7 @@ supports Git GraphQL for fetching pull request topology.
 import subprocess
 import json
 from argparse import Namespace
-from typing import Any, Dict, List, Set, Tuple
-from pathlib import Path
+from typing import Any, Dict
 
 import networkx as nx
 
