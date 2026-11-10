@@ -17,80 +17,67 @@ def create_default_dependencies() -> Dict[str, Any]:
     Create default dependencies for all commands.
 
     Returns:
-        Dict mapping dependency names to instances
+        Dict mapping dependency names to instances or error strings
     """
     dependencies = {}
 
-    # Import dependencies lazily to avoid circular imports and handle missing modules
-    try:
-        from ..git.worktree import WorktreeManager
+    def try_import(name, factory_func):
+        try:
+            dependencies[name] = factory_func()
+        except ImportError as e:
+            dependencies[name] = f"Missing dependency: {str(e)}"
+        except Exception as e:
+            dependencies[name] = f"Error initializing dependency: {str(e)}"
 
-        dependencies["worktree_manager"] = WorktreeManager()
-    except ImportError:
-        dependencies["worktree_manager"] = None
+    def _create_worktree():
+        from .git.worktree import WorktreeManager
+        return WorktreeManager()
+    try_import("worktree_manager", _create_worktree)
 
-    try:
-        from ..git.conflict_detector import GitConflictDetector
+    def _create_conflict():
+        from .git.conflict_detector import GitConflictDetector
+        return GitConflictDetector()
+    try_import("conflict_detector", _create_conflict)
 
-        dependencies["conflict_detector"] = GitConflictDetector()
-    except ImportError:
-        dependencies["conflict_detector"] = None
+    def _create_repo():
+        from .git.repository import RepositoryOperations
+        return RepositoryOperations
+    try_import("repository_ops", _create_repo)
 
-    try:
-        from ..git.repository import RepositoryOperations
+    def _create_analyzer():
+        from ...analysis.constitutional.analyzer import ConstitutionalAnalyzer
+        return ConstitutionalAnalyzer()
+    try_import("analyzer", _create_analyzer)
 
-        dependencies["repository_ops"] = RepositoryOperations
-    except ImportError:
-        dependencies["repository_ops"] = None
+    def _create_strategy():
+        from ...strategy.generator import StrategyGenerator
+        return StrategyGenerator()
+    try_import("strategy_generator", _create_strategy)
 
-    try:
-        from ..analysis.constitutional.analyzer import ConstitutionalAnalyzer
+    def _create_resolver():
+        from ...resolution.auto_resolver import AutoResolver
+        return AutoResolver()
+    try_import("resolver", _create_resolver)
 
-        dependencies["analyzer"] = ConstitutionalAnalyzer()
-    except ImportError:
-        dependencies["analyzer"] = None
+    def _create_validator():
+        from ...validation.validator import Validator
+        return Validator()
+    try_import("validator", _create_validator)
 
-    try:
-        from ..strategy.generator import StrategyGenerator
+    def _create_history():
+        from .git.history import GitHistory
+        return GitHistory()
+    try_import("history", _create_history)
 
-        dependencies["strategy_generator"] = StrategyGenerator()
-    except ImportError:
-        dependencies["strategy_generator"] = None
+    def _create_classifier():
+        from ...analysis.commits import CommitClassifier
+        return CommitClassifier()
+    try_import("classifier", _create_classifier)
 
-    try:
-        from ..resolution.auto_resolver import AutoResolver
-
-        dependencies["resolver"] = AutoResolver()
-    except ImportError:
-        dependencies["resolver"] = None
-
-    try:
-        from ..validation.validator import Validator
-
-        dependencies["validator"] = Validator()
-    except ImportError:
-        dependencies["validator"] = None
-
-    try:
-        from ..git.history import GitHistory
-
-        dependencies["history"] = GitHistory()
-    except ImportError:
-        dependencies["history"] = None
-
-    try:
-        from ..analysis.commits import CommitClassifier
-
-        dependencies["classifier"] = CommitClassifier()
-    except ImportError:
-        dependencies["classifier"] = None
-
-    try:
-        from ..strategy.reordering import RebasePlanner
-
-        dependencies["planner"] = RebasePlanner()
-    except ImportError:
-        dependencies["planner"] = None
+    def _create_planner():
+        from ...strategy.reordering import RebasePlanner
+        return RebasePlanner()
+    try_import("planner", _create_planner)
 
     return dependencies
 
@@ -170,7 +157,7 @@ def get_command_dispatcher(registry: Optional[CommandRegistry] = None):
     Returns:
         Dispatcher function that takes command_name and args, returns exit code
     """
-    cmd_registry = registry or create_registry()
+    active_registry = registry or create_registry()
 
     def dispatch(command_name: str, args) -> int:
         """
@@ -178,19 +165,27 @@ def get_command_dispatcher(registry: Optional[CommandRegistry] = None):
 
         Args:
             command_name: Name of the command to execute
-            args: Parsed command-line arguments
+            args: Parsed command line arguments
 
         Returns:
-            Exit code (0 for success, 1 for failure)
+            int: Exit code from the command
         """
         try:
-            command = cmd_registry.get_command(command_name)
-            return asyncio.run(command.execute(args))
-        except ValueError as e:
-            print(f"Error: {e}")
-            return 1
+            command = active_registry.get_command(command_name)
+            if hasattr(command, 'check_dependencies'):
+                if command.check_dependencies() != 0:
+                    return 1
+
+            # Check if command's execute method is a coroutine function
+            import inspect
+            if inspect.iscoroutinefunction(command.execute):
+                return asyncio.run(command.execute(args))
+            else:
+                return command.execute(args)
         except Exception as e:
-            print(f"Unexpected error: {e}")
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"Error executing command '{command_name}': {str(e)}")
             return 1
 
     return dispatch
