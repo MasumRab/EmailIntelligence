@@ -16,7 +16,7 @@ from .commands import (
     CommandFactory,
     CommandRegistry
 )
-from .commands.integration import get_command_registry, create_default_dependencies
+from .commands.integration import create_registry, create_default_dependencies
 from .services.nlp import NLPService
 
 # Configure logging
@@ -35,7 +35,7 @@ async def run_cli(args: Optional[List[str]] = None) -> int:
     
     # 2. Setup Modular Architecture
     factory = CommandFactory(dependencies)
-    registry = get_command_registry(factory)
+    registry = create_registry(factory)
 
     # 3. Create CLI Parser
     parser = argparse.ArgumentParser(
