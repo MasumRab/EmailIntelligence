@@ -1,9 +1,13 @@
+<<<<<<< HEAD
 # =====================================================================
 # Unified .gitignore — canonical baseline for all EmailIntelligence branches
 # Generated from union of: main, scientific, orchestration-tools, taskmaster
 # =====================================================================
 
 # --- Python ---
+=======
+# Byte-compiled / optimized / DLL files
+>>>>>>> align-final-489-head
 __pycache__/
 *.py[cod]
 *$py.class
@@ -12,6 +16,7 @@ __pycache__/
 build/
 develop-eggs/
 dist/
+<<<<<<< HEAD
 downloads/
 eggs/
 .eggs/
@@ -88,9 +93,29 @@ logs/
 *.tar.gz
 
 # --- Env files (CRITICAL: keep .env.example tracked) ---
+=======
+*.egg-info/
+pip-wheel-metadata/
+*.egg
+*.whl
+*.tar.gz
+
+# Node.js
+node_modules/
+*.DS_Store
+
+# Python virtual environment
+venv/
+.venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# Environment files
+>>>>>>> align-final-489-head
 .env
 .env.*
-*.env
 !.env.example
 
 # --- Credentials / secrets (CRITICAL — must be ignored everywhere) ---
@@ -100,6 +125,7 @@ apikey.json
 jsons/
 config/llm_guidelines.local.json
 
+<<<<<<< HEAD
 # --- Aider ---
 .aider.chat.history.md
 .aider.input.history
@@ -177,9 +203,73 @@ models/*.pkl
 data/
 
 # --- Agent scratch and analysis artifacts ---
-*.backup
+=======
+# Logs
+*.log
+logs/
+
+# Test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+coverage.xml
+coverage/
+*.cover
+.pytest_cache/
+
+# Database files
+*.sqlite3
+*.db
+*.db-journal
+
+# Jupyter / IPython
+.ipynb_checkpoints/
+profile_default/
+ipython_config.py
+
+# IDE / editor specific
+.vscode/
+.idea/
+*.iml
+*.sublime-project
+*.sublime-workspace
+.history
+.spyderproject
+.spyproject
+.ropeproject
+
+# Type checkers / linters
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.pyre/
+
+# Project specific ignores
+.orchestration-disabled
+.taskmaster/
+worktrees/
+.merge-notes/
+.context-control/
+.rules/
+.rulesync/
+.rulesyncignore
+.cursorignore
+.validation_cache.json
+.emailintelligence/
+
+# Miscellaneous
+diagnosis_message.txt
+performance_metrics_log.jsonl
+models/*.pkl
 backlog/config.yml.bak
+*.bak
+*~
+>>>>>>> align-final-489-head
+*.backup
 original_readme.md
+<<<<<<< HEAD
 scripts/hooks/
 CONFIG_ANALYSIS.md
 MERGIFY_BRANCH_ANALYSIS_FINAL.md
@@ -303,3 +393,26 @@ taskmaster-worktree-config.yml
 # Added by code-review-graph
 .code-review-graph/
 manifest.json
+=======
+
+# Windows system files
+Thumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+ehthumbs.db
+
+# Keep important git-tracked files
+!docs/.gitkeep
+!/.semgrep/
+!/.gitignore
+!/.git/hooks/
+!/.git/info/exclude
+!/.flake8
+!/.pylintrc
+!/.github/
+!/.specify/**
+!/.gemini/**
+!/.qwen/**
+!/.claude/**
+!docs/agents/**
+>>>>>>> align-final-489-head

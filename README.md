@@ -1,4 +1,7 @@
+<<<<<<< HEAD
 # EmailIntelligence - Unified Development Environment
+=======
+>>>>>>> align-final-489-head
 
 ## Table of Contents
 
@@ -23,12 +26,16 @@
 
 ## Project Overview
 
+<<<<<<< HEAD
 EmailIntelligence is a full-stack application designed to provide intelligent email analysis and management capabilities. The project combines a Python FastAPI backend for AI/NLP tasks with a React frontend and a Gradio-based UI for scientific exploration, offering features such as sentiment analysis, topic classification, intent recognition, urgency detection, and smart filtering.
 
 The application uses a modular architecture with a unified launcher system (`launch.py`), comprehensive environment management, and an extensions framework for customization. It supports multiple interfaces including a standard web interface, a Gradio-based UI for scientific exploration, and a node-based workflow system for creating complex email processing pipelines.
+=======
+>>>>>>> align-final-489-head
 
 The Gradio UI acts as a full-featured client to the FastAPI backend.
 
+<<<<<<< HEAD
 ```
 Gradio UI (gradio_app.py)
 =========================
@@ -204,6 +211,29 @@ Use `python launch.py --help` to see all available options.
 The fastest way to get EmailIntelligence running locally for development is by using the unified launcher. This process involves a few key steps:
 
 **Step 1: Clone the Repository**
+=======
+
+### Deprecated or Redundant Files
+- `.rules` - Application-specific rules (keep integration settings, remove app-specific rules)
+- `.env.example` - Application environment example (keep shared environment config templates only)
+- Old deployment configs or scripts unrelated to orchestration setup
+- Any documentation files in `docs/` that are application-specific (not orchestration-related)
+
+## Git Hook Behavior
+
+
+1. **Always work in the orchestration-tools branch**
+2. **Test your changes thoroughly**
+3. **After pushing changes, other developers will receive updates automatically when switching branches**
+4. **For immediate updates, run**: `scripts/install-hooks.sh --force`
+5. **Refer to**: `docs/orchestration_hook_management.md` for detailed procedures
+
+## Cleanup Strategy
+
+To clean this branch for orchestration-only purposes, follow this comprehensive cleanup guide:
+
+### Phase 1: Remove Application Code
+>>>>>>> align-final-489-head
 ```bash
 git clone <repository_url> # Replace <repository_url> with the actual URL
 cd EmailIntelligence
@@ -221,6 +251,7 @@ The application now uses SQLite. The database file (e.g., `sqlite.db`) will typi
 
 **Step 4: Run the Application using the Launcher**
 ```bash
+<<<<<<< HEAD
 # For Windows (recommended - handles conda/venv automatically)
 launch.bat --stage dev
 
@@ -500,6 +531,8 @@ To connect to your Gmail account, configure Gmail API access:
 Once [Setup](#setup) is complete (including Node.js dependencies, database, and consideration for AI models):
 
 The recommended way to run the application for development is using the unified launcher:
+=======
+>>>>>>> align-final-489-head
 ```bash
 # Windows (recommended - handles conda/venv automatically)
 launch.bat --stage dev

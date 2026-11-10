@@ -145,7 +145,7 @@ search_markdown_files() {
     
     echo "Searching .taskmaster/tasks/ for markdown files..."
     if [ -d "$TASKS_DIR" ]; then
-        local matches=$(grep -ri "$search_term" "$TASKS_DIR" 2>/dev/null | wc -l)
+        matches=$(grep -ri "$search_term" "$TASKS_DIR" 2>/dev/null | wc -l)
         if [ "$matches" -gt 0 ]; then
             print_result "warn" "Found $matches matching lines in task markdown files"
             echo ""
@@ -161,7 +161,7 @@ search_backlog() {
     print_section "Searching Backlog Directory"
     
     if [ -d "$BACKLOG_DIR" ]; then
-        local matches=$(grep -ri "$TASK_TITLE" "$BACKLOG_DIR" 2>/dev/null | wc -l)
+        matches=$(grep -ri "$TASK_TITLE" "$BACKLOG_DIR" 2>/dev/null | wc -l)
         if [ "$matches" -gt 0 ]; then
             print_result "warn" "Found $matches matches in backlog/"
             echo ""
@@ -178,7 +178,7 @@ search_specs() {
     print_section "Searching Specifications"
     
     if [ -d "$SPECS_DIR" ]; then
-        local matches=$(grep -ri "$TASK_TITLE" "$SPECS_DIR" 2>/dev/null | wc -l)
+        matches=$(grep -ri "$TASK_TITLE" "$SPECS_DIR" 2>/dev/null | wc -l)
         if [ "$matches" -gt 0 ]; then
             print_result "warn" "Found $matches matches in specs/"
         else
@@ -193,7 +193,7 @@ search_root_markdown() {
     print_section "Searching Root-Level Markdown"
     
     local search_term=$(echo "$TASK_TITLE" | awk '{print tolower($1)}')
-    local matches=$(grep -ri "$search_term" "$REPO_ROOT" --include="*.md" \
+    matches=$(grep -ri "$search_term" "$REPO_ROOT" --include="*.md" \
                    --exclude-dir=.taskmaster --exclude-dir=backlog \
                    --exclude-dir=specs --exclude-dir=.git --exclude-dir=node_modules \
                    2>/dev/null | wc -l)
@@ -293,7 +293,7 @@ check_keywords() {
         
         for keyword in $KEYWORDS; do
             echo "Searching for: '$keyword'"
-            local matches=$(grep -ri "$keyword" "$TASKS_JSON" "$TASKS_DIR" 2>/dev/null | wc -l)
+            matches=$(grep -ri "$keyword" "$TASKS_JSON" "$TASKS_DIR" 2>/dev/null | wc -l)
             if [ "$matches" -gt 0 ]; then
                 print_result "warn" "Found $matches matches for '$keyword'"
             else

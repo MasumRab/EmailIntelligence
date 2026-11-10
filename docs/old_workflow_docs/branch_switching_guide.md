@@ -252,4 +252,11 @@ Be aware that some files may not exist when switching between branches.
 - **Scientific branch**: JSON file storage may be slower for large datasets
 - **SQLite branch**: Database queries are generally faster for complex operations
 
+<<<<<<< HEAD
 Choose the appropriate branch based on your needs and dataset size.
+=======
+Choose the appropriate branch based on your needs and dataset size.
+=======
+>>>>>>>> a7da61cf1f697de3c8c81f536bf579d36d88e613:docs/old_workflow_docs/branch_switching_guide.md
+>>>>>>> a7da61cf1f697de3c8c81f536bf579d36d88e613
+>>>>>>> align-final-489-head

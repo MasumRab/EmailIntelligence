@@ -276,7 +276,7 @@ run_test_suite() {
     fi
     
     # Read PR IDs
-    local pr_ids=()
+    pr_ids=()
     while IFS= read -r line; do
         # Skip empty lines and comments
         if [[ $line =~ ^#.*$ ]] || [[ -z $line ]]; then
@@ -305,7 +305,7 @@ run_test_suite() {
 
 # Function: Generate summary report
 generate_summary_report() {
-    local pr_ids=("$@")
+    pr_ids=("$@")
     local summary_file="$OUTPUT_DIR/reports/test-summary.json"
     
     echo "Generating summary report..."
@@ -319,7 +319,7 @@ generate_summary_report() {
     local resolution_time_sum=0
     
     for pr_id in "${pr_ids[@]}"; do
-        local metrics_file="$OUTPUT_DIR/metrics/${pr_id}-metrics.json"
+        metrics_file="$OUTPUT_DIR/metrics/${pr_id}-metrics.json"
         if [ -f "$metrics_file" ]; then
             local complexity=$(jq -r '.complexity_score' "$metrics_file")
             local effectiveness=$(jq -r '.effectiveness_score' "$metrics_file")

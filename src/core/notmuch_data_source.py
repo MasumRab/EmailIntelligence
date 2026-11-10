@@ -56,7 +56,7 @@ class NotmuchDataSource(DataSource):
                 self.db_path = None
         else:
             self.db_path = None
-            
+
         self.notmuch_db = None
         self._initialized = False
         # Initialize database manager for caching - accept injected or create default
@@ -180,10 +180,10 @@ class NotmuchDataSource(DataSource):
                 return None
 
             message = messages[0]
-            
+
             # Load the full message from the file to extract content parts
             filename = message.get_filename()
-            
+
             try:
                 # Parse email content from file
                 if not security_validator.validate_io(filename, 'r'):
@@ -192,7 +192,7 @@ class NotmuchDataSource(DataSource):
 
                 with open(filename, 'r', encoding='utf-8', errors='ignore') as f:
                     email_message = email.message_from_file(f)
-                
+
                 email_data = {
                     "id": message.get_message_id(),
                     "message_id": message.get_message_id(),
@@ -222,9 +222,9 @@ class NotmuchDataSource(DataSource):
                         payload = email_message.get_payload(decode=True)
                         if payload:
                             content = payload.decode('utf-8', errors='ignore')
-                    
+
                     email_data["body"] = content
-                    
+
                 return email_data
             except Exception as e:
                 logger.error(f"Error processing email {message_id}: {e}")
@@ -296,7 +296,7 @@ class NotmuchDataSource(DataSource):
         
         if not self.notmuch_db:
             return []
-        
+
         try:
             tags = self.notmuch_db.get_all_tags()
             return [{"name": tag, "id": tag} for tag in tags]
@@ -310,7 +310,7 @@ class NotmuchDataSource(DataSource):
         await self._ensure_initialized()
         
         logger.info(f"Creating email with subject: {email_data.get('subject', 'No subject')}")
-        
+
         # For now, return a mock implementation
         # In a full implementation, this would actually store the email
         email_hash = str(hash(str(email_data)))[:8]
@@ -322,7 +322,7 @@ class NotmuchDataSource(DataSource):
             "date": datetime.now().isoformat(),
             "tags": email_data.get("initial_tags", [])
         }
-        
+
         # If AI engine is available, perform analysis asynchronously
         if self.ai_engine:
             try:
@@ -330,7 +330,7 @@ class NotmuchDataSource(DataSource):
                 asyncio.create_task(self._analyze_and_tag_email_background(result["message_id"], email_data))
             except Exception as e:
                 logger.warning(f"Failed to schedule background AI analysis: {e}")
-        
+
         return result
 
     async def _analyze_and_tag_email_background(self, message_id: str, email_data: Dict[str, Any]):
@@ -413,7 +413,7 @@ class NotmuchDataSource(DataSource):
         await self._ensure_initialized()
         
         logger.info(f"Updating email {message_id} with data: {update_data}")
-        
+
         # For now, return a mock implementation
         # In a full implementation, this would actually update the email
         return {
@@ -439,7 +439,7 @@ class NotmuchDataSource(DataSource):
         await self._ensure_initialized()
         
         logger.info(f"Updating email ID {email_id} with data: {update_data}")
-        
+
         # For now, return a mock implementation
         # In a full implementation, this would actually update the email
         return {
@@ -450,9 +450,9 @@ class NotmuchDataSource(DataSource):
     async def delete_email(self, email_id: int) -> bool:
         """Delete an email by its internal ID."""
         await self._ensure_initialized()
-        
+
         logger.info(f"Deleting email ID {email_id}")
-        
+
         # For now, return a mock implementation
         # In a full implementation, this would actually delete the email
         return True
@@ -519,7 +519,7 @@ class NotmuchDataSource(DataSource):
     @log_performance(operation="get_category_breakdown")
     async def get_category_breakdown(self, limit: int = 10) -> Dict[str, int]:
         """Retrieves category breakdown statistics with configurable limit.
-        
+
         In Notmuch, categories are mapped to tags. This implementation counts emails per tag
         and excludes common system tags to focus on user-defined categories.
         """
@@ -531,13 +531,13 @@ class NotmuchDataSource(DataSource):
         try:
             # Get all tags and their counts
             tag_counts = {}
-            
+
             # Exclude common system tags
             system_tags = {"inbox", "unread", "sent", "draft", "deleted", "spam", "flagged", "replied", "forwarded"}
-            
+
             # Get all tags from the database
             all_tags = list(self.notmuch_db.get_all_tags())
-            
+
             # For each tag (that's not a system tag), count messages
             for tag in all_tags:
                 if tag.lower() not in system_tags:
@@ -545,7 +545,7 @@ class NotmuchDataSource(DataSource):
                     count = query.count_messages()
                     if count > 0:  # Only include tags with emails
                         tag_counts[tag] = count
-            
+
             # Sort by count descending and apply limit
             sorted_tags = sorted(tag_counts.items(), key=lambda x: x[1], reverse=True)
             return dict(sorted_tags[:limit])
@@ -605,14 +605,14 @@ class NotmuchDataSource(DataSource):
             message.thaw()
 
             logger.info(f"Updated tags for message {message_id} in notmuch.")
-            
+
             # Trigger re-analysis if AI engine is available
             if self.ai_engine:
                 try:
                     asyncio.create_task(self._reanalyze_email(message_id))
                 except Exception as e:
                     logger.warning(f"Failed to schedule re-analysis for email {message_id}: {e}")
-            
+
             return True
 
         except Exception as e:
@@ -635,7 +635,7 @@ class NotmuchDataSource(DataSource):
         """Re-analyze an email after tags have been updated."""
         try:
             logger.info(f"Re-analyzing email {message_id} after tag update")
-            
+
             # Get email content
             email_data = await self.get_email_by_message_id(message_id, include_content=True)
             if not email_data:
@@ -676,7 +676,7 @@ class NotmuchDataSource(DataSource):
         Performs comprehensive AI analysis on an email and applies intelligent tagging.
         """
         await self._ensure_initialized()
-        
+
         if not self.ai_engine or not self.filter_manager:
             logger.warning("AI engine or filter manager not available for analysis")
             return False

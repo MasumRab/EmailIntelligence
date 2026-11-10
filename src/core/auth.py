@@ -220,9 +220,15 @@ async def verify_token(
     )
     try:
         payload = jwt.decode(
+<<<<<<< HEAD
             credentials.credentials,
             settings.secret_key,
             algorithms=[settings.algorithm],
+=======
+            credentials.credentials, 
+            settings.secret_key,
+            algorithms=[settings.algorithm]
+>>>>>>> align-final-489-head
         )
         username: str = payload.get("sub")
         role: str = payload.get("role", "user")

@@ -47,8 +47,11 @@ git checkout sqlite
 
 ### 3. Install Dependencies
 ```bash
+<<<<<<< HEAD
 # Install/update all dependencies using launch.py
 python launch.py --update-deps
+=======
+>>>>>>> align-final-489-head
 ```
 
 ### 4. Set Up Environment
@@ -65,7 +68,10 @@ If you want to preserve data from the scientific branch:
 
 ```bash
 # Use the data migration utility to convert JSON data to SQLite
+<<<<<<< HEAD
 python old_workflow_docs/data_migration.py json-to-sqlite --data-dir ./data --db-path sqlite.db
+=======
+>>>>>>> align-final-489-head
 ```
 
 ### 6. Initialize Database
@@ -99,8 +105,11 @@ git checkout scientific
 
 ### 3. Install Dependencies
 ```bash
+<<<<<<< HEAD
 # Install/update all dependencies using launch.py
 python launch.py --update-deps
+=======
+>>>>>>> align-final-489-head
 ```
 
 ### 4. Set Up Environment
@@ -117,7 +126,10 @@ If you want to preserve data from the SQLite branch:
 
 ```bash
 # Use the data migration utility to export SQLite data to JSON
+<<<<<<< HEAD
 python old_workflow_docs/data_migration.py sqlite-to-json --db-path sqlite.db --data-dir ./data
+=======
+>>>>>>> align-final-489-head
 ```
 
 ### 6. Run Tests
@@ -133,22 +145,31 @@ The project includes a data migration utility to help convert data between forma
 ### JSON to SQLite Migration
 ```bash
 # Convert JSON data to SQLite database
+<<<<<<< HEAD
 python old_workflow_docs/data_migration.py json-to-sqlite --data-dir ./data --db-path sqlite.db
+=======
+>>>>>>> align-final-489-head
 ```
 
 ### SQLite to JSON Export
 ```bash
 # Export SQLite data to JSON files
+<<<<<<< HEAD
 python old_workflow_docs/data_migration.py sqlite-to-json --db-path sqlite.db --data-dir ./data
+=======
+>>>>>>> align-final-489-head
 ```
 
 ### Data Validation
 ```bash
 # Validate JSON data files
+<<<<<<< HEAD
 python old_workflow_docs/data_migration.py validate-json --data-dir ./data
 
 # Validate SQLite database
 python old_workflow_docs/data_migration.py validate-sqlite --db-path sqlite.db
+=======
+>>>>>>> align-final-489-head
 ```
 
 ## Common Issues and Solutions
