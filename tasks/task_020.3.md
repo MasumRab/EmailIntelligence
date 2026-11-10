@@ -48,7 +48,7 @@
 ## Implementation Guide
 
 1. Write `docs/guides/getting_started.md` and `docs/guides/configuration.md`.
-2. Extract configuration parameters from `src/config/` schemas or the YAML files themselves.
+2. Extract configuration parameters from the `config/*.json` files (`llm_guidelines.json` and its provider variants); there is no YAML in `config/`.
 3. Validate the markdown files with a linter such as `markdownlint`.
 
 
