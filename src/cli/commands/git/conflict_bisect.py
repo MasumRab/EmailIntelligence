@@ -164,7 +164,7 @@ class ConflictBisectCommand(Command):
                 print(f"Found {len(branches)} branches")
 
             conflict_data = await self._scan_branches_for_conflicts(
-                branches, args.files, args.branch
+                branches, args.files, args.branch, verbose=args.verbose
             )
 
             if not conflict_data["conflicts_found"] and not args.all_branches:
@@ -241,7 +241,11 @@ class ConflictBisectCommand(Command):
             return ["main", "master"]
 
     async def _scan_branches_for_conflicts(
-        self, branches: List[str], target_files: List[str], primary_branch: str
+        self,
+        branches: List[str],
+        target_files: List[str],
+        primary_branch: str,
+        verbose: bool = False,
     ) -> Dict[str, Any]:
         """Scan multiple branches for conflict markers."""
 
@@ -302,7 +306,7 @@ class ConflictBisectCommand(Command):
                         conflicts["conflicting_files"][f].append(branch)
 
             except Exception as e:
-                if args.verbose:
+                if verbose:
                     print(f"Warning: Could not scan branch {branch}: {e}")
                 continue
 

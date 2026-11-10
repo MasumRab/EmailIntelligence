@@ -65,7 +65,9 @@ class MergeSmartCommand(Command):
 
         try:
             # 1. Get merge base
-            base_ref = self._run_command(f"git merge-base {args.local} {args.remote}").strip()
+            base_ref = self._run_command(
+                ["git", "merge-base", args.local, args.remote]
+            ).strip()
             if not base_ref:
                 print("Error: Could not find common ancestor (merge-base).")
                 return 1
@@ -103,21 +105,28 @@ class MergeSmartCommand(Command):
 
     # --- PORTED LOGIC DNA (RESTORED FIDELITY) ---
 
-    def _run_command(self, cmd: str) -> str:
-        """Ported from legacy run_command."""
-        result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
+    def _run_command(self, argv: List[str]) -> str:
+        """Run a git command.
+
+        The argv form is deliberate: every caller passes a ref or a path that
+        came from the command line, and handing an f-string to a shell turns
+        those into shell input. ``subprocess`` does not use a shell by default.
+        """
+        result = subprocess.run(argv, capture_output=True, text=True)
         return result.stdout
 
     def _get_git_content(self, file_path: Path, ref: str) -> str:
         """Ported from legacy get_file_content with Path awareness."""
         try:
-            return self._run_command(f"git show {ref}:{file_path}")
+            return self._run_command(["git", "show", f"{ref}:{file_path}"])
         except Exception: return ""
 
     def _get_changed_lines(self, file_path: Path, base_ref: str, target_ref: str) -> List[int]:
         """Ported logic for diff chunk parsing."""
         try:
-            diff = self._run_command(f"git diff {base_ref}..{target_ref} -- {file_path}")
+            diff = self._run_command(
+                ["git", "diff", f"{base_ref}..{target_ref}", "--", str(file_path)]
+            )
             changed_lines = set()
             for line in diff.split("\n"):
                 if line.startswith("@@"):

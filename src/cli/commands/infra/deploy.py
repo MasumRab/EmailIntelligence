@@ -7,7 +7,6 @@ Ported from scripts/shell/ops/deploy.sh.
 
 import subprocess
 import asyncio
-import asyncio
 from argparse import Namespace
 from pathlib import Path
 from typing import Any, Dict
