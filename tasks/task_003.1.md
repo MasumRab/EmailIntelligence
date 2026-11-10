@@ -1,6 +1,6 @@
 # Task 003.1: Define Critical Files and Validation Criteria
 
-**Status:** pending
+**Status:** specified
 **Priority:** high
 **Effort:** 2-3 hours
 **Complexity:** 4/10
@@ -38,17 +38,32 @@ Identify all critical files and directories whose absence or corruption would ca
 ### Task Interface
 - **ID**: 003.1
 - **Title**: Define Critical Files and Validation Criteria
-- **Status**: pending
+- **Status**: specified
 - **Priority**: high
 - **Effort**: 2-3 hours
 - **Complexity**: 4/10
 
 ### Requirements
-Requirements to be specified
+1. A list of critical files exists with one entry per file, each naming what breaks if it disappears
+   -- not merely that it is important.
+2. Each critical file records a validation predicate: exists, parses, exports a named symbol, or
+   matches a required pattern.
+3. Validation criteria are executable, so the list can be applied by a script without interpretation.
+4. Test files and CI configuration are included: a deleted test directory and a deleted workflow both
+   pass every runtime check today.
+5. The list is reviewed against what CI actually runs in `.github/workflows/ci.yml`, so a file that no
+   job touches is not called critical without justification.
 
 ## Implementation Guide
 
-Implementation guide to be defined
+Put the list in `config/critical-files.json`. Derive the first pass mechanically from CI:
+
+```bash
+grep -E 'pytest|ruff|bandit|uv run' .github/workflows/ci.yml
+git ls-tree -r --name-only HEAD -- src/ modules/ tests/ pyproject.toml
+```
+
+Each entry: `{"path": ..., "kind": "exists|parses|exports|pattern", "predicate": ..., "breaks": ...}`.
 
 
 ## Purpose

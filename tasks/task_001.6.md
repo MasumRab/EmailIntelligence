@@ -1,6 +1,6 @@
-# Task 001.6: Untitled Task
+# Task 001.6: Choose Between Merge and Rebase per Branch
 
-**Status:** pending
+**Status:** specified
 **Priority:** medium
 **Effort:** 3-4 hours
 **Complexity:** 6/10
@@ -38,18 +38,33 @@ Document the strategy for choosing between `git merge` and `git rebase` based on
 
 ### Task Interface
 - **ID**: 001.6
-- **Title**: Untitled Task
-- **Status**: pending
+- **Title**: Choose Between Merge and Rebase per Branch
+- **Status**: specified
 - **Priority**: medium
 - **Effort**: 3-4 hours
 - **Complexity**: 6/10
 
 ### Requirements
-Requirements to be specified
+1. The strategy document gives one deciding rule per case: reproducible history vs. conflict cost,
+   and names the observation that selects it.
+2. For a branch that has already been pushed and reviewed, the rule accounts for the published SHAs
+   that a rebase destroys; the rule is not "rebase when the branch is small".
+3. Each rule states the exact command it implies and whether that command needs `--force-with-lease`.
+4. The document names the situations where neither applies and the branch must be re-cut from the
+   target instead.
+5. The rule is expressible as a one-line predicate over the inventory, so the choice can be automated
+   for 100+ branches.
 
 ## Implementation Guide
 
-Implementation guide to be defined
+Write the decision table into the strategy section of `TARGET_SELECTION_CRITERIA.md`, and add a
+`--strategy` flag to `scripts/alignment/render_checklist.py` that emits `merge` or `rebase` per row.
+The repository forbids plain force-push and uses `--force-with-lease` where a rewrite is required;
+state that in the table rather than leaving it to the operator.
+
+```bash
+git log --oneline --merges origin/main..<branch> | wc -l
+```
 
 
 ## Purpose

@@ -1,6 +1,6 @@
 # Task 003.3: Build Validation Test Suite
 
-**Status:** pending
+**Status:** specified
 **Priority:** high
 **Effort:** 2-3 hours
 **Complexity:** 5/10
@@ -38,17 +38,33 @@ Create comprehensive test suite for the validation script to ensure reliability.
 ### Task Interface
 - **ID**: 003.3
 - **Title**: Build Validation Test Suite
-- **Status**: pending
+- **Status**: specified
 - **Priority**: high
 - **Effort**: 2-3 hours
 - **Complexity**: 5/10
 
 ### Requirements
-Requirements to be specified
+1. The test suite covers the four verdicts separately: present-and-valid, present-and-invalid,
+   absent, and unreadable.
+2. Each test builds its own fixture tree under `tmp_path`; no test reads the real repository, so the
+   suite passes in a clean checkout and fails when the checker is broken.
+3. A test asserts the negative case first -- it must fail against the checker with its detection
+   removed -- so the suite is not merely green.
+4. The suite runs under the repository's existing command without extra flags:
+   `uv run pytest tests/`.
+5. Tests are placed where CI collects them. CI passes `tests/ src/ modules/` explicitly, so a test
+   under `scripts/` is collected by nobody.
 
 ## Implementation Guide
 
-Implementation guide to be defined
+Add `tests/scripts/test_validate_critical_files.py`. The existing
+`scripts/test_detect_merge_markers.py` is a sibling precedent, but note that CI's pytest invocation
+lists `tests/ src/ modules/` -- place the new suite under `tests/` so it actually runs.
+
+```bash
+uv run pytest tests/scripts/test_validate_critical_files.py -q
+grep -n 'pytest' .github/workflows/ci.yml
+```
 
 
 ## Purpose

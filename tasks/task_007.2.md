@@ -1,6 +1,6 @@
-# Task 007.2: Untitled Task
+# Task 007.2: Detect Name-to-Target Mismatches in Branches
 
-**Status:** pending
+**Status:** specified
 **Priority:** medium
 **Effort:** 4-5 hours
 **Complexity:** 6/10
@@ -37,18 +37,30 @@ Detect when branch content doesn't match its naming convention's expected target
 
 ### Task Interface
 - **ID**: 007.2
-- **Title**: Untitled Task
-- **Status**: pending
+- **Title**: Detect Name-to-Target Mismatches in Branches
+- **Status**: specified
 - **Priority**: medium
 - **Effort**: 4-5 hours
 - **Complexity**: 6/10
 
 ### Requirements
-Requirements to be specified
+1. The check compares each branch's declared target -- from its name, its PR base, or its checklist row
+   -- with the target the ledger says it should have.
+2. A mismatch is reported with both values and the evidence for each, not just "mismatch".
+3. Branches with no declared target are reported as unclassified, not as matches.
+4. The check reads PR bases from `gh pr list --base`, because a branch's base is not always `main`.
+5. The check never merges or retargets; it reports only.
 
 ## Implementation Guide
 
-Implementation guide to be defined
+Add `scripts/alignment/check_targets.py` reading `docs/branch-inventory.json` and
+`ALIGNMENT_CHECKLIST.md`:
+
+```bash
+gh pr list --state open --json number,headRefName,baseRefName --limit 300
+```
+
+Compare `baseRefName` per head against the checklist row and print a three-column diff.
 
 
 ## Purpose

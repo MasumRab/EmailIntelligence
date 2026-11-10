@@ -1,6 +1,6 @@
 # Task 004.2: Integrate Validation Hooks Locally
 
-**Status:** pending
+**Status:** specified
 **Priority:** high
 **Effort:** 4-5 hours
 **Complexity:** 6/10
@@ -38,17 +38,30 @@ Adapt and integrate Task 008 and Task 003 validation components into local Git h
 ### Task Interface
 - **ID**: 004.2
 - **Title**: Integrate Validation Hooks Locally
-- **Status**: pending
+- **Status**: specified
 - **Priority**: high
 - **Effort**: 4-5 hours
 - **Complexity**: 6/10
 
 ### Requirements
-Requirements to be specified
+1. The pre-commit hook runs `scripts/validation/validate_critical_files.py` and refuses the commit on
+   non-zero exit.
+2. The pre-push hook runs `scripts/alignment/check_alignment.py` against the branch being pushed.
+3. Neither hook imports application dependencies; both degrade to a clear "skipped, reason" line
+   rather than a traceback when the package is not installed.
+4. The hooks honour `--no-verify` -- Git already provides it -- and the documentation says what that
+   skips.
+5. Each hook completes in under two seconds on this repository, or it is moved to pre-push.
 
 ## Implementation Guide
 
-Implementation guide to be defined
+Write `scripts/hooks/pre-commit` and `scripts/hooks/pre-push`, adapting the checks already present in
+`scripts/alignment/check_alignment.py` and `scripts/validation/validate_critical_files.py`. Install
+with `python scripts/hooks/install.py --install` and verify by staging a broken file:
+
+```bash
+echo 'def broken(' >> /tmp/x.py && git add /tmp/x.py && git commit -m probe   # must be refused
+```
 
 
 ## Purpose

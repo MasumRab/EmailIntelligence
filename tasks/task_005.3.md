@@ -1,6 +1,6 @@
-# Task 005.3: Untitled Task
+# Task 005.3: Run All Error Detection Under One AST-Validated Script
 
-**Status:** pending
+**Status:** specified
 **Priority:** high
 **Effort:** 5-6 hours
 **Complexity:** 7/10
@@ -42,18 +42,35 @@ Integrate all error detection into a single comprehensive script with AST-based 
 
 ### Task Interface
 - **ID**: 005.3
-- **Title**: Untitled Task
-- **Status**: pending
+- **Title**: Run All Error Detection Under One AST-Validated Script
+- **Status**: specified
 - **Priority**: high
 - **Effort**: 5-6 hours
 - **Complexity**: 7/10
 
 ### Requirements
-Requirements to be specified
+1. `scripts/analysis/check_errors.py` runs the marker check, the import check and the encoding check
+   and prints one summary.
+2. Every Python file in the tree is validated with `compile()` before `ast.parse`; `ast.parse` skips
+   the symbol table and accepts `await` outside `async def`.
+3. A file that fails `compile()` is reported with the exception class and line, not a traceback.
+4. The script's own report is machine-readable with `--json` and identical in content to the text
+   output.
+5. Exit status is non-zero when any finding exists, and the count per category is printed even when
+   zero.
 
 ## Implementation Guide
 
-Implementation guide to be defined
+Create `scripts/analysis/check_errors.py` composing `scripts/detect_merge_markers.py`,
+`scripts/analysis/import_index.py` and the encoding pass from the sibling task.
+
+```bash
+python scripts/analysis/check_errors.py --root . --json > /tmp/errors.json
+python scripts/analysis/check_errors.py; echo "rc=$?"
+```
+
+`compile(source, filename, "exec")` is the validation primitive; catch `SyntaxError` and `ValueError`
+(the latter covers NUL bytes).
 
 
 ## Purpose

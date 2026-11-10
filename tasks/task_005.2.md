@@ -1,6 +1,6 @@
-# Task 005.2: Untitled Task
+# Task 005.2: Detect Encoding Faults and Extract Python Imports
 
-**Status:** pending
+**Status:** specified
 **Priority:** high
 **Effort:** 4-5 hours
 **Complexity:** 6/10
@@ -37,18 +37,38 @@ Detect encoding issues and extract import statements from Python files.
 
 ### Task Interface
 - **ID**: 005.2
-- **Title**: Untitled Task
-- **Status**: pending
+- **Title**: Detect Encoding Faults and Extract Python Imports
+- **Status**: specified
 - **Priority**: high
 - **Effort**: 4-5 hours
 - **Complexity**: 6/10
 
 ### Requirements
-Requirements to be specified
+1. Every Python file is read as UTF-8 and a file that decodes with replacement characters is reported
+   with its path and offending byte offset.
+2. A file that is valid UTF-8 but declares a different `# -*- coding:` line is reported separately; the
+   two faults have different fixes.
+3. Import extraction returns fully-qualified module names for both `import a.b` and `from a import b`,
+   including relative imports with their level.
+4. Relative imports are resolved against the file's package path, because `from .x import y` in a
+   package is not the module `x`.
+5. The extractor serialises to JSON so the deleted-module check can consume it.
 
 ## Implementation Guide
 
-Implementation guide to be defined
+Add `scripts/analysis/import_index.py` using `ast`:
+
+```python
+import ast
+tree = ast.parse(path.read_text(encoding="utf-8"))
+```
+
+Walk `ast.Import` and `ast.ImportFrom`; keep `node.level` for relative imports. Emit
+`{"file": ..., "module": ..., "level": ..., "lineno": ...}`. Run:
+
+```bash
+python scripts/analysis/import_index.py --root src > /tmp/imports.json
+```
 
 
 ## Purpose

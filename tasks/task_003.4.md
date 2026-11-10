@@ -1,6 +1,6 @@
 # Task 003.4: Integrate Validation Into CI Pipeline
 
-**Status:** pending
+**Status:** specified
 **Priority:** high
 **Effort:** 2-3 hours
 **Complexity:** 4/10
@@ -38,17 +38,31 @@ Add validation script as a mandatory pre-merge check in the CI/CD pipeline.
 ### Task Interface
 - **ID**: 003.4
 - **Title**: Integrate Validation Into CI Pipeline
-- **Status**: pending
+- **Status**: specified
 - **Priority**: high
 - **Effort**: 2-3 hours
 - **Complexity**: 4/10
 
 ### Requirements
-Requirements to be specified
+1. The validation runs as a step in the `test` job of `.github/workflows/ci.yml`, before the test
+   run, so a missing critical file stops the job early.
+2. The step does not end in `|| true`. The current `test` job runs `pytest ... || true` and
+   `bandit ... || true`, which throws away the exit code; a new gate must not repeat that.
+3. The step's dependencies are installed before it runs, or it imports only the standard library.
+4. A failing validation is distinguishable in the job log from a failing test.
+5. The gate is demonstrated by deleting a critical file on a scratch branch and observing a red job.
 
 ## Implementation Guide
 
-Implementation guide to be defined
+Edit `.github/workflows/ci.yml`, job `test`. Add the step after checkout and setup, before
+`uv run pytest`:
+
+```yaml
+- name: Validate critical files
+  run: python scripts/validation/validate_critical_files.py
+```
+
+Prove it with `gh run view <id> --log` on a branch where a critical file was removed.
 
 
 ## Purpose

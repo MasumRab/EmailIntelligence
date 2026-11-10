@@ -1,6 +1,6 @@
 # Task 003.5: Document and Communicate Validation Process
 
-**Status:** pending
+**Status:** specified
 **Priority:** medium
 **Effort:** 2-3 hours
 **Complexity:** 3/10
@@ -38,17 +38,24 @@ Create documentation and communicate the pre-merge validation process to the dev
 ### Task Interface
 - **ID**: 003.5
 - **Title**: Document and Communicate Validation Process
-- **Status**: pending
+- **Status**: specified
 - **Priority**: medium
 - **Effort**: 2-3 hours
 - **Complexity**: 3/10
 
 ### Requirements
-Requirements to be specified
+1. The process document states what the gate checks, who owns the critical-file list and how a file is
+   added to it.
+2. It explains how to fix each failure mode: absent file, unparseable file, missing export.
+3. It states where the gate runs (the `test` job) and that a red gate blocks merge.
+4. It is linked from `CONTRIBUTING.md`, so a contributor meets it before their first red build.
+5. The document is short enough to be read in the PR template's `Testing` section.
 
 ## Implementation Guide
 
-Implementation guide to be defined
+Write `docs/validation/critical-files.md` and add one line to `CONTRIBUTING.md` pointing at it. The
+file must be committed before it is linked; verify with `git ls-tree HEAD -- docs/validation` after
+the commit, because a link into a directory that does not exist in the tree is not a link.
 
 
 ## Purpose

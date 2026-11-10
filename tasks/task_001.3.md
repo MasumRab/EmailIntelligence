@@ -1,6 +1,6 @@
-# Task 001.3: Untitled Task
+# Task 001.3: Define Integration Target Selection Criteria
 
-**Status:** pending
+**Status:** specified
 **Priority:** high
 **Effort:** 3-4 hours
 **Complexity:** 7/10
@@ -38,18 +38,34 @@ Define explicit, reproducible criteria for selecting integration targets (main, 
 
 ### Task Interface
 - **ID**: 001.3
-- **Title**: Untitled Task
-- **Status**: pending
+- **Title**: Define Integration Target Selection Criteria
+- **Status**: specified
 - **Priority**: high
 - **Effort**: 3-4 hours
 - **Complexity**: 7/10
 
 ### Requirements
-Requirements to be specified
+1. `TARGET_SELECTION_CRITERIA.md` states, for each of `main`, `scientific` and `orchestration-tools`,
+   what belongs on that branch in one sentence, so a reader can classify a branch without reading the
+   rest of the document.
+2. Each criterion is decidable from repository evidence -- a path, a commit range, a file-set
+   overlap -- and names the command that produces the evidence.
+3. The criteria are ordered, and the document says what to do when two criteria disagree.
+4. A worked example applies the criteria to one real branch end to end.
+5. The document names the failure mode it exists to prevent: a branch assigned to a target because
+   that is where its file paths look familiar, which is how `scientific` accumulated 138 PRs.
 
 ## Implementation Guide
 
-Implementation guide to be defined
+Edit the existing `TARGET_SELECTION_CRITERIA.md` at the repository root rather than creating a new
+document; it already holds the early draft. Ground each criterion in the repository as it exists at
+`71b9bcbe8`: `src/` for application code, `scripts/` for tooling, `.github/workflows/ci.yml` for what
+CI actually checks. Confirm every path with `git ls-tree -r --name-only HEAD -- <path>` before
+citing it.
+
+```bash
+git show HEAD:TARGET_SELECTION_CRITERIA.md | head -40
+```
 
 
 ## Purpose

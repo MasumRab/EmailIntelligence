@@ -1,6 +1,6 @@
 # Task 003.2: Develop Core Validation Script
 
-**Status:** pending
+**Status:** specified
 **Priority:** high
 **Effort:** 3-4 hours
 **Complexity:** 5/10
@@ -38,17 +38,32 @@ Implement the validation script that checks critical files for existence, integr
 ### Task Interface
 - **ID**: 003.2
 - **Title**: Develop Core Validation Script
-- **Status**: pending
+- **Status**: specified
 - **Priority**: high
 - **Effort**: 3-4 hours
 - **Complexity**: 5/10
 
 ### Requirements
-Requirements to be specified
+1. `scripts/validation/validate_critical_files.py` reads `config/critical-files.json` and checks every
+   entry, printing one line per file with `PASS` or `FAIL` and the reason.
+2. Exit status is 0 only when every entry passes; a missing critical file returns a non-zero status
+   even in `--quiet` mode.
+3. The script runs without the application's dependencies installed -- it may import only the
+   standard library -- because it is meant to gate a merge before an environment exists.
+4. A file that exists but fails its predicate (does not parse, does not export the symbol) is
+   distinguished from a file that is absent; the two have different fixes.
+5. The script accepts `--json` for machine consumption and prints the same verdicts in both modes.
 
 ## Implementation Guide
 
-Implementation guide to be defined
+Create `scripts/validation/validate_critical_files.py`. Use `ast.parse` only after `compile()` has
+rejected non-syntax faults: `ast.parse` accepts `await` outside `async def`, so a file can parse and
+still be unimportable. For export checks, parse the module and inspect `ast.Module.body` names.
+
+```bash
+python scripts/validation/validate_critical_files.py --json
+python scripts/validation/validate_critical_files.py; echo "rc=$?"
+```
 
 
 ## Purpose

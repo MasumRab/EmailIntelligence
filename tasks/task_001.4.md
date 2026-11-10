@@ -1,6 +1,6 @@
-# Task 001.4: Untitled Task
+# Task 001.4: Assign and Justify an Integration Target per Branch
 
-**Status:** pending
+**Status:** specified
 **Priority:** high
 **Effort:** 4-5 hours
 **Complexity:** 8/10
@@ -38,18 +38,33 @@ Apply criteria to each branch and propose optimal integration targets with expli
 
 ### Task Interface
 - **ID**: 001.4
-- **Title**: Untitled Task
-- **Status**: pending
+- **Title**: Assign and Justify an Integration Target per Branch
+- **Status**: specified
 - **Priority**: high
 - **Effort**: 4-5 hours
 - **Complexity**: 8/10
 
 ### Requirements
-Requirements to be specified
+1. Every branch in `docs/branch-inventory.json` has exactly one assigned target, or the explicit
+   value `defer` with a reason.
+2. Each assignment cites the criteria from `TARGET_SELECTION_CRITERIA.md` by number and the evidence
+   that satisfies them, so a reviewer can re-derive the decision.
+3. No assignment rests on the branch's name alone. A branch called `fix/*` is not assigned to `main`
+   because of the prefix.
+4. Branches that fail every criterion are collected in one section with what would have to change for
+   them to qualify.
+5. The output is appended to `ALIGNMENT_CHECKLIST.md` as a table, not written to a new document.
 
 ## Implementation Guide
 
-Implementation guide to be defined
+Append a table to the existing `ALIGNMENT_CHECKLIST.md` (it already exists at the root and is the
+document the parent task names as the deliverable). One row per branch:
+`branch | head sha | target | criteria met | evidence command | risk`.
+
+```bash
+python scripts/alignment/branch_similarity.py --inventory docs/branch-inventory.json \
+    --targets main scientific orchestration-tools > /tmp/sim.json
+```
 
 
 ## Purpose

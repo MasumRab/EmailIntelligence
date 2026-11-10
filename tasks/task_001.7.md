@@ -1,6 +1,6 @@
-# Task 001.7: Untitled Task
+# Task 001.7: Resolve Architectural Divergence Before Integration
 
-**Status:** pending
+**Status:** specified
 **Priority:** medium
 **Effort:** 3-4 hours
 **Complexity:** 7/10
@@ -38,18 +38,33 @@ Define how to handle architectural differences between feature branches and inte
 
 ### Task Interface
 - **ID**: 001.7
-- **Title**: Untitled Task
-- **Status**: pending
+- **Title**: Resolve Architectural Divergence Before Integration
+- **Status**: specified
 - **Priority**: medium
 - **Effort**: 3-4 hours
 - **Complexity**: 7/10
 
 ### Requirements
-Requirements to be specified
+1. The document separates divergence that changes behaviour from divergence that changes layout, and
+   gives a different procedure for each.
+2. Where both sides moved the same module, the procedure names which side leads and what evidence
+   decides it -- a working consumer on one side beats a cleaner design on the other.
+3. An add/delete pair (the same symbol added on one side and removed on the other) is called out as a
+   design fork, not a conflict that merges cleanly.
+4. The procedure is applied to at least one real pair of branches and the outcome recorded.
+5. The document warns against resolving architecture by taking the target's side wholesale, which
+   silently reverts the branch's own deletions.
 
 ## Implementation Guide
 
-Implementation guide to be defined
+Write into the architecture section of `TARGET_SELECTION_CRITERIA.md`. Test the claim on the real
+repository before writing it down: pick two branches with overlapping paths from the inventory and run
+
+```bash
+git merge-tree --write-tree main <branch>
+```
+
+Exit 0 is clean, 1 is a conflict, anything else is a failure and must not be recorded as a conflict.
 
 
 ## Purpose
