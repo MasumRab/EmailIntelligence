@@ -25,26 +25,55 @@ jobs:
       !contains(github.event.head_commit.message, '[ci:lint-only]') &&
       !contains(github.event.pull_request.labels.*.name, 'ci:skip-tests')
     runs-on: ubuntu-latest
+<<<<<<< HEAD
+=======
+    
+    strategy:
+      matrix:
+        python-version: ["3.11", "3.12", "3.13"]
+    
+>>>>>>> align-pr-478-head
     steps:
       - uses: actions/checkout@v7
         with:
           submodules: recursive
       - uses: actions/setup-python@v7
         with:
+<<<<<<< HEAD
           python-version: '3.12'
       - uses: astral-sh/setup-uv@v5
         with:
           enable-cache: true
+=======
+          python-version: ${{ matrix.python-version }}
+          cache: 'pip'
+      
+>>>>>>> align-pr-478-head
       - name: Install dependencies
         run: uv sync --all-extras --dev  # NOSONAR - controlled CI environment
       - name: Run tests
         run: |
+<<<<<<< HEAD
           uv run pytest tests/ src/ modules/ -v --tb=short \
             --cov=src --cov=modules --cov-report=xml --cov-report=term-missing \
             --cov-fail-under=70 || true
       - name: Run Security Scans
         run: uv run bandit -r src/ modules/ || true
       - name: Run linting
+=======
+          python -m pip install --upgrade pip
+          pip install -r requirements-dev.txt
+          pip install flake8 pylint black isort pytest-cov
+      
+      - name: Verify dependencies
+        run: |
+          # Install packaging for the verification script
+          pip install packaging
+          # Run verification with minimal check first to avoid import errors if deps failed
+          python scripts/verify-dependencies.py --minimal
+
+      - name: Code Quality Checks
+>>>>>>> align-pr-478-head
         run: |
           uv run ruff check src/ modules/
           uv run ruff format --check src/ modules/

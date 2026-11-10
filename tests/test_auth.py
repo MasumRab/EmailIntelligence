@@ -11,8 +11,20 @@ from src.main import create_app
 # Create the app instance for testing
 app = create_app()
 
+from src.backend.python_backend.database import db_manager
+from src.core.auth import hash_password
+
 def test_auth_token_endpoint():
     """Test the token endpoint for authentication"""
+    # Synchronously seed the database cache
+    db_manager.users_data = [{
+        "id": 1,
+        "username": "admin",
+        "hashed_password": hash_password("secret"),
+        "role": "admin"
+    }]
+    db_manager._initialized = True
+
     with TestClient(app) as client:
         # Test with valid credentials
         response = client.post("/token", data={"username": "admin", "password": "secret"})

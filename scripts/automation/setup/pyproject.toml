@@ -13,6 +13,7 @@ dependencies = [
     "fastapi>=0.115.12",
     "uvicorn[standard]>=0.34.3",
     "pydantic>=2.11.5",
+    "pydantic-settings>=2.0.0",
     "python-dotenv>=1.1.0",
     "python-multipart>=0.0.20",
     "email-validator>=2.2.0",
@@ -23,12 +24,28 @@ dependencies = [
     # Basic data handling (always needed)
     "aiosqlite>=0.20.0",
     "RestrictedPython>=8.0",
+<<<<<<< HEAD:scripts/automation/setup/pyproject.toml
     "networkx>=3.6.1",
     "google-api-python-client>=2.195.0",
     "google-auth>=2.50.0",
     "google-auth-oauthlib>=1.3.1",
     "pyjwt>=2.12.1",
     "pydantic-settings>=2.16.2",
+=======
+    "psutil>=6.0.0",
+    "networkx>=3.0",
+
+    # Security
+    "argon2-cffi>=23.1.0",
+    "pyotp>=2.9.0",
+    "qrcode>=7.0",
+    "PyJWT>=2.0.0",
+
+    # Google API (Required for Gmail integration)
+    "google-api-python-client>=2.172.0",
+    "google-auth>=2.40.3",
+    "google-auth-oauthlib>=1.2.2",
+>>>>>>> align-pr-478-head:setup/pyproject.toml
 ]
 
 [project.optional-dependencies]
@@ -66,7 +83,7 @@ db = [
     "notmuch>=0.29",
 ]
 
-# Google API features - optional
+# Google API features - optional (kept for backward compatibility, but now in main deps)
 google = [
     "google-api-python-client>=2.172.0",
     "google-auth>=2.40.3",
@@ -136,6 +153,7 @@ include-package-data = false
 
 [tool.setuptools.packages.find]
 where = ["src"]
+<<<<<<< HEAD:scripts/automation/setup/pyproject.toml
 
 # Environment markers for conditional dependencies
 # Note: uv doesn't support marker configuration in pyproject.toml
@@ -144,3 +162,5 @@ where = ["src"]
 [[tool.uv.index]]
 name = "pytorch-cpu"
 url = "https://download.pytorch.org/whl/cpu"
+=======
+>>>>>>> align-pr-478-head:setup/pyproject.toml

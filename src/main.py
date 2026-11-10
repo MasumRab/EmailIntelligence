@@ -191,13 +191,17 @@ def create_app() -> FastAPI:
     return app
 
 
+# Create the app instance for imports (and for uvicorn to find if not using factory)
+app = create_app()
+
+
 # For backward compatibility when called directly (non-factory usage)
 if __name__ == "__main__":
     import uvicorn
-    app = create_app()
+    # app is already created above
     uvicorn.run(
         app, 
-        host="0.0.0.0", 
+        host=os.environ.get("HOST", "127.0.0.1"),
         port=int(os.environ.get("PORT", 8000)),
         log_level="info"
     )
