@@ -1,6 +1,6 @@
 # Task 021.4: Create Maintenance Scheduling System
 
-**Status:** pending
+**Status:** specified
 **Priority:** high
 **Effort:** TBD
 **Complexity:** TBD
@@ -41,11 +41,15 @@
 - **Complexity**: TBD
 
 ### Requirements
-Requirements to be specified
+1. The log rotation and archiving strategy is implemented via configuration for standard logging systems (e.g., `logging.handlers.RotatingFileHandler` in Python).
+2. Logs are explicitly capped at 10MB per file with a maximum of 5 backup files retained.
+3. The logging configuration is defined centrally in `src/config/logging.conf` or equivalent, preventing unbounded disk usage.
 
 ## Implementation Guide
 
-Implementation guide to be defined
+1. Update or create `src/config/logging.py` to instantiate a `RotatingFileHandler`.
+2. Set the `maxBytes` to 10485760 (10MB) and `backupCount` to 5.
+3. Write a unit test `tests/config/test_logging.py` that verifies the logger's handlers are correctly configured.
 
 
 ### 021.4. Create Maintenance Scheduling System

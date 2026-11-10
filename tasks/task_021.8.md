@@ -1,6 +1,6 @@
 # Task 021.8: Unit Testing and Validation
 
-**Status:** pending
+**Status:** specified
 **Priority:** high
 **Effort:** TBD
 **Complexity:** TBD
@@ -41,11 +41,15 @@
 - **Complexity**: TBD
 
 ### Requirements
-Requirements to be specified
+1. A system metrics dashboard or reporting script `scripts/maintenance/report_metrics.py` generates a summary of system health, active users, and API error rates.
+2. The script pulls data from the application's metric logs and outputs a CSV file to `reports/metrics_YYYYMMDD.csv`.
+3. The CSV contains exactly the headers: `Date`, `Total Requests`, `Error Rate`, and `Average Latency (ms)`.
 
 ## Implementation Guide
 
-Implementation guide to be defined
+1. Create `scripts/maintenance/report_metrics.py` to parse logs or query the metrics database.
+2. Use the `csv` module to write the output format correctly.
+3. Execute the script locally with mock log files to verify the CSV output in `tests/maintenance/test_report_metrics.py`.
 
 
 ### 021.8. Unit Testing and Validation

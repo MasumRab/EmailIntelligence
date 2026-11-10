@@ -1,6 +1,6 @@
 # Task 019.3: Develop Release Management Framework
 
-**Status:** pending
+**Status:** specified
 **Priority:** high
 **Effort:** TBD
 **Complexity:** TBD
@@ -41,11 +41,15 @@
 - **Complexity**: TBD
 
 ### Requirements
-Requirements to be specified
+1. The release management framework tags branches explicitly with semantic versions (e.g., `v1.2.3`) using `git tag`.
+2. It rejects tags that do not conform to semantic versioning (e.g., `v1.x.y`) by exiting with code 2.
+3. Release notes are automatically generated from commit messages between the previous tag and the current HEAD, parsed via `git log <prev>..HEAD`.
 
 ## Implementation Guide
 
-Implementation guide to be defined
+1. Create `scripts/deployment/release_manager.py` that implements tag creation and semantic version validation.
+2. Add release note generation logic that executes `git log` and writes to `CHANGELOG.md`.
+3. Verify the script correctly parses invalid tags with `uv run python -m pytest tests/deployment/test_release_manager.py`.
 
 
 ### 019.3. Develop Release Management Framework

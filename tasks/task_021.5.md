@@ -1,6 +1,6 @@
 # Task 021.5: Implement Alerting and Notification Mechanisms
 
-**Status:** pending
+**Status:** specified
 **Priority:** high
 **Effort:** TBD
 **Complexity:** TBD
@@ -41,11 +41,15 @@
 - **Complexity**: TBD
 
 ### Requirements
-Requirements to be specified
+1. A database optimization and cleanup script `scripts/maintenance/db_cleanup.py` is implemented to purge records older than 90 days from the `email_cache` table.
+2. The script executes a deterministic `DELETE` statement based on a timestamp column.
+3. It requires an explicit `--confirm` flag to run against production databases, exiting with code 1 if omitted.
 
 ## Implementation Guide
 
-Implementation guide to be defined
+1. Create `scripts/maintenance/db_cleanup.py` that connects to the SQLite or Postgres database.
+2. Implement the safety `--confirm` argument via `argparse`.
+3. Test the cleanup logic on an in-memory SQLite database in `tests/maintenance/test_db_cleanup.py`.
 
 
 ### 021.5. Implement Alerting and Notification Mechanisms

@@ -1,6 +1,6 @@
 # Task 021.2: Implement Health Monitoring System
 
-**Status:** pending
+**Status:** specified
 **Priority:** high
 **Effort:** TBD
 **Complexity:** TBD
@@ -41,11 +41,15 @@
 - **Complexity**: TBD
 
 ### Requirements
-Requirements to be specified
+1. A health check monitoring script `scripts/maintenance/health_check.py` is implemented to verify the availability of critical external services (e.g., Gmail API).
+2. The script accepts a `--timeout` flag and defaults to 10 seconds; it exits with code 2 if a timeout occurs.
+3. It writes a JSON report to `logs/health_report.json` containing the status of each checked service.
 
 ## Implementation Guide
 
-Implementation guide to be defined
+1. Implement `scripts/maintenance/health_check.py` using the `requests` library or relevant SDKs.
+2. Add the `--timeout` argument parsing via `argparse`.
+3. Test the script with `uv run python scripts/maintenance/health_check.py --timeout 5`.
 
 
 ### 021.2. Implement Health Monitoring System

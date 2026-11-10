@@ -1,6 +1,6 @@
 # Task 019.1: Design Deployment Architecture
 
-**Status:** pending
+**Status:** specified
 **Priority:** high
 **Effort:** TBD
 **Complexity:** TBD
@@ -41,11 +41,15 @@
 - **Complexity**: TBD
 
 ### Requirements
-Requirements to be specified
+1. The deployment architecture design is documented in `docs/deployment/architecture.md`.
+2. The design specifies the required external CI/CD permissions and lists explicit secrets needed for deployment (e.g. PyPI tokens or Docker registry credentials).
+3. A configuration schema for deployment settings is defined and validated using Pydantic in `src/config/deployment_schema.py`, enforcing environment restrictions (e.g., `production` cannot allow debug modes).
 
 ## Implementation Guide
 
-Implementation guide to be defined
+1. Write the architecture documentation in `docs/deployment/architecture.md`.
+2. Create the Pydantic schema in `src/config/deployment_schema.py`.
+3. Verify the schema with `uv run python -m pytest tests/test_deployment_schema.py`.
 
 
 ### 019.1. Design Deployment Architecture

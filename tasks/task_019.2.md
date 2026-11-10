@@ -1,6 +1,6 @@
 # Task 019.2: Implement Deployment Packaging System
 
-**Status:** pending
+**Status:** specified
 **Priority:** high
 **Effort:** TBD
 **Complexity:** TBD
@@ -41,11 +41,15 @@
 - **Complexity**: TBD
 
 ### Requirements
-Requirements to be specified
+1. The deployment packaging system creates standard Python distributions via a compliant `pyproject.toml` or `setup.py` placed at the repository root.
+2. Running the build command `uv build` successfully generates both `.tar.gz` and `.whl` artifacts in the `dist/` directory without unhandled exceptions.
+3. The packaging process rejects builds if the local working tree is dirty or missing critical `__init__.py` files.
 
 ## Implementation Guide
 
-Implementation guide to be defined
+1. Update or create `pyproject.toml` to declare dependencies and metadata for `taskmaster`.
+2. Implement a pre-build check in `scripts/deployment/pre_build.py` to verify tree cleanliness via `git status --porcelain`.
+3. Add tests in `tests/deployment/test_packaging.py` to verify the pre-build check fails when changes exist.
 
 
 ### 019.2. Implement Deployment Packaging System

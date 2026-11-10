@@ -1,6 +1,6 @@
 # Task 020.8: Unit Testing and Validation
 
-**Status:** pending
+**Status:** specified
 **Priority:** high
 **Effort:** TBD
 **Complexity:** TBD
@@ -41,11 +41,15 @@
 - **Complexity**: TBD
 
 ### Requirements
-Requirements to be specified
+1. An automated documentation validation script `scripts/docs/validate_docs.py` checks all markdown files for dead links and orphaned images.
+2. The script explicitly ignores external URLs but validates all relative links within the `docs/` folder.
+3. If a broken relative link is found, the script exits with code 1 and prints the file path and broken link.
 
 ## Implementation Guide
 
-Implementation guide to be defined
+1. Implement `scripts/docs/validate_docs.py` using Python's `pathlib` and `re` modules to extract and verify links.
+2. Add a test suite `tests/docs/test_validation.py` to confirm the script accurately identifies broken links.
+3. Execute `uv run python scripts/docs/validate_docs.py` as part of the CI process.
 
 
 ### 020.8. Unit Testing and Validation

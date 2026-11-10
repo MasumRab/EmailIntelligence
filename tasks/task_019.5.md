@@ -1,6 +1,6 @@
 # Task 019.5: Implement Rollback Deployment Mechanisms
 
-**Status:** pending
+**Status:** specified
 **Priority:** high
 **Effort:** TBD
 **Complexity:** TBD
@@ -41,11 +41,15 @@
 - **Complexity**: TBD
 
 ### Requirements
-Requirements to be specified
+1. The rollback deployment mechanism explicitly restores the previously tagged release (e.g. `v1.2.2`) when a rollback is requested.
+2. It identifies the previous version by parsing `git tag --sort=-v:refname` and picking the immediately preceding version.
+3. If no previous version exists, the rollback command exits with code 1 and outputs 'No previous version found for rollback'.
 
 ## Implementation Guide
 
-Implementation guide to be defined
+1. Create the rollback logic in `scripts/deployment/rollback.py`.
+2. Implement the git tag parsing logic.
+3. Add `tests/deployment/test_rollback.py` to verify the failure behavior when no tags exist.
 
 
 ### 019.5. Implement Rollback Deployment Mechanisms
