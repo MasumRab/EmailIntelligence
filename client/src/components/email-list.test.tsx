@@ -143,3 +143,29 @@ describe("EmailList", () => {
     expect(screen.getByText("92% confidence")).toBeInTheDocument();
   });
 });
+  it("handles empty or missing sender for initials gracefully", () => {
+    // Tests that the `(name || '')` fallback works and doesn't crash
+    render(
+      <EmailList
+        emails={[email({ sender: undefined })]}
+        loading={false}
+        onEmailSelect={vi.fn()}
+      />
+    );
+
+    // Initial should be empty string or not crash, we test it just renders empty state gracefully
+    expect(screen.queryByText("No emails found")).not.toBeInTheDocument();
+  });
+
+  it("handles null labels gracefully", () => {
+    // Tests that the mapping `key={label || index}` works and doesn't crash on null array elements
+    render(
+      <EmailList
+        emails={[email({ labels: [null as any] })]}
+        loading={false}
+        onEmailSelect={vi.fn()}
+      />
+    );
+
+    expect(screen.queryByText("No emails found")).not.toBeInTheDocument();
+  });
