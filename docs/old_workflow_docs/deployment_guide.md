@@ -183,4 +183,11 @@ The following environment variables are used by the application:
 
 If you encounter issues, check the application logs in the terminal where you ran `python launch.py`.
 
+<<<<<<< HEAD
 For database issues, ensure your DATABASE_URL is correctly set and the PostgreSQL service is running.
+=======
+For database issues, ensure your DATABASE_URL is correctly set and the PostgreSQL service is running.
+=======
+>>>>>>>> a7da61cf1f697de3c8c81f536bf579d36d88e613:docs/old_workflow_docs/deployment_guide.md
+>>>>>>> a7da61cf1f697de3c8c81f536bf579d36d88e613
+>>>>>>> align-pr-489-head

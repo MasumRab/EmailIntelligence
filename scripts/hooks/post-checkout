@@ -12,6 +12,7 @@ BRANCH=$(git rev-parse --abbrev-ref HEAD)
 install_git_hooks() {
     local hooks_installed=false
 
+<<<<<<< HEAD
     # Check if the required hooks exist in .git/hooks/
     if [[ -f ".git/hooks/pre-commit" && -f ".git/hooks/post-commit" && -f ".git/hooks/post-checkout" ]]; then
         # Check if they're pointing to the right scripts
@@ -19,6 +20,29 @@ install_git_hooks() {
            grep -q "post-commit-sync\|Agent Workflow" ".git/hooks/post-commit" 2>/dev/null && \
            grep -q "post-checkout\|environment setup" ".git/hooks/post-checkout" 2>/dev/null; then
             hooks_installed=true
+=======
+# IMPORTANT: Do NOT force sync or require approval on branch switch
+# Branch switching must be fast and unblocked for normal workflows
+
+# Only safe, non-blocking operations:
+
+# 1. Update git hooks if on orchestration-tools or orchestration-tools-* branch
+if [[ "$CURRENT_BRANCH" == "orchestration-tools" || "$CURRENT_BRANCH" == orchestration-tools-* ]]; then
+    echo "On orchestration-tools branch"
+
+    # Check if hook installation script exists
+    if [[ -f "scripts/install-hooks.sh" ]]; then
+        # Only update hooks if they've changed in orchestration-tools
+        CURRENT_ORCH_COMMIT=$(git rev-parse "orchestration-tools" 2>/dev/null)
+        LAST_INSTALLED_ORCH_COMMIT=$(cat .git/hooks/.orchestration_commit_id 2>/dev/null)
+
+        if [[ -z "$LAST_INSTALLED_ORCH_COMMIT" ]] || [[ "$CURRENT_ORCH_COMMIT" != "$LAST_INSTALLED_ORCH_COMMIT" ]]; then
+            echo "Updating git hooks from orchestration-tools branch..."
+            if bash scripts/install-hooks.sh --quiet 2>/dev/null; then
+                echo "$CURRENT_ORCH_COMMIT" > .git/hooks/.orchestration_commit_id
+                echo "✓ Hooks updated"
+            fi
+>>>>>>> align-pr-489-head
         fi
     fi
 

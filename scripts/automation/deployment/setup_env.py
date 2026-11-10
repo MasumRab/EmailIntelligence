@@ -33,7 +33,7 @@ def run_command(command, cwd=None):
     try:
         result = subprocess.run(
             command,
-            shell=True,
+            shell=False,
             check=True,
             text=True,
             capture_output=True,
