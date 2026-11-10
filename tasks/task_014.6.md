@@ -1,6 +1,6 @@
 # Task 014.6: Implement Automated Resolution Tools
 
-**Status:** pending
+**Status:** specified
 **Priority:** high
 **Effort:** TBD
 **Complexity:** TBD
@@ -10,7 +10,9 @@
 
 ## Overview/Purpose
 
-[Overview to be defined]
+Automated resolution is the one part of this group that can destroy work quietly. In this repository
+a script that wrote a resolution would be trusted on its exit code, so the requirement is that it does
+not claim success it cannot support.
 
 ## Success Criteria
 
@@ -41,11 +43,27 @@
 - **Complexity**: TBD
 
 ### Requirements
-Requirements to be specified
+1. Any automated resolution is limited to whitespace-only or import-order conflicts, and it reports
+   the files it touched with before/after hashes.
+2. The tool verifies its own output: after writing, it runs `compile()` on each touched Python file
+   and a marker scan, and a failure reverts the file from the backup.
+3. It refuses to act when the conflict class is modify/delete or rename/rename, where a wrong
+   resolution deletes content.
+4. It never reports success for work it did not do: `src/cli/commands/git/auto_resolve.py` returned 0
+   from an unimplemented `execute()`, and that pattern is the thing to avoid here.
 
 ## Implementation Guide
 
-Implementation guide to be defined
+Implement `scripts/conflict_auto_resolve.py`, modelled on the guard in
+`src/cli/commands/git/auto_resolve.py` after its fix (it returns 1 and prints the alternative).
+
+```bash
+python scripts/conflict_auto_resolve.py --dry-run --target main --head HEAD
+python -m compileall -q <touched files>
+git grep -n -E "^(<<<<<<<|=======|>>>>>>>)" -- <touched files>
+```
+
+`compile()` rather than `ast.parse`: only the former rejects `await` outside `async def`.
 
 
 ### 014.6. Implement Automated Resolution Tools

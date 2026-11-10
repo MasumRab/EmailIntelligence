@@ -1,6 +1,6 @@
 # Task 014.5: Integrate Visual Diff Tools
 
-**Status:** pending
+**Status:** specified
 **Priority:** high
 **Effort:** TBD
 **Complexity:** TBD
@@ -10,7 +10,8 @@
 
 ## Overview/Purpose
 
-[Overview to be defined]
+A visual diff is optional tooling, and the requirement here is that the framework degrades cleanly
+when it is absent -- CI and a headless session must not be blocked by a missing GUI tool.
 
 ## Success Criteria
 
@@ -41,11 +42,26 @@
 - **Complexity**: TBD
 
 ### Requirements
-Requirements to be specified
+1. The configured difftool is read from git config (`git config --get diff.tool`), not hard-coded, so
+   the framework honours the operator's choice.
+2. When no difftool is configured or the tool is not on `PATH`, the framework prints the command to
+   configure one and continues; it does not fail the run.
+3. Invocation is `git difftool --dir-diff` with an explicit `--no-prompt` or an equivalent single-shot
+   mode, so an interactive tool cannot hang a batch run.
+4. The tool's exit status is reported but does not change the pipeline's verdict; viewing is not
+   resolving.
 
 ## Implementation Guide
 
-Implementation guide to be defined
+Implement in the guide subcommand. Check availability before invoking:
+
+```bash
+git config --get diff.tool; echo "exit=$?"
+command -v meld || command -v kdiff3 || echo "no difftool on PATH"
+git difftool --dir-diff --no-prompt <base> <head>
+```
+
+Test the absent-tool path by unsetting `diff.tool` and confirming the run continues with a message.
 
 
 ### 014.5. Integrate Visual Diff Tools

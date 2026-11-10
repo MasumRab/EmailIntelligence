@@ -1,6 +1,6 @@
 # Task 013.3: Develop Automated Branch Backup Creation
 
-**Status:** pending
+**Status:** specified
 **Priority:** high
 **Effort:** TBD
 **Complexity:** TBD
@@ -10,7 +10,8 @@
 
 ## Overview/Purpose
 
-[Overview to be defined]
+006 defines what a snapshot is. This task is the part that makes it happen without being asked: the
+runner takes one before every stage that can move a ref, names it predictably, and records it.
 
 ## Success Criteria
 
@@ -41,11 +42,25 @@
 - **Complexity**: TBD
 
 ### Requirements
-Requirements to be specified
+1. The runner calls `snapshot()` before each stage that can move a ref, with a file name containing the
+   branch, the stage and a timestamp, so two runs never overwrite each other's recovery point.
+2. The returned path is recorded in the run state and printed, because a backup whose location is
+   unknown is a backup nobody restores.
+3. If `snapshot()` raises, the stage does not start; a failure to back up is a hard stop.
+4. The backup file is written under `.backups/` -- `_resolve_backup_path` enforces this -- and the
+   stage does not attempt to write elsewhere.
 
 ## Implementation Guide
 
-Implementation guide to be defined
+Call the existing module rather than re-implementing it.
+
+```bash
+python scripts/branch_ref_backup.py snapshot --file .backups/<branch>-<stage>-<ts>.json
+cat .backups/<branch>-<stage>-<ts>.json
+```
+
+Extend `tests/test_branch_ref_backup.py`, which already exercises snapshot/restore, with the
+name-collision case: two snapshots in the same second must produce two files, not one overwritten.
 
 
 ### 013.3. Develop Automated Branch Backup Creation
