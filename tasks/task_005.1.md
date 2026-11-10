@@ -1,0 +1,258 @@
+# Task 005.1: Detect Merge Markers and Deleted Modules
+
+**Status:** specified
+**Priority:** high
+**Effort:** 3-4 hours
+**Complexity:** 5/10
+**Dependencies:** None
+
+---
+
+## Overview/Purpose
+
+Create scripts to detect uncleaned merge markers and accidentally deleted modules.
+
+## Success Criteria
+
+- [ ] Merge markers detected in changed files
+- [ ] Deleted files identified
+- [ ] Module dependency check working
+- [ ] Report generated
+
+## Prerequisites & Dependencies
+
+### Required Before Starting
+- [ ] No external prerequisites
+
+### Blocks (What This Task Unblocks)
+- [ ] No specific blocks defined
+
+### External Dependencies
+- [ ] No external dependencies
+
+## Sub-subtasks Breakdown
+
+
+## Specification Details
+
+### Task Interface
+- **ID**: 005.1
+- **Title**: Detect Merge Markers and Deleted Modules
+- **Status**: specified
+- **Priority**: high
+- **Effort**: 3-4 hours
+- **Complexity**: 5/10
+
+### Requirements
+1. `scripts/detect_merge_markers.py` reports every file containing a *complete* conflict block, and
+   does not report a file that merely quotes a single `<<<<<<<` line in documentation or a test.
+2. A deleted module is detected by comparing the set of Python files imported across the tree with the
+   set present, and the report names the importing file and line.
+3. The script exits non-zero when either condition is found, so it can gate a merge.
+4. The report distinguishes a module deleted in this branch from one that never existed, by checking
+   `git log --diff-filter=D -- <path>`.
+5. A file that contains markers but still compiles is still reported -- committed markers parse.
+
+## Implementation Guide
+
+Extend `scripts/detect_merge_markers.py`; its sibling test lives at
+`scripts/test_detect_merge_markers.py`. For the deleted-module half, walk the tree with `ast` and
+collect `Import`/`ImportFrom` targets, then subtract paths present via `git ls-tree -r --name-only`.
+
+```bash
+python scripts/detect_merge_markers.py --repo .
+python scripts/test_detect_merge_markers.py
+```
+
+Known live finding to keep in mind: `scripts/conflict_detection.py` on `main` carries markers inside a
+docstring, so a marker-only check on text will flag documentation.
+
+
+## Purpose
+
+Create scripts to detect uncleaned merge markers and accidentally deleted modules.
+
+---
+
+## Details
+
+Implement detection for common merge artifacts and track deleted files.
+
+### Steps
+
+1. **Detect merge markers**
+   ```python
+   def detect_merge_markers(changed_files):
+       markers = []
+       for f in changed_files:
+           result = subprocess.run(
+               ["grep", "-n", r"^\(<<<<<<<\|=======\|>>>>>>>\)", f],
+               capture_output=True,
+               text=True
+           )
+           if result.returncode == 0:
+               markers.append((f, result.stdout))
+       return markers
+   ```
+
+2. **Track deleted files**
+   ```python
+   def detect_deleted_files():
+       result = subprocess.run(
+           ["git", "diff", "--name-only", "--diff-filter=D"],
+           capture_output=True,
+           text=True
+       )
+       return result.stdout.strip().split('\n')
+   ```
+
+3. **Check if deleted modules were imported**
+
+4. **Generate report**
+
+---
+
+## Test Strategy
+
+- Create test file with merge markers (should detect)
+- Delete a file (should detect)
+- Delete imported module (should flag)
+
+---
+
+## Implementation Notes
+
+### Detection Script Structure
+
+```python
+#!/usr/bin/env python3
+"""Detect merge artifacts and deleted modules."""
+
+import subprocess
+import sys
+from pathlib import Path
+
+def get_changed_files():
+    """Get list of changed files."""
+    result = subprocess.run(
+        ["git", "diff", "--name-only"],
+        capture_output=True,
+        text=True
+    )
+    return [f for f in result.stdout.strip().split('\n') if f]
+
+def detect_merge_markers(files):
+    """Find merge conflict markers."""
+    artifacts = []
+    for f in files:
+        path = Path(f)
+        if not path.exists():
+            continue
+        with open(path) as fp:
+            for i, line in enumerate(fp, 1):
+                if line.startswith(('<<<<<<<', '=======', '>>>>>>>')):
+                    artifacts.append(f"{f}:{i}: {line.strip()}")
+    return artifacts
+
+def detect_deleted_files():
+    """Find deleted files."""
+    result = subprocess.run(
+        ["git", "diff", "--name-only", "--diff-filter=D"],
+        capture_output=True,
+        text=True
+    )
+    return [f for f in result.stdout.strip().split('\n') if f]
+
+def main():
+    files = get_changed_files()
+    artifacts = detect_merge_markers(files)
+    deleted = detect_deleted_files()
+    
+    if artifacts:
+        print("MERGE ARTIFACTS FOUND:")
+        for a in artifacts:
+            print(f"  {a}")
+    
+    if deleted:
+        print("\nDELETED FILES:")
+        for d in deleted:
+            print(f"  {d}")
+    
+    sys.exit(1 if (artifacts or deleted) else 0)
+
+if __name__ == "__main__":
+    main()
+```
+
+---
+
+## Progress Log
+
+### 2026-01-06
+- Subtask file created
+- Ready for implementation
+
+---
+
+## Next Steps
+
+After completion, proceed to **Task 005.2**: Implement Garbled Text Detection
+**Priority:** high
+**Effort:** 3-4 hours
+**Complexity:** 5/10
+**Dependencies:** None
+**Created:** 2026-01-06
+**Parent:** Task 005: Develop Automated Error Detection Scripts for Merges
+
+---
+
+## Configuration Parameters
+
+- **Owner**: TBD
+- **Initiative**: TBD
+- **Scope**: TBD
+- **Focus**: TBD
+
+## Performance Targets
+
+- **Effort Range**: TBD
+- **Complexity Level**: TBD
+
+## Testing Strategy
+
+### Unit Tests
+- [ ] Tests cover core functionality
+- [ ] Edge cases handled appropriately
+- [ ] Performance benchmarks met
+
+### Integration Tests
+- [ ] Integration with dependent components verified
+- [ ] End-to-end workflow tested
+- [ ] Error handling verified
+
+### Test Strategy Notes
+- Create test file with merge markers (should detect)
+- Delete a file (should detect)
+- Delete imported module (should flag)
+
+## Common Gotchas & Solutions
+
+- [ ] [Common issues and solutions to be documented]
+
+## Integration Checkpoint
+
+### Criteria for Moving Forward
+- [ ] All success criteria met
+- [ ] Code reviewed and approved
+- [ ] Tests passing
+- [ ] Documentation updated
+- [ ] No critical or high severity issues
+
+## Done Definition
+
+### Completion Criteria
+- [ ] All success criteria checkboxes marked complete
+- [ ] Code quality standards met (PEP 8, documentation)
+- [ ] Performance targets achieved
+- [ ] All subtasks completed
+- [ ] Integration checkpoint criteria satisfied
