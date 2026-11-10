@@ -136,6 +136,7 @@ include-package-data = false
 
 [tool.setuptools.packages.find]
 where = ["src"]
+<<<<<<< HEAD:scripts/automation/setup/pyproject.toml
 
 # Environment markers for conditional dependencies
 # Note: uv doesn't support marker configuration in pyproject.toml
@@ -144,3 +145,5 @@ where = ["src"]
 [[tool.uv.index]]
 name = "pytorch-cpu"
 url = "https://download.pytorch.org/whl/cpu"
+=======
+>>>>>>> align-pr-476-head:setup/pyproject.toml
