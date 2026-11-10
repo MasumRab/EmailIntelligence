@@ -1,12 +1,12 @@
-# Task 011.7: Integrate Security Scans (SAST and Dependency)
+# Task 011.7: Fail the Stage on a New Security Finding, Not the Backlog
 
-**Status:** pending
+**Status:** specified
 **Priority:** high
 **Effort:** 3-4 hours
 **Complexity:** 5/10
 **Dependencies:** 011.1
 **Created:** 2026-01-06
-**Parent:** Task 011: Create Comprehensive Merge Validation Framework
+**Parent:** Task 011: Integrate Validation Framework into Multistage Alignment Workflow
 
 ## Sub-subtasks Breakdown
 
@@ -96,7 +96,14 @@ After completion, proceed to **Task 011.8**: Consolidate Validation Results
 - **Complexity**: TBD
 
 ### Requirements
-Requirements to be specified
+1. The stage compares the branch's findings to the target's findings for the same rule set and fails
+   only on findings that the branch introduced.
+2. The comparison key is (rule id, file, line), so a finding that merely moved within a file is
+   reported but does not block.
+3. The full finding set is written to the run state, so the operator can see the backlog without
+   re-running bandit.
+4. Exit codes from `bandit` and the dependency audit are honoured individually, and neither is invoked
+   with `|| true` -- unlike `.github/workflows/ci.yml:46`, which discards bandit's exit code.
 
 ## Implementation Guide
 
@@ -116,7 +123,9 @@ Requirements to be specified
 
 ## Overview/Purpose
 
-[Overview to be defined]
+The security layer from 008.7 has to be honest about the repository's existing findings: it currently
+has a backlog, so a gate that fails on any finding fails on every branch. This task defines the
+incremental test.
 
 ## Configuration Parameters
 
