@@ -17,80 +17,87 @@ def create_default_dependencies() -> Dict[str, Any]:
     Create default dependencies for all commands.
 
     Returns:
-        Dict mapping dependency names to instances
+        Dict mapping dependency names to instances or error strings
     """
     dependencies = {}
 
-    # Import dependencies lazily to avoid circular imports and handle missing modules
-    try:
-        from ..git.worktree import WorktreeManager
+    def try_import(name, factory_func):
+        try:
+            dependencies[name] = factory_func()
+        except ImportError as e:
+            dependencies[name] = f"Missing dependency: {str(e)}"
+        except Exception as e:
+            dependencies[name] = f"Error initializing dependency: {str(e)}"
 
-        dependencies["worktree_manager"] = WorktreeManager()
-    except ImportError:
-        dependencies["worktree_manager"] = None
+    def _create_worktree():
+        from ...git.worktree import WorktreeManager
 
-    try:
-        from ..git.conflict_detector import GitConflictDetector
+        return WorktreeManager()
 
-        dependencies["conflict_detector"] = GitConflictDetector()
-    except ImportError:
-        dependencies["conflict_detector"] = None
+    try_import("worktree_manager", _create_worktree)
 
-    try:
-        from ..git.repository import RepositoryOperations
+    def _create_conflict():
+        from ...git.conflict_detector import GitConflictDetector
 
-        dependencies["repository_ops"] = RepositoryOperations
-    except ImportError:
-        dependencies["repository_ops"] = None
+        return GitConflictDetector()
 
-    try:
-        from ..analysis.constitutional.analyzer import ConstitutionalAnalyzer
+    try_import("conflict_detector", _create_conflict)
 
-        dependencies["analyzer"] = ConstitutionalAnalyzer()
-    except ImportError:
-        dependencies["analyzer"] = None
+    def _create_repo():
+        from ...git.repository import RepositoryOperations
 
-    try:
-        from ..strategy.generator import StrategyGenerator
+        return RepositoryOperations
 
-        dependencies["strategy_generator"] = StrategyGenerator()
-    except ImportError:
-        dependencies["strategy_generator"] = None
+    try_import("repository_ops", _create_repo)
 
-    try:
-        from ..resolution.auto_resolver import AutoResolver
+    def _create_analyzer():
+        from ...analysis.constitutional.analyzer import ConstitutionalAnalyzer
 
-        dependencies["resolver"] = AutoResolver()
-    except ImportError:
-        dependencies["resolver"] = None
+        return ConstitutionalAnalyzer()
 
-    try:
-        from ..validation.validator import Validator
+    try_import("analyzer", _create_analyzer)
 
-        dependencies["validator"] = Validator()
-    except ImportError:
-        dependencies["validator"] = None
+    def _create_strategy():
+        from ...strategy.generator import StrategyGenerator
 
-    try:
-        from ..git.history import GitHistory
+        return StrategyGenerator()
 
-        dependencies["history"] = GitHistory()
-    except ImportError:
-        dependencies["history"] = None
+    try_import("strategy_generator", _create_strategy)
 
-    try:
-        from ..analysis.commits import CommitClassifier
+    def _create_resolver():
+        from ...resolution.auto_resolver import AutoResolver
 
-        dependencies["classifier"] = CommitClassifier()
-    except ImportError:
-        dependencies["classifier"] = None
+        return AutoResolver()
 
-    try:
-        from ..strategy.reordering import RebasePlanner
+    try_import("resolver", _create_resolver)
 
-        dependencies["planner"] = RebasePlanner()
-    except ImportError:
-        dependencies["planner"] = None
+    def _create_validator():
+        from ...validation.validator import Validator
+
+        return Validator()
+
+    try_import("validator", _create_validator)
+
+    def _create_history():
+        from ...git.history import GitHistory
+
+        return GitHistory()
+
+    try_import("history", _create_history)
+
+    def _create_classifier():
+        from ...git.history import CommitClassifier
+
+        return CommitClassifier()
+
+    try_import("classifier", _create_classifier)
+
+    def _create_planner():
+        from ...strategy.reordering import RebasePlanner
+
+        return RebasePlanner()
+
+    try_import("planner", _create_planner)
 
     return dependencies
 
@@ -127,6 +134,14 @@ def create_registry(factory: Optional[CommandFactory] = None) -> CommandRegistry
     from .analyze_history_command import AnalyzeHistoryCommand
     from .plan_rebase_command import PlanRebaseCommand
     from .identify_command import IdentifyCommand
+    from .automation.mcp_sync import MCPSyncCommand
+    from .automation.monitor import MonitorCommand
+    from .guide import GuideCommand
+    from .ide import IDECommand
+    from .infra.deploy import DeployCommand
+    from .infra.backup import BackupCommand
+    from .infra.install_tools import InstallToolsCommand
+    from .infra.verify import VerifyCommand
 
     cmd_factory = factory or create_command_factory()
     registry = CommandRegistry(cmd_factory)
@@ -138,6 +153,16 @@ def create_registry(factory: Optional[CommandFactory] = None) -> CommandRegistry
     registry.register_command(AnalyzeHistoryCommand, "agent-5")
     registry.register_command(PlanRebaseCommand, "agent-5")
     registry.register_command(IdentifyCommand, "agent-5")
+
+    # Extracted commands
+    registry.register_command(MCPSyncCommand, agent="automation")
+    registry.register_command(MonitorCommand, agent="automation")
+    registry.register_command(GuideCommand, agent="docs")
+    registry.register_command(IDECommand, agent="developer")
+    registry.register_command(DeployCommand, agent="infra")
+    registry.register_command(BackupCommand, agent="infra")
+    registry.register_command(InstallToolsCommand, agent="infra")
+    registry.register_command(VerifyCommand, agent="infra")
 
     return registry
 
@@ -152,7 +177,8 @@ def get_command_dispatcher(registry: Optional[CommandRegistry] = None):
     Returns:
         Dispatcher function that takes command_name and args, returns exit code
     """
-    cmd_registry = registry or create_registry()
+    active_registry = registry or create_registry()
+    deps_state = create_default_dependencies()
 
     def dispatch(command_name: str, args) -> int:
         """
@@ -160,19 +186,39 @@ def get_command_dispatcher(registry: Optional[CommandRegistry] = None):
 
         Args:
             command_name: Name of the command to execute
-            args: Parsed command-line arguments
+            args: Parsed command line arguments
 
         Returns:
-            Exit code (0 for success, 1 for failure)
+            int: Exit code from the command
         """
         try:
-            command = cmd_registry.get_command(command_name)
-            return asyncio.run(command.execute(args))
-        except ValueError as e:
-            print(f"Error: {e}")
-            return 1
+            command = active_registry.get_command(command_name)
+
+            missing = [
+                (n, deps_state[n])
+                for n in command.get_dependencies()
+                if isinstance(deps_state.get(n), str)
+            ]
+            if missing:
+                print(
+                    f"Error: '{command_name}' cannot run — required dependencies are unavailable:"
+                )
+                for name, reason in missing:
+                    print(f"  - {name}: {reason}")
+                return 2
+
+            # Check if command's execute method is a coroutine function
+            import inspect
+
+            if inspect.iscoroutinefunction(command.execute):
+                return asyncio.run(command.execute(args))
+            else:
+                return command.execute(args)
         except Exception as e:
-            print(f"Unexpected error: {e}")
+            import logging
+
+            logger = logging.getLogger(__name__)
+            logger.error(f"Error executing command '{command_name}': {str(e)}")
             return 1
 
     return dispatch
