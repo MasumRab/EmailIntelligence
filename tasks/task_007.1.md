@@ -1,6 +1,6 @@
-# Task 007.1: Untitled Task
+# Task 007.1: Detect Merge Conflict Markers in Feature Branches
 
-**Status:** pending
+**Status:** specified
 **Priority:** medium
 **Effort:** 3-4 hours
 **Complexity:** 5/10
@@ -37,18 +37,31 @@ Detect merge conflict markers in feature branches to identify broken or poorly m
 
 ### Task Interface
 - **ID**: 007.1
-- **Title**: Untitled Task
-- **Status**: pending
+- **Title**: Detect Merge Conflict Markers in Feature Branches
+- **Status**: specified
 - **Priority**: medium
 - **Effort**: 3-4 hours
 - **Complexity**: 5/10
 
 ### Requirements
-Requirements to be specified
+1. For each branch in the inventory, the scan reports files containing `<<<<<<<`, `=======` and
+   `>>>>>>>` as a complete block.
+2. A branch with any such file is reported as broken before any alignment attempt, with the count.
+3. The scan runs against the branch's tree (`git grep <pattern> <branch>`), not the working tree, so
+   the result does not depend on what is checked out.
+4. Documentation files that quote markers in a fenced block are reported separately from source files.
+5. The result is recorded in the inventory so the checklist can show it per row.
 
 ## Implementation Guide
 
-Implementation guide to be defined
+Extend `scripts/detect_merge_markers.py` with a `--ref <branch>` mode using `git grep`:
+
+```bash
+git grep -n -E '^(<{7}|={7}|>{7})' <branch> -- '*.py' '*.ts' '*.tsx'
+```
+
+Require all three marker kinds in one file before calling it a conflict; a lone `<<<<<<<` is a
+quotation.
 
 
 ## Purpose

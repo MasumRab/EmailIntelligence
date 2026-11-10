@@ -1,6 +1,6 @@
-# Task 001.5: Untitled Task
+# Task 001.5: Maintain the Central Branch Alignment Checklist
 
-**Status:** pending
+**Status:** specified
 **Priority:** high
 **Effort:** 2-3 hours
 **Complexity:** 5/10
@@ -38,18 +38,32 @@ Create the central tracking document that consolidates all branch alignment info
 
 ### Task Interface
 - **ID**: 001.5
-- **Title**: Untitled Task
-- **Status**: pending
+- **Title**: Maintain the Central Branch Alignment Checklist
+- **Status**: specified
 - **Priority**: high
 - **Effort**: 2-3 hours
 - **Complexity**: 5/10
 
 ### Requirements
-Requirements to be specified
+1. `ALIGNMENT_CHECKLIST.md` has one row per branch with its head SHA, assigned target, status and the
+   date the row was last verified.
+2. The checklist records the SHA it was generated from, so a stale table is obvious without diffing.
+3. Checkbox state is derived from evidence -- a merged branch is checked, an unmerged one is not --
+   rather than maintained by hand.
+4. Regenerating the checklist is a documented command, and the regeneration is idempotent.
+5. The document explains what a checked row means, so a reader does not mistake "verified" for
+   "merged".
 
 ## Implementation Guide
 
-Implementation guide to be defined
+Add `scripts/alignment/render_checklist.py` that reads `docs/branch-inventory.json` and rewrites the
+generated block inside `ALIGNMENT_CHECKLIST.md` between two markers. Keep hand-written prose outside
+the markers untouched.
+
+```bash
+python scripts/alignment/render_checklist.py ALIGNMENT_CHECKLIST.md
+git diff --stat ALIGNMENT_CHECKLIST.md
+```
 
 
 ## Purpose

@@ -1,6 +1,6 @@
-# Task 001.2: Untitled Task
+# Task 001.2: Analyze Branch History and Codebase Similarity
 
-**Status:** pending
+**Status:** specified
 **Priority:** high
 **Effort:** 4-5 hours
 **Complexity:** 7/10
@@ -38,18 +38,36 @@ Analyze Git history and codebase structure for each branch to support target det
 
 ### Task Interface
 - **ID**: 001.2
-- **Title**: Untitled Task
-- **Status**: pending
+- **Title**: Analyze Branch History and Codebase Similarity
+- **Status**: specified
 - **Priority**: high
 - **Effort**: 4-5 hours
 - **Complexity**: 7/10
 
 ### Requirements
-Requirements to be specified
+1. For every branch in `docs/branch-inventory.json`, the analysis records the merge-base with each
+   candidate target (`git merge-base <branch> <target>`) and the distance in both directions
+   (`git rev-list --count <merge-base>..<target>` and `<merge-base>..<branch>`).
+2. A similarity score per branch/target pair is computed from the set of files each side touched
+   since the merge-base, and the score is written to the inventory entry rather than printed only.
+3. Branches that touch files no target has touched score high; branches whose changed files are a
+   subset of the target's own changed files score low. The direction of the difference is stated,
+   because "differs from the target" is not a direction.
+4. Every number in the output is reproducible: the JSON records the git command that produced it.
+5. A branch whose merge-base cannot be computed (unrelated histories) is reported as `no-merge-base`
+   rather than being assigned a score of 0.
 
 ## Implementation Guide
 
-Implementation guide to be defined
+Extend `scripts/alignment/collect_branches.py` with a `--analyze` stage, or add
+`scripts/alignment/branch_similarity.py`. Use `git diff --name-only <merge-base> <ref>` for the file
+sets -- never `git diff <target> <branch>` directly, which compares worktrees and reports the
+target's own additions as the branch's deletions.
+
+```bash
+python scripts/alignment/branch_similarity.py --inventory docs/branch-inventory.json \
+    --targets main scientific orchestration-tools
+```
 
 
 ## Purpose

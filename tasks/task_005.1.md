@@ -1,6 +1,6 @@
-# Task 005.1: Untitled Task
+# Task 005.1: Detect Merge Markers and Deleted Modules
 
-**Status:** pending
+**Status:** specified
 **Priority:** high
 **Effort:** 3-4 hours
 **Complexity:** 5/10
@@ -37,18 +37,35 @@ Create scripts to detect uncleaned merge markers and accidentally deleted module
 
 ### Task Interface
 - **ID**: 005.1
-- **Title**: Untitled Task
-- **Status**: pending
+- **Title**: Detect Merge Markers and Deleted Modules
+- **Status**: specified
 - **Priority**: high
 - **Effort**: 3-4 hours
 - **Complexity**: 5/10
 
 ### Requirements
-Requirements to be specified
+1. `scripts/detect_merge_markers.py` reports every file containing a *complete* conflict block, and
+   does not report a file that merely quotes a single `<<<<<<<` line in documentation or a test.
+2. A deleted module is detected by comparing the set of Python files imported across the tree with the
+   set present, and the report names the importing file and line.
+3. The script exits non-zero when either condition is found, so it can gate a merge.
+4. The report distinguishes a module deleted in this branch from one that never existed, by checking
+   `git log --diff-filter=D -- <path>`.
+5. A file that contains markers but still compiles is still reported -- committed markers parse.
 
 ## Implementation Guide
 
-Implementation guide to be defined
+Extend `scripts/detect_merge_markers.py`; its sibling test lives at
+`scripts/test_detect_merge_markers.py`. For the deleted-module half, walk the tree with `ast` and
+collect `Import`/`ImportFrom` targets, then subtract paths present via `git ls-tree -r --name-only`.
+
+```bash
+python scripts/detect_merge_markers.py --repo .
+python scripts/test_detect_merge_markers.py
+```
+
+Known live finding to keep in mind: `scripts/conflict_detection.py` on `main` carries markers inside a
+docstring, so a marker-only check on text will flag documentation.
 
 
 ## Purpose

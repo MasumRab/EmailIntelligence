@@ -1,6 +1,6 @@
 # Task 004.3: Build Local Alignment Orchestrator
 
-**Status:** pending
+**Status:** specified
 **Priority:** high
 **Effort:** 4-5 hours
 **Complexity:** 7/10
@@ -40,17 +40,32 @@ Create primary Python script that orchestrates all local branch alignment checks
 ### Task Interface
 - **ID**: 004.3
 - **Title**: Build Local Alignment Orchestrator
-- **Status**: pending
+- **Status**: specified
 - **Priority**: high
 - **Effort**: 4-5 hours
 - **Complexity**: 7/10
 
 ### Requirements
-Requirements to be specified
+1. `scripts/alignment/check_all.py` runs every local alignment check and prints a single summary with
+   one line per check.
+2. Each check is isolated: one failing check does not prevent the others from running.
+3. The script exits non-zero if any check fails, and prints the failing checks in the same order on
+   every run.
+4. Checks can be selected with `--only <name>` so a developer can reproduce one failure without the
+   full run.
+5. The script is the single command named in the hook and in `CONTRIBUTING.md`, so there is one entry
+   point rather than three.
 
 ## Implementation Guide
 
-Implementation guide to be defined
+Create `scripts/alignment/check_all.py`. Reuse the checks rather than re-implementing them:
+`scripts/alignment/check_alignment.py`, `scripts/detect_merge_markers.py`,
+`scripts/validation/validate_critical_files.py`.
+
+```bash
+python scripts/alignment/check_all.py --only merge-markers
+python scripts/alignment/check_all.py; echo "rc=$?"
+```
 
 
 ## Purpose

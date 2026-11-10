@@ -1,6 +1,6 @@
-# Task 001.1: Untitled Task
+# Task 001.1: Catalog Active Feature Branches for Alignment Analysis
 
-**Status:** pending
+**Status:** specified
 **Priority:** high
 **Effort:** 2-3 hours
 **Complexity:** 4/10
@@ -37,18 +37,39 @@ Identify and catalog all active feature branches that need alignment analysis.
 
 ### Task Interface
 - **ID**: 001.1
-- **Title**: Untitled Task
-- **Status**: pending
+- **Title**: Catalog Active Feature Branches for Alignment Analysis
+- **Status**: specified
 - **Priority**: high
 - **Effort**: 2-3 hours
 - **Complexity**: 4/10
 
 ### Requirements
-Requirements to be specified
+1. `git branch -r --merged origin/main` returns every remote branch already merged into `main`, and
+   that list is subtracted from `git branch -r` so the surviving set is only unmerged branches.
+2. A machine-readable inventory exists at `docs/branch-inventory.json` with one entry per unmerged
+   branch holding `name`, `head_sha` (from `git rev-parse <branch>`), `first_commit_date`,
+   `last_commit_date` and `commits_ahead` (from `git rev-list --count origin/main..<branch>`).
+3. Branches whose `commits_ahead` is 0 do not appear in the inventory -- a branch with no commits of
+   its own carries nothing to align.
+4. Long-lived integration branches (`main`, `scientific`, `orchestration-tools`) are listed in a
+   separate `excluded` array with the reason, not silently dropped.
+5. Re-running the collector on an unchanged repository produces a byte-identical file, so a diff of
+   the inventory shows only real branch churn.
 
 ## Implementation Guide
 
-Implementation guide to be defined
+Create `scripts/alignment/collect_branches.py` next to the existing
+`scripts/alignment/check_alignment.py`. It shells out to `git` and writes
+`docs/branch-inventory.json`; it must not import from `src/`, because it is meant to run before the
+package is installed.
+
+```bash
+git fetch --all --prune
+python scripts/alignment/collect_branches.py --out docs/branch-inventory.json
+python -c "import json;d=json.load(open('docs/branch-inventory.json'));print(len(d['branches']))"
+```
+
+Count the output against `git branch -r | wc -l` and explain any difference in the commit message.
 
 
 ## Purpose

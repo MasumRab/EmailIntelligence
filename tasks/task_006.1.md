@@ -1,6 +1,6 @@
-# Task 006.1: Untitled Task
+# Task 006.1: Back Up Feature Branches Before Alignment
 
-**Status:** pending
+**Status:** specified
 **Priority:** high
 **Effort:** 3-4 hours
 **Complexity:** 5/10
@@ -37,18 +37,30 @@ Create backup and restore functionality for feature branches before alignment op
 
 ### Task Interface
 - **ID**: 006.1
-- **Title**: Untitled Task
-- **Status**: pending
+- **Title**: Back Up Feature Branches Before Alignment
+- **Status**: specified
 - **Priority**: high
 - **Effort**: 3-4 hours
 - **Complexity**: 5/10
 
 ### Requirements
-Requirements to be specified
+1. A branch backup records the branch name and the exact commit SHA it pointed to, in a form that
+   survives branch deletion.
+2. Restoring returns the branch to that SHA and refuses if the branch has moved since the backup,
+   unless `--force` is passed.
+3. The backup is a ref under a dedicated namespace, so Git's garbage collection does not reclaim it.
+4. A backup of 100 branches completes without checking out a worktree for any of them.
+5. The command is idempotent: backing up an unchanged branch twice does not create a second ref.
 
 ## Implementation Guide
 
-Implementation guide to be defined
+Use the existing `scripts/branch_ref_backup.py` -- confirm its ref namespace before extending it:
+
+```bash
+grep -n 'refs/' scripts/branch_ref_backup.py | head
+python scripts/branch_ref_backup.py --branch <branch>
+git for-each-ref --format='%(refname)' | grep <namespace>
+```
 
 
 ## Purpose

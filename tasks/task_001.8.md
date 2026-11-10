@@ -1,6 +1,6 @@
-# Task 001.8: Untitled Task
+# Task 001.8: Back Up, Validate and Roll Back Alignment Operations
 
-**Status:** pending
+**Status:** specified
 **Priority:** high
 **Effort:** 2-3 hours
 **Complexity:** 6/10
@@ -55,18 +55,33 @@ Define backup, validation, and rollback procedures to ensure safe branch alignme
 
 ### Task Interface
 - **ID**: 001.8
-- **Title**: Untitled Task
-- **Status**: pending
+- **Title**: Back Up, Validate and Roll Back Alignment Operations
+- **Status**: specified
 - **Priority**: high
 - **Effort**: 2-3 hours
 - **Complexity**: 6/10
 
 ### Requirements
-Requirements to be specified
+1. Every alignment operation is preceded by a ref backup, so the pre-operation SHA is recoverable
+   after a failed merge, rebase or reset.
+2. The procedure states how to restore a branch from that ref exactly, with the command.
+3. Validation runs before the operation and after it, and the two results are compared rather than
+   merely both passing.
+4. The rollback path is exercised once on a scratch branch and the result recorded, so it is known to
+   work before it is needed.
+5. Deleting a branch, closing a PR or force-pushing to a shared ref is explicitly outside the
+   procedure: those actions are not recoverable by backup and are not alignment steps.
 
 ## Implementation Guide
 
-Implementation guide to be defined
+Use the existing `scripts/branch_ref_backup.py` rather than writing a new backup path. Record a ref
+backup, perform the operation, run `scripts/alignment/check_alignment.py`, and restore from the
+backup in a scratch worktree.
+
+```bash
+python scripts/branch_ref_backup.py --branch <branch> --tag pre-align/$(date +%Y%m%d)
+git worktree add /tmp/rollback-probe <tag>
+```
 
 
 ## Purpose

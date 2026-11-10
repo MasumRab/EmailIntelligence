@@ -1,6 +1,6 @@
-# Task 006.3: Untitled Task
+# Task 006.3: Orchestrate Backup and Restore in the Alignment Workflow
 
-**Status:** pending
+**Status:** specified
 **Priority:** high
 **Effort:** 4-5 hours
 **Complexity:** 7/10
@@ -43,18 +43,28 @@ Create central orchestration script that integrates backup/restore into alignmen
 
 ### Task Interface
 - **ID**: 006.3
-- **Title**: Untitled Task
-- **Status**: pending
+- **Title**: Orchestrate Backup and Restore in the Alignment Workflow
+- **Status**: specified
 - **Priority**: high
 - **Effort**: 4-5 hours
 - **Complexity**: 7/10
 
 ### Requirements
-Requirements to be specified
+1. `scripts/alignment/align_branch.py` takes a branch and target, backs up first, and aborts before any
+   mutation if the backup fails.
+2. The backup SHA is printed and recorded in the run's output, so a later rollback needs no guesswork.
+3. On failure at any stage the script restores the branch from its backup automatically and says so.
+4. `--dry-run` performs the backup and every read-only check, then stops without mutating a ref.
+5. The script never force-pushes and never deletes a branch; those remain manual actions.
 
 ## Implementation Guide
 
-Implementation guide to be defined
+Create `scripts/alignment/align_branch.py` composing `scripts/branch_ref_backup.py`,
+`scripts/alignment/check_alignment.py` and `git merge-tree --write-tree` for the conflict screen.
+
+```bash
+python scripts/alignment/align_branch.py --branch <branch> --target main --dry-run
+```
 
 
 ## Purpose

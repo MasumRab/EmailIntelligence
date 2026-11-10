@@ -1,6 +1,6 @@
 # Task 004.1: Define Local Hook Structure and Installation
 
-**Status:** pending
+**Status:** specified
 **Priority:** high
 **Effort:** 3-4 hours
 **Complexity:** 5/10
@@ -38,17 +38,29 @@ Define structure for local branch alignment framework and identify appropriate G
 ### Task Interface
 - **ID**: 004.1
 - **Title**: Define Local Hook Structure and Installation
-- **Status**: pending
+- **Status**: specified
 - **Priority**: high
 - **Effort**: 3-4 hours
 - **Complexity**: 5/10
 
 ### Requirements
-Requirements to be specified
+1. The hook design names which Git hook runs which check, and why that hook -- `pre-commit` for
+   staged content, `pre-push` for what is about to leave the machine.
+2. Hooks are installed from `scripts/hooks/` into `.git/hooks/` by a command, not copied by hand; the
+   repository already ships `scripts/hooks/post-checkout`.
+3. Installation is idempotent and reports whether it replaced an existing hook.
+4. A hook that fails prints the check that failed and the command to reproduce it outside the hook.
+5. The design states that hooks are advisory locally and are not a substitute for the CI gate.
 
 ## Implementation Guide
 
-Implementation guide to be defined
+Add the installer at `scripts/hooks/install.py`. It writes a small shim per hook that execs the
+versioned script in `scripts/hooks/`, so editing a hook does not require re-installing.
+
+```bash
+python scripts/hooks/install.py --check      # prints what is installed
+python scripts/hooks/install.py --install
+```
 
 
 ## Purpose

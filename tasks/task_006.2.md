@@ -1,6 +1,6 @@
-# Task 006.2: Untitled Task
+# Task 006.2: Extend Backups to Primary Branches
 
-**Status:** pending
+**Status:** specified
 **Priority:** high
 **Effort:** 4-5 hours
 **Complexity:** 6/10
@@ -37,18 +37,30 @@ Extend backup mechanism for primary branches with comprehensive backup options.
 
 ### Task Interface
 - **ID**: 006.2
-- **Title**: Untitled Task
-- **Status**: pending
+- **Title**: Extend Backups to Primary Branches
+- **Status**: specified
 - **Priority**: high
 - **Effort**: 4-5 hours
 - **Complexity**: 6/10
 
 ### Requirements
-Requirements to be specified
+1. Primary branches (`main`, `scientific`, `orchestration-tools`) can be backed up by the same command
+   as feature branches, with no special case in the caller.
+2. The backup ref for a primary branch is distinguishable from a feature-branch backup by name alone.
+3. The command refuses to back up a branch whose SHA is unchanged since the last backup, unless
+   `--always` is passed, so a scheduled run does not create one ref per hour.
+4. Retention is explicit: a documented number of backups per branch, with the pruning command.
+5. Pruning never removes the oldest surviving backup for a branch.
 
 ## Implementation Guide
 
-Implementation guide to be defined
+Extend `scripts/branch_ref_backup.py` with `--include-primary` and `--retain N`. Verify the prune path
+on a scratch branch before documenting it:
+
+```bash
+python scripts/branch_ref_backup.py --include-primary --retain 5
+git for-each-ref --format='%(refname)' | grep -c backup
+```
 
 
 ## Purpose

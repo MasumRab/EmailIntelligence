@@ -1,6 +1,6 @@
-# Task 007.3: Untitled Task
+# Task 007.3: Measure Backend-to-src Migration Progress
 
-**Status:** pending
+**Status:** specified
 **Priority:** medium
 **Effort:** 4-5 hours
 **Complexity:** 6/10
@@ -41,18 +41,33 @@ Analyze backend-to-src migration status for each feature branch.
 
 ### Task Interface
 - **ID**: 007.3
-- **Title**: Untitled Task
-- **Status**: pending
+- **Title**: Measure Backend-to-src Migration Progress
+- **Status**: specified
 - **Priority**: medium
 - **Effort**: 4-5 hours
 - **Complexity**: 6/10
 
 ### Requirements
-Requirements to be specified
+1. For each branch, the measure counts Python modules under `backend/` and under `src/`, and the pairs
+   that exist in both.
+2. A module counted as migrated only when `src/` holds a counterpart with a real implementation, not a
+   stub that re-exports the backend module.
+3. The report gives the number per branch and the delta against `main`, so a branch is never credited
+   for migration progress that `main` already has.
+4. Modules present in `backend/` and absent from `src/` are listed by name, not only counted.
+5. The measure is reproducible in one command and written into the inventory.
 
 ## Implementation Guide
 
-Implementation guide to be defined
+Add `scripts/alignment/migration_status.py`:
+
+```bash
+git ls-tree -r --name-only <branch> -- backend | grep '\.py$' | sed 's#^backend/##' | sort > /tmp/b
+git ls-tree -r --name-only <branch> -- src/backend | grep '\.py$' | sed 's#^src/backend/##' | sort > /tmp/s
+comm -23 /tmp/b /tmp/s
+```
+
+Compare against the same output for `main` before reporting a delta.
 
 
 ## Purpose
