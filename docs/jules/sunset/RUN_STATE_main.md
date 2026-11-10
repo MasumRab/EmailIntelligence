@@ -9,7 +9,7 @@
 - **NEXT:** B01
 - **BASELINE_PYTEST:** Exit 1: 113 failed, 463 passed, 133 warnings, 13 errors in 82.14s
 - **BASELINE_RUFF:** None (Skipped due to BASE-RED)
-- **Verdict Counts:** CLEAN-GREEN: 0, CLEAN-RED: 0, CONFLICT: 0, ALREADY-IN-MAIN: 0, NO-OP: 0, BASE-RED: 0
+- **Verdict Counts:** CLEAN-GREEN: 4, CLEAN-RED: 0, CONFLICT: 14, ALREADY-IN-MAIN: 1, NO-OP: 1, BASE-RED: 0
 - **Merges:** none
 - **Open Review Threads:** none
 - **Open CI Failures:** none
