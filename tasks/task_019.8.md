@@ -1,6 +1,6 @@
 # Task 019.8: Unit Testing and Validation
 
-**Status:** pending
+**Status:** specified
 **Priority:** high
 **Effort:** TBD
 **Complexity:** TBD
@@ -41,11 +41,15 @@
 - **Complexity**: TBD
 
 ### Requirements
-Requirements to be specified
+1. The unit test suite for deployment scripts achieves >95% statement coverage across all Python files in `scripts/deployment/`.
+2. Scenarios simulating `git` command failures (e.g., `subprocess.CalledProcessError`) are explicitly mocked and verified to handle the failure gracefully without printing stack traces to standard output.
+3. Performance benchmarks mandate that artifact generation tests complete in under 5 seconds locally.
 
 ## Implementation Guide
 
-Implementation guide to be defined
+1. Write tests in `tests/deployment/` targeting all newly created deployment scripts.
+2. Use `unittest.mock.patch` to simulate failed `subprocess.run` calls for git tagging.
+3. Execute the suite via `uv run pytest tests/deployment/ --cov=scripts/deployment --cov-fail-under=95`.
 
 
 ### 019.8. Unit Testing and Validation

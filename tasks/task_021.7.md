@@ -1,6 +1,6 @@
 # Task 021.7: Integration with Operations Workflow
 
-**Status:** pending
+**Status:** specified
 **Priority:** high
 **Effort:** TBD
 **Complexity:** TBD
@@ -41,11 +41,15 @@
 - **Complexity**: TBD
 
 ### Requirements
-Requirements to be specified
+1. An automated security vulnerability scanning step is integrated into `.github/workflows/security.yml` using `bandit` or `safety`.
+2. The scan explicitly targets the `src/` and `scripts/` directories, excluding `tests/`.
+3. Findings with a severity of HIGH immediately fail the workflow (exit code 1), while MEDIUM and LOW findings are logged as warnings.
 
 ## Implementation Guide
 
-Implementation guide to be defined
+1. Add the `bandit` execution step to the security workflow.
+2. Configure the command as `bandit -r src/ scripts/ -lll` to only fail on HIGH severity.
+3. Verify the workflow by intentionally introducing a dummy security issue in a test branch.
 
 
 ### 021.7. Integration with Operations Workflow

@@ -1,6 +1,6 @@
 # Task 019.4: Create Deployment Validation Procedures
 
-**Status:** pending
+**Status:** specified
 **Priority:** high
 **Effort:** TBD
 **Complexity:** TBD
@@ -41,11 +41,15 @@
 - **Complexity**: TBD
 
 ### Requirements
-Requirements to be specified
+1. The pre-deployment validation procedures run all configured linters and tests, returning a non-zero exit code if coverage is below the threshold set in `.github/workflows/ci.yml`.
+2. Deployment verification checks confirm the generated artifact exists in `dist/` and is a valid zip file before proceeding to publish.
+3. Post-deployment validation connects to the target environment (e.g. testing the published PyPI package) and logs success or failure.
 
 ## Implementation Guide
 
-Implementation guide to be defined
+1. Add a validation wrapper script `scripts/deployment/validate_deploy.py`.
+2. Read the coverage threshold dynamically from the CI config or run the test suite.
+3. Run `uv run python scripts/deployment/validate_deploy.py` during the deployment workflow in `.github/workflows/deploy.yml`.
 
 
 ### 019.4. Create Deployment Validation Procedures

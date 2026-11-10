@@ -1,6 +1,6 @@
 # Task 019.7: Create Deployment Documentation
 
-**Status:** pending
+**Status:** specified
 **Priority:** high
 **Effort:** TBD
 **Complexity:** TBD
@@ -41,11 +41,15 @@
 - **Complexity**: TBD
 
 ### Requirements
-Requirements to be specified
+1. The deployment guide is located at `docs/deployment/guide.md` and contains step-by-step instructions for a manual release process.
+2. Rollback instructions are clearly documented in `docs/deployment/rollback.md`, specifying the exact script (`scripts/deployment/rollback.py`) to execute.
+3. Troubleshooting documentation covers common failures, such as missing credentials and tag conflicts.
 
 ## Implementation Guide
 
-Implementation guide to be defined
+1. Author `docs/deployment/guide.md` and `docs/deployment/rollback.md`.
+2. Ensure the commands documented exactly match the actual scripts implemented in 019.5.
+3. Review for accuracy against the CLI outputs.
 
 
 ### 019.7. Create Deployment Documentation

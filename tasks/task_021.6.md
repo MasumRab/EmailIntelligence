@@ -1,6 +1,6 @@
 # Task 021.6: Develop Diagnostic and Troubleshooting Tools
 
-**Status:** pending
+**Status:** specified
 **Priority:** high
 **Effort:** TBD
 **Complexity:** TBD
@@ -41,11 +41,15 @@
 - **Complexity**: TBD
 
 ### Requirements
-Requirements to be specified
+1. Performance regression testing is added to the CI pipeline via `.github/workflows/performance.yml`.
+2. The workflow executes `pytest --benchmark-only` on the `tests/performance/` directory.
+3. The step fails if the execution time of `test_alignment_processing` exceeds the baseline established in `.benchmarks/` by more than 15%.
 
 ## Implementation Guide
 
-Implementation guide to be defined
+1. Implement performance tests using `pytest-benchmark` in `tests/performance/`.
+2. Create the GitHub Actions workflow to run these benchmarks.
+3. Compare results against checked-in baselines to enforce the 15% threshold.
 
 
 ### 021.6. Develop Diagnostic and Troubleshooting Tools

@@ -1,6 +1,6 @@
 # Task 020.1: Design Documentation Architecture
 
-**Status:** pending
+**Status:** specified
 **Priority:** high
 **Effort:** TBD
 **Complexity:** TBD
@@ -41,11 +41,15 @@
 - **Complexity**: TBD
 
 ### Requirements
-Requirements to be specified
+1. The documentation architecture maps out the complete set of required markdown files in `docs/architecture/`.
+2. A unified style guide is created at `docs/STYLE_GUIDE.md` which enforces Markdown formatting rules (e.g., maximum line length, heading capitalisation).
+3. Documentation build configuration is initialized in `mkdocs.yml` or a similar configuration, targeting the `docs/` directory.
 
 ## Implementation Guide
 
-Implementation guide to be defined
+1. Create `docs/STYLE_GUIDE.md` and document the Markdown conventions.
+2. Create a basic `mkdocs.yml` at the project root.
+3. Verify the configuration by running `uv run mkdocs build --strict`.
 
 
 ### 020.1. Design Documentation Architecture

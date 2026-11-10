@@ -1,6 +1,6 @@
 # Task 020.4: Create Knowledge Base Framework
 
-**Status:** pending
+**Status:** specified
 **Priority:** high
 **Effort:** TBD
 **Complexity:** TBD
@@ -41,11 +41,15 @@
 - **Complexity**: TBD
 
 ### Requirements
-Requirements to be specified
+1. A comprehensive developer guide is available at `docs/development/contributing.md`.
+2. It specifies the PR submission process, including the requirement to run `uv run pytest` and `ruff format` before submitting.
+3. The guide includes instructions on how to set up the local development environment using `.env.example`.
 
 ## Implementation Guide
 
-Implementation guide to be defined
+1. Create or update `docs/development/contributing.md`.
+2. Include specific CLI commands for testing and linting.
+3. Review the instructions by following them in a clean environment.
 
 
 ### 020.4. Create Knowledge Base Framework

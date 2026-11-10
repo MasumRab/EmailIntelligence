@@ -1,6 +1,6 @@
 # Task 020.2: Implement Documentation Generation System
 
-**Status:** pending
+**Status:** specified
 **Priority:** high
 **Effort:** TBD
 **Complexity:** TBD
@@ -41,11 +41,15 @@
 - **Complexity**: TBD
 
 ### Requirements
-Requirements to be specified
+1. The API reference documentation is generated from docstrings in `src/` modules using an automated tool (e.g., mkdocstrings).
+2. The generated reference is available at `docs/api/reference.md` and includes the classes `EmailBatch` and `ValidationIntegrationFramework`.
+3. Any missing docstrings for public classes result in a generation warning that fails the CI docs build.
 
 ## Implementation Guide
 
-Implementation guide to be defined
+1. Configure `mkdocstrings` in `mkdocs.yml`.
+2. Ensure all public functions in `src/core/validation_integration.py` have valid Google-style or NumPy-style docstrings.
+3. Test the strict build via `uv run mkdocs build --strict`.
 
 
 ### 020.2. Implement Documentation Generation System
