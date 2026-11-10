@@ -1,6 +1,6 @@
 # Task 013.6: Integrate with Alignment Workflow
 
-**Status:** pending
+**Status:** specified
 **Priority:** high
 **Effort:** TBD
 **Complexity:** TBD
@@ -10,7 +10,8 @@
 
 ## Overview/Purpose
 
-[Overview to be defined]
+A safety framework that the alignment runner calls inconsistently is worse than none, because it
+looks present. This task fixes the call points so every stage that can move a ref is covered.
 
 ## Success Criteria
 
@@ -41,11 +42,25 @@
 - **Complexity**: TBD
 
 ### Requirements
-Requirements to be specified
+1. The runner's stage table (from task 011.1) is the single place that declares which stages take a
+   backup, and the code reads that table rather than embedding a second list.
+2. Every stage that runs `git merge`, `git rebase`, `git reset` or `git branch -f` is marked as
+   requiring a backup, and a test asserts the marking for those four command families.
+3. The restore path is exercised end to end on a scratch branch: snapshot, move the ref, restore,
+   assert the sha matches.
+4. On restore, the runner refuses if the working tree is dirty -- restoring a ref under uncommitted
+   changes produces a tree that matches neither state.
 
 ## Implementation Guide
 
-Implementation guide to be defined
+Wire the calls in `scripts/alignment/` (the runner from task 012), reusing the backup module.
+
+```bash
+uv run pytest tests/test_branch_ref_backup.py -v
+git checkout -b scratch/backup-check && git commit --allow-empty -m x && git reset --hard HEAD~1
+```
+
+The test for requirement 2 is a source scan for the four command families, keyed off the same table.
 
 
 ### 013.6. Integrate with Alignment Workflow

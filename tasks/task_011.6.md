@@ -1,12 +1,12 @@
-# Task 011.6: Implement Performance Benchmarking for Critical Endpoints
+# Task 011.6: Benchmark the Aligned Branch Against Its Base
 
-**Status:** pending
+**Status:** specified
 **Priority:** high
 **Effort:** 4-5 hours
 **Complexity:** 6/10
 **Dependencies:** 011.1
 **Created:** 2026-01-06
-**Parent:** Task 011: Create Comprehensive Merge Validation Framework
+**Parent:** Task 011: Integrate Validation Framework into Multistage Alignment Workflow
 
 ## Sub-subtasks Breakdown
 
@@ -106,7 +106,14 @@ After completion, proceed to **Task 011.7**: Integrate Security Scans
 - **Complexity**: TBD
 
 ### Requirements
-Requirements to be specified
+1. The stage measures the branch and its base on the same machine, in the same run, and reports the
+   ratio per endpoint rather than an absolute millisecond figure.
+2. A ratio above a stated threshold (for example 1.5x on p95) fails the stage; the ratio, not the
+   absolute value, is the gate.
+3. The measurement uses a fixed iteration count and a warm-up pass, and the run state records the
+   iteration count so a later run is comparable.
+4. The stage does not run on every alignment; it runs when the branch touches request-handling code,
+   and the selection rule is written in the gates table (011.1).
 
 ## Implementation Guide
 
@@ -126,7 +133,9 @@ Requirements to be specified
 
 ## Overview/Purpose
 
-[Overview to be defined]
+A benchmark threshold pinned to CI hardware is noise. During an alignment the only question that
+matters is whether *this merge* made something slower than the base it came from, measured on the
+same machine minutes apart.
 
 ## Configuration Parameters
 

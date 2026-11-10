@@ -1,6 +1,6 @@
 # Task 014.9: Configuration and Externalization
 
-**Status:** pending
+**Status:** specified
 **Priority:** high
 **Effort:** TBD
 **Complexity:** TBD
@@ -10,7 +10,8 @@
 
 ## Overview/Purpose
 
-[Overview to be defined]
+Severity thresholds, the diff tool and the report path are configuration. The safety-relevant setting
+is which classes are allowed to stop a run, so it must be visible and validated.
 
 ## Success Criteria
 
@@ -41,11 +42,22 @@
 - **Complexity**: TBD
 
 ### Requirements
-Requirements to be specified
+1. Settings live in one place with defaults, and the stop/no-stop policy per conflict class is among
+   them, so an operator can choose to continue past a rename/rename and cannot do so by accident.
+2. Severity thresholds are stated as numbers or named levels, not adjectives.
+3. Invalid configuration fails at load with the accepted values listed.
+4. The effective policy is printed at run start and recorded in the run state.
 
 ## Implementation Guide
 
-Implementation guide to be defined
+Put the settings beside the alignment config from task 013.7.
+
+```bash
+python scripts/conflict_detection.py config --show
+python -c "import scripts.conflict_detection as c; print(c.__file__)"
+```
+
+Check the module still imports with no config file present and falls back to defaults.
 
 
 ### 014.9. Configuration and Externalization

@@ -1,6 +1,6 @@
 # Task 014.10: Unit Testing and Validation
 
-**Status:** pending
+**Status:** specified
 **Priority:** high
 **Effort:** TBD
 **Complexity:** TBD
@@ -10,7 +10,9 @@
 
 ## Overview/Purpose
 
-[Overview to be defined]
+The conflict suite has to prove the two things that have actually gone wrong in this repository: a
+marker committed as though resolved, and a detector that reported a clean merge while inspecting
+nothing.
 
 ## Success Criteria
 
@@ -41,11 +43,24 @@
 - **Complexity**: TBD
 
 ### Requirements
-Requirements to be specified
+1. Fixtures are real repositories built by the test, not mocks of `git`, so the exit-code and output
+   parsing are exercised for real.
+2. There is a test for each conflict class, and a test that `merge-tree` failing (exit other than 1)
+   is reported as a failure and not as a conflict.
+3. There is a test that a tree containing `<<<<<<<` fails detection even when the file parses.
+4. The suite is `tests/test_conflict_detection.py`, collected by CI's `tests/` path.
 
 ## Implementation Guide
 
-Implementation guide to be defined
+Extend `tests/test_conflict_detection.py`.
+
+```bash
+uv run pytest tests/test_conflict_detection.py -v
+printf 'a\n<<<<<<< HEAD\nb\n=======\nc\n>>>>>>> x\n' > /tmp/m.py && uv run python -c "import ast;ast.parse(open('/tmp/m.py').read());print('parses')"
+```
+
+That last command demonstrates why requirement 3 cannot be satisfied by parsing alone: a file full of
+conflict markers is still valid Python in many cases.
 
 
 ### 014.10. Unit Testing and Validation

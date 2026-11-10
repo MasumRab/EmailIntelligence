@@ -1,6 +1,6 @@
 # Task 015.9: Integration with Alignment Workflow
 
-**Status:** pending
+**Status:** specified
 **Priority:** high
 **Effort:** TBD
 **Complexity:** TBD
@@ -10,7 +10,8 @@
 
 ## Overview/Purpose
 
-[Overview to be defined]
+The last piece is placement: which validation runs before the push, which runs after, and what happens
+to a run that fails the post-push check (the push is not undone automatically).
 
 ## Success Criteria
 
@@ -41,11 +42,21 @@
 - **Complexity**: TBD
 
 ### Requirements
-Requirements to be specified
+1. The stage table from 011.1 declares the ordering; this task adds integrity (015.2/015.3) before the
+   push and the full suite after the merge, and changes nothing else in the table.
+2. A failure after the push stops the pipeline and records the push as done: the run state must not
+   claim the branch is unpushed, because the operator's next action depends on that fact.
+3. The stage prints the backup path from task 013 on any failure so recovery is one command.
+4. The integration never runs `git push --force` or `git push --admin`; a rejected push is reported.
 
 ## Implementation Guide
 
-Implementation guide to be defined
+Wire the stages into the 012 runner and assert the ordering in a test against the stage table.
+
+```bash
+python scripts/alignment/orchestrator.py validate --stage pre-push
+git rev-parse HEAD origin/$(git rev-parse --abbrev-ref HEAD) 2>&1 | tail -2
+```
 
 
 ### 015.9. Integration with Alignment Workflow

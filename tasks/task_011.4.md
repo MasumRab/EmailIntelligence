@@ -1,12 +1,12 @@
-# Task 011.4: Integrate Existing Unit and Integration Tests
+# Task 011.4: Run the Unit and Integration Suite After Each Stage Merge
 
-**Status:** pending
+**Status:** specified
 **Priority:** high
 **Effort:** 3-4 hours
 **Complexity:** 5/10
 **Dependencies:** 011.1
 **Created:** 2026-01-06
-**Parent:** Task 011: Create Comprehensive Merge Validation Framework
+**Parent:** Task 011: Integrate Validation Framework into Multistage Alignment Workflow
 
 ## Sub-subtasks Breakdown
 
@@ -96,7 +96,14 @@ After completion, proceed to **Task 011.5**: Develop E2E Smoke Tests
 - **Complexity**: TBD
 
 ### Requirements
-Requirements to be specified
+1. The suite runs after each stage's merge commits land, using the same path list CI uses
+   (`tests/ src/ modules/`), so a green local run means a green CI run for the same tree.
+2. A red suite does not auto-revert; the runner stops, records the failing test ids in the run state,
+   and prints the backup path from task 006 so reverting is one command.
+3. The stage writes per-test results (`--junitxml`) and records the failing ids, because "the suite
+   failed" is not actionable and a count is not a diagnosis.
+4. A test that fails on the target as well as on the branch is marked pre-existing and does not block,
+   determined by running the same ids on the target ref.
 
 ## Implementation Guide
 
@@ -116,7 +123,9 @@ Requirements to be specified
 
 ## Overview/Purpose
 
-[Overview to be defined]
+The suite is the slowest check and the one most likely to be skipped under time pressure. This task
+defines when it runs, what a red result means mid-alignment, and how the operator recovers without
+losing the merge that caused it.
 
 ## Configuration Parameters
 

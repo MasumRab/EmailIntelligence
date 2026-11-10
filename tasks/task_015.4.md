@@ -1,6 +1,6 @@
 # Task 015.4: Integrate Automated Error Detection
 
-**Status:** pending
+**Status:** specified
 **Priority:** high
 **Effort:** TBD
 **Complexity:** TBD
@@ -10,7 +10,8 @@
 
 ## Overview/Purpose
 
-[Overview to be defined]
+Group 005 builds the detectors. This task is the wiring: run them on the aligned tree and turn their
+findings into a stage result the operator can act on, rather than a wall of output at the end.
 
 ## Success Criteria
 
@@ -41,11 +42,26 @@
 - **Complexity**: TBD
 
 ### Requirements
-Requirements to be specified
+1. The stage runs the existing detectors -- `scripts/detect_merge_markers.py`,
+   `scripts/validate_no_todos.py` where applicable -- and consumes their exit codes, not their text.
+2. A detector that exits 0 while reporting zero files examined fails the stage; a scan that inspected
+   nothing did not pass.
+3. Findings are recorded per file and line in the run state, and the stage report names the first
+   three and points at the artifact for the rest.
+4. The stage never fixes anything; detection and repair are separate, and a tool that did both would
+   hide what it changed.
 
 ## Implementation Guide
 
-Implementation guide to be defined
+Wire into the 012 runner's validation stage, reusing 011.2's `validate_stage.run()`.
+
+```bash
+python scripts/detect_merge_markers.py --root . ; echo "exit=$?"
+python scripts/validate_no_todos.py ; echo "exit=$?"
+```
+
+Confirm the zero-files behaviour by running the detector against an empty directory and checking the
+exit code; a detector that says "no problems" there is the bug requirement 2 targets.
 
 
 ### 015.4. Integrate Automated Error Detection

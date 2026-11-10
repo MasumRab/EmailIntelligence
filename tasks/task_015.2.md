@@ -1,6 +1,6 @@
 # Task 015.2: Implement Post-Rebase Validation
 
-**Status:** pending
+**Status:** specified
 **Priority:** high
 **Effort:** TBD
 **Complexity:** TBD
@@ -10,7 +10,8 @@
 
 ## Overview/Purpose
 
-[Overview to be defined]
+A rebase rewrites every commit id. The failure this task exists to catch is the quiet one: the rebase
+succeeds, the tests pass, and one commit's change was dropped in a conflict resolution.
 
 ## Success Criteria
 
@@ -41,11 +42,24 @@
 - **Complexity**: TBD
 
 ### Requirements
-Requirements to be specified
+1. Before the rebase the branch's commit list is recorded (`git rev-list --reverse <base>..<head>`)
+   with subject and patch-id per commit; after it, the same list is computed and compared by
+   subject and patch-id, not by sha.
+2. Missing or duplicated patches fail the stage, and the report names the commit subjects.
+3. The comparison is against the recorded list, never against `<old-head>..<new-head>`, which is empty
+   after a rebase and would report success for any result.
+4. The stage runs before the push, so a dropped commit never reaches the remote.
 
 ## Implementation Guide
 
-Implementation guide to be defined
+Implement `scripts/validate_rebase.py` (or a stage in the 012 runner).
+
+```bash
+git rev-list --reverse origin/main..HEAD | while read c; do echo "$(git show -s --format=%s $c) $(git show $c | git patch-id --stable | cut -d' ' -f1)"; done
+```
+
+Test with a deliberate `git rebase --onto` that drops the middle commit and confirm the stage fails
+with its subject.
 
 
 ### 015.2. Implement Post-Rebase Validation

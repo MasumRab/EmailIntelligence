@@ -1,6 +1,6 @@
 # Task 013.8: Unit Testing and Validation
 
-**Status:** pending
+**Status:** specified
 **Priority:** high
 **Effort:** TBD
 **Complexity:** TBD
@@ -10,7 +10,8 @@
 
 ## Overview/Purpose
 
-[Overview to be defined]
+The safety framework's tests are the only evidence that a restore works. They must exercise the
+failure paths, because the success path is the one that gets tried by hand.
 
 ## Success Criteria
 
@@ -41,11 +42,24 @@
 - **Complexity**: TBD
 
 ### Requirements
-Requirements to be specified
+1. Tests cover: snapshot then restore returns the original sha; verification rejects a
+   well-formed file with an unreachable sha; cleanup never removes the newest backup; a dirty tree
+   blocks restore.
+2. Each test runs against a temporary repository created by the fixture, not the working repository,
+   so a failure cannot damage the checkout.
+3. A test asserts the CLI, not only the functions, because the runner shells out to it.
+4. The suite runs under the same path list CI uses (`tests/`), and the file is `tests/test_branch_ref_backup.py`.
 
 ## Implementation Guide
 
-Implementation guide to be defined
+Extend `tests/test_branch_ref_backup.py`. Build the fixture with `git init --bare` plus a worktree, or
+with `pygit2` if it is already a dependency, and never with the repository under test.
+
+```bash
+uv run pytest tests/test_branch_ref_backup.py -v
+```
+
+Confirm the tests can fail: revert the verification check and watch requirement 2's test go red.
 
 
 ### 013.8. Unit Testing and Validation

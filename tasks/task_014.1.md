@@ -1,6 +1,6 @@
 # Task 014.1: Design Conflict Detection Architecture
 
-**Status:** pending
+**Status:** specified
 **Priority:** high
 **Effort:** TBD
 **Complexity:** TBD
@@ -10,7 +10,9 @@
 
 ## Overview/Purpose
 
-[Overview to be defined]
+Conflicts are the point at which an automated alignment must stop and hand over. The architecture
+therefore decides what is detected, when, and what the operator is shown -- not how a conflict is
+resolved automatically, which is the wrong default for this repository.
 
 ## Success Criteria
 
@@ -41,11 +43,25 @@
 - **Complexity**: TBD
 
 ### Requirements
-Requirements to be specified
+1. The design names the detection moments: before a merge (prediction, from the two trees), at merge
+   time (`git merge-tree` / the merge's exit status), and after (marker scan of the tree).
+2. It states that a conflict stops the pipeline and never triggers an automatic resolution, with the
+   reason: the repository has already shipped unresolved markers into commits once.
+3. It defines the classification vocabulary (content, rename/rename, modify/delete, add/add) and maps
+   each to the guidance the operator gets.
+4. It names the existing modules it builds on -- `scripts/conflict_detection.py` and
+   `scripts/conflict_predictor.py` -- and what each does today.
 
 ## Implementation Guide
 
-Implementation guide to be defined
+Write `docs/conflict-detection-architecture.md`. Read both modules first:
+`conflict_detection.py` exposes `safe_ref`, `collect_conflicts`, `check_conflicts`;
+`conflict_predictor.py` exposes `ConflictPredictor` and a `ConflictResolver` whose behaviour must be
+read before the design cites it.
+
+```bash
+grep -n "def \|class " scripts/conflict_detection.py scripts/conflict_predictor.py
+```
 
 
 ### 014.1. Design Conflict Detection Architecture

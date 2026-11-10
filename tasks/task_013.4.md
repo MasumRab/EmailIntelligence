@@ -1,6 +1,6 @@
 # Task 013.4: Implement Backup Verification Procedures
 
-**Status:** pending
+**Status:** specified
 **Priority:** high
 **Effort:** TBD
 **Complexity:** TBD
@@ -10,7 +10,8 @@
 
 ## Overview/Purpose
 
-[Overview to be defined]
+A backup file that exists is not a backup that restores. This task is the verification step, and it is
+the one most often skipped because it costs a round trip and the file looks right.
 
 ## Success Criteria
 
@@ -41,11 +42,25 @@
 - **Complexity**: TBD
 
 ### Requirements
-Requirements to be specified
+1. Verification parses the file, checks it holds at least one ref with a 40-character sha, and
+   confirms the sha still resolves (`git cat-file -e <sha>^{commit}`).
+2. The sha check matters more than the parse: a shallow clone or a pruned branch leaves a file that
+   parses perfectly and cannot be restored.
+3. A failed verification stops the run and reports which of the two checks failed, because "backup
+   invalid" does not tell the operator whether to re-run or to fetch.
+4. Verification runs before the first destructive stage, not only at snapshot time.
 
 ## Implementation Guide
 
-Implementation guide to be defined
+Add `verify_backup(path)` beside `snapshot`/`restore` in `scripts/branch_ref_backup.py` and call it
+from the runner.
+
+```bash
+git cat-file -e "$(python -c 'import json;print(json.load(open(".backups/x.json"))["branch_sha"])')"^{commit}
+```
+
+Test with a synthetic file holding a valid-looking but unreachable sha (`deadbeef`*5) and confirm
+verification fails; a check that only parses would pass it.
 
 
 ### 013.4. Implement Backup Verification Procedures

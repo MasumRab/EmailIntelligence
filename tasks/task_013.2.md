@@ -1,6 +1,6 @@
 # Task 013.2: Implement Pre-Alignment Safety Checks
 
-**Status:** pending
+**Status:** specified
 **Priority:** high
 **Effort:** TBD
 **Complexity:** TBD
@@ -10,7 +10,9 @@
 
 ## Overview/Purpose
 
-[Overview to be defined]
+The pre-alignment checks are the cheapest thing in the pipeline and the ones that save the most work:
+a dirty tree, a detached head or a branch that is not where the operator thinks it is will make every
+later stage report a false result.
 
 ## Success Criteria
 
@@ -41,11 +43,29 @@
 - **Complexity**: TBD
 
 ### Requirements
-Requirements to be specified
+1. The checks verify, in this order: a clean working tree (`git status --porcelain` empty), a named
+   branch rather than a detached HEAD, the branch's current sha recorded, and the target ref fetched.
+2. Each failure names the recovery command, and none of them proceeds automatically -- the check
+   stops the run rather than repairing.
+3. The checks never use `git clean -xfd` or `git reset --hard`; a dirty tree is the operator's to
+   resolve, because those two commands destroy untracked work that is exactly what the backup
+   cannot recover.
+4. The results are recorded in the run state so a resume can verify the situation has not changed
+   underneath it.
 
 ## Implementation Guide
 
-Implementation guide to be defined
+Implement `scripts/alignment/preflight.py`, or a `preflight` stage in the orchestrator.
+
+```bash
+git status --porcelain | wc -l
+git rev-parse --abbrev-ref HEAD
+git rev-parse HEAD
+```
+
+Test the detached-HEAD case explicitly (`git checkout --detach`) -- `rev-parse --abbrev-ref HEAD`
+returns the literal string `HEAD`, which is easy to miss when the check is written as a truthiness
+test.
 
 
 ### 013.2. Implement Pre-Alignment Safety Checks

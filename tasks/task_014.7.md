@@ -1,6 +1,6 @@
 # Task 014.7: Create Conflict Reporting and Logging
 
-**Status:** pending
+**Status:** specified
 **Priority:** high
 **Effort:** TBD
 **Complexity:** TBD
@@ -10,7 +10,8 @@
 
 ## Overview/Purpose
 
-[Overview to be defined]
+Conflict reporting is the record of what happened, and it has a specific job here: making a
+resolution reviewable after the fact, since the person reviewing it later will not have the terminal.
 
 ## Success Criteria
 
@@ -41,11 +42,24 @@
 - **Complexity**: TBD
 
 ### Requirements
-Requirements to be specified
+1. The report is machine-readable (`reports/conflicts.json`) with one entry per file: path, class,
+   severity, the two sides' shas, and the resolution method when one was applied.
+2. It is written even when the run aborts, so an interrupted resolution still leaves a record.
+3. A human-readable summary (`CHANGES_SUMMARY.md` section) is generated from the JSON, not written by
+   hand in parallel.
+4. The report records the merge-base sha, because the same two branch names mean different things
+   after a rebase.
 
 ## Implementation Guide
 
-Implementation guide to be defined
+Extend the reporter from task 011.8 rather than adding a second format.
+
+```bash
+python scripts/conflict_detection.py report --target main --head HEAD --out reports/conflicts.json
+python -c "import json;print(len(json.load(open('reports/conflicts.json'))['files']))"
+```
+
+Verify requirement 2 by interrupting a run mid-conflict and checking the file exists.
 
 
 ### 014.7. Create Conflict Reporting and Logging

@@ -1,6 +1,6 @@
 # Task 014.4: Implement Interactive Resolution Guidance
 
-**Status:** pending
+**Status:** specified
 **Priority:** high
 **Effort:** TBD
 **Complexity:** TBD
@@ -10,7 +10,8 @@
 
 ## Overview/Purpose
 
-[Overview to be defined]
+The interactive guidance is the operator-facing half of the framework: for each conflict, what the two
+sides did and which command to run. It is guidance, not action -- nothing here resolves anything.
 
 ## Success Criteria
 
@@ -41,11 +42,25 @@
 - **Complexity**: TBD
 
 ### Requirements
-Requirements to be specified
+1. For each conflicting file the tool prints, in this order: the class, the two sides' one-line
+   summaries, and the exact command that opens the conflict (`git mergetool <path>` or
+   `git checkout --ours/--theirs <path>` with the consequence of each stated).
+2. It never runs a resolution command; it prints one.
+3. It refuses to start when the tree is already in a conflicted state -- guidance for a merge that is
+   already open belongs to `git status`, and mixing the two confuses the operator about what has
+   happened.
+4. It works with output redirected to a file, so a long list can be read in a pager.
 
 ## Implementation Guide
 
-Implementation guide to be defined
+Add a `guide` subcommand to `scripts/conflict_detection.py` or a small `scripts/conflict_guide.py`.
+
+```bash
+python scripts/conflict_detection.py guide --target main --head HEAD > /tmp/guidance.txt
+wc -l /tmp/guidance.txt
+```
+
+The redirect is the requirement-4 test: a tool that prompts stops dead when stdout is not a TTY.
 
 
 ### 014.4. Implement Interactive Resolution Guidance

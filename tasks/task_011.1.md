@@ -1,12 +1,12 @@
-# Task 011.1: Define Validation Scope and Tooling
+# Task 011.1: Choose the Validation Gate for Each Alignment Stage
 
-**Status:** pending
+**Status:** specified
 **Priority:** high
 **Effort:** 3-4 hours
 **Complexity:** 5/10
 **Dependencies:** None
 **Created:** 2026-01-06
-**Parent:** Task 011: Create Comprehensive Merge Validation Framework
+**Parent:** Task 011: Integrate Validation Framework into Multistage Alignment Workflow
 
 ## Sub-subtasks Breakdown
 
@@ -111,7 +111,14 @@ After completion, proceed to **Task 011.2**: Configure GitHub Actions Workflow
 - **Complexity**: TBD
 
 ### Requirements
-Requirements to be specified
+1. A table maps each alignment stage (pre-align, post-merge, post-resolve, pre-push) to the layers
+   that run there and the layers that deliberately do not, with the reason for each omission.
+2. Every gate names the exit code that means failure. A layer with no defined failure exit code is
+   listed as advisory and does not appear in the gate column.
+3. The cheap layers (marker detection, `compileall`, `ruff`) run at every stage; the expensive ones
+   (full pytest with coverage, benchmarks, security scan) run once, before the push.
+4. The table is checked in at `docs/alignment-validation-gates.md` and the stage runner reads the
+   same table rather than duplicating it as conditionals.
 
 ## Implementation Guide
 
@@ -131,7 +138,9 @@ Requirements to be specified
 
 ## Overview/Purpose
 
-[Overview to be defined]
+Group 008 defines nine validation layers. This task decides which of them run at which point in the
+multistage alignment (task 009/010), because running all nine after every stage turns a 40-minute
+alignment into a day-long one and teaches the operator to ignore the output.
 
 ## Configuration Parameters
 

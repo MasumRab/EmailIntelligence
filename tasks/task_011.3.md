@@ -1,12 +1,12 @@
-# Task 011.3: Implement Architectural Enforcement Checks
+# Task 011.3: Enforce Architecture Rules at the Pre-Alignment Stage
 
-**Status:** pending
+**Status:** specified
 **Priority:** high
 **Effort:** 4-5 hours
 **Complexity:** 6/10
 **Dependencies:** 011.1
 **Created:** 2026-01-06
-**Parent:** Task 011: Create Comprehensive Merge Validation Framework
+**Parent:** Task 011: Integrate Validation Framework into Multistage Alignment Workflow
 
 ## Sub-subtasks Breakdown
 
@@ -104,7 +104,15 @@ After completion, proceed to **Task 011.4**: Integrate Unit and Integration Test
 - **Complexity**: TBD
 
 ### Requirements
-Requirements to be specified
+1. The pre-align stage runs the architecture check on the branch's tree, and a violation stops the
+   stage before any file is modified.
+2. The check reports the violating file and line, and the runner records them in the run state, so
+   the operator can fix the branch without re-running the whole pipeline.
+3. The stage distinguishes "new violation introduced by this branch" from "violation already present
+   on the target": the second is reported and does not block, or every pre-existing branch would
+   fail identically.
+4. The comparison is made against the target's blob for the same path, not against a stored baseline
+   that ages.
 
 ## Implementation Guide
 
@@ -124,7 +132,9 @@ Requirements to be specified
 
 ## Overview/Purpose
 
-[Overview to be defined]
+The architectural layer from 008.3 is a standalone script. This task is the point at which it is
+actually useful: before the aligner touches a branch, so a branch that violates the import direction
+is refused instead of merged and then repaired.
 
 ## Configuration Parameters
 

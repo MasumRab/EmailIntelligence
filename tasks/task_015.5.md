@@ -1,6 +1,6 @@
 # Task 015.5: Implement Quality Metrics Assessment
 
-**Status:** pending
+**Status:** specified
 **Priority:** high
 **Effort:** TBD
 **Complexity:** TBD
@@ -10,7 +10,8 @@
 
 ## Overview/Purpose
 
-[Overview to be defined]
+Quality metrics are the part of validation that can quietly become a ritual. The requirement is that
+each metric has a direction, a baseline and a threshold, or it is not collected.
 
 ## Success Criteria
 
@@ -41,11 +42,26 @@
 - **Complexity**: TBD
 
 ### Requirements
-Requirements to be specified
+1. Each metric names its direction (higher is better, lower is better) and the baseline it is compared
+   against -- the target ref's value measured in the same run.
+2. Coverage uses the threshold CI already states (`--cov-fail-under=70` in
+   `.github/workflows/ci.yml:42`), and the stage reports the measured value whether or not it passes.
+3. A metric with no baseline is reported as `no-baseline` and is advisory; it is never printed as a
+   pass.
+4. The metrics are collected by one command that writes `reports/quality.json`.
 
 ## Implementation Guide
 
-Implementation guide to be defined
+Write `scripts/quality_metrics.py`, or extend `scripts/parallel_validator.py` if it already runs the
+suite.
+
+```bash
+uv run pytest tests/ src/ modules/ --cov=src --cov=modules --cov-report=json:reports/coverage.json -q
+python -c "import json;print(json.load(open('reports/coverage.json'))['totals']['percent_covered'])"
+```
+
+The CI line ends in `|| true`, so CI has never enforced the 70% floor; this stage is where it
+actually bites.
 
 
 ### 015.5. Implement Quality Metrics Assessment

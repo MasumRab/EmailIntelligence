@@ -1,12 +1,12 @@
-# Task 011.5: Develop and Implement End-to-End Smoke Tests
+# Task 011.5: Gate the Pipeline on Smoke Tests After the Final Stage
 
-**Status:** pending
+**Status:** specified
 **Priority:** high
 **Effort:** 4-5 hours
 **Complexity:** 6/10
 **Dependencies:** 011.1
 **Created:** 2026-01-06
-**Parent:** Task 011: Create Comprehensive Merge Validation Framework
+**Parent:** Task 011: Integrate Validation Framework into Multistage Alignment Workflow
 
 ## Sub-subtasks Breakdown
 
@@ -110,7 +110,14 @@ After completion, proceed to **Task 011.6**: Implement Performance Benchmarking
 - **Complexity**: TBD
 
 ### Requirements
-Requirements to be specified
+1. The smoke stage runs `pytest -m smoke` against the final tree and fails the pipeline on a non-zero
+   exit; a skipped smoke test is a failure at this point, not a pass.
+2. The stage boots the application from the branch's own working tree, with that tree on
+   `sys.path`, so it cannot pass by importing an installed copy of the package.
+3. The run records the app's startup log tail in the run state on failure, because the exit code alone
+   does not say which import broke.
+4. The stage is skipped only when the branch touches no file under `src/`, and the skip reason is
+   recorded.
 
 ## Implementation Guide
 
@@ -130,7 +137,8 @@ Requirements to be specified
 
 ## Overview/Purpose
 
-[Overview to be defined]
+Smoke tests from 008.5 prove the aligned tree still boots. Here the point is placement: after the last
+stage, before the push, so a tree that imports but cannot start is never pushed.
 
 ## Configuration Parameters
 

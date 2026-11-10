@@ -1,12 +1,12 @@
-# Task 011.8: Consolidate Validation Results and Reporting
+# Task 011.8: Emit One Stage Report the Operator Can Read Mid-Run
 
-**Status:** pending
+**Status:** specified
 **Priority:** high
 **Effort:** 2-3 hours
 **Complexity:** 4/10
 **Dependencies:** 011.3, 011.4, 011.6, 011.7
 **Created:** 2026-01-06
-**Parent:** Task 011: Create Comprehensive Merge Validation Framework
+**Parent:** Task 011: Integrate Validation Framework into Multistage Alignment Workflow
 
 ## Sub-subtasks Breakdown
 
@@ -112,7 +112,13 @@ After completion, proceed to **Task 011.9**: Configure Branch Protection Rules
 - **Complexity**: TBD
 
 ### Requirements
-Requirements to be specified
+1. Each stage appends a section to `reports/alignment-report.md`: stage name, start and end time,
+   each check's status, and the first failure with its command.
+2. The report is written incrementally -- flushed after each stage -- so an interrupted run leaves a
+   readable file rather than an empty one.
+3. Failures come first in each section, and the report names the exact command that reproduces the
+   failure, so the operator can act without reading the runner's source.
+4. The report links to the raw artifacts (`stage-junit.xml`, `branch-bandit.json`) by relative path.
 
 ## Implementation Guide
 
@@ -132,7 +138,8 @@ Requirements to be specified
 
 ## Overview/Purpose
 
-[Overview to be defined]
+A single-developer alignment runs for hours across stages. Without a report the operator learns what
+happened only at the end, by which time the cheapest fix (stop and change order) is gone.
 
 ## Configuration Parameters
 

@@ -1,6 +1,6 @@
 # Task 014.3: Develop Advanced Conflict Classification
 
-**Status:** pending
+**Status:** specified
 **Priority:** high
 **Effort:** TBD
 **Complexity:** TBD
@@ -10,7 +10,8 @@
 
 ## Overview/Purpose
 
-[Overview to be defined]
+"Conflicts in 14 files" is not actionable. Classification turns the file list into the four decisions
+the operator actually makes, because each conflict kind has a different right answer.
 
 ## Success Criteria
 
@@ -41,11 +42,26 @@
 - **Complexity**: TBD
 
 ### Requirements
-Requirements to be specified
+1. Classification distinguishes at least: content conflict, rename/rename, modify/delete and
+   add/add; `scripts/conflict_predictor.py` already declares `ConflictType` and `ConflictSeverity`,
+   so extend those rather than defining a second vocabulary.
+2. Each class records the evidence that produced it (the status line from merge-tree or the marker
+   shape), so a misclassification can be argued with.
+3. Modify/delete is flagged first in the output: it is the one class where a careless resolution
+   silently deletes a file the other side kept.
+4. A file that matches no class is `unknown` and is never folded into `content` by default.
 
 ## Implementation Guide
 
-Implementation guide to be defined
+Extend `ConflictType`/`ConflictPrediction` in `scripts/conflict_predictor.py` and reuse
+`_conflict_type` in `conflict_detection.py`.
+
+```bash
+git merge-tree --write-tree main <head> | head -20
+```
+
+Build the fixtures from real merge-tree output, not from a hand-written approximation -- the
+status-line format is the input the classifier must survive.
 
 
 ### 014.3. Develop Advanced Conflict Classification

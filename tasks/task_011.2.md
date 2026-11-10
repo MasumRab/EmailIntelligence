@@ -1,12 +1,12 @@
-# Task 011.2: Configure GitHub Actions Workflow and Triggers
+# Task 011.2: Wire Validation Into the Alignment Runner, Not a Second Workflow
 
-**Status:** pending
+**Status:** specified
 **Priority:** high
 **Effort:** 2-3 hours
 **Complexity:** 4/10
 **Dependencies:** None
 **Created:** 2026-01-06
-**Parent:** Task 011: Create Comprehensive Merge Validation Framework
+**Parent:** Task 011: Integrate Validation Framework into Multistage Alignment Workflow
 
 ## Sub-subtasks Breakdown
 
@@ -90,7 +90,15 @@ After completion, proceed to **Task 011.3**: Implement Architectural Enforcement
 - **Complexity**: TBD
 
 ### Requirements
-Requirements to be specified
+1. The runner invokes validation through one function,
+   `scripts/alignment/validate_stage.run(stage)`, and the CI workflow and the local run call the same
+   underlying scripts -- never two implementations of one check.
+2. The function returns a structured result (`stage`, `check`, `status`, `exit_code`,
+   `duration_s`), not a printed string, so the caller can branch on it.
+3. A check that cannot run (missing tool, missing dependency) is `skipped` with the reason recorded,
+   and a stage whose required check is `skipped` fails; only advisory checks may skip.
+4. No check is invoked through `shell=True` with an interpolated string -- the argv is a list, because
+   a branch name reaches these commands.
 
 ## Implementation Guide
 
@@ -110,7 +118,9 @@ Requirements to be specified
 
 ## Overview/Purpose
 
-[Overview to be defined]
+Group 008 builds `.github/workflows/merge-validation.yml` for pull requests. A single-developer
+alignment run happens in a worktree before any PR exists, so the runner cannot depend on it: this
+task is the in-process path, and the workflow is the CI mirror of the same checks.
 
 ## Configuration Parameters
 
