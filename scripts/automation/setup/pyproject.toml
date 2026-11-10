@@ -23,12 +23,23 @@ dependencies = [
     # Basic data handling (always needed)
     "aiosqlite>=0.20.0",
     "RestrictedPython>=8.0",
+<<<<<<< HEAD:scripts/automation/setup/pyproject.toml
     "networkx>=3.6.1",
     "google-api-python-client>=2.195.0",
     "google-auth>=2.50.0",
     "google-auth-oauthlib>=1.3.1",
     "pyjwt>=2.12.1",
     "pydantic-settings>=2.16.2",
+=======
+
+    # Authentication & Settings
+    "pydantic-settings>=2.0.0",
+    "pyotp>=2.9.0",
+    "qrcode>=7.4.2",
+
+    # Utilities
+    "psutil>=6.0.0",
+>>>>>>> align-pr-471-head:setup/pyproject.toml
 ]
 
 [project.optional-dependencies]
@@ -136,6 +147,7 @@ include-package-data = false
 
 [tool.setuptools.packages.find]
 where = ["src"]
+<<<<<<< HEAD:scripts/automation/setup/pyproject.toml
 
 # Environment markers for conditional dependencies
 # Note: uv doesn't support marker configuration in pyproject.toml
@@ -144,3 +156,5 @@ where = ["src"]
 [[tool.uv.index]]
 name = "pytorch-cpu"
 url = "https://download.pytorch.org/whl/cpu"
+=======
+>>>>>>> align-pr-471-head:setup/pyproject.toml
