@@ -1,6 +1,6 @@
 # Task 012.13: Develop Workflow State Persistence & Recovery Mechanisms
 
-**Status:** pending
+**Status:** specified
 **Priority:** high
 **Effort:** TBD
 **Complexity:** TBD
@@ -35,17 +35,33 @@
 ### Task Interface
 - **ID**: 012.13
 - **Title**: Develop Workflow State Persistence & Recovery Mechanisms
-- **Status**: pending
+- **Status**: specified
 - **Priority**: high
 - **Effort**: TBD
 - **Complexity**: TBD
 
 ### Requirements
-Requirements to be specified
+1. The state document is versioned (`schema_version`) and validated on load; an unknown version is
+   refused with the expected value, not migrated silently.
+2. Writes are atomic (`tempfile` + `os.replace`) and the file is `fsync`ed before the replace, so a
+   power loss cannot leave a half-written plan.
+3. The state file records the orchestrator's own commit sha at run start, so a resume is refused if
+   the orchestrator changed underneath it.
+4. Recovery from a corrupt or missing state file is an explicit command (`--rebuild-state`) that
+   reconstructs what it can from git and says what it could not recover.
 
 ## Implementation Guide
 
-Implementation guide to be defined
+Put the schema and its validation in `scripts/alignment/run_state.py` with a dataclass or a JSON
+Schema file checked in beside it.
+
+```bash
+python -c "import json;d=json.load(open('docs/alignment-run.json'));print(d.get('schema_version'))"
+python scripts/alignment/orchestrator.py --rebuild-state --from-ref origin/main
+```
+
+Corrupt the file deliberately (`printf '{' > docs/alignment-run.json`) and confirm the message names
+the file and the expected schema version.
 
 
 ### 012.13. Develop Workflow State Persistence & Recovery Mechanisms

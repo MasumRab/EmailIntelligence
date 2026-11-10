@@ -1,6 +1,6 @@
 # Task 012.8: Integrate Branch Alignment Logic (Tasks 009 & 010) into Workflow
 
-**Status:** pending
+**Status:** specified
 **Priority:** high
 **Effort:** TBD
 **Complexity:** TBD
@@ -35,17 +35,32 @@
 ### Task Interface
 - **ID**: 012.8
 - **Title**: Integrate Branch Alignment Logic (Tasks 009 & 010) into Workflow
-- **Status**: pending
+- **Status**: specified
 - **Priority**: high
 - **Effort**: TBD
 - **Complexity**: TBD
 
 ### Requirements
-Requirements to be specified
+1. The alignment stage dispatches to task 009 or 010 by the branch's category, and the dispatch rule
+   is written down rather than inferred from the branch name.
+2. The stage stops on a conflict and hands control back to the operator, because a script that
+   auto-resolves aligns the wrong thing silently -- the same reason
+   `src/cli/commands/git/auto_resolve.py` does not claim success while unimplemented.
+3. The stage records which of the two implementations ran and its exit code in the run state.
+4. A branch that is already up to date (`commits_ahead == 0`) is skipped with a recorded reason, not
+   run through the aligner.
 
 ## Implementation Guide
 
-Implementation guide to be defined
+Implement `scripts/alignment/orchestrator.py align`. Call the task 009/010 entry points directly;
+the checked-in alignment helper today is `scripts/alignment/check_alignment.py`.
+
+```bash
+python scripts/alignment/orchestrator.py align --plan docs/alignment-run.json --branch <name> --dry-run
+```
+
+Assert the recorded `implementation` field matches the category in a unit test with a table of
+branch/category/expected-implementation rows.
 
 
 ### 012.8. Integrate Branch Alignment Logic (Tasks 009 & 010) into Workflow

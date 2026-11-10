@@ -1,6 +1,6 @@
 # Task 008.5: Develop and Implement End-to-End Smoke Tests
 
-**Status:** pending
+**Status:** specified
 **Priority:** high
 **Effort:** 4-5 hours
 **Complexity:** 6/10
@@ -38,17 +38,33 @@ Create smoke tests that verify core application functionality.
 ### Task Interface
 - **ID**: 008.5
 - **Title**: Develop and Implement End-to-End Smoke Tests
-- **Status**: pending
+- **Status**: specified
 - **Priority**: high
 - **Effort**: 4-5 hours
 - **Complexity**: 6/10
 
 ### Requirements
-Requirements to be specified
+1. The smoke tests live in `tests/test_e2e_subset.py`'s directory and are marked
+   `@pytest.mark.smoke`, so they can be selected (`-m smoke`) without running the full suite.
+2. Each smoke test asserts an observable outcome -- an HTTP status and a response body field, or a
+   CLI exit code and its stdout -- and never merely that a call did not raise.
+3. The suite boots the application once per session (a session-scoped fixture) and fails loudly if
+   the app cannot start; a smoke test that skips itself when the app is unreachable proves nothing.
+4. A smoke test that needs credentials is skipped only when the variable is absent *and* the skip
+   reason names the variable.
 
 ## Implementation Guide
 
-Implementation guide to be defined
+Extend `tests/test_e2e_subset.py` rather than adding a second e2e file. Register the `smoke` marker
+in `pyproject.toml` under `[tool.pytest.ini_options] markers` so `-m smoke` does not emit
+`PytestUnknownMarkWarning`.
+
+```bash
+uv run pytest tests/test_e2e_subset.py -m smoke -v
+```
+
+Before declaring the suite green, revert one assertion and confirm the run goes red -- a smoke test
+that cannot fail is not a test. See [[a-test-that-never-enables-the-feature-proves-nothing]].
 
 
 ## Purpose

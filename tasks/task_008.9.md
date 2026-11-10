@@ -1,6 +1,6 @@
 # Task 008.9: Configure GitHub Branch Protection Rules
 
-**Status:** pending
+**Status:** specified
 **Priority:** high
 **Effort:** 1-2 hours
 **Complexity:** 3/10
@@ -38,17 +38,34 @@ Configure branch protection to require validation checks.
 ### Task Interface
 - **ID**: 008.9
 - **Title**: Configure GitHub Branch Protection Rules
-- **Status**: pending
+- **Status**: specified
 - **Priority**: high
 - **Effort**: 1-2 hours
 - **Complexity**: 3/10
 
 ### Requirements
-Requirements to be specified
+1. The required status checks are named exactly as the workflow's job names (task 008.2), and the
+   requirement lists them, because a required check whose name does not exist blocks every merge
+   silently.
+2. The rule set is applied to `main` and recorded in the repository as code
+   (`.github/branch-protection.json` plus a script that applies it with `gh api`), not as a screenshot
+   of the settings page.
+3. Required checks are enabled together with "Require branches to be up to date before merging", and
+   the requirement acknowledges the cost: every merge invalidates other PRs' green runs.
+4. `enforce_admins` is stated explicitly. Setting it `false` means the protection does not bind the
+   people most likely to need it.
 
 ## Implementation Guide
 
-Implementation guide to be defined
+Write the JSON and a `scripts/apply_branch_protection.py` that PUTs it to
+`repos/{owner}/{repo}/branches/main/protection`. Read the current settings first and diff.
+
+```bash
+gh api repos/MasumRab/EmailIntelligence/branches/main/protection > reports/protection-before.json
+```
+
+Do not apply it as part of this task's PR; the requirement is the file and the diff, and applying it
+is a separate, announced change.
 
 
 ## Purpose

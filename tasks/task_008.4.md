@@ -1,6 +1,6 @@
 # Task 008.4: Integrate Existing Unit and Integration Tests
 
-**Status:** pending
+**Status:** specified
 **Priority:** high
 **Effort:** 3-4 hours
 **Complexity:** 5/10
@@ -38,17 +38,32 @@ Configure CI to execute full test suite and block on failures.
 ### Task Interface
 - **ID**: 008.4
 - **Title**: Integrate Existing Unit and Integration Tests
-- **Status**: pending
+- **Status**: specified
 - **Priority**: high
 - **Effort**: 3-4 hours
 - **Complexity**: 5/10
 
 ### Requirements
-Requirements to be specified
+1. The existing suite is invoked with the same path list and flags CI uses
+   (`tests/ src/ modules/`, `--cov-fail-under=70`), so the new gate cannot pass on a subset.
+2. The gate treats a collection error as a failure. `pytest` exits 2 on a collection error and 1 on
+   a test failure; a gate that only tests `!= 0` is correct, a gate that greps for "failed" is not.
+3. The per-test result is captured in `junitxml` form (`--junitxml=reports/junit.xml`) and attached
+   as a workflow artifact, so a failure can be attributed to a named test rather than a count.
+4. Tests that are known-red at the base commit are listed explicitly with their ids, not silenced
+   with a skip marker added in the same PR.
 
 ## Implementation Guide
 
-Implementation guide to be defined
+Add the step to `.github/workflows/merge-validation.yml` and reuse `ci.yml`'s flags verbatim.
+
+```bash
+uv run pytest tests/ src/ modules/ -v --tb=short --junitxml=reports/junit.xml   --cov=src --cov=modules --cov-fail-under=70; echo "exit=$?"
+```
+
+Run it once on `main` before wiring the gate. The exit code on an unmodified tree is the baseline
+the gate has to beat; if it is already non-zero, that is the first finding, not a reason to add
+`a swallow`.
 
 
 ## Purpose

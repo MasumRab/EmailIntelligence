@@ -1,6 +1,6 @@
 # Task 012.7: Integrate Backup Procedure (Task 006) into Workflow
 
-**Status:** pending
+**Status:** specified
 **Priority:** high
 **Effort:** TBD
 **Complexity:** TBD
@@ -35,17 +35,33 @@
 ### Task Interface
 - **ID**: 012.7
 - **Title**: Integrate Backup Procedure (Task 006) into Workflow
-- **Status**: pending
+- **Status**: specified
 - **Priority**: high
 - **Effort**: TBD
 - **Complexity**: TBD
 
 ### Requirements
-Requirements to be specified
+1. The backup stage calls `scripts/branch_ref_backup.py`'s `snapshot()` (or its CLI) before the
+   first stage that can move a ref, and records the backup file path in the run state.
+2. The stage verifies the backup exists and is non-empty after writing, and aborts the run if it is
+   not, because a missing backup turns the first failure into data loss.
+3. The restore path is exercised by a test on a scratch branch: create, snapshot, move the branch,
+   restore, assert the sha is the original one.
+4. Backups are written under a run-scoped name that includes the branch and the timestamp, so a
+   second run does not overwrite the first run's recovery point.
 
 ## Implementation Guide
 
-Implementation guide to be defined
+Use `scripts/branch_ref_backup.py` -- it already exposes `snapshot(backup_file=...)`,
+`restore(backup_file=...)` and an argparse CLI. Extend `tests/test_branch_ref_backup.py` with the
+move-and-restore case.
+
+```bash
+python scripts/branch_ref_backup.py snapshot --file backups/<branch>-<ts>.json
+python scripts/branch_ref_backup.py restore --file backups/<branch>-<ts>.json
+```
+
+Do not re-implement the file format; the existing module's format is what the tests assert.
 
 
 ### 012.7. Integrate Backup Procedure (Task 006) into Workflow

@@ -1,6 +1,6 @@
 # Task 008.8: Consolidate Validation Results and Reporting
 
-**Status:** pending
+**Status:** specified
 **Priority:** high
 **Effort:** 2-3 hours
 **Complexity:** 4/10
@@ -38,17 +38,33 @@ Aggregate results from all validation layers into unified report.
 ### Task Interface
 - **ID**: 008.8
 - **Title**: Consolidate Validation Results and Reporting
-- **Status**: pending
+- **Status**: specified
 - **Priority**: high
 - **Effort**: 2-3 hours
 - **Complexity**: 4/10
 
 ### Requirements
-Requirements to be specified
+1. Every check writes a result fragment (`reports/<check>.json`) with `status` in
+   `pass|fail|skip`, `count` and `duration_s`; the reporter merges fragments without re-running any
+   check.
+2. A check that produced no fragment is reported as `fail`, not omitted, so a crashed step cannot
+   disappear from the summary.
+3. The summary is posted as a PR comment that is updated in place (identified by a hidden marker
+   comment) rather than appended, so a rebased PR does not accumulate one comment per push.
+4. The merge recommendation is derived from the fragments and is one of three values -- `merge`,
+   `merge with warnings`, `block` -- and the rule for each is written down.
 
 ## Implementation Guide
 
-Implementation guide to be defined
+Create `scripts/validation_report.py`. Read ``reports/*.json``, never the GitHub API, for status; use
+the API only to post the comment.
+
+```bash
+python scripts/validation_report.py --reports reports/ --format markdown
+gh pr comment <n> --body-file reports/summary.md
+```
+
+Test the "missing fragment" path by deleting one report and confirming the summary says `fail`.
 
 
 ## Purpose

@@ -1,6 +1,6 @@
-# Task 012.11: Integrate Documentation Generation (Task 008) into Workflow
+# Task 012.11: Integrate Documentation Generation (Task 015) into Workflow
 
-**Status:** pending
+**Status:** specified
 **Priority:** high
 **Effort:** TBD
 **Complexity:** TBD
@@ -34,21 +34,35 @@
 
 ### Task Interface
 - **ID**: 012.11
-- **Title**: Integrate Documentation Generation (Task 008) into Workflow
-- **Status**: pending
+- **Title**: Integrate Documentation Generation (Task 015) into Workflow
+- **Status**: specified
 - **Priority**: high
 - **Effort**: TBD
 - **Complexity**: TBD
 
 ### Requirements
-Requirements to be specified
+1. The documentation stage invokes task 015 (`CHANGES_SUMMARY.md` generation) after validation, and
+   the cross-reference is to task 015, not task 008 -- task 008 is the merge validation framework.
+2. The generated summary is written to the branch's worktree, and the stage records its path and
+   size in the run state.
+3. The stage refuses to overwrite an existing `CHANGES_SUMMARY.md` unless `--force` is passed.
+4. A summary shorter than a stated minimum (for example 200 characters) is treated as generation
+   failure, because an empty template would otherwise be committed as documentation.
 
 ## Implementation Guide
 
-Implementation guide to be defined
+Fix the title's "(Task 008)" to "(Task 015)" in the heading, the `### Task Interface` block and the
+section sub-heading, then implement the stage in `scripts/alignment/orchestrator.py document`.
+
+```bash
+python scripts/alignment/orchestrator.py document --plan docs/alignment-run.json --branch <name>
+wc -c CHANGES_SUMMARY.md
+```
+
+Task 015 is the documentation generator; the checked-in helper today is `scripts/doc_generator.py`.
 
 
-### 012.11. Integrate Documentation Generation (Task 008) into Workflow
+### 012.11. Integrate Documentation Generation (Task 015) into Workflow
 
 **Status:** pending  
 **Dependencies:** 012.6, 012.10  

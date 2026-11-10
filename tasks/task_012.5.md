@@ -1,6 +1,6 @@
 # Task 012.5: Develop Priority Assignment Algorithms for Alignment Sequence
 
-**Status:** pending
+**Status:** specified
 **Priority:** high
 **Effort:** TBD
 **Complexity:** TBD
@@ -35,17 +35,33 @@
 ### Task Interface
 - **ID**: 012.5
 - **Title**: Develop Priority Assignment Algorithms for Alignment Sequence
-- **Status**: pending
+- **Status**: specified
 - **Priority**: high
 - **Effort**: TBD
 - **Complexity**: TBD
 
 ### Requirements
-Requirements to be specified
+1. The ordering is a pure function of the branch list, so it can be unit-tested without git. Inputs:
+   `commits_ahead`, `files_changed`, category, and whether the branch touches the same files as an
+   earlier branch.
+2. The comparator is stated as a tuple, for example `(category_rank, -commits_ahead, files_changed)`,
+   because "most important first" is not implementable.
+3. Branches sharing files are ordered adjacent, so the conflicts surface in one pass rather than at
+   the end of the run.
+4. Ties are broken deterministically by branch name, so two runs on the same input agree. The existing
+   `tests/test_branch_sequence.py` covers sequencing and is the place to extend.
 
 ## Implementation Guide
 
-Implementation guide to be defined
+Put the comparator in `scripts/alignment/priorities.py` and extend `tests/test_branch_sequence.py`.
+
+```bash
+uv run pytest tests/test_branch_sequence.py -v
+python -c "from scripts.alignment.priorities import order; print(order(...))"
+```
+
+Add a test with two branches whose every other input is identical and assert the name decides; that
+is the only assertion that proves determinism.
 
 
 ### 012.5. Develop Priority Assignment Algorithms for Alignment Sequence

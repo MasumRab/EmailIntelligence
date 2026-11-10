@@ -1,6 +1,6 @@
 # Task 012.12: Implement Pause, Resume, and Cancellation Mechanisms
 
-**Status:** pending
+**Status:** specified
 **Priority:** high
 **Effort:** TBD
 **Complexity:** TBD
@@ -35,17 +35,32 @@
 ### Task Interface
 - **ID**: 012.12
 - **Title**: Implement Pause, Resume, and Cancellation Mechanisms
-- **Status**: pending
+- **Status**: specified
 - **Priority**: high
 - **Effort**: TBD
 - **Complexity**: TBD
 
 ### Requirements
-Requirements to be specified
+1. `SIGINT` (Ctrl-C) leaves the run state consistent: the current item is marked `failed` with
+   `last_error: interrupted`, never left `running` with no explanation.
+2. Resume reads the state file and continues from the first non-`done` item; it never restarts a
+   `done` item, which would duplicate side effects.
+3. Cancellation is a separate command that flips a flag in the state file, so a run can be stopped
+   from a second terminal without killing the process outright.
+4. Pause happens only between items, never mid-stage; the requirement says what happens if a stage
+   is long-running (it finishes, then the run pauses).
 
 ## Implementation Guide
 
-Implementation guide to be defined
+Implement with a `signal` handler and an `--resume` flag in `scripts/alignment/orchestrator.py`.
+Write a test that spawns the orchestrator against a stub stage that sleeps, sends `SIGINT`, and
+asserts the state file.
+
+```bash
+python scripts/alignment/orchestrator.py run --plan docs/alignment-run.json --resume
+```
+
+Run the test twice: once interrupting during a stage, once between stages.
 
 
 ### 012.12. Implement Pause, Resume, and Cancellation Mechanisms

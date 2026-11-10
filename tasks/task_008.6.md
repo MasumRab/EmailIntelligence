@@ -1,6 +1,6 @@
 # Task 008.6: Implement Performance Benchmarking for Critical Endpoints
 
-**Status:** pending
+**Status:** specified
 **Priority:** high
 **Effort:** 4-5 hours
 **Complexity:** 6/10
@@ -38,17 +38,35 @@ Set up performance benchmarking to detect regressions.
 ### Task Interface
 - **ID**: 008.6
 - **Title**: Implement Performance Benchmarking for Critical Endpoints
-- **Status**: pending
+- **Status**: specified
 - **Priority**: high
 - **Effort**: 4-5 hours
 - **Complexity**: 6/10
 
 ### Requirements
-Requirements to be specified
+1. The benchmark harness names the endpoints it measures and records wall-clock latency at a fixed
+   concurrency, writing results to `reports/benchmark.json` with `name`, `p50_ms`, `p95_ms` and
+   `iterations`.
+2. No benchmark infrastructure exists in the repository today, so the requirement includes creating
+   it and stating the library (either `pytest-benchmark` or a `time.perf_counter()` loop); a
+   threshold with no harness is not a requirement.
+3. The gate compares against a stored baseline and fails only on a regression beyond a named ratio
+   (for example p95 > 1.5x baseline). An absolute threshold on CI hardware is not stable enough to
+   block a merge.
+4. Benchmarks do not run in the PR gate by default; they run on `workflow_dispatch` and nightly, and
+   the requirement says so, because a flaky timing gate blocks every PR equally.
 
 ## Implementation Guide
 
-Implementation guide to be defined
+Create `tests/benchmarks/` and a `bench` marker. Record the baseline on a fixed commit and commit
+the JSON next to the harness.
+
+```bash
+uv run pytest tests/benchmarks -m bench -v --benchmark-json=reports/benchmark.json
+git log -1 --format=%H > reports/benchmark-baseline-commit.txt
+```
+
+Compare two runs with the same code to see the run-to-run spread before choosing any ratio.
 
 
 ## Purpose
