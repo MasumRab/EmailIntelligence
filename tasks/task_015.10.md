@@ -1,6 +1,6 @@
 # Task 015.10: Unit Testing and Validation
 
-**Status:** pending
+**Status:** specified
 **Priority:** high
 **Effort:** TBD
 **Complexity:** TBD
@@ -10,7 +10,8 @@
 
 ## Overview/Purpose
 
-[Overview to be defined]
+The suite for this group must prove the failure it exists to catch: a rebase that drops a commit and
+still passes every test. If no test can fail that way, the validation is decoration.
 
 ## Success Criteria
 
@@ -41,11 +42,22 @@
 - **Complexity**: TBD
 
 ### Requirements
-Requirements to be specified
+1. A fixture repository where a rebase legitimately drops a commit produces a failing integrity
+   result naming the commit subject.
+2. A fixture where a conflict resolution removes a public function produces a failing symbol check.
+3. A tree containing `<<<<<<<` fails detection even though it parses as Python.
+4. The tests are `tests/test_validation_integrity.py` and run under CI's `tests/` path list.
 
 ## Implementation Guide
 
-Implementation guide to be defined
+Write `tests/test_validation_integrity.py`, building fixtures with `git init` in `tmp_path`.
+
+```bash
+uv run pytest tests/test_validation_integrity.py -v
+```
+
+For requirement 3, confirm the premise first: `python -c "import ast;ast.parse('<<<<<<< HEAD\\nx=1\\n')"`
+succeeds, which is why a parser cannot be the detector.
 
 
 ### 015.10. Unit Testing and Validation

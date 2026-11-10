@@ -1,6 +1,6 @@
 # Task 015.3: Develop Integrity Verification Mechanisms
 
-**Status:** pending
+**Status:** specified
 **Priority:** high
 **Effort:** TBD
 **Complexity:** TBD
@@ -10,7 +10,8 @@
 
 ## Overview/Purpose
 
-[Overview to be defined]
+Integrity is the symbol level: a rebase can keep every commit and still lose a function, when a
+conflict is resolved by taking one side wholesale. Line-level comparison does not see it.
 
 ## Success Criteria
 
@@ -41,11 +42,27 @@
 - **Complexity**: TBD
 
 ### Requirements
-Requirements to be specified
+1. The check extracts the public symbol set (functions, classes, module-level constants) from the
+   branch before and after, parses with `ast`, and reports symbols present before and absent after.
+2. An absent symbol fails the stage unless the commit that removed it is identified, and the report
+   names the commit -- a deliberate deletion is fine, an unexplained one is the defect.
+3. The comparison reads both trees from git (`git show <ref>:<path>`), so it does not depend on the
+   worktree being checked out to either side.
+4. A file that fails to parse is reported as an error, not skipped: this repository has shipped files
+   with conflict markers left in them.
 
 ## Implementation Guide
 
-Implementation guide to be defined
+Write `scripts/verify_integrity.py` using `ast`. Compare `git show <pre-rebase>:<path>` with
+`git show <post-rebase>:<path>`.
+
+```bash
+python scripts/verify_integrity.py --before <old-head> --after <new-head>
+git show <ref>:src/core/auth.py | python -c "import ast,sys; ast.parse(sys.stdin.read())"
+```
+
+`ast.parse` is enough for symbol extraction but not for syntax validity: `await` outside `async def`
+parses. Use `compile()` where the question is "is this valid Python".
 
 
 ### 015.3. Develop Integrity Verification Mechanisms

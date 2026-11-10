@@ -1,6 +1,6 @@
 # Task 015.8: Develop Validation Performance Optimization
 
-**Status:** pending
+**Status:** specified
 **Priority:** high
 **Effort:** TBD
 **Complexity:** TBD
@@ -10,7 +10,8 @@
 
 ## Overview/Purpose
 
-[Overview to be defined]
+Validation runs on every stage, so its cost is a design input. The optimisation this task wants is
+caching keyed on content, not skipping checks when they are slow.
 
 ## Success Criteria
 
@@ -41,11 +42,23 @@
 - **Complexity**: TBD
 
 ### Requirements
-Requirements to be specified
+1. `scripts/validation_cache.py` is the cache: a check's result is keyed on the tree hash of the
+   content it reads (`git rev-parse <ref>:<path>` set), not on branch names or timestamps.
+2. A cache hit is only valid when the key includes the tool version and the configuration; a
+   changed threshold with a stale result is the failure this rule prevents.
+3. The cache is never consulted for the integrity checks of 015.2/015.3, which are cheap and whose
+   staleness would be silent.
+4. Cache hits and misses are reported per stage, so an unexpectedly fast run is visible.
 
 ## Implementation Guide
 
-Implementation guide to be defined
+Extend `scripts/validation_cache.py`; read it first to see the key it uses today.
+
+```bash
+grep -n "def \|key" scripts/validation_cache.py | head -20
+```
+
+Add a test that changes a threshold with the tree unchanged and asserts a cache miss.
 
 
 ### 015.8. Develop Validation Performance Optimization

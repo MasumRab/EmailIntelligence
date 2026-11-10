@@ -1,6 +1,6 @@
 # Task 015.1: Design Validation Architecture
 
-**Status:** pending
+**Status:** specified
 **Priority:** high
 **Effort:** TBD
 **Complexity:** TBD
@@ -10,7 +10,9 @@
 
 ## Overview/Purpose
 
-[Overview to be defined]
+Group 015 is the verification half of an alignment: it answers "is the rebased branch still the branch
+it was, plus the target's changes?" That is a different question from "does the code pass", and the
+architecture has to keep both.
 
 ## Success Criteria
 
@@ -41,11 +43,22 @@
 - **Complexity**: TBD
 
 ### Requirements
-Requirements to be specified
+1. The design separates three question types -- integrity (nothing was lost), correctness (the suite
+   passes), quality (metrics did not regress) -- and gives each its own command and exit code.
+2. Integrity is checked first, because a branch that lost a commit can still pass every test.
+3. The design states what "nothing was lost" means operationally: the set of patches, the set of
+   changed files, and the set of public symbols, each compared before and after.
+4. It names the existing pieces it builds on (`scripts/merge_validator.py`,
+   `scripts/parallel_validator.py`, `scripts/validation_cache.py`) and what each already does.
 
 ## Implementation Guide
 
-Implementation guide to be defined
+Write `docs/validation-architecture.md`. Compare with group 011's gates document -- 011 asks *when*
+each check runs in the pipeline, 015 asks *what* the checks prove.
+
+```bash
+grep -n "def \|class " scripts/merge_validator.py scripts/parallel_validator.py scripts/validation_cache.py
+```
 
 
 ### 015.1. Design Validation Architecture

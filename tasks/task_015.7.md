@@ -1,6 +1,6 @@
 # Task 015.7: Implement Validation Configuration
 
-**Status:** pending
+**Status:** specified
 **Priority:** high
 **Effort:** TBD
 **Complexity:** TBD
@@ -10,7 +10,8 @@
 
 ## Overview/Purpose
 
-[Overview to be defined]
+Thresholds and enabled checks are the settings most likely to be edited under pressure, so they must
+be in one file, validated, and printed at run start.
 
 ## Success Criteria
 
@@ -41,11 +42,23 @@
 - **Complexity**: TBD
 
 ### Requirements
-Requirements to be specified
+1. Thresholds live in one configuration file with defaults, and no threshold literal appears in the
+   check implementations.
+2. Each threshold has a stated valid range; a value outside it fails at load with the accepted range.
+3. Disabling a required check is not a configuration option; only advisory checks can be turned off,
+   and the list of what was disabled is printed and recorded.
+4. The effective configuration is part of the report from 015.6, so a reviewer sees the thresholds
+   that were actually used.
 
 ## Implementation Guide
 
-Implementation guide to be defined
+Put the settings beside `config/alignment.yaml` (task 013.7) and load them through one module.
+
+```bash
+python scripts/quality_metrics.py config --show
+```
+
+Test the out-of-range path with a coverage threshold of 101 and confirm the message names the range.
 
 
 ### 015.7. Implement Validation Configuration
