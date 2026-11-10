@@ -57,3 +57,18 @@ class EmailNotFoundException(BaseAppException):
         else:
             detail = "Email not found"
         super().__init__(status_code=404, detail=detail)
+
+
+class EmailIntelligenceException(BaseAppException):
+    """Base for the git/analysis exception tree ported from orchestration-tools."""
+
+    def __init__(self, detail: str, status_code: int = 500):
+        super().__init__(status_code, detail)
+
+
+class GitOperationError(EmailIntelligenceException):
+    """Raised when git operations fail."""
+
+
+class ConflictDetectionError(EmailIntelligenceException):
+    """Raised when conflict detection fails."""
