@@ -142,6 +142,31 @@ def create_registry(factory: Optional[CommandFactory] = None) -> CommandRegistry
     from .infra.backup import BackupCommand
     from .infra.install_tools import InstallToolsCommand
     from .infra.verify import VerifyCommand
+    from .agent.rule_sync import RuleSyncCommand
+    from .agent.scaffold import AgentScaffoldCommand
+    from .analysis.code_audit import AnalyzeCodeCommand
+    from .analysis.compare import CompareCommand
+    from .analysis.validate import ValidateCommand as CodeValidateCommand
+    from .git.analyze import AnalyzeCommand as GitAnalyzeCommand
+    from .git.align import GitAlignCommand
+    from .git.auto_resolve import GitAutoResolveCommand
+    from .git.branch_health import BranchHealthCommand
+    from .git.conflict_bisect import ConflictBisectCommand
+    from .git.conflicts import GitConflictsCommand
+    from .git.detect_rebased import DetectRebasedCommand
+    from .git.discover import GitDiscoverCommand
+    from .git.logic_drift import LogicDriftAnalyzerCommand
+    from .git.merge_semantic import GitMergeSemanticCommand
+    from .git.merge_smart import MergeSmartCommand
+    from .git.pr_extract import OrchExtractCommand
+    from .git.stash_resolve import StashResolveCommand
+    from .git.resolve import ResolveCommand as GitResolveCommand
+    from .git.topology import TopologyMapperCommand
+    from .git.verify_merge import VerifyMergeCommand
+    from .task.analyze_tasks import AnalyzeTasksCommand
+    from .task.cluster_branches import ClusterBranchesCommand
+    from .task.list_tasks import ListTasksCommand
+    from .task.taskmaster import TaskmasterCommand
 
     cmd_factory = factory or create_command_factory()
     registry = CommandRegistry(cmd_factory)
@@ -163,6 +188,33 @@ def create_registry(factory: Optional[CommandFactory] = None) -> CommandRegistry
     registry.register_command(BackupCommand, agent="infra")
     registry.register_command(InstallToolsCommand, agent="infra")
     registry.register_command(VerifyCommand, agent="infra")
+
+    # agent / analysis / git / task families (from cli-tree-followup)
+    registry.register_command(RuleSyncCommand, agent="agent")
+    registry.register_command(AgentScaffoldCommand, agent="agent")
+    registry.register_command(AnalyzeCodeCommand, agent="analysis")
+    registry.register_command(CompareCommand, agent="analysis")
+    registry.register_command(CodeValidateCommand, agent="analysis")
+    registry.register_command(GitAnalyzeCommand, agent="git")
+    registry.register_command(GitAlignCommand, agent="git")
+    registry.register_command(GitAutoResolveCommand, agent="git")
+    registry.register_command(BranchHealthCommand, agent="git")
+    registry.register_command(ConflictBisectCommand, agent="git")
+    registry.register_command(GitConflictsCommand, agent="git")
+    registry.register_command(DetectRebasedCommand, agent="git")
+    registry.register_command(GitDiscoverCommand, agent="git")
+    registry.register_command(LogicDriftAnalyzerCommand, agent="git")
+    registry.register_command(GitMergeSemanticCommand, agent="git")
+    registry.register_command(MergeSmartCommand, agent="git")
+    registry.register_command(OrchExtractCommand, agent="git")
+    registry.register_command(StashResolveCommand, agent="git")
+    registry.register_command(GitResolveCommand, agent="git")
+    registry.register_command(TopologyMapperCommand, agent="git")
+    registry.register_command(VerifyMergeCommand, agent="git")
+    registry.register_command(AnalyzeTasksCommand, agent="task")
+    registry.register_command(ClusterBranchesCommand, agent="task")
+    registry.register_command(ListTasksCommand, agent="task")
+    registry.register_command(TaskmasterCommand, agent="task")
 
     return registry
 

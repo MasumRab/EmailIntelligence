@@ -1,228 +1,352 @@
-#!/usr/bin/env python3
 """
-Branch Health Analysis Command
+Branch Health Command Module
 
-Analyzes the health of Git branches by checking for:
-- Merge conflict markers
-- Unresolved TODO/FIXME comments
-- Build/test failures in recent commits
-- Commit message quality issues
+Implements the branch-health command for pre-rebase health analysis.
 """
 
-import subprocess
+from argparse import Namespace
+from typing import Any, Dict, List
 from pathlib import Path
-from typing import Optional, List, Dict, Any
+
+from ..interface import Command
+
+try:
+    import yaml
+
+    YAML_AVAILABLE = True
+except ImportError:
+    YAML_AVAILABLE = False
 
 
-class BranchHealthCommand:
+class BranchHealthCommand(Command):
     """
-    Command to analyze Git branch health and identify potential issues.
+    Command for analyzing branch health before rebasing.
+
+    This command wraps RebaseAnalyzer to provide health scores and
+    risk factors to help developers plan rebase strategies.
     """
 
-    def __init__(self, path: str, branch: Optional[str] = None):
-        self.repo_path = Path(path).resolve()
-        self.branch = branch
-        self.issues: List[Dict[str, Any]] = []
+    def __init__(self):
+        self._analyzer = None
+        self._repo_ops = None
 
-    def _run_git(self, args: List[str]) -> str:
-        """Run a git command and return output."""
-        result = subprocess.run(
-            ["git"] + args,
-            cwd=self.repo_path,
-            capture_output=True,
-            text=True,
-            check=False,
+    @property
+    def name(self) -> str:
+        return "branch-health"
+
+    @property
+    def description(self) -> str:
+        return "Analyze branch health and predict rebase difficulty"
+
+    def add_arguments(self, parser: Any) -> None:
+        """Add command-specific arguments."""
+        parser.add_argument(
+            "branch",
+            nargs="?",
+            help="Branch to analyze (default: current branch)",
+            default=None,
         )
-        return result.stdout.strip()
-
-    def _check_conflict_markers(self) -> None:
-        """Check for unresolved merge conflict markers."""
-        markers = ["<<<<<<<", "=======", ">>>>>>>"]
-        for marker in markers:
-            output = self._run_git(
-                [
-                    "grep",
-                    "-r",
-                    f"^{marker}",
-                    "--include=*.py",
-                    "--include=*.md",
-                    "--include=*.yml",
-                    "--include=*.yaml",
-                    ".",
-                ]
-            )
-            if output:
-                for line in output.split("\n"):
-                    if line.strip():
-                        self.issues.append(
-                            {
-                                "type": "conflict_marker",
-                                "severity": "critical",
-                                "message": f"Unresolved conflict marker: {line.strip()}",
-                                "file": line.split(":")[0]
-                                if ":" in line
-                                else "unknown",
-                            }
-                        )
-
-    def _check_todo_comments(self) -> None:
-        """Check for unresolved TODO and FIXME comments."""
-        output = self._run_git(
-            [
-                "grep",
-                "-r",
-                "-n",
-                "TODO\\|FIXME\\|XXX\\|HACK",
-                "--include=*.py",
-                "--include=*.md",
-                ".",
-            ]
+        parser.add_argument(
+            "--target",
+            "-t",
+            help="Target branch to compare against (default: main)",
+            default="main",
         )
-        if output:
-            for line in output.split("\n"):
-                if line.strip():
-                    parts = line.split(":")
-                    self.issues.append(
-                        {
-                            "type": "todo_comment",
-                            "severity": "warning",
-                            "message": f"Unresolved {line.split()[0]} comment",
-                            "file": parts[0] if len(parts) > 0 else "unknown",
-                            "line": parts[1] if len(parts) > 1 else "unknown",
-                        }
-                    )
-
-    def _check_build_status(self) -> None:
-        """Check for build failures in recent commits."""
-        output = self._run_git(
-            [
-                "log",
-                "--oneline",
-                "-20",
-                "--all",
-                "--grep=build\\|test\\|ci",
-                "--grep=fail\\|error",
-                "--oneline",
-            ]
+        parser.add_argument(
+            "--json", action="store_true", help="Output results in JSON format"
         )
-        if output:
-            self.issues.append(
-                {
-                    "type": "build_issues",
-                    "severity": "error",
-                    "message": "Recent build/test failures detected",
-                    "details": output[:500],
-                }
-            )
+        parser.add_argument(
+            "--verbose", "-v", action="store_true", help="Enable verbose output"
+        )
+        parser.add_argument(
+            "--risks-only", action="store_true", help="Show only risk factors"
+        )
+        parser.add_argument(
+            "--output",
+            "-o",
+            help="Output file path (default: stdout)",
+            default=None,
+        )
+        parser.add_argument(
+            "--format",
 
-    def _check_commit_quality(self) -> None:
-        """Check for commit message quality issues."""
-        output = self._run_git(["log", "--oneline", "-10", "--format=%s"])
-        if output:
-            for commit_msg in output.split("\n"):
-                if len(commit_msg.split()) < 3:
-                    self.issues.append(
-                        {
-                            "type": "commit_message",
-                            "severity": "warning",
-                            "message": "Vague commit message",
-                            "commit": commit_msg[:50],
-                        }
-                    )
+            choices=["json", "yaml", "text"],
+            default="json",
+            help="Output format (default: json)",
+        )
 
-    def _check_unmerged_files(self) -> None:
-        """Check for files in merge state."""
-        unmerged = self._run_git(["status", "--porcelain"])
-        if "UU" in unmerged:  # Both modified but not merged
-            self.issues.append(
-                {
-                    "type": "unmerged_files",
-                    "severity": "critical",
-                    "message": "Files with merge conflicts detected",
-                    "count": unmerged.count("UU"),
-                }
-            )
-
-    def analyze(self) -> Dict[str, Any]:
-        """
-        Perform comprehensive branch health analysis.
-
-        Returns:
-            Dict containing health score and detailed issues
-        """
-        self._check_conflict_markers()
-        self._check_todo_comments()
-        self._check_build_status()
-        self._check_commit_quality()
-        self._check_unmerged_files()
-
-        # Calculate health score (lower is better - represents issues)
-        critical_issues = sum(1 for i in self.issues if i["severity"] == "critical")
-        warning_issues = sum(1 for i in self.issues if i["severity"] == "warning")
-
-        health_score = (critical_issues * 10) + warning_issues
-
+    def get_dependencies(self) -> Dict[str, Any]:
+        """Return required dependencies."""
         return {
-            "branch": self.branch or self._run_git(["branch", "--show-current"]),
-            "health_score": health_score,
-            "critical_issues": critical_issues,
-            "warning_issues": warning_issues,
-            "issues": self.issues,
-            "status": "healthy" if health_score == 0 else "needs_attention",
+            "rebase_analyzer": "RebaseAnalyzer",
+            "repository_ops": "RepositoryOperations",
         }
 
-    def print_report(self) -> None:
-        """Print the branch health report to console."""
-        result = self.analyze()
+    def set_dependencies(self, deps: Dict[str, Any]) -> None:
+        """Set dependencies for the command."""
+        self._analyzer = deps.get("rebase_analyzer")
+        self._repo_ops = deps.get("repository_ops")
 
-        print("\n" + "=" * 60)
-        print(f"BRANCH HEALTH REPORT: {result['branch']}")
-        print("=" * 60)
-        print(f"Health Score: {result['health_score']} ({result['status'].upper()})")
-        print(f"Critical Issues: {result['critical_issues']}")
-        print(f"Warning Issues: {result['warning_issues']}")
-        print()
-
-        if result["issues"]:
-            print("🔴 ISSUES FOUND:")
-            for i, issue in enumerate(result["issues"], 1):
-                severity_icon = "🔴" if issue["severity"] == "critical" else "🟡"
-                print(f"\n{i}. {severity_icon} [{issue['type']}] {issue['message']}")
-                if "file" in issue:
-                    print(f"   File: {issue['file']}")
-                if "line" in issue:
-                    print(f"   Line: {issue['line']}")
-                if "details" in issue:
-                    print(f"   Details: {issue['details'][:200]}...")
-        else:
-            print("✅ No issues found. Branch is healthy!")
-
-        print("=" * 60 + "\n")
-
-
-if __name__ == "__main__":
-    import argparse
-
-    parser = argparse.ArgumentParser(description="Analyze Git branch health")
-    parser.add_argument("--path", "-p", default=".", help="Path to repository")
-    parser.add_argument(
-        "--branch", "-b", default=None, help="Branch to analyze (default: current)"
-    )
-    parser.add_argument("--json", action="store_true", help="Output as JSON")
-    parser.add_argument(
-        "--post-resolution", action="store_true", help="Run post-resolution checks"
-    )
-
-    args = parser.parse_args()
-
-    cmd = BranchHealthCommand(args.path, args.branch)
-
-    if args.json:
-        result = cmd.analyze()
+    def _format_output(self, data: Dict[str, Any], output_format: str) -> str:
+        """Format output data in the specified format."""
         import json
 
-        print(json.dumps(result, indent=2))
-    elif args.post_resolution:
-        cmd.print_report()
-    else:
-        cmd.print_report()
+        if output_format == "yaml":
+            if YAML_AVAILABLE:
+                return yaml.dump(data, default_flow_style=False, sort_keys=False)
+            return json.dumps(data, indent=2)
+
+        if output_format == "text":
+            return self._format_text_output(data)
+
+        return json.dumps(data, indent=2)
+
+    def _format_text_output(self, data: Dict[str, Any]) -> str:
+        """Format output as plain text."""
+        lines = []
+        lines.append(f"Branch: {data.get('branch', 'unknown')}")
+        lines.append(f"Target: {data.get('target', 'unknown')}")
+        lines.append(f"Health Score: {data.get('health_score', 0)}/100")
+        if data.get("risks"):
+            lines.append("Risks:")
+            for risk in data.get("risks", []):
+                lines.append(
+                    f"  - [{risk.get('severity', '?')}] {risk.get('message', '')}"
+                )
+        return "\n".join(lines)
+
+    async def execute(self, args: Namespace) -> int:
+        """Execute the branch-health command."""
+        try:
+            from src.services.rebase_analyzer import RebaseAnalyzer
+            from src.git.repository import RepositoryOperations
+
+            branch = args.branch
+            target = args.target
+            repo_path = Path.cwd()
+
+            repo_ops = self._repo_ops
+            if isinstance(repo_ops, type):  # injected as a factory, not an instance
+                repo_ops = repo_ops(repo_path)
+            repo_ops = repo_ops or RepositoryOperations(repo_path)
+
+            if not branch:
+                branch = repo_ops.get_current_branch_sync()
+
+            health_score, risks = self._analyze_branch_health(repo_ops, branch, target)
+
+            output_data = {
+                "branch": branch,
+                "target": target,
+                "health_score": health_score,
+                "risks": risks,
+            }
+
+            output_format = args.format or "json"
+
+            if args.json or output_format in ("json", "yaml"):
+                output_str = self._format_output(output_data, output_format)
+                if args.output:
+                    Path(args.output).write_text(output_str)
+                else:
+                    print(output_str)
+            else:
+                self._print_health_report(
+                    branch, target, health_score, risks, args.risks_only
+                )
+
+            return 0
+
+        except ImportError as e:
+            print(f"Error: Required module not available: {e}")
+            return 1
+        except Exception as e:
+            print(f"Error during branch health analysis: {e}")
+            if hasattr(args, "verbose") and args.verbose:
+                import traceback
+
+                traceback.print_exc()
+            return 1
+
+    def _analyze_branch_health(
+        self, repo_ops, branch: str, target: str
+    ) -> tuple[int, List[Dict[str, str]]]:
+        """Analyze branch health and return score + risks."""
+
+        risks = []
+        score = 100
+
+        try:
+            cmd = ["git", "rev-list", "--left-right", f"{target}...{branch}", "--count"]
+            stdout, stderr, code = repo_ops.run_command_sync(cmd)
+
+            if code == 0 and stdout.strip():
+                parts = stdout.strip().split()
+                if len(parts) >= 2:
+                    ahead = int(parts[0])
+                    behind = int(parts[1])
+
+                    if behind > 0:
+                        risks.append(
+                            {
+                                "type": "divergence",
+                                "severity": "high" if behind > 50 else "medium",
+                                "message": f"Branch is {behind} commits behind {target}",
+                            }
+                        )
+                        score -= min(behind, 50)
+
+                    if ahead > 100:
+                        risks.append(
+                            {
+                                "type": "commit_count",
+                                "severity": "medium",
+                                "message": f"Branch has {ahead} new commits (high divergence risk)",
+                            }
+                        )
+                        score -= 10
+        except Exception as e:
+            risks.append(
+                {
+                    "type": "analysis_error",
+                    "severity": "high",
+                    "message": f"Could not analyze divergence: {e}",
+                }
+            )
+            score -= 20
+
+        try:
+            cmd = ["git", "log", f"{target}..{branch}", "--oneline", "--name-only"]
+            stdout, _, code = repo_ops.run_command_sync(cmd)
+
+            if code == 0 and stdout:
+                files_changed = set()
+                for line in stdout.strip().split("\n"):
+                    if line and not line.startswith(" ") and ":" in line:
+                        continue
+                    if line.strip() and not line[0].isalnum():
+                        files_changed.add(line.strip())
+
+                if len(files_changed) > 50:
+                    risks.append(
+                        {
+                            "type": "file_count",
+                            "severity": "high",
+                            "message": f"Branch modifies {len(files_changed)} files (high conflict probability)",
+                        }
+                    )
+                    score -= 15
+        except Exception as e:
+            import logging; logging.debug(e)
+
+        try:
+            cmd = ["git", "merge-base", target, branch]
+            stdout, _, code = repo_ops.run_command_sync(cmd)
+
+            if code == 0 and stdout.strip():
+                cmd = ["git", "log", f"{stdout.strip()}..{branch}", "--oneline"]
+                merge_commits, _, _ = repo_ops.run_command_sync(cmd)
+                merge_count = len([m for m in merge_commits.split("\n") if m.strip()])
+
+                if merge_count > 10:
+                    risks.append(
+                        {
+                            "type": "rebase_history",
+                            "severity": "low",
+                            "message": f"Branch has {merge_count} merge commits",
+                        }
+                    )
+                    score -= 5
+        except Exception as e:
+            import logging; logging.debug(e)
+
+        try:
+            cmd = ["git", "log", f"{target}..{branch}", "--grep=rebase", "--oneline"]
+            stdout, _, _ = repo_ops.run_command_sync(cmd)
+
+            if stdout.strip():
+                risks.append(
+                    {
+                        "type": "rebase_detected",
+                        "severity": "medium",
+                        "message": "Branch appears to have been rebased",
+                    }
+                )
+                score -= 10
+        except Exception as e:
+            import logging; logging.debug(e)
+
+        score = max(0, min(100, score))
+        return score, risks
+
+    def _print_health_report(
+        self,
+        branch: str,
+        target: str,
+        score: int,
+        risks: List[Dict[str, str]],
+        risks_only: bool = False,
+    ) -> None:
+        """Print health report in a readable format."""
+
+        if not risks_only:
+            print(f"\n=== Branch Health Report ===")
+            print(f"Branch: {branch}")
+            print(f"Target: {target}")
+            print()
+
+            if score >= 80:
+                status = "EXCELLENT"
+                color = "\033[92m"
+            elif score >= 60:
+                status = "GOOD"
+                color = "\033[93m"
+            elif score >= 40:
+                status = "FAIR"
+                color = "\033[93m"
+            else:
+                status = "POOR"
+                color = "\033[91m"
+
+            reset = "\033[0m"
+            print(f"Health Score: {color}{score}/100{reset} ({status})")
+            print()
+
+        if risks:
+            print("Risk Factors:")
+            print("-" * 40)
+
+            severity_order = {"high": 0, "medium": 1, "low": 2}
+            sorted_risks = sorted(
+                risks, key=lambda r: severity_order.get(r.get("severity", "low"), 2)
+            )
+
+            for risk in sorted_risks:
+                sev = risk.get("severity", "low").upper()
+                if sev == "HIGH":
+                    marker = "[!]"
+                elif sev == "MEDIUM":
+                    marker = "[~]"
+                else:
+                    marker = "[.]"
+
+                print(f"  {marker} {risk.get('message', 'Unknown risk')}")
+
+            print()
+        else:
+            print("No significant risks detected.")
+
+        if not risks_only:
+            if score >= 80:
+                print("Status: Ready for rebase.")
+            elif score >= 60:
+                print("Status: Rebase recommended - low risk.")
+            elif score >= 40:
+                print(
+                    "Status: Proceed with caution - review risks above before rebase."
+                )
+            else:
+                print(
+                    "Status: High risk rebase - ensure backup branch exists and test thoroughly."
+                )
+            print()

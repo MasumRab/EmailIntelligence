@@ -7,7 +7,6 @@ Ported from verify_packages.py.
 
 import importlib
 import sys
-import subprocess
 import asyncio
 from argparse import Namespace
 from pathlib import Path

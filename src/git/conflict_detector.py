@@ -184,6 +184,58 @@ class GitConflictDetector(IConflictDetector):
             logger.error(f"Error detecting conflicts: {e}")
             raise ConflictDetectionError(f"Failed to detect conflicts: {str(e)}")
 
+    def detect_conflicts_in_repo(
+        self, path: Optional[Path] = None
+    ) -> List[Conflict]:
+        """Scan the working tree for committed conflict markers.
+
+        ``detect_conflicts`` answers "does branch X conflict with Y" via
+        merge-tree.  This answers "is this checkout carrying unresolved
+        conflicts right now", which is what ``git-conflicts`` asks for.
+        """
+        root = Path(path) if path else (self.repo_path or Path.cwd())
+        findings: List[Conflict] = []
+        for candidate in root.rglob("*"):
+            if not candidate.is_file() or ".git" in candidate.parts:
+                continue
+            try:
+                text = candidate.read_text(errors="ignore")
+            except OSError:
+                continue
+            if "<<<<<<<" not in text:
+                continue
+            lines = text.splitlines()
+            blocks: List[ConflictBlock] = []
+            start = None
+            for idx, line in enumerate(lines):
+                if line.startswith("<<<<<<<"):
+                    start = idx
+                elif line.startswith(">>>>>>>") and start is not None:
+                    blocks.append(
+                        ConflictBlock(
+                            start_line=start + 1,
+                            end_line=idx + 1,
+                            conflict_type=ConflictTypeExtended.CONTENT,
+                            content_before=[],
+                            content_after=[],
+                            content_common=lines[start + 1 : idx],
+                        )
+                    )
+                    start = None
+            if not blocks:
+                # a lone marker is a quotation (documentation, tests), not a conflict
+                continue
+            findings.append(
+                Conflict(
+                    file_path=str(candidate.relative_to(root)),
+                    conflict_blocks=blocks,
+                    conflict_type=ConflictTypeExtended.CONTENT,
+                    severity=RiskLevel.CRITICAL if len(blocks) > 3 else RiskLevel.HIGH,
+                    description=f"{len(blocks)} unresolved conflict marker block(s)",
+                )
+            )
+        return findings
+
     async def detect_conflicts_between_branches(
         self, source_branch: str, target_branch: str
     ) -> List[Conflict]:

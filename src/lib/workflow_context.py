@@ -4,7 +4,7 @@ Workflow Context Manager for Guided CLI Workflows.
 Manages the state and transitions of interactive developer guides.
 """
 
-from typing import Dict, Any, Optional
+from typing import Dict, Any
 from dataclasses import dataclass, field
 
 

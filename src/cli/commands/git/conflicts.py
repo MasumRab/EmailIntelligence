@@ -1,195 +1,216 @@
-#!/usr/bin/env python3
 """
-Conflict Detection and Complexity Analysis
+Git Conflicts Command Module
 
-Find all files with merge conflicts and rank them by severity.
+Implements the git-conflicts command for standalone conflict detection with complexity scoring.
 """
 
-import subprocess
-import re
+from argparse import Namespace
+from typing import Any, Dict, List
 from pathlib import Path
-from typing import List, Dict, Optional
-from collections import defaultdict
+
+from ..interface import Command
+
+try:
+    import yaml
+
+    YAML_AVAILABLE = True
+except ImportError:
+    YAML_AVAILABLE = False
 
 
-class ConflictsCommand:
+class GitConflictsCommand(Command):
     """
-    Command to detect and analyze Git merge conflicts.
+    Command for detecting and analyzing conflicts in the repository.
+
+    This command wraps GitConflictDetector to provide standalone conflict
+    detection with complexity scoring to help developers prioritize resolution.
     """
 
-    def __init__(self, path: str):
-        self.repo_path = Path(path).resolve()
-        self.conflict_pattern = re.compile(
-            r"^<<<<<<< [^\n]*\n"
-            r"^=======\n?"
-            r"^>>>>>>> [^\n]*$"
+    def __init__(self):
+        self._detector = None
+
+    @property
+    def name(self) -> str:
+        return "git-conflicts"
+
+    @property
+    def description(self) -> str:
+        return "Detect and rank merge conflicts by complexity"
+
+    def add_arguments(self, parser: Any) -> None:
+        """Add command-specific arguments."""
+        parser.add_argument(
+            "--path",
+            "-p",
+            help="Specific file or directory to check for conflicts",
+            default=None,
+        )
+        parser.add_argument(
+            "--severity",
+            action="store_true",
+            help="Show severity level for each conflict",
+        )
+        parser.add_argument(
+            "--json", action="store_true", help="Output results in JSON format"
+        )
+        parser.add_argument(
+            "--verbose", "-v", action="store_true", help="Enable verbose output"
+        )
+        parser.add_argument(
+            "--output",
+            "-o",
+            help="Output file path (default: stdout)",
+            default=None,
+        )
+        parser.add_argument(
+            "--format",
+
+            choices=["json", "yaml", "text"],
+            default="json",
+            help="Output format (default: json)",
         )
 
-    def _run_git(self, args: List[str], check: bool = False) -> str:
-        """Run a git command."""
-        result = subprocess.run(
-            ["git"] + args,
-            cwd=self.repo_path,
-            capture_output=True,
-            text=True,
-            check=check,
-        )
-        return result.stdout.strip()
+    def get_dependencies(self) -> Dict[str, Any]:
+        """Return required dependencies."""
+        return {"conflict_detector": "GitConflictDetector"}
 
-    def find_conflict_files(self) -> List[str]:
-        """
-        Find all files with merge conflict markers.
+    def set_dependencies(self, deps: Dict[str, Any]) -> None:
+        """Set dependencies for the command."""
+        self._detector = deps.get("conflict_detector")
 
-        Returns:
-            List of file paths with conflicts
-        """
-        output = self._run_git(["grep", "-rl", "<<<<<<<", "."])
-        if output:
-            return output.split("\n")
-        return []
-
-    def get_conflict_details(self, file_path: str) -> List[Dict]:
-        """
-        Get detailed information about conflicts in a file.
-
-        Args:
-            file_path: Path to file
-
-        Returns:
-            List of conflict details
-        """
+    def _format_output(self, data: dict, output_format: str) -> str:
+        """Format output data in the specified format."""
         try:
-            with open(self.repo_path / file_path, "r") as f:
-                content = f.read()
+            import yaml
 
-            conflicts = []
-            matches = list(self.conflict_pattern.finditer(content))
+            YAML_AVAILABLE = True
+        except ImportError:
+            YAML_AVAILABLE = False
 
-            for i, match in enumerate(matches, 1):
-                lines = content[: match.start()].count("\n") + 1
-                context_before = content[max(0, match.start() - 200) : match.start()]
-                context_after = content[match.end() : match.end() + 200]
+        if output_format == "yaml":
+            if YAML_AVAILABLE:
+                return yaml.dump(data, default_flow_style=False, sort_keys=False)
+            import json
 
-                conflicts.append(
+            return json.dumps(data, indent=2)
+
+        if output_format == "text":
+            return self._format_text_output(data)
+
+        import json
+
+        return json.dumps(data, indent=2)
+
+    def _format_text_output(self, data: dict) -> str:
+        """Format output as plain text."""
+        lines = []
+        lines.append(f"Total Conflicts: {data.get('total_conflicts', 0)}")
+        if data.get("conflicts"):
+            lines.append("Conflicts:")
+            for c in data.get("conflicts", []):
+                lines.append(f"  - {c.get('file', 'unknown')}")
+                lines.append(f"    Severity: {c.get('severity', '?')}")
+                lines.append(f"    Blocks: {c.get('blocks', 0)}")
+        return "\n".join(lines)
+
+    async def execute(self, args: Namespace) -> int:
+        """Execute the git-conflicts command."""
+        try:
+            from src.git.conflict_detector import GitConflictDetector
+
+            repo_path = Path(args.path) if args.path else Path.cwd()
+
+            detector = self._detector or GitConflictDetector(repo_path)
+
+            conflicts = detector.detect_conflicts_in_repo()
+
+            if not conflicts:
+                print("No conflicts detected in repository.")
+                return 0
+
+            ranked_conflicts = self._rank_by_complexity(conflicts)
+
+            output_data = {
+                "total_conflicts": len(ranked_conflicts),
+                "conflicts": [
                     {
-                        "id": i,
-                        "file": file_path,
-                        "line": lines,
-                        "start_pos": match.start(),
-                        "end_pos": match.end(),
-                        "context_before": context_before.strip(),
-                        "context_after": context_after.strip()[:100],
+                        "file": c.file_path,
+                        "severity": c.severity.value
+                        if hasattr(c, "severity")
+                        else "unknown",
+                        "type": c.conflict_type.value
+                        if hasattr(c, "conflict_type")
+                        else "unknown",
+                        "blocks": len(c.conflict_blocks) if c.conflict_blocks else 0,
                     }
-                )
-
-            return conflicts
-        except Exception as e:
-            return [{"error": str(e), "file": file_path}]
-
-    def rank_conflicts(self, conflicts: List[Dict]) -> List[Dict]:
-        """
-        Rank conflicts by complexity.
-
-        Returns sorted list by priority (most complex first)
-        """
-
-        def complexity_score(conflict: Dict) -> int:
-            """Calculate complexity score for a conflict."""
-            score = 0
-
-            # Check if this is in a critical file
-            critical_files = ["setup/launch.py", "pyproject.toml", "requirements.txt"]
-            if any(cf in conflict["file"] for cf in critical_files):
-                score += 10
-
-            # Check context size (larger context = more complex)
-            context_len = len(conflict.get("context_before", ""))
-            if context_len > 500:
-                score += 5
-            elif context_len > 200:
-                score += 3
-
-            # Penalize multiple conflicts in same file
-            score += conflicts.count(lambda c: c["file"] == conflict["file"]) * 2
-
-            return score
-
-        # Add complexity scores and sort
-        for conflict in conflicts:
-            conflict["complexity_score"] = complexity_score(conflict)
-
-        return sorted(conflicts, key=lambda c: c["complexity_score"], reverse=True)
-
-    def analyze(self) -> Dict:
-        """
-        Full conflict analysis.
-
-        Returns:
-            Dict with conflict statistics and ranking
-        """
-        conflicted_files = self.find_conflict_files()
-
-        if not conflicted_files:
-            return {
-                "status": "clean",
-                "conflict_count": 0,
-                "files_with_conflicts": 0,
-                "conflicts": [],
+                    for c in ranked_conflicts
+                ],
             }
 
-        all_conflicts = []
-        for file_path in conflicted_files:
-            file_conflicts = self.get_conflict_details(file_path)
-            all_conflicts.extend(file_conflicts)
+            output_format = args.format or "json"
 
-        ranked_conflicts = self.rank_conflicts(all_conflicts)
+            if args.json or output_format in ("json", "yaml"):
+                output_str = self._format_output(output_data, output_format)
+                if args.output:
+                    Path(args.output).write_text(output_str)
+                else:
+                    print(output_str)
+            else:
+                self._print_conflicts(ranked_conflicts, args.verbose, args.severity)
 
-        # Group by file
-        by_file = defaultdict(list)
-        for conflict in ranked_conflicts:
-            by_file[conflict["file"]].append(conflict)
+            return 0
 
-        return {
-            "status": "conflicts_found",
-            "conflict_count": len(ranked_conflicts),
-            "files_with_conflicts": len(by_file),
-            "files": dict(by_file),
-            "ranked_conflicts": ranked_conflicts,
-        }
+        except ImportError as e:
+            print(f"Error: Required module not available: {e}")
+            return 1
+        except Exception as e:
+            print(f"Error during conflict detection: {e}")
+            if hasattr(args, "verbose") and args.verbose:
+                import traceback
 
-    def print_report(self, analysis: Optional[Dict] = None) -> None:
-        """Print conflict report."""
-        if analysis is None:
-            analysis = self.analyze()
+                traceback.print_exc()
+            return 1
 
-        if analysis["status"] == "clean":
-            print("\n✅ No merge conflicts detected\n")
-            return
+    def _rank_by_complexity(self, conflicts: List) -> List:
+        """Rank conflicts by complexity (number of blocks + file type)."""
 
-        print(
-            f"\n❌ {analysis['conflict_count']} conflict(s) found in {analysis['files_with_conflicts']} file(s)"
-        )
-        print("-" * 60)
+        def complexity_score(conflict):
+            block_count = (
+                len(conflict.conflict_blocks) if conflict.conflict_blocks else 0
+            )
 
-        for file_path, conflicts in analysis["files"].items():
-            print(f"\n📁 {file_path}")
-            print(f"   {len(conflicts)} conflict(s)")
+            extension = Path(conflict.file_path).suffix.lower()
+            complex_extensions = {".py": 3, ".js": 2, ".ts": 2, ".jsx": 2, ".tsx": 2}
+            complexity = complex_extensions.get(extension, 1)
 
-            for i, conflict in enumerate(conflicts[:5], 1):  # Show top 5 per file
-                print(f"\n   Conflict #{i} at line {conflict['line']}")
-                print(f"   Complexity: {conflict['complexity_score']}/10")
+            return block_count * complexity
 
-        print("\n" + "-" * 60)
-        print("🎯 Priority: Fix highest complexity conflicts first\n")
+        return sorted(conflicts, key=complexity_score, reverse=True)
 
+    def _print_conflicts(
+        self, conflicts: List, verbose: bool, show_severity: bool
+    ) -> None:
+        """Print conflicts in a readable format."""
+        print(f"\n=== Detected {len(conflicts)} Conflicts ===\n")
 
-if __name__ == "__main__":
-    import argparse
+        for i, conflict in enumerate(conflicts, 1):
+            print(f"{i}. {conflict.file_path}")
 
-    parser = argparse.ArgumentParser(description="Detect and rank Git conflicts")
-    parser.add_argument("--path", "-p", default=".", help="Path to repository")
+            if show_severity and hasattr(conflict, "severity"):
+                print(f"   Severity: {conflict.severity.value}")
 
-    args = parser.parse_args()
+            if conflict.conflict_blocks:
+                print(f"   Conflict blocks: {len(conflict.conflict_blocks)}")
 
-    cmd = ConflictsCommand(args.path)
-    cmd.print_report()
+            if hasattr(conflict, "description") and conflict.description:
+                print(f"   {conflict.description}")
+
+            if verbose:
+                for j, block in enumerate(conflict.conflict_blocks[:3], 1):
+                    print(f"     Block {j}: lines {block.start_line}-{block.end_line}")
+                if len(conflict.conflict_blocks) > 3:
+                    print(
+                        f"     ... and {len(conflict.conflict_blocks) - 3} more blocks"
+                    )
+
+            print()
