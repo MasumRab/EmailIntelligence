@@ -1,6 +1,6 @@
-# Task 016.2: Implement Basic Rollback Mechanisms
+# Task 016.2: Rollback and Recovery - Part 2
 
-**Status:** pending
+**Status:** specified
 **Priority:** high
 **Effort:** TBD
 **Complexity:** TBD
@@ -41,11 +41,15 @@
 - **Complexity**: TBD
 
 ### Requirements
-Requirements to be specified
+1. The CLI command corresponding to this module executes successfully without throwing unhandled exceptions.
+2. Dependency factory functions correctly initialize context components without failing due to missing dependencies.
+3. Edge case handled: When required configuration is absent, the system exits gracefully with a clear error message instead of a stack trace.
 
 ## Implementation Guide
 
-Implementation guide to be defined
+The code for this feature lives in `src/cli/commands/`.
+To implement this, you will need to add or update logic in `src/cli/commands/integration.py`.
+Specifically, modify `create_default_dependencies()` and `create_registry()`.
 
 
 ### 016.2. Implement Basic Rollback Mechanisms
