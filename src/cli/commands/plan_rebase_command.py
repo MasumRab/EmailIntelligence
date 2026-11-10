@@ -85,6 +85,11 @@ class PlanRebaseCommand(Command):
 
             if not commits:
                 print("No commits found.")
+                try:
+                    with open(output_file, "w", encoding="utf-8") as f:
+                        f.write("No commits found.")
+                except Exception as e:
+                    pass
                 return 0
 
             # Classify each commit

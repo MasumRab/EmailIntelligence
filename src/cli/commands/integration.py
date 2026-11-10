@@ -30,21 +30,21 @@ def create_default_dependencies() -> Dict[str, Any]:
             dependencies[name] = f"Error initializing dependency: {str(e)}"
 
     def _create_worktree():
-        from .git.worktree import WorktreeManager
+        from ...git.worktree import WorktreeManager
 
         return WorktreeManager()
 
     try_import("worktree_manager", _create_worktree)
 
     def _create_conflict():
-        from .git.conflict_detector import GitConflictDetector
+        from ...git.conflict_detector import GitConflictDetector
 
         return GitConflictDetector()
 
     try_import("conflict_detector", _create_conflict)
 
     def _create_repo():
-        from .git.repository import RepositoryOperations
+        from ...git.repository import RepositoryOperations
 
         return RepositoryOperations
 
@@ -79,14 +79,14 @@ def create_default_dependencies() -> Dict[str, Any]:
     try_import("validator", _create_validator)
 
     def _create_history():
-        from .git.history import GitHistory
+        from ...git.history import GitHistory
 
         return GitHistory()
 
     try_import("history", _create_history)
 
     def _create_classifier():
-        from ...analysis.commits import CommitClassifier
+        from ...git.history import CommitClassifier
 
         return CommitClassifier()
 
