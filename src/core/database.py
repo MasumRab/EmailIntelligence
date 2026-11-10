@@ -29,7 +29,7 @@ from .security import validate_path_safety
 logger = logging.getLogger(__name__)
 
 # Globalized data directory at the project root
-DATA_DIR = "data"
+DATA_DIR = os.getenv("DATA_DIR", "data")
 EMAIL_CONTENT_DIR = os.path.join(DATA_DIR, "email_content")
 EMAILS_FILE = os.path.join(DATA_DIR, "emails.json.gz")
 CATEGORIES_FILE = os.path.join(DATA_DIR, "categories.json.gz")
