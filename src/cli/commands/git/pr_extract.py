@@ -103,7 +103,9 @@ class OrchExtractCommand(Command):
             ["git", "diff", "--name-only", f"{base}...{source}"],
             capture_output=True, text=True, check=True
         )
-        return result.stdout.strip().split("\n")
+        # An empty diff yields [""], which is truthy -- the caller's
+        # "No changes found" branch could never be reached.
+        return [line for line in result.stdout.strip().split("\n") if line]
 
     def _create_extraction_branch(self, base: str, source: str, target: str, files: List[str]) -> None:
         """Create a new branch and cherry-pick specific file changes."""

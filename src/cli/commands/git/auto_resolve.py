@@ -48,14 +48,14 @@ class GitAutoResolveCommand(Command):
         self._security_validator = dependencies.get("security_validator")
 
     async def execute(self, args: Namespace) -> int:
-        print(f"🤖 Starting Intelligent Auto-Resolution for PR #{args.pr}...")
-        
-        # Implementation of full parity logic loop
-        # 1. Load conflicts
-        # 2. Assess risks
-        # 3. Apply strategies (semantic, pattern, etc.)
-        
-        return 0
+        # The decision helpers below are ported, but the loop that loads conflicts,
+        # assesses risk and applies a strategy is not. Returning 0 here told the
+        # caller that a PR had been resolved when nothing had been read or written.
+        print(
+            "Error: Auto-resolution not implemented. "
+            "Use `git-conflicts` to find conflicts and `resolve` to act on one."
+        )
+        return 1
 
     # --- PORTED LOGIC DNA (100% PARITY) ---
 
