@@ -8,6 +8,7 @@ Ported from verify_packages.py.
 import importlib
 import sys
 import subprocess
+import asyncio
 from argparse import Namespace
 from pathlib import Path
 from typing import Any, Dict, List
@@ -165,11 +166,13 @@ class VerifyCommand(Command):
                 pip_exe = path / "bin" / "pip"
                 if pip_exe.exists():
                     try:
-                        result = subprocess.run(
-                            [str(pip_exe), "list", "--format=freeze"],
-                            capture_output=True, text=True, check=False
+                        process = await asyncio.create_subprocess_exec(
+                            str(pip_exe), "list", "--format=freeze",
+                            stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
                         )
-                        if result.returncode == 0:
+                        stdout, _ = await process.communicate()
+                        if process.returncode == 0:
+                            result = type("Result", (), {"stdout": stdout.decode("utf-8")})()
                             count = len([line for line in result.stdout.split('\n') if line.strip()])
                             print(f"📦 Packages in venv: {count}")
                     except Exception as e:

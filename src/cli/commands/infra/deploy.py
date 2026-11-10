@@ -7,6 +7,7 @@ Ported from scripts/shell/ops/deploy.sh.
 
 import subprocess
 import asyncio
+import asyncio
 from argparse import Namespace
 from pathlib import Path
 from typing import Any, Dict
@@ -63,7 +64,7 @@ class DeployCommand(Command):
         print("🚀 Starting production deployment...")
 
         # 1. Pre-deployment checks
-        if not self._check_docker():
+        if not await self._check_docker():
             print("Error: Docker is not running.")
             return 1
 
@@ -83,10 +84,14 @@ class DeployCommand(Command):
             if args.no_cache:
                 build_cmd.append("--no-cache")
             
-            subprocess.run(build_cmd, check=True)
+            process = await asyncio.create_subprocess_exec(*build_cmd)
+            await process.wait()
+            if process.returncode != 0: raise subprocess.CalledProcessError(process.returncode, build_cmd)
 
             print("Restarting services...")
-            subprocess.run(["docker-compose", "-f", str(compose_file), "up", "-d"], check=True)
+            process = await asyncio.create_subprocess_exec("docker-compose", "-f", str(compose_file), "up", "-d")
+            await process.wait()
+            if process.returncode != 0: raise subprocess.CalledProcessError(process.returncode, "docker-compose")
 
             # 4. Health Check loop
             print("Waiting for services to be healthy...")
@@ -99,10 +104,12 @@ class DeployCommand(Command):
             print(f"❌ Deployment failed: {e}")
             return 1
 
-    def _check_docker(self) -> bool:
+    async def _check_docker(self) -> bool:
         """Verify Docker is available."""
         try:
-            subprocess.run(["docker", "info"], capture_output=True, check=True)
+            process = await asyncio.create_subprocess_exec("docker", "info", stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE)
+            await process.wait()
+            if process.returncode != 0: raise subprocess.CalledProcessError(process.returncode, "docker")
             return True
         except Exception:
             return False

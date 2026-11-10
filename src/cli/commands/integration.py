@@ -127,6 +127,14 @@ def create_registry(factory: Optional[CommandFactory] = None) -> CommandRegistry
     from .analyze_history_command import AnalyzeHistoryCommand
     from .plan_rebase_command import PlanRebaseCommand
     from .identify_command import IdentifyCommand
+    from .automation.mcp_sync import MCPSyncCommand
+    from .automation.monitor import MonitorCommand
+    from .guide import GuideCommand
+    from .ide import IDECommand
+    from .infra.deploy import DeployCommand
+    from .infra.backup import BackupCommand
+    from .infra.install_tools import InstallToolsCommand
+    from .infra.verify import VerifyCommand
 
     cmd_factory = factory or create_command_factory()
     registry = CommandRegistry(cmd_factory)
@@ -138,6 +146,16 @@ def create_registry(factory: Optional[CommandFactory] = None) -> CommandRegistry
     registry.register_command(AnalyzeHistoryCommand, "agent-5")
     registry.register_command(PlanRebaseCommand, "agent-5")
     registry.register_command(IdentifyCommand, "agent-5")
+
+    # Extracted commands
+    registry.register_command(MCPSyncCommand, agent="automation")
+    registry.register_command(MonitorCommand, agent="automation")
+    registry.register_command(GuideCommand, agent="docs")
+    registry.register_command(IDECommand, agent="developer")
+    registry.register_command(DeployCommand, agent="infra")
+    registry.register_command(BackupCommand, agent="infra")
+    registry.register_command(InstallToolsCommand, agent="infra")
+    registry.register_command(VerifyCommand, agent="infra")
 
     return registry
 

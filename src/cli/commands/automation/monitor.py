@@ -99,7 +99,7 @@ class MonitorCommand(Command):
                     self._display_agent_health_summary()
                 
                 self._save_monitoring_data()
-                time.sleep(args.interval)
+                await asyncio.sleep(args.interval)
             
             return 0
         except KeyboardInterrupt:
