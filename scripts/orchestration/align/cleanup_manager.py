@@ -357,7 +357,7 @@ class BranchCleanupManager:
         """Execute git command with error handling."""
         result = subprocess.run(
             command,
-            shell=True,
+            shell=False,
             cwd=self.repo_path,
             capture_output=True,
             text=True,
