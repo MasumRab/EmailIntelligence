@@ -22,7 +22,7 @@ levels, with a deterministic hashed representation and a hierarchy of cuts:
   cluster. No vocabulary is learned, so an unseen branch cannot shift an
   existing branch's features.
 * **hierarchical cuts** — one average-linkage tree is cut at a grid of cosine
-  thresholds, giving coarse-to-fine partitions of the same fleet. The primary
+  thresholds, giving fine-to-coarse partitions of the same fleet. The primary
   partition is the cut with the best silhouette; every finer cluster records
   the coarser cluster that contains its majority, so the result is a tree
   rather than a single flat grouping.
@@ -56,8 +56,9 @@ MIN_TOKEN_LENGTH = 3
 BUCKETS = 1 << 16
 MAX_CLUSTERS = 60
 
-# Coarse-to-fine cosine thresholds. The primary cut is the one with the best
-# silhouette; the others are reported as the hierarchy around it.
+# Cosine thresholds from fine to coarse: a larger threshold cuts higher in the
+# tree and yields fewer, broader clusters. The primary cut is the one with the
+# best silhouette; the others are reported as the hierarchy around it.
 CUT_GRID = (0.35, 0.45, 0.55, 0.65, 0.75, 0.85, 0.95)
 
 # Detail levels and their relative weight in the combined vector. Structure
@@ -543,10 +544,11 @@ def cluster_content(
         )
     clusters.sort(key=lambda c: (-c["size"], c["cluster_id"]))
 
-    # Which coarser cluster contains each of this partition's clusters.
+    # Which coarser cluster contains each of this partition's clusters. A larger
+    # cosine threshold cuts higher in the tree, so it yields coarser clusters.
     parental: dict[int, dict[int, int]] = {}
     for threshold in sorted(partitions):
-        if threshold >= (best_threshold if best_threshold is not None else 1.0):
+        if best_threshold is None or threshold <= best_threshold:
             continue
         coarse_labels, _ = partitions[threshold]
         mapping: dict[int, int] = {}
@@ -568,7 +570,12 @@ def cluster_content(
         level_distances = pairwise_distances(level_rows, metric="cosine")
         np.fill_diagonal(level_distances, 0.0)
         level_partition = None
-        for threshold in CUT_GRID:
+        # Compare at the same cut as the combined partition where possible, so
+        # the ARI measures the level, not a different granularity.
+        candidates = ([best_threshold] if best_threshold is not None else []) + [
+            threshold for threshold in CUT_GRID if threshold != best_threshold
+        ]
+        for threshold in candidates:
             level_partition = _partition(level_distances, threshold)
             if level_partition is not None:
                 break

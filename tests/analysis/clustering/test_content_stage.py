@@ -349,7 +349,11 @@ def test_hierarchy_reports_coarse_to_fine_cuts(repo):
     assert hierarchy
     thresholds = [row["threshold"] for row in hierarchy]
     assert thresholds == sorted(thresholds)
+    counts = [row["clusters"] for row in hierarchy]
+    assert counts == sorted(counts, reverse=True)  # higher cut = fewer clusters
     assert sum(1 for row in hierarchy if row["primary"]) == 1
+    if len(hierarchy) > 1:
+        assert any("parent" in cluster for cluster in result["clusters"])
     assert set(result["level_agreement"]) == set(result["levels"])
     for cluster in result["clusters"]:
         assert cluster["signature_terms"]
