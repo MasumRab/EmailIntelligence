@@ -1,4 +1,4 @@
-# Task 018.3: End-to-End Testing and Reporting - Part 3
+# Task 018.3: Completion Criteria
 
 **Status:** specified
 **Priority:** high
@@ -41,15 +41,15 @@
 - **Complexity**: TBD
 
 ### Requirements
-1. The CLI command corresponding to this module executes successfully without throwing unhandled exceptions.
-2. Dependency factory functions correctly initialize context components without failing due to missing dependencies.
+1. The `Completion Criteria` component is fully operational according to its core function: Priority: high Effort: TBD Complexity: TBD Dependencies: 018.2 ---.
+2. The CLI command corresponding to this component executes successfully without throwing unhandled exceptions.
 3. Edge case handled: When required configuration is absent, the system exits gracefully with a clear error message instead of a stack trace.
 
 ## Implementation Guide
 
-The code for this feature lives in `src/cli/commands/`.
+The code for this feature lives in `src/cli/commands/integration.py`.
 To implement this, you will need to add or update logic in `src/cli/commands/integration.py`.
-Specifically, modify `create_default_dependencies()` and `create_registry()`.
+Run tests using `python -m pytest tests/`.
 
 
 ### 018.3. Develop Comprehensive Test Scenarios

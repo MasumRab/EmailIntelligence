@@ -1,4 +1,4 @@
-# Task 017.8: Validation Integration Framework - Part 8
+# Task 017.8: Completion Criteria
 
 **Status:** specified
 **Priority:** high
@@ -41,15 +41,15 @@
 - **Complexity**: TBD
 
 ### Requirements
-1. The CLI command corresponding to this module executes successfully without throwing unhandled exceptions.
-2. Dependency factory functions correctly initialize context components without failing due to missing dependencies.
+1. The `Completion Criteria` component is fully operational according to its core function: Priority: high Effort: TBD Complexity: TBD Dependencies: 017.7 ---.
+2. The CLI command corresponding to this component executes successfully without throwing unhandled exceptions.
 3. Edge case handled: When required configuration is absent, the system exits gracefully with a clear error message instead of a stack trace.
 
 ## Implementation Guide
 
-The code for this feature lives in `src/cli/commands/`.
-To implement this, you will need to add or update logic in `src/cli/commands/integration.py`.
-Specifically, modify `create_default_dependencies()` and `create_registry()`.
+The code for this feature lives in `src/cli/commands/alert_routing.py`.
+To implement this, you will need to add or update logic in `src/cli/commands/alert_routing.py`.
+Run tests using `python -m pytest tests/`.
 
 
 ### 017.8. Integration with Alignment Workflow
