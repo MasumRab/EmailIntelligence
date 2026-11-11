@@ -153,15 +153,18 @@ def render_markdown(report: dict[str, Any]) -> str:
     if content:
         content_quality = content["quality_metrics"]
         agreement = content.get("agreement_with_metric_clustering") or {}
+        level_weights = (content.get("hash") or {}).get("levels") or {}
         add("## Content clustering (what the diffs actually contain)")
         add("")
         add(
             "Stage one ranks a branch by aggregate scores, so two branches with similar "
-            "scores can touch unrelated code. This stage clusters on the branch's content: "
-            "the paths it changes, the identifiers on the lines it adds, and its commit "
-            "subjects. Tokens are TF-IDF weighted, branches are compared by cosine "
-            "distance with average linkage, and the cut is the threshold from 0.30 to "
-            "0.90 that maximises silhouette."
+            "scores can touch unrelated code. This stage clusters on the branch's content "
+            "at several detail levels. Every token is mapped to one of 65,536 buckets by "
+            "`blake2b`, with the sign taken from the digest, so there is no fitted "
+            "vocabulary and the same branch always yields the same vector. One "
+            "average-linkage tree is cut at a grid of cosine thresholds; the cut with the "
+            "best silhouette is the primary partition and every finer cluster records the "
+            "coarser cluster that contains it."
         )
         add("")
         add("| Measure | Value |")
@@ -171,16 +174,63 @@ def render_markdown(report: dict[str, Any]) -> str:
             "| Excluded (no diff content) | "
             f"{len(content.get('excluded_no_content', []))} |"
         )
-        add(f"| Clusters | {content_quality['total_clusters']} |")
+        if content.get("levels"):
+            add(f"| Detail levels | {', '.join(content['levels'])} |")
+        add(f"| Clusters (primary cut) | {content_quality['total_clusters']} |")
         add(f"| Silhouette (avg) | {content_quality['silhouette_avg']:.4f} |")
         cut = content_quality.get("threshold")
         add(f"| Cut threshold | {cut if cut is not None else 'single cluster'} |")
-        add(f"| Vocabulary | {content_quality['vocabulary_size']} terms |")
+        add(
+            f"| Vocabulary | {content_quality['vocabulary_size']} hashed buckets, "
+            "no fitted vocabulary |"
+        )
         ari = agreement.get("adjusted_rand_index")
         add(
             f"| Agreement with the score view (ARI) | {ari if ari is not None else 'n/a'} |"
         )
         add("")
+
+        if level_weights:
+            add("### Detail levels and their weights")
+            add("")
+            add("| Level | Weight | What it captures |")
+            add("| --- | --- | --- |")
+            descriptions = {
+                "path": "path prefixes and segments",
+                "path_pair": "adjacent path-segment pairs",
+                "symbol": "identifier words from added lines",
+                "symbol_pair": "adjacent identifier pairs",
+                "message": "commit-subject words and word pairs",
+                "subword": "character 4-grams of identifiers",
+                "embedding": "sentence/paragraph embedding (optional)",
+            }
+            for level, weight in level_weights.items():
+                add(f"| `{level}` | {weight:.2f} | {descriptions.get(level, '—')} |")
+            add("")
+
+        hierarchy = content.get("hierarchy") or []
+        if hierarchy:
+            add("### Hierarchy of cuts")
+            add("")
+            add("| Cosine cut | Clusters | Silhouette | Primary |")
+            add("| --- | --- | --- | --- |")
+            for row in hierarchy:
+                add(
+                    f"| {row['threshold']} | {row['clusters']} | "
+                    f"{row['silhouette']:.4f} | {'yes' if row.get('primary') else ''} |"
+                )
+            add("")
+
+        level_agreement = content.get("level_agreement") or {}
+        if level_agreement:
+            add("### How each level agrees with the combined partition")
+            add("")
+            add("| Level | ARI vs combined |")
+            add("| --- | --- |")
+            for level, score in level_agreement.items():
+                add(f"| `{level}` | {score if score is not None else 'n/a'} |")
+            add("")
+
         add(
             "A low silhouette here is the honest result, not a failed run: most of the "
             "fleet edits Python under `src/`, so their vocabularies overlap and no cut "

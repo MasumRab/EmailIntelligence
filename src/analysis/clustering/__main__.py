@@ -79,10 +79,10 @@ def analyze_branch(
 
 def _profile_and_tokenize(
     repo_path: str, branch: str, main_ref: str
-) -> tuple[str, dict[str, Any], list[str]]:
-    """Full git profile plus the content document for one branch."""
+) -> tuple[str, dict[str, Any], dict[str, Any]]:
+    """Full git profile plus the multi-level content document for one branch."""
     profile = BranchGitProfiler(repo_path, main_branch=main_ref).profile(branch)
-    document = build_documents(profile, repo_path)["tokens"]
+    document = build_documents(profile, repo_path)
     summary = {
         "commit_count": profile["commit_count"],
         "authors": profile["authors"],
@@ -162,7 +162,7 @@ def main(argv: list[str] | None = None) -> int:
             f"for {len(outputs)} branches...",
             file=sys.stderr,
         )
-        documents: dict[str, list[str]] = {}
+        documents: dict[str, dict[str, Any]] = {}
         with ThreadPoolExecutor(max_workers=args.jobs) as pool:
             futures = {
                 pool.submit(_profile_and_tokenize, args.repo, branch, args.main): branch
@@ -171,9 +171,9 @@ def main(argv: list[str] | None = None) -> int:
             for done, future in enumerate(futures, start=1):
                 branch = futures[future]
                 try:
-                    name, summary, tokens = future.result()
+                    name, summary, document = future.result()
                     git_profiles[name] = summary
-                    documents[name] = tokens
+                    documents[name] = document
                 except Exception as exc:  # noqa: BLE001 - content stage is additive
                     failures.append({"branch": branch, "error": f"content: {exc}"})
                 if done % 200 == 0:

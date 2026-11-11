@@ -251,3 +251,107 @@ def test_compare_clusterings_reports_agreement(repo):
     assert out["adjusted_rand_index"] < 1.0
 
     assert compare_clusterings({"a": 1}, {"a": 1})["adjusted_rand_index"] is None
+
+
+# ------------------------------------------------- multi-level + deterministic
+
+
+def test_documents_extract_every_detail_level(repo):
+    from src.analysis.clustering.branch_git import BranchGitProfiler
+    from src.analysis.clustering.content import LEVEL_WEIGHTS, build_documents
+
+    _commit(
+        repo,
+        "feature/levels",
+        {"src/payments/charge_handler.py": "def charge_customer(amount):\n    pass\n"},
+        "settle invoice via gateway",
+    )
+    profile = BranchGitProfiler(str(repo)).profile("feature/levels")
+    document = build_documents(profile, str(repo))
+
+    assert set(document["levels"]) == set(LEVEL_WEIGHTS)
+    assert any(token.startswith("prefix/src") for token in document["levels"]["path"])
+    assert any(token.startswith("pair/") for token in document["levels"]["path_pair"])
+    assert any(token.startswith("id/charge") for token in document["levels"]["symbol"])
+    assert any(token.startswith("cg/") for token in document["levels"]["subword"])
+    assert document["tokens"] == [
+        token for level in document["levels"].values() for token in level
+    ]
+
+
+def test_hash_mapping_is_stable_across_processes(tmp_path):
+    """The bucket for a token may not depend on PYTHONHASHSEED or the process."""
+    import os
+    import sys
+
+    snippet = (
+        "import sys; sys.path.insert(0, sys.argv[1]);"
+        "from src.analysis.clustering.content import stable_bucket;"
+        "print(stable_bucket('id/invoice'))"
+    )
+    root = os.path.dirname(
+        os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    )
+    outputs = []
+    for seed in ("1", "12345"):
+        env = dict(os.environ, PYTHONHASHSEED=seed)
+        outputs.append(
+            subprocess.run(
+                [sys.executable, "-c", snippet, root],
+                capture_output=True,
+                text=True,
+                check=True,
+                env=env,
+            ).stdout.strip()
+        )
+    assert outputs[0] == outputs[1]
+
+    from src.analysis.clustering.content import stable_bucket
+
+    assert outputs[0] == str(stable_bucket("id/invoice"))
+
+
+def test_content_clustering_is_repeatable(repo):
+    from src.analysis.clustering.branch_git import BranchGitProfiler
+    from src.analysis.clustering.content import build_documents, cluster_content
+
+    _two_communities(repo)
+    profiler = BranchGitProfiler(str(repo))
+    documents = {
+        name: build_documents(profiler.profile(name), str(repo))
+        for name in ["payments/0", "payments/1", "payments/2", "ui/0", "ui/1", "ui/2"]
+    }
+
+    first = cluster_content(documents)
+    second = cluster_content(documents)
+
+    assert first["branch_assignments"] == second["branch_assignments"]
+    assert [c["signature_terms"] for c in first["clusters"]] == [
+        c["signature_terms"] for c in second["clusters"]
+    ]
+    assert first["hierarchy"] == second["hierarchy"]
+
+
+def test_hierarchy_reports_coarse_to_fine_cuts(repo):
+    from src.analysis.clustering.branch_git import BranchGitProfiler
+    from src.analysis.clustering.content import build_documents, cluster_content
+
+    _two_communities(repo)
+    profiler = BranchGitProfiler(str(repo))
+    documents = {
+        name: build_documents(profiler.profile(name), str(repo))
+        for name in ["payments/0", "payments/1", "payments/2", "ui/0", "ui/1", "ui/2"]
+    }
+
+    result = cluster_content(documents)
+
+    hierarchy = result["hierarchy"]
+    assert hierarchy
+    thresholds = [row["threshold"] for row in hierarchy]
+    assert thresholds == sorted(thresholds)
+    assert sum(1 for row in hierarchy if row["primary"]) == 1
+    assert set(result["level_agreement"]) == set(result["levels"])
+    for cluster in result["clusters"]:
+        assert cluster["signature_terms"]
+        assert len(cluster["branches"]) == cluster["size"]
+    json.dumps(result)
