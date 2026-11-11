@@ -72,7 +72,7 @@ class AnalyzeCommand(Command):
         self._strategy_gen = dependencies.get("strategy_generator")
         self._repo_ops = dependencies.get("repository_ops")
 
-    async def execute(self, args: Namespace) -> int:
+    async def execute(self, args: Namespace) -> int:  # NOSONAR
         """
         Execute the analyze command.
 

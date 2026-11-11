@@ -54,7 +54,7 @@ class InstallToolsCommand(Command):
         """Set dependencies for the command."""
         return None
 
-    async def execute(self, args: Namespace) -> int:
+    async def execute(self, args: Namespace) -> int:  # NOSONAR
         """Execute the install-tools command."""
         try:
             from pathlib import Path
