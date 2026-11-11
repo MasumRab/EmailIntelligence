@@ -9,27 +9,39 @@
 
 ## 1. .DISABLED Workflows on main (17)
 
-| File | What It Did | Current Status | Verdict | Action |
-|------|-------------|----------------|---------|--------|
-| `gemini-scheduled-triage.yml.DISABLED` | Scheduled Gemini triage of issues/PRs | No active replacement | **DEAD** | Remove or re-enable with updated config |
-| `jules-pr-resolve-conflicts.yml.DISABLED` | Jules auto-resolve merge conflicts | No active replacement | **DEAD** | Remove — conflict resolution now manual |
-| `jules-pr-walkthrough.yml.DISABLED` | Jules PR walkthrough generation | No active replacement | **DEAD** | Remove |
-| `gemini-triage.yml.DISABLED` | Gemini issue/PR triage | No active replacement | **DEAD** | Remove |
-| `gemini-review.yml.DISABLED` | Gemini code review | No active replacement | **DEAD** | Remove |
-| `jules-issue-triage.yml.DISABLED` | Jules issue triage | No active replacement | **DEAD** | Remove |
-| `jules-pr-auto-fix.yml.DISABLED` | Jules auto-fix on label | No active replacement | **DEAD** | Remove — auto-fix not used |
-| `deploy-staging.yml.DISABLED` | Staging deployment | No active replacement | **DEAD** | Remove — no staging env |
-| `gemini-dispatch.yml.DISABLED` | Gemini dispatch trigger | No active replacement | **DEAD** | Remove |
-| `jules-pr-review.yml.DISABLED` | Jules PR review | No active replacement | **DEAD** | Remove |
-| `jules-pr-force-review.yml.DISABLED` | Force Jules review | No active replacement | **DEAD** | Remove |
-| `gemini-invoke.yml.DISABLED` | Gemini invoke workflow | No active replacement | **DEAD** | Remove |
-| `jules-pr-rebuild.yml.DISABLED` | Jules PR rebuild | No active replacement | **DEAD** | Remove |
-| `extract-orchestration-changes.yml.DISABLED` | Extract orchestration changes | No active replacement | **DEAD** | Remove |
-| `push-check.yml.DISABLED` | Push checks | Replaced by `pr-check.yml` | **LIVE** (migrated) | Keep disabled as archive |
-| `jules-pr-address-comments.yml.DISABLED` | Jules address review comments | No active replacement | **DEAD** | Remove |
-| `jules-pr-automerge-label.yml.DISABLED` | Auto-merge on label | No active replacement | **DEAD** | Remove |
+| File | What It Did | Current Status | Last Run | Verdict | Action |
+|------|-------------|----------------|----------|---------|--------|
+| `gemini-scheduled-triage.yml.DISABLED` | Scheduled Gemini triage of issues/PRs | No active replacement | N/A | **DEAD** | Remove or re-enable with updated config |
+| `jules-pr-resolve-conflicts.yml.DISABLED` | Jules auto-resolve merge conflicts | No active replacement | N/A | **DEAD** | Remove — conflict resolution now manual |
+| `jules-pr-walkthrough.yml.DISABLED` | Jules PR walkthrough generation | No active replacement | N/A | **DEAD** | Remove |
+| `gemini-triage.yml.DISABLED` | Gemini issue/PR triage | active | 2026-11-10 | **LIVE** | gh workflow disable gemini-triage |
+| `gemini-review.yml.DISABLED` | Gemini code review | active | 2026-11-10 | **LIVE** | gh workflow disable gemini-review |
+| `jules-issue-triage.yml.DISABLED` | Jules issue triage | No active replacement | N/A | **DEAD** | Remove |
+| `jules-pr-auto-fix.yml.DISABLED` | Jules auto-fix on label | No active replacement | N/A | **DEAD** | Remove — auto-fix not used |
+| `deploy-staging.yml.DISABLED` | Staging deployment | No active replacement | N/A | **DEAD** | Remove — no staging env |
+| `gemini-dispatch.yml.DISABLED` | Gemini dispatch trigger | active | 2026-11-06 | **LIVE** | gh workflow disable gemini-dispatch |
+| `jules-pr-review.yml.DISABLED` | Jules PR review | disabled_manually | 2026-09-12 | **LIVE** | Keep disabled via gh |
+| `jules-pr-force-review.yml.DISABLED` | Force Jules review | No active replacement | N/A | **DEAD** | Remove |
+| `gemini-invoke.yml.DISABLED` | Gemini invoke workflow | active | 2026-11-10 | **LIVE** | gh workflow disable gemini-invoke |
+| `jules-pr-rebuild.yml.DISABLED` | Jules PR rebuild | No active replacement | N/A | **DEAD** | Remove |
+| `extract-orchestration-changes.yml.DISABLED` | Extract orchestration changes | No active replacement | N/A | **DEAD** | Remove |
+| `push-check.yml.DISABLED` | Push checks | Replaced by `pr-check.yml` | 2026-09-15 | **LIVE** (migrated) | Keep disabled as archive |
+| `jules-pr-address-comments.yml.DISABLED` | Jules address review comments | No active replacement | N/A | **DEAD** | Remove |
+| `jules-pr-automerge-label.yml.DISABLED` | Auto-merge on label | No active replacement | N/A | **DEAD** | Remove |
 
-**Summary**: 16 DEAD, 1 LIVE (migrated to pr-check.yml)
+**Summary**: 11 DEAD, 1 LIVE (migrated to pr-check.yml), 5 LIVE (still firing on branches)
+
+**Note:** The statement "everything is safely disabled" is incorrect. The workflows `gemini-dispatch`, `gemini-invoke`, `gemini-review`, `gemini-triage`, and `push-check` (also `jules-pr-review` though manually disabled) are still registered and firing on long-lived branches that pre-date their rename to `.DISABLED` on main.
+
+**Measured on 2026-11-11** (`gh api repos/MasumRab/EmailIntelligence/actions/workflows`,
+then each workflow's `.../runs?per_page=1`): `gemini-dispatch.yml`, `gemini-invoke.yml`,
+`gemini-review.yml` and `gemini-triage.yml` are all registered `active`; invoke, review and
+triage each ran on a long-lived branch at 2026-11-10T20:49Z (conclusion `push failure`),
+dispatch last ran 2026-11-06, and `push-check.yml` last ran 2026-09-15 on
+`orchestration-tools`. `jules-pr-review.yml` is `disabled_manually` and its last run was
+skipped. A `.DISABLED` suffix on main does not unregister a workflow that other branches
+still define under its original name.
+
 
 ---
 
