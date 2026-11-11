@@ -251,7 +251,7 @@ class EmailIntelligenceCLI:
             # Step 1: Create resolution branch
             self._info(f"📁 Creating resolution branch: {resolution_branch}")
             subprocess.run(
-                ["git", "checkout", "-b", resolution_branch],
+                ["git", "checkout", "-b", resolution_branch, "--"],
                 cwd=self.repo_root,
                 check=True
             )
@@ -263,14 +263,14 @@ class EmailIntelligenceCLI:
 
             # Create worktree for source branch
             subprocess.run(
-                ["git", "worktree", "add", str(worktree_a_path), source_branch],
+                ["git", "worktree", "add", str(worktree_a_path), source_branch, "--"],
                 cwd=self.repo_root,
                 check=True
             )
 
             # Create worktree for target branch
             subprocess.run(
-                ["git", "worktree", "add", str(worktree_b_path), target_branch],
+                ["git", "worktree", "add", str(worktree_b_path), target_branch, "--"],
                 cwd=self.repo_root,
                 check=True
             )
