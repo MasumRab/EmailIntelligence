@@ -1,62 +1,89 @@
 #!/bin/bash
 
-# Post-checkout hook to automatically set up environment on main/scientific branches
+# Simplified Post-checkout hook for orchestration branch validation
+# Detects branch switches and runs safety checks only - no file distribution
 
-BRANCH=$(git rev-parse --abbrev-ref HEAD)
+# Recursion prevention: Exit if sync is already active
+if [[ "$ORCHESTRATION_SYNC_ACTIVE" == "1" ]]; then
+    exit 0
+fi
 
-# Also ensures Git hooks are properly installed
+# Check for disable flag
+if [[ "$DISABLE_ORCHESTRATION_CHECKS" == "1" ]]; then
+    echo "Orchestration validation disabled, skipping post-checkout validation"
+    exit 0
+fi
 
-BRANCH=$(git rev-parse --abbrev-ref HEAD)
+set -e
 
-# Function to install Git hooks if they're not properly installed
-install_git_hooks() {
-    local hooks_installed=false
+# Get previous and current branch
+PREV_BRANCH="$1"
+NEW_BRANCH="$2"
+FILES_CHECKED="$3"
 
-    # Check if the required hooks exist in .git/hooks/
-    if [[ -f ".git/hooks/pre-commit" && -f ".git/hooks/post-commit" && -f ".git/hooks/post-checkout" ]]; then
-        # Check if they're pointing to the right scripts
-        if grep -q "pre-commit-docs-check\|Documentation Synchronization" ".git/hooks/pre-commit" 2>/dev/null && \
-           grep -q "post-commit-sync\|Agent Workflow" ".git/hooks/post-commit" 2>/dev/null && \
-           grep -q "post-checkout\|environment setup" ".git/hooks/post-checkout" 2>/dev/null; then
-            hooks_installed=true
-        fi
-    fi
+echo "Post-checkout validation: $PREV_BRANCH → $NEW_BRANCH"
 
-    if [[ "$hooks_installed" == false ]]; then
-        echo "Installing Git hooks..."
+# Branch-specific validation
+case "$NEW_BRANCH" in
+    "orchestration-tools"|orchestration-tools-*)
+        echo "Switched to orchestration-tools branch: $NEW_BRANCH"
+
+        # Verify orchestration environment is properly set up
         if [[ -f "scripts/install-hooks.sh" ]]; then
-            bash scripts/install-hooks.sh
-            echo "Git hooks installed successfully."
-        elif [[ -f "scripts/pre-commit-docs-check" && -f "scripts/post-commit-sync" ]]; then
-            # Install hooks manually if install script doesn't exist
-            cp scripts/pre-commit-docs-check .git/hooks/pre-commit
-            cp scripts/post-commit-sync .git/hooks/post-commit
-            # The post-checkout hook should already be the current one
-            echo "Git hooks installed manually."
+            echo "INFO: Orchestration hooks available"
         else
-            echo "Warning: Git hook scripts not found in expected locations."
+            echo "WARNING: Orchestration setup incomplete"
+            echo "Consider running: scripts/install-hooks.sh"
         fi
-    else
-        echo "Git hooks are already properly installed."
-    fi
-}
 
-# Install Git hooks first
-install_git_hooks
+        # Warn about Task Master worktree isolation
+        if [[ -d ".taskmaster" ]]; then
+            echo "INFO: Task Master worktree detected (git handles isolation automatically)"
+        fi
 
-if [[ "$BRANCH" == "main" || "$BRANCH" == "scientific" ]]; then
-    echo "Checking out $BRANCH branch. Running environment setup..."
-    if command -v python &> /dev/null; then
-        python launch.py --setup --skip-prepare > /dev/null 2>&1 &
-        echo "Setup started in background. Check logs for status."
-    else
-        echo "Python not found, skipping setup."
+        echo "✓ Orchestration-tools post-checkout validation complete"
+        ;;
+
+    "taskmaster"|taskmaster-*)
+        echo "Switched to Task Master branch: $NEW_BRANCH"
+        echo "INFO: Task Master branches are isolated (git worktree handles isolation)"
+        ;;
+
+    "main"|"scientific")
+        echo "Switched to branch: $NEW_BRANCH"
+        # Verify no conflicting orchestration files
+        if [[ -f ".git/hooks/post-commit-setup-sync" ]]; then
+            echo "INFO: Orchestration-specific hook detected on $NEW_BRANCH"
+        fi
+        echo "✓ Post-checkout validation complete"
+        ;;
+
+    *)
+        echo "Switched to branch: $NEW_BRANCH"
+        echo "✓ Generic post-checkout validation complete"
+        ;;
+esac
+
+# Common validation for all branches
+echo "Running common post-checkout validation..."
+
+# Check if this was a file checkout (not branch switch)
+if [[ "$PREV_BRANCH" == "0000000000000000000000000000000000000000" ]]; then
+    echo "File checkout detected, no branch validation needed"
+    exit 0
+fi
+
+# Verify git status is clean if expected
+if [[ "$FILES_CHECKED" == "1" ]]; then
+    echo "Files were checked out during switch"
+fi
+
+# Suggest sync if switching to orchestration branch and setup incomplete
+if [[ ("$NEW_BRANCH" == "orchestration-tools" || "$NEW_BRANCH" == orchestration-tools-*) ]]; then
+    if [[ ! -f "setup/launch.py" ]]; then
+        echo "INFO: Orchestration setup may need synchronization"
+        echo "Consider running: scripts/sync_orchestration_files.sh --verify"
     fi
 fi
 
-    # Documentation sync for branch-specific content
-    echo "Syncing documentation for $BRANCH branch..."
-    if command -v python3 &> /dev/null; then
-        python3 scripts/docs_branch_versioning.py --cleanup --branch "$BRANCH"
-    fi
-fi
+echo "✓ Post-checkout validation completed successfully"
