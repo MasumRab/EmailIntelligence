@@ -14,7 +14,7 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import type { EmailWithCategory } from "@shared/schema";
 
-import { EmailList } from "./email-list";
+import EmailList from "./email-list";
 
 function email(overrides: Partial<Record<string, unknown>> = {}): EmailWithCategory {
   return {
