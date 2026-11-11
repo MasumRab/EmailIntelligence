@@ -14,14 +14,18 @@ class _Result:
         self.stderr = stderr
 
 
-def _run_by_ref(ref_rc, merge_rc):
-    """Fake subprocess.run keyed on the git subcommand being invoked."""
-
+def _run_by_ref(base_rc=0, merge_rc=0, conflict=False):
+    import subprocess
     def fake(cmd, **kwargs):
-        if "rev-parse" in cmd:
-            return _Result(ref_rc)
+        if "merge-base" in cmd:
+            if base_rc != 0:
+                raise subprocess.CalledProcessError(base_rc, cmd)
+            return _Result(base_rc, stdout="base-sha")
         if "merge-tree" in cmd:
-            return _Result(merge_rc, stderr="CONFLICT (content): Merge conflict in a.py")
+            if merge_rc != 0:
+                raise subprocess.CalledProcessError(merge_rc, cmd)
+            out = "<<<<<<< ours\nx\n=======\ny\n>>>>>>> theirs\n" if conflict else ""
+            return _Result(merge_rc, stdout=out)
         raise AssertionError(f"unexpected command: {cmd}")
 
     return fake
@@ -30,17 +34,17 @@ def _run_by_ref(ref_rc, merge_rc):
 def test_unknown_branch_is_error_not_conflicting():
     # merge-tree exits 1 both for a conflict and for a ref it cannot resolve;
     # a missing branch must not be reported as a fork that needs resolving.
-    with patch("subprocess.run", side_effect=_run_by_ref(ref_rc=1, merge_rc=1)):
+    with patch("subprocess.run", side_effect=_run_by_ref(base_rc=1)):
         assert check_branch_status("no-such-branch") == "error"
 
 
 def test_real_conflict_still_reported_as_conflicting():
-    with patch("subprocess.run", side_effect=_run_by_ref(ref_rc=0, merge_rc=1)):
+    with patch("subprocess.run", side_effect=_run_by_ref(conflict=True)):
         assert check_branch_status("feature/x") == "conflicting"
 
 
 def test_clean_merge_reported_as_clean():
-    with patch("subprocess.run", side_effect=_run_by_ref(ref_rc=0, merge_rc=0)):
+    with patch("subprocess.run", side_effect=_run_by_ref()):
         assert check_branch_status("feature/x") == "clean"
 
 

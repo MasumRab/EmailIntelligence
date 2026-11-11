@@ -4,6 +4,7 @@ from unittest.mock import AsyncMock
 from src.core.models import CategoryCreate
 
 
+@pytest.mark.asyncio
 async def test_get_categories_success(client, mock_db_manager: AsyncMock):
     """Test successful retrieval of all categories."""
     mock_categories_data = [
@@ -26,6 +27,7 @@ async def test_get_categories_success(client, mock_db_manager: AsyncMock):
     mock_db_manager.get_all_categories.assert_called_once()
 
 
+@pytest.mark.asyncio
 async def test_get_categories_empty(client, mock_db_manager: AsyncMock):
     """Test retrieval of an empty list of categories."""
     mock_db_manager.get_all_categories.return_value = []
@@ -37,6 +39,7 @@ async def test_get_categories_empty(client, mock_db_manager: AsyncMock):
     mock_db_manager.get_all_categories.assert_called_once()
 
 
+@pytest.mark.asyncio
 async def test_get_categories_db_error(client, mock_db_manager: AsyncMock):
     """Test handling of a database error when fetching categories."""
     mock_db_manager.get_all_categories.side_effect = Exception("Database connection error")
@@ -48,6 +51,7 @@ async def test_get_categories_db_error(client, mock_db_manager: AsyncMock):
     mock_db_manager.get_all_categories.assert_called_once()
 
 
+@pytest.mark.asyncio
 async def test_create_category_success(client, mock_db_manager: AsyncMock):
     """Test successful creation of a new category."""
     category_data = {

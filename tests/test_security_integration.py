@@ -25,10 +25,12 @@ def secure_app():
     app = FastAPI()
 
     @app.get("/test")
+    @pytest.mark.asyncio
     async def test_endpoint():
         return {"message": "secure"}
 
     @app.get("/api/test")
+    @pytest.mark.asyncio
     async def api_endpoint():
         return {"message": "api_secure"}
 
