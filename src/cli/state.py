@@ -7,6 +7,20 @@ during CLI tool execution.
 """
 
 import json
+
+def secure_open(filepath: str, mode: str = 'r', base_dir: str = None):
+    import os
+    if base_dir is None:
+        base_dir = os.path.realpath('.')
+    else:
+        base_dir = os.path.realpath(base_dir)
+    target = os.path.realpath(filepath)
+    if os.path.commonpath([base_dir, target]) != base_dir:
+        raise ValueError("Path traversal detected")
+    flags = os.O_RDONLY if mode == 'r' else (os.O_WRONLY | os.O_CREAT | os.O_TRUNC)
+    fd = os.open(target, flags | os.O_NOFOLLOW)
+    return open(fd, mode)
+
 import os
 from pathlib import Path
 from typing import Dict, Any, Optional, List

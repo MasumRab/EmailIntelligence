@@ -20,3 +20,9 @@ def test_run_injections():
     with patch('subprocess.run') as mock_run:
         with pytest.raises(ValueError, match="Invalid branch name: -b"):
             dispatcher.analyze(args)
+
+def test_s8707_path_traversal():
+    from src.cli.state import secure_open
+    import os
+    with pytest.raises(ValueError, match="Path traversal detected"):
+        secure_open("../test", "r", base_dir="/app/src/cli")
