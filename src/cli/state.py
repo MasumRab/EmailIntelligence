@@ -60,19 +60,19 @@ class CLIStateManager:
 
     def __init__(self, state_dir: Optional[str] = None, persist: bool = True):
         self.persist = persist
-        self.state_dir = Path(state_dir or self.STATE_DIR)
+        self._state_dir = Path(state_dir or self.STATE_DIR)
         self._current_state: Optional[CLIState] = None
         self._lock = threading.Lock()
 
         if self.persist:
-            self.state_dir.mkdir(parents=True, exist_ok=True)
+            self._state_dir.mkdir(parents=True, exist_ok=True)
             self._cleanup_old_sessions()
 
     def _cleanup_old_sessions(self) -> None:
         """Remove old session files to prevent disk buildup."""
         import glob
 
-        session_files = glob.glob(str(self.state_dir / "*.json"))
+        session_files = glob.glob(str(self._state_dir / "*.json"))
         if len(session_files) > self.MAX_SESSIONS:
             # Keep the most recent sessions
             session_files.sort()
@@ -180,13 +180,13 @@ class CLIStateManager:
         if not self._current_state:
             return
 
-        state_file = self.state_dir / f"{self._current_state.session_id}.json"
+        state_file = self._state_dir / f"{self._current_state.session_id}.json"
         with open(state_file, "w") as f:
             json.dump(asdict(self._current_state), f, indent=2, default=str)
 
     def load_session(self, session_id: str) -> Optional[CLIState]:
         """Load a previous session by ID."""
-        state_file = self.state_dir / f"{session_id}.json"
+        state_file = self._state_dir / f"{session_id}.json"
         if state_file.exists():
             with open(state_file, "r") as f:
                 data = json.load(f)
@@ -202,7 +202,7 @@ class CLIStateManager:
 
         import glob
 
-        session_files = sorted(glob.glob(str(self.state_dir / "*.json")), reverse=True)
+        session_files = sorted(glob.glob(str(self._state_dir / "*.json")), reverse=True)
         return [Path(f).stem for f in session_files[:limit]]
 
     def get_current_state(self) -> Optional[CLIState]:
