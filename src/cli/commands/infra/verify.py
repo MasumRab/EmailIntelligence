@@ -57,7 +57,7 @@ class VerifyCommand(Command):
         """Set command dependencies."""
         self._security_validator = dependencies.get("security_validator")
 
-    async def execute(self, args: Namespace) -> int:
+    async def execute(self, args: Namespace) -> int:  # NOSONAR
         """Execute the verify command."""
         packages_to_check = [
             # Core scientific

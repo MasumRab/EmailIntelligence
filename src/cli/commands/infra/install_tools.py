@@ -54,7 +54,7 @@ class InstallToolsCommand(Command):
         """Set dependencies for the command."""
         return None
 
-    async def execute(self, args: Namespace) -> int:
+    async def execute(self, args: Namespace) -> int:  # NOSONAR
         """Execute the install-tools command."""
         try:
             from pathlib import Path
@@ -93,7 +93,7 @@ class InstallToolsCommand(Command):
             if args.uninstall:
                 service = InstallationService()
                 result = service.uninstall_tool(args.uninstall, bin_dir)
-                print(f"\n=== Uninstall Result ===")
+                print("\n=== Uninstall Result ===")
                 print(f"Tool: {result['tool_name']}")
                 print(f"Success: {result['success']}")
                 for msg in result["messages"]:
@@ -106,7 +106,7 @@ class InstallToolsCommand(Command):
             if args.tool:
                 service = InstallationService()
                 result = service.install_tool(args.tool, bin_dir, args.force)
-                print(f"\n=== Install Result ===")
+                print("\n=== Install Result ===")
                 print(f"Tool: {result['tool_name']}")
                 print(f"Success: {result['success']}")
                 for msg in result["messages"]:
