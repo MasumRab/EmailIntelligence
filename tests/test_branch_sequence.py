@@ -24,6 +24,8 @@ def _run_by_ref(base_rc=0, merge_rc=0, conflict=False):
         if "merge-tree" in cmd:
             if merge_rc != 0:
                 raise subprocess.CalledProcessError(merge_rc, cmd)
+            if "merge-tree" in cmd and "--" in cmd:
+                raise subprocess.CalledProcessError(129, cmd)
             out = "<<<<<<< ours\nx\n=======\ny\n>>>>>>> theirs\n" if conflict else ""
             return _Result(merge_rc, stdout=out)
         raise AssertionError(f"unexpected command: {cmd}")
@@ -52,3 +54,37 @@ def test_unsafe_ref_rejected_without_invoking_git():
     with patch("subprocess.run") as run:
         assert check_branch_status("--upload-pack=evil") == "error"
         run.assert_not_called()
+
+
+def test_real_git_invocation(tmp_path):
+    import subprocess
+    import os
+    from scripts.orchestration.branch_sequence import check_branch_status
+
+    # Set up a real git repo
+    repo_dir = tmp_path / "repo"
+    repo_dir.mkdir()
+    os.chdir(repo_dir)
+
+    subprocess.run(["git", "init"], check=True, capture_output=True)
+    subprocess.run(["git", "config", "user.name", "Test User"], check=True)
+    subprocess.run(["git", "config", "user.email", "test@example.com"], check=True)
+
+    # Initial commit on main
+    (repo_dir / "a.py").write_text("print('hello')\n")
+    subprocess.run(["git", "add", "a.py"], check=True)
+    subprocess.run(["git", "commit", "-m", "initial commit"], check=True)
+    subprocess.run(["git", "branch", "-m", "main"], check=True)
+
+    # Create a feature branch and modify the file
+    subprocess.run(["git", "checkout", "-b", "feature/x"], check=True, capture_output=True)
+    (repo_dir / "a.py").write_text("print('hello feature')\n")
+    subprocess.run(["git", "commit", "-am", "feature commit"], check=True)
+
+    # Modify the file on main to create a conflict
+    subprocess.run(["git", "checkout", "main"], check=True, capture_output=True)
+    (repo_dir / "a.py").write_text("print('hello main')\n")
+    subprocess.run(["git", "commit", "-am", "main commit"], check=True)
+
+    # Test the real git invocation for a conflict
+    assert check_branch_status("feature/x") == "conflicting"
