@@ -37,6 +37,19 @@ def create_test_app():
         allow_headers=["*"],
     )
 
+    # Mount routers for testing
+    from src.backend.python_backend.ai_routes import router as ai_router
+    from src.backend.python_backend.dashboard_routes import router as dashboard_router
+    from src.backend.python_backend.gmail_routes import router as gmail_router
+    from src.backend.python_backend.category_routes import router as category_router
+    from src.core.plugin_routes import router as plugin_router
+    
+    app.include_router(ai_router)
+    app.include_router(dashboard_router)
+    app.include_router(gmail_router)
+    app.include_router(category_router)
+    app.include_router(plugin_router)
+
     # Add a simple health endpoint
     @app.get("/health")
     async def health():
