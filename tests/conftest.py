@@ -37,19 +37,20 @@ def create_test_app():
         allow_headers=["*"],
     )
 
-    # Mount routers for testing
-    from src.backend.python_backend.ai_routes import router as ai_router
-    from src.backend.python_backend.dashboard_routes import router as dashboard_router
-    from src.backend.python_backend.gmail_routes import router as gmail_router
-    from src.backend.python_backend.category_routes import router as category_router
-    from src.core.plugin_routes import router as plugin_router
-    
-    app.include_router(ai_router)
-    app.include_router(dashboard_router)
-    app.include_router(gmail_router)
-    app.include_router(category_router)
-    app.include_router(plugin_router)
+    # The routers declare Depends(get_current_active_user); override it so the route
+    # tests exercise their handlers. The auth wall has its own tests.
+    from src.core.auth import get_current_active_user
+    app.dependency_overrides[get_current_active_user] = lambda: "test-user"
 
+    from src.backend.python_backend import (
+        ai_routes, category_routes, dashboard_routes, filter_routes, gmail_routes,
+    )
+    from src.core import plugin_routes
+    for module in (ai_routes, category_routes, dashboard_routes, filter_routes,
+                   gmail_routes, plugin_routes):
+        app.include_router(module.router)
+
+    # Add a simple health endpoint
     # Add a simple health endpoint
     @app.get("/health")
     async def health():
@@ -74,9 +75,12 @@ def setup_test_environment():
     # Create test data directory if it doesn't exist
     test_data_dir = os.path.join(os.path.dirname(__file__), "..", "test_data")
     os.makedirs(test_data_dir, exist_ok=True)
+    
+    src_data_dir = os.path.join(os.path.dirname(__file__), "..", "src", "data")
+    os.makedirs(src_data_dir, exist_ok=True)
 
 
-# from src.core.database import get_db  # FIXME: get_db function doesn't exist
+
 from src.core.factory import get_data_source
 
 # Use the test app instead of the main app
@@ -165,11 +169,14 @@ def client(mock_db_manager: AsyncMock):
     This fixture ensures that API endpoints use the mock_db_manager instead of a real database.
     """
     app = create_app()
-    # app.dependency_overrides[get_db] = lambda: mock_db_manager  # FIXME: get_db doesn't exist
+    from src.backend.python_backend.database import get_db
+    app.dependency_overrides[get_db] = lambda: mock_db_manager
     app.dependency_overrides[get_data_source] = lambda: mock_db_manager
 
     with TestClient(app) as test_client:
+        # Pass the app along so tests can manipulate it
+        test_client.app = app
         yield test_client
 
-    # del app.dependency_overrides[get_db]  # FIXME: get_db doesn't exist
+    del app.dependency_overrides[get_db]
     del app.dependency_overrides[get_data_source]

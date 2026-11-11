@@ -42,7 +42,7 @@ async def get_categories(
             pgcode=None,
         )
         logger.error(json.dumps(log_data))
-        raise DatabaseError(detail="Failed to create category.") from db_err
+        raise DatabaseError(message="Failed to create category.") from db_err
 
 
 @router.post("/api/categories", response_model=CategoryResponse)
@@ -69,8 +69,10 @@ async def create_category(
         HTTPException: If there is a database error or any other failure.
     """
     try:
-        new_category = await category_service.create_category(category)
-        return CategoryResponse(**new_category)
+        result = await category_service.create_category(category)
+        if not result.success:
+            raise Exception(result.message)
+        return CategoryResponse(**result.data)
     except Exception as db_err:
         log_data = create_log_data(
             message="Database operation failed while creating category",
@@ -80,4 +82,4 @@ async def create_category(
             pgcode=None,
         )
         logger.error(json.dumps(log_data))
-        raise DatabaseError(detail="Failed to create category.") from db_err
+        raise DatabaseError(message="Failed to create category.") from db_err
