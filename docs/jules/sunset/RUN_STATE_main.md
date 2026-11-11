@@ -38,3 +38,10 @@
   - `src/core/enhanced_performance_monitor.py:193` (S3827 BLOCKER): UnboundLocalError (`return decorator` before nested def). Sent to S12.
   - `src/core/mfa.py:65` (S930 BLOCKER): `img.save(buffer, format="PNG")`; qrcode's PilImage.save accepts format=, so likely FALSE POSITIVE. Record as triaged, do not fix.
   - `src/main.py:577` (S8414 BLOCKER): CORSMiddleware is not outermost. Sent to S15.
+
+
+## PR Triage Complete (2026-11-11)
+- **Found**: 274
+- **Deduped**: 248
+- **Excluded**: 16
+- **Ready-to-test**: 172
