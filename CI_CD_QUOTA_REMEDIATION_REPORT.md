@@ -36,7 +36,8 @@ Branch inventories were enumerated (up to 100 branch entries per repository). Fu
 
 ### gemini-cli-prompt-library
 - Eight active Jules PR workflows exist on main.
-- Robin listens to PR lifecycle events and every `issue_comment: created` event. At least 18 Robin runs appeared in the returned recent-run window; sampled job records were all skipped.
+- Robin previously listened to PR lifecycle events and every `issue_comment: created` event. At least 18 Robin runs appeared in the returned recent-run window; sampled job records were all skipped.
+- The PR initially removed the broad issue-comment trigger, but inspection showed it still invoked an external reusable LLM workflow on PR lifecycle events using `LLM_API_KEY` and `LLM_BASE_URL`. Provider pricing and free allowance could not be verified. To enforce the no-cost requirement, this PR now removes the automatic Robin workflow entirely.
 - Recent CI and SonarCloud runs failed; Security Scan succeeded.
 - CI lint job and test job both perform Python setup; test matrix currently has Python 3.11 and 3.12 (Ubuntu only).
 - SonarCloud separately installs dependencies and reruns tests, duplicating test work.
@@ -60,15 +61,27 @@ PR: https://github.com/MasumRab/EmailIntelligence/pull/1042
 - Added explicit dependency cache globs for uv lockfiles and pyproject manifests.
 - Removed `|| true` masking from tests, Bandit, Ruff and mypy so required validation can fail visibly.
 - Python 3.12, tests, security scan and type check retained.
+- No paid API, paid action, paid runner or new hosted AI-review integration added.
 
 ### gemini-cli-prompt-library
 PR: https://github.com/MasumRab/gemini-cli-prompt-library/pull/66
-- Removed Robin's broad `issue_comment: created` trigger.
-- Retained PR opened/reopened/ready_for_review triggers.
+- Removed the Robin workflow file because it automatically called a reusable external LLM workflow and the provider's zero-cost status could not be established.
+- This deliberately disables automatic Robin reviews until its model endpoint and billing controls can be proven free. It does not affect GitHub-native checks or the existing Sourcery/CodeRabbit OSS integrations.
 
 Both PRs are drafts and require review. Neither was merged.
 
-## 4. Measured versus estimated savings
+## 4. Free-tier and no-cost policy
+
+- Use only standard GitHub-hosted runners for public repositories; do not select larger runners or paid runner products.
+- Do not add paid Marketplace actions, paid plans, free trials that convert to paid plans, metered AI/API keys, or usage-based fallback providers.
+- Keep existing OSS AI reviewers only where the repository is eligible for their published public-repository free offering. Do not add additional AI reviewers or trigger redundant reviews.
+- Cubic's advertised free Starter allowance is finite (20 reviews/month); do not enable paid flex/overage capacity. Treat this as a hard cap, not an invitation to upgrade.
+- Sourcery and CodeRabbit are retained only under their published public/open-source free eligibility. Do not enable paid private-repository features or trials.
+- Open-source CLI tools may be used locally or in bounded existing CI jobs, but adding them to CI still consumes runner execution time. Add no always-running scanner jobs without evidence that they cover a gap.
+- No external LLM workflow may run automatically unless its endpoint, quota and billing configuration are explicitly verified as zero-cost.
+- Repository-level changes cannot guarantee account-level billing settings. Confirm GitHub budget/stop-usage controls and third-party billing settings in their respective dashboards.
+
+## 5. Measured versus estimated savings
 
 - **Measured Actions minutes saved:** UNKNOWN. Billing usage endpoint was unavailable through the connected GitHub API; no before/after billing telemetry was returned.
 - **Measured per-run job durations:** UNKNOWN. Job records returned conclusions but not timestamps/duration values in the sampled response.
@@ -76,7 +89,7 @@ Both PRs are drafts and require review. Neither was merged.
 - **Projected monthly savings:** NOT ESTIMATED. Run counts alone are insufficient to infer billed minutes, and skipped jobs may consume little or no runner time.
 - **OS multipliers:** No matrix OS multipliers identified in sampled workflows; EmailIntelligence and sampled Gemini workflows use Ubuntu. gemini-cli-prompt-library test matrix has two Python versions on Ubuntu.
 
-## 5. Validation
+## 6. Validation
 
 - Workflow files and triggers inspected on default branches.
 - Recent Actions run lists inspected for the four accessible repositories.
@@ -85,7 +98,7 @@ Both PRs are drafts and require review. Neither was merged.
 - Tests, lint, build, dependency resolution and workflow semantics on the PR branches: NOT RUN / NOT VERIFIED.
 - No claim of passing CI is made. PRs remain drafts pending review and execution.
 
-## 6. Outstanding work and blockers
+## 7. Outstanding work and blockers
 
 1. **Repository access:** `MasumRab/jules` returned GitHub API 404. Confirm repository visibility/name or grant installation access.
 2. **Billing telemetry:** GitHub Actions billing usage endpoint was not accessible through the connected API. Obtain owner billing usage export or account billing permissions to rank actual minute drains.
@@ -96,9 +109,10 @@ Both PRs are drafts and require review. Neither was merged.
 7. **Website:** Review and retire generic blank workflow only after confirming no external required status check depends on it. Preserve Pages production publishing.
 8. **Target:** <1,000 minutes/month remains unverified until billing telemetry and at least one post-change usage period are available.
 
-## 7. Safety and deployment status
+## 8. Safety and deployment status
 
 - No branch protection was bypassed.
 - No PR was merged.
 - No production deployment or security scan was intentionally removed.
 - No Vercel setting was changed.
+- Robin automatic LLM calls are removed in PR #66 pending verified zero-cost provider configuration.
