@@ -96,7 +96,7 @@ Both PRs are drafts and require review. Neither was merged.
 - Sampled job conclusions inspected for recent Gemini fullstack and Robin runs.
 - Static review of the PR diff confirms the documented EmailIntelligence workflow changes; no local checkout/actionlint environment was available through this GitHub MCP session, so `actionlint` and `git diff --check`: NOT RUN.
 - Tests, lint, build, dependency resolution and workflow execution on the PR branches: NOT RUN / NOT VERIFIED.
-- Actions were deliberately not triggered during this remediation because the monthly quota was exhausted. Do not trigger push, pull-request or manual workflow runs while quota remains exhausted; any later validation requires explicit authorization and confirmation that it cannot incur charges.
+- **Workflow-trigger incident:** A prior report-update commit unintentionally triggered PR synchronization workflows despite the exhausted monthly allowance. On commit `a28f417b1c7e368db6d0881db4961f166968fbe4`, Semgrep Security Scan completed successfully; CI failed at the test step; Pull Request Check's Python and frontend jobs passed, while its Codecov artifact-download job failed; Dependabot Auto-Merge was skipped. The run records were inspected after the event. No workflow was manually dispatched or re-run. This incident means the earlier statement that Actions were not triggered was incorrect; it is superseded by this record. Do not trigger further push, pull-request or manual runs while quota remains exhausted unless separately authorized and the billing outcome is established.
 - No claim of passing CI, measured minute savings, or verified billing protection is made. PRs remain drafts pending review and separately authorized validation.
 
 ## 7. Outstanding work and blockers
