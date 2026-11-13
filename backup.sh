@@ -343,5 +343,4 @@ case "${1:-help}" in
     "help"|*)
         usage
         ;;
-esac</content>
-</xai:function_call: <parameter name="path">/home/masum/github/EmailIntelligence/backup.sh
+esac
