@@ -61,7 +61,7 @@ PR: https://github.com/MasumRab/EmailIntelligence/pull/1042
 - Added explicit dependency cache globs for uv lockfiles and pyproject manifests.
 - Removed `|| true` masking from tests, Bandit, Ruff and mypy so required validation can fail visibly.
 - Python 3.12, tests, security scan and type check retained.
-- No paid API, paid action, paid runner or new hosted AI-review integration added.
+- The EmailIntelligence PR diff adds no paid API, paid action, paid runner or new hosted AI-review integration. This is a statement about the PR changes only, not a verification of account-wide or third-party billing.
 
 ### gemini-cli-prompt-library
 PR: https://github.com/MasumRab/gemini-cli-prompt-library/pull/66
@@ -79,7 +79,7 @@ Both PRs are drafts and require review. Neither was merged.
 - Sourcery and CodeRabbit are retained only under their published public/open-source free eligibility. Do not enable paid private-repository features or trials.
 - Open-source CLI tools may be used locally or in bounded existing CI jobs, but adding them to CI still consumes runner execution time. Add no always-running scanner jobs without evidence that they cover a gap.
 - No external LLM workflow may run automatically unless its endpoint, quota and billing configuration are explicitly verified as zero-cost.
-- Repository-level changes cannot guarantee account-level billing settings. Confirm GitHub budget/stop-usage controls and third-party billing settings in their respective dashboards.
+- Repository-level changes cannot guarantee account-level billing settings. Confirm GitHub budget/stop-usage controls and third-party billing settings in their respective dashboards. This remediation did not inspect or change billing settings.
 
 ## 5. Measured versus estimated savings
 
@@ -94,9 +94,10 @@ Both PRs are drafts and require review. Neither was merged.
 - Workflow files and triggers inspected on default branches.
 - Recent Actions run lists inspected for the four accessible repositories.
 - Sampled job conclusions inspected for recent Gemini fullstack and Robin runs.
-- YAML edits are syntactically straightforward but were not executed by Actions.
-- Tests, lint, build, dependency resolution and workflow semantics on the PR branches: NOT RUN / NOT VERIFIED.
-- No claim of passing CI is made. PRs remain drafts pending review and execution.
+- Static review of the PR diff confirms the documented EmailIntelligence workflow changes; no local checkout/actionlint environment was available through this GitHub MCP session, so `actionlint` and `git diff --check`: NOT RUN.
+- Tests, lint, build, dependency resolution and workflow execution on the PR branches: NOT RUN / NOT VERIFIED.
+- Actions were deliberately not triggered during this remediation because the monthly quota was exhausted. Do not trigger push, pull-request or manual workflow runs while quota remains exhausted; any later validation requires explicit authorization and confirmation that it cannot incur charges.
+- No claim of passing CI, measured minute savings, or verified billing protection is made. PRs remain drafts pending review and separately authorized validation.
 
 ## 7. Outstanding work and blockers
 
