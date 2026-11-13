@@ -13,20 +13,29 @@ YELLOW='\033[1;33m'
 RED='\033[0;31m'
 NC='\033[0m'
 
+# Strip control bytes from the message before printing it.
+#
+# The message is passed to printf as a %s argument, never as part of the %b
+# format, so a backslash escape a caller writes stays literal. That is not
+# enough on its own: a message carrying a RAW escape byte (a git branch name,
+# a filename) still reaches the terminal and can drive an OSC sequence. Control
+# characters have no place in a one-line status message, so they are removed.
+# Removing beats %q-quoting: quoting turns "Backup complete" into
+# "Backup\ complete" and makes every log line unreadable.
 print_status() {
-    printf "%b%s\n" "${BLUE}[INFO]${NC} " "$1"
+    printf "%b%s\n" "${BLUE}[INFO]${NC} " "${1//[[:cntrl:]]/}"
 }
 
 print_success() {
-    printf "%b%s\n" "${GREEN}[SUCCESS]${NC} " "$1"
+    printf "%b%s\n" "${GREEN}[SUCCESS]${NC} " "${1//[[:cntrl:]]/}"
 }
 
 print_warning() {
-    printf "%b%s\n" "${YELLOW}[WARNING]${NC} " "$1"
+    printf "%b%s\n" "${YELLOW}[WARNING]${NC} " "${1//[[:cntrl:]]/}"
 }
 
 print_error() {
-    printf "%b%s\n" "${RED}[ERROR]${NC} " "$1"
+    printf "%b%s\n" "${RED}[ERROR]${NC} " "${1//[[:cntrl:]]/}"
 }
 
 # Check if we're in the project root
