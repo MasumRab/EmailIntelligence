@@ -154,6 +154,11 @@ class DatabaseManager(DataSource):
         # State
         self._dirty_data: set[str] = set()
         self._initialized = False
+        # Guards the load-and-build sequence in _ensure_initialized. The check
+        # cannot be done with the `_initialized` flag alone: `_load_data()` awaits,
+        # so a second coroutine can observe `_initialized is False` while the first
+        # is still inside it and load the dataset a second time.
+        self._initialization_lock = asyncio.Lock()
 
         # Ensure directories exist
         os.makedirs(self.email_content_dir, exist_ok=True)
@@ -229,8 +234,17 @@ class DatabaseManager(DataSource):
         return full_email
 
     async def _ensure_initialized(self) -> None:
-        """Ensure data is loaded and indexes are built."""
-        if not self._initialized:
+        """Ensure data is loaded and indexes are built.
+
+        Double-checked under a lock: the fast path is a single flag read, and the
+        slow path runs the load exactly once even when several coroutines arrive
+        before it finishes.
+        """
+        if self._initialized:
+            return
+        async with self._initialization_lock:
+            if self._initialized:
+                return
             await self._load_data()
             self._build_indexes()
             self._initialized = True
@@ -477,6 +491,7 @@ class DatabaseManager(DataSource):
 
     async def create_email(self, email_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """Create a new email record, separating heavy and light content."""
+        await self._ensure_initialized()
         message_id = email_data.get(FIELD_MESSAGE_ID, email_data.get("messageId"))
         if await self.get_email_by_message_id(message_id, include_content=False):
             logger.warning(f"Email with messageId {message_id} already exists. Updating.")
@@ -514,6 +529,7 @@ class DatabaseManager(DataSource):
         self, email_id: int, include_content: bool = True
     ) -> Optional[Dict[str, Any]]:
         """Get email by ID using in-memory index, with option to load heavy content."""
+        await self._ensure_initialized()
         # Check cache first
         cached_email = self.caching_manager.get_email_record(email_id)
         if cached_email is not None and not include_content:
@@ -548,6 +564,7 @@ class DatabaseManager(DataSource):
 
     async def get_all_categories(self) -> List[Dict[str, Any]]:
         """Get all categories with their counts from cache."""
+        await self._ensure_initialized()
         for cat_id, count in self.category_counts.items():
             if cat_id in self.categories_by_id:
                 self.categories_by_id[cat_id][FIELD_COUNT] = count
@@ -555,6 +572,7 @@ class DatabaseManager(DataSource):
 
     async def create_category(self, category_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """Create a new category and update indexes."""
+        await self._ensure_initialized()
         category_name_lower = category_data.get(FIELD_NAME, "").lower()
         if category_name_lower in self.categories_by_name:
             logger.warning(
