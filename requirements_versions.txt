@@ -1,6 +1,6 @@
 asyncpg==0.32.0
-email-validator==2.3.0
-fastapi==0.162.6
+email-validator==2.4.0
+fastapi==0.165.0
 google-auth==2.62.2
 google-auth-oauthlib==1.5.0
 google-api-python-client==2.202.0
@@ -8,10 +8,10 @@ gradio==6.32.0
 joblib==1.6.0
 nltk==3.10.4
 psycopg2-binary==2.9.13
-pydantic==2.14.3
+pydantic==2.14.4
 pyngrok==8.1.2
 python-dotenv==1.2.4
-python-multipart==0.0.33
+python-multipart==0.0.34
 scikit-learn==1.9.1
 uvicorn==0.54.0
 requests>=2.34.2
