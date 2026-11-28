@@ -578,14 +578,15 @@ def create_app():
         CORSMiddleware,
         allow_origins=allowed_origins,
         allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
+        allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+        allow_headers=["Content-Type", "Authorization", "Accept", "X-Requested-With"],
     )
 
     from .core.middleware import SecurityMiddleware, SecurityHeadersMiddleware
+    from .core.settings import settings
 
     # Add comprehensive security middleware
-    app.add_middleware(SecurityMiddleware)
+    app.add_middleware(SecurityMiddleware, trusted_proxies=settings.trusted_proxies)
     app.add_middleware(SecurityHeadersMiddleware)
 
     # Add security headers middleware (additional layer)

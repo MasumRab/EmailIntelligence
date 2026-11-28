@@ -13,7 +13,7 @@ from .dependencies import get_email_service
 from .services.email_service import EmailService
 from src.core.auth import get_current_active_user
 
-router = APIRouter(prefix="/api/dashboard", tags=["dashboard"])
+router = APIRouter(prefix="/api/dashboard", tags=["dashboard"], dependencies=[Depends(get_current_active_user)])
 
 
 @router.get("/stats", response_model=Dict[str, Any])

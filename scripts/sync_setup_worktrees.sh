@@ -45,7 +45,7 @@ sync_setup_files() {
                 shift
                 ;;
             *)
-                echo -e "${RED}Unknown option: $1${NC}"
+                printf "%b%s%b\n" "${RED}Unknown option: " "$1" "${NC}"
                 print_usage
                 exit 1
                 ;;
@@ -54,23 +54,23 @@ sync_setup_files() {
     
     # Check if we're in the right directory
     if [[ ! -d ".git" ]]; then
-        echo -e "${RED}Error: Not in a git repository${NC}"
+        printf "%b\n" "${RED}Error: Not in a git repository${NC}"
         exit 1
     fi
     
     # Check if worktrees directory exists
     if [[ ! -d "worktrees" ]]; then
-        echo -e "${YELLOW}Warning: No worktrees directory found${NC}"
+        printf "%b\n" "${YELLOW}Warning: No worktrees directory found${NC}"
         exit 0
     fi
     
     # Check if orchestration-tools branch exists
     if ! git show-ref --verify --quiet refs/heads/orchestration-tools; then
-    echo -e "${YELLOW}Warning: orchestration-tools branch not found${NC}"
+    printf "%b\n" "${YELLOW}Warning: orchestration-tools branch not found${NC}"
     exit 0
     fi
     
-    echo -e "${BLUE}Synchronizing setup files...${NC}"
+    printf "%b\n" "${BLUE}Synchronizing setup files...${NC}"
     
     # List of files to synchronize
     local setup_files=(
@@ -139,7 +139,7 @@ sync_setup_files() {
     # Skip docs worktrees (docs-main, docs-scientific) as they're for documentation only
     if [[ "$worktree_name" == "docs-main" ]] || [[ "$worktree_name" == "docs-scientific" ]]; then
     if [[ "$verbose" == true ]]; then
-    echo -e "${BLUE}Skipping docs worktree: $worktree${NC}"
+    printf "%b%s%b\n" "${BLUE}Skipping docs worktree: " "$worktree" "${NC}"
     fi
     continue
     fi
@@ -149,13 +149,13 @@ sync_setup_files() {
             # Only skip if it's in the local worktrees/ directory (templates)
             if [[ "$worktree_dir" == "worktrees" ]]; then
                 if [[ "$verbose" == true ]]; then
-                    echo -e "${BLUE}Skipping template directory: $worktree${NC}"
+                    printf "%b%s%b\n" "${BLUE}Skipping template directory: " "$worktree" "${NC}"
                 fi
                 continue
             fi
         fi
 
-    echo -e "${BLUE}Synchronizing to worktree: $worktree_name${NC}"
+    printf "%b%s%b\n" "${BLUE}Synchronizing to worktree: " "$worktree_name" "${NC}"
 
     # Change to worktree directory
     if [[ "$dry_run" == false ]]; then
@@ -169,7 +169,7 @@ sync_setup_files() {
         # Check if source file exists in orchestration-tools
         if ! git cat-file -e "orchestration-tools:$source_path" 2>/dev/null; then
         if [[ "$verbose" == true ]]; then
-        echo -e "${YELLOW}Skipping setup/$file (not found in orchestration-tools)${NC}"
+        printf "%b%s%b\n" "${YELLOW}Skipping setup/" "$file" " (not found in orchestration-tools)${NC}"
             fi
             continue
             fi
@@ -181,7 +181,7 @@ sync_setup_files() {
                 if git cat-file -p "orchestration-tools:$source_path" | cmp -s - "$source_path"; then
             should_sync=false
             if [[ "$verbose" == true ]]; then
-            echo -e "${BLUE}Skipping setup/$file (unchanged)${NC}"
+            printf "%b%s%b\n" "${BLUE}Skipping setup/" "$file" " (unchanged)${NC}"
             fi
             fi
             fi
@@ -190,12 +190,12 @@ sync_setup_files() {
             if [[ "$should_sync" == true ]]; then
                 if [[ "$dry_run" == false ]]; then
                 git checkout orchestration-tools -- "$source_path" 2>/dev/null || {
-            echo -e "${YELLOW}Failed to checkout setup/$file${NC}"
+            printf "%b%s%b\n" "${YELLOW}Failed to checkout setup/" "$file" "${NC}"
             continue
             }
-            echo -e "${GREEN}Updated setup/$file in $worktree${NC}"
+            printf "%b%s%b%s%b\n" "${GREEN}Updated setup/" "$file" " in " "$worktree" "${NC}"
                 else
-                    echo -e "${BLUE}[DRY RUN] Would update setup/$file in $worktree${NC}"
+                    printf "%b%s%b%s%b\n" "${BLUE}[DRY RUN] Would update setup/" "$file" " in " "$worktree" "${NC}"
                 fi
                 ((synced_count++))
             else
@@ -208,7 +208,7 @@ sync_setup_files() {
             # Check if source file exists in orchestration-tools
             if ! git cat-file -e "orchestration-tools:$file" 2>/dev/null; then
                 if [[ "$verbose" == true ]]; then
-                    echo -e "${YELLOW}Skipping $file (not found in orchestration-tools)${NC}"
+                    printf "%b%s%b\n" "${YELLOW}Skipping " "$file" " (not found in orchestration-tools)${NC}"
                 fi
                 continue
             fi
@@ -220,7 +220,7 @@ sync_setup_files() {
                 if git cat-file -p "orchestration-tools:$file" | cmp -s - "$file"; then
                     should_sync=false
                     if [[ "$verbose" == true ]]; then
-                        echo -e "${BLUE}Skipping $file (unchanged)${NC}"
+                        printf "%b%s%b\n" "${BLUE}Skipping " "$file" " (unchanged)${NC}"
                     fi
                 fi
             fi
@@ -229,12 +229,12 @@ sync_setup_files() {
             if [[ "$should_sync" == true ]]; then
                 if [[ "$dry_run" == false ]]; then
                     git checkout orchestration-tools -- "$file" 2>/dev/null || {
-                        echo -e "${YELLOW}Failed to checkout $file${NC}"
+                        printf "%b%s%b\n" "${YELLOW}Failed to checkout " "$file" "${NC}"
                         continue
                     }
-                    echo -e "${GREEN}Updated $file in $worktree${NC}"
+                    printf "%b%s%b%s%b\n" "${GREEN}Updated " "$file" " in " "$worktree" "${NC}"
                 else
-                    echo -e "${BLUE}[DRY RUN] Would update $file in $worktree${NC}"
+                    printf "%b%s%b%s%b\n" "${BLUE}[DRY RUN] Would update " "$file" " in " "$worktree" "${NC}"
                 fi
                 ((synced_count++))
             else
@@ -247,7 +247,7 @@ sync_setup_files() {
             # Check if source file exists in orchestration-tools
             if ! git cat-file -e "orchestration-tools:$file" 2>/dev/null; then
                 if [[ "$verbose" == true ]]; then
-                    echo -e "${YELLOW}Skipping $file (not found in orchestration-tools)${NC}"
+                    printf "%b%s%b\n" "${YELLOW}Skipping " "$file" " (not found in orchestration-tools)${NC}"
                 fi
                 continue
             fi
@@ -259,7 +259,7 @@ sync_setup_files() {
                 if git cat-file -p "orchestration-tools:$file" | cmp -s - "$file"; then
                     should_sync=false
                     if [[ "$verbose" == true ]]; then
-                        echo -e "${BLUE}Skipping $file (unchanged)${NC}"
+                        printf "%b%s%b\n" "${BLUE}Skipping " "$file" " (unchanged)${NC}"
                     fi
                 fi
             fi
@@ -268,12 +268,12 @@ sync_setup_files() {
             if [[ "$should_sync" == true ]]; then
                 if [[ "$dry_run" == false ]]; then
                     git checkout orchestration-tools -- "$file" 2>/dev/null || {
-                        echo -e "${YELLOW}Failed to checkout $file${NC}"
+                        printf "%b%s%b\n" "${YELLOW}Failed to checkout " "$file" "${NC}"
                         continue
                     }
-                    echo -e "${GREEN}Updated $file in $worktree${NC}"
+                    printf "%b%s%b%s%b\n" "${GREEN}Updated " "$file" " in " "$worktree" "${NC}"
                 else
-                    echo -e "${BLUE}[DRY RUN] Would update $file in $worktree${NC}"
+                    printf "%b%s%b%s%b\n" "${BLUE}[DRY RUN] Would update " "$file" " in " "$worktree" "${NC}"
                 fi
                 ((synced_count++))
             else
@@ -289,9 +289,9 @@ sync_setup_files() {
         fi
     done
     
-    echo -e "${GREEN}Synchronization complete!${NC}"
-    echo -e "${GREEN}Files synchronized: $synced_count${NC}"
-    echo -e "${BLUE}Files unchanged: $skipped_count${NC}"
+    printf "%b\n" "${GREEN}Synchronization complete!${NC}"
+    printf "%b%s%b\n" "${GREEN}Files synchronized: " "$synced_count" "${NC}"
+    printf "%b%s%b\n" "${BLUE}Files unchanged: " "$skipped_count" "${NC}"
 }
 
 # Run the sync function with all arguments

@@ -10,7 +10,8 @@ that were implemented in the new node engine architecture.
 
 from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, HTTPException
+from fastapi import Depends, APIRouter, HTTPException
+from src.core.auth import get_current_active_user
 from pydantic import BaseModel
 
 from backend.node_engine.email_nodes import (
@@ -29,7 +30,7 @@ from backend.node_engine.workflow_manager import (
 )
 
 
-router = APIRouter()
+router = APIRouter(dependencies=[Depends(get_current_active_user)])
 
 
 class NodeWorkflowCreateRequest(BaseModel):

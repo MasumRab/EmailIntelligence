@@ -154,24 +154,43 @@ class SecurityMiddleware:
 
     def _get_client_ip(self, request: Request) -> str:
         """Extract real client IP, considering proxies."""
+        # A forwarding header is only meaningful when the peer that sent it is one of our
+        # own proxies. From any other peer the header is just attacker-controlled input.
+        peer_host = request.client.host if request.client else None
+        peer_is_trusted = False
+        if peer_host:
+            try:
+                peer_ip = ipaddress.ip_address(peer_host)
+                peer_is_trusted = any(
+                    peer_ip in ipaddress.ip_network(proxy)
+                    for proxy in self.trusted_proxies
+                )
+            except ValueError:
+                peer_is_trusted = False
+
         # Check X-Forwarded-For header
         forwarded_for = request.headers.get("x-forwarded-for")
-        if forwarded_for:
-            # Take the first IP in the chain
-            client_ip = forwarded_for.split(",")[0].strip()
-
-            # Validate the IP from proxy
-            real_ip = request.headers.get("x-real-ip")
-            if real_ip and real_ip != client_ip:
-                # Verify the proxy is trusted
+        if forwarded_for and peer_is_trusted:
+            # Walk the chain right to left. Each proxy appends the peer it saw, so the
+            # rightmost entry is the one written by the proxy closest to us and the
+            # leftmost entry is whatever the client chose to send. Returning the first
+            # hop that is not one of our own proxies means a client-supplied leftmost
+            # entry cannot be spoofed.
+            client_ip = None
+            for hop in reversed([h.strip() for h in forwarded_for.split(",")]):
                 try:
-                    proxy_ip = ipaddress.ip_address(request.client.host)
-                    if any(
-                        proxy_ip in ipaddress.ip_network(proxy) for proxy in self.trusted_proxies
-                    ):
-                        return real_ip
-                except (ValueError, ipaddress.AddressValueError):
-                    pass
+                    hop_ip = ipaddress.ip_address(hop)
+                except ValueError:
+                    continue  # malformed entry: not an address we can compare
+                if any(
+                    hop_ip in ipaddress.ip_network(proxy)
+                    for proxy in self.trusted_proxies
+                ):
+                    continue  # one of our own proxies; keep walking
+                client_ip = hop
+                break
+            if client_ip is None:
+                client_ip = request.client.host if request.client else "unknown"
 
             return client_ip
 

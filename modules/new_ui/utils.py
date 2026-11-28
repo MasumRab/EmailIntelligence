@@ -123,18 +123,94 @@ def validate_email_format(email: str) -> bool:
     return bool(re.match(pattern, email))
 
 
+from html.parser import HTMLParser
+import html
+
+class _HTMLSanitizer(HTMLParser):
+    ALLOWED_TAGS = {
+        'a', 'p', 'div', 'span', 'b', 'i', 'em', 'strong', 'ul', 'ol', 'li', 'br',
+        'blockquote', 'code', 'pre', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+        'table', 'thead', 'tbody', 'tr', 'th', 'td'
+    }
+    
+    ALLOWED_ATTRS = {
+        'href', 'src', 'alt', 'title', 'class', 'id', 'width', 'height', 'colspan', 'rowspan'
+    }
+    
+    URL_ATTRS = {
+        'href', 'src', 'action', 'data', 'formaction', 'xlink:href'
+    }
+    
+    ALLOWED_SCHEMES = {'http:', 'https:', 'mailto:'}
+
+    def __init__(self):
+        super().__init__(convert_charrefs=True)
+        self.CDATA_CONTENT_ELEMENTS = ()
+        self.result = []
+        self.in_script_or_style = 0
+
+    def _is_safe_url(self, value: str) -> bool:
+        if not value:
+            return True
+        # Strip all whitespace
+        stripped = "".join(value.split())
+        lower_val = stripped.lower()
+        if ':' in lower_val:
+            scheme = lower_val.split(':', 1)[0] + ':'
+            if scheme not in self.ALLOWED_SCHEMES:
+                return False
+        return True
+
+    def handle_starttag(self, tag, attrs):
+        tag_lower = tag.lower()
+        if tag_lower in ('script', 'style'):
+            self.in_script_or_style += 1
+            
+        if tag_lower not in self.ALLOWED_TAGS:
+            return
+
+        safe_attrs = []
+        for attr, value in attrs:
+            attr_lower = attr.lower()
+            if attr_lower not in self.ALLOWED_ATTRS:
+                continue
+            
+            if value is None:
+                value = ""
+                
+            if attr_lower in self.URL_ATTRS and not self._is_safe_url(value):
+                continue
+                
+            escaped_val = html.escape(value, quote=True)
+            safe_attrs.append((attr_lower, escaped_val))
+
+        if safe_attrs:
+            attr_str = " " + " ".join([f'{k}="{v}"' for k, v in safe_attrs])
+        else:
+            attr_str = ""
+            
+        self.result.append(f"<{tag}{attr_str}>")
+
+    def handle_endtag(self, tag):
+        tag_lower = tag.lower()
+        if tag_lower in ('script', 'style') and self.in_script_or_style > 0:
+            self.in_script_or_style -= 1
+            
+        if tag_lower not in self.ALLOWED_TAGS:
+            return
+        self.result.append(f"</{tag}>")
+
+    def handle_data(self, data):
+        if self.in_script_or_style > 0:
+            return
+        self.result.append(html.escape(data, quote=False))
+
 def sanitize_html(html_content: str) -> str:
     """Remove potentially dangerous HTML tags"""
     if not html_content:
         return ""
 
-    # Remove script tags
-    html_content = re.sub(r'<script[^>]*>.*?</script>', '', html_content, flags=re.DOTALL | re.IGNORECASE)
-
-    # Remove style tags
-    html_content = re.sub(r'<style[^>]*>.*?</style>', '', html_content, flags=re.DOTALL | re.IGNORECASE)
-
-    # Remove event handlers
-    html_content = re.sub(r'\s+on\w+\s*=\s*["\'][^"\']*["\']', '', html_content, flags=re.IGNORECASE)
-
-    return html_content
+    sanitizer = _HTMLSanitizer()
+    sanitizer.feed(html_content)
+    sanitizer.close()
+    return "".join(sanitizer.result)

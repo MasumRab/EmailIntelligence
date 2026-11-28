@@ -2,6 +2,7 @@
  * @file This file contains the EmailList component, which is responsible for
  *       rendering a list of emails, including their loading and empty states.
  */
+import { memo } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
@@ -31,7 +32,7 @@ interface EmailListProps {
  * @param {EmailListProps} props - The props for the component.
  * @returns {JSX.Element} The rendered list of emails, or a loading/empty state.
  */
-export function EmailList({ emails, loading, onEmailSelect }: EmailListProps) {
+const EmailList = memo(function EmailList({ emails, loading, onEmailSelect }: EmailListProps) {
   if (loading) {
     return (
       <div className="divide-y divide-gray-200">
@@ -65,7 +66,7 @@ export function EmailList({ emails, loading, onEmailSelect }: EmailListProps) {
    * @returns {string} The initials of the sender.
    */
   const getInitials = (name: string) => {
-    return name.split(' ').map(n => n[0]).join('').toUpperCase();
+    return (name || '').split(' ').map(n => n[0]).join('').toUpperCase();
   };
 
   /**
@@ -158,10 +159,10 @@ export function EmailList({ emails, loading, onEmailSelect }: EmailListProps) {
                       labels = email.labels;
                     }
                     return labels.map((label: string, index: number) => (
-                    <Badge key={label || index} variant="outline" className="text-xs">
-                      {label}
-                    </Badge>
-                  ));
+                      <Badge key={label || index} variant="outline" className="text-xs">
+                        {label}
+                      </Badge>
+                    ));
                   })()}
                   {email.confidence && (
                     <span className="text-xs text-gray-500 flex items-center">
@@ -183,4 +184,6 @@ export function EmailList({ emails, loading, onEmailSelect }: EmailListProps) {
       </div>
     </>
   );
-}
+});
+
+export default EmailList;

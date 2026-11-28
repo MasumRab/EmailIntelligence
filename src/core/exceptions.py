@@ -57,3 +57,11 @@ class EmailNotFoundException(BaseAppException):
         else:
             detail = "Email not found"
         super().__init__(status_code=404, detail=detail)
+
+
+class EmailIntelligenceException(BaseAppException):
+    def __init__(self, detail: str, status_code: int = 500):
+        super().__init__(status_code, detail)
+
+class GitOperationError(EmailIntelligenceException): pass
+class ConflictDetectionError(EmailIntelligenceException): pass

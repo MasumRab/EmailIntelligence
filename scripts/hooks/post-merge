@@ -1,0 +1,77 @@
+#!/bin/bash
+
+# Simplified Post-merge hook for orchestration validation
+# Detects merge conflicts and validates safety only - no file distribution
+
+# Recursion prevention: Exit if sync is already active
+if [[ "$ORCHESTRATION_SYNC_ACTIVE" == "1" ]]; then
+    exit 0
+fi
+
+# Check for disable flag
+if [[ "$DISABLE_ORCHESTRATION_CHECKS" == "1" ]]; then
+    echo "Orchestration validation disabled, skipping post-merge validation"
+    exit 0
+fi
+
+set -e
+
+# Get current branch
+CURRENT_BRANCH="$(git rev-parse --abbrev-ref HEAD)"
+
+echo "Post-merge validation triggered on branch: $CURRENT_BRANCH"
+
+# Branch-specific validation
+case "$CURRENT_BRANCH" in
+    "orchestration-tools"|orchestration-tools-*)
+        echo "Running orchestration-tools post-merge validation..."
+
+        # Verify critical orchestration scripts are still executable
+        ORCHESTRATION_SCRIPTS=(
+            "scripts/install-hooks.sh"
+            "scripts/disable-hooks.sh"
+            "scripts/enable-hooks.sh"
+            "scripts/sync_orchestration_files.sh"
+        )
+
+        for script in "${ORCHESTRATION_SCRIPTS[@]}"; do
+            if [[ -f "$script" && ! -x "$script" ]]; then
+                echo "INFO: Making $script executable"
+                chmod +x "$script"
+            fi
+        done
+
+        # Ensure hooks are still properly installed
+        if [[ -f "scripts/install-hooks.sh" ]]; then
+            echo "INFO: Hooks should be verified after merge" 
+            echo "Run: scripts/install-hooks.sh --verify if needed"
+        fi
+
+        echo "✓ Orchestration-tools post-merge validation complete"
+        ;;
+
+    "main"|"scientific")
+        # Check for potential conflicts with orchestration files
+        if [[ -f "scripts/post-commit-setup-sync" && ! -f "scripts/install-hooks.sh" ]]; then
+            echo "INFO: Orchestration artifacts detected without full setup"
+        fi
+
+        echo "✓ Post-merge validation complete"
+        ;;
+
+    *)
+        # Generic validation for other branches
+        echo "✓ Generic post-merge validation complete"
+        ;;
+esac
+
+# Common post-merge validation for all branches
+echo "Running common post-merge validation..."
+
+# Check merge status for conflicts
+if git status --porcelain | grep -q "^UU\|^AA\|^DD"; then
+    echo "WARNING: Conflicts may still need resolution:"
+    git status --porcelain | grep "^UU\|^AA\|^DD"
+fi
+
+echo "✓ Post-merge validation completed successfully"

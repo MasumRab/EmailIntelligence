@@ -61,44 +61,13 @@ class ResolveCommand(Command):
 
     async def execute(self, args: Namespace) -> int:
         """
-        Execute the resolve command.
+        Execute the command with parsed arguments.
 
         Args:
             args: Parsed command-line arguments
 
         Returns:
-            int: Exit code (0 for success, 1 for error)
+            int: Exit code (0 for success, non-zero for failure)
         """
-        try:
-            conflict_id = args.conflict_id
-            strategy_id = args.strategy_id
-
-            print(f"Resolving conflict {conflict_id} with strategy {strategy_id}...")
-
-            # TODO: In a full implementation, this would:
-            # 1. Load conflict metadata from storage/database
-            # 2. Load strategy definition
-            # 3. Create ResolutionPlan from conflict and strategy
-            # 4. Call _resolver.execute_resolution(plan)
-            # 5. Validate results with _validator.validate()
-            # 6. Print detailed resolution status
-
-            # For now, provide stub implementation
-            print("Conflict resolution would be executed here.")
-            print(f"  Conflict ID: {conflict_id}")
-            print(f"  Strategy ID: {strategy_id}")
-
-            # Simulate resolution (replace with actual implementation)
-            success = True  # In real implementation, this would be the result
-            message = "Resolution simulated successfully"  # Replace with actual message
-
-            if success:
-                print(f"Resolution successful: {message}")
-                return 0
-            else:
-                print(f"Resolution failed: {message}")
-                return 1
-
-        except Exception as e:
-            print(f"Error during resolution: {e}")
-            return 1
+        print("Error: Resolution not implemented.")
+        return 1

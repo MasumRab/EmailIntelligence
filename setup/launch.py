@@ -537,9 +537,14 @@ def install_nodejs_dependencies(directory: str, update: bool = False) -> bool:
     if not check_node_npm_installed():
         return False
 
-    cmd = ["npm", "update" if update else "install"]
+    # Resolve npm explicitly and never hand the command to a shell: with
+    # shell=True on Windows the argument list is re-parsed by cmd.exe, so an
+    # executable or directory name containing metacharacters can inject a
+    # command.
+    npm_path = shutil.which("npm") or "npm"
+    cmd = [npm_path, "update" if update else "install"]
     desc = f"{'Updating' if update else 'Installing'} Node.js dependencies for '{directory}/'"
-    return run_command(cmd, desc, cwd=ROOT_DIR / directory, shell=(os.name == "nt"))
+    return run_command(cmd, desc, cwd=ROOT_DIR / directory, shell=False)
 
 
 def start_client():

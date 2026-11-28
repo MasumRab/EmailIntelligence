@@ -482,12 +482,18 @@ class TestResolveCommand:
         assert "validator" in deps
 
     @pytest.mark.asyncio
-    async def test_execute_success(self):
-        """Test successful resolve execution."""
+    async def test_execute_reports_unimplemented(self, capsys):
+        """Resolve is not implemented, so it must say so and fail.
+
+        This test asserted ``result == 0`` while the implementation printed
+        "Resolution simulated successfully" and returned success without
+        resolving anything. The command now refuses; the test follows it.
+        """
         cmd = ResolveCommand()
         args = Namespace(conflict_id="test-conflict", strategy_id="test-strategy")
         result = await cmd.execute(args)
-        assert result == 0
+        assert result == 1
+        assert "not implemented" in capsys.readouterr().out.lower()
 
 
 class TestValidateCommand:

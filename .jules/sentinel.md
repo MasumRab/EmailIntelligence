@@ -20,3 +20,8 @@
 **Vulnerability:** The `/token` endpoint previously extracted credentials (`username` and `password`) from the request query parameters, meaning passwords could be logged in plain text in server logs, proxy histories, and browser history.
 **Learning:** In FastAPI, plain function arguments are assumed to be query parameters by default. Although authentication was happening correctly, it occurred insecurely.
 **Prevention:** Use `fastapi.security.OAuth2PasswordRequestForm` wrapped with `Depends()` to ensure FastAPI extracts login credentials securely from an `application/x-www-form-urlencoded` request body instead.
+
+## 2026-04-12 - [MEDIUM] Enforce secure timezone-aware datetimes
+**Vulnerability:** Deprecated and timezone-naive `datetime.utcnow()` usage across authentication and context models.
+**Learning:** The codebase previously relied on `datetime.utcnow()`, which in Python 3.12+ is deprecated and yields timezone-naive objects. When passed around or used in token claims, naive datetimes can introduce subtle validation bugs.
+**Prevention:** Replace all occurrences of `datetime.utcnow()` with timezone-aware `datetime.now(timezone.utc)`. For Pydantic models, use a module-level `utc_now` helper function as the `default_factory`.
