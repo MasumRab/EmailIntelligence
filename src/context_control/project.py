@@ -1,13 +1,11 @@
 """Project configuration management for Agent Context Control."""
 
 from pathlib import Path
-from typing import Optional, Dict, Any, List
+from typing import Optional, Dict
 import json
-import os
 
 from .models import ProjectConfig
 from .logging import get_context_logger
-from .exceptions import ConfigurationError
 from .config import get_current_config
 
 

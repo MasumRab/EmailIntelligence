@@ -1,0 +1,233 @@
+# Task 003.3: Build Validation Test Suite
+
+**Status:** specified
+**Priority:** high
+**Effort:** 2-3 hours
+**Complexity:** 5/10
+**Dependencies:** 003.2
+
+---
+
+## Overview/Purpose
+
+Create comprehensive test suite for the validation script to ensure reliability.
+
+## Success Criteria
+
+- [ ] Unit tests cover all validation functions
+- [ ] Integration tests verify full workflow
+- [ ] Tests pass on clean repository
+- [ ] Tests fail appropriately on invalid input
+
+## Prerequisites & Dependencies
+
+### Required Before Starting
+- [ ] No external prerequisites
+
+### Blocks (What This Task Unblocks)
+- [ ] No specific blocks defined
+
+### External Dependencies
+- [ ] No external dependencies
+
+## Sub-subtasks Breakdown
+
+
+## Specification Details
+
+### Task Interface
+- **ID**: 003.3
+- **Title**: Build Validation Test Suite
+- **Status**: specified
+- **Priority**: high
+- **Effort**: 2-3 hours
+- **Complexity**: 5/10
+
+### Requirements
+1. The test suite covers the four verdicts separately: present-and-valid, present-and-invalid,
+   absent, and unreadable.
+2. Each test builds its own fixture tree under `tmp_path`; no test reads the real repository, so the
+   suite passes in a clean checkout and fails when the checker is broken.
+3. A test asserts the negative case first -- it must fail against the checker with its detection
+   removed -- so the suite is not merely green.
+4. The suite runs under the repository's existing command without extra flags:
+   `uv run pytest tests/`.
+5. Tests are placed where CI collects them. CI passes `tests/ src/ modules/` explicitly, so a test
+   under `scripts/` is collected by nobody.
+
+## Implementation Guide
+
+Add `tests/scripts/test_validate_critical_files.py`. The existing
+`scripts/test_detect_merge_markers.py` is a sibling precedent, but note that CI's pytest invocation
+lists `tests/ src/ modules/` -- place the new suite under `tests/` so it actually runs.
+
+```bash
+uv run pytest tests/scripts/test_validate_critical_files.py -q
+grep -n 'pytest' .github/workflows/ci.yml
+```
+
+
+## Purpose
+
+Create comprehensive test suite for the validation script to ensure reliability.
+
+---
+
+## Details
+
+Develop unit and integration tests covering all validation scenarios.
+
+### Steps
+
+1. **Create test directory structure**
+   ```
+   tests/
+   ├── unit/
+   │   ├── test_validate_exists.py
+   │   ├── test_validate_json.py
+   │   └── test_cli.py
+   ├── integration/
+   │   └── test_full_validation.py
+   └── fixtures/
+       ├── valid/
+       ├── missing/
+       ├── empty/
+       └── invalid/
+   ```
+
+2. **Write unit tests**
+   - Mock file system operations
+   - Test each validation function
+   - Test edge cases
+
+3. **Write integration tests**
+   - Create temp directory with test files
+   - Run full validation script
+   - Verify exit codes and output
+
+4. **Add to CI test suite**
+
+---
+
+## Test Strategy
+
+| Scenario | Input | Expected |
+|----------|-------|----------|
+| All valid | All files present | Exit 0 |
+| Missing file | File removed | Exit 1, error message |
+| Empty file | File truncated | Exit 1, error message |
+| Invalid JSON | Corrupted JSON | Exit 1, error message |
+
+---
+
+## Implementation Notes
+
+### Test Fixtures Structure
+
+```
+tests/fixtures/
+├── valid/
+│   ├── setup/commands/__init__.py
+│   └── data/valid.json
+├── missing/
+│   └── (file referenced but not created)
+├── empty/
+│   └── setup/empty.py
+└── invalid/
+    └── data/broken.json
+```
+
+### Unit Test Example
+
+```python
+import pytest
+from scripts.validate_critical_files import validate_file
+
+def test_missing_file():
+    assert validate_file(Path("/nonexistent"), {"check_exists": True}) == ["Missing: /nonexistent"]
+
+def test_empty_file():
+    with tempfile.NamedTemporaryFile() as f:
+        assert validate_file(Path(f.name), {"check_empty": True}) == [f"Empty: {f.name}"]
+
+def test_valid_json():
+    with tempfile.NamedTemporaryFile(suffix=".json", mode="w") as f:
+        f.write('{"key": "value"}')
+        assert validate_file(Path(f.name), {"check_json": True}) == []
+```
+
+---
+
+## Progress Log
+
+### 2026-01-06
+- Subtask file created
+- Ready for implementation
+
+---
+
+## Next Steps
+
+After completion, proceed to **Task 003.4**: Integrate Validation into CI/CD
+**Priority:** high
+**Effort:** 2-3 hours
+**Complexity:** 5/10
+**Dependencies:** 003.2
+**Created:** 2026-01-06
+**Parent:** Task 003: Develop and Integrate Pre-merge Validation Scripts
+
+---
+
+## Configuration Parameters
+
+- **Owner**: TBD
+- **Initiative**: TBD
+- **Scope**: TBD
+- **Focus**: TBD
+
+## Performance Targets
+
+- **Effort Range**: TBD
+- **Complexity Level**: TBD
+
+## Testing Strategy
+
+### Unit Tests
+- [ ] Tests cover core functionality
+- [ ] Edge cases handled appropriately
+- [ ] Performance benchmarks met
+
+### Integration Tests
+- [ ] Integration with dependent components verified
+- [ ] End-to-end workflow tested
+- [ ] Error handling verified
+
+### Test Strategy Notes
+| Scenario | Input | Expected |
+|----------|-------|----------|
+| All valid | All files present | Exit 0 |
+| Missing file | File removed | Exit 1, error message |
+| Empty file | File truncated | Exit 1, error message |
+| Invalid JSON | Corrupted JSON | Exit 1, error message |
+
+## Common Gotchas & Solutions
+
+- [ ] [Common issues and solutions to be documented]
+
+## Integration Checkpoint
+
+### Criteria for Moving Forward
+- [ ] All success criteria met
+- [ ] Code reviewed and approved
+- [ ] Tests passing
+- [ ] Documentation updated
+- [ ] No critical or high severity issues
+
+## Done Definition
+
+### Completion Criteria
+- [ ] All success criteria checkboxes marked complete
+- [ ] Code quality standards met (PEP 8, documentation)
+- [ ] Performance targets achieved
+- [ ] All subtasks completed
+- [ ] Integration checkpoint criteria satisfied

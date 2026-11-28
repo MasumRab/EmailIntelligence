@@ -7,7 +7,6 @@ Bridges FastAPI backend with existing AI/NLP services
 """
 
 import logging
-import os
 from datetime import datetime
 from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
@@ -69,7 +68,9 @@ class AdvancedAIEngine:
     async def _build_category_lookup(self, db) -> None:
         """Builds a normalized lookup map for categories."""
         all_db_categories = await db.get_all_categories()
-        self.category_lookup_map = {cat["name"].lower(): cat for cat in all_db_categories}
+        self.category_lookup_map = {
+            cat["name"].lower(): cat for cat in all_db_categories
+        }
         logger.info("Built category lookup map.")
 
     async def _match_category_id(self, ai_categories: List[str], db) -> Optional[int]:
@@ -92,7 +93,9 @@ class AdvancedAIEngine:
                 )
                 return matched_cat["id"]
 
-        logger.info(f"No direct match for AI categories: {ai_categories} against DB categories.")
+        logger.info(
+            f"No direct match for AI categories: {ai_categories} against DB categories."
+        )
         return None
 
     async def analyze_email(
@@ -131,7 +134,8 @@ class AdvancedAIEngine:
                 "intent": "informational",  # Placeholder
                 "urgency": "low",  # Placeholder
                 "confidence": (
-                    sentiment_result.get("confidence", 0.5) + topic_result.get("confidence", 0.5)
+                    sentiment_result.get("confidence", 0.5)
+                    + topic_result.get("confidence", 0.5)
                 )
                 / 2,
                 "categories": [
@@ -153,12 +157,18 @@ class AdvancedAIEngine:
             else:
                 analysis_data["category_id"] = None
 
-            logger.info(f"Analysis complete. Category ID: {analysis_data.get('category_id')}")
+            logger.info(
+                f"Analysis complete. Category ID: {analysis_data.get('category_id')}"
+            )
             return AIAnalysisResult(analysis_data)
 
         except Exception as e:
-            logger.error(f"An unexpected error occurred during AI analysis: {e}", exc_info=True)
-            return AIAnalysisResult({"reasoning": f"Critical failure in AI engine: {e}"})
+            logger.error(
+                f"An unexpected error occurred during AI analysis: {e}", exc_info=True
+            )
+            return AIAnalysisResult(
+                {"reasoning": f"Critical failure in AI engine: {e}"}
+            )
 
     def health_check(self) -> Dict[str, Any]:
         """Check AI engine health by inspecting the ModelManager."""
