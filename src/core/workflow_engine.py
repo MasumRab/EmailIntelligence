@@ -573,40 +573,51 @@ class WorkflowRunner:
 
         return dependencies
 
+
     def _calculate_cleanup_schedule(self, execution_order: List[str]) -> Dict[str, List[str]]:
         """
         Calculate which node results can be cleaned up after each node executes.
         This helps optimize memory usage by removing results that are no longer needed.
         """
-        cleanup_schedule = {}
+        cleanup_schedule = {node_id: [] for node_id in execution_order}
+        node_to_idx = {node_id: i for i, node_id in enumerate(execution_order)}
+        last_used_at = {node_id: -1 for node_id in execution_order}
 
-        # For each node in the execution order, determine which previous nodes' results
-        # are no longer needed after this node executes
+        for conn in self.workflow.connections:
+            from_node = conn["from"]["node_id"]
+            to_node = conn["to"]["node_id"]
+            if from_node in last_used_at:
+                last_used_at[from_node] = max(last_used_at[from_node], node_to_idx[to_node])
+
         for i, node_id in enumerate(execution_order):
-            cleanup_schedule[node_id] = []
-
-            # Check all previous nodes to see if their results are still needed
             for prev_node_id in execution_order[:i]:
-                # Check if any subsequent nodes need the result from prev_node_id
-                still_needed = False
-
-                for subsequent_node_id in execution_order[i + 1 :]:
-                    # Check if there's a connection from prev_node to subsequent_node
-                    for conn in self.workflow.connections:
-                        if (
-                            conn["from"]["node_id"] == prev_node_id
-                            and conn["to"]["node_id"] == subsequent_node_id
-                        ):
-                            still_needed = True
-                            break
-                    if still_needed:
-                        break
-
-                # If not still needed by any subsequent nodes, it can be cleaned up
-                if not still_needed:
+                if last_used_at[prev_node_id] <= i:
                     cleanup_schedule[node_id].append(prev_node_id)
 
         return cleanup_schedule
+
+
+    def _build_node_context(self, node_id: str) -> Dict[str, Any]:
+        """
+        Build the context for a specific node based on connections and available data.
+        """
+        # Start with the main execution context
+        node_context = self.execution_context.copy()
+
+        # Find all incoming connections to this node
+        for conn in self.workflow.connections:
+            if conn["to"]["node_id"] == node_id:
+                source_node_id = conn["from"]["node_id"]
+                source_output = conn["from"]["output"]
+                target_input = conn["to"]["input"]
+
+                # If we have results from the source node, add them to the context
+                if source_node_id in self.node_results:
+                    source_results = self.node_results[source_node_id]
+                    if source_output in source_results:
+                        node_context[target_input] = source_results[source_output]
+
+        return node_context
 
     def _evaluate_condition(self, condition: str) -> bool:
         """

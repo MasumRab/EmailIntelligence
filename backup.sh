@@ -20,19 +20,19 @@ NC='\033[0m'
 
 # Logging functions
 log_info() {
-    echo -e "${BLUE}[INFO]${NC} $(date '+%Y-%m-%d %H:%M:%S') - $1"
+    printf "%b%s\n" "${BLUE}[INFO]${NC} " "$(date '+%Y-%m-%d %H:%M:%S') - $1"
 }
 
 log_success() {
-    echo -e "${GREEN}[SUCCESS]${NC} $(date '+%Y-%m-%d %H:%M:%S') - $1"
+    printf "%b%s\n" "${GREEN}[SUCCESS]${NC} " "$(date '+%Y-%m-%d %H:%M:%S') - $1"
 }
 
 log_warning() {
-    echo -e "${YELLOW}[WARNING]${NC} $(date '+%Y-%m-%d %H:%M:%S') - $1"
+    printf "%b%s\n" "${YELLOW}[WARNING]${NC} " "$(date '+%Y-%m-%d %H:%M:%S') - $1"
 }
 
 log_error() {
-    echo -e "${RED}[ERROR]${NC} $(date '+%Y-%m-%d %H:%M:%S') - $1"
+    printf "%b%s\n" "${RED}[ERROR]${NC} " "$(date '+%Y-%m-%d %H:%M:%S') - $1"
 }
 
 # Create backup

@@ -20,19 +20,19 @@ PASSED_TESTS=0
 
 # Logging functions
 log_info() {
-    echo -e "${BLUE}[INFO]${NC} $1"
+    printf "%b%s\n" "${BLUE}[INFO]${NC} " "$1"
 }
 
 log_success() {
-    echo -e "${GREEN}[PASS]${NC} $1"
+    printf "%b%s\n" "${GREEN}[PASS]${NC} " "$1"
 }
 
 log_warning() {
-    echo -e "${YELLOW}[WARN]${NC} $1"
+    printf "%b%s\n" "${YELLOW}[WARN]${NC} " "$1"
 }
 
 log_error() {
-    echo -e "${RED}[FAIL]${NC} $1"
+    printf "%b%s\n" "${RED}[FAIL]${NC} " "$1"
 }
 
 # Test runner
@@ -91,10 +91,10 @@ test_managed_files_list() {
     local post_push_list
 
     # Extract managed files from reverse sync script
-    reverse_sync_list=$(grep -A 50 "MANAGED_FILES=(" "$SCRIPT_DIR/reverse_sync_orchestration.sh" | grep -E '^    "[^"]*"' | sed 's/.*"\([^"]*\)".*/\1/' | sort)
+    reverse_sync_list=$(grep -A 50 "MANAGED_FILES=(" "$SCRIPT_DIR/reverse_sync_orchestration.sh" | grep -E '^    "[^"]*"$' | sed 's/.*"\([^"]*\)".*/\1/' | sort)
 
     # Extract managed files from post-push script
-    post_push_list=$(grep -A 50 "MANAGED_FILES=(" "$SCRIPT_DIR/hooks/post-push" | grep -E '^        "[^"]*"' | sed 's/.*"\([^"]*\)".*/\1/' | sort)
+    post_push_list=$(grep -A 50 "MANAGED_FILES=(" "$SCRIPT_DIR/hooks/post-push" | grep -E '^        "[^"]*"$' | sed 's/.*"\([^"]*\)".*/\1/' | sort)
 
     if [[ "$reverse_sync_list" != "$post_push_list" ]]; then
         log_error "MANAGED_FILES lists are inconsistent between scripts"

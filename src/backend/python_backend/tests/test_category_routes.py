@@ -1,4 +1,3 @@
-import pytest
 
 
 def test_get_all_categories(client, mock_db_manager):
