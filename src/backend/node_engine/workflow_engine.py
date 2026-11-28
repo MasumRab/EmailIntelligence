@@ -8,7 +8,6 @@ This module manages the execution of node-based workflows, handling
 dependencies, execution order, and error management.
 """
 
-import asyncio
 import logging
 import time
 from datetime import datetime
@@ -16,7 +15,6 @@ from typing import Any, Dict, List, Optional
 
 from backend.node_engine.node_base import (
     BaseNode,
-    Connection,
     DataType,
     ExecutionContext,
     GenericType,
@@ -318,18 +316,15 @@ class WorkflowEngine:
 
                 node.set_input(conn.target_port, source_output)
 
+        # Apply default values for optional ports not fulfilled by connections
+        node._apply_input_defaults()
+
     # TODO(P2, 2h): Enhance type validation to support more complex type relationships
     # Pseudo code for complex type relationships:
     # - Support union types (e.g., EMAIL | EMAIL_LIST)
     # - Handle inheritance relationships
     # - Support generic types with constraints
     # - Add type aliases and custom type definitions
-
-    # TODO(P2, 3h): Add support for optional input ports with default values
-    # Pseudo code for optional ports:
-    # - Modify NodePort to include default_value parameter
-    # - Update validate_inputs to skip validation for optional ports without values
-    # - Modify set_inputs to use default values when not provided
 
     # TODO(P3, 4h): Implement input transformation pipeline for incompatible but convertible types
     # Pseudo code for transformation pipeline:
