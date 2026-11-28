@@ -9,7 +9,7 @@ import logging
 import re
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Dict, List, Optional, Set, Union
+from typing import Any, Dict, List, Optional
 
 from .audit_logger import AuditEventType, AuditSeverity, audit_logger
 
@@ -148,16 +148,25 @@ class NodeSecurityValidator:
 
         # Check for network operations (warnings for untrusted/limited)
         if security_level in [SecurityLevel.UNTRUSTED, SecurityLevel.LIMITED]:
-            network_patterns = [r"\brequests\b", r"\burllib\b", r"\bhttp\b", r"\bsocket\b"]
+            network_patterns = [
+                r"\brequests\b",
+                r"\burllib\b",
+                r"\bhttp\b",
+                r"\bsocket\b",
+            ]
             for pattern in network_patterns:
                 if re.search(pattern, code):
                     warnings.append(f"Network operation detected: {pattern}")
 
         # Recommendations
         if violations:
-            recommendations.append("Review and sanitize node code to remove security violations")
+            recommendations.append(
+                "Review and sanitize node code to remove security violations"
+            )
         if warnings:
-            recommendations.append("Consider code review for potential security implications")
+            recommendations.append(
+                "Consider code review for potential security implications"
+            )
 
         result = ValidationResult(
             is_valid=len(violations) == 0,
@@ -233,7 +242,10 @@ class WorkflowSecurityValidator:
     """
 
     def validate_workflow_execution(
-        self, workflow_config: Dict[str, Any], user_id: str, security_level: SecurityLevel
+        self,
+        workflow_config: Dict[str, Any],
+        user_id: str,
+        security_level: SecurityLevel,
     ) -> ValidationResult:
         """
         Validate workflow execution for security compliance.
@@ -259,10 +271,14 @@ class WorkflowSecurityValidator:
 
         # Check for resource-intensive operations
         resource_intensive_nodes = ["ai_model", "batch_processor", "external_api"]
-        resource_count = sum(1 for node in nodes if node.get("type") in resource_intensive_nodes)
+        resource_count = sum(
+            1 for node in nodes if node.get("type") in resource_intensive_nodes
+        )
 
         if security_level == SecurityLevel.UNTRUSTED and resource_count > 0:
-            violations.append("Resource-intensive operations not allowed at untrusted level")
+            violations.append(
+                "Resource-intensive operations not allowed at untrusted level"
+            )
         elif security_level == SecurityLevel.LIMITED and resource_count > 2:
             warnings.append("Multiple resource-intensive operations detected")
 
