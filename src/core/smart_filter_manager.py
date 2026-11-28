@@ -6,7 +6,6 @@ performance monitoring, and integration with the advanced workflow engine.
 It follows the same patterns as other core modules in the src/core directory.
 """
 
-import asyncio
 import json
 import logging
 import os
@@ -15,12 +14,11 @@ import sqlite3
 from collections import Counter
 from dataclasses import dataclass
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional, Set, Union
-from pathlib import Path
+from typing import Any, Dict, List, Optional, Union
 
 from .database import DATA_DIR
 from .performance_monitor import log_performance
-from .enhanced_caching import EnhancedCachingManager
+from .caching import get_cache_manager
 from .enhanced_error_reporting import (
     log_error,
     ErrorSeverity,
@@ -32,6 +30,9 @@ logger = logging.getLogger(__name__)
 
 # Define paths for data storage
 DEFAULT_DB_PATH = os.path.join(DATA_DIR, "smart_filters.db")
+
+# Pre-compile regex to avoid cache lookup overhead during batch email processing
+_KEYWORD_PATTERN = re.compile(r"\b[a-zA-Z]{3,}\b")
 
 
 @dataclass
@@ -100,17 +101,30 @@ class FilterPerformance:
     false_negatives: int
 
 
-@dataclass
 class _EmailContext:
     """
     Internal context helper to avoid redundant processing of email fields
-    during filter application loop.
+    during filter application loop. Uses lazy evaluation for large text fields
+    to save CPU cycles and memory allocations when filters fail early.
     """
-    email: Dict[str, Any]
-    sender_domain: str
-    subject_lower: str
-    content_lower: str
-    sender_lower: str
+    def __init__(self, email: Dict[str, Any], sender_domain: str, sender_lower: str):
+        self.email = email
+        self.sender_domain = sender_domain
+        self.sender_lower = sender_lower
+        self._subject_lower: Optional[str] = None
+        self._content_lower: Optional[str] = None
+
+    @property
+    def subject_lower(self) -> str:
+        if self._subject_lower is None:
+            self._subject_lower = self.email.get("subject", "").lower()
+        return self._subject_lower
+
+    @property
+    def content_lower(self) -> str:
+        if self._content_lower is None:
+            self._content_lower = self.email.get("content", self.email.get("body", "")).lower()
+        return self._content_lower
 
 
 class SmartFilterManager:
@@ -143,7 +157,7 @@ class SmartFilterManager:
         self.pruning_criteria = self._load_pruning_criteria()
 
         # Enhanced caching system
-        self.caching_manager = EnhancedCachingManager()
+        self.caching_manager = get_cache_manager()
 
         # State
         self._dirty_data: set[str] = set()
@@ -198,6 +212,54 @@ class SmartFilterManager:
                     component="SmartFilterManager",
                     operation="_db_execute",
                     additional_context={"query": query[:100]}
+                )
+                error_id = log_error(
+                    e,
+                    severity=ErrorSeverity.ERROR,
+                    category=ErrorCategory.INTEGRATION,
+                    context=error_context
+                )
+                self.logger.error(f"Database error: {e} with query: {query[:100]}. Error ID: {error_id}")
+                raise
+            finally:
+                self._close_db_connection(conn)
+
+    def _db_executemany(self, query: str, params_list: List[tuple], retries: int = 3):
+        """Execute a batch query (INSERT, UPDATE) with retry logic for robustness."""
+        for attempt in range(retries):
+            conn = self._get_db_connection()
+            try:
+                conn.executemany(query, params_list)
+                conn.commit()
+                return
+            except sqlite3.OperationalError as e:
+                if "database is locked" in str(e) and attempt < retries - 1:
+                    self.logger.warning(f"Database locked, retrying ({attempt + 1}/{retries}): {e}")
+                    import time
+
+                    time.sleep(0.1 * (attempt + 1))  # Exponential backoff
+                    continue
+                else:
+                    error_context = create_error_context(
+                        component="SmartFilterManager",
+                        operation="_db_executemany",
+                        additional_context={"query": query[:100], "attempt": attempt, "batch_size": len(params_list)}
+                    )
+                    error_id = log_error(
+                        e,
+                        severity=ErrorSeverity.ERROR,
+                        category=ErrorCategory.INTEGRATION,
+                        context=error_context
+                    )
+                    self.logger.error(
+                        f"Database error after {retries} attempts: {e} with query: {query[:100]}. Error ID: {error_id}"
+                    )
+                    raise
+            except sqlite3.Error as e:
+                error_context = create_error_context(
+                    component="SmartFilterManager",
+                    operation="_db_executemany",
+                    additional_context={"query": query[:100], "batch_size": len(params_list)}
                 )
                 error_id = log_error(
                     e,
@@ -285,7 +347,7 @@ class SmartFilterManager:
             return
 
         # Initialize caching manager
-        await self.caching_manager._ensure_initialized()
+        # CacheManager doesn't need explicit initialization
 
         self._initialized = True
         logger.info("SmartFilterManager fully initialized")
@@ -386,7 +448,7 @@ class SmartFilterManager:
         """Extracts meaningful keywords from a string of text."""
         if not text:
             return []
-        return [word for word in re.findall(r"\b[a-zA-Z]{3,}\b", text.lower()) if len(word) > 3]
+        return [word for word in _KEYWORD_PATTERN.findall(text.lower()) if len(word) > 3]
 
     def _is_automated_email(self, email: Dict[str, Any]) -> bool:
         """Determines if an email is likely automated."""
@@ -577,8 +639,6 @@ class SmartFilterManager:
             ctx = _EmailContext(
                 email=context,
                 sender_domain=self._extract_domain(sender_email),
-                subject_lower=context.get("subject", "").lower(),
-                content_lower=context.get("content", context.get("body", "")).lower(),
                 sender_lower=sender_email.lower()
             )
         else:
@@ -692,8 +752,6 @@ class SmartFilterManager:
         email_context = _EmailContext(
             email=email_data,
             sender_domain=self._extract_domain(sender_email),
-            subject_lower=email_data.get("subject", "").lower(),
-            content_lower=email_data.get("content", email_data.get("body", "")).lower(),
             sender_lower=sender_email.lower()
         )
 
@@ -762,8 +820,13 @@ class SmartFilterManager:
         current_time = datetime.now(timezone.utc).isoformat()
         self._db_execute(update_query, (current_time, filter_id))
 
-        # Invalidate cache for active filters
-        await self.caching_manager.delete("active_filters_sorted")
+        # OPTIMIZATION: Removed redundant cache invalidation for "active_filters_sorted".
+        # Why: Invalidating this cache on every filter match causes a "thundering herd"
+        # effect where the entire filter list is re-fetched from DB for every matched email.
+        # Impact: Turns O(N) DB reads into O(1) cache hits during batch processing.
+        # Trade-off: Usage counts in the cached list will be slightly stale until TTL expires,
+        # which is acceptable as they are not used for filter logic (priority/criteria).
+        # await self.caching_manager.delete("active_filters_sorted")
 
     async def _batch_update_filter_usage(self, filters: List[EmailFilter]):
         """
@@ -773,24 +836,31 @@ class SmartFilterManager:
         invalidating the entire sorted list cache, significantly improving
         performance when multiple filters match an email.
         """
+        if not filters:
+            return
+
         current_time = datetime.now(timezone.utc)
         current_time_iso = current_time.isoformat()
 
+        # Prepare batch update parameters
+        update_params = []
         for filter_obj in filters:
-            # Update DB (could be further optimized with executemany but this is already better)
-            update_query = """
-                UPDATE email_filters
-                SET usage_count = usage_count + 1, last_used = ?
-                WHERE filter_id = ?
-            """
-            # We use _db_execute for each to ensure robustness, but we could optimize later
-            self._db_execute(update_query, (current_time_iso, filter_obj.filter_id))
+            update_params.append((current_time_iso, filter_obj.filter_id))
 
             # Update object in memory (updates the reference in cache if it exists there)
             filter_obj.usage_count += 1
             filter_obj.last_used = current_time
 
-            # Invalidate single filter cache just in case
+        # Execute single batch update query
+        update_query = """
+            UPDATE email_filters
+            SET usage_count = usage_count + 1, last_used = ?
+            WHERE filter_id = ?
+        """
+        self._db_executemany(update_query, update_params)
+
+        # Invalidate single filter caches
+        for filter_obj in filters:
             await self.caching_manager.delete(f"filter_{filter_obj.filter_id}")
 
         # NOTE: We specifically DO NOT invalidate "active_filters_sorted" here.
@@ -928,4 +998,4 @@ class SmartFilterManager:
     async def cleanup(self):
         """Performs cleanup operations."""
         await self.close()
-        await self.caching_manager.close()
+        # CacheManager doesn't have a close method and is global/shared

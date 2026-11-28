@@ -1,0 +1,139 @@
+#!/bin/bash
+
+# Post-push hook for orchestration validation
+# Ensures pushed changes maintain orchestration integrity across branches
+
+# Recursion prevention: Exit if sync is already active
+if [[ "$ORCHESTRATION_SYNC_ACTIVE" == "1" ]]; then
+    exit 0
+fi
+
+# Check for disable flag
+if [[ "$DISABLE_ORCHESTRATION_CHECKS" == "1" ]]; then
+    echo "Orchestration checks disabled, skipping post-push validation"
+    exit 0
+fi
+
+set -e
+
+# Get current branch and push info
+CURRENT_BRANCH="$(git rev-parse --abbrev-ref HEAD)"
+REMOTE_NAME="${1:-origin}"
+REMOTE_BRANCH="${2:-$CURRENT_BRANCH}"
+
+echo "Post-push hook triggered on branch: $CURRENT_BRANCH"
+echo "Pushed to: $REMOTE_NAME/$REMOTE_BRANCH"
+
+# Branch-specific post-push validations
+case "$CURRENT_BRANCH" in
+    "orchestration-tools")
+        echo "Validating orchestration-tools push..."
+
+        # Ensure critical orchestration files are present on remote
+        REQUIRED_FILES=(
+            "emailintelligence_cli.py"
+            "scripts/bash/create-pr-resolution-spec.sh"
+            "scripts/bash/gh-pr-ci-integration.sh"
+            "scripts/bash/pr-test-executor.sh"
+            "scripts/hooks/post-merge"
+            "scripts/hooks/pre-commit"
+            "scripts/hooks/post-commit"
+            "scripts/hooks/post-push"
+        )
+
+        for file in "${REQUIRED_FILES[@]}"; do
+            if git ls-remote --exit-code "$REMOTE_NAME" "$REMOTE_BRANCH:$file" >/dev/null 2>&1; then
+                echo "✓ $file present on remote"
+            else
+                echo "WARNING: $file not found on remote after push"
+            fi
+        done
+
+        # Validate orchestration script permissions on remote
+        echo "✓ Orchestration-tools push validation complete"
+        ;;
+
+    "main"|"scientific")
+        echo "Validating $CURRENT_BRANCH push..."
+
+        # Check if orchestration setup is maintained
+        if git ls-remote --exit-code "$REMOTE_NAME" "$REMOTE_BRANCH:setup/setup_environment_system.sh" >/dev/null 2>&1; then
+            echo "✓ Orchestration setup maintained on remote"
+        else
+            echo "WARNING: Orchestration setup may be missing on remote"
+        fi
+
+        # Validate Task Master compatibility if present
+        if [[ -d ".taskmaster" ]]; then
+            if git ls-remote --exit-code "$REMOTE_NAME" "$REMOTE_BRANCH:.taskmaster/config.json" >/dev/null 2>&1; then
+                echo "✓ Task Master configuration present on remote"
+            else
+                echo "WARNING: Task Master configuration missing on remote"
+            fi
+        fi
+
+        echo "✓ Branch push validation complete"
+        ;;
+
+    "taskmaster")
+        echo "Validating Task Master push..."
+
+        # Ensure Task Master core files are on remote
+        TASKMASTER_FILES=(
+            "AGENT.md"
+            "AGENTS.md"
+            "scripts/next_task.py"
+            "scripts/list_tasks.py"
+            "scripts/show_task.py"
+        )
+
+        for file in "${TASKMASTER_FILES[@]}"; do
+            if git ls-remote --exit-code "$REMOTE_NAME" "$REMOTE_BRANCH:$file" >/dev/null 2>&1; then
+                echo "✓ $file present on remote"
+            else
+                echo "ERROR: Required Task Master file $file missing on remote"
+                exit 1
+            fi
+        done
+
+        echo "✓ Task Master push validation complete"
+        ;;
+
+    *)
+        echo "Running generic post-push checks for branch: $CURRENT_BRANCH"
+        ;;
+esac
+
+# Common post-push validations for all branches
+
+# Check for any broken references in pushed commits
+echo "Checking for potential issues in pushed commits..."
+
+# Get the range of commits that were pushed
+if [[ -n "$3" && -n "$4" ]]; then
+    PUSHED_COMMITS="$3..$4"
+else
+    # Fallback: check last commit
+    PUSHED_COMMITS="HEAD~1..HEAD"
+fi
+
+# Check for large files in pushed commits
+LARGE_FILES=$(git diff --name-only "$PUSHED_COMMITS" | xargs ls -l 2>/dev/null | awk '$5 > 100000000 {print $9}' | wc -l)
+if [[ $LARGE_FILES -gt 0 ]]; then
+    echo "WARNING: Large files detected in pushed commits"
+    echo "Consider using Git LFS for files >100MB"
+fi
+
+# Validate commit messages follow conventions
+INVALID_COMMITS=$(git log --oneline "$PUSHED_COMMITS" | grep -v -E "^[a-f0-9]+ (feat|fix|docs|style|refactor|test|chore|perf|ci|build|revert)(\(.+\))?: " | wc -l)
+if [[ $INVALID_COMMITS -gt 0 ]]; then
+    echo "WARNING: $INVALID_COMMITS commit(s) don't follow conventional commit format"
+    echo "Consider using format: 'type(scope): description'"
+fi
+
+# Log push event for orchestration tracking
+if [[ -n "$ORCHESTRATION_LOG" ]]; then
+    echo "$(date '+%Y-%m-%d %H:%M:%S') PUSH $CURRENT_BRANCH $REMOTE_NAME/$REMOTE_BRANCH" >> "$ORCHESTRATION_LOG"
+fi
+
+echo "✓ Post-push validation completed successfully"

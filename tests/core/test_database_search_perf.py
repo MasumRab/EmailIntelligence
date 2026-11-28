@@ -18,6 +18,7 @@ def db_manager(db_config):
     # Mock caching manager to isolate behavior
     manager.caching_manager = MagicMock()
     manager.caching_manager.get_email_content.return_value = None
+    manager.caching_manager.get_query_result.return_value = None
     manager.emails_data = []
     manager.emails_by_id = {}
     # Ensure initialized to avoid side effects
@@ -66,6 +67,9 @@ async def test_search_emails_offloads_io(db_manager, tmp_path):
     heavy_data = {FIELD_CONTENT: "This has the hidden keyword"}
     with gzip.open(content_path, "wt", encoding="utf-8") as f:
         json.dump(heavy_data, f)
+
+    # Update content index manually since we created file backdoor
+    db_manager._content_available_index.add(email_id)
 
     # Spy on asyncio.to_thread
     with patch("asyncio.to_thread", side_effect=asyncio.to_thread) as mock_to_thread:

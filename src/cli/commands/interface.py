@@ -78,12 +78,27 @@ class Command(ABC):
         """
         Set the dependencies for this command.
 
-        This method can be overridden by concrete implementations
-        to store injected dependencies.
-
         Args:
             dependencies: Dictionary of dependency names to instances
         """
-        # Default implementation does nothing
-        # Concrete classes can override this to store dependencies
-        pass
+        self._missing_deps = []
+        for name in self.get_dependencies():
+            if name in dependencies and isinstance(dependencies[name], str):
+                self._missing_deps.append((name, dependencies[name]))
+
+        # Store for subclasses
+        self._injected_dependencies = dependencies
+
+    def check_dependencies(self) -> int:
+        """
+        Check if all dependencies were successfully injected.
+
+        Returns:
+            int: 0 if all dependencies are present, 1 otherwise
+        """
+        if hasattr(self, "_missing_deps") and self._missing_deps:
+            print(f"Error: Command '{self.name}' is missing required dependencies:")
+            for name, reason in self._missing_deps:
+                print(f"  - {name}: {reason}")
+            return 1
+        return 0
