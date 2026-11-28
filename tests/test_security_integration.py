@@ -123,6 +123,52 @@ class TestSecurityIntegration:
         # Test performance monitor initialization
         assert performance_monitor is not None
 
+    def test_audit_logging_queue_full(self, secure_client):
+        """Test that audit logging handles a full queue gracefully."""
+        from src.core.audit_logger import AuditEvent, AuditEventType, AuditSeverity, AuditLogger
+        # Construct a local instance with a small queue and no consumer thread running
+        local_logger = AuditLogger(max_queue_size=2)
+        # Patch process events to avoid thread complications
+        local_logger._stop_event.set()
+        if local_logger._processing_thread.is_alive():
+            local_logger._processing_thread.join(timeout=1.0)
+            
+        # Fill the queue to exactly capacity
+        local_logger._event_queue.put_nowait(AuditEvent(event_id='1', timestamp='1', user_id='1', session_id='1', ip_address='1', user_agent='1', resource='1', action='1', result='1', details={}, metadata={}, event_type=AuditEventType.EMAIL_ACCESS, severity=AuditSeverity.LOW))
+        local_logger._event_queue.put_nowait(AuditEvent(event_id='2', timestamp='2', user_id='1', session_id='1', ip_address='1', user_agent='1', resource='1', action='1', result='1', details={}, metadata={}, event_type=AuditEventType.EMAIL_ACCESS, severity=AuditSeverity.LOW))
+        
+        with patch.object(local_logger, "_write_event_immediate") as mock_write:
+            # Should not raise exception
+            local_logger.log_api_access(
+                user_id="test_user",
+                endpoint="/api/test_full_queue",
+                method="GET",
+                status_code=200,
+                ip_address="127.0.0.1",
+                response_time=0.1,
+            )
+            mock_write.assert_called_once()
+            
+    def test_audit_logging_queue_empty(self, secure_client):
+        """Test that audit logging handles an empty queue gracefully and keeps the thread alive."""
+        import time
+        from src.core.audit_logger import AuditLogger
+        
+        # Test on main branch logic, if the timeout occurs and exception escapes the thread will die.
+        # But we must allow the timeout to trigger!
+        # The timeout on main is 1.0s.
+        
+        local_logger = AuditLogger(max_queue_size=5)
+        
+        # Wait for longer than the 1.0s timeout in _process_events
+        time.sleep(1.5)
+        
+        # The thread should still be alive (if it survives Empty exception)
+        # We assert it's alive, which will fail on main because of _queue.Empty
+        assert local_logger._processing_thread.is_alive()
+        
+        local_logger.shutdown()
+
     def test_security_middleware_creation(self):
         """Test that security middleware can be created."""
         app = FastAPI()

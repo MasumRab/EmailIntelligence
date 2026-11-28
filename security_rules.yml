@@ -1,0 +1,135 @@
+id: detect-critical-issues
+language: python
+severity: ERROR
+
+rules:
+  # Security Findings
+  - id: hardcoded-secret
+    pattern: $SECRET = "$$$"
+    message: "Hardcoded secret found. Consider using environment variables."
+    severity: ERROR
+    lexer: python
+
+  - id: unsafe-eval
+    pattern: eval($$$)
+    message: "Unsafe eval() usage detected. Use safer alternatives."
+    severity: ERROR
+    lexer: python
+
+  - id: shell-injection
+    pattern: subprocess.$METHOD($$$)
+    message: "Potential command injection detected. Use subprocess.run() with proper quoting."
+    severity: ERROR
+    lexer: python
+    justification:
+    - "subprocess.Popen is preferred over subprocess.run for complex operations"
+    - "os.system() is highly discouraged"
+
+  # Configuration Security
+  - id: insecure-config
+    pattern: settings.$INSECURE($$$)
+    message: "Insecure setting usage detected: $INSECURE"
+    severity: WARNING
+    lexer: python
+    justification:
+    - "Settings like upload_enable, debug, and verify_hostnames should be carefully vetted"
+
+  # Dependency Safety
+  - id: outdated-dependency
+    pattern: requests>=$$
+    message: "Outdated dependency version detected: requests.$$"
+    severity: WARNING
+    lexer: python
+    justification:
+    - "Consider updating to the latest secure version"
+
+  # Data Validation
+  - id: missing-validation
+    pattern: $OBJ.save($$$)
+    message: "Direct database save without validation for $OBJ"
+    severity: WARNING
+    lexer: python
+
+  # Security Best Practices
+  - id: missing-sanitization
+    pattern: HTML($$$)
+    message: "HTML constructor used without sanitization. Use html.escape()."
+    severity: WARNING
+    lexer: python
+
+---
+id: detect-architecture-issues
+language: python
+severity: NOTICE
+
+rules:
+  # Circular Dependency Detection
+  - id: circular-dependency
+    pattern: from src.core.$FIRST import $$$
+      $CODE
+      from src.$SECOND import $$$
+    message: "Potential circular dependency between $FIRST and $SECOND modules"
+    severity: NOTICE
+    lexer: python
+    justification:
+    - "Circular dependencies can cause import issues and reduce testability"
+    - "Consider refactoring to move shared code to a new module"
+
+  # Service Layer Concerns
+  - id: service-boundary-violation
+    pattern: from src.modules.$MODULE import $$$
+    message: "Import from modules in service layer: $MODULE"
+    severity: NOTICE
+    lexer: python
+
+  # Controller-Service Separation
+  - id: mixed-layers
+    pattern: def $FUN($$$)
+    message: "Method $FUN appears in wrong layer. Check service vs controller separation."
+    severity: NOTICE
+    lexer: python
+
+---
+id: detect-code-quality-issues
+language: python
+severity: WARNING
+
+rules:
+  # Error Handling Gone Wrong
+  - id: bare-except
+    pattern: except: $ACION
+    message: "Bare except clause detected. Use specific exception types."
+    severity: WARNING
+
+  - id: missing-error-handling
+    pattern: $CODE
+      $SKIP
+      return $RESULT
+    message: "Potential missing error handling in critical code path"
+    severity: NOTICE
+
+  # Async Issues
+  - id: sync-in-async-context
+    pattern: sync_operation($$$)
+    message: "Synchronous operation in async context. Use await or run_in_executor."
+    severity: ERROR
+
+  - id: async-without-try
+    pattern: async def $FUN($$$)
+      $BODY
+    message: "Async function without try/except for error handling"
+    severity: WARNING
+
+  # API Consistency
+  - id: missing-api-docs
+    pattern: def $FUN($$$)
+    message: "Function '$FUN' is missing docstring"
+    severity: NOTICE
+    legics:
+    - "Ensure all public functions have docstrings for API documentation"
+
+  # Code Quality
+  - id: long-function
+    pattern: def $FUN($$$)
+    message: "Function '$FUN' exceeds maximum length. Consider refactoring."
+    severity: NOTICE

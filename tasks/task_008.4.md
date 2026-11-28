@@ -1,0 +1,180 @@
+# Task 008.4: Integrate Existing Unit and Integration Tests
+
+**Status:** specified
+**Priority:** high
+**Effort:** 3-4 hours
+**Complexity:** 5/10
+**Dependencies:** 008.1
+
+---
+
+## Overview/Purpose
+
+Configure CI to execute full test suite and block on failures.
+
+## Success Criteria
+
+- [ ] Tests run in CI
+- [ ] Coverage reported
+- [ ] Failures block merge
+- [ ] Coverage threshold enforced
+
+## Prerequisites & Dependencies
+
+### Required Before Starting
+- [ ] No external prerequisites
+
+### Blocks (What This Task Unblocks)
+- [ ] No specific blocks defined
+
+### External Dependencies
+- [ ] No external dependencies
+
+## Sub-subtasks Breakdown
+
+
+## Specification Details
+
+### Task Interface
+- **ID**: 008.4
+- **Title**: Integrate Existing Unit and Integration Tests
+- **Status**: specified
+- **Priority**: high
+- **Effort**: 3-4 hours
+- **Complexity**: 5/10
+
+### Requirements
+1. The existing suite is invoked with the same path list and flags CI uses
+   (`tests/ src/ modules/`, `--cov-fail-under=70`), so the new gate cannot pass on a subset.
+2. The gate treats a collection error as a failure. `pytest` exits 2 on a collection error and 1 on
+   a test failure; a gate that only tests `!= 0` is correct, a gate that greps for "failed" is not.
+3. The per-test result is captured in `junitxml` form (`--junitxml=reports/junit.xml`) and attached
+   as a workflow artifact, so a failure can be attributed to a named test rather than a count.
+4. Tests that are known-red at the base commit are listed explicitly with their ids, not silenced
+   with a skip marker added in the same PR.
+
+## Implementation Guide
+
+Add the step to `.github/workflows/merge-validation.yml` and reuse `ci.yml`'s flags verbatim.
+
+```bash
+uv run pytest tests/ src/ modules/ -v --tb=short --junitxml=reports/junit.xml   --cov=src --cov=modules --cov-fail-under=70; echo "exit=$?"
+```
+
+Run it once on `main` before wiring the gate. The exit code on an unmodified tree is the baseline
+the gate has to beat; if it is already non-zero, that is the first finding, not a reason to add
+`a swallow`.
+
+
+## Purpose
+
+Configure CI to execute full test suite and block on failures.
+
+---
+
+## Details
+
+Add pytest execution to GitHub Actions workflow.
+
+### Implementation
+
+```yaml
+# In .github/workflows/merge-validation.yml
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install pytest pytest-cov
+      - name: Run tests
+        run: |
+          pytest src/ --cov --cov-report=xml --tb=short
+      - name: Upload coverage
+        uses: codecov/codecov-action@v3
+        with:
+          files: ./coverage.xml
+```
+
+### Test Configuration
+
+- `pytest.ini` or `pyproject.toml` configuration
+- Coverage threshold: 90%
+- Fail-fast: enabled
+
+---
+
+## Progress Log
+
+### 2026-01-06
+- Subtask file created
+- Ready for implementation
+
+---
+
+## Next Steps
+
+After completion, proceed to **Task 008.5**: Develop E2E Smoke Tests
+**Priority:** high
+**Effort:** 3-4 hours
+**Complexity:** 5/10
+**Dependencies:** 008.1
+**Created:** 2026-01-06
+**Parent:** Task 008: Create Comprehensive Merge Validation Framework
+
+---
+
+## Configuration Parameters
+
+- **Owner**: TBD
+- **Initiative**: TBD
+- **Scope**: TBD
+- **Focus**: TBD
+
+## Performance Targets
+
+- **Effort Range**: TBD
+- **Complexity Level**: TBD
+
+## Testing Strategy
+
+### Unit Tests
+- [ ] Tests cover core functionality
+- [ ] Edge cases handled appropriately
+- [ ] Performance benchmarks met
+
+### Integration Tests
+- [ ] Integration with dependent components verified
+- [ ] End-to-end workflow tested
+- [ ] Error handling verified
+
+### Test Strategy Notes
+
+
+## Common Gotchas & Solutions
+
+- [ ] [Common issues and solutions to be documented]
+
+## Integration Checkpoint
+
+### Criteria for Moving Forward
+- [ ] All success criteria met
+- [ ] Code reviewed and approved
+- [ ] Tests passing
+- [ ] Documentation updated
+- [ ] No critical or high severity issues
+
+## Done Definition
+
+### Completion Criteria
+- [ ] All success criteria checkboxes marked complete
+- [ ] Code quality standards met (PEP 8, documentation)
+- [ ] Performance targets achieved
+- [ ] All subtasks completed
+- [ ] Integration checkpoint criteria satisfied

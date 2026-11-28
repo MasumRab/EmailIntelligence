@@ -1,16 +1,12 @@
 import gradio as gr
 import json
 import time
-import random
 import os
-import asyncio
 import logging
 from datetime import datetime
-from typing import Dict, Any, List, Optional
 
 # Import Adapter
 from modules.new_ui.backend_adapter import BackendClient
-from modules.new_ui.utils import clean_text, extract_keywords
 
 # Configure Logging
 logging.basicConfig(level=logging.INFO)
@@ -122,7 +118,7 @@ def get_dashboard_stats() -> tuple:
         else:
             display_stats[key] = val
 
-    summary = f"""
+    summary = """
 📊 **System Metrics**
 
 See raw JSON for detailed performance breakdowns.
