@@ -1,0 +1,195 @@
+name: Extract Orchestration Changes
+
+on:
+  push:
+    branches-ignore:
+      - orchestration-tools
+      - orchestration-tools-changes
+      - main
+    paths:
+      - 'setup/**'
+      - 'deployment/**'
+      - 'scripts/lib/**'
+      - 'scripts/install-hooks.sh'
+      - 'scripts/sync_setup_worktrees.sh'
+      - 'scripts/reverse_sync_orchestration.sh'
+      - 'scripts/cleanup_orchestration.sh'
+      - '.flake8'
+      - '.pylintrc'
+      - 'pyproject.toml'
+      - 'requirements.txt'
+      - 'requirements-dev.txt'
+      - 'uv.lock'
+      - 'tsconfig.json'
+      - 'tailwind.config.ts'
+      - 'vite.config.ts'
+      - 'drizzle.config.ts'
+      - 'components.json'
+      - '.gitignore'
+      - '.gitattributes'
+      - 'launch.py'
+
+jobs:
+  extract-changes:
+    runs-on: ubuntu-latest
+    
+    permissions:
+      contents: write
+      pull-requests: write
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Git
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+
+      - name: Detect Orchestration Changes
+        id: detect
+        run: |
+          SOURCE_BRANCH="${GITHUB_REF#refs/heads/}"
+          
+          # Get list of changed files
+          CHANGED=$(git diff --name-only origin/main..HEAD 2>/dev/null || echo "")
+          
+          # Check if any orchestration files changed
+          ORCH_CHANGED=$(echo "$CHANGED" | grep -E '^(setup/|deployment/|scripts/lib/|scripts/install-hooks.sh|scripts/sync_setup_worktrees.sh|scripts/reverse_sync_orchestration.sh|scripts/cleanup_orchestration.sh|\.flake8|\.pylintrc|pyproject.toml|requirements|uv\.lock|tsconfig\.json|tailwind\.config\.ts|vite\.config\.ts|drizzle\.config\.ts|components\.json|\.gitignore|\.gitattributes|launch\.py)' || echo "")
+          
+          if [[ -z "$ORCH_CHANGED" ]]; then
+            echo "No orchestration files changed"
+            echo "detected=false" >> $GITHUB_OUTPUT
+          else
+            echo "Orchestration files detected:"
+            echo "$ORCH_CHANGED"
+            echo "detected=true" >> $GITHUB_OUTPUT
+            echo "source_branch=$SOURCE_BRANCH" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Extract Orchestration Files
+        if: steps.detect.outputs.detected == 'true'
+        run: |
+          SOURCE_BRANCH="${{ steps.detect.outputs.source_branch }}"
+          TARGET_BRANCH="orchestration-tools-changes"
+          BASE_BRANCH="main"
+          
+          echo "📦 Extracting orchestration changes from $SOURCE_BRANCH..."
+          
+          # Fetch orchestration-tools-changes (create if doesn't exist)
+          git fetch origin "$TARGET_BRANCH" 2>/dev/null || {
+            echo "Creating new $TARGET_BRANCH branch"
+            git checkout --orphan "$TARGET_BRANCH"
+            git rm -rf .
+            git commit --allow-empty -m "Initial orchestration-tools-changes branch"
+          }
+          
+          # Check out target branch
+          git checkout "$TARGET_BRANCH" || git checkout -b "$TARGET_BRANCH"
+          
+          # Reset to base branch
+          git reset --hard "$BASE_BRANCH"
+          
+          # Extract only orchestration files from source
+          echo "Checking out orchestration files from $SOURCE_BRANCH..."
+          
+          # Lists of orchestration patterns
+          ORCH_FILES=(
+            "setup/"
+            "deployment/"
+            "scripts/lib/"
+            "scripts/install-hooks.sh"
+            "scripts/sync_setup_worktrees.sh"
+            "scripts/reverse_sync_orchestration.sh"
+            "scripts/cleanup_orchestration.sh"
+            ".flake8"
+            ".pylintrc"
+            "pyproject.toml"
+            "requirements.txt"
+            "requirements-dev.txt"
+            "uv.lock"
+            "tsconfig.json"
+            "tailwind.config.ts"
+            "vite.config.ts"
+            "drizzle.config.ts"
+            "components.json"
+            ".gitignore"
+            ".gitattributes"
+            "launch.py"
+          )
+          
+          # Check out each orchestration file from source
+          for file in "${ORCH_FILES[@]}"; do
+            if git show "$SOURCE_BRANCH:$file" >/dev/null 2>&1; then
+              echo "Extracting: $file"
+              git show "$SOURCE_BRANCH:$file" > "$file"
+              git add "$file"
+            fi
+          done
+          
+          # Create squashed commit with summary
+          COMMIT_MSG="chore: extract orchestration changes from $SOURCE_BRANCH
+
+Automatically extracted by GitHub Actions.
+
+Source branch: $SOURCE_BRANCH
+Extraction timestamp: $(date -u +'%Y-%m-%dT%H:%M:%SZ')
+
+Changed orchestration files:
+$(git diff --cached --name-only | sed 's/^/  - /')"
+          
+          git commit -m "$COMMIT_MSG" || {
+            echo "No changes to commit - orchestration files unchanged"
+            exit 0
+          }
+          
+          echo "✓ Extraction complete"
+
+      - name: Force Push to Remote
+        if: steps.detect.outputs.detected == 'true'
+        run: |
+          TARGET_BRANCH="orchestration-tools-changes"
+          git push -f origin "$TARGET_BRANCH"
+          echo "✓ Pushed to $TARGET_BRANCH"
+
+      - name: Post Comment on PR
+        if: steps.detect.outputs.detected == 'true' && github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const sourceRef = context.payload.pull_request.head.ref;
+            const prNumber = context.issue.number;
+            
+            github.rest.issues.createComment({
+              issue_number: prNumber,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `🔧 **Orchestration Changes Detected**
+
+Orchestration files from this PR have been extracted to [\`orchestration-tools-changes\`](https://github.com/${{ github.repository }}/tree/orchestration-tools-changes).
+
+**Next Steps:**
+1. Review the extracted changes
+2. When ready, merge to orchestration-tools via PR or cherry-pick
+3. All branches will sync automatically
+
+**View extracted changes:**
+- Diff: [\`orchestration-tools-changes\` diff](https://github.com/${{ github.repository }}/compare/main...orchestration-tools-changes)
+- Commit: View \`orchestration-tools-changes\` branch latest commit`
+            });
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "## Orchestration Extraction Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Branch:** ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Detected:** ${{ steps.detect.outputs.detected }}" >> $GITHUB_STEP_SUMMARY
+          if [[ "${{ steps.detect.outputs.detected }}" == "true" ]]; then
+            echo "**Status:** ✅ Orchestration files extracted to \`orchestration-tools-changes\`" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "**Status:** ℹ️ No orchestration files changed" >> $GITHUB_STEP_SUMMARY
+          fi
