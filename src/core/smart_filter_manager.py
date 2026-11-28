@@ -6,7 +6,6 @@ performance monitoring, and integration with the advanced workflow engine.
 It follows the same patterns as other core modules in the src/core directory.
 """
 
-import asyncio
 import json
 import logging
 import os
@@ -15,12 +14,11 @@ import sqlite3
 from collections import Counter
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional, Set, Union
-from pathlib import Path
+from typing import Any, Dict, List, Optional, Union
 
 from .database import DATA_DIR
 from .performance_monitor import log_performance
-from .enhanced_caching import EnhancedCachingManager
+from .caching import get_cache_manager
 from .enhanced_error_reporting import (
     log_error,
     ErrorSeverity,
@@ -32,6 +30,9 @@ logger = logging.getLogger(__name__)
 
 # Define paths for data storage
 DEFAULT_DB_PATH = os.path.join(DATA_DIR, "smart_filters.db")
+
+# Pre-compile regex to avoid cache lookup overhead during batch email processing
+_KEYWORD_PATTERN = re.compile(r"\b[a-zA-Z]{3,}\b")
 
 
 @dataclass
@@ -118,17 +119,30 @@ class FilterPerformance:
     false_negatives: int
 
 
-@dataclass
 class _EmailContext:
     """
     Internal context helper to avoid redundant processing of email fields
-    during filter application loop.
+    during filter application loop. Uses lazy evaluation for large text fields
+    to save CPU cycles and memory allocations when filters fail early.
     """
-    email: Dict[str, Any]
-    sender_domain: str
-    subject_lower: str
-    content_lower: str
-    sender_lower: str
+    def __init__(self, email: Dict[str, Any], sender_domain: str, sender_lower: str):
+        self.email = email
+        self.sender_domain = sender_domain
+        self.sender_lower = sender_lower
+        self._subject_lower: Optional[str] = None
+        self._content_lower: Optional[str] = None
+
+    @property
+    def subject_lower(self) -> str:
+        if self._subject_lower is None:
+            self._subject_lower = self.email.get("subject", "").lower()
+        return self._subject_lower
+
+    @property
+    def content_lower(self) -> str:
+        if self._content_lower is None:
+            self._content_lower = self.email.get("content", self.email.get("body", "")).lower()
+        return self._content_lower
 
 
 class SmartFilterManager:
@@ -161,7 +175,7 @@ class SmartFilterManager:
         self.pruning_criteria = self._load_pruning_criteria()
 
         # Enhanced caching system
-        self.caching_manager = EnhancedCachingManager()
+        self.caching_manager = get_cache_manager()
 
         # State
         self._dirty_data: set[str] = set()
@@ -351,7 +365,7 @@ class SmartFilterManager:
             return
 
         # Initialize caching manager
-        await self.caching_manager._ensure_initialized()
+        # CacheManager doesn't need explicit initialization
 
         self._initialized = True
         logger.info("SmartFilterManager fully initialized")
@@ -452,7 +466,7 @@ class SmartFilterManager:
         """Extracts meaningful keywords from a string of text."""
         if not text:
             return []
-        return [word for word in re.findall(r"\b[a-zA-Z]{3,}\b", text.lower()) if len(word) > 3]
+        return [word for word in _KEYWORD_PATTERN.findall(text.lower()) if len(word) > 3]
 
     def _is_automated_email(self, email: Dict[str, Any]) -> bool:
         """Determines if an email is likely automated."""
@@ -643,8 +657,6 @@ class SmartFilterManager:
             ctx = _EmailContext(
                 email=context,
                 sender_domain=self._extract_domain(sender_email),
-                subject_lower=context.get("subject", "").lower(),
-                content_lower=context.get("content", context.get("body", "")).lower(),
                 sender_lower=sender_email.lower()
             )
         else:
@@ -771,8 +783,6 @@ class SmartFilterManager:
         email_context = _EmailContext(
             email=email_data,
             sender_domain=self._extract_domain(sender_email),
-            subject_lower=email_data.get("subject", "").lower(),
-            content_lower=email_data.get("content", email_data.get("body", "")).lower(),
             sender_lower=sender_email.lower()
         )
 
@@ -841,8 +851,13 @@ class SmartFilterManager:
         current_time = datetime.now(timezone.utc).isoformat()
         self._db_execute(update_query, (current_time, filter_id))
 
-        # Invalidate cache for active filters
-        await self.caching_manager.delete("active_filters_sorted")
+        # OPTIMIZATION: Removed redundant cache invalidation for "active_filters_sorted".
+        # Why: Invalidating this cache on every filter match causes a "thundering herd"
+        # effect where the entire filter list is re-fetched from DB for every matched email.
+        # Impact: Turns O(N) DB reads into O(1) cache hits during batch processing.
+        # Trade-off: Usage counts in the cached list will be slightly stale until TTL expires,
+        # which is acceptable as they are not used for filter logic (priority/criteria).
+        # await self.caching_manager.delete("active_filters_sorted")
 
     async def _batch_update_filter_usage(self, filters: List[EmailFilter]):
         """
@@ -1014,4 +1029,4 @@ class SmartFilterManager:
     async def cleanup(self):
         """Performs cleanup operations."""
         await self.close()
-        await self.caching_manager.close()
+        # CacheManager doesn't have a close method and is global/shared

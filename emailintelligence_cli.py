@@ -88,7 +88,7 @@ class EmailIntelligenceCLI:
     def _conflict_to_template(self, conflict: Dict[str, Any], metadata: Dict[str, Any]) -> str:
         """Convert conflict data to specification template format"""
         template_lines = [
-            f"Conflict Analysis Report",
+            "Conflict Analysis Report",
             f"PR: {metadata.get('pr_number', 'Unknown')}",
             f"Source Branch: {metadata.get('source_branch', 'Unknown')}",
             f"Target Branch: {metadata.get('target_branch', 'Unknown')}",
@@ -128,7 +128,7 @@ class EmailIntelligenceCLI:
         compliant_count = sum(1 for r in all_results 
                             if r['result'].compliance_level.value in ['compliant', 'excellent'])
         
-        print(f"\nOverall Summary:")
+        print("\nOverall Summary:")
         print(f"  Files analyzed: {len(all_results)}")
         print(f"  Compliant files: {compliant_count}/{len(all_results)}")
         print(f"  Average compliance: {avg_score:.1%}")
@@ -251,7 +251,7 @@ class EmailIntelligenceCLI:
             # Step 1: Create resolution branch
             self._info(f"📁 Creating resolution branch: {resolution_branch}")
             subprocess.run(
-                ["git", "checkout", "-b", resolution_branch],
+                ["git", "checkout", "-b", resolution_branch, "--"],
                 cwd=self.repo_root,
                 check=True
             )
@@ -263,14 +263,14 @@ class EmailIntelligenceCLI:
 
             # Create worktree for source branch
             subprocess.run(
-                ["git", "worktree", "add", str(worktree_a_path), source_branch],
+                ["git", "worktree", "add", str(worktree_a_path), source_branch, "--"],
                 cwd=self.repo_root,
                 check=True
             )
 
             # Create worktree for target branch
             subprocess.run(
-                ["git", "worktree", "add", str(worktree_b_path), target_branch],
+                ["git", "worktree", "add", str(worktree_b_path), target_branch, "--"],
                 cwd=self.repo_root,
                 check=True
             )
@@ -352,7 +352,7 @@ class EmailIntelligenceCLI:
         try:
             # Get list of conflicting files
             result = subprocess.run(
-                ["git", "diff", "--name-only"],
+                ["git", "dif", "--name-only"],
                 cwd=worktree_a_path,
                 check=True,
                 capture_output=True,
@@ -539,7 +539,7 @@ class EmailIntelligenceCLI:
         total_violations = sum(len(r['result'].violations) for r in all_results)
         total_recommendations = sum(len(r['result'].recommendations) for r in all_results)
 
-        print(f"\nOverall Constitutional Analysis Summary:")
+        print("\nOverall Constitutional Analysis Summary:")
         print(f"  Files analyzed: {len(all_results)}")
         print(f"  Total violations: {total_violations}")
         print(f"  Total recommendations: {total_recommendations}")

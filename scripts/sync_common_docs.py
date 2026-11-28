@@ -114,7 +114,7 @@ class DocumentationSync:
         self.print_status("Checking worktree status")
 
         print("\nWorktrees found:")
-        os.system("git worktree list")
+        import subprocess; subprocess.run(["git", "worktree", "list"], check=True)
 
         print("\nWorktree documentation status:")
 

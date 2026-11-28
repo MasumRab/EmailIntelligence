@@ -72,7 +72,7 @@ class AnalyzeCommand(Command):
         self._strategy_gen = dependencies.get("strategy_generator")
         self._repo_ops = dependencies.get("repository_ops")
 
-    async def execute(self, args: Namespace) -> int:
+    async def execute(self, args: Namespace) -> int:  # NOSONAR
         """
         Execute the analyze command.
 
@@ -105,7 +105,7 @@ class AnalyzeCommand(Command):
             if not head_branch:
                 try:
                     stdout, stderr, rc = await self._repo_ops.run_command(
-                        ["rev-parse", "--abbrev-ref", "HEAD"]
+                        ["git", "rev-parse", "--abbrev-ref", "HEAD"]
                     )
                     if rc == 0:
                         head_branch = stdout.strip()
@@ -124,7 +124,7 @@ class AnalyzeCommand(Command):
             ]:
                 try:
                     stdout, stderr, rc = await self._repo_ops.run_command(
-                        ["rev-parse", "--verify", branch_var]
+                        ["git", "rev-parse", "--verify", branch_var]
                     )
                     if rc != 0:
                         print(

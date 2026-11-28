@@ -3,7 +3,6 @@ from contextlib import asynccontextmanager
 from typing import AsyncGenerator
 
 from .data_source import DataSource
-from .database import DatabaseManager
 from .ai_engine import ModernAIEngine
 from .data.repository import DatabaseEmailRepository, CachingEmailRepository, EmailRepository
 from .caching import init_cache_manager, CacheConfig, CacheBackend
